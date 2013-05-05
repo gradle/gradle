@@ -15,13 +15,15 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.ArtifactBuilder
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.util.TestFile
-import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.file.TestFile
+import org.junit.Test
+
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
+import static org.junit.Assert.assertThat
 
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test

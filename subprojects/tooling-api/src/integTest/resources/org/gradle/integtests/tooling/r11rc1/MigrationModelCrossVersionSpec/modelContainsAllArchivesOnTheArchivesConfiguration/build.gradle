@@ -1,9 +1,0 @@
-apply plugin: "java"
-
-task zip(type: Zip) {
-    from "file.txt"
-}
-
-artifacts {
-    archives zip
-}

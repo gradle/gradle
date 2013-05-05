@@ -29,9 +29,10 @@ import java.io.OutputStream;
  * <p>
  * Allows providing standard input that can be consumed by the gradle operation (useful for interactive builds).
  * <p>
- * Enables configuring the build run / model request with options like the Java home or jvm arguments.
+ * Enables configuring the build run / model request with options like the Java home or JVM arguments.
  * Those settings might not be supported by the target Gradle version. Refer to Javadoc for those methods
  * to understand what kind of exception throw and when is it thrown.
+ * @since 1.0-milestone-7
  */
 public interface LongRunningOperation {
 
@@ -41,6 +42,7 @@ public interface LongRunningOperation {
      *
      * @param outputStream The output stream.
      * @return this
+     * @since 1.0-milestone-7
      */
     LongRunningOperation setStandardOutput(OutputStream outputStream);
 
@@ -50,6 +52,7 @@ public interface LongRunningOperation {
      *
      * @param outputStream The output stream.
      * @return this
+     * @since 1.0-milestone-7
      */
     LongRunningOperation setStandardError(OutputStream outputStream);
 
@@ -65,7 +68,7 @@ public interface LongRunningOperation {
      *
      * @param inputStream The input stream
      * @return this
-     * @since 1.0-milestone-8
+     * @since 1.0-milestone-7
      */
     LongRunningOperation setStandardInput(InputStream inputStream);
 
@@ -120,8 +123,8 @@ public interface LongRunningOperation {
      * will be thrown at the time the operation is executed via {@link BuildLauncher#run()} or {@link ModelBuilder#get()}.
      * <p>
      * For the list of all Gradle command line options please refer to the user guide
-     * or take a look at the output of the 'gradle -?' command. Supported arguments are those modeled by
-     * {@link org.gradle.StartParameter}.
+     * or take a look at the output of the 'gradle -?' command. Majority of arguments modeled by
+     * {@link org.gradle.StartParameter} are supported.
      * <p>
      * The arguments can potentially override some other settings you have configured.
      * For example, the project directory or Gradle user home directory that are configured
@@ -142,6 +145,7 @@ public interface LongRunningOperation {
      *
      * @param listener The listener
      * @return this
+     * @since 1.0-milestone-7
      */
     LongRunningOperation addProgressListener(ProgressListener listener);
 

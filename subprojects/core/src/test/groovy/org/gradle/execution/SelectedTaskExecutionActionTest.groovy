@@ -15,13 +15,11 @@
  */
 package org.gradle.execution
 
-import spock.lang.Specification
-import org.gradle.api.internal.GradleInternal
 import org.gradle.StartParameter
-import org.gradle.api.tasks.TaskState
 import org.gradle.api.Task
-import org.gradle.api.internal.MultiCauseException
-import org.gradle.api.internal.AbstractMultiCauseException
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.tasks.TaskState
+import spock.lang.Specification
 
 class SelectedTaskExecutionActionTest extends Specification {
     final SelectedTaskExecutionAction action = new SelectedTaskExecutionAction()
@@ -59,7 +57,7 @@ class SelectedTaskExecutionActionTest extends Specification {
         1 * executer.execute()
     }
 
-    def "rethrows single failure after build when continue specified"() {
+    def "adds failure handler that does not abort execution when continue specified"() {
         TaskFailureHandler handler
         RuntimeException failure = new RuntimeException()
 
@@ -70,31 +68,8 @@ class SelectedTaskExecutionActionTest extends Specification {
         action.execute(context)
 
         then:
-        RuntimeException e = thrown()
-        e == failure
         1 * executer.useFailureHandler(!null) >> { handler = it[0] }
         1 * executer.execute() >> { handler.onTaskFailure(brokenTask(failure)) }
-    }
-
-    def "rethrows failures after build when continue specified"() {
-        TaskFailureHandler handler
-        RuntimeException failure1 = new RuntimeException()
-        RuntimeException failure2 = new RuntimeException()
-
-        given:
-        _ * startParameter.continueOnFailure >> true
-
-        when:
-        action.execute(context)
-
-        then:
-        AbstractMultiCauseException e = thrown()
-        e.causes == [failure1, failure2]
-        1 * executer.useFailureHandler(!null) >> { handler = it[0] }
-        1 * executer.execute() >> {
-            handler.onTaskFailure(brokenTask(failure1))
-            handler.onTaskFailure(brokenTask(failure2))
-        }
     }
 
     def brokenTask(Throwable failure) {
@@ -102,6 +77,7 @@ class SelectedTaskExecutionActionTest extends Specification {
         TaskState state = Mock()
         _ * task.state >> state
         _ * state.failure >> failure
+        _ * state.rethrowFailure() >> { throw failure }
         return task
     }
 }

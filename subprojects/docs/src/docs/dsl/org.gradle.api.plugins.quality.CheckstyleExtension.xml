@@ -29,6 +29,11 @@
                 <td><literal>[:]</literal></td>
                 <td><literal>project.checkstyleProperties</literal></td>
             </tr>
+            <tr>
+                <td>showViolations</td>
+                <td><literal>true</literal></td>
+                <td><literal>true</literal></td>
+            </tr>
         </table>
     </section>
     <section>

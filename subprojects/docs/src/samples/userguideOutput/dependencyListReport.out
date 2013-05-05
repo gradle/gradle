@@ -10,13 +10,20 @@ Project :api - The shared API for the application
 ------------------------------------------------------------
 
 compile
-\--- org.codehaus.groovy:groovy-all:1.8.4 [default]
+\--- org.codehaus.groovy:groovy-all:2.0.5
+
+testCompile
+\--- junit:junit:4.11
+     \--- org.hamcrest:hamcrest-core:1.3
 
 ------------------------------------------------------------
 Project :webapp - The Web application implementation
 ------------------------------------------------------------
 
 compile
-+--- projectReports:api:1.0-SNAPSHOT [compile]
-|    \--- org.codehaus.groovy:groovy-all:1.8.4 [default]
-\--- commons-io:commons-io:1.2 [default]
++--- projectReports:api:1.0-SNAPSHOT
+|    \--- org.codehaus.groovy:groovy-all:2.0.5
+\--- commons-io:commons-io:1.2
+
+testCompile
+No dependencies

@@ -54,6 +54,8 @@ public class TaskNameResolver {
             return selected;
         }
 
+        project.getTasks().materializePlaceholders();
+
         for (Task t : project.getTasks()) {
             selected.put(t.getName(), t);
         }
@@ -63,6 +65,7 @@ public class TaskNameResolver {
             }
         }
         for (Project additionalProject : additionalProjects) {
+            ((ProjectInternal)additionalProject).getTasks().materializePlaceholders();
             for (Task t : additionalProject.getTasks()) {
                 selected.put(t.getName(), t);
             }

@@ -29,7 +29,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultModuleDescriptorFactoryForClientModule implements ModuleDescriptorFactoryForClientModule {
-    // Because of bi directioal dependencies we need setter injection
+    // Because of bidirectional dependencies we need setter injection
     private DependencyDescriptorFactory dependencyDescriptorFactory;
 
     public ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies) {

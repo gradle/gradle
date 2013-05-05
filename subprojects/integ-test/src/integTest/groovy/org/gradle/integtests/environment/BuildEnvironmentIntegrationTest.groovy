@@ -18,7 +18,6 @@ package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -35,7 +34,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         testProject()
 
         when:
-        def relativeDir = new File(distribution.testDir, 'java/multiproject/../quickstart')
+        def relativeDir = new File(testDirectory, 'java/multiproject/../quickstart')
         executer.inDirectory(relativeDir).run()
 
         then:
@@ -47,7 +46,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         testProject()
 
         when:
-        def mixedCaseDir = new File(distribution.testDir, "JAVA/QuickStart")
+        def mixedCaseDir = new File(testDirectory, "JAVA/QuickStart")
         executer.inDirectory(mixedCaseDir).run()
 
         then:
@@ -59,7 +58,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         testProject()
 
         when:
-        def shortDir = new File(distribution.testDir, 'java/QUICKS~1')
+        def shortDir = new File(testDirectory, 'java/QUICKS~1')
         executer.inDirectory(shortDir).run()
 
         then:
@@ -67,8 +66,8 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private testProject() {
-        distribution.testFile("java/multiproject").createDir()
-        def projectDir = distribution.testFile("java/quickstart")
+        file("java/multiproject").createDir()
+        def projectDir = file("java/quickstart")
         projectDir.file('build.gradle') << "assert file('.') == new File(new URI('${projectDir.toURI()}'))"
     }
 
@@ -90,8 +89,8 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "build is executed with working directory set to where the build was launched from"() {
-        def project1 = distribution.testFile("project1")
-        def project2 = distribution.testFile("project2")
+        def project1 = file("project1")
+        def project2 = file("project2")
 
         project1.file('build.gradle') << """
 def expectedDir = new File(new URI('${project1.toURI()}'))
@@ -160,10 +159,10 @@ assert classesDir.directory
 
         when:
         // Need the forking executer for this to work. Embedded executer will not fork a new process if jvm doesn't match.
-        def out = executer.withForkingExecuter().run().output
+        def out = executer.requireGradleHome().run().output
 
         then:
-        out.contains("javaHome=" + alternateJavaHome.absolutePath)
+        out.contains("javaHome=" + alternateJavaHome.canonicalPath)
     }
 
     def "jvm args from gradle properties should be used to run build"() {
@@ -175,12 +174,7 @@ assert System.getProperty('some-prop') == 'some-value'
 """
 
         when:
-        executer.withForkingExecuter()
-        // TODO:DAZ cleanup the setting of default jvm args for daemon and forking executer
-        if (executer.type == GradleDistributionExecuter.Executer.daemon ) {
-            executer.withArguments("-Dorg.gradle.jvmargs=")
-        }
-        executer.run()
+        executer.requireGradleHome().withNoDefaultJvmArgs().run()
 
         then:
         noExceptionThrown()

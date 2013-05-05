@@ -16,14 +16,14 @@
 package org.gradle.api.plugins.quality.internal.findbugs
 
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.Factory
 import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.WorkerProcess
 import org.gradle.process.internal.WorkerProcessBuilder
 
 class FindBugsWorkerManager {
-    public FindBugsResult runWorker(ProjectInternal project, FileCollection findBugsClasspath, FindBugsSpec spec) {
-        WorkerProcess process = createWorkerProcess(project, findBugsClasspath, spec);
+    public FindBugsResult runWorker(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
+        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, findBugsClasspath, spec);
         process.start();
 
         FindBugsWorkerClient clientCallBack = new FindBugsWorkerClient()
@@ -34,12 +34,13 @@ class FindBugsWorkerManager {
         return result;
     }
 
-    private WorkerProcess createWorkerProcess(ProjectInternal project, FileCollection findBugsClasspath, FindBugsSpec spec) {
-        WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
-        builder.applicationClasspath(findBugsClasspath);   //findbugs classpath
+    private WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
+        WorkerProcessBuilder builder = workerFactory.create();
+        builder.applicationClasspath(findBugsClasspath);
         builder.sharedPackages(Arrays.asList("edu.umd.cs.findbugs"));
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        javaCommand.setWorkingDir(project.getProjectDir());
+        javaCommand.setWorkingDir(workingDir);
+        javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
 
         WorkerProcess process = builder.worker(new FindBugsWorkerServer(spec)).build()
         return process

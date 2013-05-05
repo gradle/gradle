@@ -23,11 +23,7 @@ import org.gradle.util.VersionNumber
 abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
     static String version
 
-    String getVersion() {
-        version
-    }
-
-    VersionNumber getVersionNumber() {
+    static VersionNumber getVersionNumber() {
         VersionNumber.parse(version)
     }
 }

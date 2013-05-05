@@ -19,7 +19,7 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -32,7 +32,8 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class FileCopySpecVisitorTest {
@@ -40,11 +41,11 @@ public class FileCopySpecVisitorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final FileCopySpecVisitor visitor = new FileCopySpecVisitor();
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
     public void setUp() throws IOException {
-        destDir = tmpDir.getDir().file("dest");
+        destDir = tmpDir.getTestDirectory().file("dest");
     }
 
     @Test

@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
@@ -35,13 +36,12 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
+import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.Directory;
@@ -52,6 +52,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
@@ -72,7 +73,7 @@ import static org.gradle.util.GUtil.isTrue;
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractProject implements ProjectInternal, DynamicObjectAware {
+public abstract class AbstractProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private ServiceRegistryFactory services;
 
@@ -122,7 +123,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private TaskContainerInternal implicitTasksContainer;
 
-    private IProjectRegistry<ProjectInternal> projectRegistry;
+    private ProjectRegistry<ProjectInternal> projectRegistry;
 
     private DependencyHandler dependencyHandler;
 
@@ -140,11 +141,14 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private LoggingManagerInternal loggingManager;
 
+    private SoftwareComponentContainer softwareComponentContainer;
+
     private ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
 
     private final Path path;
+    private ScriptPluginFactory scriptPluginFactory;
 
     public AbstractProject(String name,
                            ProjectInternal parent,
@@ -185,8 +189,10 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         dependencyHandler = services.get(DependencyHandler.class);
         scriptHandler = services.get(ScriptHandler.class);
         scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
-        projectRegistry = services.get(IProjectRegistry.class);
+        projectRegistry = services.get(ProjectRegistry.class);
         loggingManager = services.get(LoggingManagerInternal.class);
+        softwareComponentContainer = services.get(SoftwareComponentContainer.class);
+        scriptPluginFactory = services.get(ScriptPluginFactory.class);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {
@@ -326,8 +332,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return dependsOnProjects;
     }
 
-
-
     public ProjectStateInternal getState() {
         return state;
     }
@@ -364,8 +368,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         this.configurationContainer = configurationContainer;
     }
 
-
-
     public Convention getConvention() {
         return extensibleDynamicObject.getConvention();
     }
@@ -378,7 +380,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return depth;
     }
 
-    public IProjectRegistry<ProjectInternal> getProjectRegistry() {
+    public ProjectRegistry<ProjectInternal> getProjectRegistry() {
         return projectRegistry;
     }
 
@@ -491,7 +493,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         Map<String, Object> allArgs = new HashMap<String, Object>(args);
         allArgs.put(Task.TASK_NAME, name);
         allArgs.put(Task.TASK_ACTION, action);
-        return taskContainer.add(allArgs);
+        return taskContainer.create(allArgs);
     }
 
     public Task createTask(Map<String, ?> args, String name, Action<? super Task> action) {
@@ -501,7 +503,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         if (action != null) {
             allArgs.put(Task.TASK_ACTION, action);
         }
-        return taskContainer.add(allArgs);
+        return taskContainer.create(allArgs);
     }
 
     private void warnCreateTaskDeprecated() {
@@ -680,7 +682,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public ConfigurableFileTree fileTree(Closure closure) {
-        DeprecationLogger.nagUserWith("fileTree(Closure) is a deprecated method. Use fileTree((Object){ baseDir }) to have the closure used as the file tree base directory");
+        DeprecationLogger.nagUserOfDeprecated("fileTree(Closure)", "Use fileTree((Object){ baseDir }) to have the closure used as the file tree base directory");
         return fileOperations.fileTree(closure);
     }
 
@@ -725,7 +727,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
             } else if (task != null) {
                 throw new InvalidUserDataException(String.format("Cannot add directory task '%s' as a non-directory task with this name already exists.", name));
             } else {
-                dirTask = taskContainer.add(name, Directory.class);
+                dirTask = taskContainer.create(name, Directory.class);
             }
         }
         return dirTask;
@@ -764,11 +766,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public void beforeEvaluate(Closure closure) {
-        evaluationListener.add("beforeEvaluate", closure);
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
     }
 
     public void afterEvaluate(Closure closure) {
-        evaluationListener.add("afterEvaluate", closure);
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
     }
 
     public Logger getLogger() {
@@ -781,6 +783,10 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     public LoggingManager getLogging() {
         return loggingManager;
+    }
+
+    public SoftwareComponentContainer getComponents() {
+        return softwareComponentContainer;
     }
 
     public Object property(String propertyName) throws MissingPropertyException {
@@ -825,20 +831,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     public Module getModule() {
         return getServices().get(DependencyMetaDataProvider.class).getModule();
-    }
-
-    public void apply(Closure closure) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
-                ScriptPluginFactory.class), this);
-        configure(action, closure);
-        action.execute();
-    }
-
-    public void apply(Map<String, ?> options) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
-                ScriptPluginFactory.class), this);
-        ConfigureUtil.configureByMap(options, action);
-        action.execute();
     }
 
     public AntBuilder ant(Closure configureClosure) {
@@ -889,15 +881,15 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Task task(String task) {
-        return taskContainer.add(task);
+        return taskContainer.create(task);
     }
 
     public Task task(Object task) {
-        return taskContainer.add(task.toString());
+        return taskContainer.create(task.toString());
     }
 
     public Task task(String task, Closure configureClosure) {
-        return taskContainer.add(task).configure(configureClosure);
+        return taskContainer.create(task).configure(configureClosure);
     }
 
     public Task task(Object task, Closure configureClosure) {
@@ -905,7 +897,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Task task(Map options, String task) {
-        return taskContainer.add(addMaps(options, singletonMap(Task.TASK_NAME, task)));
+        return taskContainer.create(addMaps(options, singletonMap(Task.TASK_NAME, task)));
     }
 
     public Task task(Map options, Object task) {
@@ -913,11 +905,17 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Task task(Map options, String task, Closure configureClosure) {
-        return taskContainer.add(addMaps(options, singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
+        return taskContainer.create(addMaps(options, singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
     }
 
     public Task task(Map options, Object task, Closure configureClosure) {
         return task(options, task.toString(), configureClosure);
+    }
+
+
+    @Override
+    protected ScriptPluginFactory getScriptPluginFactory() {
+        return scriptPluginFactory;
     }
 
     /**
@@ -942,7 +940,8 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure);
     }
 
-    public ExtensionContainer getExtensions() {
-        return getConvention();
+    public ExtensionContainerInternal getExtensions() {
+        return (ExtensionContainerInternal) getConvention();
     }
+
 }

@@ -16,11 +16,8 @@
  
 package org.gradle.api.tasks.compile;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-
-import java.util.Map;
 
 /**
  * Debug options for Java compilation. Only take effect if {@link CompileOptions#debug}
@@ -59,12 +56,5 @@ public class DebugOptions extends AbstractOptions {
      */
     public void setDebugLevel(String debugLevel) {
         this.debugLevel = debugLevel;
-    }
-
-    /**
-     * Internal method.
-     */
-    protected Map<String, String> fieldName2AntMap() {
-        return ImmutableMap.of("debugLevel", "debuglevel");
     }
 }

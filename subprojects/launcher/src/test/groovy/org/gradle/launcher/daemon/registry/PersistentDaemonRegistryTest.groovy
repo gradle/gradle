@@ -17,30 +17,30 @@
 package org.gradle.launcher.daemon.registry
 
 import org.gradle.internal.nativeplatform.ProcessEnvironment
-import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
 import org.gradle.messaging.remote.Address
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
 
 class PersistentDaemonRegistryTest extends Specification {
 
-    @Rule TemporaryFolder tmp
+    @Rule TestNameTestDirectoryProvider tmp
     
     int addressCounter = 0
+    def lockManager = createDefaultFileLockManager()
 
     def "corrupt registry file is ignored"() {
         given:
         def file = tmp.file("registry")
-        def lockManager = createDefaultFileLockManager()
         def registry = new PersistentDaemonRegistry(file, lockManager)
         
         and:
-        registry.store(address(), daemonContext(), "password")
+        registry.store(address(), daemonContext(), "password", true)
 
         expect:
         registry.all.size() == 1
@@ -51,9 +51,39 @@ class PersistentDaemonRegistryTest extends Specification {
         then:
         registry.all.empty
     }
+
+    def "safely removes from registry file"() {
+        given:
+        def registry = new PersistentDaemonRegistry(tmp.file("registry"), lockManager)
+        def address = address()
+
+        and:
+        registry.store(address, daemonContext(), "password", true)
+
+        when:
+        registry.remove(address)
+
+        then:
+        registry.all.empty
+
+        and: //it is safe to remove it again
+        registry.remove(address)
+    }
+
+    def "safely removes if registry empty"() {
+        given:
+        def registry = new PersistentDaemonRegistry(tmp.file("registry"), lockManager)
+        def address = address()
+
+        when:
+        registry.remove(address)
+
+        then:
+        registry.all.empty
+    }
     
     DaemonContext daemonContext() {
-        new DaemonContextBuilder(new NativeServices().get(ProcessEnvironment)).with {
+        new DaemonContextBuilder([maybeGetPid: {null}] as ProcessEnvironment).with {
             daemonRegistryDir = tmp.createDir("daemons")
             create()
         }
@@ -71,6 +101,13 @@ class PersistentDaemonRegistryTest extends Specification {
             this.displayName = displayName
         }
 
+        boolean equals(o) {
+            displayName == o.displayName
+        }
+
+        int hashCode() {
+            displayName.hashCode()
+        }
     }
 
 }

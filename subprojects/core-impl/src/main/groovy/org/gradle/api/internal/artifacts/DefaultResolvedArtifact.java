@@ -24,24 +24,37 @@ import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultResolvedArtifact implements ResolvedArtifact {
     private final ResolvedDependency resolvedDependency;
-    private final Artifact artifact;
+    private final Map<String, String> extraAttributes;
+    private final String name;
+    private final String type;
+    private final String ext;
     private Factory<File> artifactSource;
     private File file;
 
     public DefaultResolvedArtifact(ResolvedDependency resolvedDependency, Artifact artifact, Factory<File> artifactSource) {
         this.resolvedDependency = resolvedDependency;
-        this.artifact = artifact;
+        // Unpack the stuff that we're interested from the artifact and discard. The artifact instance drags in a whole pile of stuff that
+        // we don't want to retain references to.
+        this.name = artifact.getName();
+        this.type = artifact.getType();
+        this.ext = artifact.getExt();
+        this.extraAttributes = new HashMap<String, String>(artifact.getQualifiedExtraAttributes());
         this.artifactSource = artifactSource;
     }
 
     public ResolvedDependency getResolvedDependency() {
-        DeprecationLogger.nagUserWith("ResolvedArtifact.getResolvedDependency() is deprecated. For version info use ResolvedArtifact.getModuleVersion(), to access the dependency graph use ResolvedConfiguration.getFirstLevelModuleDependencies()");
+        DeprecationLogger.nagUserOfDeprecated(
+                "ResolvedArtifact.getResolvedDependency()",
+                "For version info use ResolvedArtifact.getModuleVersion(), to access the dependency graph use ResolvedConfiguration.getFirstLevelModuleDependencies()"
+        );
         return resolvedDependency;
     }
 
@@ -75,7 +88,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         if (!other.getExtension().equals(getExtension())) {
             return false;
         }
-        if (!other.artifact.getExtraAttributes().equals(artifact.getExtraAttributes())) {
+        if (!other.extraAttributes.equals(extraAttributes)) {
             return false;
         }
         return true;
@@ -83,23 +96,23 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
 
     @Override
     public int hashCode() {
-        return resolvedDependency.getModule().getId().hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ artifact.getExtraAttributes().hashCode();
+        return resolvedDependency.getModule().getId().hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ extraAttributes.hashCode();
     }
 
     public String getName() {
-        return artifact.getName();
+        return name;
     }
 
     public String getType() {
-        return artifact.getType();
+        return type;
     }
 
     public String getExtension() {
-        return artifact.getExt();
+        return ext;
     }
 
     public String getClassifier() {
-        return artifact.getExtraAttribute(Dependency.CLASSIFIER);
+        return extraAttributes.get(Dependency.CLASSIFIER);
     }
     
     public File getFile() {

@@ -41,11 +41,15 @@ import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
+import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.IvyResolverBackedModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
-import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
@@ -59,9 +63,7 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractMavenResolver implements MavenResolver, DependencyResolver, ArtifactRepositoryInternal {
-
-    private String name;
+public abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, DependencyResolver {
     
     private ArtifactPomContainer artifactPomContainer;
 
@@ -81,80 +83,79 @@ public abstract class AbstractMavenResolver implements MavenResolver, Dependency
         this.loggingManager = loggingManager;
     }
 
-    protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
-
-    public String getName() {
-        return name;
+    public IvyAwareModuleVersionRepository createResolver() {
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public ModuleVersionPublisher createPublisher() {
+        return new IvyResolverBackedModuleVersionPublisher(this);
     }
 
-    public DependencyResolver createResolver() {
+    public DependencyResolver createLegacyDslObject() {
         return this;
     }
 
+    protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
+
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public ArtifactDownloadReport download(ArtifactOrigin artifact, DownloadOptions options) {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public boolean exists(Artifact artifact) {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public ArtifactOrigin locate(Artifact artifact) {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public void reportFailure() {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public void reportFailure(Artifact art) {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public String[] listTokenValues(String token, Map otherTokenValues) {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public Map[] listTokenValues(String[] tokens, Map criteria) {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public OrganisationEntry[] listOrganisations() {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public ModuleEntry[] listModules(OrganisationEntry org) {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public RevisionEntry[] listRevisions(ModuleEntry module) {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public Namespace getNamespace() {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
     public void dumpSettings() {
-        throw new UnsupportedOperationException("A MavenPublishOnlyResolver can only publish artifacts.");
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
-
 
     public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
         if (isIgnorable(artifact)) {
@@ -295,6 +296,7 @@ public abstract class AbstractMavenResolver implements MavenResolver, Dependency
     }
 
     public void beforeDeployment(Closure action) {
-        beforeDeploymentActions.add(action);
+        beforeDeploymentActions.add(new ClosureBackedAction<MavenDeployment>(action));
     }
+
 }

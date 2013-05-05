@@ -17,13 +17,10 @@ package org.gradle.tooling.internal.consumer.async;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
 public interface AsyncConnection {
-    void executeBuild(BuildParametersVersion1 buildParameters, ConsumerOperationParameters operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException;
-
-    <T> void getModel(Class<T> type, ConsumerOperationParameters operationParameters, ResultHandlerVersion1<T> handler) throws UnsupportedOperationException, IllegalStateException;
+    <T> void run(Class<T> type, ConsumerOperationParameters operationParameters, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException;
 
     void stop();
 

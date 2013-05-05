@@ -52,7 +52,7 @@ public class ExecOutputHandleRunner implements Runnable {
                 outputStream.write(buffer, 0, nread);
                 outputStream.flush();
             }
-            new CompositeStoppable(inputStream, outputStream).stop();
+            CompositeStoppable.stoppable(inputStream, outputStream).stop();
         } catch (Throwable t) {
             LOGGER.error(String.format("Could not %s.", displayName), t);
         }

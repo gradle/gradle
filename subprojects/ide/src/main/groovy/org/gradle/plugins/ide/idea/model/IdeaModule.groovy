@@ -82,7 +82,7 @@ import org.gradle.util.ConfigureUtil
  * }
  * </pre>
  *
- * For tackling edge cases users can perform advanced configuration on resulting xml file.
+ * For tackling edge cases users can perform advanced configuration on resulting XML file.
  * It is also possible to affect the way the IDEA plugin merges the existing configuration
  * via beforeMerged and whenMerged closures.
  * <p>
@@ -100,7 +100,7 @@ import org.gradle.util.ConfigureUtil
  *       //if you like to keep *.iml in a secret folder
  *       generateTo = file('secret-modules-folder')
  *
- *       //if you want to mess with the resulting xml in whatever way you fancy
+ *       //if you want to mess with the resulting XML in whatever way you fancy
  *       withXml {
  *         def node = it.asNode()
  *         node.appendNode('iLoveGradle', 'true')
@@ -268,10 +268,10 @@ class IdeaModule {
     final IdeaModuleIml iml
 
     /**
-     * Enables advanced configuration like tinkering with the output xml
-     * or affecting the way existing *.iml content is merged with gradle build information
+     * Enables advanced configuration like tinkering with the output XML
+     * or affecting the way existing *.iml content is merged with gradle build information.
      * <p>
-     * For example see docs for {@link IdeaModule}
+     * For example see docs for {@link IdeaModule}.
      */
     void iml(Closure closure) {
         ConfigureUtil.configure(closure, getIml())
@@ -309,6 +309,7 @@ class IdeaModule {
      * IdeaModule instances should be configured with all necessary information by the plugin or user.
      */
     final org.gradle.api.Project project
+
     PathFactory pathFactory
 
     /**

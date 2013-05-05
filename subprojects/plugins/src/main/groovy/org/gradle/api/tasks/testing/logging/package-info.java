@@ -17,7 +17,5 @@
 /**
  * Types related to logging of test related information to the console.
  */
-@Experimental
 package org.gradle.api.tasks.testing.logging;
 
-import org.gradle.api.Experimental;

@@ -16,17 +16,19 @@
 
 package org.gradle.cache.internal
 
-import spock.lang.Specification
-import org.junit.Rule
-import org.gradle.util.TemporaryFolder
 import org.gradle.CacheUsage
-import org.gradle.cache.CacheValidator
 import org.gradle.api.Action
-import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.*
+import org.gradle.cache.CacheValidator
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
+
+import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
+import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
 
 class DefaultPersistentDirectoryCacheSpec extends Specification {
 
-    @Rule TemporaryFolder tmp
+    @Rule TestNameTestDirectoryProvider tmp
     
     def "will rebuild cache if not unlocked cleanly"() {
         given:

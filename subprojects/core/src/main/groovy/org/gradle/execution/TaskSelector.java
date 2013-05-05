@@ -16,102 +16,72 @@
 package org.gradle.execution;
 
 import com.google.common.collect.SetMultimap;
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.execution.taskpath.ResolvedTaskPath;
+import org.gradle.execution.taskpath.TaskPathResolver;
 import org.gradle.util.NameMatcher;
 
-import java.util.Map;
 import java.util.Set;
 
 public class TaskSelector {
     private final TaskNameResolver taskNameResolver;
-    private Set<Task> tasks;
-    private String taskName;
+    private final GradleInternal gradle;
+    private final TaskPathResolver taskPathResolver = new TaskPathResolver();
 
-    public TaskSelector() {
-        this(new TaskNameResolver());
+    public TaskSelector(GradleInternal gradle) {
+        this(gradle, new TaskNameResolver());
     }
 
-    public TaskSelector(TaskNameResolver taskNameResolver) {
+    public TaskSelector(GradleInternal gradle, TaskNameResolver taskNameResolver) {
         this.taskNameResolver = taskNameResolver;
+        this.gradle = gradle;
     }
 
-    public void selectTasks(GradleInternal gradle, String path) {
+    public TaskSelection getSelection(String path) {
         SetMultimap<String, Task> tasksByName;
-        String baseName;
-        String prefix;
-
         ProjectInternal project = gradle.getDefaultProject();
+        ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
 
-        if (path.contains(Project.PATH_SEPARATOR)) {
-            String projectPath = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
-            projectPath = projectPath.length() == 0 ? Project.PATH_SEPARATOR : projectPath;
-            project = findProject(project, projectPath);
-            baseName = StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR);
-            prefix = project.getPath() + Project.PATH_SEPARATOR;
-
-            tasksByName = taskNameResolver.select(baseName, project);
+        if (taskPath.isQualified()) {
+            tasksByName = taskNameResolver.select(taskPath.getTaskName(), taskPath.getProject());
         } else {
-            baseName = path;
-            prefix = "";
-
             tasksByName = taskNameResolver.selectAll(path, project);
         }
 
-        Set<Task> tasks = tasksByName.get(baseName);
+        Set<Task> tasks = tasksByName.get(taskPath.getTaskName());
         if (!tasks.isEmpty()) {
             // An exact match
-            this.tasks = tasks;
-            this.taskName = path;
-            return;
+            return new TaskSelection(path, tasks);
         }
 
         NameMatcher matcher = new NameMatcher();
-        String actualName = matcher.find(baseName, tasksByName.keySet());
+        String actualName = matcher.find(taskPath.getTaskName(), tasksByName.keySet());
 
         if (actualName != null) {
             // A partial match
-            this.tasks = tasksByName.get(actualName);
-            this.taskName = prefix + actualName;
-            return;
+            return new TaskSelection(taskPath.getPrefix() + actualName, tasksByName.get(actualName));
         }
 
         throw new TaskSelectionException(matcher.formatErrorMessage("task", project));
     }
 
-    public String getTaskName() {
-        return taskName;
-    }
+    public static class TaskSelection {
+        private String taskName;
+        private Set<Task> tasks;
 
-    public Set<Task> getTasks() {
-        return tasks;
-    }
-
-    private static ProjectInternal findProject(ProjectInternal startFrom, String path) {
-        if (path.equals(Project.PATH_SEPARATOR)) {
-            return startFrom.getRootProject();
-        }
-        Project current = startFrom;
-        if (path.startsWith(Project.PATH_SEPARATOR)) {
-            current = current.getRootProject();
-            path = path.substring(1);
-        }
-        for (String pattern : path.split(Project.PATH_SEPARATOR)) {
-            Map<String, Project> children = current.getChildProjects();
-
-            NameMatcher matcher = new NameMatcher();
-            Project child = matcher.find(pattern, children);
-            if (child != null) {
-                current = child;
-                continue;
-            }
-
-            throw new TaskSelectionException(matcher.formatErrorMessage("project", current));
+        public TaskSelection(String taskName, Set<Task> tasks) {
+            this.taskName = taskName;
+            this.tasks = tasks;
         }
 
-        return (ProjectInternal) current;
+        public String getTaskName() {
+            return taskName;
+        }
+
+        public Set<Task> getTasks() {
+            return tasks;
+        }
     }
 }

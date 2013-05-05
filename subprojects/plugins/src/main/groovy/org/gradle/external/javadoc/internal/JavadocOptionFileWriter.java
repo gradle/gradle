@@ -16,14 +16,15 @@
 
 package org.gradle.external.javadoc.internal;
 
-import org.apache.commons.io.IOUtils;
+import org.gradle.api.internal.ErroringAction;
+import org.gradle.api.internal.IoActions;
 import org.gradle.external.javadoc.JavadocOptionFileOption;
 
-import java.io.IOException;
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author Tom Eyckmans
@@ -39,19 +40,23 @@ public class JavadocOptionFileWriter {
     }
 
     void write(File outputFile) throws IOException {
-        BufferedWriter writer = null;
-        try {
-            final Map<String, JavadocOptionFileOption> options = optionFile.getOptions();
-            writer = new BufferedWriter(new FileWriter(outputFile));
-            JavadocOptionFileWriterContext writerContext = new JavadocOptionFileWriterContext(writer);
+        IoActions.writeTextFile(outputFile, new ErroringAction<BufferedWriter>() {
+            @Override
+            protected void doExecute(BufferedWriter writer) throws Exception {
+                final Map<String, JavadocOptionFileOption> options = new TreeMap<String, JavadocOptionFileOption>(optionFile.getOptions());
+                JavadocOptionFileWriterContext writerContext = new JavadocOptionFileWriterContext(writer);
 
-            for (final String option : options.keySet()) {
-                options.get(option).write(writerContext);
+                JavadocOptionFileOption localeOption = options.remove("locale");
+                if (localeOption != null) {
+                    localeOption.write(writerContext);
+                }
+
+                for (final String option : options.keySet()) {
+                    options.get(option).write(writerContext);
+                }
+
+                optionFile.getSourceNames().write(writerContext);
             }
-
-            optionFile.getSourceNames().write(writerContext);
-        } finally {
-            IOUtils.closeQuietly(writer);
-        }
+        });
     }
 }

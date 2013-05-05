@@ -227,13 +227,6 @@ public class Jvm implements JavaInfo {
         return envVars;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean getSupportsAppleScript() {
-        return false;
-    }
-
     public boolean isIbmJvm() {
         return false;
     }
@@ -260,14 +253,6 @@ public class Jvm implements JavaInfo {
 
         AppleJvm(OperatingSystem current, File javaHome) {
             super(current, javaHome);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public File getJavaHome() {
-            return super.getJavaHome();
         }
 
         /**
@@ -301,14 +286,6 @@ public class Jvm implements JavaInfo {
                 vars.put(entry.getKey(), entry.getValue());
             }
             return vars;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean getSupportsAppleScript() {
-            return true;
         }
     }
 }

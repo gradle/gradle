@@ -33,7 +33,7 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
 
     public void stop() {
         try {
-            new CompositeStoppable(executors).stop();
+            CompositeStoppable.stoppable(executors).stop();
         } finally {
             executors.clear();
         }

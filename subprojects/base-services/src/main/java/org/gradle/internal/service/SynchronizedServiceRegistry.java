@@ -19,6 +19,8 @@ package org.gradle.internal.service;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Synchronizer;
 
+import java.lang.reflect.Type;
+
 /**
  * by Szczepan Faber, created at: 11/24/11
  */
@@ -33,6 +35,14 @@ public class SynchronizedServiceRegistry implements ServiceRegistry {
     public <T> T get(final Class<T> serviceType) throws UnknownServiceException {
         return synchronizer.synchronize(new Factory<T>() {
             public T create() {
+                return delegate.get(serviceType);
+            }
+        });
+    }
+
+    public Object get(final Type serviceType) throws UnknownServiceException, ServiceLookupException {
+        return synchronizer.synchronize(new Factory<Object>() {
+            public Object create() {
                 return delegate.get(serviceType);
             }
         });

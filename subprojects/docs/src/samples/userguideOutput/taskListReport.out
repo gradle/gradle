@@ -11,9 +11,15 @@ clean - Deletes the build directory (build)
 dists - Builds the distribution
 libs - Builds the JAR
 
+Build Setup tasks
+-----------------
+setupBuild - Initializes a new Gradle build. [incubating]
+wrapper - Generates Gradle wrapper files. [incubating]
+
 Help tasks
 ----------
-dependencies - Displays the dependencies of root project 'projectReports'.
+dependencies - Displays all dependencies declared in root project 'projectReports'.
+dependencyInsight - Displays the insight into a specific dependency in root project 'projectReports'.
 help - Displays a help message
 projects - Displays the sub-projects of root project 'projectReports'.
 properties - Displays the properties of root project 'projectReports'.

@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.*;
@@ -36,6 +35,7 @@ import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHan
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -49,6 +49,12 @@ public class JsHint extends SourceTask {
     private Object jsHint;
     private String encoding = "UTF-8";
     private Object jsonReport;
+    private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
+
+    @Inject
+    public JsHint(Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
+        this.workerProcessBuilderFactory = workerProcessBuilderFactory;
+    }
 
     @InputFiles
     public FileCollection getRhinoClasspath() {
@@ -88,8 +94,6 @@ public class JsHint extends SourceTask {
 
     @TaskAction
     public void doJsHint() {
-        ProjectInternal projectInternal = (ProjectInternal)getProject();
-        Factory<WorkerProcessBuilder> workerProcessBuilderFactory = projectInternal.getServices().getFactory(WorkerProcessBuilder.class);
         RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(workerProcessBuilderFactory);
 
         LogLevel logLevel = getProject().getGradle().getStartParameter().getLogLevel();

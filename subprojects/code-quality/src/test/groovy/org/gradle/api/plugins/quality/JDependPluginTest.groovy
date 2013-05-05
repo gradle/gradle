@@ -80,7 +80,7 @@ class JDependPluginTest extends Specification {
     }
 
     def "configures any additional JDepend tasks"() {
-        def task = project.tasks.add("jdependCustom", JDepend)
+        def task = project.tasks.create("jdependCustom", JDepend)
 
         expect:
         task.description == null
@@ -124,7 +124,7 @@ class JDependPluginTest extends Specification {
     }
 
     def "can customize any additional JDepend tasks via extension"() {
-        def task = project.tasks.add("jdependCustom", JDepend)
+        def task = project.tasks.create("jdependCustom", JDepend)
         project.jdepend {
             reportsDir = project.file("jdepend-reports")
         }

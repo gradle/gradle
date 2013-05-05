@@ -73,7 +73,7 @@ class VersionNumberTest extends Specification {
         new VersionNumber(2, 1, 1, null) != new VersionNumber(1, 1, 1, null)
         new VersionNumber(1, 2, 1, null) != new VersionNumber(1, 1, 1, null)
         new VersionNumber(1, 1, 2, null) != new VersionNumber(1, 1, 1, null)
-        new VersionNumber(1, 1, 1, "foo") != new VersionNumber(1, 1, 1, null)
+        new VersionNumber(1, 1, 1, "rc") != new VersionNumber(1, 1, 1, null)
     }
 
     def "comparison"() {
@@ -83,14 +83,22 @@ class VersionNumberTest extends Specification {
         new VersionNumber(2, 1, 1, null) > new VersionNumber(1, 1, 1, null)
         new VersionNumber(1, 2, 1, null) > new VersionNumber(1, 1, 1, null)
         new VersionNumber(1, 1, 2, null) > new VersionNumber(1, 1, 1, null)
-        new VersionNumber(1, 1, 1, "foo") > new VersionNumber(1, 1, 1, null)
-        new VersionNumber(1, 1, 1, "b") > new VersionNumber(1, 1, 1, "a")
+        new VersionNumber(1, 1, 1, "rc") < new VersionNumber(1, 1, 1, null)
+        new VersionNumber(1, 1, 1, "beta") > new VersionNumber(1, 1, 1, "alpha")
+        new VersionNumber(1, 1, 1, "RELEASE") > new VersionNumber(1, 1, 1, "beta")
 
         new VersionNumber(1, 1, 1, null) < new VersionNumber(2, 1, 1, null)
         new VersionNumber(1, 1, 1, null) < new VersionNumber(1, 2, 1, null)
         new VersionNumber(1, 1, 1, null) < new VersionNumber(1, 1, 2, null)
-        new VersionNumber(1, 1, 1, null) < new VersionNumber(1, 1, 1, "foo")
-        new VersionNumber(1, 1, 1, "a") < new VersionNumber(1, 1, 1, "b")
+        new VersionNumber(1, 1, 1, null) > new VersionNumber(1, 1, 1, "rc")
+        new VersionNumber(1, 1, 1, "alpha") < new VersionNumber(1, 1, 1, "beta")
+        new VersionNumber(1, 1, 1, "beta") < new VersionNumber(1, 1, 1, "RELEASE")
+    }
+
+    def "base version"() {
+        expect:
+        new VersionNumber(1, 2, 3, null).baseVersion == new VersionNumber(1, 2, 3, null)
+        new VersionNumber(1, 2, 3, "beta").baseVersion == new VersionNumber(1, 2, 3, null)
     }
 }
 

@@ -21,9 +21,13 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.IvyResolverBackedModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
 
@@ -33,31 +37,19 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
+public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository {
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
-    private String name;
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
-    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                          LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                          CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+                                          LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public URI getUrl() {
@@ -84,13 +76,30 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         additionalUrls = Lists.newArrayList(urls);
     }
 
-    public DependencyResolver createResolver() {
+    public ModuleVersionPublisher createPublisher() {
+        return new IvyResolverBackedModuleVersionPublisher(createRealResolver());
+    }
+
+    public DependencyResolver createLegacyDslObject() {
+        MavenResolver resolver = createRealResolver();
+        return new LegacyMavenResolver(resolver, wrapResolver(resolver));
+    }
+
+    public IvyAwareModuleVersionRepository createResolver() {
+        return wrapResolver(createRealResolver());
+    }
+
+    private ExternalResourceResolverAdapter wrapResolver(MavenResolver resolver) {
+        return new ExternalResourceResolverAdapter(resolver, false);
+    }
+
+    protected MavenResolver createRealResolver() {
         URI rootUri = getUrl();
         if (rootUri == null) {
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        MavenResolver resolver = new MavenResolver(name, rootUri, getTransport(rootUri.getScheme()), locallyAvailableResourceFinder, cachedExternalResourceIndex);
+        MavenResolver resolver = new MavenResolver(getName(), rootUri, getTransport(rootUri.getScheme()), locallyAvailableResourceFinder);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl, null);
         }
@@ -99,9 +108,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private RepositoryTransport getTransport(String scheme) {
         if (scheme.equalsIgnoreCase("file")) {
-            return transportFactory.createFileTransport(name);
+            return transportFactory.createFileTransport(getName());
         } else {
-            return transportFactory.createHttpTransport(name, getCredentials());
+            return transportFactory.createHttpTransport(getName(), getCredentials());
         }
     }
 

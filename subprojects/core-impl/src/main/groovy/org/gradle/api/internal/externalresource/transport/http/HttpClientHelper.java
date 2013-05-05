@@ -17,12 +17,11 @@
 package org.gradle.api.internal.externalresource.transport.http;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.ContentEncodingHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.*;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.gradle.api.UncheckedIOException;
@@ -37,14 +36,22 @@ import java.io.IOException;
 public class HttpClientHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientHelper.class);
-    private final DefaultHttpClient client = new ContentEncodingHttpClient();
+    private final HttpClient client;
     private final BasicHttpContext httpContext = new BasicHttpContext();
 
-    private final HttpClientConfigurer configurer;
-
     public HttpClientHelper(HttpSettings settings) {
-        configurer = new HttpClientConfigurer(settings);
-        configurer.configure(client);
+        alwaysUseKeepAliveConnections();
+
+        DefaultHttpClient client = new SystemDefaultHttpClient();
+        new HttpClientConfigurer(settings).configure(client);
+        this.client = new DecompressingHttpClient(client);
+    }
+
+    private void alwaysUseKeepAliveConnections() {
+        // HttpClient 4.2.2 does not use the correct default value for "http.keepAlive" system property (default is "true").
+        // HttpClient NTLM authentication fails badly when this property value is true.
+        // So we force it to be true here: effectively, we're ignoring any user-supplied value for our HttpClient configuration.
+        System.setProperty("http.keepAlive", "true");
     }
 
     public HttpResponse performRawHead(String source) {
@@ -70,13 +77,13 @@ public class HttpClientHelper {
         try {
             response = executeGetOrHead(request);
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not %s '%s'.", method, request.getURI()), e);
+            throw new HttpRequestException(String.format("Could not %s '%s'.", method, request.getURI()), e);
         }
 
         return response;
     }
 
-    private HttpResponse executeGetOrHead(HttpRequestBase method) throws IOException {
+    protected HttpResponse executeGetOrHead(HttpRequestBase method) throws IOException {
         HttpResponse httpResponse = performHttpRequest(method);
         // Consume content for non-successful, responses. This avoids the connection being left open.
         if (!wasSuccessful(httpResponse)) {

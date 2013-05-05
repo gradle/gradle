@@ -16,23 +16,26 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.util.HelperUtil
-import org.gradle.api.internal.project.ProjectInternalServiceRegistry
-import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.StartParameter
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.project.TopLevelBuildServiceRegistry
-import org.gradle.StartParameter
+import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.project.GlobalServicesRegistry
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.api.internal.project.ProjectInternalServiceRegistry
+import org.gradle.api.internal.project.TopLevelBuildServiceRegistry
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.util.HelperUtil
 
 class ToolingApiDistributionResolver {
     private final DependencyResolutionServices resolutionServices
     private final Map<String, ToolingApiDistribution> distributions = [:]
-    private final GradleDistribution currentGradleDistribution = new GradleDistribution()
+    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+    private boolean useExternalToolingApiDistribution = false;
+
     ToolingApiDistributionResolver() {
         resolutionServices = createResolutionServices()
-        resolutionServices.resolveRepositoryHandler.maven { url currentGradleDistribution.libsRepo.toURI().toURL() }
+        resolutionServices.resolveRepositoryHandler.maven { url buildContext.libsRepo.toURI().toURL() }
     }
 
     ToolingApiDistributionResolver withRepository(String repositoryUrl) {
@@ -58,16 +61,22 @@ class ToolingApiDistributionResolver {
     }
 
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
-        toolingApiVersion == currentGradleDistribution.version && System.getProperty("org.gradle.integtest.toolingApiFromTestClasspath", "true") == "true"
+        !useExternalToolingApiDistribution &&
+        toolingApiVersion == buildContext.version.version &&
+                GradleContextualExecuter.embedded
     }
 
     private DependencyResolutionServices createResolutionServices() {
         GlobalServicesRegistry globalRegistry = new GlobalServicesRegistry()
         StartParameter startParameter = new StartParameter()
-        startParameter.gradleUserHomeDir = currentGradleDistribution.userHomeDir
-        startParameter.refreshDependencies = true
+        startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         TopLevelBuildServiceRegistry topLevelRegistry = new TopLevelBuildServiceRegistry(globalRegistry, startParameter)
         ProjectInternalServiceRegistry projectRegistry = new ProjectInternalServiceRegistry(topLevelRegistry, HelperUtil.createRootProject())
         projectRegistry.get(DependencyResolutionServices)
+    }
+
+    ToolingApiDistributionResolver withExternalToolingApiDistribution() {
+        this.useExternalToolingApiDistribution = true
+        this
     }
 }

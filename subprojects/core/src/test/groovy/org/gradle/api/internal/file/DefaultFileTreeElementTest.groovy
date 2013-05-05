@@ -16,16 +16,15 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.file.FileTreeElement
-import org.gradle.util.Requires
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestPrecondition
 import org.gradle.internal.nativeplatform.filesystem.FileSystems
-
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultFileTreeElementTest extends Specification {
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "permissions on file can be read"() {

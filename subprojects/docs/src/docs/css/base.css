@@ -13,15 +13,14 @@ a img {border:none;}
 
 /* typography.css */
 html {font-size:100.01%;}
-h1, h2, h3, h4, h5, h6 {font-weight:normal;color:#111;margin-bottom: 0.5em;}
-h1 {font-size:4em;line-height:1;}
-h2 {font-size:2em;}
-h3 {font-size:1.5em;line-height:1;}
-h4 {font-size:1.2em;line-height:1.25;}
-h5 {font-size:1em;font-weight:bold;}
+h1, h2, h3, h4, h5, h6 {font-weight:normal; line-height: 1;color: #007042;}
+h1 {font-size:4em;}
+h2 {font-size:2.2em;}
+h3 {font-size:1.5em;}
+h4 {font-size:1.3em;}
+h5 {font-size:1.1em;}
 h6 {font-size:1em;font-weight:bold;}
 h1 img, h2 img, h3 img, h4 img, h5 img, h6 img {margin:0;}
-p {margin:0 0 1.5em;}
 .left {float:left !important;}
 p .left {margin:1.5em 1.5em 1.5em 0;padding:0;}
 .right {float:right !important;}
@@ -38,7 +37,7 @@ del {color:#666;}
 pre {margin:1.5em 0;white-space:pre;}
 /*pre, code, tt {font:1em 'andale mono', 'lucida console', monospace;line-height:1.5;}*/
 li ul, li ol {margin:0;}
-ul, ol {margin:0 1.5em 1.5em 0;padding-left:1.5em;}
+ul, ol {padding-left:1.5em;}
 ul {list-style-type:disc;}
 ol {list-style-type:decimal;}
 dl {margin:0 0 1.5em 0;}
@@ -71,39 +70,111 @@ caption {background:#eee;}
   font-family: 'Lato';
   font-style: normal;
   font-weight: 400;
-  src: local('Lato Regular'), local('Lato-Regular'), url('data:font/opentype;base64,@regular-font-base64@') format('woff');
+  src: local('Lato Regular'), local('Lato-Regular'), url('data:font/opentype;base64,@lato-regular@') format('truetype');
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Lato Italic'), local('Lato-Italic'), url('data:font/opentype;base64,@lato-regular-italic@') format('truetype');
 }
 
 @font-face {
   font-family: 'Lato';
   font-style: normal;
   font-weight: 700;
-  src: local('Lato Bold'), local('Lato-Bold'), url('data:font/opentype;base64,@bold-font-base64@') format('woff');
+  src: local('Lato Bold'), local('Lato-Bold'), url('data:font/opentype;base64,@lato-bold@') format('truetype');
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Lato Bold Italic'), local('Lato-BoldItalic'), url('data:font/opentype;base64,@lato-bold-italic@') format('truetype');
+}
+
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('data:font/opentype;base64,@ubuntumono-bold@') format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('data:font/opentype;base64,@ubuntumono-regular@') format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('data:font/opentype;base64,@ubuntumono-bold-italic@') format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('data:font/opentype;base64,@ubuntumono-regular-italic@') format('truetype');
 }
 
 body {
   font-size: 14px;
   font-family: 'Lato', Arial, serif;
-  margin: 2em 2em 1em;
+  margin: 28px 28px 14px;
   color: #333;
-  background: url('data:image/gif;base64,@logo-base64@') no-repeat right top;
+  background: url('data:image/gif;base64,@gradle-logo_25o.gif@') no-repeat right top;
+}
+
+p, ol, ul, .para {
+  margin: 0 0 16px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: 14px
+}
+
+h2 {
+  margin-top: 32px;
+}
+
+h3, h4, h5, h6 {
+  margin-top: 22px;
+}
+
+.text-container,
+div.book,
+div.chapter {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.text-container h1, .text-container h2, .text-container h3, .text-container h4, .text-container h5,
+div.book h1, div.book h2, div.book h3, div.book h4, div.book h5,
+div.chapter h1, div.chapter h2, div.chapter h3, div.chapter h4, div.chapter h5 {
+  margin-left: -10px;
 }
 
 code, tt, pre {
-  font-family: courier, monospace;
+  font-family: "Ubuntu Mono", courier, monospace;
 }
 
-h1,h2,h3,h4 {
-  color: #007042;
+h1, h2, h3, h4 {
+  text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.4);
+}
+
+h5, h6 {
+ color: #666;
 }
 
 h1 {
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.28)
 }
 
 h3.releaseinfo {
    color: #666666;
+   padding-top: 0;
 }
 
 a {
@@ -124,14 +195,14 @@ a:hover, a:active {
     outline: 0;
 }
 
-.table table {
+table {
     border-collapse: collapse;
     font-size: 100%;
     min-width: 50%;
     border: solid #d0d0d0 1px;
 }
 
-.table table td {
+table td {
     text-align: left;
     vertical-align: text-top;
     padding-left: 0.8em;
@@ -140,28 +211,46 @@ a:hover, a:active {
     padding-bottom: 0.3em;
 }
 
-.table table thead td {
+table thead td, table th {
     font-weight: bold;
     border-bottom: solid #d0d0d0 1px;
     background-color: #f2f2f2;
 }
 
+table th.border-right {
+    border-right: solid #d0d0d0 1px;
+}
+
+table th.no-border-bottom {
+    border-bottom: none;
+}
+
 pre {
-  border: 1px solid #B3B3B3;
-  border-radius: 4px;
+  border-radius: 5px;
   padding: 0.8em;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 pre.code, pre.programlisting {
   background-color: #3F3F3F;
-  color: white
+  color: white;
 }
 
 pre.screen, pre.tt {
-    color: #126412;
+  color: darkGreen;
+  background-color: white;
+  box-shadow: inset 0 0 7px 0px darkGray;
 }
 
 tbody tr:nth-child(even) td, tbody tr.even td {
     background: #F7F7F7;
+}
+
+li em, p em {
+  padding: 0 1px 0 1px;
+  text-decoration: underline;
+}
+
+code em, tt em {
+  text-decoration: none;
 }

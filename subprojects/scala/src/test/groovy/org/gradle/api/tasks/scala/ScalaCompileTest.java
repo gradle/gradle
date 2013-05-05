@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.compile.Compiler;
@@ -27,16 +28,21 @@ import org.hamcrest.core.IsNull;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.File;
 
 public class ScalaCompileTest extends AbstractCompileTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     private ScalaCompile scalaCompile;
 
     private Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
     private JUnit4Mockery context = new JUnit4GroovyMockery();
+    private FileCollection scalaClasspath;
 
     @Override
     public AbstractCompile getCompile() {
@@ -48,10 +54,8 @@ public class ScalaCompileTest extends AbstractCompileTest {
         return scalaCompile;
     }
 
-    @Override
     @Before
     public void setUp() {
-        super.setUp();
         scalaCompile = createTask(ScalaCompile.class);
         scalaCompiler = context.mock(Compiler.class);
         scalaCompile.setCompiler(scalaCompiler);
@@ -64,8 +68,22 @@ public class ScalaCompileTest extends AbstractCompileTest {
     public void testExecuteDoingWork() {
         setUpMocksAndAttributes(scalaCompile);
         context.checking(new Expectations() {{
-            one(scalaCompiler).execute(with(IsNull.<ScalaJavaJointCompileSpec>notNullValue()));
+            allowing(scalaClasspath).isEmpty(); will(returnValue(false));
+            one(scalaCompiler).execute((ScalaJavaJointCompileSpec) with(IsNull.notNullValue()));
         }});
+
+        scalaCompile.compile();
+    }
+
+    @Test
+    public void testMoansIfScalaClasspathIsEmpty() {
+        setUpMocksAndAttributes(scalaCompile);
+        context.checking(new Expectations() {{
+            allowing(scalaClasspath).isEmpty(); will(returnValue(true));
+        }});
+
+        thrown.expect(InvalidUserDataException.class);
+        thrown.expectMessage("'testTask.scalaClasspath' must not be empty");
 
         scalaCompile.compile();
     }
@@ -77,15 +95,9 @@ public class ScalaCompileTest extends AbstractCompileTest {
         compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
-        compile.setScalaClasspath(context.mock(FileCollection.class));
-
-        final FileCollection configuration = context.mock(FileCollection.class);
-        context.checking(new Expectations(){{
-            allowing(configuration).iterator();
-            will(returnIterator(TEST_DEPENDENCY_MANAGER_CLASSPATH));
-        }});
-
-        compile.setClasspath(configuration);
+        scalaClasspath = context.mock(FileCollection.class);
+        compile.setScalaClasspath(scalaClasspath);
+        compile.setClasspath(context.mock(FileCollection.class));
     }
 
 }

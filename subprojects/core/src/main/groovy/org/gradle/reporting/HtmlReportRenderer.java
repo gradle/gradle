@@ -16,56 +16,30 @@
 package org.gradle.reporting;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.SystemProperties;
+import org.gradle.api.internal.html.SimpleHtmlWriter;
 import org.gradle.util.GFileUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.*;
+import java.io.File;
+import java.io.Writer;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
 public class HtmlReportRenderer {
-    private DocumentBuilder documentBuilder;
-    private Transformer transformer;
     private final Set<URL> resources = new HashSet<URL>();
 
     public void requireResource(URL resource) {
         resources.add(resource);
     }
 
-    public <T> TextReportRenderer<T> renderer(final DomReportRenderer<T> renderer) {
+    public <T> TextReportRenderer<T> renderer(final ReportRenderer<T, SimpleHtmlWriter> renderer) {
         return renderer(new TextReportRenderer<T>() {
             @Override
             protected void writeTo(T model, Writer writer) throws Exception {
-                if (documentBuilder == null) {
-                    documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                }
-                Document document = documentBuilder.newDocument();
-
-                Element html = document.createElement("html");
-                document.appendChild(html);
-                renderer.render(model, html);
-
-                if (transformer == null) {
-                    TransformerFactory factory = TransformerFactory.newInstance();
-                    transformer = factory.newTransformer();
-                    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-                    transformer.setOutputProperty(OutputKeys.METHOD, "html");
-                    transformer.setOutputProperty(OutputKeys.MEDIA_TYPE, "text/html");
-                }
-
-                writer.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
-                writer.write(SystemProperties.getLineSeparator());
-                transformer.transform(new DOMSource(document), new StreamResult(writer));
+                SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, "");
+                htmlWriter.startElement("html");
+                renderer.render(model, htmlWriter);
+                htmlWriter.endElement();
             }
         });
     }

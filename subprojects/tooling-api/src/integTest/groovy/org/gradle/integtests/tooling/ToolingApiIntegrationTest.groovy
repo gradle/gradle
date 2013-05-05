@@ -15,25 +15,31 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.ReleasedVersions
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
-import org.gradle.util.TestFile
-import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Issue
-import org.gradle.integtests.tooling.fixture.TextUtil
-import org.gradle.integtests.fixtures.GradleHandle
 
-class ToolingApiIntegrationTest extends Specification {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    final ToolingApi toolingApi = new ToolingApi(dist)
-    final BasicGradleDistribution otherVersion = new ReleasedVersions(dist).last
-    TestFile projectDir = dist.testDir
+class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
+
+    final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
+    final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentFinalRelease
+    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+
+    TestFile projectDir
+
+    def setup() {
+        projectDir = temporaryFolder.testDirectory
+    }
 
     def "ensure the previous version supports short-lived daemons"() {
         expect:
@@ -51,11 +57,13 @@ class ToolingApiIntegrationTest extends Specification {
     }
 
     def "tooling api uses the wrapper properties to determine which version to use"() {
+        toolingApi.isEmbedded = false
+
         projectDir.file('build.gradle').text = """
 task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
-task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
+task check << { assert gradle.gradleVersion == '${otherVersion.version.version}' }
 """
-        dist.executer().withTasks('wrapper').run()
+        executer.withTasks('wrapper').run()
 
         when:
         toolingApi.withConnector { connector ->
@@ -68,15 +76,17 @@ task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
     }
 
     def "tooling api searches up from the project directory to find the wrapper properties"() {
+        toolingApi.isEmbedded = false
+
         projectDir.file('settings.gradle') << "include 'child'"
         projectDir.file('build.gradle') << """
 task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
 allprojects {
-    task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
+    task check << { assert gradle.gradleVersion == '${otherVersion.version.version}' }
 }
 """
         projectDir.file('child').createDir()
-        dist.executer().withTasks('wrapper').run()
+        executer.withTasks('wrapper').run()
 
         when:
         toolingApi.withConnector { connector ->
@@ -91,7 +101,8 @@ allprojects {
     }
 
     def "can specify a gradle installation to use"() {
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
+        toolingApi.isEmbedded = false
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
         toolingApi.withConnector { connector ->
@@ -104,7 +115,8 @@ allprojects {
     }
 
     def "can specify a gradle distribution to use"() {
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
+        toolingApi.isEmbedded = false
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
         toolingApi.withConnector { connector ->
@@ -117,11 +129,12 @@ allprojects {
     }
 
     def "can specify a gradle version to use"() {
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
+        toolingApi.isEmbedded = false
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
-        toolingApi.withConnector { connector ->
-            connector.useGradleVersion(otherVersion.version)
+        toolingApi.withConnector { GradleConnector connector ->
+            connector.useGradleVersion(otherVersion.version.version)
         }
         GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
@@ -130,15 +143,15 @@ allprojects {
     }
 
     def "tooling api reports an error when the specified gradle version does not support the tooling api"() {
-        def dist = dist.previousVersion('0.9.2').binDistribution
+        def distroZip = buildContext.distribution('0.9.2').binDistribution
 
         when:
-        toolingApi.withConnector { connector -> connector.useDistribution(dist.toURI()) }
-        def e = toolingApi.maybeFailWithConnection { connection -> connection.getModel(GradleProject.class) }
+        toolingApi.withConnector { connector -> connector.useDistribution(distroZip.toURI()) }
+        toolingApi.maybeFailWithConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
-        e.class == UnsupportedVersionException
-        e.message == "The specified Gradle distribution '${dist.toURI()}' is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
+        UnsupportedVersionException e = thrown()
+        e.message == "The specified Gradle distribution '${distroZip.toURI()}' is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
     }
 
     @Issue("GRADLE-2419")
@@ -150,24 +163,27 @@ allprojects {
         def stopTimeoutMs = 10000
         def retryIntervalMs = 500
 
+        def gradleUserHomeDirPath = executer.gradleUserHomeDir.absolutePath
+        def gradleHomeDirPath = distribution.gradleHomeDir.absolutePath
+
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'application'
 
             repositories {
-                maven { url "${dist.libsRepo.toURI()}" }
+                maven { url "${new IntegrationTestBuildContext().libsRepo.toURI()}" }
                 maven { url "http://repo.gradle.org/gradle/repo" }
             }
 
             dependencies {
-                compile "org.gradle:gradle-tooling-api:${dist.version}"
-                runtime 'org.slf4j:slf4j-simple:1.6.6'
+                compile "org.gradle:gradle-tooling-api:${distribution.version.version}"
+                runtime 'org.slf4j:slf4j-simple:1.7.2'
             }
 
             mainClassName = 'Main'
 
             run {
-                args = ["${TextUtil.escapeString(dist.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(dist.userHomeDir.absolutePath)}"]
+                args = ["${TextUtil.escapeString(gradleHomeDirPath)}", "${TextUtil.escapeString(gradleUserHomeDirPath)}"]
                 systemProperty 'org.gradle.daemon.idletimeout', 10000
                 systemProperty 'org.gradle.daemon.registry.base', "${TextUtil.escapeString(projectDir.file("daemon").absolutePath)}"
             }
@@ -235,8 +251,7 @@ allprojects {
         """
 
         when:
-        GradleHandle handle = dist.executer()
-                .inDirectory(projectDir)
+        GradleHandle handle = executer.inDirectory(projectDir)
                 .withTasks('run')
                 .withDaemonIdleTimeoutSecs(60)
                 .start()

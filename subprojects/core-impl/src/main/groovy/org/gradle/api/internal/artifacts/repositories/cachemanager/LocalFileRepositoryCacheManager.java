@@ -42,9 +42,13 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
         super(name);
     }
 
-    public ArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver, ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
+    public boolean isLocal() {
+        return true;
+    }
+
+    public EnhancedArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver, ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
         long start = System.currentTimeMillis();
-        ArtifactDownloadReport report = new ArtifactDownloadReport(artifact);
+        EnhancedArtifactDownloadReport report = new EnhancedArtifactDownloadReport(artifact);
         ResolvedResource resolvedResource = resourceResolver.resolve(artifact);
         if (resolvedResource == null) {
             report.setDownloadStatus(DownloadStatus.FAILED);

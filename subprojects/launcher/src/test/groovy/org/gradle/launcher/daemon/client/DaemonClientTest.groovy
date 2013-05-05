@@ -15,38 +15,33 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.initialization.GradleLauncherAction
+import org.gradle.initialization.BuildAction
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
-import org.gradle.messaging.remote.internal.Connection
 import org.gradle.util.ConcurrentSpecification
 import org.gradle.launcher.daemon.protocol.*
 
 class DaemonClientTest extends ConcurrentSpecification {
     final DaemonConnector connector = Mock()
-    final DaemonConnection daemonConnection = Mock()
-    final Connection<Object> connection = Mock()
+    final DaemonClientConnection connection = Mock()
     final OutputEventListener outputEventListener = Mock()
     final DaemonCompatibilitySpec compatibilitySpec = Mock()
     final IdGenerator<?> idGenerator = {12} as IdGenerator
     final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), executorFactory, idGenerator)
-
-    def setup() {
-        daemonConnection.getConnection() >> connection
-    }
 
     def stopsTheDaemonWhenRunning() {
         when:
         client.stop()
 
         then:
-        2 * connector.maybeConnect(compatibilitySpec) >>> [daemonConnection, null]
+        _ * connection.uid >> '1'
+        2 * connector.maybeConnect(compatibilitySpec) >>> [connection, null]
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new Success(null)
+        1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
-        daemonConnection.getConnection() >> connection // why do I need this? Why doesn't the interaction specified in setup cover me?
         0 * _
     }
 
@@ -60,80 +55,125 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def "stops all compatible daemons"() {
+        DaemonClientConnection connection2 = Mock()
+
         when:
         client.stop()
 
         then:
-        3 * connector.maybeConnect(compatibilitySpec) >>> [daemonConnection, daemonConnection, null]
-        2 * connection.dispatch({it instanceof Stop})
-        2 * connection.receive() >> new Success(null)
+        _ * connection.uid >> '1'
+        _ * connection2.uid >> '2'
+        3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection2, null]
+        1 * connection.dispatch({it instanceof Stop})
+        1 * connection.receive() >> new Success(null)
+        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.stop()
+        1 * connection2.dispatch({it instanceof Stop})
+        1 * connection2.receive() >> new Success(null)
+        1 * connection2.dispatch({it instanceof Finished})
+        1 * connection2.stop()
+        0 * _
+    }
+
+    def "stops each connection at most once"() {
+        when:
+        client.stop()
+
+        then:
+        _ * connection.uid >> '1'
+        3 * connector.maybeConnect(compatibilitySpec) >>> [connection, connection, null]
+        1 * connection.dispatch({it instanceof Stop})
+        1 * connection.receive() >> new Success(null)
+        1 * connection.dispatch({it instanceof Finished})
+        2 * connection.stop()
+        0 * _
     }
 
     def executesAction() {
         when:
-        def result = client.execute(Mock(GradleLauncherAction), Mock(BuildActionParameters))
+        def result = client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
         result == '[result]'
-        1 * connector.connect(compatibilitySpec) >> daemonConnection
+        1 * connector.connect(compatibilitySpec) >> connection
         1 * connection.dispatch({it instanceof Build})
-        2 * connection.receive() >>> [Mock(BuildStarted), new Success('[result]')]
+        2 * connection.receive() >>> [Stub(BuildStarted), new Success('[result]')]
+        1 * connection.dispatch({it instanceof CloseInput})
+        1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
+        0 * _
     }
 
     def rethrowsFailureToExecuteAction() {
-        GradleLauncherAction<String> action = Mock()
-        BuildActionParameters parameters = Mock()
         RuntimeException failure = new RuntimeException()
 
         when:
-        client.execute(Mock(GradleLauncherAction), Mock(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * connector.connect(compatibilitySpec) >> daemonConnection
+        1 * connector.connect(compatibilitySpec) >> connection
         1 * connection.dispatch({it instanceof Build})
-        2 * connection.receive() >>> [Mock(BuildStarted), new CommandFailure(failure)]
+        2 * connection.receive() >>> [Stub(BuildStarted), new CommandFailure(failure)]
+        1 * connection.dispatch({it instanceof CloseInput})
+        1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
+        0 * _
     }
     
     def "tries to find a different daemon if getting the first result from the daemon fails"() {
+        DaemonClientConnection connection2 = Mock()
+
         when:
-        client.execute(Mock(GradleLauncherAction), Mock(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
-        2 * connector.connect(compatibilitySpec) >> daemonConnection
-        connection.dispatch({it instanceof Build}) >> { throw new RuntimeException("Boo!")} >> { /* success */ }
-        2 * connection.receive() >>> [Mock(BuildStarted), new Success('')]
+        2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        1 * connection.dispatch({it instanceof Build}) >> { throw new RuntimeException("Boo!")}
+        1 * connection.stop()
+        2 * connection2.receive() >>> [Stub(BuildStarted), new Success('')]
+        0 * connection._
     }
 
     def "tries to find a different daemon if the daemon is busy"() {
+        DaemonClientConnection connection2 = Mock()
+
         when:
-        client.execute(Mock(GradleLauncherAction), Mock(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
-        2 * connector.connect(compatibilitySpec) >> daemonConnection
-        connection.receive() >>> [Mock(DaemonBusy), Mock(BuildStarted), new Success('')]
+        2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        1 * connection.dispatch({it instanceof Build})
+        1 * connection.receive() >> Stub(DaemonUnavailable)
+        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.stop()
+        2 * connection2.receive() >>> [Stub(BuildStarted), new Success('')]
+        0 * connection._
     }
 
     def "tries to find a different daemon if the first result is null"() {
+        DaemonClientConnection connection2 = Mock()
+
         when:
-        client.execute(Mock(GradleLauncherAction), Mock(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
-        3 * connector.connect(compatibilitySpec) >> daemonConnection
-        //first busy, then null, then build started...
-        connection.receive() >>> [Mock(DaemonBusy), null, Mock(BuildStarted), new Success('')]
+        2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        1 * connection.dispatch({it instanceof Build})
+        1 * connection.receive() >> null
+        1 * connection.stop()
+        2 * connection2.receive() >>> [Stub(BuildStarted), new Success('')]
+        0 * connection._
     }
 
     def "does not loop forever finding usable daemons"() {
         given:
-        connector.connect(compatibilitySpec) >> daemonConnection
-        connection.receive() >> Mock(DaemonBusy)
-        
+        connector.connect(compatibilitySpec) >> connection
+        connection.receive() >> Mock(DaemonUnavailable)
+
         when:
-        client.execute(Mock(GradleLauncherAction), Mock(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
         thrown(NoUsableDaemonFoundException)

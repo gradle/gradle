@@ -33,6 +33,34 @@
                 <td><literal>project.findbugs.ignoreFailures</literal></td>
             </tr>
             <tr>
+                <td>effort</td>
+                <td><literal>project.findbugs.effort</literal></td>
+            </tr>
+            <tr>
+                <td>reportLevel</td>
+                <td><literal>project.findbugs.reportLevel</literal></td>
+            </tr>
+            <tr>
+                <td>maxHeapSize</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>visitors</td>
+                <td><literal>project.findbugs.visitors</literal></td>
+            </tr>
+            <tr>
+                <td>omitVisitors</td>
+                <td><literal>project.findbugs.omitVisitors</literal></td>
+            </tr>
+            <tr>
+                <td>includeFilter</td>
+                <td><literal>project.findbugs.includeFilter</literal></td>
+            </tr>
+            <tr>
+                <td>excludeFilter</td>
+                <td><literal>project.findbugs.excludeFilter</literal></td>
+            </tr>
+            <tr>
                 <td>reports</td>
                 <td></td>
             </tr>

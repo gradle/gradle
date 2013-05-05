@@ -70,4 +70,103 @@ class StartScriptGeneratorTest extends Specification {
         then:
         windowsScriptContent.split(TextUtil.windowsLineSeparator).length == 90
     }
+
+    def "defaultJvmOpts is expanded properly in windows script"() {
+        given:
+        generator.defaultJvmOpts = ['-Dfoo=bar', '-Xint']
+        generator.scriptRelPath = "bin"
+        when:
+        String windowsScriptContent = generator.generateWindowsScriptContent()
+        then:
+        windowsScriptContent.contains('set DEFAULT_JVM_OPTS="-Dfoo=bar" "-Xint"')
+    }
+
+    def "defaultJvmOpts is expanded properly in windows script -- spaces"() {
+        given:
+        generator.defaultJvmOpts = ['-Dfoo=bar baz', '-Xint']
+        generator.scriptRelPath = "bin"
+        when:
+        String windowsScriptContent = generator.generateWindowsScriptContent()
+        then:
+        windowsScriptContent.contains(/set DEFAULT_JVM_OPTS="-Dfoo=bar baz" "-Xint"/)
+    }
+
+    def "defaultJvmOpts is expanded properly in windows script -- double quotes"() {
+        given:
+        generator.defaultJvmOpts = ['-Dfoo=b"ar baz', '-Xi""nt', '-Xpatho\\"logical']
+        generator.scriptRelPath = "bin"
+        when:
+        String windowsScriptContent = generator.generateWindowsScriptContent()
+        then:
+        windowsScriptContent.contains(/set DEFAULT_JVM_OPTS="-Dfoo=b\"ar baz" "-Xi\"\"nt" "-Xpatho\\\"logical"/)
+    }
+
+    def "defaultJvmOpts is expanded properly in windows script -- backslashes and shell metacharacters"() {
+        given:
+        generator.defaultJvmOpts = ['-Dfoo=b\\ar baz', '-Xint%PATH%']
+        generator.scriptRelPath = "bin"
+        when:
+        String windowsScriptContent = generator.generateWindowsScriptContent()
+        then:
+        windowsScriptContent.contains(/set DEFAULT_JVM_OPTS="-Dfoo=b\ar baz" "-Xint%%PATH%%"/)
+    }
+
+    def "defaultJvmOpts is expanded properly in unix script"() {
+        given:
+        generator.defaultJvmOpts = ['-Dfoo=bar', '-Xint']
+        generator.scriptRelPath = "bin"
+        when:
+        String unixScriptContent = generator.generateUnixScriptContent()
+        then:
+        unixScriptContent.contains('DEFAULT_JVM_OPTS=\'"-Dfoo=bar" "-Xint"\'')
+    }
+
+    def "defaultJvmOpts is expanded properly in unix script -- spaces"() {
+        given:
+        generator.defaultJvmOpts = ['-Dfoo=bar baz', '-Xint']
+        generator.scriptRelPath = "bin"
+        when:
+        String unixScriptContent = generator.generateUnixScriptContent()
+        then:
+        unixScriptContent.contains(/DEFAULT_JVM_OPTS='"-Dfoo=bar baz" "-Xint"'/)
+    }
+
+    def "defaultJvmOpts is expanded properly in unix script -- double quotes"() {
+        given:
+        generator.defaultJvmOpts = ['-Dfoo=b"ar baz', '-Xi""nt']
+        generator.scriptRelPath = "bin"
+        when:
+        String unixScriptContent = generator.generateUnixScriptContent()
+        then:
+        unixScriptContent.contains(/DEFAULT_JVM_OPTS='"-Dfoo=b\"ar baz" "-Xi\"\"nt"'/)
+    }
+
+    def "defaultJvmOpts is expanded properly in unix script -- single quotes"() {
+        given:
+        generator.defaultJvmOpts = ['-Dfoo=b\'ar baz', '-Xi\'\'nt']
+        generator.scriptRelPath = "bin"
+        when:
+        String unixScriptContent = generator.generateUnixScriptContent()
+        then:
+        unixScriptContent.contains(/DEFAULT_JVM_OPTS='"-Dfoo=b'"'"'ar baz" "-Xi'"'"''"'"'nt"'/)
+    }
+
+    def "defaultJvmOpts is expanded properly in unix script -- backslashes and shell metacharacters"() {
+        given:
+        generator.defaultJvmOpts = ['-Dfoo=b\\ar baz', '-Xint$PATH']
+        generator.scriptRelPath = "bin"
+        when:
+        String unixScriptContent = generator.generateUnixScriptContent()
+        then:
+        unixScriptContent.contains(/DEFAULT_JVM_OPTS='"-Dfoo=b\\ar baz" "-Xint/ + '\\$PATH' + /"'/)
+    }
+
+    def "defaultJvmOpts is expanded properly in unix script -- empty list"() {
+        given:
+        generator.scriptRelPath = "bin"
+        when:
+        String unixScriptContent = generator.generateUnixScriptContent()
+        then:
+        unixScriptContent.contains(/DEFAULT_JVM_OPTS=""/)
+    }
 }

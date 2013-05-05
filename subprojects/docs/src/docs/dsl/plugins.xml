@@ -7,6 +7,9 @@
     <plugin id="groovy" description="Groovy Plugin">
         <extends targetClass="org.gradle.api.tasks.SourceSet" mixinClass="org.gradle.api.tasks.GroovySourceSet"/>
     </plugin>
+    <plugin id="publishing" description="Publishing Plugin">
+        <extends targetClass="org.gradle.api.Project" id="publishing" extensionClass="org.gradle.api.publish.PublishingExtension"/>
+    </plugin>
     <plugin id="scala" description="Scala Plugin">
         <extends targetClass="org.gradle.api.tasks.SourceSet" mixinClass="org.gradle.api.tasks.ScalaSourceSet"/>
     </plugin>
@@ -42,6 +45,10 @@
     <plugin id="application" description="Application Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ApplicationPluginConvention"/>
     </plugin>
+    <plugin id="distribution" description="Distribution Plugin">
+        <extends targetClass="org.gradle.api.Project" id="distributions" extensionClass="org.gradle.api.distribution.DistributionContainer"/>
+    </plugin>
+    <plugin id="java-library-distribution" description="Java Library Distribution Plugin"/>
     <plugin id="signing" description="Signing Plugin">
         <extends targetClass="org.gradle.api.Project" id="signing" extensionClass="org.gradle.plugins.signing.SigningExtension"/>
     </plugin>
@@ -65,5 +72,9 @@
     </plugin>
     <plugin id="jdepend" description="JDepend Plugin">
         <extends targetClass="org.gradle.api.Project" id="jdepend" extensionClass="org.gradle.api.plugins.quality.JDependExtension"/>
+    </plugin>
+    <plugin id="jacoco" description="JaCoCo Plugin">
+        <extends targetClass="org.gradle.api.Project" id="jacoco" extensionClass="org.gradle.testing.jacoco.plugins.JacocoPluginExtension"/>
+        <extends targetClass="org.gradle.api.tasks.testing.Test" id="jacoco" extensionClass="org.gradle.testing.jacoco.plugins.JacocoTaskExtension"/>
     </plugin>
 </plugins>

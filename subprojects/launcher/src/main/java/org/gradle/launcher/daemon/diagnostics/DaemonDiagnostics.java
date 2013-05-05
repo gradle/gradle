@@ -61,7 +61,7 @@ public class DaemonDiagnostics implements Serializable {
             String tail = GFileUtils.tail(getDaemonLog(), TAIL_SIZE);
             return formatTail(tail);
         } catch (GFileUtils.TailReadingException e) {
-            return "Unable to read the tail from file: " + getDaemonLog().getAbsolutePath();
+            return "Unable to read from the daemon log file: " + getDaemonLog().getAbsolutePath() + ", because of: " + e.getCause();
         }
     }
 

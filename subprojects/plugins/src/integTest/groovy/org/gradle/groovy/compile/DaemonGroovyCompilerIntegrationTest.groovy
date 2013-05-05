@@ -16,15 +16,8 @@
 package org.gradle.groovy.compile
 
 class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
-
     @Override
     String compilerConfiguration() {
-'''
-    tasks.withType(GroovyCompile) {
-        groovyOptions.useAnt = false
-        groovyOptions.fork = true
+        "tasks.withType(GroovyCompile) { groovyOptions.fork = true }"
     }
-'''
-    }
-
 }

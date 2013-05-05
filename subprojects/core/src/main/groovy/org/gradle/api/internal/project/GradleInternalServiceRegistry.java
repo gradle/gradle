@@ -15,19 +15,26 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess;
-import org.gradle.api.internal.changedetection.TaskCacheLockHandlingBuildExecuter;
-import org.gradle.api.internal.plugins.DefaultPluginRegistry;
+import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
+import org.gradle.api.internal.changedetection.state.TaskCacheLockHandlingBuildExecuter;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.execution.*;
-import org.gradle.execution.taskgraph.DefaultTaskExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
+import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import static java.util.Arrays.asList;
 
@@ -44,10 +51,16 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
     }
 
     protected BuildExecuter createBuildExecuter() {
+        List<BuildConfigurationAction> configs = new LinkedList<BuildConfigurationAction>();
+        if (get(StartParameter.class).isConfigureOnDemand()) {
+            configs.add(new ProjectEvaluatingAction());
+        }
+        configs.add(new DefaultTasksBuildExecutionAction());
+        configs.add(new ExcludedTaskFilteringBuildConfigurationAction());
+        configs.add(new TaskNameResolvingBuildConfigurationAction());
+
         return new DefaultBuildExecuter(
-                asList(new DefaultTasksBuildExecutionAction(),
-                        new ExcludedTaskFilteringBuildConfigurationAction(),
-                        new TaskNameResolvingBuildConfigurationAction()),
+                configs,
                 asList(new DryRunBuildExecutionAction(),
                         new TaskCacheLockHandlingBuildExecuter(get(TaskArtifactStateCacheAccess.class)),
                         new SelectedTaskExecutionAction()));
@@ -61,17 +74,12 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
         };
     }
 
-    protected IProjectRegistry createIProjectRegistry() {
+    protected ProjectRegistry createIProjectRegistry() {
         return new DefaultProjectRegistry<ProjectInternal>();
     }
 
     protected TaskGraphExecuter createTaskGraphExecuter() {
-        return new DefaultTaskGraphExecuter(get(ListenerManager.class), new DefaultTaskExecutor());
-//        return new DefaultTaskGraphExecuter(get(ListenerManager.class), new ParallelTaskExecutor(get(TaskArtifactStateCacheAccess.class)));
-    }
-
-    protected PluginRegistry createPluginRegistry() {
-        return new DefaultPluginRegistry(gradle.getScriptClassLoader(), new DependencyInjectingInstantiator(this));
+        return new DefaultTaskGraphExecuter(get(ListenerManager.class), get(TaskPlanExecutor.class));
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {
@@ -79,5 +87,17 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
             return new ProjectInternalServiceRegistry(this, (ProjectInternal) domainObject);
         }
         throw new UnsupportedOperationException();
+    }
+
+    protected FileResolver createFileResolver() {
+        return new IdentityFileResolver();
+    }
+
+    protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
+        return parentRegistry.createChild(gradle.getScriptClassLoader(), new DependencyInjectingInstantiator(this));
+    }
+
+    protected PluginContainer createPluginContainer() {
+        return new DefaultPluginContainer(get(PluginRegistry.class), gradle);
     }
 }

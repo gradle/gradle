@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.consumer;
 
 
-import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Specification
 
 import java.util.concurrent.CopyOnWriteArraySet

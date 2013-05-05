@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.eclipse.model;
+package org.gradle.plugins.ide.eclipse.model
 
-
-import org.gradle.api.internal.XmlTransformer
-import org.gradle.util.TemporaryFolder
+import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 
 /**
  * @author Hans Dockter
@@ -41,7 +40,7 @@ public class ClasspathTest extends Specification {
     private final Classpath classpath = new Classpath(new XmlTransformer(), fileReferenceFactory)
 
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def setup() {
 

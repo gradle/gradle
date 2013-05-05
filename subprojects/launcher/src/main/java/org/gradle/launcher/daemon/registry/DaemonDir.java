@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -29,7 +30,7 @@ public class DaemonDir {
         this.baseDir = baseDir;
         this.versionedDir = new File(baseDir, String.format("%s", GradleVersion.current().getVersion()));
         this.registryFile = new File(versionedDir, "registry.bin");
-        this.versionedDir.mkdirs();
+        GFileUtils.mkdirs(this.versionedDir);
     }
 
     public File getBaseDir() {

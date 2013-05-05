@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
 configurations {
     reports
 }
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     publishCompile libraries.slf4j_api
     publishCompile project(":baseServices")
     publishCompile project(":messaging")
 
+    compile project(":baseServicesGroovy")
     compile libraries.asm
     compile libraries.ant
     compile libraries.commons_collections
@@ -42,13 +45,17 @@ dependencies {
     compile project(":cli")
     compile project(":native")
 
+    runtime project(":docs")
+
     runtime libraries.log4j_to_slf4j
     runtime libraries.jcl_to_slf4j
 
     testCompile libraries.log4j_to_slf4j
     testCompile libraries.jcl_to_slf4j
+    testCompile libraries.jsoup
 
-    testRuntime "xerces:xercesImpl:2.9.1"
+    testRuntime libraries.xerces
+    testRuntime project(":diagnostics")
 
     testFixturesCompile project(":internalTesting")
     testFixturesRuntime project(':coreImpl')
@@ -59,10 +66,6 @@ dependencies {
 }
 
 useTestFixtures()
-
-test {
-    jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
-}
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
@@ -99,12 +102,4 @@ class PluginsManifest extends DefaultTask {
     def generate() {
         propertiesFile.withOutputStream { pluginProperties.save(it, 'plugin definitions') }
     }
-}
-
-eclipse {
-	classpath {
-		file.whenMerged { classpath ->
-			classpath.entries.removeAll {it.path.contains('/core') }
-		}
-	}
 }

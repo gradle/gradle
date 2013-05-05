@@ -26,6 +26,7 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildFile << """
             version = "1.0"
+            group = "foo"
             apply plugin: "java"
             apply plugin: "osgi"
                             
@@ -33,8 +34,11 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
                 manifest {
                     version = "3.0"
                     instructionReplace("Bundle-Version", "2.0")
+                    instructionReplace("Bundle-SymbolicName", "bar")
                 }
             }
+
+            assert jar.manifest.symbolicName.startsWith("bar") // GRADLE-2446
         """
         
         and:
@@ -43,8 +47,10 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
         when:
         run "jar"
 
+        def manifestText = file("build/tmp/jar/MANIFEST.MF").text
         then:
-        file("build/tmp/jar/MANIFEST.MF").text.contains("Bundle-Version: 2.0")
+        manifestText.contains("Bundle-Version: 2.0")
+        manifestText.contains("Bundle-SymbolicName: bar")
     }
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2237")

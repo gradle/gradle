@@ -18,28 +18,26 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import spock.lang.Specification
 
 class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
-    final RepositoryTransportFactory transportFactory = Mock()
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory)
+    final RepositoryCacheManager localCacheManager = Mock()
+    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, localCacheManager)
 
     def "creates a repository with multiple root directories"() {
         given:
         def dir1 = new File('a')
         def dir2 = new File('b')
         _ * fileResolver.resolveFiles(['a', 'b']) >> new SimpleFileCollection(dir1, dir2)
-        1 * transportFactory.localCacheManager >> Mock(RepositoryCacheManager)
 
         and:
         repository.dirs('a', 'b')
 
         when:
-        def repo = repository.createResolver()
+        def repo = repository.createLegacyDslObject()
 
         then:
         repo instanceof FileSystemResolver
@@ -59,7 +57,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         _ * fileResolver.resolveFiles(_) >> new SimpleFileCollection()
 
         when:
-        repository.createResolver()
+        repository.createLegacyDslObject()
 
         then:
         InvalidUserDataException e = thrown()

@@ -17,9 +17,7 @@ package org.gradle.cache.internal
 
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.internal.Factory
-import org.gradle.internal.nativeplatform.ProcessEnvironment
-import org.gradle.internal.nativeplatform.services.NativeServices
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -27,7 +25,7 @@ class OnDemandFileAccessTest extends Specification {
     final FileLockManager manager = Mock()
     final FileLock targetLock = Mock()
 
-    @Rule TemporaryFolder dir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
     OnDemandFileAccess lock
     File file
 
@@ -106,7 +104,7 @@ class OnDemandFileAccessTest extends Specification {
     }
 
     FileLockManager createManager() {
-        new DefaultFileLockManager(new DefaultProcessMetaDataProvider(new NativeServices().get(ProcessEnvironment)))
+        return DefaultFileLockManagerTestHelper.createDefaultFileLockManager()
     }
 
     FileAccess access(File file, FileLockManager manager = createManager()) {

@@ -1,0 +1,32 @@
+// START SNIPPET use-plugin
+apply plugin: 'java-library-distribution'
+// END SNIPPET use-plugin
+
+version = '1.0.0'
+
+// START SNIPPET name-conf
+distributions {
+    main{
+        baseName = 'my-name'
+    }
+}
+// END SNIPPET name-conf
+
+// START SNIPPET custom-distribution
+distributions {
+    main {
+        baseName = 'my-name'
+        contents {
+            from { 'src/dist' }
+        }
+    }
+}
+// END SNIPPET custom-distribution
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'commons-collections:commons-collections:3.2.1'
+}

@@ -1,0 +1,14 @@
+def afterEvaluation = false
+gradle.projectsEvaluated {
+    afterEvaluation = true
+}
+
+allprojects { project ->
+    configurations.all { configuration ->
+        configuration.incoming.beforeResolve {
+           if (!afterEvaluation) {
+               throw new Exception("Configuration $configuration.name of project $project.name is being resolved at configuration time.")
+           }
+        }
+    }
+}

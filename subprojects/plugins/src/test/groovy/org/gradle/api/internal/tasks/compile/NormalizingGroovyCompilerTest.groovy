@@ -18,18 +18,21 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 
 import groovy.transform.InheritConstructors
-
+import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.api.tasks.compile.GroovyCompileOptions
 import spock.lang.Specification
 
 class NormalizingGroovyCompilerTest extends Specification { 
     Compiler<GroovyJavaJointCompileSpec> target = Mock()
-    GroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec()
+    DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec()
     NormalizingGroovyCompiler compiler = new NormalizingGroovyCompiler(target)
     
     def setup() {
         spec.classpath = files('Dep1.jar', 'Dep2.jar', 'Dep3.jar')
         spec.groovyClasspath = spec.classpath
         spec.source = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
+        spec.compileOptions = new CompileOptions()
+        spec.groovyCompileOptions = new GroovyCompileOptions()
     }
 
     def "silently excludes source files not ending in .java or .groovy by default"() {

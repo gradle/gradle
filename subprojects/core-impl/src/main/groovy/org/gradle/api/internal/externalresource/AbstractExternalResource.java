@@ -24,8 +24,11 @@ public abstract class AbstractExternalResource implements ExternalResource {
 
     public void writeTo(File destination) throws IOException {
         FileOutputStream output = new FileOutputStream(destination);
-        writeTo(output);
-        output.close();
+        try {
+            writeTo(output);
+        } finally {
+            output.close();
+        }
     }
 
     public void writeTo(OutputStream output) throws IOException {

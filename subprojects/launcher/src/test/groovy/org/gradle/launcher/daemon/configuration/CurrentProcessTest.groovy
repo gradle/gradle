@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.configuration;
-
+package org.gradle.launcher.daemon.configuration
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.process.internal.JvmOptions
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.initialization.BuildLayoutParameters
 
 public class CurrentProcessTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule final SetSystemProperties systemPropertiesSet = new SetSystemProperties()
     private FileResolver fileResolver = Mock()
     private def currentJavaHome = tmpDir.file('java_home')
     private JvmOptions currentJvmOptions = new JvmOptions(fileResolver)
-    private DaemonParameters parameters = new DaemonParameters()
+    private DaemonParameters parameters = new DaemonParameters(new BuildLayoutParameters())
 
     def "can only run build with identical java home"() {
         when:

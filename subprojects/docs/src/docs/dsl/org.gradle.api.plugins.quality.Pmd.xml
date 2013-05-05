@@ -25,6 +25,10 @@
                 <td><literal>project.pmd.ignoreFailures</literal></td>
             </tr>
             <tr>
+                <td>targetJdk</td>
+                <td><literal>project.pmd.targetJdk</literal></td>
+            </tr>
+            <tr>
                 <td>source</td>
                 <td><literal><replaceable>sourceSet</replaceable>.allJava</literal></td>
             </tr>

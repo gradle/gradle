@@ -19,8 +19,8 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -40,7 +40,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(JMock.class)
 public class SyncCopySpecVisitorTest {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final CopySpecVisitor delegate = context.mock(CopySpecVisitor.class);
     private final SyncCopySpecVisitor visitor = new SyncCopySpecVisitor(delegate);
@@ -88,7 +88,7 @@ public class SyncCopySpecVisitorTest {
         assert visited.contains(new RelativePath(true, "included.txt"));
         assert !visited.contains(new RelativePath(true, "extra", "extra.txt"));
         final Set<RelativePath> actual = new HashSet<RelativePath>();
-        new DirectoryFileTree(destDir).depthFirst().visit(new FileVisitor() {
+        new DirectoryFileTree(destDir).postfix().visit(new FileVisitor() {
             public void visitDir(FileVisitDetails dirDetails) {
             }
 

@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -52,7 +52,7 @@ public class DefaultArtifactPomTest {
     private MavenPom testPom;
 
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     Mockery context = new JUnit4Mockery();
 
@@ -247,7 +247,7 @@ public class DefaultArtifactPomTest {
     public void writePom() {
         final MavenPom mavenPomMock = context.mock(MavenPom.class);
         DefaultArtifactPom artifactPom = new DefaultArtifactPom(mavenPomMock);
-        final File somePomFile = new File(tmpDir.getDir(), "someDir/somePath");
+        final File somePomFile = new File(tmpDir.getTestDirectory(), "someDir/somePath");
         context.checking(new Expectations() {{
             allowing(mavenPomMock).getArtifactId();
             will(returnValue("artifactId"));

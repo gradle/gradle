@@ -60,8 +60,8 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void addAssemble(Project project) {
-        Task assembleTask = project.getTasks().add(ASSEMBLE_TASK_NAME);
-        assembleTask.setDescription("Assembles all Jar, War, Zip, and Tar archives.");
+        Task assembleTask = project.getTasks().create(ASSEMBLE_TASK_NAME);
+        assembleTask.setDescription("Assembles the outputs of this project.");
         assembleTask.setGroup(BUILD_GROUP);
         assembleTask.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
     }
@@ -103,7 +103,7 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void addClean(final Project project) {
-        Delete clean = project.getTasks().add(CLEAN_TASK_NAME, Delete.class);
+        Delete clean = project.getTasks().create(CLEAN_TASK_NAME, Delete.class);
         clean.setDescription("Deletes the build directory.");
         clean.setGroup(BUILD_GROUP);
         clean.delete(new Callable<File>() {
@@ -129,10 +129,10 @@ public class BasePlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         project.setProperty("status", "integration");
 
-        Configuration archivesConfiguration = configurations.add(Dependency.ARCHIVES_CONFIGURATION).
+        Configuration archivesConfiguration = configurations.create(Dependency.ARCHIVES_CONFIGURATION).
                 setDescription("Configuration for archive artifacts.");
 
-        configurations.add(Dependency.DEFAULT_CONFIGURATION).
+        configurations.create(Dependency.DEFAULT_CONFIGURATION).
                 setDescription("Configuration for default artifacts.");
 
         final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(

@@ -25,6 +25,7 @@ class PropertyDoc implements DslElementDoc {
     private final List<Element> comment
     private final List<ExtraAttributeDoc> additionalValues
     private final PropertyMetaData metaData
+    private final ClassMetaData referringClass
 
     PropertyDoc(PropertyMetaData propertyMetaData, List<Element> comment, List<ExtraAttributeDoc> additionalValues) {
         this(propertyMetaData.ownerClass, propertyMetaData, comment, additionalValues)
@@ -32,6 +33,7 @@ class PropertyDoc implements DslElementDoc {
 
     PropertyDoc(ClassMetaData referringClass, PropertyMetaData propertyMetaData, List<Element> comment, List<ExtraAttributeDoc> additionalValues) {
         name = propertyMetaData.name
+        this.referringClass = referringClass
         this.metaData = propertyMetaData
         id = "${referringClass.className}:$name"
         this.comment = comment
@@ -41,8 +43,16 @@ class PropertyDoc implements DslElementDoc {
         this.additionalValues = additionalValues
     }
 
-    PropertyDoc forClass(ClassMetaData classMetaData, Collection<ExtraAttributeDoc> additionalValues) {
-        return new PropertyDoc(classMetaData, metaData, comment, additionalValues as List)
+    PropertyDoc forClass(ClassDoc referringClass) {
+        return forClass(referringClass, [])
+    }
+
+    PropertyDoc forClass(ClassDoc referringClass, Collection<ExtraAttributeDoc> additionalValues) {
+        def refererMetaData = referringClass.classMetaData
+        if (refererMetaData == this.referringClass && additionalValues.isEmpty()) {
+            return this
+        }
+        return new PropertyDoc(refererMetaData, metaData, comment, additionalValues as List)
     }
 
     String getId() {
@@ -58,11 +68,11 @@ class PropertyDoc implements DslElementDoc {
     }
 
     boolean isDeprecated() {
-        return metaData.deprecated
+        return metaData.deprecated && !referringClass.deprecated
     }
 
-    boolean isExperimental() {
-        return metaData.experimental
+    boolean isIncubating() {
+        return metaData.incubating || metaData.ownerClass.incubating
     }
 
     Element getDescription() {

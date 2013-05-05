@@ -16,10 +16,11 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -48,7 +49,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         allArgs.addAll(javaOptions.getAllJvmArgs());
         if (!classpath.isEmpty()) {
             allArgs.add("-cp");
-            allArgs.add(GUtil.join(classpath.getFiles(), File.pathSeparator));
+            allArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getFiles()));
         }
         return allArgs;
     }
@@ -62,11 +63,15 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     public void setJvmArgs(Iterable<?> arguments) {
-        javaOptions.setJvmArgs(arguments);
+        if (arguments != null) {
+            javaOptions.setJvmArgs(arguments);
+        }
     }
 
     public JavaExecHandleBuilder jvmArgs(Iterable<?> arguments) {
-        javaOptions.jvmArgs(arguments);
+        if (arguments != null) {
+            javaOptions.jvmArgs(arguments);
+        }
         return this;
     }
 

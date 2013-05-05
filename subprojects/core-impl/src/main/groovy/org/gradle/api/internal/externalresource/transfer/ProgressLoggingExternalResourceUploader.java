@@ -17,58 +17,65 @@
 package org.gradle.api.internal.externalresource.transfer;
 
 import org.gradle.internal.Factory;
-import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-public class ProgressLoggingExternalResourceUploader extends AbstractProgressLoggingExternalResourceHandler implements ExternalResourceUploader {
+public class ProgressLoggingExternalResourceUploader extends AbstractProgressLoggingHandler implements ExternalResourceUploader {
     private final ExternalResourceUploader delegate;
 
     public ProgressLoggingExternalResourceUploader(ExternalResourceUploader delegate, ProgressLoggerFactory progressLoggerFactory) {
         super(progressLoggerFactory);
         this.delegate = delegate;
     }
-
     public void upload(final Factory<InputStream> source, final Long contentLength, String destination) throws IOException {
-        final ProgressLogger progressLogger = startProgress(String.format("Upload to %s", destination));
+        final ResourceOperation uploadOperation = createResourceOperation(destination, ResourceOperation.Type.upload, getClass(), contentLength);
+
         try {
             delegate.upload(new Factory<InputStream>() {
                 public InputStream create() {
-                    return new ProgressLoggingInputStream(source.create(), progressLogger, contentLength);
+                    return new ProgressLoggingInputStream(source.create(), uploadOperation);
                 }
             }, contentLength, destination);
         } finally {
-            progressLogger.completed();
+            uploadOperation.completed();
         }
     }
 
     private class ProgressLoggingInputStream extends InputStream {
-        private long totalRead;
         private InputStream inputStream;
-        private final ProgressLogger progressLogger;
-        private long contentLength;
+        private final ResourceOperation resourceOperation;
 
-
-        public ProgressLoggingInputStream(InputStream inputStream, ProgressLogger progressLogger, long contentLength) {
+        public ProgressLoggingInputStream(InputStream inputStream, ResourceOperation resourceOperation) {
             this.inputStream = inputStream;
-            this.progressLogger = progressLogger;
-            this.contentLength = contentLength;
+            this.resourceOperation = resourceOperation;
+        }
+
+        @Override
+        public void close() throws IOException {
+            inputStream.close();
         }
 
         @Override
         public int read() throws IOException {
-            return inputStream.read();
+            int result = inputStream.read();
+            if (result >= 0) {
+                doLogProgress(1);
+            }
+            return result;
         }
 
         public int read(byte[] b, int off, int len) throws IOException {
             int read = inputStream.read(b, off, len);
-            if (read != -1) {
-                totalRead += read;
-                logProgress(progressLogger, totalRead, contentLength, "uploaded");
+            if (read > 0) {
+                doLogProgress(read);
             }
             return read;
+        }
+
+        private void doLogProgress(long numberOfBytes) {
+            resourceOperation.logProcessedBytes(numberOfBytes);
         }
     }
 }

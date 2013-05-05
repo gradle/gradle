@@ -1,37 +1,74 @@
+import org.gradle.build.*
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
 dependencies {
-    groovy libraries.groovy
-
-    publishCompile project(':core')
-    publishCompile project(':baseServices')
-    publishCompile project(':messaging')
-    publishCompile project(':wrapper')
+    compile project(path: ':core', configuration: "publishCompileWithProjectJar")
+    compile project(':messaging')
+    compile project(':wrapper')
+    compile project(':baseServices')
     publishCompile libraries.slf4j_api
+
+    testCompile libraries.groovy
 
     // lots of integTest errors otherwise
     integTestRuntime project(':ide')
+    integTestRuntime project(':buildSetup')
+    integTestRuntime project(':buildComparison')
 }
 
 useTestFixtures()
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
-
-    doFirst {
-        systemProperties['org.gradle.integtest.toolingApiFromTestClasspath'] = 'true'
-    }
 }
 
 daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
+
+task jarjarJar(type: JarJarJar) {
+    appendix = "fat"
+    dependsOn jar
+    doFirst {
+        from(zipTree(jar.getArchivePath()))
+        (configurations.runtime - configurations.publishCompile).each {
+            from(zipTree(it))
+        }
+    }
+    exclude "META-INF/**"
+    exclude "*classpath.properties"
+
+
+    rule('org.gradle.**', '@0')
+    rule('org.slf4j.**', '@0')
+
+    rule('org.**', 'org.gradle.jarjar.@0')
+    rule('com.**', 'org.gradle.jarjar.@0')
+    rule('net.**', 'org.gradle.jarjar.@0')
+
+    keep('org.gradle.tooling.**')
+}
+
+sourceJar{
+    configurations.compile.allDependencies.withType(ProjectDependency).each {
+        from it.dependencyProject.sourceSets.main.groovy.srcDirs
+        from it.dependencyProject.sourceSets.main.java.srcDirs
+    }
+}
+
+artifacts {
+    publishCompileWithProjectJar jarjarJar
+    publishRuntime file: jarjarJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: jarjarJar
+}
+
+configurations.publishRuntime { artifacts.removeAll { it instanceof ArchivePublishArtifact && it.archiveTask == jar } }
+
 eclipse {
-	classpath {
-    	file.whenMerged { classpath ->
-        	classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-        	//** Investigate me
-        	classpath.entries.removeAll { it.path.contains('src/test/groovy') }
-        	classpath.entries.removeAll { it.path.contains('src/integTest/groovy') }
+    classpath {
+        file.whenMerged { classpath ->
+            //**TODO
+            classpath.entries.removeAll { it.path.contains('src/test/groovy') }
+            classpath.entries.removeAll { it.path.contains('src/integTest/groovy') }
         }
     }
 }

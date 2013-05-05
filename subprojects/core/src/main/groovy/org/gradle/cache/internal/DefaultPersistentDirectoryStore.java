@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.cache.*;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Serializer;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     public DefaultPersistentDirectoryStore open() {
-        dir.mkdirs();
+        GFileUtils.mkdirs(dir);
         cacheAccess = createCacheAccess();
         try {
             cacheAccess.open(lockMode);
@@ -119,6 +120,10 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
         return cacheAccess.newCache(cacheFile, keyType, valueSerializer);
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        return cacheAccess.newCache(cacheFile, keySerializer, valueSerializer);
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {

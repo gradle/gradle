@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.IvyConverterTestUtil;
 import org.gradle.util.HelperUtil;
@@ -51,9 +52,9 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
 
     private ModuleDependency dependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
     private ModuleDependency dependencyDummy2 = context.mock(ModuleDependency.class, "dep2");
-    private ModuleDependency similarDependency1 = HelperUtil.createDependency("group", "name", "version");
-    private ModuleDependency similarDependency2 = HelperUtil.createDependency("group", "name", "version");
-    private ModuleDependency similarDependency3 = HelperUtil.createDependency("group", "name", "version");
+    private ModuleDependency similarDependency1 = createDependency("group", "name", "version");
+    private ModuleDependency similarDependency2 = createDependency("group", "name", "version");
+    private ModuleDependency similarDependency3 = createDependency("group", "name", "version");
     private org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRuleStub1 = context.mock(org.apache.ivy.core.module.descriptor.ExcludeRule.class, "rule1");
     private org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRuleStub2 = context.mock(org.apache.ivy.core.module.descriptor.ExcludeRule.class, "rule2");
 
@@ -102,7 +103,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
     private void associateDependencyWithDescriptor(final ModuleDependency dependency, final DefaultModuleDescriptor parent,
                                                    final Configuration configuration) {
         context.checking(new Expectations() {{
-            allowing(dependencyDescriptorFactoryStub).addDependencyDescriptor(with(sameInstance(configuration)),
+            allowing(dependencyDescriptorFactoryStub).addDependencyDescriptor(with(equal(configuration.getName())),
                     with(equal(parent)), with(sameInstance(dependency)));
         }});
     }
@@ -123,5 +124,9 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
             will(returnValue(excludeRule == null ? Collections.emptySet() : toSet(excludeRule)));
         }});
         return configurationStub;
+    }
+
+    ModuleDependency createDependency(String group, String name, String version) {
+        return new DefaultExternalModuleDependency(group, name, version);
     }
 }

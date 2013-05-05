@@ -10,11 +10,35 @@
             </thead>
             <tr>
                 <td>toolVersion</td>
-                <td><literal>2.0.0</literal></td>
+                <td><literal>2.0.1</literal></td>
             </tr>
             <tr>
                 <td>reportsDir</td>
                 <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/findbugs</literal></td>
+            </tr>
+            <tr>
+                <td>effort</td>
+                <td><literal>'default'</literal></td>
+            </tr>
+            <tr>
+                <td>reportLevel</td>
+                <td><literal>'medium'</literal></td>
+            </tr>
+            <tr>
+                <td>visitors</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>omitVisitors</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>includeFilter</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>excludeFilter</td>
+                <td><literal>null</literal></td>
             </tr>
         </table>
     </section>

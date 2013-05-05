@@ -16,23 +16,24 @@
 package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
-import static org.gradle.api.file.FileVisitorUtil.*;
-import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.TemporaryFolder;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
 
+import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
+import static org.gradle.api.file.FileVisitorUtil.assertVisits;
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
+import static org.gradle.util.WrapUtil.toList;
+import static org.hamcrest.Matchers.equalTo;
+
 public class MapFileTreeTest {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private TestFile rootDir = tmpDir.getDir();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    private TestFile rootDir = tmpDir.getTestDirectory();
     private final MapFileTree tree = new MapFileTree(rootDir);
 
     @Test

@@ -16,18 +16,15 @@
 <chapter id="project_reports_plugin" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Project Report Plugin</title>
 
-    <note>
-        <para>The Project report plugin is currently a work in progress, and at this stage doesn't do particularly
-            much. We plan to add much more to these reports in future releases of Gradle.
-        </para>
-    </note>
-
     <para>The Project report plugin adds some tasks to your project which generate reports containing useful
         information about your build. Those tasks generate exactly the same content as the command line reports triggered
         by <userinput>gradle tasks</userinput>, <userinput>gradle dependencies</userinput> and
         <userinput>gradle properties</userinput> (see<xref linkend="sec:obtaining_information_about_your_build"/>).
         In contrast to the command line reports, the report plugin generates the reports into a file. There is also an
         aggregating task that depends on all report tasks added by the plugin.
+    </para>
+    <para>
+        We plan to add much more to the existing reports and create additional ones in future releases of Gradle.
     </para>
 
     <section>

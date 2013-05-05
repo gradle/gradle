@@ -18,6 +18,7 @@ package org.gradle.internal.nativeplatform.jna;
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import org.gradle.internal.nativeplatform.NativeIntegrationException;
+import org.gradle.internal.nativeplatform.processenvironment.AbstractProcessEnvironment;
 
 import java.io.File;
 
@@ -41,11 +42,7 @@ public class LibCBackedProcessEnvironment extends AbstractProcessEnvironment {
     }
 
     public void removeNativeEnvironmentVariable(String name) {
-        try {
-            libc.unsetenv(name);
-        } catch (LastErrorException lastErrorException) {
-            throw new NativeIntegrationException(String.format("Could not unset environment variable '%s'. errno: %d", name, lastErrorException.getErrorCode()));
-        }
+        setNativeEnvironmentVariable(name, "");
     }
 
     public void setNativeProcessDir(File dir) {

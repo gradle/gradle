@@ -15,12 +15,46 @@
  */
 package org.gradle.internal;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides access to frequently used system properties.
  */
 public class SystemProperties {
+    private static final Set<String> STANDARD_PROPERTIES = new HashSet<String>(Arrays.asList(
+            "java.version",
+            "java.vendor",
+            "java.vendor.url",
+            "java.home",
+            "java.vm.specification.version",
+            "java.vm.specification.vendor",
+            "java.vm.specification.name",
+            "java.vm.version",
+            "java.vm.vendor",
+            "java.vm.name",
+            "java.specification.version",
+            "java.specification.vendor",
+            "java.specification.name",
+            "java.class.version",
+            "java.class.path",
+            "java.library.path",
+            "java.io.tmpdir",
+            "java.compiler",
+            "java.ext.dirs",
+            "os.name",
+            "os.arch",
+            "os.version",
+            "file.separator",
+            "path.separator",
+            "line.separator",
+            "user.name",
+            "user.home",
+            "user.dir"));
+
     @SuppressWarnings("unchecked")
     public static Map<String, String> asMap() {
         return (Map) System.getProperties();
@@ -40,5 +74,17 @@ public class SystemProperties {
 
     public static String getJavaVersion() {
         return System.getProperty("java.version");
+    }
+
+    public static File getCurrentDir() {
+        return new File(System.getProperty("user.dir"));
+    }
+
+    /**
+     * Returns the keys that are guaranteed to be contained in System.getProperties() by default,
+     * as specified in the Javadoc for that method.
+     */
+    public static Set<String> getStandardProperties() {
+        return STANDARD_PROPERTIES;
     }
 }

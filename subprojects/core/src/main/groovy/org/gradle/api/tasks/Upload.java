@@ -17,50 +17,72 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.Transformers;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.util.ConfigureUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
+import java.util.Set;
+
+import static org.gradle.util.CollectionUtils.collect;
 
 /**
  * Uploads the artifacts of a {@link Configuration} to a set of repositories.
- * 
+ *
  * @author Hans Dockter
  */
 public class Upload extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(Upload.class);
 
     private Configuration configuration;
-
     private boolean uploadDescriptor;
-
     private File descriptorDestination;
-
-    /**
-     * The resolvers to delegate the uploads to. Usually a resolver corresponds to a repository.
-     */
     private RepositoryHandler repositories;
 
-    private ArtifactPublisher artifactPublisher;
+    private final ArtifactPublicationServices publicationServices;
 
-    public Upload() {
-        ArtifactPublicationServices publicationServices = getServices().getFactory(ArtifactPublicationServices.class).create();
-        repositories = publicationServices.getRepositoryHandler();
-        artifactPublisher = publicationServices.getArtifactPublisher();
+    @Inject
+    public Upload(ArtifactPublicationServices publicationServices) {
+        this.publicationServices = publicationServices;
+        repositories = publicationServices.createRepositoryHandler();
     }
 
     @TaskAction
     protected void upload() {
-        logger.info("Publishing configuration: " + configuration);
-        artifactPublisher.publish((ConfigurationInternal) configuration, isUploadDescriptor() ? getDescriptorDestination() : null);
+        getLogger().info("Publishing configuration: " + configuration);
+        Module module = ((ConfigurationInternal) configuration).getModule();
+        Set<Configuration> configurationsToPublish = configuration.getHierarchy();
+
+        ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher();
+
+        try {
+            File descriptorDestination = isUploadDescriptor() ? getDescriptorDestination() : null;
+            if (descriptorDestination != null) {
+                Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
+                ModuleDescriptorConverter moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
+                ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(allConfigurations, module);
+                IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
+                ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorDestination);
+            }
+
+            List<PublicationAwareRepository> publishRepositories = collect(repositories, Transformers.cast(PublicationAwareRepository.class));
+            artifactPublisher.publish(publishRepositories,  module, configurationsToPublish, descriptorDestination);
+        } catch (Exception e) {
+            throw new PublishException(String.format("Could not publish configuration '%s'", configuration.getName()), e);
+        }
     }
 
     /**
@@ -81,6 +103,7 @@ public class Upload extends ConventionTask {
         return descriptorDestination;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public void setDescriptorDestination(File descriptorDestination) {
         this.descriptorDestination = descriptorDestination;
     }
@@ -112,7 +135,7 @@ public class Upload extends ConventionTask {
 
     /**
      * Returns the artifacts which will be uploaded.
-     * 
+     *
      * @return the artifacts.
      */
     @InputFiles
@@ -121,11 +144,4 @@ public class Upload extends ConventionTask {
         return configuration == null ? null : configuration.getAllArtifacts().getFiles();
     }
 
-    void setRepositories(RepositoryHandler repositories) {
-        this.repositories = repositories;
-    }
-
-    void setArtifactPublisher(ArtifactPublisher artifactPublisher) {
-        this.artifactPublisher = artifactPublisher;
-    }
 }

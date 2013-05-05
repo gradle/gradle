@@ -15,17 +15,19 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.startsWith
+import static org.junit.Assert.assertThat
 
 public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
     @Rule
-    public final TestResources resources = new TestResources("copyTestResources")
+    public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
 
     @Test
     public void testSingleSourceWithIncludeAndExclude() {

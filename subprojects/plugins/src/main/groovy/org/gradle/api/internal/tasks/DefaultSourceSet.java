@@ -73,7 +73,7 @@ public class DefaultSourceSet implements SourceSet {
 
     @Override
     public String toString() {
-        return String.format("source set %s", getDisplayName());
+        return String.format("source set '%s'", getDisplayName());
     }
 
     public String getDisplayName() {
@@ -94,6 +94,10 @@ public class DefaultSourceSet implements SourceSet {
 
     public String getProcessResourcesTaskName() {
         return getTaskName("process", "resources");
+    }
+
+    public String getJarTaskName() {
+        return getTaskName(null, "jar");
     }
 
     public String getTaskName(String verb, String target) {

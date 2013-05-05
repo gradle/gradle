@@ -35,7 +35,7 @@ public class OkTest {
     @org.junit.Test
     public void ok() throws Exception {
         // check versions of dependencies
-        assertEquals("4.8.2", new org.junit.runner.JUnitCore().getVersion());
+        assertEquals("4.11", new org.junit.runner.JUnitCore().getVersion());
         assertTrue(org.apache.tools.ant.Main.getAntVersion().contains("1.6.1"));
 
         // check working dir
@@ -73,6 +73,7 @@ public class OkTest {
 
         // check stdout and stderr and logging
         System.out.println("This is test stdout");
+        System.out.println("non-asci char: ż");
         System.out.print("no EOL");
         System.out.println();
         System.err.println("This is test stderr");

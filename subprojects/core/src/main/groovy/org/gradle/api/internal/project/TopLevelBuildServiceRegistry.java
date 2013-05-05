@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
+import org.gradle.api.internal.artifacts.TopLevelDependencyManagementServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
@@ -29,6 +30,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.plugins.DefaultPluginRegistry;
+import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.ResolveDeferredConfigurableAction;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -63,11 +67,11 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
-import org.gradle.util.*;
+import org.gradle.util.ClassLoaderFactory;
+import org.gradle.util.MultiParentClassLoader;
 
 /**
- * Contains the singleton services which are shared by all builds executed by a single {@link org.gradle.GradleLauncher}
- * invocation.
+ * Contains the singleton services which are shared by all builds executed by a single {@link org.gradle.GradleLauncher} invocation.
  */
 public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final StartParameter startParameter;
@@ -85,7 +89,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected TimeProvider createTimeProvider() {
         return new TrueTimeProvider();
     }
-    
+
     protected ExecutorFactory createExecutorFactory() {
         return new DefaultExecutorFactory();
     }
@@ -132,11 +136,14 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
                 startParameter.getCacheUsage(), factory);
     }
-    
+
     protected ProjectEvaluator createProjectEvaluator() {
-        return new LifecycleProjectEvaluator(
-                new BuildScriptProcessor(
-                        get(ScriptPluginFactory.class)));
+        ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
+                new PluginsProjectConfigureActions(get(ClassLoaderRegistry.class).getPluginsClassLoader()),
+                new BuildScriptProcessor(get(ScriptPluginFactory.class)),
+                new ResolveDeferredConfigurableAction()
+        );
+        return new LifecycleProjectEvaluator(withActionsEvaluator);
     }
 
     protected ITaskFactory createITaskFactory() {
@@ -149,7 +156,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected ScriptCompilerFactory createScriptCompileFactory() {
         ScriptExecutionListener scriptExecutionListener = get(ListenerManager.class).getBroadcaster(ScriptExecutionListener.class);
         EmptyScriptGenerator emptyScriptGenerator = new AsmBackedEmptyScriptGenerator();
-        CacheValidator scriptCacheInvalidator =  new CacheValidator() {
+        CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
                 return !get(StartParameter.class).isRecompileScripts();
             }
@@ -178,31 +185,28 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected MultiParentClassLoader createRootClassLoader() {
         return get(ClassLoaderRegistry.class).createScriptClassLoader();
     }
-    
+
     protected InitScriptHandler createInitScriptHandler() {
         return new InitScriptHandler(
-                new CompositeInitScriptFinder(
-                        new ProvidedInitScriptFinder(),
-                        new UserHomeInitScriptFinder(),
-                        new DistributionInitScriptFinder(
-                                get(GradleDistributionLocator.class))),
-                new DefaultInitScriptProcessor(
-                        get(ScriptPluginFactory.class)));
-
+                new DefaultInitScriptProcessor(get(ScriptPluginFactory.class))
+        );
     }
 
     protected SettingsProcessor createSettingsProcessor() {
         return new PropertiesLoadingSettingsProcessor(
                 new ScriptEvaluatingSettingsProcessor(
-                    get(ScriptPluginFactory.class),
-                    new SettingsFactory(
-                        new DefaultProjectDescriptorRegistry()),
+                        get(ScriptPluginFactory.class),
+                        new SettingsFactory(
+
+                                get(Instantiator.class),
+                                this
+                        ),
                         get(IGradlePropertiesLoader.class)),
                 get(IGradlePropertiesLoader.class));
     }
 
     protected ExceptionAnalyser createExceptionAnalyser() {
-        return new DefaultExceptionAnalyser(get(ListenerManager.class));
+        return new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(get(ListenerManager.class)));
     }
 
     protected ScriptHandlerFactory createScriptHandlerFactory() {
@@ -223,15 +227,21 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected BuildConfigurer createBuildConfigurer() {
-        return new DefaultBuildConfigurer(
-                new ProjectEvaluationConfigurer(),
-                new ProjectDependencies2TaskResolver(),
-                new ImplicitTasksConfigurer());
+        return new DefaultBuildConfigurer();
     }
-    
+
+    protected ProjectAccessListener createProjectAccessListener() {
+        return new DefaultProjectAccessListener();
+    }
+
     protected ProfileEventAdapter createProfileEventAdapter() {
         return new ProfileEventAdapter(get(BuildRequestMetaData.class), get(TimeProvider.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
     }
+
+    protected PluginRegistry createPluginRegistry() {
+        return new DefaultPluginRegistry(get(ClassLoaderRegistry.class).getPluginsClassLoader(), new DependencyInjectingInstantiator(this));
+    }
+
 
     protected DependencyManagementServices createDependencyManagementServices() {
         ClassLoader coreImplClassLoader = get(ClassLoaderRegistry.class).getCoreImplClassLoader();
@@ -243,14 +253,22 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         if (domainObject instanceof GradleInternal) {
             return new GradleInternalServiceRegistry(this, (GradleInternal) domainObject);
         }
+        if (domainObject instanceof SettingsInternal) {
+            return new SettingsInternalServiceRegistry(this, (SettingsInternal) domainObject);
+        }
         throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.",
                 domainObject.getClass().getSimpleName()));
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-
         public Module getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
+    }
+
+    protected TopLevelDependencyManagementServices createGlobalDependencyManagementServices() {
+        ClassLoader coreImplClassLoader = get(ClassLoaderRegistry.class).getCoreImplClassLoader();
+        ServiceLocator serviceLocator = new ServiceLocator(coreImplClassLoader);
+        return serviceLocator.getFactory(TopLevelDependencyManagementServices.class).newInstance();
     }
 }

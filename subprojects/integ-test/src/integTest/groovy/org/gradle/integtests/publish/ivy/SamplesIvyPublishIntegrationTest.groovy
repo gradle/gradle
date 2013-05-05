@@ -15,8 +15,7 @@
  */
 package org.gradle.integtests.publish.ivy
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 import org.junit.Test
@@ -24,13 +23,10 @@ import org.junit.Test
 /**
  * @author Hans Dockter
  */
-public class SamplesIvyPublishIntegrationTest {
+public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationTest {
+
     @Rule
-    public final GradleDistribution dist = new GradleDistribution()
-    @Rule
-    public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule
-    public final Sample sample = new Sample("ivypublish")
+    public final Sample sample = new Sample(testDirectoryProvider, "ivypublish")
 
     @Test
     public void testPublish() {

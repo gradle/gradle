@@ -19,14 +19,14 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.initialization.ProjectAccessListener;
 
 import java.io.File;
 import java.util.Set;
@@ -34,20 +34,22 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependency {
+public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
     private ProjectInternal dependencyProject;
-    private final ProjectDependenciesBuildInstruction instruction;
+    private final boolean buildProjectDependencies;
     private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
+    private final ProjectAccessListener projectAccessListener;
 
-    public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectDependenciesBuildInstruction instruction) {
-        this(dependencyProject, null, instruction);
+    public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
+        this(dependencyProject, null, projectAccessListener, buildProjectDependencies);
     }
 
     public DefaultProjectDependency(ProjectInternal dependencyProject, String configuration,
-                                    ProjectDependenciesBuildInstruction instruction) {
+                                    ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
         super(configuration);
         this.dependencyProject = dependencyProject;
-        this.instruction = instruction;
+        this.projectAccessListener = projectAccessListener;
+        this.buildProjectDependencies = buildProjectDependencies;
     }
 
     public Project getDependencyProject() {
@@ -72,7 +74,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     public ProjectDependency copy() {
         DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject,
-                getConfiguration(), instruction);
+                getConfiguration(), projectAccessListener, buildProjectDependencies);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
@@ -87,6 +89,10 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         return context.resolve().getFiles();
     }
 
+    public void beforeResolved() {
+        projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
+    }
+
     @Override
     public void resolve(DependencyResolveContext context) {
         boolean transitive = isTransitive() && context.isTransitive();
@@ -97,7 +103,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         }
     }
 
-    public TaskDependency getBuildDependencies() {
+    public TaskDependencyInternal getBuildDependencies() {
         return taskDependency;
     }
 
@@ -133,7 +139,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!this.getConfiguration().equals(that.getConfiguration())) {
             return false;
         }
-        if (!this.instruction.equals(that.instruction)) {
+        if (this.buildProjectDependencies != that.buildProjectDependencies) {
             return false;
         }
         return true;
@@ -141,8 +147,9 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public int hashCode() {
-        return getDependencyProject().hashCode() ^ getConfiguration().hashCode() ^ instruction.hashCode();
+        return getDependencyProject().hashCode() ^ getConfiguration().hashCode() ^ (buildProjectDependencies ? 1 : 0);
     }
+
 
     @Override
     public String toString() {
@@ -152,9 +159,11 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     private class TaskDependencyImpl extends AbstractTaskDependency {
         public void resolve(TaskDependencyResolveContext context) {
-            if (!instruction.isRebuild()) {
+            if (!buildProjectDependencies) {
                 return;
             }
+            projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
+
             Configuration configuration = getProjectConfiguration();
             context.add(configuration);
             context.add(configuration.getAllArtifacts());

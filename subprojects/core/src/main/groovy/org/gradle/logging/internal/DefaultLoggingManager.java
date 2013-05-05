@@ -66,7 +66,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
 
     public DefaultLoggingManager stop() {
         try {
-            new CompositeStoppable(loggingSystem, stdOutLoggingSystem, stdErrLoggingSystem).stop();
+            CompositeStoppable.stoppable(loggingSystem, stdOutLoggingSystem, stdErrLoggingSystem).stop();
             for (StandardOutputListener stdoutListener : stdoutListeners) {
                 loggingOutput.removeStandardOutputListener(stdoutListener);
             }
@@ -145,8 +145,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
         }
     }
 
-    public void colorStdOutAndStdErr(boolean colorOutput) {
-        loggingOutput.colorStdOutAndStdErr(colorOutput);
+    public void attachConsole(boolean colorOutput) {
+        loggingOutput.attachConsole(colorOutput);
+    }
+
+    public void addStandardOutputAndError() {
+        loggingOutput.addStandardOutputAndError();
     }
 
     private static class StartableLoggingSystem implements Stoppable {

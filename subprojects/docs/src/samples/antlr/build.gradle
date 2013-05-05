@@ -10,7 +10,7 @@ repositories {
 dependencies {
     antlr 'antlr:antlr:2.7.7'
 // END SNIPPET declare-dependency
-    testCompile 'junit:junit:4.8.2'
+    testCompile 'junit:junit:4.11'
 // START SNIPPET declare-dependency
 }
 // END SNIPPET declare-dependency

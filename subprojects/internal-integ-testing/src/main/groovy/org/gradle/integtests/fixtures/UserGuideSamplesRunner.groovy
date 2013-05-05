@@ -16,35 +16,43 @@
 package org.gradle.integtests.fixtures
 
 import com.google.common.collect.ArrayListMultimap
-import com.google.common.collect.ListMultimap
 import groovy.io.PlatformLineWriter
-import junit.framework.AssertionFailedError
 import org.apache.tools.ant.taskdefs.Delete
-import org.gradle.util.AntUtil
+import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.SystemProperties
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.AntUtil
+import org.gradle.util.TextUtil
 import org.junit.Assert
 import org.junit.runner.Description
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
+
 import java.util.regex.Pattern
 
 class UserGuideSamplesRunner extends Runner {
     private static final String NL = SystemProperties.lineSeparator
 
-    Class<?> testClass
-    Description description
-    Map<Description, SampleRun> samples;
-    GradleDistribution dist = new GradleDistribution()
-    GradleDistributionExecuter executer = new GradleDistributionExecuter(dist)
-    Pattern dirFilter = null 
+    private Class<?> testClass
+    private Description description
+    private Map<Description, SampleRun> samples
+    private TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    private GradleDistribution dist = new UnderDevelopmentGradleDistribution()
+    private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+    private GradleExecuter executer = new GradleContextualExecuter(dist, temporaryFolder)
+    private Pattern dirFilter
+    private List excludes
+    private TestFile baseExecutionDir = temporaryFolder.testDirectory
 
-    def UserGuideSamplesRunner(Class<?> testClass) {
+    UserGuideSamplesRunner(Class<?> testClass) {
         this.testClass = testClass
         this.description = Description.createSuiteDescription(testClass)
-        this.dirFilter = getDirFilterPattern()
+        this.dirFilter = initDirFilterPattern()
+        this.excludes = initExcludes()
         samples = new LinkedHashMap()
-        for (sample in getScriptsForSamples(dist.userGuideInfoDir)) {
+        for (sample in getScriptsForSamples(buildContext.userGuideInfoDir)) {
             if (shouldInclude(sample)) {
                 Description childDescription = Description.createTestDescription(testClass, sample.id)
                 description.addChild(childDescription)
@@ -54,28 +62,46 @@ class UserGuideSamplesRunner extends Runner {
                 sample.runs.each { println "    args: $it.args expect: $it.outputFile" }
             }
         }
+
+        // have to copy everything upfront because build scripts of some samples refer to files of other samples
+        buildContext.samplesDir.copyTo(baseExecutionDir)
     }
 
-    private static Pattern getDirFilterPattern() {
+    private Pattern initDirFilterPattern() {
         String filter = System.properties["org.gradle.userguide.samples.filter"]
         filter ? Pattern.compile(filter) : null
     }
 
+    private List initExcludes() {
+        List excludes = []
+        String excludesString = System.properties["org.gradle.userguide.samples.exclude"] ?: "";
+        excludesString.split(',').each {
+            excludes.add it
+        }
+        return excludes
+    }
+
     Description getDescription() {
-        return description
+        description
     }
 
     private boolean shouldInclude(SampleRun run) {
+        if (excludes.contains(run.id)) {
+            return false
+        }
         dirFilter ? run.subDir ==~ dirFilter : true
     }
 
     void run(RunNotifier notifier) {
         for (childDescription in description.children) {
             notifier.fireTestStarted(childDescription)
-            SampleRun sampleRun = samples.get(childDescription)
+            def sampleRun = samples.get(childDescription)
             try {
                 cleanup(sampleRun)
                 for (run in sampleRun.runs) {
+                    if (run.brokenForParallel && GradleContextualExecuter.parallel) {
+                        continue
+                    }
                     runSample(run)
                 }
             } catch (Throwable t) {
@@ -85,9 +111,9 @@ class UserGuideSamplesRunner extends Runner {
         }
     }
 
-    private def cleanup(SampleRun run) {
-        // Clean up previous runs
-        File rootProjectDir = dist.samplesDir.file(run.subDir)
+    private void cleanup(SampleRun run) {
+        // Clean up previous runs in the same subdir
+        File rootProjectDir = temporaryFolder.testDirectory.file(run.subDir)
         if (rootProjectDir.exists()) {
             def delete = new Delete()
             delete.dir = rootProjectDir
@@ -96,19 +122,19 @@ class UserGuideSamplesRunner extends Runner {
         }
     }
 
-    private def runSample(GradleRun run) {
+    private void runSample(GradleRun run) {
         try {
-            println("Test Id: $run.id, dir: $run.subDir, args: $run.args")
-            File rootProjectDir = dist.samplesDir.file(run.subDir)
+            println("Test Id: $run.id, dir: $run.subDir, execution dir: $run.executionDir args: $run.args")
 
-            executer.setAllowExtraLogging(false).inDirectory(rootProjectDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
+            executer.noExtraLogging().inDirectory(run.executionDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
 
-            ExecutionResult result = run.expectFailure ? executer.runWithFailure() : executer.run()
+            def result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
-                String expectedResult = replaceWithPlatformNewLines(dist.userGuideOutputDir.file(run.outputFile).text)
+                def expectedResult = replaceWithPlatformNewLines(buildContext.userGuideOutputDir.file(run.outputFile).text)
+                expectedResult = replaceWithRealSamplesDir(expectedResult)
                 try {
-                    compareStrings(expectedResult, result.output, run.ignoreExtraLines)
-                } catch (AssertionFailedError e) {
+                    result.assertOutputEquals(expectedResult, run.ignoreExtraLines, run.ignoreLineOrder)
+                } catch (AssertionError e) {
                     println 'Expected Result:'
                     println expectedResult
                     println 'Actual Result:'
@@ -120,13 +146,13 @@ class UserGuideSamplesRunner extends Runner {
 
             run.files.each { path ->
                 println "  checking file '$path' exists"
-                File file = new File(rootProjectDir, path).canonicalFile
+                def file = new File(run.executionDir, path).canonicalFile
                 Assert.assertTrue("Expected file '$file' does not exist.", file.exists())
                 Assert.assertTrue("Expected file '$file' is not a file.", file.isFile())
             }
             run.dirs.each { path ->
                 println "  checking directory '$path' exists"
-                File file = new File(rootProjectDir, path).canonicalFile
+                def file = new File(run.executionDir, path).canonicalFile
                 Assert.assertTrue("Expected directory '$file' does not exist.", file.exists())
                 Assert.assertTrue("Expected directory '$file' is not a directory.", file.isDirectory())
             }
@@ -135,93 +161,40 @@ class UserGuideSamplesRunner extends Runner {
         }
     }
 
-    private def compareStrings(String expected, String actual, boolean ignoreExtraLines) {
-        List actualLines = normaliseOutput(actual.readLines())
-        List expectedLines = expected.readLines()
-        int pos = 0
-        for (; pos < actualLines.size() && pos < expectedLines.size(); pos++) {
-            String expectedLine = expectedLines[pos]
-            String actualLine = actualLines[pos]
-            boolean matches = compare(expectedLine, actualLine)
-            if (!matches) {
-                if (expectedLine.contains(actualLine)) {
-                    Assert.fail("Missing text at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---${NL}Actual output:${NL}$actual${NL}---")
-                }
-                if (actualLine.contains(expectedLine)) {
-                    Assert.fail("Extra text at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---${NL}Actual output:${NL}$actual${NL}---")
-                }
-                Assert.fail("Unexpected value at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---${NL}Actual output:${NL}$actual${NL}---")
-            }
-        }
-        if (pos == actualLines.size() && pos < expectedLines.size()) {
-            Assert.fail("Lines missing from actual result, starting at line ${pos + 1}.${NL}Expected: ${expectedLines[pos]}${NL}Actual output:${NL}$actual${NL}---")
-        }
-        if (!ignoreExtraLines && pos < actualLines.size() && pos == expectedLines.size()) {
-            Assert.fail("Extra lines in actual result, starting at line ${pos + 1}.${NL}Actual: ${actualLines[pos]}${NL}Actual output:${NL}$actual${NL}---")
-        }
-    }
-
-    static String replaceWithPlatformNewLines(String text) {
-        StringWriter stringWriter = new StringWriter()
+    private String replaceWithPlatformNewLines(String text) {
+        def stringWriter = new StringWriter()
         new PlatformLineWriter(stringWriter).withWriter { it.write(text) }
         stringWriter.toString()
     }
 
-    List<String> normaliseOutput(List<String> lines) {
-        if (lines.empty) {
-            return lines;
-        }
-        List<String> result = new ArrayList<String>()
-        for (String line : lines) {
-            if (line.matches('Download .+')) {
-                // ignore
-            } else {
-                result << line
-            }
-        }
-        return result
+    private String replaceWithRealSamplesDir(String text) {
+        def normalisedSamplesDir = TextUtil.normaliseFileSeparators(baseExecutionDir.absolutePath)
+        return text.replaceAll(Pattern.quote('/home/user/gradle/samples'), normalisedSamplesDir)
     }
 
-    boolean compare(String expected, String actual) {
-        if (actual == expected) {
-            return true
-        }
-
-        if (expected == 'Total time: 1 secs') {
-            return actual.matches('Total time: .+ secs')
-        }
-        
-        // Normalise default object toString() values
-        actual = actual.replaceAll('(\\w+(\\.\\w+)*)@\\p{XDigit}+', '$1@12345')
-        // Normalise $samplesDir
-        actual = actual.replaceAll(java.util.regex.Pattern.quote(dist.samplesDir.absolutePath), '/home/user/gradle/samples')
-        // Normalise file separators
-        actual = actual.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
-
-        return actual == expected
-    }
-
-    static Collection<SampleRun> getScriptsForSamples(File userguideInfoDir) {
+    private Collection<SampleRun> getScriptsForSamples(File userguideInfoDir) {
         def samplesXml = new File(userguideInfoDir, 'samples.xml')
         assertSamplesGenerated(samplesXml.exists())
-        Node samples = new XmlParser().parse(samplesXml)
-        ListMultimap<String, GradleRun> samplesByDir = ArrayListMultimap.create()
+        def samples = new XmlParser().parse(samplesXml)
+        def samplesByDir = ArrayListMultimap.create()
 
         def children = samples.children()
         assertSamplesGenerated(!children.isEmpty())
 
         children.each {Node sample ->
-            String id = sample.'@id'
-            String dir = sample.'@dir'
-            String args = sample.'@args'
-            String outputFile = sample.'@outputFile'
+            def id = sample.'@id'
+            def dir = sample.'@dir'
+            def args = sample.'@args'
+            def outputFile = sample.'@outputFile'
             boolean ignoreExtraLines = Boolean.valueOf(sample.'@ignoreExtraLines')
+            boolean ignoreLineOrder = Boolean.valueOf(sample.'@ignoreLineOrder')
 
-            GradleRun run = new GradleRun(id: id)
+            def run = new GradleRun(id: id)
             run.subDir = dir
             run.args = args ? args.split('\\s+') as List : []
             run.outputFile = outputFile
             run.ignoreExtraLines = ignoreExtraLines as boolean
+            run.ignoreLineOrder = ignoreLineOrder as boolean
 
             sample.file.each { file -> run.files << file.'@path' }
             sample.dir.each { file -> run.dirs << file.'@path' }
@@ -233,12 +206,14 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/tutorial/properties').each { it.envs['ORG_GRADLE_PROJECT_envProjectProp'] = 'envPropertyValue' }
         samplesByDir.get('userguide/buildlifecycle/taskExecutionEvents')*.expectFailure = true
         samplesByDir.get('userguide/buildlifecycle/buildProjectEvaluateEvents')*.expectFailure = true
+        samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
+        samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
 
         Map<String, SampleRun> samplesById = new TreeMap<String, SampleRun>()
 
         // Remove duplicates for a given directory.
         samplesByDir.asMap().values().collect {List<GradleRun> dirSamples ->
-            Collection<GradleRun> runs = dirSamples.findAll {it.mustRun}
+            def runs = dirSamples.findAll { it.mustRun }
             if (!runs) {
                 // No samples in this dir have any args, so just run gradle tasks in the dir
                 def sample = dirSamples[0]
@@ -249,7 +224,7 @@ class UserGuideSamplesRunner extends Runner {
             }
         }.flatten().each { GradleRun run ->
             // Collect up into sample runs
-            SampleRun sampleRun = samplesById[run.id]
+            def sampleRun = samplesById[run.id]
             if (!sampleRun) {
                 sampleRun = new SampleRun(id: run.id, subDir: run.subDir)
                 samplesById[run.id] = sampleRun
@@ -260,30 +235,38 @@ class UserGuideSamplesRunner extends Runner {
         return samplesById.values()
     }
 
-    static void assertSamplesGenerated(boolean assertion) {
+    private void assertSamplesGenerated(boolean assertion) {
         assert assertion : """Couldn't find any samples. Most likely, samples.xml was not generated.
 Please run 'gradle docs:userguideDocbook' first"""
     }
-}
 
-class SampleRun {
-    String id
-    String subDir
-    List<GradleRun> runs = []
-}
+    private class GradleRun {
+        String id
+        List args = []
+        String subDir
+        Map envs = [:]
+        String outputFile
+        boolean expectFailure
+        boolean ignoreExtraLines
+        boolean ignoreLineOrder
+        boolean brokenForParallel
+        List files = []
+        List dirs = []
 
-class GradleRun {
-    String id
-    List args = []
-    String subDir
-    Map envs = [:]
-    String outputFile
-    boolean expectFailure
-    boolean ignoreExtraLines
-    List files = []
-    List dirs = []
+        boolean getMustRun() {
+            return args || files || dirs
+        }
 
-    boolean getMustRun() {
-        return args || files || dirs
+        File getExecutionDir() {
+            new File(baseExecutionDir, subDir)
+        }
+    }
+
+    private class SampleRun {
+        String id
+        String subDir
+        List<GradleRun> runs = []
     }
 }
+
+

@@ -17,8 +17,6 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenRepository
-
 // this spec documents the status quo, not a desired behavior
 class MavenPomGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "how configuration of archive task affects generated POM"() {
@@ -39,7 +37,7 @@ jar {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file:///\$rootProject.projectDir/maven-repo")
+            repository(url: "${mavenRepo.uri}")
         }
     }
 }
@@ -49,9 +47,8 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def mavenRepo = new MavenRepository(file("maven-repo"))
         def mavenModule = mavenRepo.module("org.gradle.test", pomArtifactId, pomVersion)
-        def pom = mavenModule.pom
+        def pom = mavenModule.parsedPom
         pom.groupId == "org.gradle.test"
         pom.artifactId == pomArtifactId
         pom.version == pomVersion
@@ -80,7 +77,7 @@ jar {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file:///\$rootProject.projectDir/maven-repo")
+            repository(url: "${mavenRepo.uri}")
             ${deployerGroupId ? "pom.groupId = '$deployerGroupId'" : ""}
             ${deployerArtifactId ? "pom.artifactId = '$deployerArtifactId'" : ""}
             ${deployerVersion ? "pom.version = '$deployerVersion'" : ""}
@@ -94,9 +91,8 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def mavenRepo = new MavenRepository(file("maven-repo"))
         def mavenModule = mavenRepo.module(pomGroupId, pomArtifactId, pomVersion)
-        def pom = mavenModule.pom
+        def pom = mavenModule.parsedPom
         pom.groupId == pomGroupId
         pom.artifactId == pomArtifactId
         pom.version == pomVersion

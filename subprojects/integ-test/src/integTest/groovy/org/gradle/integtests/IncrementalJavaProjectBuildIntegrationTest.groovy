@@ -15,43 +15,39 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.junit.Rule
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
-import org.gradle.util.TestFile
 
-class IncrementalJavaProjectBuildIntegrationTest {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class IncrementalJavaProjectBuildIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void removesStateResources() {
-        distribution.testFile('build.gradle') << 'apply plugin: \'java\''
-        distribution.testFile('src/main/resources/org/gradle/resource.txt').createFile()
+        file('build.gradle') << 'apply plugin: \'java\''
+        file('src/main/resources/org/gradle/resource.txt').createFile()
 
         executer.withTasks('classes').run()
-        distribution.testFile('build/resources/main').assertHasDescendants('org/gradle/resource.txt')
+        file('build/resources/main').assertHasDescendants('org/gradle/resource.txt')
 
-        distribution.testFile('src/main/resources/org/gradle/resource.txt').assertIsFile().delete()
-        distribution.testFile('src/main/resources/org/gradle/resource2.txt').createFile()
+        file('src/main/resources/org/gradle/resource.txt').assertIsFile().delete()
+        file('src/main/resources/org/gradle/resource2.txt').createFile()
 
         executer.withTasks('classes').run()
-        distribution.testFile('build/resources/main').assertHasDescendants('org/gradle/resource2.txt')
+        file('build/resources/main').assertHasDescendants('org/gradle/resource2.txt')
     }
 
     @Test
     public void doesNotRebuildJarIfSourceHasNotChanged() {
         // Use own home dir so we don't blast the shared one when we run with -C rebuild
-        distribution.requireOwnUserHomeDir()
+        executer.requireOwnGradleUserHomeDir()
 
-        distribution.testFile("src/main/java/BuildClass.java") << 'public class BuildClass { }'
-        distribution.testFile("build.gradle") << "apply plugin: 'java'"
-        distribution.testFile("settings.gradle") << "rootProject.name = 'project'"
+        file("src/main/java/BuildClass.java") << 'public class BuildClass { }'
+        file("build.gradle") << "apply plugin: 'java'"
+        file("settings.gradle") << "rootProject.name = 'project'"
 
         executer.withTasks("jar").run();
 
-        TestFile jar = distribution.testFile("build/libs/project.jar");
+        TestFile jar = file("build/libs/project.jar");
         jar.assertIsFile();
         TestFile.Snapshot snapshot = jar.snapshot();
 

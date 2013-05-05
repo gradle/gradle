@@ -1,0 +1,29 @@
+apply plugin: 'scala'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.9.2'
+}
+
+dependencies {
+    compile 'commons-collections:commons-collections:3.2'
+    testCompile 'junit:junit:4.11'
+}
+
+// START SNIPPET use-zinc
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.useAnt = false
+}
+// END SNIPPET use-zinc
+
+// START SNIPPET adjust-memory
+tasks.withType(ScalaCompile) {
+    configure(scalaCompileOptions.forkOptions) {
+        memoryMaximumSize = '1g'
+        jvmArgs = ['-XX:MaxPermSize=512m']
+    }
+}
+// END SNIPPET adjust-memory

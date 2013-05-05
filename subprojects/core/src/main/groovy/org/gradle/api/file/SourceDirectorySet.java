@@ -27,7 +27,7 @@ import java.util.Set;
  *
  * TODO - configure includes/excludes for individual source dirs, and sync up with CopySpec
  * TODO - allow add FileTree
-' */
+ */
 public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
 
     /**
@@ -38,7 +38,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
     /**
      * Adds the given source directory to this set.
      *
-     * @param srcPath The source directory. This is evaluated as for {@link org.gradle.api.Project#file(Object)}
+     * @param srcPath The source directory. This is evaluated as per {@link org.gradle.api.Project#file(Object)}
      * @return this
      */
     SourceDirectorySet srcDir(Object srcPath);
@@ -46,7 +46,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
     /**
      * Adds the given source directories to this set.
      *
-     * @param srcPaths The source directories. These are evaluated as for {@link org.gradle.api.Project#files(Object...)}
+     * @param srcPaths The source directories. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @return this
      */
     SourceDirectorySet srcDirs(Object... srcPaths);
@@ -61,7 +61,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
     /**
      * Sets the source directories for this set.
      *
-     * @param srcPaths The source directories. These are evaluated as for {@link org.gradle.api.Project#files(Object...)}
+     * @param srcPaths The source directories. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @return this
      */
     SourceDirectorySet setSrcDirs(Iterable<?> srcPaths);

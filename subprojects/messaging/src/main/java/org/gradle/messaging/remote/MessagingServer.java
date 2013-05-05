@@ -28,5 +28,5 @@ public interface MessagingServer {
      * @param action The action to execute when the connection has been established.
      * @return The local address of the endpoint, for the peer to connect to.
      */
-    Address accept(Action<ConnectEvent<ObjectConnection>> action);
+    ConnectionAcceptor accept(Action<ConnectEvent<ObjectConnection>> action);
 }

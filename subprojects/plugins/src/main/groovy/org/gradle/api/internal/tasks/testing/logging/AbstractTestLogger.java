@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.logging;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
@@ -36,7 +35,7 @@ public abstract class AbstractTestLogger {
     private final StyledTextOutputFactory textOutputFactory;
     private final LogLevel logLevel;
     private final int displayGranularity;
-    private Object lastSeenTestId;
+    private TestDescriptor lastSeenTestDescriptor;
     private TestLogEvent lastSeenTestEvent;
 
     protected AbstractTestLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, int displayGranularity) {
@@ -51,12 +50,11 @@ public abstract class AbstractTestLogger {
 
     protected void logEvent(TestDescriptor descriptor, TestLogEvent event, @Nullable String details) {
         StyledTextOutput output = textOutputFactory.create("TestEventLogger", logLevel);
-        Object testId = ((TestDescriptorInternal) descriptor).getId();
-        if (!testId.equals(lastSeenTestId) || event != lastSeenTestEvent) {
+        if (!descriptor.equals(lastSeenTestDescriptor) || event != lastSeenTestEvent) {
             output.append(TextUtil.getPlatformLineSeparator() + getEventPath(descriptor));
             output.withStyle(getStyle(event)).println(event.toString());
         }
-        lastSeenTestId = testId;
+        lastSeenTestDescriptor = descriptor;
         lastSeenTestEvent = event;
         if (details != null) {
             output.append(TextUtil.toPlatformLineSeparators(details));
@@ -71,7 +69,7 @@ public abstract class AbstractTestLogger {
                 // This deals with the fact that in TestNG, there are no class-level events,
                 // but we nevertheless want to see the class name. We use "." rather than
                 // " > " as a separator to make it clear that the class is not a separate
-                // level. This matters when configuring min/max/displayGranularity.
+                // level. This matters when configuring granularity.
                 names.add(current.getClassName() + "." + current.getName());
             } else {
                 names.add(current.getName());

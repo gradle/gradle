@@ -15,19 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import org.gradle.api.internal.artifacts.repositories.PatternBasedResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * A Repository Layout that uses user-supplied patterns. Each pattern will be appended to the base URI for the repository.
- * At least one artifact pattern must be specified. If no ivy patterns are specified, then the artifact patterns will be used.
+ * A repository layout that uses user-supplied patterns. Each pattern will be appended to the base URI for the repository.
+ * At least one artifact pattern must be specified. If no Ivy patterns are specified, then the artifact patterns will be used.
+ * Optionally supports a Maven style layout for the 'organisation' part, replacing any dots with forward slashes.
  */
 public class PatternRepositoryLayout extends RepositoryLayout {
     private final Set<String> artifactPatterns = new LinkedHashSet<String>();
     private final Set<String> ivyPatterns = new LinkedHashSet<String>();
+    private boolean m2compatible;
 
     /**
      * Adds an Ivy artifact pattern to define where artifacts are located in this repository.
@@ -45,6 +47,24 @@ public class PatternRepositoryLayout extends RepositoryLayout {
         ivyPatterns.add(pattern);
     }
 
+    /**
+     * Tells whether a Maven style layout is to be used for the 'organisation' part, replacing any dots with forward slashes.
+     * Defaults to {@code false}.
+     */
+    public boolean getM2Compatible() {
+        return m2compatible;
+    }
+
+    /**
+     * Sets whether a Maven style layout is to be used for the 'organisation' part, replacing any dots with forward slashes.
+     * Defaults to {@code false}.
+     *
+     * @param m2compatible whether a Maven style layout is to be used for the 'organisation' part
+     */
+    public void setM2compatible(boolean m2compatible) {
+        this.m2compatible = m2compatible;
+    }
+
     @Override
     public void apply(URI baseUri, PatternBasedResolver resolver) {
         if (baseUri == null) {
@@ -59,5 +79,7 @@ public class PatternRepositoryLayout extends RepositoryLayout {
         for (String ivyPattern : usedIvyPatterns) {
             resolver.addDescriptorLocation(baseUri, ivyPattern);
         }
+
+        resolver.setM2compatible(m2compatible);
     }
 }

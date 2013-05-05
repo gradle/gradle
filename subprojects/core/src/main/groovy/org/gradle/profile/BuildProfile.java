@@ -15,10 +15,11 @@
  */
 package org.gradle.profile;
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.StartParameter;
+import org.gradle.util.CollectionUtils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,28 +36,26 @@ import java.util.Map;
  * <li>setBuildStarted</li>
  * <li>setSettingsEvaluated</li>
  * <li>setProjectsLoaded</li>
- * <li>setProjectsEvaluated</li>
+ * <li>setProjectsConfigured</li>
  * <li>setBuildFinished</li>
  * </ul>
  */
 public class BuildProfile {
-    private final Gradle gradle;
-    private final Map<Project, ProjectProfile> projects = new LinkedHashMap<Project, ProjectProfile>();
-    private final Map<String, DependencyResolveProfile> dependencySets = new LinkedHashMap<String, DependencyResolveProfile>();
+
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
+
+    private final Map<String, ProjectProfile> projects = new LinkedHashMap<String, ProjectProfile>();
+    private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<String, ContinuousOperation>();
     private long profilingStarted;
     private long buildStarted;
     private long settingsEvaluated;
     private long projectsLoaded;
-    private long projectsEvaluated;
     private long buildFinished;
+    private StartParameter startParameter;
     private boolean successful;
 
-    public BuildProfile(Gradle gradle) {
-        this.gradle = gradle;
-    }
-
-    public Gradle getGradle() {
-        return gradle;
+    public BuildProfile(StartParameter startParameter) {
+        this.startParameter = startParameter;
     }
 
     public long getBuildStarted() {
@@ -64,33 +63,43 @@ public class BuildProfile {
     }
 
     /**
-     * Get a description of the tasks passed to gradle as targets from the command line
-     * @return
+     * Get a description of this profiled build. It contains info about tasks passed to gradle as targets from the command line.
      */
-    public String getTaskDescription() {
-        StringBuilder result = new StringBuilder();
-        for (String name : gradle.getStartParameter().getExcludedTaskNames()) {
-            result.append("-x");
-            result.append(name);
-            result.append(" ");
+    public String getBuildDescription() {
+        StringBuilder sb = new StringBuilder();
+        for (String name : startParameter.getExcludedTaskNames()) {
+            sb.append("-x ");
+            sb.append(name);
+            sb.append(" ");
         }
-        for (String name : gradle.getStartParameter().getTaskNames()) {
-            result.append(name);
-            result.append(" ");
+        for (String name : startParameter.getTaskNames()) {
+            sb.append(name);
+            sb.append(" ");
         }
-        return result.toString();
+        String tasks = sb.toString();
+        if (tasks.length() == 0) {
+            tasks = "(no tasks specified)";
+        }
+        return String.format("Profiled build: %s", tasks);
+    }
+
+    public boolean isSuccessful() {
+        return successful;
+    }
+
+    public void setSuccessful(boolean successful) {
+        this.successful = successful;
     }
 
     /**
      * Get the profiling container for the specified project
-     * @param project to look up
-     * @return
+     * @param projectPath to look up
      */
-    public ProjectProfile getProjectProfile(Project project) {
-        ProjectProfile result = projects.get(project);
+    public ProjectProfile getProjectProfile(String projectPath) {
+        ProjectProfile result = projects.get(projectPath);
         if (result == null) {
-            result = new ProjectProfile(project);
-            projects.put(project, result);
+            result = new ProjectProfile(projectPath);
+            projects.put(projectPath, result);
         }
         return result;
     }
@@ -100,28 +109,30 @@ public class BuildProfile {
      * @return list
      */
     public List<ProjectProfile> getProjects() {
-        return new ArrayList<ProjectProfile>(projects.values());
+        return CollectionUtils.sort(projects.values(), Operation.comparator());
     }
 
     public CompositeOperation<Operation> getProjectConfiguration() {
         List<Operation> operations = new ArrayList<Operation>();
         for (ProjectProfile projectProfile : projects.values()) {
-            operations.add(projectProfile.getEvaluation());
+            operations.add(projectProfile.getConfigurationOperation());
         }
+        operations = CollectionUtils.sort(operations, Operation.comparator());
         return new CompositeOperation<Operation>(operations);
     }
 
-    public DependencyResolveProfile getDependencySetProfile(ResolvableDependencies dependencySet) {
-        DependencyResolveProfile profile = dependencySets.get(dependencySet.getPath());
+    public ContinuousOperation getDependencySetProfile(String dependencySetDescription) {
+        ContinuousOperation profile = dependencySets.get(dependencySetDescription);
         if (profile == null) {
-            profile = new DependencyResolveProfile(dependencySet);
-            dependencySets.put(dependencySet.getPath(), profile);
+            profile = new ContinuousOperation(dependencySetDescription);
+            dependencySets.put(dependencySetDescription, profile);
         }
         return profile;
     }
 
-    public CompositeOperation<DependencyResolveProfile> getDependencySets() {
-        return new CompositeOperation<DependencyResolveProfile>(dependencySets.values());
+    public CompositeOperation<ContinuousOperation> getDependencySets() {
+        final List<ContinuousOperation> profiles = CollectionUtils.sort(dependencySets.values(), Operation.comparator());
+        return new CompositeOperation<ContinuousOperation>(profiles);
     }
 
     /**
@@ -157,15 +168,6 @@ public class BuildProfile {
      */
     public void setProjectsLoaded(long projectsLoaded) {
         this.projectsLoaded = projectsLoaded;
-    }
-
-    /**
-     * Should be set with a timestamp from a {@link org.gradle.BuildListener#projectsEvaluated}
-     * callback.
-     * @param projectsEvaluated
-     */
-    public void setProjectsEvaluated(long projectsEvaluated) {
-        this.projectsEvaluated = projectsEvaluated;
     }
 
     /**
@@ -211,38 +213,22 @@ public class BuildProfile {
     }
 
     /**
-     * Get the elapsed time (in mSec) between the projectsEvaluated event and the projectsLoaded event.
-     * @return
-     */
-    public long getElapsedProjectsEvaluated() {
-        return projectsEvaluated - projectsLoaded;
-    }
-
-    /**
-     * Get the elapsed time (in mSec) between the buildFinished event and the projectsEvaluated event.
-     * @return
-     */
-    public long getElapsedAfterProjectsEvaluated() {
-        return buildFinished - projectsEvaluated;
-    }
-
-    /**
      * Get the total task execution time from all projects.
      * @return
      */
     public long getElapsedTotalExecutionTime() {
         long result = 0;
         for (ProjectProfile projectProfile : projects.values()) {
-            result += projectProfile.getTasks().getElapsedTime();
+            result += projectProfile.getElapsedTime();
         }
         return result;
     }
 
-    public boolean isSuccessful() {
-        return successful;
+    public String getBuildStartedDescription() {
+        return String.format("Started on: %s", DATE_FORMAT.format(buildStarted));
     }
 
-    public void setSuccessful(boolean successful) {
-        this.successful = successful;
+    public StartParameter getStartParameter() {
+        return startParameter;
     }
 }

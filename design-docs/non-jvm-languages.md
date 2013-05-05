@@ -6,13 +6,15 @@ classpath. For both C++ and javascript, we're also interested in building differ
 where each variant can potentially have a different set of resolved dependencies. Supporting
 variants also makes a lot of sense in the JVM world too (groovy-1.7 vs groovy-1.8, for example).
 
-* SourceSetOutput effectively represents a set of JVM byte code. This is the same as the issue above. Modelling the compiled source as byte code doesn't make sense when we're not targeting the JVM. Also, each variant of the same source will generally end up with different compiled output.
+* SourceSetOutput effectively represents a set of JVM byte code. This is the same as the issue above.
+Modelling the compiled source as byte code doesn't make sense when we're not targeting the JVM. Also,
+each variant of the same source will generally end up with different compiled output.
 
 * Has a compileClasspath. As above. Also assumes that we're actually compiling something. And that
 all languages share the same compile classpath.
 
 * Has a (possibly empty) set of Java source to be compiled and included in the runtime classpath.
-This doesn't make any sense if there's no Java source  in the project.
+This doesn't make any sense if there's no Java source in the project.
 
 * Has a set of resources to be included in the runtime classpath. This doesn't make any sense if
 we're not targeting the JVM.
@@ -62,7 +64,7 @@ reports, web applications, native binaries, and so on, each with type specific m
 
 Each of these things should have a name, and a type. They would be Buildable, which gives us a place
 to define the processing pipeline to build the thing. You should be able to navigate to the inputs of
- each thing. I'd say a source set would be a kind of this thing, too.
+each thing. I'd say a source set would be a kind of this thing, too.
 
 This way, we have a graph of buildable things, and we know the inputs and outputs of each thing in the
 graph, plus the associated tasks to execute to transform the inputs things into the output thing.

@@ -15,31 +15,31 @@
 */
 package org.gradle.integtests
 
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.Condition
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
 import org.gradle.foundation.TestUtility
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol
+import org.gradle.foundation.output.FileLink
+import org.gradle.foundation.output.FileLinkDefinitionLord
+import org.gradle.foundation.output.LiveOutputParser
 import org.gradle.gradleplugin.foundation.GradlePluginLord
 import org.gradle.gradleplugin.foundation.runner.GradleRunner
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.logging.ShowStacktrace
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.foundation.output.LiveOutputParser
-import org.gradle.foundation.output.FileLinkDefinitionLord
-import org.gradle.foundation.output.FileLink
-import org.gradle.logging.ShowStacktrace
+
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.Condition
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 /**
 This tests the that live output is gathered while executing a task.
 @author mhunsicker
 */
-class LiveOutputIntegrationTest {
+class LiveOutputIntegrationTest extends AbstractIntegrationTest {
 
     static final String JAVA_PROJECT_NAME = 'javaproject'
     static final String SHARED_NAME = 'shared'
@@ -50,9 +50,7 @@ class LiveOutputIntegrationTest {
 
     private File javaprojectDir
 
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('java/quickstart')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/quickstart')
 
     @Before
     void setUp() {
@@ -74,8 +72,8 @@ that's likely to change over time. This version executes the command via GradleP
 
         GradlePluginLord gradlePluginLord = new GradlePluginLord();
         gradlePluginLord.setCurrentDirectory(multiProjectDirectory);
-        gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
-        gradlePluginLord.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(dist.userHomeDir))
+        gradlePluginLord.setGradleHomeDirectory(distribution.gradleHomeDir);
+        gradlePluginLord.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(executer.gradleUserHomeDir))
 
         gradlePluginLord.startExecutionQueue(); //for tests, we'll need to explicitly start the execution queue (unless we do a refresh via the TestUtility).
 
@@ -99,12 +97,12 @@ that's likely to change over time. This version executes the command via GradleR
         File multiProjectDirectory = sample.getDir();
         Assert.assertTrue(multiProjectDirectory.exists()); //make sure things are setup the way we expect
 
-        GradleRunner gradleRunner = new GradleRunner( multiProjectDirectory, dist.gradleHomeDir, null );
+        GradleRunner gradleRunner = new GradleRunner( multiProjectDirectory, distribution.gradleHomeDir, null );
 
         TestExecutionInteraction executionInteraction = new TestExecutionInteraction();
 
         //execute a command. We don't really care what the command is, just something that generates output
-        def cl = new ExtraTestCommandLineOptionsListener(dist.userHomeDir).getAdditionalCommandLineArguments('') + ' tasks'
+        def cl = new ExtraTestCommandLineOptionsListener(executer.gradleUserHomeDir).getAdditionalCommandLineArguments('') + ' tasks'
         gradleRunner.executeCommand(cl, org.gradle.api.logging.LogLevel.LIFECYCLE,
                                             ShowStacktrace.INTERNAL_EXCEPTIONS,
                                             executionInteraction);

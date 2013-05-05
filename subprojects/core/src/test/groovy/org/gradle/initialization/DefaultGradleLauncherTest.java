@@ -29,9 +29,9 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.TemporaryFolder;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -75,9 +75,10 @@ public class DefaultGradleLauncherTest {
     private ExceptionAnalyser exceptionAnalyserMock = context.mock(ExceptionAnalyser.class);
     private LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
     private ModelConfigurationListener modelListenerMock = context.mock(ModelConfigurationListener.class);
+    private TasksCompletionListener tasksCompletionListener = context.mock(TasksCompletionListener.class);
 
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
     public void setUp() {
@@ -106,7 +107,7 @@ public class DefaultGradleLauncherTest {
 
         gradleLauncher = new DefaultGradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
                 buildLoaderMock, buildConfigurerMock, buildBroadcaster, exceptionAnalyserMock, loggingManagerMock,
-                modelListenerMock, buildExecuter);
+                modelListenerMock, tasksCompletionListener, buildExecuter);
 
         context.checking(new Expectations() {
             {
@@ -244,7 +245,7 @@ public class DefaultGradleLauncherTest {
             one(buildBroadcaster).projectsEvaluated(gradleMock);
             one(modelListenerMock).onConfigure(gradleMock);
             one(exceptionAnalyserMock).transform(failure);
-            will(returnValue(transformedException));
+             will(returnValue(transformedException));
             one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
         }});
 
@@ -299,6 +300,7 @@ public class DefaultGradleLauncherTest {
         context.checking(new Expectations() {
             {
                 one(buildExecuter).execute();
+                one(tasksCompletionListener).onTasksFinished(gradleMock);
             }
         });
     }

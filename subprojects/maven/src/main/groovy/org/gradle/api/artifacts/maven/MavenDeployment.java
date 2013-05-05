@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import java.util.Set;
 
 /**
- * Represents the artifacts which will be deployed to a maven repository. You can use this interface to modify the set
+ * Represents the artifacts which will be deployed to a Maven repository. You can use this interface to modify the set
  * of artifacts.
  */
 public interface MavenDeployment {

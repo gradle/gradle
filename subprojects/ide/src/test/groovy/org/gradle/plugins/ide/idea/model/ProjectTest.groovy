@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.xml.XmlTransformer
 import spock.lang.Specification
 
 /**
@@ -43,12 +43,23 @@ class ProjectTest extends Specification {
 
         when:
         project.load(customProjectReader)
-        project.configure(modules, "1.6", new IdeaLanguageLevel("JDK_1_5"), ['?*.groovy'])
+        project.configure(modules, "1.6", new IdeaLanguageLevel("JDK_1_5"), ['?*.groovy'], [])
 
         then:
         project.modulePaths as Set == (customModules + modules) as Set
         project.wildcards == customWildcards + ['?*.groovy'] as Set
         project.jdk == new Jdk("1.6", new IdeaLanguageLevel(JavaVersion.VERSION_1_5))
+    }
+
+    def "project libraries are overwritten with generated content"() {
+        def libraries = [new ProjectLibrary(name: "newlib", classes: [path("newlib1.jar")])]
+
+        when:
+        project.load(customProjectReader)
+        project.configure([], "1.6", new IdeaLanguageLevel("JDK_1_5"), [], libraries)
+
+        then:
+        project.projectLibraries as List == libraries
     }
 
     def loadDefaults() {
@@ -59,12 +70,13 @@ class ProjectTest extends Specification {
         project.modulePaths.size() == 0
         project.wildcards == [] as Set
         project.jdk == new Jdk(true, true, "JDK_1_5", null)
+        project.projectLibraries.empty
     }
 
     def toXml_shouldContainCustomValues() {
         when:
         project.loadDefaults()
-        project.configure([], "1.6", new IdeaLanguageLevel("JDK_1_5"), ['?*.groovy'])
+        project.configure([], "1.6", new IdeaLanguageLevel("JDK_1_5"), ['?*.groovy'], [])
         def xml = toXmlReader
         def other = new Project(new XmlTransformer(), pathFactory)
         other.load(xml)

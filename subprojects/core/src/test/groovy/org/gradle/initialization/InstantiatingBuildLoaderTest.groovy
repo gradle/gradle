@@ -22,14 +22,15 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.TemporaryFolder
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
@@ -44,7 +45,7 @@ class InstantiatingBuildLoaderTest {
     File testDir
     File rootProjectDir
     File childProjectDir
-    IProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
+    ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
     StartParameter startParameter = new StartParameter()
     ProjectDescriptor rootDescriptor
     ProjectInternal rootProject
@@ -52,12 +53,12 @@ class InstantiatingBuildLoaderTest {
     ProjectInternal childProject
     GradleInternal build
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before public void setUp()  {
         projectFactory = context.mock(IProjectFactory)
         buildLoader = new InstantiatingBuildLoader(projectFactory)
-        testDir = tmpDir.dir
+        testDir = tmpDir.testDirectory
         (rootProjectDir = new File(testDir, 'root')).mkdirs()
         (childProjectDir = new File(rootProjectDir, 'child')).mkdirs()
         startParameter.currentDir = rootProjectDir

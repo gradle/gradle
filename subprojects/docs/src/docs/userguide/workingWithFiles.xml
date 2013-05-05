@@ -57,7 +57,7 @@
             <apilink class="org.gradle.api.Project" method="files(java.lang.Object...)"/> method. You can pass this method any number of
             objects, which are then converted into a set of <classname>File</classname> objects. The
             <literal>files()</literal> method accepts any type of object as its parameters. These are evaluated relative
-            to the project directory, as for the <literal>file()</literal> method, described in <xref linkend="sec:locating_files"/>.
+            to the project directory, as per the <literal>file()</literal> method, described in <xref linkend="sec:locating_files"/>.
             You can also pass collections, iterables, maps and arrays to the <literal>files()</literal> method. These are flattened
             and the contents converted to <classname>File</classname> instances.
         </para>
@@ -166,7 +166,7 @@
     <section id="sec:specifying_multiple_files">
         <title>Specifying a set of input files</title>
         <para>Many objects in Gradle have properties which accept a set of input files. For example, the
-            <apilink class="org.gradle.api.tasks.compile.Compile"/> task has a <literal>source</literal> property,
+            <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task has a <literal>source</literal> property,
             which defines the source files to compile. You can set the value of this property using any of the types
             supported by the <link linkend="sec:file_collections">files()</link> method, which we have seen in above.
             This means you can set the property using, for example, a <classname>File</classname>, <classname>String</classname>,

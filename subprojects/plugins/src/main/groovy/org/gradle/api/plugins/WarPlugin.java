@@ -21,9 +21,11 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
+import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.War;
 
@@ -71,20 +73,26 @@ public class WarPlugin implements Plugin<Project> {
             }
         });
         
-        War war = project.getTasks().add(WAR_TASK_NAME, War.class);
+        War war = project.getTasks().create(WAR_TASK_NAME, War.class);
         war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
         war.setGroup(BasePlugin.BUILD_GROUP);
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(war));
+        ArchivePublishArtifact warArtifact = new ArchivePublishArtifact(war);
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
         configureConfigurations(project.getConfigurations());
+        configureComponent(project, warArtifact);
     }
 
     public void configureConfigurations(ConfigurationContainer configurationContainer) {
-        Configuration provideCompileConfiguration = configurationContainer.add(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
+        Configuration provideCompileConfiguration = configurationContainer.create(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
                 setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
-        Configuration provideRuntimeConfiguration = configurationContainer.add(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
+        Configuration provideRuntimeConfiguration = configurationContainer.create(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
                 extendsFrom(provideCompileConfiguration).
                 setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
         configurationContainer.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
+    }
+
+    private void configureComponent(Project project, PublishArtifact warArtifact) {
+        project.getComponents().add(new WebApplication(warArtifact));
     }
 }

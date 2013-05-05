@@ -20,6 +20,7 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -40,13 +41,13 @@ public class GradleWrapperMain {
 
         Properties systemProperties = System.getProperties();
         systemProperties.putAll(parseSystemPropertiesFromArgs(args));
-        
+
         addSystemProperties(rootDir);
 
         WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out);
         wrapperExecutor.execute(
                 args,
-                new Install(new Download(), new PathAssembler(gradleUserHome())),
+                new Install(new Download("gradlew", wrapperVersion()), new PathAssembler(gradleUserHome())),
                 new BootstrapMainStarter());
     }
 
@@ -57,7 +58,7 @@ public class GradleWrapperMain {
         commandLineParser.allowUnknownOptions();
         return converter.convert(commandLineParser.parse(args));
     }
-    
+
     private static void addSystemProperties(File rootDir) {
         System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File(gradleUserHome(), "gradle.properties")));
         System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File(rootDir, "gradle.properties")));
@@ -84,11 +85,33 @@ public class GradleWrapperMain {
         return new File(location.getPath());
     }
 
+    static String wrapperVersion() {
+        try {
+            InputStream resourceAsStream = GradleWrapperMain.class.getResourceAsStream("/build-receipt.properties");
+            if (resourceAsStream == null) {
+                throw new RuntimeException("No build receipt resource found.");
+            }
+            Properties buildReceipt = new Properties();
+            try {
+                buildReceipt.load(resourceAsStream);
+                String versionNumber = buildReceipt.getProperty("versionNumber");
+                if (versionNumber == null) {
+                    throw new RuntimeException("No version number specified in build receipt resource.");
+                }
+                return versionNumber;
+            } finally {
+                resourceAsStream.close();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not determine wrapper version.", e);
+        }
+    }
+
     private static File gradleUserHome() {
         String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
         if (gradleUserHome != null) {
             return new File(gradleUserHome);
-        } else if((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
+        } else if ((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
             return new File(gradleUserHome);
         } else {
             return new File(DEFAULT_GRADLE_USER_HOME);

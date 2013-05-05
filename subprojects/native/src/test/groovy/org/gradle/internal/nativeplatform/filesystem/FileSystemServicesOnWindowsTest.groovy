@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.nativeplatform.filesystem;
+package org.gradle.internal.nativeplatform.filesystem
 
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
 @Requires(TestPrecondition.WINDOWS)
 public class FileSystemServicesOnWindowsTest extends Specification {
-    @Rule TemporaryFolder temporaryFolder
+    @Rule TestNameTestDirectoryProvider temporaryFolder
     final Chmod chmod = FileSystemServices.services.get(Chmod)
     final Stat stat = FileSystemServices.services.get(Stat)
     final Symlink symlink = FileSystemServices.services.get(Symlink)

@@ -15,15 +15,15 @@
  */
 package org.gradle.api.tasks
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
 
 public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
     @Rule
-    public final TestResources resources = new TestResources("copyTestResources")
+    public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
 
     @Test public void testCopyWithClosure() {
         TestFile buildFile = testFile("build.gradle").writelns(

@@ -23,6 +23,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.Clock;
@@ -39,24 +40,29 @@ import java.util.Set;
 public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private static Logger logger = LoggerFactory.getLogger(DefaultTaskGraphExecuter.class);
 
-    private final TaskExecutor taskExecutor;
+    private enum TaskGraphState {
+        EMPTY, DIRTY, POPULATED
+    }
+
+    private final TaskPlanExecutor taskPlanExecutor;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan = new DefaultTaskExecutionPlan();
-    private boolean populated;
+    private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskExecutor taskExecutor) {
-        this.taskExecutor = taskExecutor;
+    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor) {
+        this.taskPlanExecutor = taskPlanExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
     }
 
-    public void useFilter(Spec<? super Task> filter) {
-        taskExecutionPlan.useFilter(filter);
-    }
-
     public void useFailureHandler(TaskFailureHandler handler) {
         taskExecutionPlan.useFailureHandler(handler);
+    }
+
+    public void useFilter(Spec<? super Task> filter) {
+        taskExecutionPlan.useFilter(filter);
+        taskGraphState = TaskGraphState.DIRTY;
     }
 
     public void addTasks(Iterable<? extends Task> tasks) {
@@ -69,18 +75,18 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             taskSet.add(task);
         }
         taskExecutionPlan.addToTaskGraph(taskSet);
-        populated = true;
+        taskGraphState = TaskGraphState.DIRTY;
 
         logger.debug("Timing: Creating the DAG took " + clock.getTime());
     }
 
     public void execute() {
-        assertPopulated();
         Clock clock = new Clock();
+        ensurePopulated();
 
         graphListeners.getSource().graphPopulated(this);
         try {
-            taskExecutor.process(taskExecutionPlan, taskListeners.getSource());
+            taskPlanExecutor.process(taskExecutionPlan, taskListeners.getSource());
             logger.debug("Timing: Executing the DAG took " + clock.getTime());
         } finally {
             taskExecutionPlan.clear();
@@ -96,7 +102,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public void whenReady(final Closure closure) {
-        graphListeners.add("graphPopulated", closure);
+        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", closure));
     }
 
     public void addTaskExecutionListener(TaskExecutionListener listener) {
@@ -108,20 +114,20 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public void beforeTask(final Closure closure) {
-        taskListeners.add("beforeExecute", closure);
+        taskListeners.add(new ClosureBackedMethodInvocationDispatch("beforeExecute", closure));
     }
 
     public void afterTask(final Closure closure) {
-        taskListeners.add("afterExecute", closure);
+        taskListeners.add(new ClosureBackedMethodInvocationDispatch("afterExecute", closure));
     }
 
     public boolean hasTask(Task task) {
-        assertPopulated();
+        ensurePopulated();
         return taskExecutionPlan.getTasks().contains(task);
     }
 
     public boolean hasTask(String path) {
-        assertPopulated();
+        ensurePopulated();
         assert path != null && path.length() > 0;
         for (Task task : taskExecutionPlan.getTasks()) {
             if (task.getPath().equals(path)) {
@@ -132,14 +138,20 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public List<Task> getAllTasks() {
-        assertPopulated();
+        ensurePopulated();
         return taskExecutionPlan.getTasks();
     }
 
-    private void assertPopulated() {
-        if (!populated) {
-            throw new IllegalStateException(
-                    "Task information is not available, as this task execution graph has not been populated.");
+    private void ensurePopulated() {
+        switch (taskGraphState) {
+            case EMPTY:
+                throw new IllegalStateException(
+                        "Task information is not available, as this task execution graph has not been populated.");
+            case DIRTY:
+                taskExecutionPlan.determineExecutionPlan();
+                taskGraphState = TaskGraphState.POPULATED;
+                return;
+            case POPULATED:
         }
     }
 }

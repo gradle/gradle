@@ -20,10 +20,9 @@ import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.ModelProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.FeatureValidator;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -45,16 +44,15 @@ public class LazyConnection implements ConsumerConnection {
     private boolean stopped;
     private ConsumerConnection connection;
 
-    boolean verboseLogging;
+    ConsumerConnectionParameters connectionParameters;
 
     ModelProvider modelProvider = new ModelProvider();
-    FeatureValidator featureValidator = new FeatureValidator();
 
     public LazyConnection(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, boolean verboseLogging) {
         this.distribution = distribution;
         this.implementationLoader = implementationLoader;
         this.loggingProvider = loggingProvider;
-        this.verboseLogging = verboseLogging;
+        this.connectionParameters = new ConsumerConnectionParameters(verboseLogging);
     }
 
     public void stop() {
@@ -79,10 +77,6 @@ public class LazyConnection implements ConsumerConnection {
         }
     }
 
-    public ConsumerConnectionMetadata getMetaData() {
-        return new ConsumerConnectionMetadata(distribution.getDisplayName(), null);
-    }
-
     public String getDisplayName() {
         return distribution.getDisplayName();
     }
@@ -94,20 +88,9 @@ public class LazyConnection implements ConsumerConnection {
         return connection.getVersionDetails();
     }
 
-    public void executeBuild(final BuildParametersVersion1 buildParameters, final ConsumerOperationParameters operationParameters) {
-        withConnection(new ConnectionAction<Object>() {
-            public Object run(ConsumerConnection connection) {
-                featureValidator.validate(connection, operationParameters);
-                connection.executeBuild(buildParameters, operationParameters);
-                return null;
-            }
-        });
-    }
-
-    public <T> T getModel(final Class<T> type, final ConsumerOperationParameters operationParameters) {
+    public <T> T run(final Class<T> type, final ConsumerOperationParameters operationParameters) {
         return withConnection(new ConnectionAction<T>() {
             public T run(ConsumerConnection connection) {
-                featureValidator.validate(connection, operationParameters);
                 return modelProvider.provide(connection, type, operationParameters);
             }
         });
@@ -132,7 +115,7 @@ public class LazyConnection implements ConsumerConnection {
             if (connection == null) {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
-                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory(), verboseLogging);
+                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory(), connectionParameters);
             }
             return connection;
         } finally {

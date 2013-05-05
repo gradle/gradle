@@ -45,18 +45,16 @@ public class ErrorHandlingNotationParser<T> implements NotationParser<T> {
     }
 
     public T parseNotation(Object notation) {
-        Object brokenNotation;
-        try {
-            return delegate.parseNotation(notation);
-        } catch (UnsupportedNotationException e) {
-            brokenNotation = e.getNotation();
-        }
-
         Formatter message = new Formatter();
-        if (brokenNotation == null) {
+        if (notation == null) {
+            //we don't support null input at the moment. If you need this please implement it.
             message.format("Cannot convert a null value to an object of type %s.%n", targetTypeDisplayName);
         } else {
-            message.format("Cannot convert the provided notation to an object of type %s: %s.%n", targetTypeDisplayName, brokenNotation);
+            try {
+                return delegate.parseNotation(notation);
+            } catch (UnsupportedNotationException e) {
+                message.format("Cannot convert the provided notation to an object of type %s: %s.%n", targetTypeDisplayName, e.getNotation());
+            }
         }
 
         message.format("The following types/formats are supported:");

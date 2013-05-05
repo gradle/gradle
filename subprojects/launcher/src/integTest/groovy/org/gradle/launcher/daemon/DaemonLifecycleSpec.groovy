@@ -17,14 +17,15 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.GradleHandle
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.testing.DaemonContextParser
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
-import org.gradle.internal.jvm.Jvm
 import spock.lang.IgnoreIf
-import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
+
+import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
@@ -53,16 +54,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     @Delegate DaemonEventSequenceBuilder sequenceBuilder =
         new DaemonEventSequenceBuilder(stateTransitionTimeout * 1000)
 
-    def setup() {
-        //to work around an issue with the daemon having awkward jvm input arguments
-        //when GRADLE_OPTS contains -Djava.io.tmpdir with value that has spaces
-        //once this problem is fixed we could get rid of this workaround
-        //TODO SF - validate if it is still needed
-        distribution.avoidsConfiguringTmpDir()
-    }
-
     def buildDir(buildNum) {
-        distribution.file("builds/$buildNum")
+        file("builds/$buildNum")
     }
 
     def buildDirWithScript(buildNum, buildScript) {
@@ -102,7 +95,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             """)
             builds << executer.start()
         }
-        //TODO SF - figure out how to add waitForBuildToWait somewhere here
+        //TODO SF - rewrite the lifecycle spec so that it uses the TestableDaemon
     }
 
     void completeBuild(buildNum = 0) {
@@ -113,7 +106,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     void waitForBuildToWait(buildNum = 0) {
         run {
-            poll { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
+            poll(20) { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
         }
     }
 
@@ -407,10 +400,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         buildFailedWithDaemonDisappearedMessage()
 
         and:
-        // The daemon crashed so didn't remove itself from the registry.
-        // This doesn't produce a registry state change, so we have to test
-        // That we are still in the same state this way
-        run { assert executer.daemonRegistry.busy.size() == 1; }
+        // The daemon attempts to remove its address on shutdown
+        run { assert executer.daemonRegistry.all.empty }
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})

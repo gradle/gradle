@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import java.util.Map;
-import java.util.HashMap;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
+import org.gradle.api.internal.file.copy.ZipDeflatedCompressor;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
-import org.gradle.util.TestFile;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.api.internal.file.copy.ZipStoredCompressor;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
@@ -37,35 +38,64 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class ZipCopySpecVisitorTest {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
+    private final ArchiveCopyAction copyAction = context.mock(ZipCopyAction.class);
     private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
     private final ZipCopySpecVisitor visitor = new ZipCopySpecVisitor();
     private TestFile zipFile;
 
     @Before
     public void setup() {
-        zipFile = tmpDir.getDir().file("test.zip");
-        context.checking(new Expectations(){{
+        zipFile = tmpDir.getTestDirectory().file("test.zip");
+        context.checking(new Expectations() {{
             allowing(copyAction).getArchivePath();
             will(returnValue(zipFile));
         }});
+        context.checking(new Expectations() {{
+            allowing(copyAction).getCompressor();
+            will(returnValue(ZipStoredCompressor.INSTANCE));
+        }});
+    }
+
+    private TestFile initializeZipFile(final TestFile testFile, final ArchiveOutputStreamFactory compressor) {
+        context.checking(new Expectations() {{
+            allowing(copyAction).getArchivePath();
+            will(returnValue(zipFile));
+            allowing(copyAction).getCompressor();
+            will(returnValue(compressor));
+        }});
+        return testFile;
     }
 
     @Test
     public void createsZipFile() {
+        initializeZipFile(zipFile, ZipStoredCompressor.INSTANCE);
         zip(dir("dir"), file("dir/file1"), file("file2"));
 
-        TestFile expandDir = tmpDir.getDir().file("expanded");
+        TestFile expandDir = tmpDir.getTestDirectory().file("expanded");
+        zipFile.unzipTo(expandDir);
+        expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
+        expandDir.file("file2").assertContents(equalTo("contents of file2"));
+    }
+
+    @Test
+    public void createsDeflatedZipFile() {
+        initializeZipFile(zipFile, ZipDeflatedCompressor.INSTANCE);
+        zip(dir("dir"), file("dir/file1"), file("file2"));
+
+        TestFile expandDir = tmpDir.getTestDirectory().file("expanded");
         zipFile.unzipTo(expandDir);
         expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
         expandDir.file("file2").assertContents(equalTo("contents of file2"));
@@ -86,7 +116,7 @@ public class ZipCopySpecVisitorTest {
     public void wrapsFailureToOpenOutputFile() {
         final TestFile invalidZipFile = tmpDir.createDir("test.zip");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(copyAction).getArchivePath();
             will(returnValue(invalidZipFile));
         }});

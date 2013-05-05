@@ -16,29 +16,41 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.quality.FindBugsReports;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
 
 public class FindBugsSpecBuilder {
+    private static final Set<String> VALID_EFFORTS = ImmutableSet.of("min", "default", "max");
+    private static final Set<String> VALID_REPORT_LEVELS = ImmutableSet.of("experimental", "low", "medium", "high");
+
     private FileCollection pluginsList;
     private FileCollection sources;
     private FileCollection classpath;
-
-    private ArrayList<String> args;
     private FileCollection classes;
     private FindBugsReports reports;
 
+    private String effort;
+    private String reportLevel;
+    private String maxHeapSize;
+    private Collection<String> visitors;
+    private Collection<String> omitVisitors;
+    private File excludeFilter;
+    private File includeFilter;
     private boolean debugEnabled;
 
     public FindBugsSpecBuilder(FileCollection classes) {
         if(classes == null || classes.isEmpty()){
-            throw new InvalidUserDataException("Classes must be configured to be analyzed by the Findbugs.");
+            throw new InvalidUserDataException("No classes configured for FindBugs analysis.");
         }
         this.classes = classes;
     }
@@ -58,8 +70,60 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
-    public FindBugsSpecBuilder configureReports(FindBugsReports reports){
+    public FindBugsSpecBuilder configureReports(FindBugsReports reports) {
         this.reports = reports;
+        return this;
+    }
+
+
+    public FindBugsSpecBuilder withEffort(String effort) {
+        if (effort != null && !VALID_EFFORTS.contains(effort)) {
+            throw new InvalidUserDataException("Invalid value for FindBugs 'effort' property: " + effort);
+        }
+        this.effort = effort;
+        return this;
+    }
+
+    public FindBugsSpecBuilder withReportLevel(String reportLevel) {
+        if (reportLevel != null && !VALID_REPORT_LEVELS.contains(reportLevel)) {
+            throw new InvalidUserDataException("Invalid value for FindBugs 'reportLevel' property: " + reportLevel);
+        }
+        this.reportLevel = reportLevel;
+        return this;
+    }
+    
+    public FindBugsSpecBuilder withMaxHeapSize(String maxHeapSize) {
+        this.maxHeapSize = maxHeapSize;
+        return this;
+    }
+
+    public FindBugsSpecBuilder withVisitors(Collection<String> visitors) {
+        this.visitors = visitors;
+        return this;
+    }
+
+    public FindBugsSpecBuilder withOmitVisitors(Collection<String> omitVisitors) {
+        this.omitVisitors = omitVisitors;
+        return this;
+    }
+
+    public FindBugsSpecBuilder withExcludeFilter(File excludeFilter) {
+        if (excludeFilter != null && !excludeFilter.canRead()) {
+            String errorStr = String.format("Cannot read file specified for FindBugs 'excludeFilter' property: %s", excludeFilter);
+            throw new InvalidUserDataException(errorStr);
+        }
+
+        this.excludeFilter = excludeFilter;
+        return this;
+    }
+
+    public FindBugsSpecBuilder withIncludeFilter(File includeFilter) {
+        if (includeFilter != null && !includeFilter.canRead()) {
+            String errorStr = String.format("Cannot read file specified for FindBugs 'includeFilter' property: %s", includeFilter);
+            throw new InvalidUserDataException(errorStr);
+        }
+
+        this.includeFilter = includeFilter;
         return this;
     }
 
@@ -69,7 +133,7 @@ public class FindBugsSpecBuilder {
     }
 
     public FindBugsSpec build() {
-        args = new ArrayList<String>();
+        ArrayList<String> args = new ArrayList<String>();
         args.add("-pluginList");
         args.add(pluginsList==null ? "" : pluginsList.getAsPath());
         args.add("-sortByClass");
@@ -83,7 +147,7 @@ public class FindBugsSpecBuilder {
                 args.add("-outputFile");
                 args.add(reportsImpl.getFirstEnabled().getDestination().getAbsolutePath());
             } else {
-                throw new InvalidUserDataException("Findbugs tasks can only have one report enabled, however both the xml and html report are enabled. You need to disable one of them.");
+                throw new InvalidUserDataException("FindBugs tasks can only have one report enabled, however both the XML and HTML report are enabled. You need to disable one of them.");
             }
         }
 
@@ -95,18 +159,59 @@ public class FindBugsSpecBuilder {
         if (has(classpath)) {
             args.add("-auxclasspath");
 
-            // Filter unexisting files as findbugs can't handle them.
+            // Filter unexisting files as FindBugs can't handle them.
             args.add(classpath.filter(new Spec<File>() {
                 public boolean isSatisfiedBy(File element) {
                     return element.exists();
                 }
             }).getAsPath());
         }
+
+        if (has(effort)) {
+            args.add(String.format("-effort:%s", effort));
+        }
+
+        if (has(reportLevel)) {
+            args.add(String.format("-%s", reportLevel));
+        }
+
+        if (has(visitors)) {
+            args.add("-visitors");
+            args.add(CollectionUtils.join(",", visitors));
+        }
+
+        if (has(omitVisitors)) {
+            args.add("-omitVisitors");
+            args.add(CollectionUtils.join(",", omitVisitors));
+        }
+
+        if (has(excludeFilter)) {
+            args.add("-exclude");
+            args.add(excludeFilter.getPath());
+        }
+
+        if (has(includeFilter)) {
+            args.add("-include");
+            args.add(includeFilter.getPath());
+        }
+
         for (File classFile : classes.getFiles()) {
             args.add(classFile.getAbsolutePath());
         }
-        FindBugsSpec spec = new FindBugsSpec(args, debugEnabled);
-        return spec;
+        
+        return new FindBugsSpec(args, maxHeapSize, debugEnabled);
+    }
+
+    private boolean has(String str) {
+        return str != null && str.length() > 0;
+    }
+
+    private boolean has(File file) {
+        return file != null && file.canRead();
+    }
+
+    private boolean has(Collection<?> collection) {
+        return collection != null && !collection.isEmpty();
     }
 
     private boolean has(FileCollection fileCollection) {

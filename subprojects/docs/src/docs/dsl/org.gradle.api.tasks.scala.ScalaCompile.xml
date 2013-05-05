@@ -10,7 +10,11 @@
             </thead>
             <tr>
                 <td>scalaClasspath</td>
-                <td><literal>project.configurations.scalaTools</literal></td>
+                <td><literal>scala-compiler</literal> dependency matching the <literal>scala-library</literal> version found on <literal>classpath</literal></td>
+            </tr>
+            <tr>
+                <td>options</td>
+                <td/>
             </tr>
             <tr>
                 <td>scalaCompileOptions</td>

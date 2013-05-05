@@ -31,4 +31,5 @@ public interface ArtifactResolveResult {
      * @throws ArtifactResolveException If the resolution was unsuccessful.
      */
     File getFile() throws ArtifactResolveException;
+
 }

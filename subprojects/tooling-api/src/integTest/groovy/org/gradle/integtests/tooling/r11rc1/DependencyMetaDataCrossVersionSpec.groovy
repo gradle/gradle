@@ -15,16 +15,16 @@
  */
 package org.gradle.integtests.tooling.r11rc1
 
-import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 
-@MinToolingApiVersion('current')
-@MinTargetGradleVersion('current')
+@MinToolingApiVersion('1.1-rc-2')
+@MinTargetGradleVersion('1.1-rc-2')
 class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
 
     def "idea libraries contain gradle module information"() {
@@ -53,12 +53,12 @@ class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private void prepareBuild() {
-        def fakeRepo = dist.file("repo")
-        new MavenRepository(fakeRepo).module("foo.bar", "coolLib", 2.0).publish()
+        def fakeRepo = file("repo")
+        new MavenFileRepository(fakeRepo).module("foo.bar", "coolLib", 2.0).publish()
 
-        dist.file("yetAnotherJar.jar").createFile()
+        file("yetAnotherJar.jar").createFile()
 
-        dist.file('build.gradle').text = """
+        file('build.gradle').text = """
 apply plugin: 'java'
 
 repositories {

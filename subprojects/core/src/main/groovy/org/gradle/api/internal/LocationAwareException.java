@@ -148,14 +148,32 @@ public class LocationAwareException extends GradleException {
                 }
                 visitor.endChildren();
             }
-        } else if (t.getCause() != null) {
+            return;
+        }
+
+        if (t.getCause() != null) {
             visitor.startChildren();
-            Throwable cause = t.getCause();
-            visitor.node(cause);
-            if (cause.getClass().getAnnotation(Contextual.class) != null) {
-                visitCauses(cause, visitor);
+            Throwable next = findNearestContextualCause(t);
+            if (next != null) {
+                // Show any contextual cause recursively
+                visitor.node(next);
+                visitCauses(next, visitor);
+            } else {
+                // Show the direct cause of the last contextual cause.
+                visitor.node(t.getCause());
             }
             visitor.endChildren();
         }
+    }
+
+    private Throwable findNearestContextualCause(Throwable t) {
+        if (t.getCause() == null) {
+            return null;
+        }
+        Throwable cause = t.getCause();
+        if (cause.getClass().getAnnotation(Contextual.class) != null) {
+            return cause;
+        }
+        return findNearestContextualCause(cause);
     }
 }

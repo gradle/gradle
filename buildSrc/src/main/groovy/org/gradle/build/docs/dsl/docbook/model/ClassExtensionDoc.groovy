@@ -15,8 +15,6 @@
  */
 package org.gradle.build.docs.dsl.docbook.model
 
-import org.gradle.build.docs.dsl.source.model.ClassMetaData
-
 /**
  * Represents the documentation model for extensions contributed by a given plugin.
  */
@@ -24,11 +22,11 @@ class ClassExtensionDoc {
     private final Set<ClassDoc> mixinClasses = []
     private final Map<String, ClassDoc> extensionClasses = [:]
     private final String pluginId
-    final ClassMetaData targetClass
+    final ClassDoc targetClass
     final List<PropertyDoc> extraProperties = []
     final List<BlockDoc> extraBlocks = []
 
-    ClassExtensionDoc(String pluginId, ClassMetaData targetClass) {
+    ClassExtensionDoc(String pluginId, ClassDoc targetClass) {
         this.pluginId = pluginId
         this.targetClass = targetClass
     }
@@ -46,18 +44,38 @@ class ClassExtensionDoc {
     }
 
     List<PropertyDoc> getExtensionProperties() {
-        def properties = mixinClasses.inject([]) {list, eClass -> eClass.classProperties.inject(list) {x, prop -> x << prop } }
-        properties.addAll(extraProperties)
+        List<PropertyDoc> properties = []
+        mixinClasses.each { mixin ->
+            mixin.classProperties.each { prop ->
+                properties << prop.forClass(targetClass)
+            }
+        }
+        extraProperties.each { prop ->
+            properties << prop.forClass(targetClass)
+        }
         return properties.sort { it.name }
     }
 
     List<MethodDoc> getExtensionMethods() {
-        return mixinClasses.inject([]) {list, eClass -> eClass.classMethods.inject(list) {x, method -> x << method } }.sort { it.name }
+        List<MethodDoc> methods = []
+        mixinClasses.each { mixin ->
+            mixin.classMethods.each { method ->
+                methods << method.forClass(targetClass)
+            }
+        }
+        return methods.sort { it.metaData.overrideSignature }
     }
 
     List<BlockDoc> getExtensionBlocks() {
-        def blocks = mixinClasses.inject([]) {list, eClass -> eClass.classBlocks.inject(list) {x, block -> x << block } }
-        blocks.addAll(extraBlocks)
+        List<BlockDoc> blocks = []
+        mixinClasses.each { mixin ->
+            mixin.classBlocks.each { block ->
+                blocks << block.forClass(targetClass)
+            }
+        }
+        extraBlocks.each { block->
+            blocks << block.forClass(targetClass)
+        }
         return blocks.sort { it.name }
     }
 }

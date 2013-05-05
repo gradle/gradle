@@ -1,14 +1,12 @@
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
-    groovy libraries.groovy
+    integTestCompile libraries.groovy
 
     integTestCompile project(':toolingApi')
     integTestCompile project(':launcher')
     integTestCompile project(':coreImpl')
     integTestCompile libraries.ant
     integTestCompile libraries.xmlunit
-    integTestCompile libraries.nekohtml
+    integTestCompile libraries.jsoup
 
     integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
@@ -31,13 +29,10 @@ integTestTasks.all {
 
 daemonIntegTest {
     exclude "**/CrossVersionCompatibilityIntegrationTest.class" //ignored just in case to avoid old daemon implementation
-    exclude "**/DistributionIntegrationTest.class" //fragile - heavily depends on external repos and does not contribute too much to the daemon suite anyway
 }
 
-eclipse {
-	classpath {
-		file.whenMerged { classpath ->
-            classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-		}
-	}
+parallelIntegTest {
+    systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
 }
+
+useClassycle()

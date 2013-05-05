@@ -42,11 +42,11 @@ public class Bzip2Archiver implements ReadableResource {
         this.uri = new URIBuilder(resource.getURI()).schemePrefix("bzip2:").build();
     }
 
-    public static Compressor getCompressor() {
+    public static ArchiveOutputStreamFactory getCompressor() {
         // this is not very beautiful but at some point we will
-        // get rid of Compressor in favor of the writable Resource
-        return new Compressor() {
-            public OutputStream compress(File destination) {
+        // get rid of ArchiveOutputStreamFactory in favor of the writable Resource
+        return new ArchiveOutputStreamFactory() {
+            public OutputStream createArchiveOutputStream(File destination) {
                 try {
                     OutputStream outStr = new FileOutputStream(destination);
                     outStr.write('B');

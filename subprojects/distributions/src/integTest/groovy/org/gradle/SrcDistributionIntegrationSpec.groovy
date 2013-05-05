@@ -17,17 +17,25 @@
 package org.gradle
 
 import org.apache.tools.ant.taskdefs.Expand
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.AntUtil
 import org.gradle.util.Requires
-import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
 
 class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
+    @Override
+    String getDistributionLabel() {
+        "src"
+    }
+
     @Requires(TestPrecondition.NOT_WINDOWS)
     def sourceZipContents() {
         given:
-        TestFile contentsDir = unpackDistribution("src")
+        TestFile contentsDir = unpackDistribution()
+
+        expect:
+        !contentsDir.file(".git").exists()
 
         when:
         executer.with {

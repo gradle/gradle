@@ -72,7 +72,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
 
     public void stop() {
         try {
-            new CompositeStoppable(processors).add(actors).add(resultProcessorActor).stop();
+            CompositeStoppable.stoppable(processors).add(actors).add(resultProcessorActor).stop();
         } catch (DispatchException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         }

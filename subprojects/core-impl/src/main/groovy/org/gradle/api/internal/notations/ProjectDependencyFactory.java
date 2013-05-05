@@ -16,40 +16,46 @@
 package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
+import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.internal.notations.parsers.MapKey;
+import org.gradle.api.internal.notations.parsers.MapNotationParser;
+import org.gradle.api.tasks.Optional;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class ProjectDependencyFactory {
-    private final ProjectDependenciesBuildInstruction instruction;
-    private final Instantiator instantiator;
+    private final DefaultProjectDependencyFactory factory;
 
-    public ProjectDependencyFactory(ProjectDependenciesBuildInstruction instruction, Instantiator instantiator) {
-        this.instruction = instruction;
-        this.instantiator = instantiator;
+    public ProjectDependencyFactory(DefaultProjectDependencyFactory factory) {
+        this.factory = factory;
     }
 
     public ProjectDependency createFromMap(ProjectFinder projectFinder,
                                            Map<? extends String, ? extends Object> map) {
-        Map<String, Object> args = new HashMap<String, Object>(map);
-        String path = getAndRemove(args, "path");
-        String configuration = getAndRemove(args, "configuration");
-        ProjectDependency dependency = instantiator.newInstance(DefaultProjectDependency.class, projectFinder.getProject(path), configuration, instruction);
-        ConfigureUtil.configureByMap(args, dependency);
-        return dependency;
+        return new ProjectDependencyMapNotationParser(projectFinder, factory).parseNotation(map);
     }
 
-    private String getAndRemove(Map<String, Object> args, String key) {
-        Object value = args.get(key);
-        args.remove(key);
-        return value != null ? value.toString() : null;
+    static class ProjectDependencyMapNotationParser extends MapNotationParser<ProjectDependency> {
+
+        private final ProjectFinder projectFinder;
+        private final DefaultProjectDependencyFactory factory;
+
+        public ProjectDependencyMapNotationParser(ProjectFinder projectFinder, DefaultProjectDependencyFactory factory) {
+            this.projectFinder = projectFinder;
+            this.factory = factory;
+        }
+
+        protected ProjectDependency parseMap(@MapKey("path") String path, @Optional @MapKey("configuration") String configuration) {
+            return factory.create(projectFinder.getProject(path), configuration);
+        }
+
+        public void describe(Collection<String> candidateFormats) {
+            candidateFormats.add("Map with mandatory 'path' and optional 'configuration' key, e.g. [path: ':someProj', configuration: 'someConf']");
+        }
     }
 }

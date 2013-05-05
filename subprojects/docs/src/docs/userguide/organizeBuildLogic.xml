@@ -118,7 +118,7 @@
         <para>Listed below is the default build script that Gradle applies to the <filename>buildSrc</filename> project:</para>
         <figure>
             <title>Default buildSrc build script</title>
-            <programlisting><xi:include href='../../../../../subprojects/core/src/main/resources/org/gradle/initialization/defaultBuildSourceScript.txt' parse='text'/></programlisting>
+            <programlisting><xi:include href='../../../../../subprojects/core/src/main/resources/org/gradle/initialization/buildsrc/defaultBuildSourceScript.txt' parse='text'/></programlisting>
         </figure>
         <para>
             This means that you can just put you build source code in this directory and stick to the layout convention for a 
@@ -197,7 +197,7 @@
         <sample id="buildLogic" dir="userguide/organizeBuildLogic" title="Ant optional dependencies">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>This is also nice example for the usage of client modules. The pom.xml in maven central for the
+        <para>This is also nice example for the usage of client modules. The POM file in Maven Central for the
         ant-commons-net task does not provide the right information for this use case.</para>
     </section>
     <section id='sec:philosophy'>

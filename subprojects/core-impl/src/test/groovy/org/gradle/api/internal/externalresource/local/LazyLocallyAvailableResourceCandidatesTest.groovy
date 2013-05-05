@@ -17,14 +17,14 @@
 package org.gradle.api.internal.externalresource.local
 
 import org.gradle.internal.Factory
-import spock.lang.Specification
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.hash.HashUtil
+import org.junit.Rule
+import spock.lang.Specification
 
 class LazyLocallyAvailableResourceCandidatesTest extends Specification {
 
-    @Rule TemporaryFolder tmp
+    @Rule TestNameTestDirectoryProvider tmp
     
     def "does not query factory until necessary"() {
         given:

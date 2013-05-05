@@ -16,58 +16,18 @@
 
 package org.gradle.api.internal
 
-import spock.lang.Specification
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GradleVersion
 import org.junit.Rule
-import org.gradle.util.TemporaryFolder
+import spock.lang.Specification
 
 class DocumentationRegistryTest extends Specification {
-    @Rule TemporaryFolder tmpDir
-    final GradleDistributionLocator locator = Mock()
-    final DocumentationRegistry registry = new DocumentationRegistry(locator)
+    @Rule TestNameTestDirectoryProvider tmpDir
+    final GradleVersion gradleVersion = GradleVersion.current()
+    final DocumentationRegistry registry = new DocumentationRegistry()
 
-    def "points users at the local user guide when target page is present in distribution"() {
-        def distDir = tmpDir.createDir("home")
-        distDir.createFile("docs/userguide/userguide.html")
-        def daemonPage = distDir.createFile("docs/userguide/gradle_daemon.html")
-
-        given:
-        _ * locator.gradleHome >> distDir
-
+    def "points users at the gradle docs web site"() {
         expect:
-        registry.getDocumentationFor('gradle_daemon') == daemonPage.absolutePath
-    }
-
-    def "fails when local user guide is present in distribution but target page not found"() {
-        def distDir = tmpDir.createDir("home")
-        distDir.createFile("docs/userguide/userguide.html")
-        def expectedPage = distDir.file("docs/userguide/gradle_daemon.html")
-
-        given:
-        _ * locator.gradleHome >> distDir
-
-        when:
-        registry.getDocumentationFor('gradle_daemon')
-
-        then:
-        IllegalArgumentException e = thrown()
-        e.message == "User guide page '${expectedPage}' not found."
-    }
-
-    def "points users at the remote user guide when user guide not present in distribution"() {
-        def distDir = tmpDir.createDir("home")
-
-        given:
-        _ * locator.gradleHome >> distDir
-
-        expect:
-        registry.getDocumentationFor('gradle_daemon') == "http://gradle.org/docs/current/userguide/gradle_daemon.html"
-    }
-
-    def "points users at the remote user guide when no distribution"() {
-        given:
-        _ * locator.gradleHome >> null
-
-        expect:
-        registry.getDocumentationFor('gradle_daemon') == "http://gradle.org/docs/current/userguide/gradle_daemon.html"
+        registry.getDocumentationFor('gradle_daemon') == "http://gradle.org/docs/${gradleVersion.version}/userguide/gradle_daemon.html"
     }
 }

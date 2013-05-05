@@ -82,7 +82,7 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
                     }
                 }
 
-                props.put(propertyDoc.getName(), propertyDoc.forClass(classDoc.getClassMetaData(), additionalValues.values()));
+                props.put(propertyDoc.getName(), propertyDoc.forClass(classDoc, additionalValues.values()));
             }
         }
 

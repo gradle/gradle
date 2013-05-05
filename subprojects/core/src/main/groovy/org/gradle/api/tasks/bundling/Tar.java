@@ -17,12 +17,12 @@
 package org.gradle.api.tasks.bundling;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.archive.TarCopyAction;
 import org.gradle.api.internal.file.archive.TarCopySpecVisitor;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
-import org.gradle.api.internal.file.archive.compression.Compressor;
+import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
+import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 
 import java.io.File;
@@ -35,10 +35,9 @@ import java.util.concurrent.Callable;
  */
 public class Tar extends AbstractArchiveTask {
     private final CopyActionImpl action;
-    private Compression compression;
+    private Compression compression = Compression.NONE;
 
     public Tar() {
-        setCompression(Compression.NONE);
         action = new TarCopyActionImpl(getServices().get(FileResolver.class));
         getConventionMapping().map("extension", new Callable<Object>(){
             public Object call() throws Exception {
@@ -69,7 +68,7 @@ public class Tar extends AbstractArchiveTask {
         this.compression = compression;
     }
 
-    private class TarCopyActionImpl extends CopyActionImpl implements TarCopyAction {
+    private class TarCopyActionImpl extends CopyActionImpl implements ArchiveCopyAction  {
         public TarCopyActionImpl(FileResolver fileResolver) {
             super(fileResolver, new TarCopySpecVisitor());
         }
@@ -78,7 +77,7 @@ public class Tar extends AbstractArchiveTask {
             return Tar.this.getArchivePath();
         }
 
-        public Compressor getCompressor() {
+        public ArchiveOutputStreamFactory getCompressor() {
             switch(compression) {
                 case BZIP2: return Bzip2Archiver.getCompressor();
                 case GZIP:  return GzipArchiver.getCompressor();

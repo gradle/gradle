@@ -15,14 +15,16 @@
  */
 package org.gradle.reporting;
 
-import org.w3c.dom.Element;
+import org.gradle.api.internal.html.SimpleHtmlWriter;
 
-public class CodePanelRenderer extends DomReportRenderer<String> {
+import java.io.IOException;
+
+public class CodePanelRenderer extends ReportRenderer<String, SimpleHtmlWriter> {
     @Override
-    public void render(String text, Element parent) {
+    public void render(String text, SimpleHtmlWriter htmlWriter) throws IOException {
         // Wrap in a <span>, to work around CSS problem in IE
-        Element span = append(parent, "span");
-        span.setAttribute("class", "code");
-        appendWithText(span, "pre", text);
+        htmlWriter.startElement("span").attribute("class", "code")
+            .startElement("pre").characters(text).endElement()
+        .endElement();
     }
 }

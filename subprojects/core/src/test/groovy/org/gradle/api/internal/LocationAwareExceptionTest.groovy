@@ -87,6 +87,35 @@ class LocationAwareExceptionTest extends Specification {
         e.reportableCauses == [childCause]
     }
 
+    def "visit reportable causes visits all contextual exceptions and direct cause of last contextual exception"() {
+        TreeVisitor visitor = Mock()
+        def unreportedCause = new RuntimeException()
+        def reportedCause = new RuntimeException(unreportedCause)
+        def lastContextual = new TestContextualException(reportedCause)
+        def interveningUnreported = new RuntimeException(lastContextual)
+        def contextual = new TestContextualException(interveningUnreported)
+        def interveningUnreported2 = new RuntimeException(contextual)
+        def cause = new TestContextualException(interveningUnreported2)
+        def e = new LocationAwareException(cause, cause, null, 100)
+
+        when:
+        e.visitReportableCauses(visitor)
+
+        then:
+        1 * visitor.node(e)
+        1 * visitor.node(contextual)
+        1 * visitor.node(lastContextual)
+        1 * visitor.node(reportedCause)
+
+        and:
+        _ * visitor.startChildren()
+        _ * visitor.endChildren()
+        0 * visitor._
+
+        and:
+        e.reportableCauses == [contextual, lastContextual, reportedCause]
+    }
+
     def "visit reportable causes visits causes of multi-cause exception"() {
         TreeVisitor visitor = Mock()
         def childCause1 = new RuntimeException()

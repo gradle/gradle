@@ -15,14 +15,13 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
 class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample apiAndImpl = new Sample('java/apiAndImpl')
+    @Rule public final Sample apiAndImpl = new Sample(temporaryFolder, 'java/apiAndImpl')
 
     static combined = ""
     static api = "-api"
@@ -54,9 +53,9 @@ class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
         module(combined).assertArtifactsPublished("apiAndImpl-1.0.jar", "apiAndImpl-1.0.pom")
 
         and: // poms have the right dependencies
-        compileDependenciesOf(api).assertDependsOnArtifacts("commons-codec")
-        compileDependenciesOf(impl).assertDependsOnArtifacts("commons-lang")
-        compileDependenciesOf(combined).assertDependsOnArtifacts("commons-lang", "commons-codec")
+        compileDependenciesOf(api).assertDependsOn("commons-codec:commons-codec:1.5")
+        compileDependenciesOf(impl).assertDependsOn("commons-lang:commons-lang:2.6")
+        compileDependenciesOf(combined).assertDependsOn("commons-lang:commons-lang:2.6", "commons-codec:commons-codec:1.5")
 
         and: // the fat jar contains classes from api and impl
         jar(combined).file("doubler/Doubler.class").exists()
@@ -76,11 +75,11 @@ class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def pom(suffix) {
-        module(suffix).pom
+        module(suffix).parsedPom
     }
 
     def module(suffix) {
-        return new MavenRepository(apiAndImpl.dir.file("build/repo")).module("myorg", "apiAndImpl${suffix}", "1.0")
+        return maven(apiAndImpl.dir.file("build/repo")).module("myorg", "apiAndImpl${suffix}", "1.0")
     }
 
     def artifact(type) {

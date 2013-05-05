@@ -69,64 +69,79 @@ import java.io.OutputStream;
  * }
  * </pre>
  *
+ * @since 1.0-milestone-3
  */
 public interface BuildLauncher extends LongRunningOperation {
     /**
-     * Sets the tasks to be executed.
+     * Sets the tasks to be executed. If no tasks are specified, the project's default tasks are executed.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
+     * @since 1.0-milestone-3
      */
     BuildLauncher forTasks(String... tasks);
 
     /**
-     * Sets the tasks to be executed. Note that the supplied tasks do not necessarily belong to the project which this launcher was created for.
+     * Sets the tasks to be executed. If no tasks are specified, the project's default tasks are executed.
+     *
+     * <p>Note that the supplied tasks do not necessarily need to belong to the project which this launcher was created for.
      *
      * @param tasks The tasks to be executed.
      * @return this
+     * @since 1.0-milestone-3
      */
     BuildLauncher forTasks(Task... tasks);
 
     /**
-     * Sets the tasks to be executed. Note that the supplied tasks do not necessarily belong to the project which this launcher was created for.
+     * Sets the tasks to be executed. If no tasks are specified, the project's default tasks are executed.
+     *
+     * <p>Note that the supplied tasks do not necessarily need to belong to the project which this launcher was created for.
      *
      * @param tasks The tasks to be executed.
      * @return this
+     * @since 1.0-milestone-3
      */
     BuildLauncher forTasks(Iterable<? extends Task> tasks);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-rc-1
      */
     BuildLauncher withArguments(String ... arguments);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-3
      */
     BuildLauncher setStandardOutput(OutputStream outputStream);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-3
      */
     BuildLauncher setStandardError(OutputStream outputStream);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-7
      */
     BuildLauncher setStandardInput(InputStream inputStream);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-8
      */
     BuildLauncher setJavaHome(File javaHome);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-9
      */
     BuildLauncher setJvmArguments(String... jvmArguments);
 
     /**
      * {@inheritDoc}
+     * @since 1.0-milestone-3
      */
     BuildLauncher addProgressListener(ProgressListener listener);
 
@@ -142,6 +157,7 @@ public interface BuildLauncher extends LongRunningOperation {
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}
      * @throws IllegalStateException When the connection has been closed or is closing.
+     * @since 1.0-milestone-3
      */
     void run() throws GradleConnectionException, UnsupportedBuildArgumentException, IllegalStateException,
             BuildException, UnsupportedVersionException;
@@ -151,6 +167,7 @@ public interface BuildLauncher extends LongRunningOperation {
      *
      * @param handler The handler to supply the result to.
      * @throws IllegalStateException When the connection has been closed or is closing.
+     * @since 1.0-milestone-3
      */
     void run(ResultHandler<? super Void> handler) throws IllegalStateException;
 }

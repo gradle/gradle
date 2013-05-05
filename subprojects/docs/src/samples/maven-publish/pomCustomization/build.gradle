@@ -1,0 +1,30 @@
+apply plugin: 'maven-publish'
+
+group = 'org.gradle.sample'
+version = '1.0'
+
+publishing {
+// START SNIPPET pom-modification
+    publications {
+        mavenCustom(MavenPublication) {
+            pom.withXml {
+                asNode().appendNode('description', 'A demonstration of maven pom customisation')
+            }
+        }
+    }
+// END SNIPPET pom-modification
+    repositories {
+        maven {
+            url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
+        }
+    }
+}
+// START SNIPPET generate
+publishing {
+    generatePomFileForMavenCustomPublication {
+        destination = file("$buildDir/generated-pom.xml")
+    }
+}
+// END SNIPPET generate
+
+

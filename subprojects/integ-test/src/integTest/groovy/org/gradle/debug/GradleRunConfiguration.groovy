@@ -19,8 +19,8 @@ package org.gradle.debug
 import org.gradle.launcher.Main
 
 /**
- * Used by IDEA run config created as a part of 'gradle idea' run.
- * Required because dependency to 'lanucher' project has a scope 'test'.
+ * Used by IDEA run configuration created as part of 'gradle idea' run.
+ * Required because dependency on 'launcher' project has scope 'test'.
  *
  * @author: Szczepan Faber, created at: 4/30/11
  */

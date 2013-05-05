@@ -15,42 +15,38 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.transport.file.FileTransport;
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
-import org.gradle.api.internal.filestore.FileStore;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.logging.ProgressLoggerFactory;
 
 public class RepositoryTransportFactory {
-    private final RepositoryCacheManager downloadingCacheManager;
-    private final RepositoryCacheManager localCacheManager;
-    private ProgressLoggerFactory progressLoggerFactory;
+    private final RepositoryArtifactCache downloadingCacheManager;
+    private final TemporaryFileProvider temporaryFileProvider;
+    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
+    private final RepositoryArtifactCache localCacheManager;
+    private final ProgressLoggerFactory progressLoggerFactory;
 
     public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
-                                      FileStore<ArtifactRevisionId> fileStore, CachedExternalResourceIndex<String> byUrlCachedExternalResourceIndex) {
+                                      RepositoryArtifactCache localCacheManager,
+                                      RepositoryArtifactCache downloadingCacheManager,
+                                      TemporaryFileProvider temporaryFileProvider,
+                                      CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
         this.progressLoggerFactory = progressLoggerFactory;
-        this.downloadingCacheManager = new DownloadingRepositoryCacheManager("downloading", fileStore, byUrlCachedExternalResourceIndex);
-        this.localCacheManager = new LocalFileRepositoryCacheManager("local");
+        this.localCacheManager = localCacheManager;
+        this.downloadingCacheManager = downloadingCacheManager;
+        this.temporaryFileProvider = temporaryFileProvider;
+        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
     }
 
     public RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return new HttpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory);
+        return new HttpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex);
     }
 
     public RepositoryTransport createFileTransport(String name) {
-        return new FileTransport(name, localCacheManager);
-    }
-
-    public RepositoryCacheManager getDownloadingCacheManager() {
-        return downloadingCacheManager;
-    }
-
-    public RepositoryCacheManager getLocalCacheManager() {
-        return localCacheManager;
+        return new FileTransport(name, localCacheManager, temporaryFileProvider);
     }
 }

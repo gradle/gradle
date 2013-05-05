@@ -173,7 +173,7 @@ gradle.taskGraph.whenReady { taskGraph ->
             <sourcefile file="build.gradle" snippet="sign-pom"/>
         </sample>
         <para>
-            When signing is not required and the pom cannot be signed due to insufficient configuration (i.e. no credentials for signing) then the
+            When signing is not required and the POM cannot be signed due to insufficient configuration (i.e. no credentials for signing) then the
             <literal>signPom()</literal> method will silently do nothing.
         </para>
     </section>

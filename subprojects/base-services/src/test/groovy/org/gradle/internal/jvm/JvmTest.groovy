@@ -17,14 +17,14 @@
 package org.gradle.internal.jvm
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 
 class JvmTest extends Specification {
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock()
     OperatingSystem theOs = OperatingSystem.current()

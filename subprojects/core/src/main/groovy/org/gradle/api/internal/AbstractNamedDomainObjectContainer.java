@@ -16,9 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.Named;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.Namer;
+import org.gradle.api.*;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -38,14 +36,26 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     protected abstract T doCreate(String name);
 
     public T create(String name) {
-        return create(name, null);
+        return create(name, Actions.doNothing());
+    }
+
+    public T maybeCreate(String name) {
+        T item = findByName(name);
+        if (item != null) {
+            return item;
+        }
+        return create(name);
     }
 
     public T create(String name, Closure configureClosure) {
+        return create(name, new ClosureBackedAction<T>(configureClosure));
+    }
+
+    public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {
         assertCanAdd(name);
         T object = doCreate(name);
         add(object);
-        ConfigureUtil.configure(configureClosure, object);
+        configureAction.execute(object);
         return object;
     }
 

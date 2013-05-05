@@ -20,7 +20,6 @@ import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.model.Task;
 
 import java.io.File;
@@ -28,21 +27,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 class DefaultBuildLauncher implements BuildLauncher {
-    private final List<String> tasks = new ArrayList<String>();
     private final AsyncConnection connection;
     private ConsumerOperationParameters operationParameters;
 
     public DefaultBuildLauncher(AsyncConnection connection, ConnectionParameters parameters) {
         operationParameters = new ConsumerOperationParameters(parameters);
+        operationParameters.setTasks(Collections.<String>emptyList());
         this.connection = connection;
     }
 
     public BuildLauncher forTasks(String... tasks) {
-        this.tasks.clear();
-        this.tasks.addAll(Arrays.asList(tasks));
+        operationParameters.setTasks(Arrays.asList(tasks));
         return this;
     }
 
@@ -52,10 +51,11 @@ class DefaultBuildLauncher implements BuildLauncher {
     }
 
     public BuildLauncher forTasks(Iterable<? extends Task> tasks) {
-        this.tasks.clear();
+        List<String> taskPaths = new ArrayList<String>();
         for (Task task : tasks) {
-            this.tasks.add(task.getPath());
+            taskPaths.add(task.getPath());
         }
+        operationParameters.setTasks(taskPaths);
         return this;
     }
 
@@ -101,17 +101,11 @@ class DefaultBuildLauncher implements BuildLauncher {
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        connection.executeBuild(new DefaultBuildParameters(), operationParameters, new ResultHandlerAdapter<Void>(handler){
+        connection.run(Void.class, operationParameters, new ResultHandlerAdapter<Void>(handler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 return String.format("Could not execute build using %s.", connection.getDisplayName());
             }
         });
-    }
-
-    private class DefaultBuildParameters implements BuildParametersVersion1 {
-        public List<String> getTasks() {
-            return tasks;
-        }
     }
 }

@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal.project
 
-import spock.lang.Specification
+import org.gradle.StartParameter
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter
-import org.gradle.listener.ListenerManager
-import org.gradle.cache.CacheRepository
-import org.gradle.StartParameter
 import org.gradle.api.invocation.Gradle
+import org.gradle.cache.CacheRepository
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.listener.ListenerManager
+import spock.lang.Specification
 
 class TaskExecutionServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -36,11 +37,13 @@ class TaskExecutionServicesTest extends Specification {
         ListenerManager listenerManager = Mock()
         StartParameter startParameter = Mock()
         CacheRepository cacheRepository = Mock()
+        Instantiator instantiator = Mock();
         DirectoryCacheBuilder cacheBuilder = Mock()
         PersistentCache cache = Mock()
         _ * parent.get(ListenerManager) >> listenerManager
         _ * parent.get(StartParameter) >> startParameter
         _ * parent.get(CacheRepository) >> cacheRepository
+        _ * parent.get(Instantiator) >> instantiator
         _ * cacheRepository.cache(!null) >> cacheBuilder
         _ * cacheBuilder.forObject(gradle) >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder

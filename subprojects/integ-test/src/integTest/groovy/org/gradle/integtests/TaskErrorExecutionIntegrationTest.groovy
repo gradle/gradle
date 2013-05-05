@@ -16,8 +16,8 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.ExecutionFailure
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
 class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
@@ -33,7 +33,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(3)
-        failure.assertHasDescription("Execution failed for task ':do-stuff'")
+        failure.assertHasDescription("Execution failed for task ':do-stuff'.")
         failure.assertHasCause("broken")
     }
 
@@ -48,7 +48,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(2)
-        failure.assertHasDescription("Execution failed for task ':brokenClosure'")
+        failure.assertHasDescription("Execution failed for task ':brokenClosure'.")
         failure.assertHasCause("broken closure")
     }
 
@@ -74,7 +74,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenJavaTask").runWithFailure()
 
-        failure.assertHasDescription("Execution failed for task ':brokenJavaTask'")
+        failure.assertHasDescription("Execution failed for task ':brokenJavaTask'.")
         failure.assertHasCause("broken action")
     }
 
@@ -93,7 +93,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(3)
-        failure.assertHasDescription("Execution failed for task ':a:a")
+        failure.assertHasDescription("Execution failed for task ':a:a'.")
         failure.assertHasCause("broken")
     }
 

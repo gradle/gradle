@@ -43,6 +43,7 @@ public class AvailablePortFinder {
     private final Lock lock = new ReentrantLock();
     private final int startPort;
     private int current;
+    private static final AvailablePortFinder INSTANCE = new AvailablePortFinder();
 
     /**
      * Creates a port finder that operates on private ports.
@@ -50,10 +51,10 @@ public class AvailablePortFinder {
      * @return a port finder that operates on private ports
      */
     public static AvailablePortFinder createPrivate() {
-        return new AvailablePortFinder();
+        return INSTANCE;
     }
 
-    public AvailablePortFinder() {
+    private AvailablePortFinder() {
         startPort = new Random().nextInt(MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) + MIN_PRIVATE_PORT;
         current = startPort;
     }

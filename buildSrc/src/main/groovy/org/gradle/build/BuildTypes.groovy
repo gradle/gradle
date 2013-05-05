@@ -27,6 +27,10 @@ class BuildTypes {
         this.project = project
     }
 
+    List<String> getActive() {
+        new LinkedList(activeNames)
+    }
+
     boolean isActive(String name) {
         name in activeNames
     }
@@ -60,7 +64,7 @@ class BuildTypes {
                     if (!project.hasProperty(k)) {
                         project.ext."$k" = null
                     }
-                    project.properties."$k" = v
+                    project."$k" = v
                 }
             }
 

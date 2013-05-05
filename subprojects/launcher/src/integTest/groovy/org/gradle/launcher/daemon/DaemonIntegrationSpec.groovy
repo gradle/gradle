@@ -17,32 +17,40 @@
 package org.gradle.launcher.daemon
 
 import ch.qos.logback.classic.Level
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.junit.Rule
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.slf4j.LoggerFactory
-import spock.lang.Specification
-import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
 
 /**
  * by Szczepan Faber, created at: 2/1/12
  */
-class DaemonIntegrationSpec extends Specification {
+class DaemonIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter(daemon)
+    String output
+
+    @Override
+    DaemonGradleExecuter getExecuter() {
+        super.executer as DaemonGradleExecuter
+    }
 
     def setup() {
-        distribution.requireIsolatedDaemons()
+        executer = new DaemonGradleExecuter(distribution, temporaryFolder)
+        executer.requireIsolatedDaemons()
         LoggerFactory.getLogger("org.gradle.cache.internal.DefaultFileLockManager").level = Level.INFO
     }
 
     void stopDaemonsNow() {
-        executer.withArguments("--stop", "--info").run()
+        def result = executer.withArguments("--stop", "--info").run()
+        output = result.output
     }
 
-    void buildSucceeds(String script) {
-        distribution.file('build.gradle') << script
-        executer.withArguments("--info", "-Dorg.gradle.jvmargs=").run()
+    void buildSucceeds(String script = '') {
+        file('build.gradle') << script
+        def result = executer.withArguments("--info").withNoDefaultJvmArgs().run()
+        output = result.output
+    }
+
+    def cleanup() {
+        stopDaemonsNow()
     }
 }

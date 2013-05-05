@@ -193,7 +193,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     private File browseForDirectory(File initialFile) {
 
         if (initialFile == null) {
-            initialFile = new File(System.getProperty("user.dir"));
+            initialFile = SystemProperties.getCurrentDir();
         }
 
         JFileChooser chooser = new JFileChooser(initialFile);

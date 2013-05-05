@@ -16,31 +16,37 @@
 
 package org.gradle.api.plugins.quality.internal
 
-import spock.lang.Specification
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.FileCollection
-import org.gradle.api.reporting.SingleFileReport
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
+import org.gradle.api.reporting.SingleFileReport
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
 
 class FindBugsSpecBuilderTest extends Specification {
+    @Rule TestNameTestDirectoryProvider tempFolder = new TestNameTestDirectoryProvider()
 
     FileCollection classes = Mock()
     FindBugsSpecBuilder builder = new FindBugsSpecBuilder(classes)
 
     def setup(){
-        _ * classes.getFiles() >> Collections.emptyList()
+        classes.getFiles() >> []
     }
+
     def "fails with empty classes Collection"() {
         when:
         new FindBugsSpecBuilder(null)
+
         then:
         thrown(InvalidUserDataException)
 
         when:
-        classes.empty >> true
         new FindBugsSpecBuilder(classes)
+
         then:
+        classes.empty >> true
         thrown(InvalidUserDataException)
     }
 
@@ -49,11 +55,13 @@ class FindBugsSpecBuilderTest extends Specification {
         NamedDomainObjectSet enabledReportSet = Mock()
         FindBugsReportsImpl report = Mock()
 
-        report.enabled >> enabledReportSet;
+        report.enabled >> enabledReportSet
         enabledReportSet.empty >> true
+
         when:
         builder.configureReports(report)
         def spec = builder.build()
+
         then:
         !spec.arguments.contains("-outputFile")
     }
@@ -62,6 +70,7 @@ class FindBugsSpecBuilderTest extends Specification {
         when:
         builder.withDebugging(debug)
         def spec = builder.build()
+
         then:
         spec.debugEnabled == debug
 
@@ -73,7 +82,7 @@ class FindBugsSpecBuilderTest extends Specification {
         setup:
         NamedDomainObjectSet enabledReportSet = Mock()
         FindBugsReportsImpl report = Mock()
-        report.enabled >> enabledReportSet;
+        report.enabled >> enabledReportSet
         enabledReportSet.empty >> false
         enabledReportSet.size() >> 2
 
@@ -83,7 +92,7 @@ class FindBugsSpecBuilderTest extends Specification {
 
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "Findbugs tasks can only have one report enabled, however both the xml and html report are enabled. You need to disable one of them."
+        e.message == "FindBugs tasks can only have one report enabled, however both the XML and HTML report are enabled. You need to disable one of them."
     }
 
     def "with report configured"() {
@@ -93,7 +102,7 @@ class FindBugsSpecBuilderTest extends Specification {
         NamedDomainObjectSet enabledReportSet = Mock()
         FindBugsReportsImpl report = Mock()
 
-        report.enabled >> enabledReportSet;
+        report.enabled >> enabledReportSet
         report.firstEnabled >> singleReport
         singleReport.name >> reportType
         destination.absolutePath >> "/absolute/report/output"
@@ -112,6 +121,80 @@ class FindBugsSpecBuilderTest extends Specification {
         args.contains(destination.absolutePath)
 
         where:
-        reportType << ["xml", "html"];
+        reportType << ["xml", "html"]
+    }
+
+    def "configure effort"() {
+        when:
+        def args = builder.withEffort(effort).build().arguments
+
+        then:
+        args.contains("-effort:$effort" as String)
+
+        where:
+        effort << ["min", "default", "max"]
+    }
+
+    def "detects invalid effort value"() {
+        when:
+        builder.withEffort("unknown")
+
+        then:
+        thrown(InvalidUserDataException)
+    }
+
+    def "configure report level"() {
+        when:
+        def args = builder.withReportLevel(level).build().arguments
+
+        then:
+        args.contains("-$level" as String)
+
+        where:
+        level << ["experimental", "low", "medium", "high"]
+    }
+
+    def "detects invalid report level value"() {
+        when:
+        builder.withReportLevel("unknown")
+
+        then:
+        thrown(InvalidUserDataException)
+    }
+
+    def "configure visitors"() {
+        when:
+        def args = builder.withVisitors(["Foo", "Bar"]).build().arguments.join(" ")
+
+        then:
+        args.contains("-visitors Foo,Bar")
+    }
+
+    def "configure omitVisitors"() {
+        when:
+        def args = builder.withOmitVisitors(["Foo", "Bar"]).build().arguments.join(" ")
+
+        then:
+        args.contains("-omitVisitors Foo,Bar")
+    }
+
+    def "configure includeFilter"() {
+        def file = tempFolder.createFile("include.txt")
+
+        when:
+        def args = builder.withIncludeFilter(file).build().arguments.join(" ")
+
+        then:
+        args.contains("-include $file")
+    }
+
+    def "configure excludeFilter"() {
+        def file = tempFolder.createFile("exclude.txt")
+
+        when:
+        def args = builder.withExcludeFilter(file).build().arguments.join(" ")
+
+        then:
+        args.contains("-exclude $file")
     }
 }

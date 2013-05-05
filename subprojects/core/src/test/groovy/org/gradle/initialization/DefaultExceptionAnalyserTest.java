@@ -16,8 +16,8 @@
 package org.gradle.initialization;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.internal.Contextual;
+import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.internal.MultiCauseException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.Script;
@@ -275,6 +275,13 @@ public class DefaultExceptionAnalyserTest {
 
         public List<? extends Throwable> getCauses() {
             return causes;
+        }
+
+        public void initCauses(Iterable<? extends Throwable> causes) {
+            this.causes.clear();
+            for (Throwable cause : causes) {
+                this.causes.add(cause);
+            }
         }
     }
 

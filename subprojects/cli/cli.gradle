@@ -20,8 +20,8 @@
     It's packaged separately because it's used by multiple “applications” (i.e. gradle core and the wrapper).
     It has no dependencies, and should never have any.
 */
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
-    groovy libraries.groovy
+    testCompile libraries.groovy
 }
+
+useClassycle()

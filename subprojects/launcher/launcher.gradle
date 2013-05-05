@@ -1,12 +1,8 @@
-apply from: "$rootDir/gradle/classycle.gradle"
-
 configurations {
     startScriptGenerator
 }
 
 dependencies {
-    groovy libraries.groovy
-
     compile project(':baseServices')
     compile project(':core')
     compile project(':cli')
@@ -15,6 +11,8 @@ dependencies {
     compile project(':native')
 
     compile libraries.slf4j_api
+
+    testCompile libraries.groovy
 
     startScriptGenerator project(':plugins')
 }
@@ -60,9 +58,7 @@ class StartScriptGenerator extends DefaultTask {
     @TaskAction
     def generate() {
         logging.captureStandardOutput(LogLevel.INFO)
-        def factory = services.get(ClassLoaderFactory)
-        def classLoader = factory.createIsolatedClassLoader(classpath.collect { it.toURI() })
-        def generator = classLoader.loadClass('org.gradle.api.internal.plugins.StartScriptGenerator').newInstance()
+        def generator = new org.gradle.api.internal.plugins.StartScriptGenerator()
         generator.applicationName = 'Gradle'
         generator.optsEnvironmentVar = 'GRADLE_OPTS'
         generator.exitEnvironmentVar = 'GRADLE_EXIT_CONSOLE'
@@ -81,3 +77,5 @@ daemonIntegTest {
     //excluding to avoid unnecessary re-running and stealing resources.
     exclude "org/gradle/launcher/daemon/**/*"
 }
+
+useClassycle()

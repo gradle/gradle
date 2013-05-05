@@ -15,11 +15,16 @@
  */
 package org.gradle.testing.testng
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.TestNGExecutionResult
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Before
 import spock.lang.Issue
-import org.gradle.integtests.fixtures.*
+
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
@@ -27,14 +32,13 @@ import static org.junit.Assert.assertThat
 /**
  * @author Tom Eyckmans
  */
-class TestNGIntegrationTest {
-    @Rule public GradleDistribution dist = new GradleDistribution()
-    @Rule public GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public TestResources resources = new TestResources()
+class TestNGIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public TestResources resources = new TestResources(testDirectoryProvider)
 
     @Before
     public void before() {
-        executer.allowExtraLogging = false
+        executer.noExtraLogging()
     }
 
     @Test
@@ -45,7 +49,7 @@ class TestNGIntegrationTest {
         assertThat(result.error, not(containsString('stderr')))
         assertThat(result.error, not(containsString('a warning')))
 
-        new TestNGExecutionResult(dist.testDir).testClass('org.gradle.OkTest').assertTestPassed('ok')
+        new JUnitXmlTestExecutionResult(testDirectory).testClass('org.gradle.OkTest').assertTestPassed('ok')
     }
 
     @Test
@@ -65,34 +69,34 @@ class TestNGIntegrationTest {
         assert containsLine(result.getOutput(), "START [test method knownError(SomeTest)] [knownError]");
         assert containsLine(result.getOutput(), "FINISH [test method knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]");
         assert containsLine(result.getOutput(), "START [test method unknownError(SomeTest)] [unknownError]");
-        assert containsLine(result.getOutput(), "FINISH [test method unknownError(SomeTest)] [unknownError] [AppException: null]");
+        assert containsLine(result.getOutput(), "FINISH [test method unknownError(SomeTest)] [unknownError] [AppException]");
     }
 
     @Test
     void groovyJdk15Failing() {
-        executer.withTasks("test").runWithFailure().assertThatCause(startsWith('There were failing tests'))
+        executer.withTasks("test").runWithFailure().assertTestsFailed()
 
-        def result = new TestNGExecutionResult(dist.testDir)
+        def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.BadTest')
-        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('broken'))
+        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
     }
 
     @Test
     void groovyJdk15Passing() {
         executer.withTasks("test").run()
 
-        def result = new TestNGExecutionResult(dist.testDir)
+        def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.OkTest')
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     }
 
     @Test
     void javaJdk14Failing() {
-        executer.withTasks("test").runWithFailure().assertThatCause(startsWith('There were failing tests'))
+        executer.withTasks("test").runWithFailure().assertTestsFailed()
 
-        def result = new TestNGExecutionResult(dist.testDir)
+        def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.BadTest')
-        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('broken'))
+        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
     }
 
     @Issue("GRADLE-1822")
@@ -103,21 +107,25 @@ class TestNGIntegrationTest {
     }
 
     private void doJavaJdk15Failing(String testNGVersion) {
-        def execution = executer.withTasks("test").withArguments("-PtestNGVersion=$testNGVersion").runWithFailure().assertThatCause(startsWith('There were failing tests'))
+        executer.withTasks("test").withArguments("-PtestNGVersion=$testNGVersion").runWithFailure().assertTestsFailed()
 
-        def result = new TestNGExecutionResult(dist.testDir)
+        def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite', 'org.gradle.TestWithBrokenMethodDependency')
-        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('broken'))
-        result.testClass('org.gradle.TestWithBrokenSetup').assertConfigMethodFailed('setup')
-        result.testClass('org.gradle.BrokenAfterSuite').assertConfigMethodFailed('cleanup')
-        result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('broken'))
-        result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestSkipped('okTest')
+        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
+        result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('java.lang.RuntimeException: broken'))
+        result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestsSkipped('okTest')
+
+        def ngResult = new TestNGExecutionResult(testDirectory)
+        ngResult.testClass('org.gradle.TestWithBrokenSetup').assertConfigMethodFailed('setup')
+        ngResult.testClass('org.gradle.BrokenAfterSuite').assertConfigMethodFailed('cleanup')
+        ngResult.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('broken'))
+        ngResult.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestSkipped('okTest')
     }
 
     @Issue("GRADLE-1532")
     @Test
     void supportsThreadPoolSize() {
-        dist.testDir.file('src/test/java/SomeTest.java') << """
+        testDirectory.file('src/test/java/SomeTest.java') << """
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -129,7 +137,7 @@ public class SomeTest {
 }
 """
 
-        dist.testDir.file("build.gradle") << """
+        testDirectory.file("build.gradle") << """
 apply plugin: "java"
 
 repositories {
@@ -152,8 +160,19 @@ test {
     @Test
     void supportsTestGroups() {
         executer.withTasks("test").run()
-        def result = new TestNGExecutionResult(dist.testDir)
+        def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.groups.SomeTest')
         result.testClass('org.gradle.groups.SomeTest').assertTestsExecuted("databaseTest")
+    }
+
+    @Test
+    void supportsTestFactory() {
+        executer.withTasks("test").run()
+        def result = new JUnitXmlTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('org.gradle.factory.FactoryTest')
+        result.testClass('org.gradle.factory.FactoryTest').assertTestCount(2, 0, 0)
+        result.testClass('org.gradle.factory.FactoryTest').assertStdout(containsString('TestingFirst'))
+        result.testClass('org.gradle.factory.FactoryTest').assertStdout(containsString('TestingSecond'))
+        result.testClass('org.gradle.factory.FactoryTest').assertStdout(not(containsString('Default test name')))
     }
 }

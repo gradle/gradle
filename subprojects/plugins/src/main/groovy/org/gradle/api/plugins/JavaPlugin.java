@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.java.JavaLibrary;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -71,16 +72,16 @@ public class JavaPlugin implements Plugin<Project> {
 
         configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
-        configureArchives(project, javaConvention);
+        configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
     }
 
     private void configureSourceSets(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
 
-        SourceSet main = pluginConvention.getSourceSets().add(SourceSet.MAIN_SOURCE_SET_NAME);
+        SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
 
-        SourceSet test = pluginConvention.getSourceSets().add(SourceSet.TEST_SOURCE_SET_NAME);
+        SourceSet test = pluginConvention.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
         test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CONFIGURATION_NAME)));
         test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME)));
     }
@@ -89,7 +90,7 @@ public class JavaPlugin implements Plugin<Project> {
         Project project = pluginConvention.getProject();
 
         SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        Javadoc javadoc = project.getTasks().add(JAVADOC_TASK_NAME, Javadoc.class);
+        Javadoc javadoc = project.getTasks().create(JAVADOC_TASK_NAME, Javadoc.class);
         javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
         javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
         javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
@@ -97,9 +98,8 @@ public class JavaPlugin implements Plugin<Project> {
         addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
     }
 
-    private void configureArchives(final Project project, final JavaPluginConvention pluginConvention) {
-        project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(TEST_TASK_NAME);
-        Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
+    private void configureArchivesAndComponent(final Project project, final JavaPluginConvention pluginConvention) {
+        Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class);
         jar.getManifest().from(pluginConvention.getManifest());
         jar.setDescription("Assembles a jar archive containing the main classes.");
         jar.setGroup(BasePlugin.BUILD_GROUP);
@@ -110,8 +110,12 @@ public class JavaPlugin implements Plugin<Project> {
             }
         });
 
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(jar));
-        project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME).getArtifacts().add(new ArchivePublishArtifact(jar));
+        ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
+        Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
+
+        runtimeConfiguration.getArtifacts().add(jarArtifact);
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
+        project.getComponents().add(new JavaLibrary(jarArtifact, runtimeConfiguration.getAllDependencies()));
     }
 
     private void configureBuild(Project project) {
@@ -123,7 +127,7 @@ public class JavaPlugin implements Plugin<Project> {
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
         project.getTasks().withType(Test.class, new Action<Test>() {
-            public void execute(Test test) {
+            public void execute(final Test test) {
                 test.getConventionMapping().map("testClassesDir", new Callable<Object>() {
                     public Object call() throws Exception {
                         return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDir();
@@ -142,7 +146,8 @@ public class JavaPlugin implements Plugin<Project> {
                 });
             }
         });
-        Test test = project.getTasks().add(TEST_TASK_NAME, Test.class);
+        Test test = project.getTasks().create(TEST_TASK_NAME, Test.class);
+        project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(test);
         test.setDescription("Runs the unit tests.");
         test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
     }

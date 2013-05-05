@@ -15,34 +15,49 @@
  */
 package org.gradle.profile;
 
-import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskState;
 
 /**
  * Container for task profiling information.
- * This includes timestamps around task execution and the resulting TaskState.
+ * This includes timestamps around task execution and the resulting task status.
  */
 public class TaskExecution extends ContinuousOperation {
-    private final Task task;
+
+    final static String NO_WORK_MESSAGE = "Did No Work";
+
+    private final String path;
     private TaskState state;
 
-    public TaskExecution(Task task) {
-        this.task = task;
+    public TaskExecution(String taskPath) {
+        super(taskPath);
+        this.path = taskPath;
     }
 
     /**
      * Gets the string task path.
-     * @return
      */
     public String getPath() {
-        return task.getPath();
+        return path;
+    }
+
+    public String getStatus() {
+        return state.getSkipped() ? state.getSkipMessage() : (state.getDidWork()) ? "" : NO_WORK_MESSAGE;
     }
 
     public TaskState getState() {
         return state;
     }
 
-    public void setState(TaskState state) {
+    public TaskExecution completed(TaskState state) {
         this.state = state;
+        return this;
+    }
+
+    public String toString() {
+        return path;
+    }
+
+    public String getDescription() {
+        return path;
     }
 }

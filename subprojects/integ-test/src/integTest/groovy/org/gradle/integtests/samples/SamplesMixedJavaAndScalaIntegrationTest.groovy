@@ -16,19 +16,18 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.containsString
 
-class SamplesMixedJavaAndScalaIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('scala/mixedJavaAndScala')
+class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/mixedJavaAndScala')
 
     @Test
     public void canBuildJar() {
@@ -38,11 +37,11 @@ class SamplesMixedJavaAndScalaIntegrationTest {
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(projectDir)
+        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(projectDir)
         result.assertTestClassesExecuted('org.gradle.sample.PersonTest')
 
         // Check contents of Jar
-        TestFile jarContents = dist.testDir.file('jar')
+        TestFile jarContents = file('jar')
         projectDir.file("build/libs/mixedJavaAndScala-1.0.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

@@ -18,27 +18,67 @@ import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.Docbook2Xhtml
+import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.build.docs.releasenotes.*
+import org.gradle.build.docs.releasenotes.checks.*
+import org.apache.tools.ant.filters.ReplaceTokens
 
 apply plugin: 'base'
 apply plugin: 'pegdown'
 apply plugin: 'jsoup'
+apply plugin: 'javascript-base'
+
+repositories {
+    javaScript.googleApis()
+
+    ivy {
+        name "Google Fonts"
+        url "http://themes.googleusercontent.com/static/fonts/"
+        layout 'pattern', {
+            artifact '[organisation]/v[revision](/[classifier])(.[ext])'
+            ivy '[organisation]/v[revision]/ivy(.[ext])'
+        }
+    }
+}
 
 configurations {
+    groovydocGroovy {}
     userGuideStyleSheets
     userGuideTask
+    jquery
+    fonts
 }
 
 dependencies {
-    userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.9.1'
+    userGuideTask 'xalan:xalan:2.7.1', libraries.xerces
     userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
         dependency 'itext:itext:2.0.8@jar'
     }
     userGuideTask 'xslthl:xslthl:2.0.1@jar'
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
+    jquery "jquery:jquery.min:1.8.0@js"
+
+    fonts \
+        "lato:regular:6:v0SdcGFAl2aezM9Vq_aFTQ@ttf",
+        "lato:regular-italic:6:LqowQDslGv4DmUBAfWa2Vw@ttf",
+        "lato:bold:6:DvlFBScY1r-FMtZSYIYoYw@ttf",
+        "lato:bold-italic:6:HkF_qI1x_noxlxhrhMQYEKCWcynf_cDxXwCLxiixG1c@ttf",
+        "ubuntumono:regular:3:ViZhet7Ak-LRXZMXzuAfkZ0EAVxt0G0biEntp43Qt6E@ttf",
+        "ubuntumono:regular-italic:3:KAKuHXAHZOeECOWAHsRKA-LrC4Du4e_yfTJ8Ol60xk0@ttf",
+        "ubuntumono:bold:3:ceqTZGKHipo8pJj4molytp_TkvowlIOtbR7ePgFOpF4@ttf",
+        "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9WsGzsqhEorxQDpu60nfWEc@ttf"
+
+    groovydocGroovy libraries.groovy
+
+    testCompile libraries.groovy
+    testCompile "org.pegdown:pegdown:1.1.0"
+    testCompile libraries.jsoup
+    testCompile "org.gebish:geb-spock:0.9.0-RC-1"
+    testCompile 'org.seleniumhq.selenium:selenium-htmlunit-driver:2.28.0'
+    testCompile project(":core")
 }
 
 ext {
@@ -61,7 +101,7 @@ outputs.distDocs = files(distDocsDir) {
     builtBy 'distDocs'
 }
 outputs.docs = files(docsDir) {
-    builtBy 'javadoc', 'groovydoc', 'userguide', 'dslHtml', 'releaseNotes'
+    builtBy 'javadocAll', 'groovydocAll', 'userguide', 'dslHtml', 'releaseNotes'
 }
 
 tasks.withType(Docbook2Xhtml) {
@@ -90,23 +130,25 @@ tasks.withType(AssembleDslDocTask) {
     classDocbookDir = dslSrcDir
 }
 
-task css(type: Sync) {
-    ext {
-        fontRegularFile = file("src/docs/css/Lato-regular.woff")
-        fontBoldFile = file("src/docs/css/Lato-bold.woff")
-        logoFile = file("src/docs/css/gradle-logo_25o.gif")
-        tokens = [
-                'regular-font-base64': fontRegularFile.bytes.encodeBase64().toString(),
-                'bold-font-base64': fontBoldFile.bytes.encodeBase64().toString(),
-                'logo-base64': logoFile.bytes.encodeBase64().toString()
-        ]
+task configureCss << {
+    def images = fileTree(dir: "src/docs/css/images", include: "*.*").files.collectEntries {
+        [it.name, it.bytes.encodeBase64().toString()]
     }
-    inputs.property 'tokens', tokens
 
+    def fonts = configurations.fonts.resolvedConfiguration.resolvedArtifacts.collectEntries {
+        def id = it.moduleVersion.id
+        ["${id.group}-${id.name}".toString(), it.file.bytes.encodeBase64().toString()]
+    }
+
+    ext.tokens = images + fonts
+    css.inputs.property 'tokens', tokens
+    css.filter ReplaceTokens, tokens: tokens
+}
+
+task css(type: Sync, dependsOn: configureCss) {
     into "$buildDir/css"
     from "src/docs/css"
     include "*.css"
-    filter org.apache.tools.ant.filters.ReplaceTokens, tokens: tokens
 }
 
 ext.cssFiles = fileTree(css.destinationDir) {
@@ -138,7 +180,7 @@ task userguideStyleSheets(type: Copy) {
         include '*.xsl'
     }
     from(cssFiles)
-    from(zipTree(configurations.userGuideStyleSheets.singleFile)) {
+    from({ zipTree(configurations.userGuideStyleSheets.singleFile) }) {
         // Remove the prefix
         eachFile { fcd -> fcd.path = fcd.path.replaceFirst('^docbook-xsl-[0-9\\.]+/', '') }
     }
@@ -156,8 +198,8 @@ task samplesDocs(type: Docbook2Xhtml) {
     stylesheetName = 'standaloneHtml.xsl'
 }
 
-task dslMetaData(type: ExtractDslMetaDataTask) {  //TODO SF: parseSourceCode
-    source { groovydoc.source }
+task dslMetaData(type: ExtractDslMetaDataTask) {
+    source { groovydocAll.source }
     destFile = new File(docbookSrc, 'dsl-meta-data.bin')
 }
 
@@ -176,6 +218,24 @@ task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook])
     dsldocUrl = '.'
 }
 
+task defaultImports(type: GenerateDefaultImportsTask, dependsOn: dslMetaData) {
+    metaDataFile = dslMetaData.destFile
+    destFile = new File(generatedResourcesDir, "default-imports.txt")
+    // These are part of the API, but not the DSL
+    excludePackage 'org.gradle.tooling.**'
+    excludePackage 'org.gradle.testfixtures.**'
+
+    // Tweak the imports due to some inconsistencies introduced before we automated the default-imports generation
+    excludePackage 'org.gradle.plugins.ide.eclipse.model'
+    excludePackage 'org.gradle.plugins.ide.idea.model'
+    excludePackage 'org.gradle.api.tasks.testing.logging'
+    extraPackage 'org.gradle.util'
+
+    // TODO - rename some incubating types to remove collisions and then remove these exclusions
+    excludePackage 'org.gradle.plugins.binaries.model'
+    excludePackage 'org.gradle.plugins.cpp.cdt.model'
+}
+
 task dslHtml(type: Docbook2Xhtml) {
     source dslStandaloneDocbook
     destDir = new File(docsDir, 'dsl')
@@ -186,12 +246,12 @@ task dslHtml(type: Docbook2Xhtml) {
 }
 
 // This is used in the distribution and for the online version
-task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
+task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook, defaultImports]) {
     destFile = new File(docbookSrc, 'userguide.xml')
 }
 
 // This is used for the PDF, where we need absolute links to the javadoc etc.
-task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
+task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook, defaultImports]) {
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
 }
 
@@ -240,7 +300,7 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
 def javaApiUrl = "http://docs.oracle.com/javase/1.5.0/docs/api/"
 def groovyApiUrl = "http://groovy.codehaus.org/gapi/"
 
-task javadoc(type: Javadoc) {
+task javadocAll(type: Javadoc) {
     ext.stylesheetFile = file("src/docs/css/javadoc.css")
     inputs.file stylesheetFile
 
@@ -259,6 +319,8 @@ task javadoc(type: Javadoc) {
     include 'org/gradle/plugins/**'
     include 'org/gradle/testfixtures/**'
     include 'org/gradle/tooling/**'
+    include 'org/gradle/testing/jacoco/**'
+    include 'org/gradle/buildsetup/**'
     exclude '**/internal/**'
     options.links(javaApiUrl, groovyApiUrl, "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
@@ -267,9 +329,9 @@ task javadoc(type: Javadoc) {
     }
 }
 
-task configureGroovydoc {
+task configureGroovydocAll {
     doFirst {
-        project.configure(groovydoc) {
+        project.configure(groovydocAll) {
             [javaApiUrl, groovyApiUrl].each {
                 link(it, *(new URL("$it/package-list").text.tokenize("\n")))
             }
@@ -280,18 +342,18 @@ task configureGroovydoc {
     }
 }
 
-task groovydoc(type: Groovydoc, dependsOn: configureGroovydoc) {
+task groovydocAll(type: Groovydoc, dependsOn: configureGroovydocAll) {
     group = 'documentation'
     source publicGroovyProjects.collect {project -> project.sourceSets.main.groovy + project.sourceSets.main.java }
     destinationDir = new File(docsDir, 'groovydoc')
-    classpath = javadoc.classpath
-    includes = javadoc.includes
-    excludes = javadoc.excludes
+    classpath = javadocAll.classpath
+    includes = javadocAll.includes
+    excludes = javadocAll.excludes
     doFirst {
         windowTitle = "Gradle API $version"
         docTitle = windowTitle
     }
-    groovyClasspath = project(':core').configurations.groovy
+    groovyClasspath = configurations.groovydocGroovy
     doLast {
         def index = new File(destinationDir, "index.html")
         index.text = index.text.replace("{todo.title}", windowTitle) // workaround groovydoc bug
@@ -299,13 +361,13 @@ task groovydoc(type: Groovydoc, dependsOn: configureGroovydoc) {
 }
 
 task checkstyleApi(type: Checkstyle) {
-    source javadoc.source
+    source javadocAll.source
     configFile = file("$checkstyleConfigDir/checkstyle-api.xml")
     classpath = files()
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
-task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
+task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets]) {
     tags << 'standalone'
     sourceFile = new File(userguideSrcDir, 'installation.xml')
     destFile = new File(docbookSrc, 'installation.xml')
@@ -324,7 +386,6 @@ task userguide {
 }
 
 import org.gradle.plugins.pegdown.PegDown
-import org.gradle.plugins.jsoup.Jsoup
 
 task editReleaseNotes() {
     group = "release notes"
@@ -334,30 +395,18 @@ task editReleaseNotes() {
 }
 
 task releaseNotesMarkdown(type: PegDown) {
+    group = "release notes"
     source "src/docs/release/notes.md"
-    destination "$buildDir/release-notes/notes-raw.html"
+    destination "$buildDir/release-notes-raw/release-notes.html"
 }
 
-task decorateReleaseNotes(type: Jsoup) {
-    source releaseNotesMarkdown
-    destination "$buildDir/release-notes/notes-decorated.html"
-
-    inputs.files cssFiles
-    inputs.file "release-notes-transform.gradle"
-    apply from: "release-notes-transform.gradle"
-}
-
-import org.apache.tools.ant.filters.*
 task releaseNotes(type: Copy) {
     group = "release notes"
     ext.fileName = "release-notes.html"
     into "$docsDir"
-    from decorateReleaseNotes, {
-        rename ".+", "release-notes.html"
-        doFirst {
-            owner.filter(ReplaceTokens, tokens: [version: project.version.toString()])
-        }
-    }
+    from releaseNotesMarkdown
+    jsoup.plugins "src/transforms/release-notes.gradle"
+    filter(ReplaceTokens, tokens: [version: project.version.toString(), versionBase: rootProject.versionBase])
 }
 
 task viewReleaseNotes(dependsOn: releaseNotes) {
@@ -367,8 +416,21 @@ task viewReleaseNotes(dependsOn: releaseNotes) {
     }
 }
 
+sourceSets.main.output.dir generatedResourcesDir, builtBy: defaultImports
+
+test {
+    dependsOn releaseNotes
+    systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.source.singleFile
+    systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
+
+}
+
+if (project.hasProperty('noDocsTests')) {
+    gradle.startParameter.excludedTaskNames << test.path
+}
+
 task docs {
-    dependsOn javadoc, groovydoc, userguide, distDocs, samplesDocs, dslHtml, releaseNotes
+    dependsOn javadocAll, groovydocAll, userguide, distDocs, samplesDocs, dslHtml, releaseNotes
     description = 'Generates all documentation'
     group = 'documentation'
 }

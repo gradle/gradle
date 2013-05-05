@@ -26,6 +26,13 @@ import java.util.regex.Pattern;
 
 /**
  * Represents, parses, and compares version numbers following a major.minor.micro-qualifier format.
+ * The {@link #parse} method handles missing parts and allows "." to be used instead of "-".
+ *
+ * <p>Note that this class considers "1.2.3-something" less than "1.2.3". Qualifiers are compared
+ * lexicographically ("1.2.3-alpha" < "1.2.3-beta") and case-insensitive ("1.2.3-alpha" < "1.2.3.RELEASE").
+ *
+ * <p>To check if a version number is at least "1.2.3", disregarding a potential qualifier like "beta", use
+ * {@code version.getBaseVersion().compareTo(VersionNumber.parse("1.2.3")) >= 0}.
  */
 public class VersionNumber implements Comparable<VersionNumber> {
     public static final VersionNumber UNKNOWN = new VersionNumber(0, 0, 0, null);
@@ -61,11 +68,15 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return qualifier;
     }
 
+    public VersionNumber getBaseVersion() {
+        return new VersionNumber(major, minor, micro, null);
+    }
+
     public int compareTo(VersionNumber other) {
         if (major != other.major) { return major - other.major; }
         if (minor != other.minor) { return minor - other.minor; }
         if (micro != other.micro) { return micro - other.micro; }
-        return Ordering.natural().nullsFirst().compare(qualifier, other.qualifier);
+        return Ordering.natural().nullsLast().compare(toLowerCase(qualifier), toLowerCase(other.qualifier));
     }
 
     public boolean equals(Object other) {
@@ -97,6 +108,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
         String qualifier = m.group(4);
 
         return new VersionNumber(major, minor, micro, qualifier);
+    }
+
+    private String toLowerCase(@Nullable String string) {
+        return string == null ? null : string.toLowerCase();
     }
 }
 

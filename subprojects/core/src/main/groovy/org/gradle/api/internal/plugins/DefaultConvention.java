@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.DynamicObject;
@@ -31,7 +32,7 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public class DefaultConvention implements Convention {
+public class DefaultConvention implements Convention, ExtensionContainerInternal {
 
     private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
@@ -134,6 +135,14 @@ public class DefaultConvention implements Convention {
 
     public Object findByName(String name) {
         return extensionsStorage.findByName(name);
+    }
+
+    public <T> void configure(Class<T> type, Action<? super T> action) {
+        extensionsStorage.configureExtension(type, action);
+    }
+
+    public Map<String, Object> getAsMap() {
+        return extensionsStorage.getAsMap();
     }
 
     public Object propertyMissing(String name) {

@@ -15,106 +15,147 @@
  */
 package org.gradle.api.internal
 
-import org.junit.Ignore
-import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.fail
+import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.DirectInstantiator
 
-class AbstractNamedDomainObjectContainerTest {
-    private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
-    private final AbstractNamedDomainObjectContainer container = instantiator.newInstance(TestContainer.class, instantiator)
+import spock.lang.Ignore
+import spock.lang.Specification
 
-    @Test
-    public void isDynamicObjectAware() {
-        assertThat(container, instanceOf(DynamicObjectAware));
+class AbstractNamedDomainObjectContainerTest extends Specification {
+    Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    AbstractNamedDomainObjectContainer container = instantiator.newInstance(TestContainer.class, instantiator)
+
+    def "is dynamic object aware"() {
+        expect:
+        container instanceof DynamicObjectAware
     }
 
-    @Test
-    public void canAddObjectWithName() {
+    def "can create object by name"() {
+        when:
         container.create('obj')
-        assertThat(container.getByName('obj'), equalTo(['obj']))
+
+        then:
+        container.getByName('obj') == ['obj']
     }
 
-    @Test
-    public void canAddAndConfigureAnObjectWithName() {
+    def "can create and configure object using closure"() {
+        when:
         container.create('obj') {
             add(1)
             add('value')
         }
-        assertThat(container.getByName('obj'), equalTo(['obj', 1, 'value']))
+
+        then:
+        container.getByName('obj') == ['obj', 1, 'value']
     }
 
-    @Test
-    public void failsToAddObjectWhenObjectWithSameNameAlreadyInContainer() {
+    def "can create and configure object using action"() {
+        def action = Mock(Action)
+
+        given:
+        action.execute(_) >> { TestObject obj ->
+            obj.add(1)
+            obj.add('value')
+        }
+
+        when:
+        container.create('obj', action)
+
+        then:
+        container.getByName('obj') == ['obj', 1, 'value']
+    }
+
+    def "can use 'maybeCreate' to find or create object by name"() {
+        when:
+        def created = container.maybeCreate('obj')
+
+        then:
+        container.getByName('obj') == ['obj']
+
+        when:
+        def fetched = container.maybeCreate('obj')
+
+        then:
+        fetched.is(created)
+    }
+
+    def "creation fails if object with same name already exists"() {
         container.create('obj')
 
-        try {
-            container.create('obj')
-            fail()
-        } catch (org.gradle.api.InvalidUserDataException e) {
-            assertThat(e.message, equalTo('Cannot add a TestObject with name \'obj\' as a TestObject with that name already exists.'))
-        }
+        when:
+        container.create('obj')
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == 'Cannot add a TestObject with name \'obj\' as a TestObject with that name already exists.'
     }
 
-    @Test
-    public void canConfigureExistingObject() {
+    def "can configure existing object"() {
         container.create('list1')
+
+        when:
         container.configure {
             list1 { add(1) }
         }
-        assertThat(container.list1, equalTo(['list1', 1]))
+
+        then:
+        container.list1 == ['list1', 1]
     }
 
-    @Test
-    public void propagatesNestedMissingMethodException() {
+    def "propagates nested MissingMethodException"() {
         container.create('list1')
-        try {
-            container.configure {
-                list1 { unknown { anotherUnknown(2) } }
-            }
-        } catch (groovy.lang.MissingMethodException e) {
-            assertThat(e.method, equalTo('unknown'))
-            assertThat(e.type, equalTo(TestObject))
+
+        when:
+        container.configure {
+            list1 { unknown { anotherUnknown(2) } }
         }
+
+        then:
+        groovy.lang.MissingMethodException e = thrown()
+        e.method == 'unknown'
+        e.type == TestObject
     }
 
-    @Test
-    public void propagatesMethodInvocationException() {
+    def "propagates method invocation exception"() {
         RuntimeException failure = new RuntimeException()
-        try {
-            container.configure {
-                list1 { throw failure }
-            }
-        } catch (RuntimeException e) {
-            assertThat(e, sameInstance(failure))
+
+        when:
+        container.configure {
+            list1 { throw failure }
         }
+
+        then:
+        RuntimeException e = thrown()
+        e.is(failure)
     }
 
-    @Test
-    public void implicitlyAddsAnObjectWhenContainerIsBeingConfigured() {
+    def "implicitly creates an object when container is being configured"() {
+        when:
         container.configure {
             list1
             list2 { add(1) }
         }
-        assertThat(container.list1, equalTo(['list1']))
-        assertThat(container.list2, equalTo(['list2', 1]))
+
+        then:
+        container.list1 == ['list1']
+        container.list2 == ['list2', 1]
     }
 
-    @Test
-    public void canReferToPropertiesAndMethodsOfOwner() {
+    def "can refer to properties and methods of owner"() {
         new DynamicOwner().configure(container)
-        assertThat(container.asMap.keySet(), equalTo(['list1', 'list2'] as Set))
-        assertThat(container.list1, equalTo(['list1', 'dynamicProp', 'ownerProp', 'ownerMethod', 'dynamicMethod', 'dynamicMethod', 1, 'prop', 'testObjectDynamicMethod']))
-        assertThat(container.list1.prop, equalTo('prop'))
-        assertThat(container.list2, equalTo(['list2', container.list1]))
+
+        expect:
+        container.asMap.keySet() == ['list1', 'list2'] as Set
+        container.list1 == ['list1', 'dynamicProp', 'ownerProp', 'ownerMethod', 'dynamicMethod', 'dynamicMethod', 1, 'prop', 'testObjectDynamicMethod']
+        container.list1.prop == 'prop'
+        container.list2 == ['list2', container.list1]
     }
 
-    @Test @Ignore
-    public void canUseAnItemCalledMainInAScript() {
-        Script script = new GroovyShell().parse("""import org.gradle.util.ConfigureUtil
+    @Ignore
+    def "can use an item called 'main' in a script"() {
+        def script = new GroovyShell().parse("""import org.gradle.util.ConfigureUtil
             c.configure {
                 run
                 main { add(1) }
@@ -122,10 +163,13 @@ class AbstractNamedDomainObjectContainerTest {
 
 """)
         script.getBinding().setProperty("c", container)
+
+        when:
         script.run()
 
-        assertThat(container.run, equalTo(['run']))
-        assertThat(container.main, equalTo(['main', 1]))
+        then:
+        container.run == ['run']
+        container.main == ['main', 1]
     }
 }
 
@@ -186,8 +230,9 @@ class DynamicOwner {
 }
 
 class TestObject extends ArrayList<String> {
-    def String prop
+    String prop
     String name
+
     def methodMissing(String name, Object params) {
         if (name == 'testObjectDynamicMethod') {
             add(name)

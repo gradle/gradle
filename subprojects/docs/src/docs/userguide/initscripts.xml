@@ -127,4 +127,19 @@
             <output args="--init-script init.gradle -q doNothing"/>
         </sample>
     </section>
+    <section>
+            <title>Init script plugins</title>
+            <para>Similar to a Gradle build script or a Gradle settings file, plugins can be applied on init scripts.
+            </para>
+            <sample id="usePluginsInInitScripts" dir="userguide/initScripts/plugins" title="Using plugins in init scripts">
+                    <sourcefile file="init.gradle" snippet="init-script-plugin"/>
+            </sample>
+            <para>The plugin in the sample init scripts ensures, that only a specified repository is used when running the build.
+            </para>
+            <para>When applying plugins within the init script, Gradle instantiates the plugin and calls the plugin
+                instance's <apilink class="org.gradle.api.Plugin" method="apply"/> method. The <literal>gradle</literal> object is passed as a parameter,
+                which can be used to configure all aspects of a build.
+                Of course, the applied plugin can be resolved as external dependency as described in <xref linkend='sec:custom_classpath'/>
+            </para>
+        </section>
 </chapter>

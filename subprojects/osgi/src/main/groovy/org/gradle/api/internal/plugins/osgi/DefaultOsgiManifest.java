@@ -21,9 +21,10 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.plugins.osgi.OsgiManifest;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.GUtil;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -35,11 +36,27 @@ import java.util.jar.Manifest;
  * @author Hans Dockter
  */
 public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest {
+
+    // Because these properties can be convention mapped we need special handling in here.
+    // If you add another one of these “modelled” properties, you need to update:
+    // - maybeAppendModelledInstruction()
+    // - maybePrependModelledInstruction()
+    // - maybeSetModelledInstruction()
+    // - getModelledInstructions()
+    // - instructionValue()
+    private String symbolicName;
+    private String name;
+    private String version;
+    private String description;
+    private String license;
+    private String vendor;
+    private String docURL;
+
     private File classesDir;
 
     private Factory<ContainedVersionAnalyzer> analyzerFactory = new DefaultAnalyzerFactory();
 
-    private Map<String, List<String>> instructions = new HashMap<String, List<String>>();
+    private Map<String, List<String>> unmodelledInstructions = new HashMap<String, List<String>>();
 
     private FileCollection classpath;
 
@@ -81,6 +98,9 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
                 analyzer.setProperty(key, attribute.getValue().toString());
             }
         }
+
+
+        Map<String, List<String>> instructions = getInstructions();
         Set<String> instructionNames = instructions.keySet();
         if (!instructionNames.contains(Analyzer.IMPORT_PACKAGE)) {
             analyzer.setProperty(Analyzer.IMPORT_PACKAGE,
@@ -120,102 +140,254 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
     }
 
     public List<String> instructionValue(String instructionName) {
-        return instructions.get(instructionName);
+        if (instructionName.equals(Analyzer.BUNDLE_SYMBOLICNAME)) {
+            return createListFromPropertyString(getSymbolicName());
+        } else if (instructionName.equals(Analyzer.BUNDLE_NAME)) {
+            return createListFromPropertyString(getName());
+        } else if (instructionName.equals(Analyzer.BUNDLE_VERSION)) {
+            return createListFromPropertyString(getVersion());
+        } else if (instructionName.equals(Analyzer.BUNDLE_DESCRIPTION)) {
+            return createListFromPropertyString(getDescription());
+        } else if (instructionName.equals(Analyzer.BUNDLE_LICENSE)) {
+            return createListFromPropertyString(getLicense());
+        } else if (instructionName.equals(Analyzer.BUNDLE_VENDOR)) {
+            return createListFromPropertyString(getVendor());
+        } else if (instructionName.equals(Analyzer.BUNDLE_DOCURL)) {
+            return createListFromPropertyString(getDocURL());
+        } else {
+            return unmodelledInstructions.get(instructionName);
+        }
     }
 
     public OsgiManifest instruction(String name, String... values) {
-        if (instructions.get(name) == null) {
-            instructions.put(name, new ArrayList<String>());
+        if (!maybeAppendModelledInstruction(name, values)) {
+            if (unmodelledInstructions.get(name) == null) {
+                unmodelledInstructions.put(name, new ArrayList<String>());
+            }
+            unmodelledInstructions.get(name).addAll(Arrays.asList(values));
         }
-        instructions.get(name).addAll(Arrays.asList(values));
+
         return this;
+    }
+
+    private String appendValues(String existingValues, String... toPrepend) {
+        List<String> parts = createListFromPropertyString(existingValues);
+        if (parts == null) {
+            return createPropertyStringFromArray(toPrepend);
+        } else {
+            parts.addAll(Arrays.asList(toPrepend));
+            return createPropertyStringFromList(parts);
+        }
+    }
+
+    private boolean maybeAppendModelledInstruction(String name, String... values) {
+        if (name.equals(Analyzer.BUNDLE_SYMBOLICNAME)) {
+            setSymbolicName(appendValues(getSymbolicName(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_NAME)) {
+            setName(appendValues(getName(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_VERSION)) {
+            setVersion(appendValues(getVersion(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_DESCRIPTION)) {
+            setDescription(appendValues(getDescription(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_LICENSE)) {
+            setLicense(appendValues(getLicense(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_VENDOR)) {
+            setVendor(appendValues(getVendor(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_DOCURL)) {
+            setDocURL(appendValues(getDocURL(), values));
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public OsgiManifest instructionFirst(String name, String... values) {
-        if (instructions.get(name) == null) {
-            instructions.put(name, new ArrayList<String>());
+        if (!maybePrependModelledInstruction(name, values)) {
+            if (unmodelledInstructions.get(name) == null) {
+                unmodelledInstructions.put(name, new ArrayList<String>());
+            }
+            unmodelledInstructions.get(name).addAll(0, Arrays.asList(values));
         }
-        instructions.get(name).addAll(0, Arrays.asList(values));
         return this;
+    }
+
+    private String prependValues(String existingValues, String... toPrepend) {
+        List<String> parts = createListFromPropertyString(existingValues);
+        if (parts == null) {
+            return createPropertyStringFromArray(toPrepend);
+        } else {
+            parts.addAll(0, Arrays.asList(toPrepend));
+            return createPropertyStringFromList(parts);
+        }
+    }
+
+    private boolean maybePrependModelledInstruction(String name, String... values) {
+        if (name.equals(Analyzer.BUNDLE_SYMBOLICNAME)) {
+            setSymbolicName(prependValues(getSymbolicName(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_NAME)) {
+            setName(prependValues(getName(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_VERSION)) {
+            setVersion(prependValues(getVersion(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_DESCRIPTION)) {
+            setDescription(prependValues(getDescription(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_LICENSE)) {
+            setLicense(prependValues(getLicense(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_VENDOR)) {
+            setVendor(prependValues(getVendor(), values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_DOCURL)) {
+            setDocURL(prependValues(getDocURL(), values));
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public OsgiManifest instructionReplace(String name, String... values) {
-        if (values.length == 0 || (values.length == 1 && values[0] == null)) {
-            instructions.remove(name);
-        } else {
-            if (instructions.get(name) == null) {
-                instructions.put(name, new ArrayList<String>());
+        if (!maybeSetModelledInstruction(name, values)) {
+            if (values.length == 0 || (values.length == 1 && values[0] == null)) {
+                unmodelledInstructions.remove(name);
+            } else {
+                if (unmodelledInstructions.get(name) == null) {
+                    unmodelledInstructions.put(name, new ArrayList<String>());
+                }
+                List<String> instructionsForName = unmodelledInstructions.get(name);
+                instructionsForName.clear();
+                Collections.addAll(instructionsForName, values);
             }
-            List<String> instructionsForName = instructions.get(name);
-            instructionsForName.clear();
-            Collections.addAll(instructionsForName, values);
         }
 
         return this;
     }
 
+    private boolean maybeSetModelledInstruction(String name, String... values) {
+        if (name.equals(Analyzer.BUNDLE_SYMBOLICNAME)) {
+            setSymbolicName(createPropertyStringFromArray(values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_NAME)) {
+            setName(createPropertyStringFromArray(values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_VERSION)) {
+            setVersion(createPropertyStringFromArray(values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_DESCRIPTION)) {
+            setDescription(createPropertyStringFromArray(values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_LICENSE)) {
+            setLicense(createPropertyStringFromArray(values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_VENDOR)) {
+            setVendor(createPropertyStringFromArray(values));
+            return true;
+        } else if (name.equals(Analyzer.BUNDLE_DOCURL)) {
+            setDocURL(createPropertyStringFromArray(values));
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public Map<String, List<String>> getInstructions() {
+        Map<String, List<String>> instructions = new HashMap<String, List<String>>();
+        instructions.putAll(unmodelledInstructions);
+        instructions.putAll(getModelledInstructions());
         return instructions;
     }
 
+    private String createPropertyStringFromArray(String... valueList) {
+        return createPropertyStringFromList(Arrays.asList(valueList));
+    }
+
     private String createPropertyStringFromList(List<String> valueList) {
-        return valueList == null || valueList.isEmpty() ? null : GUtil.join(valueList, ",");
+        return valueList == null || valueList.isEmpty() ? null : CollectionUtils.join(",", valueList);
+    }
+
+    private List<String> createListFromPropertyString(String propertyString) {
+        return propertyString == null || propertyString.length() == 0 ? null : new LinkedList<String>(Arrays.asList(propertyString.split(",")));
+    }
+
+    private Map<String, List<String>> getModelledInstructions() {
+        Map<String, List<String>> modelledInstructions = new HashMap<String, List<String>>();
+        modelledInstructions.put(Analyzer.BUNDLE_SYMBOLICNAME, createListFromPropertyString(symbolicName));
+        modelledInstructions.put(Analyzer.BUNDLE_NAME, createListFromPropertyString(name));
+        modelledInstructions.put(Analyzer.BUNDLE_VERSION, createListFromPropertyString(version));
+        modelledInstructions.put(Analyzer.BUNDLE_DESCRIPTION, createListFromPropertyString(description));
+        modelledInstructions.put(Analyzer.BUNDLE_LICENSE, createListFromPropertyString(description));
+        modelledInstructions.put(Analyzer.BUNDLE_VENDOR, createListFromPropertyString(vendor));
+        modelledInstructions.put(Analyzer.BUNDLE_DOCURL, createListFromPropertyString(docURL));
+
+        return CollectionUtils.filter(modelledInstructions, new Spec<Map.Entry<String, List<String>>>() {
+            public boolean isSatisfiedBy(Map.Entry<String, List<String>> element) {
+                return element.getValue() != null;
+            }
+        });
     }
 
     public String getSymbolicName() {
-        return instructionValueString(Analyzer.BUNDLE_SYMBOLICNAME);
+        return symbolicName;
     }
 
     public void setSymbolicName(String symbolicName) {
-        instructionReplace(Analyzer.BUNDLE_SYMBOLICNAME, symbolicName);
+        this.symbolicName = symbolicName;
     }
 
     public String getName() {
-        return instructionValueString(Analyzer.BUNDLE_NAME);
+        return name;
     }
 
     public void setName(String name) {
-        instructionReplace(Analyzer.BUNDLE_NAME, name);
+        this.name = name;
     }
 
     public String getVersion() {
-        return instructionValueString(Analyzer.BUNDLE_VERSION);
+        return version;
     }
 
     public void setVersion(String version) {
-        instructionReplace(Analyzer.BUNDLE_VERSION, version);
+        this.version = version;
     }
 
     public String getDescription() {
-        return instructionValueString(Analyzer.BUNDLE_DESCRIPTION);
+        return description;
     }
 
     public void setDescription(String description) {
-        instructionReplace(Analyzer.BUNDLE_DESCRIPTION, description);
+        this.description = description;
     }
 
     public String getLicense() {
-        return instructionValueString(Analyzer.BUNDLE_LICENSE);
+        return license;
     }
 
     public void setLicense(String license) {
-        instructionReplace(Analyzer.BUNDLE_LICENSE, license);
+        this.license = license;
     }
 
     public String getVendor() {
-        return instructionValueString(Analyzer.BUNDLE_VENDOR);
+        return vendor;
     }
 
     public void setVendor(String vendor) {
-        instructionReplace(Analyzer.BUNDLE_VENDOR, vendor);
+        this.vendor = vendor;
     }
 
     public String getDocURL() {
-        return instructionValueString(Analyzer.BUNDLE_DOCURL);
+        return docURL;
     }
 
     public void setDocURL(String docURL) {
-        instructionReplace(Analyzer.BUNDLE_DOCURL, docURL);
+        this.docURL = docURL;
     }
 
     public File getClassesDir() {

@@ -21,6 +21,7 @@ import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
+
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
@@ -70,6 +71,29 @@ class PmdPluginTest extends Specification {
         configuresPmdTask("pmdOther", project.sourceSets.other)
     }
 
+    def "configures pmd targetjdk based on sourcecompatibilityLevel"() {
+        project.plugins.apply(JavaBasePlugin)
+        when:
+        project.setSourceCompatibility(sourceCompatibility)
+        project.sourceSets {
+            main
+        }
+        then:
+        project.tasks.getByName("pmdMain").targetJdk == targetJdk
+
+        where:
+        sourceCompatibility | targetJdk
+        1.3                 | TargetJdk.VERSION_1_3
+        1.4                 | TargetJdk.VERSION_1_4
+        1.5                 | TargetJdk.VERSION_1_5
+        1.6                 | TargetJdk.VERSION_1_6
+        1.7                 | TargetJdk.VERSION_1_7
+        // 1.4 is the default in the pmd plugin so we use it as a default too
+        1.8 | TargetJdk.VERSION_1_4
+        1.1 | TargetJdk.VERSION_1_4
+        1.2 | TargetJdk.VERSION_1_4
+    }
+
     private void configuresPmdTask(String taskName, SourceSet sourceSet) {
         def task = project.tasks.findByName(taskName)
         assert task instanceof Pmd
@@ -84,9 +108,9 @@ class PmdPluginTest extends Specification {
             assert ignoreFailures == false
         }
     }
-    
+
     def "configures any additional PMD tasks"() {
-        def task = project.tasks.add("pmdCustom", Pmd)
+        def task = project.tasks.create("pmdCustom", Pmd)
 
         expect:
         task.description == null
@@ -149,9 +173,9 @@ class PmdPluginTest extends Specification {
             assert ignoreFailures == true
         }
     }
-    
+
     def "can customize any additional PMD tasks via extension"() {
-        def task = project.tasks.add("pmdCustom", Pmd)
+        def task = project.tasks.create("pmdCustom", Pmd)
         project.pmd {
             ruleSets = ["braces", "unusedcode"]
             ruleSetFiles = project.files("my-ruleset.xml")
@@ -170,5 +194,5 @@ class PmdPluginTest extends Specification {
         task.outputs.files.files == task.reports.enabled*.destination as Set
         task.ignoreFailures == true
     }
-    
+
 }

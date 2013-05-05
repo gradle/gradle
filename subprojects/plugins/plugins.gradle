@@ -25,10 +25,13 @@ if (!javaVersion.java6Compatible) {
 }
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     compile project(':core')
-    compile project(':wrapper')
+    compile project(':coreImpl')
+    compile project(':reporting')
+    compile project(':languageBase')
+    compile project(':languageJvm')
 
     compile libraries.ant
     compile libraries.asm
@@ -42,7 +45,7 @@ dependencies {
 
     runtime libraries.commons_cli
 
-    testCompile libraries.nekohtml
+    testCompile libraries.jsoup
 }
 
 evaluationDependsOn(":wrapper")
@@ -55,18 +58,8 @@ sourceSets.main.output.dir generatedResourcesDir, builtBy: wrapperJar
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
-    jvmArgs '-Xms128m', '-Xmx256m', '-XX:+HeapDumpOnOutOfMemoryError'
 }
 
 useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
-
-eclipse {
-	classpath {
-		file.whenMerged { classpath ->
-			classpath.entries.removeAll {it.path.contains('/plugins/build/classes') }
-			classpath.entries.removeAll {it.path.contains('/plugins/build/resources') }
-            classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-		}
-	}
-}
+useTestFixtures(project: ":coreImpl")

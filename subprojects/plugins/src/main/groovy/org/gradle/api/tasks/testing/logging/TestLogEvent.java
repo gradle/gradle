@@ -16,12 +16,9 @@
 
 package org.gradle.api.tasks.testing.logging;
 
-import org.gradle.api.Experimental;
-
 /**
  * Test events that can be logged.
  */
-@Experimental
 public enum TestLogEvent {
     /**
      * A test has started. This event gets fired both for atomic and composite tests.

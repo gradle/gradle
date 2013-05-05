@@ -17,18 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.cache.ArtifactOrigin;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.Configuration;
+import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.License;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.OverrideDependencyDescriptorMediator;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -44,16 +34,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.Message;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 
@@ -183,8 +164,6 @@ public class GradlePomModuleDescriptorBuilder {
 
     private ModuleRevisionId mrid;
 
-    private DefaultArtifact mainArtifact;
-
     private ParserSettings parserSettings;
 
     private static final String WRONG_NUMBER_OF_PARTS_MSG = "what seemed to be a dependency "
@@ -207,9 +186,9 @@ public class GradlePomModuleDescriptorBuilder {
         return ivyModuleDescriptor;
     }
 
-    public void setModuleRevId(String groupId, String artifactId, String version) {
-        mrid = ModuleRevisionId.newInstance(groupId, artifactId, version);
-        ivyModuleDescriptor.setModuleRevisionId(mrid);
+    public void setModuleRevId(ModuleRevisionId mrid, String group, String module, String version) {
+        this.mrid = mrid;
+        ivyModuleDescriptor.setModuleRevisionId(ModuleRevisionId.newInstance(group, module, version));
 
         if ((version == null) || version.endsWith("SNAPSHOT")) {
             ivyModuleDescriptor.setStatus("integration");
@@ -241,8 +220,7 @@ public class GradlePomModuleDescriptorBuilder {
                 DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, "jar", "jar");
 
                 if (!ArtifactOrigin.isUnknown(resolver.locate(artifact))) {
-                    mainArtifact = artifact;
-                    ivyModuleDescriptor.addArtifact("master", mainArtifact);
+                    ivyModuleDescriptor.addArtifact("master", artifact);
                 }
             }
 
@@ -257,19 +235,16 @@ public class GradlePomModuleDescriptorBuilder {
                 DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, packaging, packaging);
 
                 if (!ArtifactOrigin.isUnknown(resolver.locate(artifact))) {
-                    mainArtifact = artifact;
-                    ivyModuleDescriptor.addArtifact("master", mainArtifact);
+                    ivyModuleDescriptor.addArtifact("master", artifact);
 
-                    DeprecationLogger.nagUserWith("Deprecated: relying on packaging to define the extension of the main artifact is deprecated, "
-                            + "and will not be supported in a future version of Gradle.");
+                    DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
 
                     return;
                 }
             }
         }
 
-        mainArtifact = new DefaultArtifact(mrid, new Date(), artifactId, packaging, "jar");
-        ivyModuleDescriptor.addArtifact("master", mainArtifact);
+        ivyModuleDescriptor.addArtifact("master", new DefaultArtifact(mrid, new Date(), artifactId, packaging, "jar"));
     }
 
     private boolean isKnownJarPackaging(String packaging) {
@@ -322,8 +297,7 @@ public class GradlePomModuleDescriptorBuilder {
             if (dep.getClassifier() != null) {
                 extraAtt.put("m:classifier", dep.getClassifier());
             }
-            DefaultDependencyArtifactDescriptor depArtifact =
-                    new DefaultDependencyArtifactDescriptor(dd, dd.getDependencyId().getName(), type, ext, null, extraAtt);
+            DefaultDependencyArtifactDescriptor depArtifact = new DefaultDependencyArtifactDescriptor(dd, dd.getDependencyId().getName(), type, ext, null, extraAtt);
             // here we have to assume a type and ext for the artifact, so this is a limitation
             // compared to how m2 behave with classifiers
             String optionalizedScope = dep.isOptional() ? "optional" : scope;
@@ -354,7 +328,7 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     public void addDependency(DependencyDescriptor descriptor) {
-        // Some POMs depend on theirselfves through their parent pom, don't add this dependency
+        // Some POMs depend on theirselfves through their parent POM, don't add this dependency
         // since Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/com/atomikos/atomikos-util/3.6.4/atomikos-util-3.6.4.pom
         ModuleId dependencyId = descriptor.getDependencyId();
@@ -568,9 +542,5 @@ public class GradlePomModuleDescriptorBuilder {
 
     public void addProperty(String propertyName, String value) {
         addExtraInfo(getPropertyExtraInfoKey(propertyName), value);
-    }
-
-    public Artifact getMainArtifact() {
-        return mainArtifact;
     }
 }

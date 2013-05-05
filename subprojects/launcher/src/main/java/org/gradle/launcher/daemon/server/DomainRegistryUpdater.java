@@ -18,27 +18,28 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Stoppable;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.messaging.remote.Address;
 
 /**
 * @author: Szczepan Faber, created at: 9/12/11
 */
-class DomainRegistryUpdater {
+class DomainRegistryUpdater implements Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(DomainRegistryUpdater.class);
 
     private final DaemonRegistry daemonRegistry;
     private final DaemonContext daemonContext;
     private final String password;
-    private final Address connectorAddress;
+    private Address connectorAddress;
 
-    public DomainRegistryUpdater(DaemonRegistry daemonRegistry, DaemonContext daemonContext, String password, Address connectorAddress) {
+    public DomainRegistryUpdater(DaemonRegistry daemonRegistry, DaemonContext daemonContext, String password) {
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
         this.password = password;
-        this.connectorAddress = connectorAddress;
     }
 
     public void onStartActivity() {
@@ -59,14 +60,14 @@ class DomainRegistryUpdater {
         }
     }
 
-    public void onStart() {
-        LOGGER.info("Advertising the daemon address to the clients: {}", connectorAddress);
+    public void onStart(Address connectorAddress) {
+        LOGGER.info(DaemonMessages.ADVERTISING_DAEMON + connectorAddress);
         LOGGER.debug("Advertised daemon context: {}", daemonContext);
-        daemonRegistry.store(connectorAddress, daemonContext, password);
-        daemonRegistry.markBusy(connectorAddress);
+        this.connectorAddress = connectorAddress;
+        daemonRegistry.store(connectorAddress, daemonContext, password, false);
     }
 
-    public void onStop() {
+    public void stop() {
         LOGGER.debug("Removing our presence to clients, eg. removing this address from the registry: " + connectorAddress);
         try {
             daemonRegistry.remove(connectorAddress);

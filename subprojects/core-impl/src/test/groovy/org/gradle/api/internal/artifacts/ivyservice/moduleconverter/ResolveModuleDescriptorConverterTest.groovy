@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
-
+package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.Configuration
@@ -38,7 +37,8 @@ public class ResolveModuleDescriptorConverterTest extends Specification {
         def dependenciesConverter = Mock(DependenciesToModuleDescriptorConverter)
 
         ResolveModuleDescriptorConverter resolveModuleDescriptorConverter = new ResolveModuleDescriptorConverter(
-                moduleDescriptorFactory,
+                moduleDescriptorFactory
+                ,
                 configurationsConverter,
                 dependenciesConverter);
 

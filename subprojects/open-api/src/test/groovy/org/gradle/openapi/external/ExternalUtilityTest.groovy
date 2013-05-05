@@ -15,38 +15,38 @@
  */
 package org.gradle.openapi.external
 
-import spock.lang.Specification
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import org.gradle.util.TestFile
+import spock.lang.Specification
 
 public class ExternalUtilityTest extends Specification {
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     def getTheRightGradleCore() {
-        TestFile libDir = tmpDir.dir.file('lib')
+        TestFile libDir = tmpDir.testDirectory.file('lib')
 
         when:
         libDir.deleteDir()
         libDir.createDir().files('gradle-core-0.9.jar', 'gradle-core-worker-0.9.jar', 'gradle-open-api-0.9.jar')*.touch()
 
         then:
-        ExternalUtility.getGradleJar(tmpDir.dir).absolutePath == new File(libDir, 'gradle-core-0.9.jar').absolutePath
+        ExternalUtility.getGradleJar(tmpDir.testDirectory).absolutePath == new File(libDir, 'gradle-core-0.9.jar').absolutePath
 
         when:
         libDir.deleteDir()
         libDir.createDir().files('gradle-core-0.9-20100315080959+0100.jar', 'gradle-core-worker-0.9-20100315080959+0100.jar', 'gradle-open-api-0.9-20100315080959+0100.jar')*.touch()
 
         then:
-        ExternalUtility.getGradleJar(tmpDir.dir).absolutePath == new File(libDir, 'gradle-core-0.9-20100315080959+0100.jar').absolutePath
+        ExternalUtility.getGradleJar(tmpDir.testDirectory).absolutePath == new File(libDir, 'gradle-core-0.9-20100315080959+0100.jar').absolutePath
     }
 
     def failWithMultipleGradleCore() {
-        tmpDir.dir.file('lib').createDir().files('gradle-core-0.9.jar', 'gradle-core-0.10.jar', 'gradle-open-api-0.9.jar')*.touch()
+        tmpDir.testDirectory.file('lib').createDir().files('gradle-core-0.9.jar', 'gradle-core-0.10.jar', 'gradle-open-api-0.9.jar')*.touch()
 
         when:
-        ExternalUtility.getGradleJar(tmpDir.dir)
+        ExternalUtility.getGradleJar(tmpDir.testDirectory)
 
         then:
         RuntimeException e = thrown()
@@ -56,15 +56,15 @@ public class ExternalUtilityTest extends Specification {
     }
 
     def returnNullWitNonExistingGradleCore() {
-        tmpDir.dir.file('lib').createDir().files('gradle-open-api-0.9.jar')*.touch()
+        tmpDir.testDirectory.file('lib').createDir().files('gradle-open-api-0.9.jar')*.touch()
 
         expect:
-        ExternalUtility.getGradleJar(tmpDir.dir) == null
+        ExternalUtility.getGradleJar(tmpDir.testDirectory) == null
     }
 
     def failWitNonExistingGradleHome() {
         expect:
-        ExternalUtility.getGradleJar(tmpDir.dir) == null
+        ExternalUtility.getGradleJar(tmpDir.testDirectory) == null
     }
 
 }

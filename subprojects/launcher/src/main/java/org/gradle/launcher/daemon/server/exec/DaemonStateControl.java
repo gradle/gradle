@@ -18,37 +18,29 @@ package org.gradle.launcher.daemon.server.exec;
 
 public interface DaemonStateControl {
     /**
-     * Perform a stop, but wait until the daemon is idle to cut any open connections.
+     * <p>Requests that the daemon stop, but wait until the daemon is idle. The stop will happen asynchronously, and this method does not block.
      *
-     * The daemon will be removed from the registry upon calling this regardless of whether it is busy or not.
-     * If it is idle, this method will block until the daemon fully stops.
+     * <p>The daemon will stop accepting new work, so that subsequent calls to {@link #runCommand} will failing with {@link DaemonUnavailableException}.
+     */
+    void requestStop();
+
+    /**
+     * Requests a forceful stops of the daemon. Does not wait until the daemon is idle to begin stopping. The stop will happen asynchronously, and this method does not block.
      *
-     * If the daemon is busy, this method will return after removing the daemon from the registry but before the
-     * daemon is fully stopped. In this case, the daemon will stop as soon as {@link #onFinishCommand()} is called.
+     * <p>If any long running command is currently running, the operation's abandoned command handler will be executed.</p>
+     *
+     * <p>The daemon will stop accepting new work, so that subsequent calls to {@link #runCommand} will failing with {@link DaemonUnavailableException}.
      */
-    void stopAsSoonAsIdle();
+    void requestForcefulStop();
 
     /**
-     * @return returns false if the daemon was already requested to stop
+     * Runs the given long running command. No more than 1 command may be running at any given time.
+     *
+     * @param command The command to run
+     * @param commandDisplayName The command's display name, used for logging and error messages.
+     * @param onCommandAbandoned An action to run with a forceful stop is requested using {@link #requestForcefulStop()}, to notify the caller that the operation is being abandoned.
+     *
+     * @throws DaemonUnavailableException If this daemon is currently executing another command or a stop has been requested.
      */
-    boolean requestStop();
-
-    /**
-     * Called when the execution of a command begins.
-     * <p>
-     * If the daemon is busy (i.e. already executing a command), this method will return the existing
-     * execution which the caller should be prepared for without considering the given execution to be in progress.
-     * If the daemon is idle the return value will be {@code null} and the given execution will be considered in progress.
-     */
-    DaemonCommandExecution onStartCommand(DaemonCommandExecution execution);
-
-    /**
-     * Called when the execution of a command is complete (or at least the daemon is available for new commands).
-     * <p>
-     * If the daemon is currently idle, this method will return {@code null}. If it is busy, it will return what was the
-     * current execution which will considered to be complete (putting the daemon back in idle state).
-     * <p>
-     * If {@link #stopAsSoonAsIdle()} was previously called, this method will block while the daemon stops.
-     */
-    DaemonCommandExecution onFinishCommand();
+    void runCommand(Runnable command, String commandDisplayName, Runnable onCommandAbandoned) throws DaemonUnavailableException;
 }

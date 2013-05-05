@@ -12,6 +12,6 @@ public class BrokenTest {
 
     @Test
     public void broken() {
-        throw new IllegalStateException();
+        throw new IllegalStateException("html: <> cdata: ]]>");
     }
 }

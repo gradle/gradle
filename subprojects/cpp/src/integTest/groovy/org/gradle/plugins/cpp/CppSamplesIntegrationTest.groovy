@@ -16,15 +16,16 @@
 package org.gradle.plugins.cpp
 
 import org.gradle.integtests.fixtures.Sample
-import org.junit.Rule
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
+
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
-    @Rule public final Sample exewithlib = new Sample('cpp/exewithlib')
-    @Rule public final Sample dependencies = new Sample('cpp/dependencies')
-    @Rule public final Sample exe = new Sample('cpp/exe')
+    @Rule public final Sample exewithlib = new Sample(temporaryFolder, 'cpp/exewithlib')
+    @Rule public final Sample dependencies = new Sample(temporaryFolder, 'cpp/dependencies')
+    @Rule public final Sample exe = new Sample(temporaryFolder, 'cpp/exe')
 
     def "exe with lib"() {
         given:
@@ -45,18 +46,23 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     // Does not work on windows, due to GRADLE-2118
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "dependencies"() {
-        given:
-        sample dependencies
-        
         when:
-        run ":lib:uploadArchives", ":exe:uploadArchives"
+        sample dependencies
+        run ":lib:uploadArchives"
+
+        then:
+        sharedLibrary("cpp/dependencies/lib/build/binaries/lib").isFile()
+        file("cpp/dependencies/lib/build/repo/some-org/some-lib/1.0/some-lib-1.0-so.so").isFile()
+
+        when:
+        sample dependencies
+        run ":exe:uploadArchives"
         
         then:
         ":exe:mainExtractHeaders" in nonSkippedTasks
         ":exe:compileMain" in nonSkippedTasks
         
         and:
-        sharedLibrary("cpp/dependencies/lib/build/binaries/lib").isFile()
         executable("cpp/dependencies/exe/build/binaries/exe").isFile()
         file("cpp/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
     }

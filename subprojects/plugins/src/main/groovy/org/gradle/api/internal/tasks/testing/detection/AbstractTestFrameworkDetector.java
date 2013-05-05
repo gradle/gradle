@@ -38,17 +38,17 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     protected static final String TEST_CASE = "junit/framework/TestCase";
     protected static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
 
-    private final File testClassesDirectory;
-    private final FileCollection testClasspath;
     private List<File> testClassDirectories;
     private final ClassFileExtractionManager classFileExtractionManager;
     private final Map<File, Boolean> superClasses;
     private TestClassProcessor testClassProcessor;
     private final List<String> knownTestCaseClassNames;
 
-    protected AbstractTestFrameworkDetector(File testClassesDirectory, FileCollection testClasspath, ClassFileExtractionManager classFileExtractionManager) {
-        this.testClassesDirectory = testClassesDirectory;
-        this.testClasspath = testClasspath;
+    private File testClassesDirectory;
+    private FileCollection testClasspath;
+
+    protected AbstractTestFrameworkDetector(ClassFileExtractionManager classFileExtractionManager) {
+        assert classFileExtractionManager != null;
         this.classFileExtractionManager = classFileExtractionManager;
         this.superClasses = new HashMap<File, Boolean>();
         this.knownTestCaseClassNames = new ArrayList<String>();
@@ -87,7 +87,10 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         }
 
         testClassDirectories = new ArrayList<File>();
-        testClassDirectories.add(testClassesDirectory);
+
+        if (testClassesDirectory != null) {
+            testClassDirectories.add(testClassesDirectory);
+        }
         if (testClasspath != null) {
             for (File file : testClasspath) {
                 if (file.isDirectory()) {
@@ -97,6 +100,14 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
                 }
             }
         }
+    }
+
+    public void setTestClassesDirectory(File testClassesDirectory) {
+        this.testClassesDirectory = testClassesDirectory;
+    }
+
+    public void setTestClasspath(FileCollection testClasspath) {
+        this.testClasspath = testClasspath;
     }
 
     protected TestClassVisitor classVisitor(final File testClassFile) {
@@ -139,9 +150,8 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     }
 
     /**
-     * In none super class mode a test class is published when the class is a test and it is not abstract. In super
-     * class mode it must not publish the class otherwise it will get published multiple times (for each extending
-     * class).
+     * In none super class mode a test class is published when the class is a test and it is not abstract. In super class mode it must not publish the class otherwise it will get published multiple
+     * times (for each extending class).
      */
     protected void publishTestClass(boolean isTest, TestClassVisitor classVisitor, boolean superClass) {
         if (isTest && !classVisitor.isAbstract() && !superClass) {

@@ -17,10 +17,11 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
+
 import static org.junit.Assert.assertTrue
 
 class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {

@@ -15,15 +15,15 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ScriptExecuter
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Specification
-import org.gradle.integtests.fixtures.*
 
-class SamplesApplicationIntegrationTest extends Specification {
-    @Rule GradleDistribution distribution = new GradleDistribution()
-    @Rule GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule Sample sample = new Sample('application')
+class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule Sample sample = new Sample(temporaryFolder, 'application')
 
     def canRunTheApplicationUsingRunTask() {
         when:

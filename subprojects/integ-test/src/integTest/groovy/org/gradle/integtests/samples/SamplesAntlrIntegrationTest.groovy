@@ -15,18 +15,16 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
-class SamplesAntlrIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('antlr')
+class SamplesAntlrIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'antlr')
 
     @Test
     public void canBuild() {
@@ -36,7 +34,7 @@ class SamplesAntlrIntegrationTest {
         executer.inDirectory(projectDir).withTasks('clean', 'build').withArguments("--no-opt").run()
 
         // Check tests have run
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(projectDir)
+        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(projectDir)
         result.assertTestClassesExecuted('org.gradle.GrammarTest')
     }
 }

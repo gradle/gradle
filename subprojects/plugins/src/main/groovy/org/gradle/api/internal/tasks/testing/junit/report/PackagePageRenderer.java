@@ -15,45 +15,55 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report;
 
-import org.gradle.api.Action;
-import org.w3c.dom.Element;
+import org.gradle.api.internal.ErroringAction;
+import org.gradle.api.internal.html.SimpleHtmlWriter;
+
+import java.io.IOException;
 
 class PackagePageRenderer extends PageRenderer<PackageTestResults> {
 
-    @Override protected void renderBreadcrumbs(Element parent) {
-        Element div = append(parent, "div");
-        div.setAttribute("class", "breadcrumbs");
-        appendLink(div, "index.html", "all");
-        appendText(div, String.format(" > %s", getResults().getName()));
+    @Override
+    protected void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException {
+        htmlWriter.startElement("div").attribute("class", "breadcrumbs");
+        htmlWriter.startElement("a").attribute("href", "index.html").characters("all").endElement();
+        htmlWriter.characters(String.format(" > %s", getResults().getName()));
+        htmlWriter.endElement();
     }
 
-    private void renderClasses(Element parent) {
-        Element table = append(parent, "table");
-        Element thead = append(table, "thead");
-        Element tr = append(thead, "tr");
-        appendWithText(tr, "th", "Class");
-        appendWithText(tr, "th", "Tests");
-        appendWithText(tr, "th", "Failures");
-        appendWithText(tr, "th", "Duration");
-        appendWithText(tr, "th", "Success rate");
+    private void renderClasses(SimpleHtmlWriter htmlWriter) throws IOException {
+        htmlWriter.startElement("table");
+        htmlWriter.startElement("thread");
+        htmlWriter.startElement("tr");
+
+        htmlWriter.startElement("th").characters("Class").endElement();
+        htmlWriter.startElement("th").characters("Tests").endElement();
+        htmlWriter.startElement("th").characters("Failures").endElement();
+        htmlWriter.startElement("th").characters("Duration").endElement();
+        htmlWriter.startElement("th").characters("Success rate").endElement();
+
+        htmlWriter.endElement();
+        htmlWriter.endElement();
+
         for (ClassTestResults testClass : getResults().getClasses()) {
-            tr = append(table, "tr");
-            Element td = append(tr, "td");
-            td.setAttribute("class", testClass.getStatusClass());
-            appendLink(td, String.format("%s.html", testClass.getName()), testClass.getSimpleName());
-            appendWithText(td, "td", testClass.getTestCount());
-            appendWithText(td, "td", testClass.getFailureCount());
-            appendWithText(td, "td", testClass.getFormattedDuration());
-            td = appendWithText(td, "td", testClass.getFormattedSuccessRate());
-            td.setAttribute("class", testClass.getStatusClass());
+            htmlWriter.startElement("tr");
+            htmlWriter.startElement("td").attribute("class", testClass.getStatusClass());
+                htmlWriter.startElement("a").attribute("href", String.format("%s.html", testClass.getName())).characters(testClass.getSimpleName()).endElement();
+            htmlWriter.endElement();
+            htmlWriter.startElement("td").characters(Integer.toString(testClass.getTestCount())).endElement();
+            htmlWriter.startElement("td").characters(Integer.toString(testClass.getFailureCount())).endElement();
+            htmlWriter.startElement("td").characters(testClass.getFormattedDuration()).endElement();
+            htmlWriter.startElement("td").attribute("class", testClass.getStatusClass()).characters(testClass.getFormattedSuccessRate()).endElement();
+            htmlWriter.endElement();
         }
+        htmlWriter.endElement();
     }
 
-    @Override protected void registerTabs() {
+    @Override
+    protected void registerTabs() {
         addFailuresTab();
-        addTab("Classes", new Action<Element>() {
-            public void execute(Element element) {
-                renderClasses(element);
+        addTab("Classes", new ErroringAction<SimpleHtmlWriter>() {
+            public void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
+                renderClasses(htmlWriter);
             }
         });
     }

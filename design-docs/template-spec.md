@@ -5,22 +5,31 @@ A paragraph about what the feature is.
 
 What are the use cases we are trying to solve with this feature? That is, why should the user care? What's out of scope?
 
-# User visible changes
+# Implementation plan
 
-A spec of the API, DSL or other behaviour that will be visible to the user.
+This section lists the stories that make up the implementation plan for the feature. The stories should be listed in priority order.
 
-## Sad day cases
+## Story 1: Some thing
 
-In what ways can things go wrong? What will the user see when things do go wrong?
+An introduction to the story. Must explain why we're doing this work. What's the value in this story?
 
-# Integration test coverage
+### User visible changes
 
-How are we going to test this feature? This section should list the scenarios we want to cover.
+A description of the API, DSL or other behaviour that will be visible to the user. Must include some definition of how
+we decide that the story is finished.
 
-# Implementation approach
+This section should discuss the ways that things can go wrong. What will the user see when things do go wrong?
 
-How do we increment from where we are to where we want to go? How do we do this in a backwards compatible way? How do we do this without regressing performance?
+This section should also consider backwards compatibility and performance, where appropriate.
+
+### Implementation
+
+A description of how we plan to implement this.
+
+### Test coverage
+
+How are we going to test this feature? How do we prove that the work is done?
 
 # Open issues
 
-This stuff is never done. This section is to keep track of assumptions and things we haven't figured out yet.
+This section is to keep track of assumptions and things we haven't figured out yet.

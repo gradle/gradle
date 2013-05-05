@@ -26,7 +26,6 @@ import org.gradle.build.docs.dsl.docbook.model.MethodDoc
 import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassDoc
 import org.gradle.build.docs.dsl.docbook.model.ClassExtensionDoc
-import org.w3c.dom.Document
 
 class ClassDocRendererTest extends XmlSpecification {
     final LinkRenderer linkRenderer = linkRenderer()
@@ -43,6 +42,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classProperties >> []
         _ * classDoc.classMethods >> []
         _ * classDoc.classBlocks >> []
+        _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<root/>')
@@ -87,27 +87,45 @@ class ClassDocRendererTest extends XmlSpecification {
         ''')
 
         ClassDoc classDoc = classDoc('org.gradle.Class', id: 'classId', content: sourceContent, comment: 'class comment')
+        _ * classDoc.classProperties >> []
+        _ * classDoc.classMethods >> []
+        _ * classDoc.classBlocks >> []
+        _ * classDoc.classExtensions >> []
 
         when:
-        def result = parse('<chapter/>')
+        def result = parse('<root/>')
         withCategories {
-            renderer.mergeDescription(classDoc, result)
+            renderer.mergeContent(classDoc, result)
         }
 
         then:
-        formatTree(result) == '''<chapter id="classId">
-    <title>Class</title>
-    <segmentedlist>
-        <segtitle>API Documentation</segtitle>
-        <seglistitem>
-            <seg>
-                <apilink class="org.gradle.Class" style="java"/>
-            </seg>
-        </seglistitem>
-    </segmentedlist>
-    <para>class comment</para>
-    <para>Some custom content</para>
-</chapter>'''
+        formatTree(result) == '''<root>
+    <chapter id="classId">
+        <title>Class</title>
+        <segmentedlist>
+            <segtitle>API Documentation</segtitle>
+            <seglistitem>
+                <seg>
+                    <apilink class="org.gradle.Class" style="java"/>
+                </seg>
+            </seglistitem>
+        </segmentedlist>
+        <para>class comment</para>
+        <para>Some custom content</para>
+        <section>
+            <title>Properties</title>
+            <para>No properties</para>
+        </section>
+        <section>
+            <title>Script blocks</title>
+            <para>No script blocks</para>
+        </section>
+        <section>
+            <title>Methods</title>
+            <para>No methods</para>
+        </section>
+    </chapter>
+</root>'''
     }
     
     def mergesPropertyMetaDataIntoPropertiesSection() {
@@ -126,6 +144,7 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc classDoc = classDoc('Class', content: content)
         PropertyDoc propDoc = propertyDoc('propName', id: 'propId', description: 'prop description', comment: 'prop comment', type: 'org.gradle.Type', attributes: [extraAttribute])
         _ * classDoc.classProperties >> [propDoc]
+        _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -173,14 +192,14 @@ class ClassDocRendererTest extends XmlSpecification {
 </chapter>'''
     }
 
-    def rendersDeprecatedAndExperimentalProperties() {
+    def rendersDeprecatedAndIncubatingProperties() {
         def content = parse('''
             <chapter>
                 <section><title>Properties</title>
                     <table>
                         <thead><tr><td>Name</td></tr></thead>
                         <tr><td>deprecatedProperty</td></tr>
-                        <tr><td>experimentalProperty</td></tr>
+                        <tr><td>incubatingProperty</td></tr>
                     </table>
                 </section>
             </chapter>
@@ -188,8 +207,9 @@ class ClassDocRendererTest extends XmlSpecification {
 
         ClassDoc classDoc = classDoc('Class', content: content)
         PropertyDoc deprecatedProp = propertyDoc('deprecatedProperty', id: 'prop1', description: 'prop1 description', comment: 'prop1 comment', type: 'org.gradle.Type', deprecated: true)
-        PropertyDoc experimentalProp = propertyDoc('experimentalProperty', id: 'prop2', description: 'prop2 description', comment: 'prop2 comment', type: 'org.gradle.Type', experimental: true)
-        _ * classDoc.classProperties >> [deprecatedProp, experimentalProp]
+        PropertyDoc incubatingProp = propertyDoc('incubatingProperty', id: 'prop2', description: 'prop2 description', comment: 'prop2 comment', type: 'org.gradle.Type', incubating: true)
+        _ * classDoc.classProperties >> [deprecatedProp, incubatingProp]
+        _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -223,11 +243,11 @@ class ClassDocRendererTest extends XmlSpecification {
             <tr>
                 <td>
                     <link linkend="prop2">
-                        <literal>experimentalProperty</literal>
+                        <literal>incubatingProperty</literal>
                     </link>
                 </td>
                 <td>
-                    <caution>Experimental</caution>
+                    <caution>Incubating</caution>
                     <para>prop2 description</para>
                 </td>
             </tr>
@@ -238,14 +258,14 @@ class ClassDocRendererTest extends XmlSpecification {
         <section id="prop1" role="detail">
             <title><classname>org.gradle.Type</classname> <literal>deprecatedProperty</literal> (read-only)</title>
             <caution>
-                <para>Note: This property is <link linkend="dsl-element-types">deprecated</link> and will be removed in the next major version of Gradle.</para>
+                <para>Note: This property is <ulink url="../userguide/feature_lifecycle.html">deprecated</ulink> and will be removed in the next major version of Gradle.</para>
             </caution>
             <para>prop1 comment</para>
         </section>
         <section id="prop2" role="detail">
-            <title><classname>org.gradle.Type</classname> <literal>experimentalProperty</literal> (read-only)</title>
+            <title><classname>org.gradle.Type</classname> <literal>incubatingProperty</literal> (read-only)</title>
             <caution>
-                <para>Note: This property is <link linkend="dsl-element-types">experimental</link> and may change in a future version of Gradle.</para>
+                <para>Note: This property is <ulink url="../userguide/feature_lifecycle.html">incubating</ulink> and may change in a future version of Gradle.</para>
             </caution>
             <para>prop2 comment</para>
         </section>
@@ -267,43 +287,50 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc targetClassDoc = classDoc('Class', content: content)
         ClassExtensionDoc extensionDoc = extensionDoc('thingo')
         PropertyDoc propertyDoc = propertyDoc('propName', id: 'propId')
+        _ * targetClassDoc.classProperties >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
         _ * extensionDoc.extensionProperties >> [propertyDoc]
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeExtensionProperties(targetClassDoc, result, result)
+            renderer.mergeProperties(targetClassDoc, result)
         }
 
         then:
         formatTree(result) == '''<chapter>
     <section>
-        <title>Properties added by the <literal>thingo</literal> plugin</title>
-        <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
-        <table>
-            <title>Properties - <literal>thingo</literal> plugin</title>
-            <thead>
+        <title>Properties</title>
+        <section>
+            <title>Properties added by the <literal>thingo</literal> plugin</title>
+            <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
+            <table>
+                <title>Properties - <literal>thingo</literal> plugin</title>
+                <thead>
+                    <tr>
+                        <td>Property</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
                 <tr>
-                    <td>Property</td>
-                    <td>Description</td>
+                    <td>
+                        <link linkend="propId">
+                            <literal>propName</literal>
+                        </link>
+                    </td>
+                    <td>
+                        <para>description</para>
+                    </td>
                 </tr>
-            </thead>
-            <tr>
-                <td>
-                    <link linkend="propId">
-                        <literal>propName</literal>
-                    </link>
-                </td>
-                <td>
-                    <para>description</para>
-                </td>
-            </tr>
-        </table>
+            </table>
+        </section>
     </section>
-    <section id="propId" role="detail">
-        <title><classname>SomeType</classname> <literal>propName</literal> (read-only)</title>
-        <para>comment</para>
+    <section>
+        <title>Property details</title>
+        <section id="propId" role="detail">
+            <title><classname>SomeType</classname> <literal>propName</literal> (read-only)</title>
+            <para>comment</para>
+        </section>
     </section>
 </chapter>'''
     }
@@ -324,10 +351,10 @@ class ClassDocRendererTest extends XmlSpecification {
         MethodDoc method1 = methodDoc('methodName', id: 'method1Id', returnType: 'ReturnType1', description: 'method description', comment: 'method comment')
         MethodDoc method2 = methodDoc('methodName', id: 'method2Id', returnType: 'ReturnType2', description: 'overloaded description', comment: 'overloaded comment', paramTypes: ['ParamType'])
         _ * classDoc.classMethods >> [method1, method2]
-
+        _ * classDoc.classExtensions >> []
 
         when:
-        def result = parse('<chapter/>')
+        def result = parse('<chapter/>', document)
         withCategories {
             renderer.mergeMethods(classDoc, result)
         }
@@ -376,6 +403,83 @@ class ClassDocRendererTest extends XmlSpecification {
 </chapter>'''
     }
 
+    def rendersDeprecatedAndIncubatingMethods() {
+        def content = parse('''
+            <chapter>
+                <section><title>Methods</title>
+                    <table>
+                        <thead><tr><td>Name</td></tr></thead>
+                        <tr><td>deprecated</td></tr>
+                        <tr><td>incubating</td></tr>
+                    </table>
+                </section>
+            </chapter>
+        ''')
+
+        ClassDoc classDoc = classDoc('Class', content: content)
+        MethodDoc method1 = methodDoc('deprecated', id: 'method1Id', returnType: 'ReturnType1', description: 'method description', comment: 'method comment', deprecated: true)
+        MethodDoc method2 = methodDoc('incubating', id: 'method2Id', returnType: 'ReturnType2', description: 'overloaded description', comment: 'overloaded comment', paramTypes: ['ParamType'], incubating: true)
+        _ * classDoc.classMethods >> [method1, method2]
+        _ * classDoc.classExtensions >> []
+
+        when:
+        def result = parse('<chapter/>', document)
+        withCategories {
+            renderer.mergeMethods(classDoc, result)
+        }
+
+        then:
+        formatTree(result) == '''<chapter>
+    <section>
+        <title>Methods</title>
+        <table>
+            <title>Methods - Class</title>
+            <thead>
+                <tr>
+                    <td>Method</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal><link linkend="method1Id">deprecated</link>()</literal>
+                </td>
+                <td>
+                    <caution>Deprecated</caution>
+                    <para>method description</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal><link linkend="method2Id">incubating</link>(p)</literal>
+                </td>
+                <td>
+                    <caution>Incubating</caution>
+                    <para>overloaded description</para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Method details</title>
+        <section id="method1Id" role="detail">
+            <title><classname>ReturnType1</classname> <literal>deprecated</literal>()</title>
+            <caution>
+                <para>Note: This method is <ulink url="../userguide/feature_lifecycle.html">deprecated</ulink> and will be removed in the next major version of Gradle.</para>
+            </caution>
+            <para>method comment</para>
+        </section>
+        <section id="method2Id" role="detail">
+            <title><classname>ReturnType2</classname> <literal>incubating</literal>(<classname>ParamType</classname> p)</title>
+            <caution>
+                <para>Note: This method is <ulink url="../userguide/feature_lifecycle.html">incubating</ulink> and may change in a future version of Gradle.</para>
+            </caution>
+            <para>overloaded comment</para>
+        </section>
+    </section>
+</chapter>'''
+    }
+
     def mergesExtensionMethodMetaDataIntoMethodsSection() {
         def content = parse('''
             <chapter>
@@ -391,41 +495,48 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc targetClassDoc = classDoc('Class', content: content)
         ClassExtensionDoc extensionDoc = extensionDoc('thingo')
         MethodDoc methodDoc = methodDoc('methodName', id: 'methodId')
+        _ * targetClassDoc.classMethods >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
         _ * extensionDoc.extensionMethods >> [methodDoc]
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeExtensionMethods(targetClassDoc, result, result)
+            renderer.mergeMethods(targetClassDoc, result)
         }
 
         then:
         formatTree(result) == '''<chapter>
     <section>
-        <title>Methods added by the <literal>thingo</literal> plugin</title>
-        <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
-        <table>
-            <title>Methods - <literal>thingo</literal> plugin</title>
-            <thead>
+        <title>Methods</title>
+        <section>
+            <title>Methods added by the <literal>thingo</literal> plugin</title>
+            <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
+            <table>
+                <title>Methods - <literal>thingo</literal> plugin</title>
+                <thead>
+                    <tr>
+                        <td>Method</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
                 <tr>
-                    <td>Method</td>
-                    <td>Description</td>
+                    <td>
+                        <literal><link linkend="methodId">methodName</link>()</literal>
+                    </td>
+                    <td>
+                        <para>description</para>
+                    </td>
                 </tr>
-            </thead>
-            <tr>
-                <td>
-                    <literal><link linkend="methodId">methodName</link>()</literal>
-                </td>
-                <td>
-                    <para>description</para>
-                </td>
-            </tr>
-        </table>
+            </table>
+        </section>
     </section>
-    <section id="methodId" role="detail">
-        <title><classname>ReturnType</classname> <literal>methodName</literal>()</title>
-        <para>comment</para>
+    <section>
+        <title>Method details</title>
+        <section id="methodId" role="detail">
+            <title><classname>ReturnType</classname> <literal>methodName</literal>()</title>
+            <para>comment</para>
+        </section>
     </section>
 </chapter>'''
     }
@@ -439,8 +550,10 @@ class ClassDocRendererTest extends XmlSpecification {
             </chapter>
         ''')
         ClassDoc classDoc = classDoc('Class', content: content)
-        BlockDoc block = blockDoc('block', id: 'blockId', description: 'block description', comment: 'block comment', type: 'org.gradle.Type')
-        _ * classDoc.classBlocks >> [block]
+        BlockDoc block1 = blockDoc('block1', id: 'block1', description: 'block1 description', comment: 'block1 comment', type: 'org.gradle.Type')
+        BlockDoc block2 = blockDoc('block2', id: 'block2', description: 'block2 description', comment: 'block2 comment', type: 'org.gradle.Type', multivalued: true)
+        _ * classDoc.classBlocks >> [block1, block2]
+        _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -462,26 +575,47 @@ class ClassDocRendererTest extends XmlSpecification {
             </thead>
             <tr>
                 <td>
-                    <link linkend="blockId">
-                        <literal>block</literal>
+                    <link linkend="block1">
+                        <literal>block1</literal>
                     </link>
                 </td>
                 <td>
-                    <para>block description</para>
+                    <para>block1 description</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="block2">
+                        <literal>block2</literal>
+                    </link>
+                </td>
+                <td>
+                    <para>block2 description</para>
                 </td>
             </tr>
         </table>
     </section>
     <section>
         <title>Script block details</title>
-        <section id="blockId" role="detail">
-            <title><literal>block</literal> { }</title>
-            <para>block comment</para>
+        <section id="block1" role="detail">
+            <title><literal>block1</literal> { }</title>
+            <para>block1 comment</para>
             <segmentedlist>
                 <segtitle>Delegates to</segtitle>
                 <seglistitem>
-                    <seg><classname>org.gradle.Type</classname> from <link linkend="block">
-                            <literal>block</literal></link></seg>
+                    <seg><classname>org.gradle.Type</classname> from <link linkend="block1">
+                            <literal>block1</literal></link></seg>
+                </seglistitem>
+            </segmentedlist>
+        </section>
+        <section id="block2" role="detail">
+            <title><literal>block2</literal> { }</title>
+            <para>block2 comment</para>
+            <segmentedlist>
+                <segtitle>Delegates to</segtitle>
+                <seglistitem>
+                    <seg>Each <classname>org.gradle.Type</classname> in <link linkend="block2">
+                            <literal>block2</literal></link></seg>
                 </seglistitem>
             </segmentedlist>
         </section>
@@ -502,50 +636,57 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc targetClassDoc = classDoc('Class', content: content)
         ClassExtensionDoc extensionDoc = extensionDoc('thingo')
         BlockDoc blockDoc = blockDoc('blockName', id: 'blockId')
+        _ * targetClassDoc.classBlocks >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
         _ * extensionDoc.extensionBlocks >> [blockDoc]
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeExtensionBlocks(targetClassDoc, result, result)
+            renderer.mergeBlocks(targetClassDoc, result)
         }
 
         then:
         formatTree(result) == '''<chapter>
     <section>
-        <title>Script blocks added by the <literal>thingo</literal> plugin</title>
-        <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
-        <table>
-            <title>Script blocks - <literal>thingo</literal> plugin</title>
-            <thead>
+        <title>Script blocks</title>
+        <section>
+            <title>Script blocks added by the <literal>thingo</literal> plugin</title>
+            <titleabbrev><literal>thingo</literal> plugin</titleabbrev>
+            <table>
+                <title>Script blocks - <literal>thingo</literal> plugin</title>
+                <thead>
+                    <tr>
+                        <td>Block</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
                 <tr>
-                    <td>Block</td>
-                    <td>Description</td>
+                    <td>
+                        <link linkend="blockId">
+                            <literal>blockName</literal>
+                        </link>
+                    </td>
+                    <td>
+                        <para>description</para>
+                    </td>
                 </tr>
-            </thead>
-            <tr>
-                <td>
-                    <link linkend="blockId">
-                        <literal>blockName</literal>
-                    </link>
-                </td>
-                <td>
-                    <para>description</para>
-                </td>
-            </tr>
-        </table>
+            </table>
+        </section>
     </section>
-    <section id="blockId" role="detail">
-        <title><literal>blockName</literal> { }</title>
-        <para>comment</para>
-        <segmentedlist>
-            <segtitle>Delegates to</segtitle>
-            <seglistitem>
-                <seg><classname>BlockType</classname> from <link linkend="blockName">
-                        <literal>blockName</literal></link></seg>
-            </seglistitem>
-        </segmentedlist>
+    <section>
+        <title>Script block details</title>
+        <section id="blockId" role="detail">
+            <title><literal>blockName</literal> { }</title>
+            <para>comment</para>
+            <segmentedlist>
+                <segtitle>Delegates to</segtitle>
+                <seglistitem>
+                    <seg><classname>BlockType</classname> from <link linkend="blockName">
+                            <literal>blockName</literal></link></seg>
+                </seglistitem>
+            </segmentedlist>
+        </section>
     </section>
 </chapter>'''
     }
@@ -597,7 +738,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * propDoc.comment >> [parse("<para>${args.comment ?: 'comment'}</para>")]
         _ * propDoc.metaData >> propMetaData
         _ * propDoc.deprecated >> (args.deprecated ?: false)
-        _ * propDoc.experimental >> (args.experimental ?: false)
+        _ * propDoc.incubating >> (args.incubating ?: false)
         _ * propDoc.additionalValues >> (args.attributes ?: [])
         _ * propMetaData.type >> new TypeMetaData(args.type ?: 'SomeType')
         return propDoc
@@ -611,6 +752,8 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * methodDoc.description >> parse("<para>${args.description ?: 'description'}</para>")
         _ * methodDoc.comment >> [parse("<para>${args.comment ?: 'comment'}</para>")]
         _ * methodDoc.metaData >> metaData
+        _ * methodDoc.deprecated >> (args.deprecated ?: false)
+        _ * methodDoc.incubating >> (args.incubating ?: false)
         _ * metaData.returnType >> new TypeMetaData(args.returnType ?: 'ReturnType')
         def paramTypes = args.paramTypes ?: []
         _ * metaData.parameters >> paramTypes.collect {
@@ -630,6 +773,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * blockDoc.comment >> [parse("<para>${args.comment ?: 'comment'}</para>")]
         _ * blockDoc.type >> new TypeMetaData(args.type ?: 'BlockType')
         _ * blockDoc.blockProperty >> blockPropDoc
+        _ * blockDoc.multiValued >> (args.multivalued ?: false)
         blockDoc
     }
 

@@ -16,15 +16,14 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.SystemProperties
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.Test
 
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
@@ -44,9 +43,11 @@ class WaterProjectIntegrationTest {
     final static String KRILL_NAME = 'krill'
     final static String PHYTOPLANKTON_NAME = 'phytoplankton'
 
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample(WATER_NAME)
+    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
+    private final GradleDistribution dist = new UnderDevelopmentGradleDistribution();
+    private final GradleExecuter executer = new GradleContextualExecuter(dist, temporaryFolder);
+
+    @Rule public final Sample sample = new Sample(temporaryFolder, WATER_NAME)
 
     @Test
     public void waterProject() {

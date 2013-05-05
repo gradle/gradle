@@ -19,6 +19,7 @@ package org.gradle.initialization
 import groovy.mock.interceptor.MockFor
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
@@ -37,7 +38,7 @@ class ScriptEvaluatingSettingsProcessorTest {
     DefaultSettingsFinder expectedSettingsFinder
     SettingsFactory settingsFactory
     StartParameter expectedStartParameter
-    DefaultSettings expectedSettings
+    SettingsInternal expectedSettings
     MockFor settingsFactoryMocker
     ScriptSource scriptSourceMock
     IGradlePropertiesLoader propertiesLoaderMock
@@ -65,12 +66,7 @@ class ScriptEvaluatingSettingsProcessorTest {
     }
 
     private void initExpectedSettings() {
-        expectedSettings = new DefaultSettings()
-        DefaultProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-        expectedSettings.setRootProjectDescriptor(new DefaultProjectDescriptor(null, TEST_ROOT_DIR.name,
-                TEST_ROOT_DIR, projectDescriptorRegistry))
-        expectedSettings.setProjectDescriptorRegistry(projectDescriptorRegistry)
-        expectedSettings.setStartParameter(expectedStartParameter)
+        expectedSettings = context.mock(SettingsInternal.class)
         context.checking {
             one(settingsFactory).createSettings(gradleMock, TEST_ROOT_DIR, scriptSourceMock, expectedGradleProperties, expectedStartParameter, urlClassLoader)
             will(returnValue(expectedSettings))

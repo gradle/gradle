@@ -16,8 +16,8 @@
 
 package org.gradle.launcher.cli
 
-import spock.lang.Specification
 import org.gradle.cli.CommandLineParser
+import spock.lang.Specification
 
 class GuiActionsFactoryTest extends Specification {
     final GuiActionsFactory factory = new GuiActionsFactory()
@@ -30,8 +30,8 @@ class GuiActionsFactoryTest extends Specification {
         def action = factory.createAction(parser, cl)
 
         then:
-        action instanceof ActionAdapter
-        action.action instanceof GuiActionsFactory.ShowGuiAction
+        // Relying on impl of Actions.toAction(Runnable)
+        action.runnable instanceof GuiActionsFactory.ShowGuiAction
     }
 
 }

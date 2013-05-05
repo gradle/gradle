@@ -21,5 +21,5 @@ public interface ArtifactResolver {
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    ArtifactResolveResult resolve(Artifact artifact);
+    void resolve(Artifact artifact, BuildableArtifactResolveResult result);
 }

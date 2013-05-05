@@ -24,10 +24,10 @@ import java.util.Collection;
  * deployment, including snapshot deployment and metadata.xml manipulation.</p>
  *
  * <p>You have to specify at least one repository. Otherwise, if there is only one artifact, usually there is not more
- * to do. If there is more than one artifact you have to decide what to do about this, as a Maven pom can only deal with
+ * to do. If there is more than one artifact you have to decide what to do about this, as a Maven POM can only deal with
  * one artifact. There are two strategies. If you want to deploy only one artifact you have to specify a filter to
  * select this artifact. If you want to deploy more than one artifact, you have to specify filters which select each
- * artifact. Associated with each filter is a separate configurable pom.</p>
+ * artifact. Associated with each filter is a separate configurable POM.</p>
  *
  * <p>You can create an instance of this type via the {@link org.gradle.api.tasks.Upload#getRepositories()}
  * container</p>

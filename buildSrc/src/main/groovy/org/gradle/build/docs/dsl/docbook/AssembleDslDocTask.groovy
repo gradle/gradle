@@ -62,7 +62,7 @@ class AssembleDslDocTask extends DefaultTask {
     @InputFile
     File pluginsMetaDataFile
     @InputDirectory
-    File classDocbookDir //TODO SF - it would be nice to do some renames, docbookTemplatesDir, destLinksFile
+    File classDocbookDir
     @OutputFile
     File destFile
     @OutputFile

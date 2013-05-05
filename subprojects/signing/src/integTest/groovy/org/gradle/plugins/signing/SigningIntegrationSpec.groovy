@@ -18,11 +18,12 @@ package org.gradle.plugins.signing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+
 import static org.gradle.util.TextUtil.escapeString
 
 abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     
-    @Rule public final TestResources resources = new TestResources("keys")
+    @Rule public final TestResources resources = new TestResources(temporaryFolder, "keys")
 
     String jarFileName = "sign-1.0.jar"
 

@@ -16,24 +16,24 @@
 
 package org.gradle.integtests.samples
 
-import java.util.jar.Manifest
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
+
+import java.util.jar.Manifest
+
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter
  */
-class SamplesJavaQuickstartIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('java/quickstart')
+class SamplesJavaQuickstartIntegrationTest extends  AbstractIntegrationTest {
+
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/quickstart')
 
     @Test
     public void canBuildAndUploadJar() {
@@ -43,7 +43,7 @@ class SamplesJavaQuickstartIntegrationTest {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
 
         // Check tests have run
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(javaprojectDir)
+        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(javaprojectDir)
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check jar exists
@@ -53,7 +53,7 @@ class SamplesJavaQuickstartIntegrationTest {
         javaprojectDir.file('repos/quickstart-1.0.jar').assertIsFile()
 
         // Check contents of Jar
-        TestFile jarContents = dist.testDir.file('jar')
+        TestFile jarContents = file('jar')
         javaprojectDir.file('repos/quickstart-1.0.jar').unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

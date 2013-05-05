@@ -90,4 +90,5 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
     public void setFile(File file) {
         this.file = file;
     }
+
 }

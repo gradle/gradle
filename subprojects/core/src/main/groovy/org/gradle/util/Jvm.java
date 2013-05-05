@@ -31,7 +31,7 @@ public class Jvm implements JavaInfo {
     }
 
     public static Jvm current() {
-        DeprecationLogger.nagUserWith("The class org.gradle.util.Jvm has been deprecated and will be removed in the next version of Gradle.");
+        DeprecationLogger.nagUserOfDeprecated("The class org.gradle.util.Jvm");
         return new Jvm(org.gradle.internal.jvm.Jvm.current());
     }
 
@@ -81,10 +81,6 @@ public class Jvm implements JavaInfo {
 
     public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
         return jvm.getInheritableEnvironmentVariables(envVars);
-    }
-
-    public boolean getSupportsAppleScript() {
-        return jvm.getSupportsAppleScript();
     }
 
     public boolean isIbmJvm() {

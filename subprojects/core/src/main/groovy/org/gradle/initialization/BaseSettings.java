@@ -21,7 +21,12 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.AbstractPluginAware;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
@@ -30,7 +35,7 @@ import java.net.URLClassLoader;
 /**
  * @author Hans Dockter
  */
-public class BaseSettings implements SettingsInternal {
+public class BaseSettings extends AbstractPluginAware implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
 
     private ScriptSource settingsScript;
@@ -44,21 +49,30 @@ public class BaseSettings implements SettingsInternal {
     private DefaultProjectDescriptor rootProjectDescriptor;
 
     private GradleInternal gradle;
-    private IProjectDescriptorRegistry projectDescriptorRegistry;
 
-    protected BaseSettings() {
-    }
+    private ProjectDescriptorRegistry projectDescriptorRegistry;
 
-    public BaseSettings(GradleInternal gradle,
-                        IProjectDescriptorRegistry projectDescriptorRegistry,
+    private  ServiceRegistryFactory services;
+
+    private PluginContainer plugins;
+
+    private FileResolver fileResolver;
+
+    private ScriptPluginFactory scriptPluginFactory;
+
+    public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                         URLClassLoader classloader, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
         this.gradle = gradle;
-        this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
         this.classloader = classloader;
+        this.services = serviceRegistryFactory.createFor(this);
+        this.plugins = services.get(PluginContainer.class);
+        this.fileResolver = services.get(FileResolver.class);
+        this.scriptPluginFactory = services.get(ScriptPluginFactory.class);
+        this.projectDescriptorRegistry = services.get(ProjectDescriptorRegistry.class);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }
 
@@ -174,15 +188,30 @@ public class BaseSettings implements SettingsInternal {
         this.settingsScript = settingsScript;
     }
 
-    public IProjectDescriptorRegistry getProjectDescriptorRegistry() {
+    public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
         return projectDescriptorRegistry;
     }
 
-    public void setProjectDescriptorRegistry(IProjectDescriptorRegistry projectDescriptorRegistry) {
+    public void setProjectDescriptorRegistry(ProjectDescriptorRegistry projectDescriptorRegistry) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
 
-    public IProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
+    public ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
         return projectDescriptorRegistry;
+    }
+
+    public PluginContainer getPlugins() {
+        return plugins;
+    }
+
+
+    @Override
+    protected FileResolver getFileResolver() {
+        return fileResolver;
+    }
+
+    @Override
+    protected ScriptPluginFactory getScriptPluginFactory() {
+        return scriptPluginFactory;
     }
 }

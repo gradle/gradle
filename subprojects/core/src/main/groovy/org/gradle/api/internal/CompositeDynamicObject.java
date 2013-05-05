@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -83,7 +84,9 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
                 try {
                     return object.getProperty(name);
                 } catch (MissingPropertyException e) {
-                    // ignore
+                    if (e.getProperty() == null || !e.getProperty().equals(name)) {
+                        throw e;
+                    }
                 }
             }
         }
@@ -106,7 +109,9 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
                     object.setProperty(name, value);
                     return;
                 } catch (MissingPropertyException e) {
-                    // ignore
+                    if (e.getProperty() == null || !e.getProperty().equals(name)) {
+                        throw e;
+                    }
                 }
             }
         }
@@ -157,7 +162,9 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
                 try {
                     return object.invokeMethod(name, arguments);
                 } catch (MissingMethodException e) {
-                    // ignore
+                    if (e.isStatic() || !e.getMethod().equals(name) || !Arrays.equals(e.getArguments(), arguments)) {
+                        throw e;
+                    }
                 }
             }
         }

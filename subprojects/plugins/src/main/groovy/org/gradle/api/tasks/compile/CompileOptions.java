@@ -16,17 +16,15 @@
 
 package org.gradle.api.tasks.compile;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
  * Main options for Java compilation.
@@ -35,6 +33,9 @@ import java.util.concurrent.Callable;
  */
 public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
+
+    private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
+            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "dependOptions", "useDepend", "useAnt");
 
     private boolean failOnError = true;
 
@@ -174,7 +175,10 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
      * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public boolean isOptimize() {
         return optimize;
     }
@@ -182,9 +186,12 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
      * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
+     *
+     * @deprecated No replacement
      */
     // @Input not recognized if there is only an "is" method
     @Input
+    @Deprecated
     public boolean getOptimize() {
         return optimize;
     }
@@ -192,14 +199,18 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Sets whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
      * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public void setOptimize(boolean optimize) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.optimize", "There is no replacement for this property.");
         this.optimize = optimize;
     }
 
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
-     * to {@code true}. See {@link DebugOptions#debugLevel} for which debugging information will be generated.
+     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     public boolean isDebug() {
         return debug;
@@ -207,7 +218,7 @@ public class CompileOptions extends AbstractOptions {
 
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
-     * to {@code true}. See {@link DebugOptions#debugLevel} for which debugging information will be generated.
+     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     // @Input not recognized if there is only an "is" method
     @Input
@@ -217,7 +228,7 @@ public class CompileOptions extends AbstractOptions {
 
     /**
      * Sets whether to include debugging information in the generated class files. Defaults
-     * to {@code true}. See {@link DebugOptions#debugLevel} for which debugging information will be generated.
+     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     public void setDebug(boolean debug) {
         this.debug = debug;
@@ -329,7 +340,10 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
      * {@code useAnt} is {@code true}. Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public boolean isIncludeJavaRuntime() {
         return includeJavaRuntime;
     }
@@ -337,9 +351,12 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
      * {@code useAnt} is {@code true}. Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
     // @Input not recognized if there is only an "is" method
     @Input
+    @Deprecated
     public boolean getIncludeJavaRuntime() {
         return includeJavaRuntime;
     }
@@ -347,8 +364,12 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Sets whether the Java runtime should be put on the compile class path. Only takes effect if
      * {@code useAnt} is {@code true}. Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public void setIncludeJavaRuntime(boolean includeJavaRuntime) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.includeJavaRuntime", "There is no replacement for this property.");
         this.includeJavaRuntime = includeJavaRuntime;
     }
 
@@ -408,7 +429,10 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to use the Ant javac task over Gradle's own Java compiler integration.
      * Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public boolean isUseAnt() {
         return useAnt;
     }
@@ -416,8 +440,12 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Sets whether to use the Ant javac task over Gradle's own Java compiler integration.
      * Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public void setUseAnt(boolean useAnt) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.useAnt", "There is no replacement for this property.");
         this.useAnt = useAnt;
     }
 
@@ -454,36 +482,35 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Internal method.
      */
-    protected List<String> excludedFieldsFromOptionMap() {
-        return Arrays.asList("debugOptions", "forkOptions", "compilerArgs", "dependOptions", "useDepend", "useAnt");
-    }
-
-    /**
-     * Internal method.
-     */
-    protected Map<String, String> fieldName2AntMap() {
-        return ImmutableMap.of("warnings", "nowarn", "bootClasspath", "bootclasspath", "extensionDirs", "extdirs", "failOnError", "failonerror", "listFiles", "listfiles");
-    }
-
-    /**
-     * Internal method.
-     */
-    protected Map<String, ? extends Callable<Object>> fieldValue2AntMap() {
-        return ImmutableMap.of("warnings", new Callable<Object>() {
-            public Object call() {
-                return !warnings;
-            }
-        });
-    }
-
-    /**
-     * Internal method.
-     */
     public Map<String, Object> optionMap() {
         Map<String, Object> map = super.optionMap();
         map.putAll(debugOptions.optionMap());
         map.putAll(forkOptions.optionMap());
         return map;
+    }
+
+    @Override
+    protected boolean excludeFromAntProperties(String fieldName) {
+        return EXCLUDE_FROM_ANT_PROPERTIES.contains(fieldName);
+    }
+
+    @Override
+    protected String getAntPropertyName(String fieldName) {
+        if (fieldName.equals("warnings")) {
+            return "nowarn";
+        }
+        if (fieldName.equals("extensionDirs")) {
+            return "extdirs";
+        }
+        return fieldName;
+    }
+
+    @Override
+    protected Object getAntPropertyValue(String fieldName, Object value) {
+        if (fieldName.equals("warnings")) {
+            return !warnings;
+        }
+        return value;
     }
 }
 

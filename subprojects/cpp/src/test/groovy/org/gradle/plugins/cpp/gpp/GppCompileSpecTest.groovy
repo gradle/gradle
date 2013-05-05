@@ -19,10 +19,10 @@ package org.gradle.plugins.cpp.gpp
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.plugins.binaries.model.internal.DefaultBinary
-import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 import org.gradle.plugins.binaries.model.internal.CompileSpecFactory
+import org.gradle.plugins.cpp.CppCompile
 
 class GppCompileSpecTest extends Specification {
     final ProjectInternal project = HelperUtil.createRootProject()
@@ -31,7 +31,7 @@ class GppCompileSpecTest extends Specification {
         given:
         def binary = new DefaultBinary("binary", project, Mock(CompileSpecFactory))
         def spec = new GppCompileSpec(binary, Mock(Compiler), project)
-        def compileTask = project.tasks.add("compile", Compile)
+        def compileTask = project.tasks.create("compile", CppCompile)
         spec.configure(compileTask)
 
         expect:

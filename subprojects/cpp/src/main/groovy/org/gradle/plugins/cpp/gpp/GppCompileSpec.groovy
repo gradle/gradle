@@ -24,20 +24,20 @@ import org.gradle.plugins.binaries.model.Binary
 import org.gradle.plugins.binaries.model.CompileSpec
 import org.gradle.plugins.binaries.model.Library
 import org.gradle.plugins.binaries.model.internal.CompileTaskAware
-import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.plugins.cpp.CppSourceSet
 import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
 import org.gradle.plugins.cpp.internal.CppCompileSpec
 import org.gradle.util.DeprecationLogger
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.Task
+
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.internal.tasks.DefaultTaskDependency
+import org.gradle.plugins.cpp.CppCompile
 
 class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
     Binary binary
 
-    Compile task
+    private CppCompile task
     List<Closure> settings = []
 
     String outputFileName
@@ -58,7 +58,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
         source = project.files()
     }
 
-    void configure(Compile task) {
+    void configure(CppCompile task) {
         this.task = task
         task.spec = this
         task.compiler = compiler
@@ -92,24 +92,6 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
 
     Iterable<File> getSource() {
         return source
-    }
-
-    /**
-     * @deprecated No replacement
-     */
-    @Deprecated
-    Compile getTask() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.getTask()")
-        return task
-    }
-
-    /**
-     * @deprecated No replacement
-     */
-    @Deprecated
-    void setTask(Compile task) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.setTask()")
-        this.task = task
     }
 
     /**
@@ -188,7 +170,9 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     }
 
     void includes(Iterable<File> includeRoots) {
-        includeRoots.each { task.inputs.dir(it) }
+        for (File includeRoot in includeRoots) {
+            task.inputs.dir(includeRoot)
+        }
         includes.from(includeRoots)
     }
 

@@ -23,7 +23,6 @@ import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.idea.*;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -38,7 +37,6 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     private List<? extends IdeaContentRoot> contentRoots = new LinkedList<IdeaContentRoot>();
     private IdeaProject parent;
 
-    private File moduleFileDir;
     private List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
     private GradleProject gradleProject;
 
@@ -72,15 +70,6 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 
     public DefaultIdeaModule setParent(IdeaProject parent) {
         this.parent = parent;
-        return this;
-    }
-
-    public File getModuleFileDir() {
-        return moduleFileDir;
-    }
-
-    public DefaultIdeaModule setModuleFileDir(File moduleFileDir) {
-        this.moduleFileDir = moduleFileDir;
         return this;
     }
 
@@ -130,7 +119,6 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
                 + ", gradleProject='" + gradleProject + '\''
                 + ", contentRoots=" + contentRoots
                 + ", compilerOutput=" + compilerOutput
-                + ", moduleFileDir=" + moduleFileDir
                 + ", dependencies count=" + dependencies.size()
                 + '}';
     }

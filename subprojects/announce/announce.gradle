@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 dependencies {
-    groovy libraries.groovy
-
+    compile libraries.groovy
     compile libraries.slf4j_api
     compile project(':core')
-    compile project(':plugins')
+    integTestRuntime project(':plugins')
 }
 
 if (!javaVersion.java6Compatible) {

@@ -18,18 +18,18 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
 // can make assumptions about order in which test methods of TestNGTest get executed
 // because the methods are chained with 'methodDependsOn'
 class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resources
+    @Rule TestResources resources = new TestResources(temporaryFolder)
     ExecutionResult result
 
     def setup() {
-        executer.setAllowExtraLogging(false).withStackTraceChecksDisabled().withTasks("test")
+        executer.noExtraLogging().withStackTraceChecksDisabled().withTasks("test")
     }
 
     def "defaultLifecycleLogging"() {

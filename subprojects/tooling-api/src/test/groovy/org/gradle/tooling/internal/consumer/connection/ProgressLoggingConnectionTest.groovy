@@ -20,7 +20,6 @@ import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.LoggingProvider
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1
 import spock.lang.Specification
 
@@ -38,36 +37,16 @@ class ProgressLoggingConnectionTest extends Specification {
 
     def notifiesProgressListenerOfStartAndEndOfFetchingModel() {
         when:
-        connection.getModel(SomeModel, params)
+        connection.run(SomeModel, params)
 
         then:
         1 * loggingProvider.getListenerManager() >> listenerManager
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * listenerManager.addListener(!null)
         1 * progressLoggerFactory.newOperation(ProgressLoggingConnection.class) >> progressLogger
-        1 * progressLogger.setDescription('Load projects')
+        1 * progressLogger.setDescription('Build')
         1 * progressLogger.started()
-        1 * target.getModel(SomeModel, params)
-        1 * progressLogger.completed()
-        1 * listenerManager.removeListener(!null)
-        _ * params.progressListener >> listener
-        0 * _._
-    }
-
-    def notifiesProgressListenerOfStartAndEndOfExecutingBuild() {
-        BuildParametersVersion1 buildParams = Mock()
-
-        when:
-        connection.executeBuild(buildParams, params)
-
-        then:
-        1 * loggingProvider.getListenerManager() >> listenerManager
-        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * listenerManager.addListener(!null)
-        1 * progressLoggerFactory.newOperation(ProgressLoggingConnection.class) >> progressLogger
-        1 * progressLogger.setDescription('Execute build')
-        1 * progressLogger.started()
-        1 * target.executeBuild(buildParams, params)
+        1 * target.run(SomeModel, params)
         1 * progressLogger.completed()
         1 * listenerManager.removeListener(!null)
         _ * params.progressListener >> listener

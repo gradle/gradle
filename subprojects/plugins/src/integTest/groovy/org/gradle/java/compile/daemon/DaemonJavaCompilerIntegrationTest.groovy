@@ -19,12 +19,7 @@ import org.gradle.java.compile.JavaCompilerIntegrationSpec
 
 class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
     def compilerConfiguration() {
-        '''
-compileJava.options.with {
-    useAnt = false
-    fork = true
-}
-'''
+        "tasks.withType(JavaCompile) { options.fork = true }"
     }
 
     def logStatement() {

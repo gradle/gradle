@@ -20,40 +20,15 @@ import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.util.hash.HashValue;
 
-import java.io.File;
 import java.util.Date;
 
 /**
  * A record of some kind of external resource that has been cached locally (typically into the filestore).
  *
- * Note that this is not a kind of {@link org.gradle.api.internal.externalresource.ExternalResource}. There is
- * an adapter that can represent a cached resource as an external resource as {@link CachedExternalResourceAdapter}.
+ * Note that this is not a kind of {@link org.gradle.api.internal.externalresource.ExternalResource}. There is an adapter that can represent a cached resource as an external resource as {@link
+ * CachedExternalResourceAdapter}.
  */
-public interface CachedExternalResource {
-
-    /**
-     * True if this cache entry represents that the resource does not exist.
-     *
-     * For a missing resource, all of the values will be null or similar “non” values.
-     *
-     * @return Whether this is a “missing” entry or not.
-     */
-    boolean isMissing();
-
-    /**
-     * The cached version of the external resource as a local file.
-     *
-     * @return The cached version of the external resource as a local file, or null if this {@link #isMissing()}.
-     */
-    @Nullable
-    File getCachedFile();
-
-    /**
-     * The timestamp of when this cache entry was created.
-     *
-     * @return The timestamp of when this cache entry was created.
-     */
-    long getCachedAt();
+public interface CachedExternalResource extends CachedItem {
 
     /**
      * Always the actual content length of the cached file, not the external source.

@@ -21,9 +21,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -46,7 +46,7 @@ import static org.junit.Assert.assertThat;
 public class DefaultConfigurableFileCollectionTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final FileResolver resolverMock = context.mock(FileResolver.class);
     private final TaskResolver taskResolverStub = context.mock(TaskResolver.class);
     private final DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock,

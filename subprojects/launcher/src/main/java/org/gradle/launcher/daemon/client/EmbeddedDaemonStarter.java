@@ -63,5 +63,5 @@ class EmbeddedDaemonStarter implements DaemonStarter, Stoppable {
             daemonsLock.unlock();
         }
 
-        new CompositeStoppable(daemonsToStop).stop();
+        CompositeStoppable.stoppable(daemonsToStop).stop();
     }}

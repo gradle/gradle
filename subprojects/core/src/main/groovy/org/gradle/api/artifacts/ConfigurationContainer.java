@@ -16,8 +16,10 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
+
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.internal.HasInternalProtocol;
 
 /**
  * <p>A {@code ConfigurationContainer} is responsible for declaring and managing configurations. See also {@link Configuration}.</p>
@@ -81,6 +83,7 @@ import org.gradle.api.NamedDomainObjectContainer;
  *
  * @author Hans Dockter
  */
+@HasInternalProtocol
 public interface ConfigurationContainer extends NamedDomainObjectContainer<Configuration> {
     /**
      * {@inheritDoc}
@@ -103,7 +106,9 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * @param name The name of the new configuration.
      * @return The newly added configuration.
      * @throws InvalidUserDataException when a configuration with the given name already exists in this container.
+     * @deprecated use {@link #create(String)} instead
      */
+    @Deprecated
     Configuration add(String name) throws InvalidUserDataException;
 
     /**
@@ -114,7 +119,9 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * @param configureClosure The closure to use to configure the configuration.
      * @return The newly added configuration.
      * @throws InvalidUserDataException when a configuration with the given name already exists in this container.
+     * @deprecated use {@link #create(String, groovy.lang.Closure)} instead
      */
+    @Deprecated
     Configuration add(String name, Closure configureClosure) throws InvalidUserDataException;
 
     /**

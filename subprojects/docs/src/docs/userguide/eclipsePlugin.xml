@@ -44,7 +44,7 @@
             <td><link linkend="groovy_plugin">Groovy</link></td><td>Adds Groovy configuration to <filename>.project</filename> file.</td>
         </tr>
         <tr>
-                <td><link linkend="scala_plugin">Scala</link></td><td>Adds Scala support to <filename>.project</filename> file.</td>
+            <td><link linkend="scala_plugin">Scala</link></td><td>Adds Scala support to <filename>.project</filename> and <filename>.classpath</filename> files.</td>
         </tr>
         <tr>
             <td><link linkend="war_plugin">War</link></td><td>Adds web application support to <filename>.project</filename> file.
@@ -301,7 +301,7 @@
                     <listitem>The <code>beforeMerged</code> hook is executed with a domain object representing the existing file</listitem>
                     <listitem>The existing content is merged with the configuration inferred from the Gradle build or defined explicitly in the eclipse DSL</listitem>
                     <listitem>The <code>whenMerged</code> hook is executed with a domain object representing contents of the file to be persisted</listitem>
-                    <listitem>The <code>withXml</code> hook is executed with a raw representation of the xml that will be persisted</listitem>
+                    <listitem>The <code>withXml</code> hook is executed with a raw representation of the XML that will be persisted</listitem>
                     <listitem>The final XML is persisted</listitem>
                 </orderedlist>
                 The following table lists the domain object used for each of the Eclipse model types:

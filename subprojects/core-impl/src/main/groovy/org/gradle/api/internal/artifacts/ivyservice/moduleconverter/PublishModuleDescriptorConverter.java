@@ -41,7 +41,7 @@ public class PublishModuleDescriptorConverter implements ModuleDescriptorConvert
     }
 
     public ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module) {
-        DefaultModuleDescriptor moduleDescriptor = (DefaultModuleDescriptor) resolveModuleDescriptorConverter
+         DefaultModuleDescriptor moduleDescriptor = (DefaultModuleDescriptor) resolveModuleDescriptorConverter
                 .convert(configurations, module);
         moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);
         artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor, configurations);

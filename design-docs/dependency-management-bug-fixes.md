@@ -3,7 +3,105 @@ This feature is really a bucket for key things we want to fix in the short-term 
 
 As this 'feature' is a list of bug fixes, this feature spec will not follow the usual template.
 
-## Inform the user about why a module is considered broken
+# Conflict resolution considers conflicts on production classes
+
+See [this post](http://forums.gradle.org/gradle/topics/npe_in_dependencygraphbuilder_dependencyedge_getfailure)
+See [GRADLE-2752](http://issues.gradle.org/browse/GRADLE-2752)
+
+- Allow self-resolving dependencies to imply zero or more module versions.
+- Change the resolution algorithm to consider this during conflict resolution. Self-resolving dependencies cannot be evicted and must
+  always be selected. Assert that the self-resolving dependency is compatible-with the requested version. Fail resolution if not.
+- Change the Java plugin to attach current project's identifier to the main and test classes.
+    - To infer the identifier of the current project.
+        - Identifier of any publication.
+        - Project (group, name, version).
+        - Maven deployer.
+        - Project (group, archivesBaseName, version).
+- Change the resolution algorithm so that the root node is not considered by conflict resolution.
+
+TBD - A later story should travel back from each publication to determine if the main or test binary is included in the publication.
+Use this publication's identifier if so.
+
+# Conflict resolution considers local dependencies
+
+See [GRADLE-2516](http://issues.gradle.org/browse/GRADLE-2516)
+
+- Change the local dependencies (eg `gradleApi()`, `localGroovy()`) to imply the various modules that they contribute to the result.
+
+# Lastest status dynamic versions work across multiple repositories
+
+See [GRADLE-2502](http://issues.gradle.org/browse/GRADLE-2502)
+
+### Test coverage
+
+1. Using `latest.integration`
+    1. Empty repository fails with not found.
+    2. Publish `1.0` and `1.1` with status `integration`. Resolves to `1.1`.
+    3. Publish `1.2` with status `release`. Resolves to `1.2`
+    4. Publish `1.3` with no ivy.xml. Resolves to `1.3`.
+2. Using `latest.milestone`
+    1. Empty repository fails with not found.
+    2. Publish `2.0` with no ivy.xml. Fails with not found.
+    3. Publish `1.3` with status `integration`. Fails with not found.
+    4. Publish `1.0` and `1.1` with ivy.xml and status `milestone`. Resolves to `1.1`.
+    5. Publish `1.2` with status `release`. Resolves to `1.2`
+3. Using `latest.release`
+    1. Empty repository fails with not found.
+    2. Publish `2.0` with no ivy.xml. Fails with not found.
+    3. Publish `1.3` with status `milestone`. Fails with not found.
+    4. Publish `1.0` and `1.1` with ivy.xml and status `release`. Resolves to `1.1`.
+4. Multiple repositories.
+5. Checking for changes. Using `latest.release`
+    1. Publish `1.0` with status `release` and `2.0` with status `milestone`.
+    2. Resolve and assert directory listing and `1.0` artifacts downloaded.
+    3. Resolve and assert directory listing downloaded.
+    4. Publish `1.1` with status `release`.
+    5. Resolve and assert directory listing and `1.1` artifacts downloaded.
+6. Maven integration
+    1. Publish `1.0`. Check `latest.integration` resolves to `1.0` and `latest.release` fails with not found.
+    2. Publish `1.1-SNAPSHOT`. Check `latest.integration` resolves to `1.1-SNAPSHOT` and `latest.release` fails with not found.
+7. Version ranges
+8. Repository with multiple patterns.
+9. Repository with `[type]` in pattern before `[revision]`.
+10. Multiple dynamic versions match the same remote revision.
+
+### Implementation strategy
+
+Change ExternalResourceResolver.getDependency() to use the following algorithm:
+1. Calculate an ordered list of candidate versions.
+    1. For a static version selector the list contains a single candidate.
+    2. For a dynamic version selector the list is the full set of versions for the module.
+        * For a Maven repository, this is determined using `maven-metadata.xml` if available, falling back to a directory listing.
+        * For an Ivy repository, this is determined using a directory listing.
+        * Fail if directory listing is not available.
+2. For each candidate version:
+    1. If the version matcher does not accept the module version, continue.
+    2. Fetch the module version meta-data, as described below. If not found, continue.
+    3. If the version matcher requires the module meta-data and it does not accept the meta-data, continue.
+    4. Use the module version.
+3. Return not found.
+
+To fetch the meta-data for a module version:
+1. Download the meta data descriptor resource, via the resource cache. If found, parse.
+    1. Validate module version in meta-data == the expected module version.
+2. Check for a jar artifact, via the resource cache. If found, use default meta-data. The meta-data must have `default` set to `true` and `status` set to `integration`.
+3. Return not found.
+
+# Correctness issues in HTTP resource caching
+
+* GRADLE-2328 - invalidate cached HTTP/HTTPS resource when user credentials change.
+* Invalidate cached HTTP/HTTPS resource when proxy settings change.
+* Invalidate cached HTTPS resource when SSL settings change.
+
+### Integration test coverage
+
+TBD
+
+### Implementation strategy
+
+TBD
+
+# Inform the user about why a module is considered broken
 
 ### Description
 
@@ -47,7 +145,7 @@ TODO - flesh this out
 
 TODO - flesh this out
 
-## Correct handling of packaging and dependency type declared in poms
+# Correct handling of packaging and dependency type declared in poms
 
 * GRADLE-2188: Artifact not found resolving dependencies with packaging/type "orbit"
 
@@ -100,7 +198,7 @@ artifact model. This will be a small step toward an independent Gradle model of 
     * If not found, use the artifact from the type location
 * In 2.0, we will remove the packaging->extension mapping and the deprecation warning
 
-## RedHat finishes porting gradle to fedora
+# RedHat finishes porting gradle to fedora
 
 * GRADLE-2210: Migrate to maven 3
 * GRADLE-2238: Use maven 3 classes to locate maven local repository
@@ -154,64 +252,7 @@ And a test that regular resolve succeeds from http repository when settings.xml 
 * Implement m2 repository location with Maven3
 * Use jarjar to repackage the required maven3 classes and include them in the Gradle distro.
 
-## Dynamic versions work with authenticated repositories
-
-* GRADLE-2318: Repository credentials not used when resolving dynamic versions from an Ivy repository
-* GRADLE-2199: IvyArtifactRepository does not handle dynamic artifact versions
-
-### Description
-
-We are using org.apache.ivy.util.url.ApacheURLLister to obtain a list of versions from a directory listing, and this code is not using the supplied credentials.
-Thus dependency resolution fails for dynamic versions with and authenticated ivy repository.
-
-### Strategic solution
-
-We should take the opportunity to remove a bit more ivy code from our dependency resolution, and to handle listing of available versions in a more consistent manner
-between ivy/maven and http/filesystem. Longer term it may be useful to be able to recombine these: eg. maven-metadata.xml for listing versions with ivy.xml for module descriptor.
-
-### User visible changes
-
-* Dynamic versions resolved against an authenticated ivy repository will use configured credentials for that repository.
-* If the repository returns a 404 for the directory listing, we treat the module as missing from that repository
-* If the resolve is unable to list the versions of a module within a repository for any other reason, we treat the repository as broken for that module.
-A warning will be emitted and that repository will be skipped and resolve will continue with next repository. Broken response is not cached.
-    * If the user does not have credentials + permissions to list directory content.
-    * If the directory listing request results in an HTTP failure (500, Exception).
-    * If the directory listing response cannot be parsed to extract the module versions.
-
-### Integration test coverage
-
-* Happy-day tests
-    * Resolve dynamic version against an authenticated ivy repository
-    * Resolve a dynamic version and SNAPSHOT (unique & non-unique) against an authenticated maven repository
-    * Resolve a dynamic version against 2 repositories, where the first one does not contain the module (returns 404 for directory listing).
-* Sad-day tests: when module is considered broken in repository, repository is skipped and warning is emitted. Integ test should demonstrate that result is not cached, so repository
-  will recover on subsequent resolve.
-    * No credentials supplied (401 unauthorized)
-    * 500 response from server
-* Unit-test coverage for 'broken' module (verify that appropriate exception is thrown):
-    * No credentials supplied.
-    * Invalid credentials supplied.
-    * User has permissions to get individual artefacts, but does not have permission to list directories.
-    * We get a 500 or other unexpected response for the directory list HTTP request.
-    * We get a response with an entity of an unknown content type.
-    * We get a response whose entity we cannot parse.
-    * We get a ConnectException or other exception for the directory list HTTP request.
-* Extending existing coverage
-    * Happy-day test: Resolve a Maven version range (declared as [1.0, 2.0) in a POM and referenced transitively) against a (non-authenticated) maven repository
-
-### Implementation approach
-
-Replace the existing HTTP implementation of ExternalResourceLister so that it doesn't use ApacheURLLister. It should instead be backed by a ExternalResourceAccessor
-to access the directory listing resource, with the code for parsing the Apache directory listing result adopted from ApacheURLLister.
-
-At a higher abstraction layer, we could introduce an API that is able to list all available versions for a module; this would replace the current use of ResolverHelper in ExternalResourceResolver.
-for now we'll need an implementation backed by ExternalResourceRepository#list (hence ExternalResourceLister) and another backed by maven-metadata.xml.
-
-Later we may add a ModuleVersionLister backed by an Artifactory REST listing, our own file format, etc... The idea would be that these ModuleVersionLister
-implementations will be pluggable in the future, so you could combine maven-metadata.xml with ivy.xml in a single repository, for example.
-
-## Allow resolution of java-source and javadoc types from maven repositories (and other types: tests, ejb-client)
+# Allow resolution of java-source and javadoc types from maven repositories (and other types: tests, ejb-client)
 
 * GRADLE-201: Enable support for retrieving source artifacts of a module
 * GRADLE-1444: Sources are not downloaded when dependency is using a classifier
@@ -291,133 +332,15 @@ Until we map these types into the ivy repository model as well:
 * We cannot deprecate the use of classifier='sources'
 
 
-## Expiring of changing module artifacts from cache is inadequate in some cases, overly aggressive in others
-
-* GRADLE-2175: Snapshot dependencies with sources/test classifier are not considered 'changing'
-* GRADLE-2364: Cannot run build with --offline after attempting build with a broken repository
-
-### Description
-
-When it's time to update a changing module, we expire the module descriptor and all artifact entries from the cache. The mechanism to do so it quite naive:
-
-1. We lookup the module descriptor in the cache for the repository, and determine if it needs updating (should be expired)
-2. If so, we iterate over all artifacts declared by the module descriptor and remove the cache entry for each artifact. The artifact files remain, but the repository reference is removed.
-3. When resolving artifacts we do not consider if the owning module is changing or not, we assume if the artifact is available then it is up-to-date.
-
-This leads to a couple of issues:
-* Sometimes the module descriptor does not declare all of the artifacts that have been cached (eg source/javadoc artifacts). These are then not expired, and will never be updated (GRADLE-2175).
-* If we fail to resolve the changing module (eg broken repository) then we have already removed the module+artifacts from the cache, so they are not available for --offline builds. (GRADLE-2364)
-
-### Strategic solution
-
-Once we've found a module in the cache, we should not need to search the cache for each artifact that is attached to that module. Instead, we could store a reference to each
-cached artifact with the cached module. Then when we are resolving the artifact file we would lookup the cached module and use that to locate the cached artifact file,
-instead of searching for the artifact file directly. When an artifact file is downloaded, the cache entry for that file would be attached to the cached module descriptor, rather
-than referencing the cached artifact as a separate entity.
-
-Doing this would allow a cached module to be managed as a single unit. Removing the cached module would automatically remove all cached artifact references, and it would be easy
-to delay this removal until the module was successfully resolved from a repository.
-
-Taking this a little further, if the ModuleDescriptor returned from the cache was able to hold some reference to it's cached entry, it could be used directly when resolving artifact
-files, rather than requiring that it be looked up again for each artifact. This would require we switch from using org.apache.ivy.ModuleDescriptor as our internal module representation,
-to use a richer module model that would allow us to retain cache references throughout the resolve process.
-
-As this change would require an update to the cache storage layout, this might be a good opportunity to separate the Gradle filestore (non-binary, stable) from the rest of the
-cache storage (binary, unstable).
-
-### User-visible changes and backward-compatibility issues
-
-* Beside the bugfixes for changing module caching, no user-visible change to cache behaviour.
-* New cached module format means updated cache version, requiring artifacts to be re-downloaded where no SHA1 keys are published.
-* Since org.apache.ivy.ModuleDescriptor is not part of our public API (except via ivy DependencyResolver), any change to using this internally should not impact users.
-
-### Integration test coverage
-
-* Will download changed version of ${name}-${classifier}.${ext} of changing module referenced with classifier
-* Will download changed version of source jar of changing module referenced with type="source"
-    * Verify that we will not download unchanged version of changing module
-* Verify that we recover from failed resolution of module after initial successful resolution
-    * Failure cases are authorization error (401), server error (500) and connection exception
-    * Will re-attempt download on subsequent resolve and recover
-    * Will use previously cached version if run with --offline after failure
-
-### Implementation approach
-
-* The goal is to have the current behaviour of ModuleDescriptorCache and ArtifactAtRepositoryCachedExternalResourceIndex operate atomically, so that removing/expiring a module from the cache automatically
-removes/expires all artifacts linked to that module. One option is to update the ModuleDescriptorCache so that it is able to return the full CacheExternalResource for any artifacts that have been
- previously resolved for a particular module. This would mean replacing/wrapping the ArtifactAtRepositoryCachedExternalResourceIndex with calls to the ModuleDescriptorCache.
- The key entry point method is CachingModuleVersionRepository.download(Artifact).
-* Split the filestore out of the artifacts-N directory: introduce metadata-1 and filestore-1 as the 2 versioned artifact storage directories. The metadata-N directory will store binary artifact files,
-and will require a new version whenever the binary storage format is changed. The filestore-N directory will store downloaded files in a pattern that encapsulates the artifact identifier and the SHA1 checksum
-of the downloaded artifact (same as current format).
-
-## Correct naming of resolved native binaries
+# Correct naming of resolved native binaries
 
 * GRADLE-2211: Resolved binary executables and libraries do not use the platform specific naming scheme
 
-## Handle pom-only modules in mavenLocal
+# Handle pom-only modules in mavenLocal
 
 * GRADLE-2034: Existence of pom file requires that declared artifacts can be found in the same repository
 * GRADLE-2369: Dependency resolution fails for mavenLocal(), mavenCentral() if artifact partially in mavenLocal()
 
-## Support for kerberos and custom authentication
+# Support for kerberos and custom authentication
 
 * GRADLE-2335: Provide the ability to implement a custom HTTP authentication scheme for repository access
-
-# Done
-
-## Project dependencies in generated poms use correct artifactIds
-
-* GRADLE-443: Generated POM dependencies do not respect custom artifactIds
-* GRADLE-1135: Gradle generates the wrong artifactId in the pom.xml for project dependencies in multi project builds
-
-### Description
-
-When we generate a POM (or ivy.xml) for a project that has project dependencies, the POM needs to declare dependencies on the published artifacts of those depended projects.
-Currently, these dependencies in the generated pom always use the ${project.name} value as the name of the artifact in the depended project: however this is incorrect
-if the artifact name of the depended project has been modified by:
-
-* Changing the artifactId via the mavenPom attached to a MavenDeployer
-* Changing the artifactId (maven) or module (ivy) via the archivesBaseName
-* Changing the name of the generated archive using the baseName parameter of the jar task (actually MavenDeployer seems to ignore this value)
-
-This is further complicated by the fact that a single project can generate multiple archives (with different POM files and artifact ids). We need to pick one (or more)
-of the POM files to reference in the case of a project dependency.
-
-### Strategic solution
-
-The end-goal would be to replace the use of MavenDeployer with our nascent publication DSL.
-
-However, a useful step would be to simply add some integration test coverage for multi-project publish/consume,
-and fix the bug for the case where the module artifact is renamed via archivesBaseName.
-
-### User-visible changes and backward-compatibility issues
-
-When archivesBaseName is specified for a project, the published artifacts will use that value when creating a POM artifactId. And when a project dependency is made to
-such a project, generated POM dependencies will also use the same artifactId.
-
-If the artifactId is specified directly on the POM within the MavenDeployer, we would continue to publish with the explicit artifactId. Since this would not modify the artifact
-model of the project, there would still be no convenient way to reference this artifact as a project dependency.
-
-### Integration test coverage
-
-* Publication of an ivy project with multiple artifacts for a single configuration
-* Publication of an ivy project with multiple artifacts in separate configurations
-* Multi-module build with projectA publishing and projectB having a dependency on projectA. For each case check resolution, as well as published metadata for projectA & projectB.
-Try maven publication for projectA & projectB as well as ivy publication for projectA & projectB. Possibly a combination?
-    * With no modification to publication coordinates: should work for maven & ivy
-    * projectA with modified archivesBaseName: will fail for Maven (GRADLE-443)
-    * projectA with additional artifact given classifier: should work for maven & ivy
-    * projectA with additional artifact given different name: should work for ivy, not possible in maven
-    * projectA with multiple publish configurations: projectB depends on 1 or both
-* MavenPublishRespectsPomConfigurationTest exposes the bug, but this proposal will not solve that exact use case: modifying published artifactId directly on POM. Should remove/update
-this ignored test.
-
-### Implementation approach
-
-* Add an experimental extension to project that provides the publish coordinates for a project. The publish coordinates for a non-maven project will be the group:projectId:version.
-    * At a later point we'll add publish coordinates per-configuration, but for now per-project will suffice.
-* The maven plugin will update the publish coordinates to be group:archivesBaseName:version
-    * MavenDeployer already uses archivesBaseName when publishing, so no change needed to publication
-* Modify PublishModuleDescriptorConverter (ProjectDependencyDescriptorFactory) so that it uses the publish coordinates of a project when creating a published descriptor for a project dependency.
-

@@ -56,14 +56,6 @@
         </para>
     </listitem>
 </itemizedlist>
-
-<note>
-<title>For Un*x users</title>
-
-<para>You need a GNU compatible tool to unzip Gradle, if you want the file permissions to be properly set. We mention this as
-some zip front ends for Mac OS X don't restore the file permissions properly.
-</para>
-</note>
 </section>
 
 <section>

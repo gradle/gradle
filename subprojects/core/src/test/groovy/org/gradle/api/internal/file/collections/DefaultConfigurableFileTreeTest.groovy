@@ -26,13 +26,14 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.AbstractTestForPatternSet
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.WrapUtil
 import org.jmock.integration.junit4.JUnit4Mockery
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting
 import static org.gradle.api.file.FileVisitorUtil.assertVisits
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
@@ -48,8 +49,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     TaskResolver taskResolverStub = context.mock(TaskResolver.class);
     DefaultConfigurableFileTree fileSet
     FileResolver fileResolverStub = [resolve: {it as File}] as FileResolver
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
-    File testDir = tmpDir.dir
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    File testDir = tmpDir.testDirectory
 
     PatternFilterable getPatternSet() {
         return fileSet

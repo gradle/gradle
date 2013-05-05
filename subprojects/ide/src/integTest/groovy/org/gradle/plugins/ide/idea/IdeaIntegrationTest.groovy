@@ -16,20 +16,20 @@
 
 package org.gradle.plugins.ide.idea
 
-import java.util.regex.Pattern
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
-import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
+import java.util.regex.Pattern
+
 class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
     void mergesImlCorrectly() {
@@ -80,7 +80,7 @@ apply plugin: 'idea'
 
     @Test
     void worksWithNonStandardLayout() {
-        executer.inDirectory(testDir.file('root')).withTasks('idea').run()
+        executer.inDirectory(testDirectory.file('root')).withTasks('idea').run()
 
         assertHasExpectedContents('root/root.ipr')
         assertHasExpectedContents('root/root.iml')
@@ -92,6 +92,17 @@ apply plugin: 'idea'
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.iml')
+    }
+
+    @Test
+    void addsScalaFacetAndCompilerLibraries() {
+        executer.withTasks('idea').run()
+
+        hasProjectLibrary('root.ipr', 'scala-compiler-2.9.2', ['scala-compiler-2.9.2.jar', 'scala-library-2.9.2.jar'], [], [])
+        hasProjectLibrary('root.ipr', 'scala-compiler-2.10.0', ['scala-compiler-2.10.0.jar', 'scala-library-2.10.0.jar', 'scala-reflect-2.10.0.jar'], [], [])
+        hasScalaFacet('project1/project1.iml', 'scala-compiler-2.9.2')
+        hasScalaFacet('project2/project2.iml', 'scala-compiler-2.10.0')
+        hasScalaFacet('project3/project3.iml', 'scala-compiler-2.9.2')
     }
 
     @Test
@@ -334,20 +345,38 @@ apply plugin: "idea"
         failure.output.contains("Perhaps this file was tinkered with?")
     }
 
+    @Test
+    void canAddProjectLibraries() {
+        runTask("idea", """
+apply plugin: 'idea'
+
+idea.project {
+    def lib = new org.gradle.plugins.ide.idea.model.ProjectLibrary()
+    lib.name = "someLib"
+    lib.classes << file("someClasses.jar")
+    lib.javadoc << file("someJavadoc.jar")
+    lib.sources << file("someSources.jar")
+    projectLibraries << lib
+}
+""")
+
+        hasProjectLibrary("root.ipr", "someLib", ["someClasses.jar"], ["someJavadoc.jar"], ["someSources.jar"])
+    }
+
     private void assertHasExpectedContents(String path) {
-        TestFile file = testDir.file(path).assertIsFile()
-        TestFile expectedFile = testDir.file("expectedFiles/${path}.xml").assertIsFile()
+        TestFile file = testDirectory.file(path).assertIsFile()
+        TestFile expectedFile = testDirectory.file("expectedFiles/${path}.xml").assertIsFile()
 
         def expectedXml = expectedFile.text
 
-        def homeDir = distribution.userHomeDir.absolutePath.replace(File.separator, '/')
+        def homeDir = executer.gradleUserHomeDir.absolutePath.replace(File.separator, '/')
         def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/artifacts-\\d+/filestore/([^/]+/[^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
         def actualXml = file.text.replaceAll(pattern, '@CACHE_DIR@/$1/@SHA1@/')
 
         Diff diff = new Diff(expectedXml, actualXml)
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
         try {
-            XMLAssert.assertXMLEqual(diff, true)
+            assert diff.similar()
         } catch (AssertionError e) {
             if (OperatingSystem.current().unix) {
                 def process = ["diff", expectedFile.absolutePath, file.absolutePath].execute()
@@ -356,6 +385,51 @@ apply plugin: "idea"
             }
             throw new AssertionError("generated file '$path' does not contain the expected contents: ${e.message}.\nExpected:\n${expectedXml}\nActual:\n${actualXml}").initCause(e)
         }
+    }
+
+    private void hasProjectLibrary(String iprFileName, String libraryName, List<String> classesLibs, List<String> javadocLibs, List<String> sourcesLibs) {
+        def project = new XmlSlurper().parse(file(iprFileName))
+        def libraryTable = project.component.find { it.@name == "libraryTable" }
+        assert libraryTable
+
+        def library = libraryTable.library.find { it.@name == libraryName }
+        assert library
+
+        def classesRoots = library.CLASSES.root
+        assert classesRoots.size() == classesLibs.size()
+        classesLibs.each {
+            assert classesRoots.@url.text().contains(it)
+        }
+
+        def javadocRoots = library.JAVADOC.root
+        assert javadocRoots.size() == javadocLibs.size()
+        javadocLibs.each {
+            assert javadocRoots.@url.text().contains(it)
+        }
+
+        def sourcesRoots = library.SOURCES.root
+        assert sourcesRoots.size() == sourcesLibs.size()
+        sourcesLibs.each {
+            assert sourcesRoots.@url.text().contains(it)
+        }
+    }
+
+    private void hasScalaFacet(String imlFileName, String libraryName) {
+        def module = new XmlSlurper().parse(file(imlFileName))
+        def facetManager = module.component.find { it.@name == "FacetManager" }
+        assert facetManager
+
+        def facet = facetManager.facet.find { it.@name == "Scala" }
+        assert facet
+        assert facet.@type == "scala"
+
+        def compilerLibraryLevel = facet.configuration.option.find { it.@name == "compilerLibraryLevel" }
+        assert compilerLibraryLevel
+        assert compilerLibraryLevel.@value == "Project"
+
+        def compilerLibraryName = facet.configuration.option.find { it.@name == "compilerLibraryName" }
+        assert compilerLibraryName
+        assert compilerLibraryName.@value == libraryName
     }
 
     private containsDir(path, urls) {

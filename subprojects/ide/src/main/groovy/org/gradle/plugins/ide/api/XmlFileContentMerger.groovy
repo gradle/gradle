@@ -16,10 +16,10 @@
 
 package org.gradle.plugins.ide.api
 
-import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.xml.XmlTransformer
 
 /**
- * Models the generation/parsing/merging capabilities. Adds xml-related hooks.
+ * Models the generation/parsing/merging capabilities. Adds XML-related hooks.
  * <p>
  * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject} or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
  *

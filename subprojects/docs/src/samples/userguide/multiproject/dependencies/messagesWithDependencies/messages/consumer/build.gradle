@@ -1,4 +1,3 @@
 task action(dependsOn: ":producer:action") << {
-    println("Consuming message: " +
-            (rootProject.hasProperty('producerMessage') ? rootProject.producerMessage : 'null'))
+    println("Consuming message: ${rootProject.producerMessage}")
 }

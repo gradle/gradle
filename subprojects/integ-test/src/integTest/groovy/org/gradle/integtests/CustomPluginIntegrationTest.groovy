@@ -16,7 +16,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ArtifactBuilder
+import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 
 public class CustomPluginIntegrationTest extends AbstractIntegrationSpec {
     public void "can reference plugin in buildSrc by id"() {
@@ -155,8 +155,8 @@ apply plugin: 'groovy'
 repositories { mavenCentral() }
 dependencies {
     compile gradleApi()
-    groovy localGroovy()
-    testCompile 'junit:junit:4.8.2'
+    compile localGroovy()
+    testCompile 'junit:junit:4.11'
 }
 """
 
@@ -196,8 +196,8 @@ apply plugin: 'groovy'
 repositories { mavenCentral() }
 dependencies {
     compile gradleApi()
-    groovy localGroovy()
-    testCompile 'junit:junit:4.8.2'
+    compile localGroovy()
+    testCompile 'junit:junit:4.11'
 }
 """
 

@@ -16,37 +16,36 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
-import groovy.lang.MissingMethodException;
-
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
-import org.gradle.api.tasks.testing.testng.TestNGOptions;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
-import org.gradle.logging.StandardOutputRedirector;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.logging.StandardOutputRedirector;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.ReflectionUtil;
 import org.testng.ITestListener;
 import org.testng.TestNG;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
     private final File testReportDir;
-    private final TestNGOptions options;
+    private final TestNGSpec options;
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
     private final StandardOutputRedirector outputRedirector;
     private TestNGTestResultProcessorAdapter testResultProcessor;
     private ClassLoader applicationClassLoader;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGOptions options, List<File> suiteFiles, IdGenerator<?> idGenerator, StandardOutputRedirector outputRedirector) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator,
+                                    StandardOutputRedirector outputRedirector) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;
@@ -55,7 +54,10 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
-        testResultProcessor = new TestNGTestResultProcessorAdapter(new CaptureTestOutputTestResultProcessor(resultProcessor, outputRedirector), idGenerator);
+        TestResultProcessor resultProcessorChain = new CaptureTestOutputTestResultProcessor(resultProcessor, outputRedirector);
+
+        testResultProcessor = new TestNGTestResultProcessorAdapter(resultProcessorChain, idGenerator);
+
         applicationClassLoader = Thread.currentThread().getContextClassLoader();
     }
 
@@ -70,23 +72,28 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     public void stop() {
         TestNG testNg = new TestNG();
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
-        testNg.setDefaultSuiteName(options.getSuiteName());
-        testNg.setDefaultTestName(options.getTestName());
+        testNg.setDefaultSuiteName(options.getDefaultSuiteName());
+        testNg.setDefaultTestName(options.getDefaultTestName());
         testNg.setParallel(options.getParallel());
         testNg.setThreadCount(options.getThreadCount());
         try {
+            final Method setAnnotations = TestNG.class.getMethod("setAnnotations");
+            setAnnotations.invoke(testNg, options.getAnnotations());
             ReflectionUtil.invoke(testNg, "setAnnotations", options.getAnnotations());
-        } catch (MissingMethodException e) {
+        } catch (NoSuchMethodException e) {
             /* do nothing; method has been removed in TestNG 6.3 */
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not configure TestNG annotations with value '%s'.", options.getAnnotations()), e);
         }
         if (options.getJavadocAnnotations()) {
-            testNg.setSourcePath(GUtil.join(options.getTestResources(), File.pathSeparator));
+            testNg.setSourcePath(CollectionUtils.join(File.pathSeparator, options.getTestResources()));
         }
+
         testNg.setUseDefaultListeners(options.getUseDefaultListeners());
         testNg.addListener((Object) adaptListener(testResultProcessor));
         testNg.setVerbose(0);
-        testNg.setGroups(GUtil.join(options.getIncludeGroups(), ","));
-        testNg.setExcludedGroups(GUtil.join(options.getExcludeGroups(), ","));
+        testNg.setGroups(CollectionUtils.join(",", options.getIncludeGroups()));
+        testNg.setExcludedGroups(CollectionUtils.join(",", options.getExcludeGroups()));
         for (String listenerClass : options.getListeners()) {
             try {
                 testNg.addListener(applicationClassLoader.loadClass(listenerClass).newInstance());

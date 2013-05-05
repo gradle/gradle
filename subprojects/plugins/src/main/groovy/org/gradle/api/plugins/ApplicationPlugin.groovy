@@ -22,6 +22,8 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.GradleException
 
 /**
@@ -37,6 +39,7 @@ class ApplicationPlugin implements Plugin<Project> {
     static final String TASK_START_SCRIPTS_NAME = "startScripts"
     static final String TASK_INSTALL_NAME = "installApp"
     static final String TASK_DIST_ZIP_NAME = "distZip"
+    static final String TASK_DIST_TAR_NAME = "distTar"
 
     private Project project
     private ApplicationPluginConvention pluginConvention
@@ -53,6 +56,7 @@ class ApplicationPlugin implements Plugin<Project> {
 
         addInstallTask()
         addDistZipTask()
+        addDistTarTask()
     }
 
     private void addPluginConvention() {
@@ -62,25 +66,27 @@ class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void addRunTask() {
-        def run = project.tasks.add(TASK_RUN_NAME, JavaExec)
+        def run = project.tasks.create(TASK_RUN_NAME, JavaExec)
         run.description = "Runs this project as a JVM application"
         run.group = APPLICATION_GROUP
         run.classpath = project.sourceSets.main.runtimeClasspath
         run.conventionMapping.main = { pluginConvention.mainClassName }
+        run.conventionMapping.jvmArgs = { pluginConvention.applicationDefaultJvmArgs }
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
     private void addCreateScriptsTask() {
-        def startScripts = project.tasks.add(TASK_START_SCRIPTS_NAME, CreateStartScripts)
+        def startScripts = project.tasks.create(TASK_START_SCRIPTS_NAME, CreateStartScripts)
         startScripts.description = "Creates OS specific scripts to run the project as a JVM application."
         startScripts.classpath = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtime
         startScripts.conventionMapping.mainClassName = { pluginConvention.mainClassName }
         startScripts.conventionMapping.applicationName = { pluginConvention.applicationName }
         startScripts.conventionMapping.outputDir = { new File(project.buildDir, 'scripts') }
+        startScripts.conventionMapping.defaultJvmOpts = { pluginConvention.applicationDefaultJvmArgs }
     }
 
     private void addInstallTask() {
-        def installTask = project.tasks.add(TASK_INSTALL_NAME, Sync)
+        def installTask = project.tasks.create(TASK_INSTALL_NAME, Sync)
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = APPLICATION_GROUP
         installTask.with pluginConvention.applicationDistribution
@@ -101,12 +107,20 @@ class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void addDistZipTask() {
-        def distZipTask = project.tasks.add(TASK_DIST_ZIP_NAME, Zip)
-        distZipTask.description = "Bundles the project as a JVM application with libs and OS specific scripts."
-        distZipTask.group = APPLICATION_GROUP
-        distZipTask.conventionMapping.baseName = { pluginConvention.applicationName }
-        def baseDir = { distZipTask.archiveName - ".zip" }
-        distZipTask.into(baseDir) {
+        addArchiveTask(TASK_DIST_ZIP_NAME, Zip)
+    }
+
+	private void addDistTarTask() {
+        addArchiveTask(TASK_DIST_TAR_NAME, Tar)
+	}
+
+    private <T extends AbstractArchiveTask> void addArchiveTask(String name, Class<T> type) {
+        def archiveTask = project.tasks.create(name, type)
+        archiveTask.description = "Bundles the project as a JVM application with libs and OS specific scripts."
+        archiveTask.group = APPLICATION_GROUP
+        archiveTask.conventionMapping.baseName = { pluginConvention.applicationName }
+        def baseDir = { archiveTask.archiveName - ".${archiveTask.extension}" }
+        archiveTask.into(baseDir) {
             with(pluginConvention.applicationDistribution)
         }
     }

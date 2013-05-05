@@ -28,6 +28,7 @@ import org.gradle.logging.TestStyledTextOutput
 import org.gradle.util.TreeVisitor
 
 import spock.lang.Specification
+import org.gradle.execution.MultipleBuildFailures
 
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
@@ -226,6 +227,54 @@ org.gradle.api.GradleException: <failure>
 * Try:
 Run {userinput}[gradle tasks]{normal} to get a list of available tasks.
 '''
+    }
+
+    def reportsMultipleBuildFailures() {
+        def failure1 = exception("<location>", "<message>", new RuntimeException("<cause>"))
+        def failure2 = new GradleException("<failure>")
+        def failure3 = new RuntimeException("<error>")
+        Throwable exception = new MultipleBuildFailures([failure1, failure2, failure3])
+
+        expect:
+        reporter.buildFinished(result(exception))
+        output.value == '''
+{failure}FAILURE: Build completed with 3 failures.{normal}
+
+{failure}1: {normal}{failure}Task failed with an exception.{normal}
+-----------
+* Where:
+<location>
+
+* What went wrong:
+<message>
+{info}> {normal}<cause>
+
+* Try:
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+==============================================================================
+
+{failure}2: {normal}{failure}Task failed with an exception.{normal}
+-----------
+* What went wrong:
+<failure>
+
+* Try:
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+==============================================================================
+
+{failure}3: {normal}{failure}Build aborted because of an internal error.{normal}
+-----------
+* What went wrong:
+Build aborted because of an unexpected internal error. Please file an issue at: http://forums.gradle.org.
+
+* Try:
+Run with {userinput}--debug{normal} option to get additional debug info.
+
+* Exception is:
+java.lang.RuntimeException: <error>
+{stacktrace}
+==============================================================================
+''';
     }
 
     def reportsBuildFailureWhenShowStacktraceEnabled() {

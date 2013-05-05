@@ -20,6 +20,7 @@ import groovy.lang.GroovySystem;
 import org.apache.ivy.Ivy;
 import org.apache.tools.ant.Main;
 import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
@@ -161,19 +162,29 @@ public class GradleVersion implements Comparable<GradleVersion> {
         return versionPart == null || snapshot != null;
     }
 
-    private boolean isNonSymbolicNumber() {
-        return versionPart.equals("0.0");
+    /**
+     * The base version number of the overall version.
+     *
+     * For example, the version base of '1.2-rc-1' is '1.2'.
+     *
+     * @return The version base, or null if the version is unrecognised.
+     */
+    @Nullable
+    public String getVersionBase() {
+        return versionPart;
+    }
+
+    public int getMajor() {
+        if (isValid()) {
+            return Integer.valueOf(versionPart.split("\\.", 2)[0], 10);
+        } else {
+            return -1;
+        }
     }
 
     public int compareTo(GradleVersion gradleVersion) {
         assertCanQueryParts();
         gradleVersion.assertCanQueryParts();
-
-        if (isNonSymbolicNumber() && !gradleVersion.isNonSymbolicNumber()) {
-            return 1;
-        } else if (!isNonSymbolicNumber() && gradleVersion.isNonSymbolicNumber()) {
-            return -1;
-        }
 
         String[] majorVersionParts = versionPart.split("\\.");
         String[] otherMajorVersionParts = gradleVersion.versionPart.split("\\.");
@@ -264,6 +275,10 @@ public class GradleVersion implements Comparable<GradleVersion> {
         sb.append(OperatingSystem.current());
         sb.append("\n");
         return sb.toString();
+    }
+
+    public boolean isValid() {
+        return versionPart != null;
     }
 
     static final class Stage implements Comparable<Stage> {

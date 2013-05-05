@@ -19,6 +19,7 @@ package org.gradle.util;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.gradle.internal.SystemProperties;
 
+import java.io.File;
 import java.util.regex.Pattern;
 
 public class TextUtil {
@@ -60,9 +61,15 @@ public class TextUtil {
     }
 
     /**
-     * <p>Escapes the toString() representation of {@code obj} for use in a literal string.</p>
-     *
-     * <p>This is useful for interpolating variables into script strings, as well as in other situations.</p>
+     * Converts all native file separators in the specified string to '/'.
+     */
+    public static String normaliseFileSeparators(String path) {
+        return path.replaceAll(Pattern.quote(File.separator), "/");
+    }
+
+    /**
+     * Escapes the toString() representation of {@code obj} for use in a literal string.
+     * This is useful for interpolating variables into script strings, as well as in other situations.
      */
     public static String escapeString(Object obj) {
         return obj == null ? null : StringEscapeUtils.escapeJava(obj.toString());

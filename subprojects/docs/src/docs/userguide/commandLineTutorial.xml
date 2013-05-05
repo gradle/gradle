@@ -59,6 +59,19 @@
             <literal>compile</literal>, are still executed.</para>
     </section>
 
+    <section id="sec:continue_build_on_failure">
+        <title>Continuing the build when a failure occurs</title>
+        <para>By default, Gradle will abort execution and fail the build as soon as any task fails. This allows the build to complete sooner, but hides other failures
+            that would have occurred. In order to discover as many failures as possible in a single build execution, you can use the <literal>--continue</literal> option.
+        </para>
+        <para>When executed with <literal>--continue</literal>, Gradle will execute <emphasis>every</emphasis> task to be executed where all of the dependencies for that task completed without failure,
+            instead of stopping as soon as the first failure is encountered. Each of the encountered failures will be reported at the end of the build.
+        </para>
+        <para>If a task fails, any subsequent tasks that were depending on it will not be executed, as it is not safe to do so. For example, tests will not
+            run if there is a compilation failure in the code under test; because the test task will depend on the compilation task (either directly or indirectly).
+        </para>
+    </section>
+
     <section>
         <title>Task name abbreviation</title>
         <para>When you specify tasks on the command-line, you don't have to provide the full name of the task. You only need to provide enough of the
@@ -144,13 +157,44 @@
         <section id="sec:listing_dependencies">
             <title>Listing project dependencies</title>
             <para id="para:commandline_dependency_report">Running <userinput>gradle dependencies</userinput>
-                gives you a list of the dependencies of the selected project, broken down by configuration.  For each
+                gives you a list of the dependencies of the selected project, broken down by configuration. For each
                 configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below
                 is an example of this report:
             </para>
             <sample id="dependencyListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about dependencies">
                 <output args="-q dependencies api:dependencies webapp:dependencies"/>
             </sample>
+            <para>
+                Since a dependency report can get large, it can be useful to restrict the report to a particular configuration.
+                This is achieved with the optional <userinput>--configuration</userinput> parameter:
+            </para>
+            <sample id="dependencyListReportFiltered" dir="userguide/tutorial/projectReports" title="Filtering dependency report by configuration">
+                <output args="-q api:dependencies --configuration testCompile"/>
+            </sample>
+        </section>
+        <section id="sec:dependency_insight">
+            <title>Getting the insight into a particular dependency</title>
+            <para id="para:commandline_dependency_insight_report">Running <userinput>gradle dependencyInsight</userinput>
+                gives you an insight into a particular dependency (or dependencies) that match specified input.
+                Below is an example of this report:
+            </para>
+            <sample id="dependencyInsightReport" dir="userguide/tutorial/projectReports" title="Getting the insight into a particular dependency">
+                <output args="-q webapp:dependencyInsight --dependency groovy --configuration compile"/>
+            </sample>
+            <para>
+                This task is extremely useful for investigating the dependency resolution,
+                finding out where certain dependencies are coming from and why certain versions are selected.
+                For more information please see <apilink class="org.gradle.api.tasks.diagnostics.DependencyInsightReportTask"/>.
+            </para>
+            <para>
+                The built-in dependencyInsight task is a part of the 'Help' tasks group.
+                The task needs to configured with the dependency and the configuration.
+                The report looks for the dependencies that match the specified dependency spec in the specified configuration.
+                If java related plugin is applied, the dependencyInsight task is pre-configured with 'compile' configuration because typically it's the compile dependencies we are interested in.
+                You should specify the dependency you are interested in via the command line '--dependency' option.
+                If you don't like the defaults you may select the configuration via '--configuration' option.
+                For more information see <apilink class="org.gradle.api.tasks.diagnostics.DependencyInsightReportTask"/>.
+            </para>
         </section>
         <section id="sec:listing_properties">
             <title>Listing project properties</title>

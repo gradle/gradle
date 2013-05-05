@@ -56,7 +56,7 @@ public interface FileTree extends FileCollection {
     FileTree matching(PatternFilterable patterns);
 
     /**
-     * Visits the files and directories in this file tree. Files are visited in breadth-wise order, so that a directory
+     * Visits the files and directories in this file tree. Files are visited in depth-first prefix order, so that a directory
      * is visited before its children.
      *
      * @param visitor The visitor.
@@ -65,7 +65,7 @@ public interface FileTree extends FileCollection {
     FileTree visit(FileVisitor visitor);
 
     /**
-     * Visits the files and directories in this file tree. Files are visited in breadth-wise order, so that a directory
+     * Visits the files and directories in this file tree. Files are visited in depth-first prefix order, so that a directory
      * is visited before its children. The file/directory to be visited is passed to the given closure as a {@link
      * FileVisitDetails}
      *

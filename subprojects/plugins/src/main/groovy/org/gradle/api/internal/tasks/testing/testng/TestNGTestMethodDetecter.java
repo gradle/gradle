@@ -39,6 +39,7 @@ class TestNGTestMethodDetecter extends MethodVisitor {
         testMethodAnnotations.add("Lorg/testng/annotations/AfterTest;");
         testMethodAnnotations.add("Lorg/testng/annotations/BeforeGroups;");
         testMethodAnnotations.add("Lorg/testng/annotations/AfterGroups;");
+        testMethodAnnotations.add("Lorg/testng/annotations/Factory;");
     }
 
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {

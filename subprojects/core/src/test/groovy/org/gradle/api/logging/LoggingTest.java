@@ -20,7 +20,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
-import org.gradle.logging.LoggingTestHelper;
+import org.gradle.logging.ConfigureLogging;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -40,16 +40,16 @@ import static org.junit.Assert.*;
 public class LoggingTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final Appender<ILoggingEvent> appender = context.mock(Appender.class);
-    private final LoggingTestHelper helper = new LoggingTestHelper(appender);
+    private final ConfigureLogging logging = new ConfigureLogging(appender);
 
     @Before
     public void attachAppender() {
-        helper.attachAppender();
+        logging.attachAppender();
     }
 
     @After
     public void detachAppender() {
-        helper.detachAppender();
+        logging.detachAppender();
     }
 
     @Test
@@ -83,7 +83,7 @@ public class LoggingTest {
 
     @Test
     public void delegatesLevelIsEnabledToSlf4j() {
-        helper.setLevel(Level.WARN);
+        logging.setLevel(Level.WARN);
 
         Logger logger = Logging.getLogger(LoggingTest.class);
         assertTrue(logger.isErrorEnabled());

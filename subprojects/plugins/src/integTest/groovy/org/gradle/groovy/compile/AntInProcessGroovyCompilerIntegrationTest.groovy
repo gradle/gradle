@@ -17,10 +17,12 @@ package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.TargetVersions
 
-@TargetVersions(['1.6.9', '1.7.11', '1.8.7', '2.0.1'])
+// Note that canCompileAgainstGroovyClassThatDependsOnExternalClass() isn't executed
+// for all Groovy versions (but still shown as green). See the (inherited) test method for details.
+@TargetVersions(['1.6.9', '1.7.10', '1.7.11' , '1.8.6', '1.8.8', '2.0.5'])
 class AntInProcessGroovyCompilerIntegrationTest extends BasicGroovyCompilerIntegrationSpec {
     def setup() {
-        executer.withForkingExecuter()
+        executer.requireGradleHome()
     }
 
     @Override

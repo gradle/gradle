@@ -16,8 +16,8 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 
-import org.gradle.api.internal.XmlTransformer
-import org.gradle.util.TemporaryFolder
+import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -31,7 +31,7 @@ public class ProjectTest extends Specification {
     def static final CUSTOM_LINKED_RESOURCES = [new Link('somename', 'sometype', 'somelocation', '')] as Set
 
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final Project project = new Project(new XmlTransformer())
 
     def loadFromReader() {

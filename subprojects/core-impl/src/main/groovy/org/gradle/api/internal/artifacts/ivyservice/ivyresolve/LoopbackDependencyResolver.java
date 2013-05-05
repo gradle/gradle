@@ -25,8 +25,9 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableModuleVersionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult;
 import org.gradle.internal.Factory;
 
 import java.io.File;
@@ -53,7 +54,7 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
 
     @Override
     public void setSettings(ResolverSettings settings) {
-        userResolverChain.setSettings(settings);
+        // don't care
     }
 
     @Override
@@ -61,16 +62,16 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
         final DependencyResolver loopback = this;
         return cacheLockingManager.useCache(String.format("Resolve %s", dd), new Factory<ResolvedModuleRevision>() {
             public ResolvedModuleRevision create() {
-                ModuleVersionResolveResult dependency;
+                DefaultBuildableModuleVersionResolveResult result = new DefaultBuildableModuleVersionResolveResult();
+                DefaultDependencyMetaData dependency = new DefaultDependencyMetaData(dd);
                 IvyContext ivyContext = IvyContext.pushNewCopyContext();
                 try {
                     ivyContext.setResolveData(data);
-                    dependency = userResolverChain.resolve(dd);
+                    userResolverChain.resolve(dependency, result);
                 } finally {
                     IvyContext.popContext();
                 }
-                // TODO:DAZ Need to create a metadata download report here
-                return new ResolvedModuleRevision(loopback, loopback, dependency.getDescriptor(), null);
+                return new ResolvedModuleRevision(loopback, loopback, result.getMetaData().getDescriptor(), null);
             }
         });
     }
@@ -81,7 +82,12 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
             public ArtifactOrigin create() {
                 try {
                     DependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(artifact.getModuleRevisionId(), false);
-                    File artifactFile = userResolverChain.resolve(dependencyDescriptor).getArtifactResolver().resolve(artifact).getFile();
+                    DefaultBuildableModuleVersionResolveResult resolveResult = new DefaultBuildableModuleVersionResolveResult();
+                    DefaultDependencyMetaData dependency = new DefaultDependencyMetaData(dependencyDescriptor);
+                    userResolverChain.resolve(dependency, resolveResult);
+                    DefaultBuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
+                    resolveResult.getArtifactResolver().resolve(artifact, artifactResolveResult);
+                    File artifactFile = artifactResolveResult.getFile();
                     return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
                 } catch (ModuleVersionNotFoundException e) {
                     return null;

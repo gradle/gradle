@@ -1,65 +1,56 @@
 def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
 timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
 
+if (buildTypes.isActive("promotionBuild")) {
+    logger.lifecycle "Invocation tasks: $gradle.startParameter.taskNames\nInvocation properties: $gradle.startParameter.projectProperties"
+}
+
 if (incomingDistributionsBuildReceipt) {
-    def incomingVersion = incomingDistributionsBuildReceipt.versionNumber
-    def match = incomingVersion =~ /(.+)-(\d{14}[+-]\d{4})/
-    if (!match) {
-        throw new GradleException("Can't extract version number from incoming distribution build receipt version number: $incomingVersion")
-    }
-
-    version = match[0][1]
-    ext.buildTimestamp = match[0][2]
-}
-
-if (project.hasProperty("buildTimestamp")) {
-    ext.buildTime = timestampFormat.parse(buildTimestamp)
+    ext.versionBase = incomingDistributionsBuildReceipt.versionBase
+    ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
 } else {
-    File timestampFile = file("$buildDir/timestamp.txt")
-    if (timestampFile.isFile()) {
-        boolean uptodate = true
-        def modified = timestampFile.lastModified()
-        project(':core').fileTree('src/main').visit {fte ->
-            if (fte.file.isFile() && fte.lastModified > modified) {
-                uptodate = false
-                fte.stopVisiting()
-            }
-        }
-        if (!uptodate) {
-            timestampFile.setLastModified(new Date().time)
-        }
+    ext.versionBase = rootProject.file("version.txt").text.trim()
+
+    if (project.hasProperty("buildTimestamp")) {
+        ext.buildTime = timestampFormat.parse(buildTimestamp)
     } else {
-        timestampFile.parentFile.mkdirs()
-        timestampFile.createNewFile()
-    }
+        File timestampFile = file("$buildDir/timestamp.txt")
+        if (timestampFile.isFile()) {
+            boolean uptodate = true
+            def modified = timestampFile.lastModified()
+            project(':core').fileTree('src/main').visit {fte ->
+                if (fte.file.isFile() && fte.lastModified > modified) {
+                    uptodate = false
+                    fte.stopVisiting()
+                }
+            }
+            if (!uptodate) {
+                timestampFile.setLastModified(new Date().time)
+            }
+        } else {
+            timestampFile.parentFile.mkdirs()
+            timestampFile.createNewFile()
+        }
 
-    ext.buildTime = new Date(timestampFile.lastModified())
-    ext.buildTimestamp = timestampFormat.format(buildTime)
+        ext.buildTime = new Date(timestampFile.lastModified())
+        ext.buildTimestamp = timestampFormat.format(buildTime)
+    }
 }
 
-ext.isSnapshot = !project.hasProperty("notSnapshot")
+ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
+ext.finalRelease = project.hasProperty("finalRelease")
+if (rcNumber != null && finalRelease) {
+    throw new InvalidUserDataException("Cannot set rcNumber and finalRelease at the same time")
+}
 
-if (version == "unspecified") {
-    if (!isSnapshot) {
-        throw new InvalidUserDataException("Cannot specify 'notSnapshot' without specifying 'version'")
-    }
+version = versionBase
 
-    // 0.0 means the version is non symbolic.
-    // We have to use something that looks like a real version number because there are a few places
-    // where this value is validated, e.g. the wrapper stuff. We should fix this at some point so we can do
-    // things like use build numbers or commit IDs.
-    //
-    // version = "0.0"
-
-    // Using 0.0 causes issues with the Tooling API. It's something to do with older versions of Gradle not
-    // understanding the 0.0 version number scheme. For the time being, we are going to hardcode 1.2.
-    version = "1.2"
-
-    ext.isSymbolicVersion = false
+ext.isSnapshot = false
+if (finalRelease) {
+    // use version base
+} else if (rcNumber != null) {
+    version += "-rc-$rcNumber"
 } else {
-    ext.isSymbolicVersion = true
-}
-
-if (isSnapshot) {
+    isSnapshot = true
     version += "-$buildTimestamp"
 }

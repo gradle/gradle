@@ -17,15 +17,24 @@
 apply from: "$rootDir/gradle/providedConfiguration.gradle"
 
 dependencies {
-    groovy libraries.groovy
-
     compile project(":core")
     compile project(":plugins")
+    compile project(":jacoco")
+    compile libraries.groovy
+
+    // Sonar Runner plugin
+    compile "org.codehaus.sonar-plugins:sonar-runner:2.0"
+    // version number is part of module name, to allow for multiple versions on same class path
+    integTestRuntime "org.gradle.sonar:sonar-server-3.2:3.2@war"
+    integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir-3.2:3.2@zip"
+    integTestRuntime "org.gradle.sonar:sonar-test-server:3.4@war"
+    integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.4.0.1@zip"
+
+    // Sonar plugin
     compile libraries.guava
     compile libraries.slf4j_api
     compile libraries.inject
     compile "org.codehaus.sonar:sonar-batch-bootstrapper:2.9@jar"
-
     // minimal dependencies to make our code compile
     // we don't ship these dependencies because sonar-batch-bootstrapper will download them (and many more) at runtime
     provided "org.codehaus.sonar:sonar-batch:2.9@jar"
@@ -34,3 +43,4 @@ dependencies {
 }
 
 useTestFixtures()
+useClassycle()

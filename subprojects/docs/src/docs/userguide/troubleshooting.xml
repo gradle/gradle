@@ -37,7 +37,6 @@
         </para>
         <para>
             If you are using the Gradle Daemon, try temporarily disabling the daemon (you can pass the command line switch <literal>--no-daemon</literal>).
-            The Gradle Daemon is currently an experimental feature and may introduce build failures.
             More information about troubleshooting daemon is located in <xref linkend="gradle_daemon"/>.
         </para>
     </section>

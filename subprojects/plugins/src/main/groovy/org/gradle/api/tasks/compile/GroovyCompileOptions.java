@@ -16,11 +16,12 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.List;
@@ -33,6 +34,8 @@ import java.util.Map;
  */
 public class GroovyCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
+    private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
+            ImmutableSet.of("forkOptions", "optimizationOptions", "useAnt", "stubDir", "keepStubs", "fileExtensions");
 
     private boolean failOnError = true;
 
@@ -176,51 +179,75 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Tells whether to print a stack trace when the compiler hits a problem (like a compile error).
-     * Defaults to {@code false}.
+     * Defaults to {@code false}. Only used when {@link #isUseAnt()} is {@code true}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public boolean isStacktrace() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.stacktrace", "There is no replacement for this property.");
         return stacktrace;
     }
 
     /**
      * Sets whether to print a stack trace when the compiler hits a problem (like a compile error).
-     * Defaults to {@code false}.
+     * Defaults to {@code false}. Only used when {@link #isUseAnt()} is {@code true}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public void setStacktrace(boolean stacktrace) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.stacktrack", "This property has no replacement.");
         this.stacktrace = stacktrace;
     }
 
     /**
      * Tells whether the groovyc Ant task should be used over Gradle's own Groovy compiler integration.
      * Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
     @Input
+    @Deprecated
     public boolean isUseAnt() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.useAnt", "There is no replacement for this property.");
         return useAnt;
     }
 
     /**
      * Sets whether the groovyc Ant task should be used over Gradle's own Groovy compiler integration.
      * Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public void setUseAnt(boolean useAnt) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.useAnt", "There is no replacement for this property.");
         this.useAnt = useAnt;
     }
 
     /**
      * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
      * {@code useAnt} is {@code true}. Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
     @Input
+    @Deprecated
     public boolean isIncludeJavaRuntime() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.includeJavaRuntime", "There is no replacement for this property.");
         return includeJavaRuntime;
     }
 
     /**
      * Sets whether the Java runtime should be put on the compile class path. Only takes effect if
      * {@code useAnt} is {@code true}. Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
+    @Deprecated
     public void setIncludeJavaRuntime(boolean includeJavaRuntime) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.includeJavaRuntime", "There is no replacement for this property.");
         this.includeJavaRuntime = includeJavaRuntime;
     }
 
@@ -245,7 +272,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
      */
     @Input
-    @Experimental
+    @Incubating
     public List<String> getFileExtensions() {
         return fileExtensions;
     }
@@ -254,7 +281,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Sets the list of acceptable source file extensions. Only takes effect when compiling against
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
      */
-    @Experimental
+    @Incubating
     public void setFileExtensions(List<String> fileExtensions) {
         this.fileExtensions = fileExtensions;
     }
@@ -278,7 +305,7 @@ public class GroovyCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Convenience method to set {@link ForkOptions} with named parameter syntax.
+     * Convenience method to set {@link GroovyForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
      */
     public GroovyCompileOptions fork(Map forkArgs) {
@@ -287,18 +314,9 @@ public class GroovyCompileOptions extends AbstractOptions {
         return this;
     }
 
-    /**
-     * Internal method.
-     */
-    protected List<String> excludedFieldsFromOptionMap() {
-        return ImmutableList.of("forkOptions", "optimizationOptions", "useAnt", "stubDir", "keepStubs", "fileExtensions");
-    }
-
-    /**
-     * Internal method.
-     */
-    protected Map<String, String> fieldName2AntMap() {
-        return ImmutableMap.of("failOnError", "failonerror", "listFiles", "listfiles");
+    @Override
+    protected boolean excludeFromAntProperties(String fieldName) {
+        return EXCLUDE_FROM_ANT_PROPERTIES.contains(fieldName);
     }
 
     /**

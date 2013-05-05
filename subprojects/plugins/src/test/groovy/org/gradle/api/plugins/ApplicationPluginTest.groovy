@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.bundling.Tar
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import spock.lang.Specification
@@ -40,6 +41,7 @@ class ApplicationPluginTest extends Specification {
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
         project.applicationName == project.name
         project.mainClassName == null
+        project.applicationDefaultJvmArgs == []
         project.applicationDistribution instanceof CopySpec
     }
 
@@ -63,6 +65,7 @@ class ApplicationPluginTest extends Specification {
         task instanceof CreateStartScripts
         task.applicationName == project.applicationName
         task.outputDir == project.file('build/scripts')
+        task.defaultJvmOpts == []
     }
 
     public void "adds installApp task to project with default target"() {
@@ -83,6 +86,16 @@ class ApplicationPluginTest extends Specification {
         def task = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
         task.archiveName == "${project.applicationName}.zip"
+    }
+
+    def "adds distTar task to project"() {
+        when:
+        plugin.apply(project)
+
+        then:
+        def task = project.tasks[ApplicationPlugin.TASK_DIST_TAR_NAME]
+        task instanceof Tar
+        task.archiveName == "${project.applicationName}.tar"
     }
 
     public void "applicationName is configurable"() {
@@ -119,5 +132,25 @@ class ApplicationPluginTest extends Specification {
         then:
         def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         startScripts.mainClassName == "Acme"
+    }
+
+    public void "applicationDefaultJvmArgs in project delegates to jvmArgs in run task"() {
+        when:
+        plugin.apply(project)
+        project.applicationDefaultJvmArgs = ['-Dfoo=bar', '-Xmx500m']
+
+        then:
+        def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
+        run.jvmArgs == ['-Dfoo=bar', '-Xmx500m']
+    }
+
+    public void "applicationDefaultJvmArgs in project delegates to defaultJvmOpts in startScripts task"() {
+        when:
+        plugin.apply(project);
+        project.applicationDefaultJvmArgs = ['-Dfoo=bar', '-Xmx500m']
+
+        then:
+        def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
+        startScripts.defaultJvmOpts == ['-Dfoo=bar', '-Xmx500m']
     }
 }

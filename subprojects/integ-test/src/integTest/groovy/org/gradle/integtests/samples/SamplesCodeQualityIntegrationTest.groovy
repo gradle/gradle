@@ -15,27 +15,25 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
-class SamplesCodeQualityIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('codeQuality')
+class SamplesCodeQualityIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'codeQuality')
 
     @Test
     public void checkReportsGenerated() {
         TestFile projectDir = sample.dir
         TestFile buildDir = projectDir.file('build')
 
-        executer.inDirectory(projectDir).withForkingExecuter().withTasks('check').run()
+        executer.inDirectory(projectDir).requireGradleHome().withTasks('check').run()
 
         buildDir.file('reports/checkstyle/main.xml').assertIsFile()
         buildDir.file('reports/codenarc/main.html').assertIsFile()

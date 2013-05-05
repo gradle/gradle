@@ -14,8 +14,8 @@ repositories {
 }
 
 dependencies {
-    groovy group: 'org.codehaus.groovy', name: 'groovy-all', version: '1.7.10'
-    compile group: 'org.eclipse', name: 'osgi', version: '3.5.0.v20090520'
+    compile 'org.codehaus.groovy:groovy-all:2.0.5'
+    compile 'org.eclipse:osgi:3.5.0.v20090520'
 }
 
 jar {

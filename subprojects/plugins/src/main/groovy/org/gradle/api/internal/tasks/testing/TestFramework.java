@@ -32,8 +32,6 @@ public interface TestFramework {
      */
     TestFrameworkDetector getDetector();
 
-    void report();
-
     TestFrameworkOptions getOptions();
 
     /**

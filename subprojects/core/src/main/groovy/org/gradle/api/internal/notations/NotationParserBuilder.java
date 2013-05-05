@@ -32,11 +32,15 @@ import java.util.Set;
  * by Szczepan Faber, created at: 11/8/11
  */
 public class NotationParserBuilder<T> {
-    private Class<T> resultingType;
+    private TypeInfo<T> resultingType;
     private String invalidNotationMessage;
     private Collection<NotationParser<? extends T>> notationParsers = new LinkedList<NotationParser<? extends T>>();
 
     public NotationParserBuilder<T> resultingType(Class<T> resultingType) {
+        return resultingType(new TypeInfo<T>(resultingType));
+    }
+
+    public NotationParserBuilder<T> resultingType(TypeInfo<T> resultingType) {
         this.resultingType = resultingType;
         return this;
     }
@@ -65,14 +69,14 @@ public class NotationParserBuilder<T> {
     }
 
     private <S> NotationParser<S> wrapInErrorHandling(NotationParser<S> parser) {
-        return new ErrorHandlingNotationParser<S>(resultingType.getSimpleName(), invalidNotationMessage, parser);
+        return new ErrorHandlingNotationParser<S>(resultingType.getTargetType().getSimpleName(), invalidNotationMessage, parser);
     }
 
     private CompositeNotationParser<T> create() {
         assert resultingType != null : "resultingType cannot be null";
 
         List<NotationParser<? extends T>> composites = new LinkedList<NotationParser<? extends T>>();
-        composites.add(new JustReturningParser<T>(resultingType));
+        composites.add(new JustReturningParser<T>(resultingType.getTargetType()));
         composites.addAll(this.notationParsers);
 
         return new CompositeNotationParser<T>(composites);

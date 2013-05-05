@@ -16,10 +16,10 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.api.internal.tasks.compile.IncrementalJavaCompilerSupport;
-import org.gradle.api.internal.tasks.compile.SimpleStaleClassCleaner;
-import org.gradle.api.internal.tasks.compile.StaleClassCleaner;
+import org.gradle.language.jvm.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.jvm.tasks.StaleClassCleaner;
 
 public class IncrementalScalaCompiler extends IncrementalJavaCompilerSupport<ScalaJavaJointCompileSpec>
         implements Compiler<ScalaJavaJointCompileSpec> {
@@ -38,6 +38,9 @@ public class IncrementalScalaCompiler extends IncrementalJavaCompilerSupport<Sca
 
     @Override
     protected StaleClassCleaner createCleaner(ScalaJavaJointCompileSpec spec) {
-        return new SimpleStaleClassCleaner(taskOutputs);
+        if (spec.getScalaCompileOptions().isUseAnt()) {
+            return new SimpleStaleClassCleaner(taskOutputs);
+        }
+        return new NoOpStaleClassCleaner();
     }
 }

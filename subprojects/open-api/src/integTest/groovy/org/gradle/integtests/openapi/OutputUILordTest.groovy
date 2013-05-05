@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.openapi;
+package org.gradle.integtests.openapi
 
-import java.awt.Font
-import java.util.concurrent.TimeUnit
-import javax.swing.UIManager
-
-import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.openapi.external.ui.OutputUILordVersion1
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1
-import org.gradle.util.TestPrecondition
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.PreconditionVerifier
-
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assert
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.junit.ClassRule
+
+import javax.swing.*
+import java.awt.*
+import java.util.concurrent.TimeUnit
 
 import static org.hamcrest.Matchers.startsWith
 
@@ -41,9 +40,11 @@ import static org.hamcrest.Matchers.startsWith
  */
 @Requires(TestPrecondition.SWING)
 class OutputUILordTest {
-    @Rule public GradleDistribution dist = new GradleDistribution()
-    @Rule public OpenApiFixture openApi = new OpenApiFixture()
-    @Rule public TestResources resources = new TestResources('testProject')
+
+    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    @Rule public OpenApiFixture openApi = new OpenApiFixture(temporaryFolder)
+    @Rule public TestResources resources = new TestResources(temporaryFolder, 'testProject')
     @ClassRule public static PreconditionVerifier verifier = new PreconditionVerifier()
 
     /**
@@ -58,7 +59,7 @@ class OutputUILordTest {
         OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
 
         outputUILord.addFileExtension('.txt', ':')
-        List extensions = outputUILord.getFileExtensions()
+        java.util.List extensions = outputUILord.getFileExtensions()
         Assert.assertTrue(extensions.contains('.txt'))
     }
 

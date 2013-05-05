@@ -15,17 +15,17 @@
  */
 package org.gradle.plugins.ide.idea.model
 
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class PathFactoryTest extends Specification {
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final PathFactory factory = new PathFactory()
 
     def createsPathForAFileUnderARootDir() {
-        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+        factory.addPathVariable('ROOT_DIR', tmpDir.testDirectory)
 
         expect:
         def path = factory.path(tmpDir.file('a', 'b'))
@@ -34,8 +34,8 @@ class PathFactoryTest extends Specification {
     }
 
     def createsPathForAFileNotUnderARootDir() {
-        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
-        def file = tmpDir.dir.parentFile.file('a')
+        factory.addPathVariable('ROOT_DIR', tmpDir.testDirectory)
+        def file = tmpDir.testDirectory.parentFile.file('a')
         def relpath = relpath(file)
 
         expect:
@@ -45,7 +45,7 @@ class PathFactoryTest extends Specification {
     }
 
     def usesTheClosestAncestorRootDirForAFileUnderMultipleRootDirs() {
-        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+        factory.addPathVariable('ROOT_DIR', tmpDir.testDirectory)
         factory.addPathVariable('SUB_DIR', tmpDir.file('sub'))
 
         expect:
@@ -56,10 +56,10 @@ class PathFactoryTest extends Specification {
 
     def createsPathForARootDir() {
         factory.addPathVariable('SUB_DIR', tmpDir.file('sub'))
-        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+        factory.addPathVariable('ROOT_DIR', tmpDir.testDirectory)
 
         expect:
-        def rootDir = factory.path(tmpDir.dir)
+        def rootDir = factory.path(tmpDir.testDirectory)
         rootDir.url == 'file://$ROOT_DIR$/'
         rootDir.relPath == '$ROOT_DIR$/'
 
@@ -69,7 +69,7 @@ class PathFactoryTest extends Specification {
     }
 
     def createsPathForAJarFile() {
-        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+        factory.addPathVariable('ROOT_DIR', tmpDir.testDirectory)
 
         expect:
         def path = factory.path(tmpDir.file('a.jar'))
@@ -78,7 +78,7 @@ class PathFactoryTest extends Specification {
     }
 
     def createsRelativePathForADescendantOfRootDir() {
-        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+        factory.addPathVariable('ROOT_DIR', tmpDir.testDirectory)
 
         expect:
         def path = factory.relativePath('ROOT_DIR', tmpDir.file('a/b'))
@@ -87,19 +87,19 @@ class PathFactoryTest extends Specification {
     }
 
     def createsRelativePathForAnAncestorOfRootDir() {
-        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+        factory.addPathVariable('ROOT_DIR', tmpDir.testDirectory)
 
         expect:
-        def path = factory.relativePath('ROOT_DIR', tmpDir.dir.parentFile.parentFile.file('a/b'))
+        def path = factory.relativePath('ROOT_DIR', tmpDir.testDirectory.parentFile.parentFile.file('a/b'))
         path.url == 'file://$ROOT_DIR$/../../a/b'
         path.relPath == '$ROOT_DIR$/../../a/b'
     }
 
     def createsRelativePathForASiblingOfRootDir() {
-        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+        factory.addPathVariable('ROOT_DIR', tmpDir.testDirectory)
 
         expect:
-        def path = factory.relativePath('ROOT_DIR', tmpDir.dir.parentFile.file('a'))
+        def path = factory.relativePath('ROOT_DIR', tmpDir.testDirectory.parentFile.file('a'))
         path.url == 'file://$ROOT_DIR$/../a'
         path.relPath == '$ROOT_DIR$/../a'
     }
@@ -149,7 +149,7 @@ class PathFactoryTest extends Specification {
     }
 
     def createsPathForAUrlWithPathVariables() {
-        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+        factory.addPathVariable('ROOT_DIR', tmpDir.testDirectory)
 
         expect:
         def path = factory.path('file://$ROOT_DIR$/c')
@@ -162,7 +162,7 @@ class PathFactoryTest extends Specification {
         TestFile childFile = tmpDir.file('sub/a/b')
 
         factory.addPathVariable('SUB_DIR', subDir)
-        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+        factory.addPathVariable('ROOT_DIR', tmpDir.testDirectory)
 
         expect:
 
@@ -191,7 +191,7 @@ class PathFactoryTest extends Specification {
         TestFile childFile = tmpDir.file('sub/a/b.jar')
 
         factory.addPathVariable('SUB_DIR', subDir)
-        factory.addPathVariable('ROOT_DIR', tmpDir.dir)
+        factory.addPathVariable('ROOT_DIR', tmpDir.testDirectory)
 
         expect:
 

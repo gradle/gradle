@@ -20,13 +20,20 @@ import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 
 import java.io.File;
+import java.util.Map;
 
 public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec implements ScalaJavaJointCompileSpec {
-    private final ScalaCompileOptions options = new ScalaCompileOptions();
+    private ScalaCompileOptions options;
     private Iterable<File> scalaClasspath;
+    private Iterable<File> zincClasspath;
+    private Map<File, File> analysisMap;
 
     public ScalaCompileOptions getScalaCompileOptions() {
         return options;
+    }
+
+    public void setScalaCompileOptions(ScalaCompileOptions options) {
+        this.options = options;
     }
 
     public Iterable<File> getScalaClasspath() {
@@ -35,5 +42,21 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
 
     public void setScalaClasspath(Iterable<File> scalaClasspath) {
         this.scalaClasspath = scalaClasspath;
+    }
+
+    public Iterable<File> getZincClasspath() {
+        return zincClasspath;
+    }
+
+    public void setZincClasspath(Iterable<File> zincClasspath) {
+        this.zincClasspath = zincClasspath;
+    }
+
+    public Map<File, File> getAnalysisMap() {
+        return analysisMap;
+    }
+
+    public void setAnalysisMap(Map<File, File> analysisMap) {
+        this.analysisMap = analysisMap;
     }
 }

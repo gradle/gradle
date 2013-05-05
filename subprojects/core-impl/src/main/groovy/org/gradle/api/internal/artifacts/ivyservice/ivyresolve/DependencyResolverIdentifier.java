@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolver;
-import org.gradle.util.GUtil;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.hash.HashUtil;
 
 import java.util.ArrayList;
@@ -56,11 +56,11 @@ public class DependencyResolverIdentifier {
     }
 
     private String joinPatterns(List<String> patterns) {
-        return GUtil.join(patterns, ",");
+        return CollectionUtils.join(",", patterns);
     }
 
     private String calculateId(List<String> parts) {
-        String idString = GUtil.join(parts, "::");
+        String idString = CollectionUtils.join("::", parts);
         return HashUtil.createHash(idString, "MD5").asHexString();
     }
 

@@ -31,5 +31,6 @@
 .DS_Store
 /performanceTest/lib
 .textmate
-*.hprof
 /incoming-distributions
+.idea
+*.sublime-*

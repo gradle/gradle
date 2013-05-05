@@ -20,17 +20,24 @@ package org.gradle.messaging.remote.internal;
  */
 public class PlaceholderException extends RuntimeException {
     private final String exceptionClassName;
-    
-    public PlaceholderException(String exceptionClassName, String message, Throwable cause) {
+    private final String toString;
+    private final RuntimeException toStringRuntimeEx;
+
+    public PlaceholderException(String exceptionClassName, String message, String toString, RuntimeException toStringException, Throwable cause) {
         super(message, cause);
         this.exceptionClassName = exceptionClassName;
+        this.toString = toString;
+        this.toStringRuntimeEx = toStringException;
     }
-    
+
     public String getExceptionClassName() {
         return exceptionClassName;
     }
 
     public String toString() {
-        return String.format("%s: %s", exceptionClassName, getMessage());
+        if(toStringRuntimeEx !=null){
+            throw toStringRuntimeEx;
+        }
+        return toString;
     }
 }

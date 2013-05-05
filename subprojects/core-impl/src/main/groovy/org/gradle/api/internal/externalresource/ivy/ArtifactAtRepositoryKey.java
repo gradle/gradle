@@ -22,18 +22,21 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 
-import java.io.Serializable;
-
-public class ArtifactAtRepositoryKey implements Serializable {
-    private final String resolverId;
+public class ArtifactAtRepositoryKey {
+    private final String repositoryId;
     private final String artifactId;
 
     public ArtifactAtRepositoryKey(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
         this(repository, getArtifactKey(artifactId));
     }
 
+    public ArtifactAtRepositoryKey(String repositoryId, String artifactId) {
+        this.repositoryId = repositoryId;
+        this.artifactId = artifactId;
+    }
+
     private ArtifactAtRepositoryKey(ModuleVersionRepository repository, String artifactPath) {
-        this.resolverId = repository.getId();
+        this.repositoryId = repository.getId();
         this.artifactId = artifactPath;
     }
 
@@ -43,9 +46,17 @@ public class ArtifactAtRepositoryKey implements Serializable {
         return IvyPatternHelper.substitute(format, dummyArtifact);
     }
 
+    public String getArtifactId() {
+        return artifactId;
+    }
+
+    public String getRepositoryId() {
+        return repositoryId;
+    }
+
     @Override
     public String toString() {
-        return resolverId + ":" + artifactId;
+        return repositoryId + ":" + artifactId;
     }
 
     @Override

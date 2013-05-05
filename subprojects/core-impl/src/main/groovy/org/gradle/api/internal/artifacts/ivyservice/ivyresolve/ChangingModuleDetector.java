@@ -25,7 +25,7 @@ import org.gradle.api.GradleException;
 
 import java.lang.reflect.Method;
 
-class ChangingModuleDetector {
+public class ChangingModuleDetector {
     private final DependencyResolver resolver;
 
     public ChangingModuleDetector(DependencyResolver resolver) {

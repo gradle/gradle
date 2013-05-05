@@ -15,13 +15,14 @@
  */
 package org.gradle.integtests.samples
 
-import org.junit.*
-
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
+import org.junit.Rule
 
 class SamplesMultiProjectBuildSrcIntegrationTest extends AbstractIntegrationSpec {
 
-  @Rule public final Sample sample = new Sample()
+  @Rule public final Sample sample = new Sample(temporaryFolder)
 
   @UsesSample("multiProjectBuildSrc")
   def "plugins from buildSrc subprojects are available"() {

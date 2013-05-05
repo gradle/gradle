@@ -30,6 +30,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.plugins.antlr.internal.MetadataExtracter;
 import org.gradle.api.plugins.antlr.internal.XRef;
 import org.gradle.api.plugins.antlr.internal.GenerationPlanBuilder;
+import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,7 +154,7 @@ public class AntlrTask extends SourceTask {
             LOGGER.info("performing grammar generation [" + generationPlan.getId() + "]");
 
             //noinspection ResultOfMethodCallIgnored
-            generationPlan.getGenerationDirectory().mkdirs();
+            GFileUtils.mkdirs(generationPlan.getGenerationDirectory());
 
             ANTLR antlr = new ANTLR();
             antlr.setProject(getAnt().getAntProject());

@@ -18,12 +18,14 @@ package org.gradle.plugins.ide.eclipse
 import org.junit.Test
 import spock.lang.Issue
 
-// TODO: run prepareWebProject() only once per class for performance reasons (not as simply as it seems)
 class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
+    void runSharedBuild() {
+        generateEclipseFilesForWebProject()
+    }
+
     @Test
     void projectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
-        prepareWebProject()
-
+        useSharedBuild = true;
         hasUtilityFacet("java1")
         hasUtilityFacet("java2")
         hasUtilityFacet("groovy")
@@ -31,8 +33,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void projectDependenciesOfWebProjectHaveNecessaryNaturesAdded() {
-        prepareWebProject()
-
+        useSharedBuild = true;
         hasNecessaryNaturesAdded("java1")
         hasNecessaryNaturesAdded("java2")
         hasNecessaryNaturesAdded("groovy")
@@ -40,8 +41,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void projectDependenciesOfWebProjectHaveNecessaryBuildersAdded() {
-        prepareWebProject()
-
+        useSharedBuild = true;
         hasNecessaryBuildersAdded("java1")
         hasNecessaryBuildersAdded("java2")
         hasNecessaryBuildersAdded("groovy")
@@ -49,8 +49,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void projectDependenciesOfWebProjectHaveTrimmedDownComponentSettingsFile() {
-        prepareWebProject()
-
+        useSharedBuild = true;
         hasTrimmedDownComponentSettingsFile("java1", "src/main/java", "src/main/resources")
         hasTrimmedDownComponentSettingsFile("java2", "src/main/java", "src/main/resources")
         hasTrimmedDownComponentSettingsFile("groovy", "src/main/java", "src/main/groovy", "src/main/resources")
@@ -58,8 +57,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void jarDependenciesOfUtilityProjectsAreFlaggedAsRuntimeDependency() {
-        prepareWebProject()
-
+        useSharedBuild = true;
         def classpath = parseClasspathFile(project: "java1")
 
         def firstLevelDep = classpath.classpathentry.find { it.@path.text().endsWith("myartifact-1.0.jar") }
@@ -72,8 +70,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void allProjectDependenciesOfWebProjectAreAddedAsRuntimeDependencies() {
-        prepareWebProject()
-
+        useSharedBuild = true;
         def projectModules = parseComponentFile(project: "web", print: true)
 
 		assert getDeployName(projectModules) == "web"
@@ -84,6 +81,8 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     @Issue("GRADLE-1415")
     void canUseSelfResolvingFiles() {
+        useSharedBuild = false
+
         def buildFile = """
 apply plugin: "war"
 apply plugin: "eclipse"
@@ -104,9 +103,23 @@ dependencies {
         libEntriesInClasspathFileHaveFilenames("foo.jar")
     }
 
-    private prepareWebProject() {
+    @Test
+    @Issue("GRADLE-2526")
+    void overwritesDependentModules() {
+        useSharedBuild = false
+
+        generateEclipseFilesForWebProject()
+        def projectModules = parseComponentFile(project: "web")
+        assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
+
+        generateEclipseFilesForWebProject("1.2.3")
+        def projectModules2 = parseComponentFile(project: "web")
+        assert getHandleFilenames(projectModules2) == ["java1", "java2", "groovy", "myartifact-1.2.3.jar", "myartifactdep-1.0.jar"] as Set
+    }
+
+    private generateEclipseFilesForWebProject(myArtifactVersion = "1.0") {
         def repoDir = file("repo")
-        maven(repoDir).module("mygroup", "myartifact").dependsOn("myartifactdep").publish()
+        maven(repoDir).module("mygroup", "myartifact", myArtifactVersion).dependsOn("myartifactdep").publish()
         maven(repoDir).module("mygroup", "myartifactdep").publish()
 
         def settingsFile = file("settings.gradle")
@@ -132,7 +145,7 @@ repositories {
 dependencies {
     compile project(":java1")
     compile project(":groovy")
-    runtime "mygroup:myartifact:1.0"
+    runtime "mygroup:myartifact:$myArtifactVersion"
 }
         """
 
@@ -149,7 +162,7 @@ repositories {
 
 dependencies {
     compile project(":java2")
-    runtime "mygroup:myartifact:1.0"
+    runtime "mygroup:myartifact:$myArtifactVersion"
 }
         """
 
@@ -165,7 +178,7 @@ repositories {
 }
 
 dependencies {
-    runtime "mygroup:myartifact:1.0"
+    runtime "mygroup:myartifact:$myArtifactVersion"
 }
         """
 

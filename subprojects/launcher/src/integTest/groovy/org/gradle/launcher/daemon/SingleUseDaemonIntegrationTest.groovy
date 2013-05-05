@@ -18,17 +18,23 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.util.TextUtil
+import org.spockframework.runtime.SpockAssertionError
+import org.spockframework.runtime.SpockTimeoutError
 import spock.lang.IgnoreIf
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import spock.util.concurrent.PollingConditions
 
-@IgnoreIf({ GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.daemon })
+@IgnoreIf({ GradleContextualExecuter.isDaemon() })
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
+    PollingConditions pollingConditions = new PollingConditions()
+
     def setup() {
         // Need forking executer
-        // '-ea' is always set on the forked process. So I've added it explicitly here. // TODO:DAZ Clean this up
-        executer.withForkingExecuter().withEnvironmentVars(["JAVA_OPTS": "-ea"])
-        distribution.requireIsolatedDaemons()
+        // '-ea' is always set on the forked process. So I've added it explicitly here.
+        executer.requireGradleHome().withEnvironmentVars(["JAVA_OPTS": "-ea"])
+        executer.requireIsolatedDaemons()
     }
 
     def "stops single use daemon on build complete"() {
@@ -41,8 +47,22 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         wasForked()
+
         and:
-        executer.getDaemonRegistry().all.empty
+        noDaemonsRunning()
+    }
+
+    protected void noDaemonsRunning() {
+        // Because of GRADLE-2630, we need to use a spin assert here
+        // This should be removed when this bug is fixed.
+        try {
+            pollingConditions.eventually {
+                executer.getDaemonRegistry().all.empty
+            }
+        } catch (SpockTimeoutError e) {
+            // Spock swallows the inner exception, this is just to give a more helpful error message
+            throw new SpockAssertionError("The daemon registry is not empty after timeout (means daemons are still running)", e)
+        }
     }
 
     def "stops single use daemon when build fails"() {
@@ -58,10 +78,10 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause "bad"
 
         and:
-        executer.getDaemonRegistry().all.empty
+        noDaemonsRunning()
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
     def "does not fork build if java home from gradle properties matches current process"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
 
@@ -119,6 +139,6 @@ assert System.getProperty('some-prop') == 'some-value'
     }
 
     private def wasForked() {
-        result.output.contains('fork a new JVM')
+        result.output.contains(SingleUseDaemonClient.MESSAGE)
     }
 }

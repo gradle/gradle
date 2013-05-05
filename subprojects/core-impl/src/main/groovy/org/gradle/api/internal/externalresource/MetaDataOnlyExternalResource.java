@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.externalresource;
 
-import org.apache.ivy.util.CopyProgressListener;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -37,10 +35,6 @@ public class MetaDataOnlyExternalResource extends AbstractExternalResource {
         this.source = source;
         this.metaData = metaData;
         this.local = local;
-    }
-
-    public void writeTo(File destination, CopyProgressListener progress) throws IOException {
-        throw new UnsupportedOperationException();
     }
 
     public ExternalResourceMetaData getMetaData() {

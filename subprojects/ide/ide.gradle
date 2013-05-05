@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     compile project(':scala')
     compile project(':core')
@@ -29,11 +29,3 @@ dependencies {
 }
 
 useTestFixtures()
-
-eclipse {
-	classpath {
-    	file.whenMerged { classpath ->
-        	classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-        }
-    }
-}

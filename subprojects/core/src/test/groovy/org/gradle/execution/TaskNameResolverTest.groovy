@@ -150,6 +150,8 @@ class TaskNameResolverTest extends Specification {
         1 * tasks.iterator() >> [task1].iterator()
         1 * implicitTasks.iterator() >> [task2].iterator()
         1 * childProjectTasks.iterator() >> [task3, task4].iterator()
+        1 * tasks.materializePlaceholders()
+        1 * childProjectTasks.materializePlaceholders()
         candidates.get('name1') == [task1, task3] as Set
         candidates.get('name2') == [task2, task4] as Set
     }

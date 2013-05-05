@@ -37,7 +37,20 @@ class PmdExtension extends CodeQualityExtension {
      * Example: ruleSets = ["basic", "braces"]
      */
     List<String> ruleSets
-    
+
+    /**
+     * The target jdk to use with pmd, 1.3, 1.4, 1.5, 1.6, 1.7 or jsp
+     */
+    TargetJdk targetJdk
+
+    /**
+     * Sets the target jdk used with pmd.
+     *
+     * @value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
+     */
+    void setTargetJdk(def value) {
+        targetJdk = TargetJdk.toVersion(value)
+    }
     /**
      * Convenience method for adding rule sets.
      *

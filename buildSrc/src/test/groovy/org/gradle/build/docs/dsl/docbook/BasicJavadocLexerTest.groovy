@@ -31,6 +31,7 @@ class BasicJavadocLexerTest extends Specification {
         1 * visitor.onStartHtmlElementComplete('p')
         1 * visitor.onText(' text ')
         1 * visitor.onEndHtmlElement('p')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 
@@ -43,6 +44,7 @@ class BasicJavadocLexerTest extends Specification {
         1 * visitor.onStartHtmlElement('p')
         1 * visitor.onStartHtmlElementComplete('p')
         1 * visitor.onEndHtmlElement('end')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 
@@ -53,6 +55,7 @@ class BasicJavadocLexerTest extends Specification {
 
         then:
         1 * visitor.onText('before & after')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 
@@ -66,6 +69,7 @@ class BasicJavadocLexerTest extends Specification {
         1 * visitor.onHtmlElementAttribute('name', 'value')
         1 * visitor.onHtmlElementAttribute('other', '\n& \'\n \"')
         1 * visitor.onStartHtmlElementComplete('a')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 
@@ -79,6 +83,7 @@ class BasicJavadocLexerTest extends Specification {
         1 * visitor.onHtmlElementAttribute('single', 'a=\"b\"')
         1 * visitor.onHtmlElementAttribute('double', 'a=\'b\'')
         1 * visitor.onStartHtmlElementComplete('a')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 
@@ -91,6 +96,7 @@ class BasicJavadocLexerTest extends Specification {
         1 * visitor.onStartHtmlElement('p')
         1 * visitor.onStartHtmlElementComplete('p')
         1 * visitor.onEndHtmlElement('p')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 
@@ -103,6 +109,7 @@ class BasicJavadocLexerTest extends Specification {
         1 * visitor.onStartJavadocTag('tag')
         1 * visitor.onText('some value')
         1 * visitor.onEndJavadocTag('tag')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 
@@ -114,6 +121,7 @@ class BasicJavadocLexerTest extends Specification {
         then:
         1 * visitor.onStartJavadocTag('empty')
         1 * visitor.onEndJavadocTag('empty')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 
@@ -126,6 +134,7 @@ class BasicJavadocLexerTest extends Specification {
         1 * visitor.onStartJavadocTag('link')
         1 * visitor.onText('Something')
         1 * visitor.onEndJavadocTag('link')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 
@@ -138,6 +147,7 @@ class BasicJavadocLexerTest extends Specification {
         1 * visitor.onStartJavadocTag('link')
         1 * visitor.onText('#Something(Object,\nString\n')
         1 * visitor.onEndJavadocTag('link')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 
@@ -150,6 +160,7 @@ class BasicJavadocLexerTest extends Specification {
         1 * visitor.onStartJavadocTag('link')
         1 * visitor.onText('<something> & &lt; </something>')
         1 * visitor.onEndJavadocTag('link')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 
@@ -164,6 +175,7 @@ class BasicJavadocLexerTest extends Specification {
         1 * visitor.onText('code')
         1 * visitor.onEndJavadocTag('')
         1 * visitor.onText(' { @ code}')
+        1 * visitor.onEnd()
         0 * visitor._
     }
 }

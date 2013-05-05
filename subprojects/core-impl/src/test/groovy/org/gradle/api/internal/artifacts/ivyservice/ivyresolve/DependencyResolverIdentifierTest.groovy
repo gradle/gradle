@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.plugins.resolver.DependencyResolver
-import spock.lang.Specification
 import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver
-
-import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolver
+import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
+import spock.lang.Specification
 
 public class DependencyResolverIdentifierTest extends Specification {
     def "uses dependency resolver name"() {
@@ -69,7 +68,7 @@ public class DependencyResolverIdentifierTest extends Specification {
         id(resolver2) != id(resolver2a)
     }
 
-    def "dependency resolvers of type ResourceCollectionResolver are differentiated by their patterns"() {
+    def "dependency resolvers of type ExternalResourceResolver are differentiated by their patterns"() {
         given:
         ExternalResourceResolver resolver1 = Mock()
         ExternalResourceResolver resolver1a = Mock()
@@ -108,7 +107,7 @@ public class DependencyResolverIdentifierTest extends Specification {
         id(resolver1) != id(resolver2)
     }
 
-    def "dependency resolvers of type ResourceCollectionResolver are differentiated by m2compatible flag"() {
+    def "dependency resolvers of type ExternalResourceResolver are differentiated by m2compatible flag"() {
         given:
         ExternalResourceResolver resolver1 = Mock()
         ExternalResourceResolver resolver2 = Mock()

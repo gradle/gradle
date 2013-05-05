@@ -17,6 +17,7 @@ package org.gradle.launcher.cli;
 
 import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
+import org.gradle.api.internal.Actions;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
@@ -89,12 +90,12 @@ public class CommandLineActionFactory {
             parser.option(VERSION, "version").hasDescription("Print version info.");
         }
 
-        public Action<ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(HELP)) {
-                return new ActionAdapter(new ShowUsageAction(parser));
+                return Actions.toAction(new ShowUsageAction(parser));
             }
             if (commandLine.hasOption(VERSION)) {
-                return new ActionAdapter(new ShowVersionAction());
+                return Actions.toAction(new ShowVersionAction());
             }
             return null;
         }
@@ -163,8 +164,8 @@ public class CommandLineActionFactory {
 
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevel(loggingConfiguration.getLogLevel());
-            loggingManager.colorStdOutAndStdErr(loggingConfiguration.isColorOutput());
             loggingManager.start();
+            loggingManager.attachConsole(loggingConfiguration.isColorOutput());
 
             action.execute(executionListener);
         }
@@ -189,7 +190,7 @@ public class CommandLineActionFactory {
                 action.configureCommandLineParser(parser);
             }
 
-            Action<ExecutionListener> action;
+            Action<? super ExecutionListener> action;
             try {
                 ParsedCommandLine commandLine = parser.parse(args);
                 action = createAction(actions, parser, commandLine);
@@ -200,9 +201,9 @@ public class CommandLineActionFactory {
             action.execute(executionListener);
         }
 
-        private Action<ExecutionListener> createAction(Iterable<CommandLineAction> factories, CommandLineParser parser, ParsedCommandLine commandLine) {
+        private Action<? super ExecutionListener> createAction(Iterable<CommandLineAction> factories, CommandLineParser parser, ParsedCommandLine commandLine) {
             for (CommandLineAction factory : factories) {
-                Action<ExecutionListener> action = factory.createAction(parser, commandLine);
+                Action<? super ExecutionListener> action = factory.createAction(parser, commandLine);
                 if (action != null) {
                     return action;
                 }

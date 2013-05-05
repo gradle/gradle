@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
 public interface ModuleVersionResolveResult {
     /**
@@ -25,14 +25,14 @@ public interface ModuleVersionResolveResult {
      *
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
      */
-    ModuleRevisionId getId() throws ModuleVersionResolveException;
+    ModuleVersionIdentifier getId() throws ModuleVersionResolveException;
 
     /**
-     * Returns the descriptor for this module version.
+     * Returns the meta-data for this module version.
      *
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
      */
-    ModuleDescriptor getDescriptor() throws ModuleVersionResolveException;
+    ModuleVersionMetaData getMetaData() throws ModuleVersionResolveException;
 
     /**
      * Returns the resolve failure, if any.

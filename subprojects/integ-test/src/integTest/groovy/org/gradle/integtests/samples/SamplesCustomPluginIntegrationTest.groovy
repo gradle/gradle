@@ -15,13 +15,13 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
 class SamplesCustomPluginIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample sample = new Sample('customPlugin')
+    @Rule public final Sample sample = new Sample(temporaryFolder, 'customPlugin')
 
     def getProducerDir() {
         return sample.dir.file('plugin')
@@ -36,7 +36,7 @@ class SamplesCustomPluginIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(producerDir).withTasks('check').run()
 
         then:
-        def result = new JUnitTestExecutionResult(producerDir)
+        def result = new JUnitXmlTestExecutionResult(producerDir)
         result.assertTestClassesExecuted('org.gradle.GreetingTaskTest', 'org.gradle.GreetingPluginTest')
     }
 

@@ -26,7 +26,9 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +38,7 @@ public class JUnitTestEventAdapter extends RunListener {
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
     private final Map<Description, TestDescriptorInternal> executing = new HashMap<Description, TestDescriptorInternal>();
+    private final Set<Description> assumptionFailed = new HashSet<Description>();
 
     public JUnitTestEventAdapter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
                                  IdGenerator<?> idGenerator) {
@@ -75,20 +78,39 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     @Override
+    public void testAssumptionFailure(Failure failure) {
+        synchronized (lock) {
+            assumptionFailed.add(failure.getDescription());
+        }
+    }
+
+    @Override
     public void testIgnored(Description description) throws Exception {
         if (methodName(description) == null) {
-            // An @Ignored class, ignore the event. We don't get testIgnored events for each method, which would be kind of nice
+            // An @Ignored class, ignore the event. We don't get testIgnored events for each method, so we have
+            // generate them on our own
+            processIgnoredClass(description);
             return;
         }
+
         TestDescriptorInternal testInternal = descriptor(idGenerator.generateId(), description);
         resultProcessor.started(testInternal, startEvent());
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(timeProvider.getCurrentTime(), TestResult.ResultType.SKIPPED));
+    }
+
+    private void processIgnoredClass(Description description) throws Exception {
+        IgnoredTestDescriptorProvider provider = new IgnoredTestDescriptorProvider();
+        String className = className(description);
+        for (Description childDescription : provider.getAllDescriptions(description, className)) {
+            testIgnored(childDescription);
+        }
     }
 
     @Override
     public void testFinished(Description description) throws Exception {
         long endTime = timeProvider.getCurrentTime();
         TestDescriptorInternal testInternal;
+        TestResult.ResultType resultType;
         synchronized (lock) {
             testInternal = executing.remove(description);
             if (testInternal == null && executing.size() == 1) {
@@ -97,8 +119,9 @@ public class JUnitTestEventAdapter extends RunListener {
                 executing.clear();
             }
             assert testInternal != null : String.format("Unexpected end event for %s", description);
+            resultType = assumptionFailed.remove(description) ? TestResult.ResultType.SKIPPED : null;
         }
-        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
+        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
     }
 
     private TestStartEvent startEvent() {
@@ -133,7 +156,7 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private Matcher methodStringMatcher(Description description) {
-        return Pattern.compile("(.*)\\((.*)\\)").matcher(description.toString());
+        return Pattern.compile("(.*)\\((.*)\\)", Pattern.DOTALL).matcher(description.toString());
     }
 
 }

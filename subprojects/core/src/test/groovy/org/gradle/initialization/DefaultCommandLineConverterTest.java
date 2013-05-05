@@ -22,8 +22,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.logging.ShowStacktrace;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ import static org.junit.Assert.assertThat;
  */
 public class DefaultCommandLineConverterTest {
     @Rule
-    public TemporaryFolder testDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
 
     private TestFile currentDir = testDir.file("current-dir");
     private File expectedBuildFile;
@@ -58,7 +58,6 @@ public class DefaultCommandLineConverterTest {
     private boolean expectedSearchUpwards = true;
     private boolean expectedDryRun;
     private ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
-    private String expectedEmbeddedScript = "somescript";
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     private boolean expectedColorOutput = true;
     private StartParameter actualStartParameter;
@@ -71,6 +70,8 @@ public class DefaultCommandLineConverterTest {
     private boolean expectedOffline;
     private RefreshOptions expectedRefreshOptions = RefreshOptions.NONE;
     private boolean expectedRecompileScripts;
+    private int expectedParallelExecutorCount;
+    private boolean expectedConfigureOnDemand;
 
     @Test
     public void withoutAnyOptions() {
@@ -109,6 +110,8 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedRefreshOptions, startParameter.getRefreshOptions());
         assertEquals(expectedRefreshDependencies, startParameter.isRefreshDependencies());
         assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());
+        assertEquals(expectedParallelExecutorCount, startParameter.getParallelThreadCount());
+        assertEquals(expectedConfigureOnDemand, startParameter.isConfigureOnDemand());
     }
 
     @Test
@@ -348,6 +351,7 @@ public class DefaultCommandLineConverterTest {
     public void withOffline() {
         expectedOffline = true;
         checkConversion("--offline");
+        checkConversion("-offline");
     }
 
     @Test
@@ -355,6 +359,7 @@ public class DefaultCommandLineConverterTest {
         expectedRefreshDependencies = true;
         expectedRefreshOptions = new RefreshOptions(asList(RefreshOptions.Option.DEPENDENCIES));
         checkConversion("--refresh-dependencies");
+        checkConversion("-refresh-dependencies");
     }
 
     @Test
@@ -384,5 +389,28 @@ public class DefaultCommandLineConverterTest {
     public void withTaskAndTaskOption() {
         expectedTaskNames = toList("someTask", "--some-task-option");
         checkConversion("someTask", "--some-task-option");
+    }
+
+    @Test
+    public void withParallelExecutor() {
+        expectedParallelExecutorCount = -1;
+        checkConversion("--parallel");
+    }
+
+    @Test
+    public void withParallelExecutorThreads() {
+        expectedParallelExecutorCount = 5;
+        checkConversion("--parallel-threads", "5");
+    }
+
+    @Test(expected = CommandLineArgumentException.class)
+    public void withInvalidParallelExecutorThreads() {
+        checkConversion("--parallel-threads", "foo");
+    }
+
+    @Test
+    public void withConfigureOnDemand() {
+        expectedConfigureOnDemand = true;
+        checkConversion("--configure-on-demand");
     }
 }

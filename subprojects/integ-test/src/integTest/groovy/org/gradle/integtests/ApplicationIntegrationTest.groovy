@@ -18,8 +18,9 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
+
 import static org.hamcrest.Matchers.startsWith
 
 class ApplicationIntegrationTest extends AbstractIntegrationSpec{
@@ -52,13 +53,132 @@ class Main {
         run 'install'
 
         def builder = new ScriptExecuter()
-        builder.workingDir distribution.testDir.file('build/install/application/bin')
+        builder.workingDir file('build/install/application/bin')
         builder.executable "application"
         if (OperatingSystem.current().windows) {
             builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2="some value" -DtestValue3="some value"')
         } else {
             builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2=\'some value\' -DtestValue3=some\\ value')
         }
+
+        def result = builder.run()
+
+        then:
+        result.assertNormalExitValue()
+    }
+
+    def canUseDefaultJvmArgsToPassMultipleOptionsToJvmWhenRunningScript() {
+        file("build.gradle") << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+applicationName = 'application'
+applicationDefaultJvmArgs = ['-DtestValue=value', '-DtestValue2=some value', '-DtestValue3=some value']
+'''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+package org.gradle.test;
+
+class Main {
+    public static void main(String[] args) {
+        if (!"value".equals(System.getProperty("testValue"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+        if (!"some value".equals(System.getProperty("testValue2"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+        if (!"some value".equals(System.getProperty("testValue3"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+    }
+}
+'''
+
+        when:
+        run 'install'
+
+        def builder = new ScriptExecuter()
+        builder.workingDir file('build/install/application/bin')
+        builder.executable "application"
+
+        def result = builder.run()
+
+        then:
+        result.assertNormalExitValue()
+    }
+
+    def canUseBothDefaulJvmArgsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
+        file("build.gradle") << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+applicationName = 'application'
+applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=some value2']
+'''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+package org.gradle.test;
+
+class Main {
+    public static void main(String[] args) {
+        if (!"value1".equals(System.getProperty("var1"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+        if (!"some value2".equals(System.getProperty("var2"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+        if (!"value3".equals(System.getProperty("var3"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+    }
+}
+'''
+
+        when:
+        run 'install'
+
+        def builder = new ScriptExecuter()
+        builder.workingDir file('build/install/application/bin')
+        builder.executable "application"
+        builder.environment('APPLICATION_OPTS', '-Dvar3=value3')
+
+        def result = builder.run()
+
+        then:
+        result.assertNormalExitValue()
+    }
+
+    def canUseDefaultJvmArgsToPassMultipleOptionsWithShellMetacharactersToJvmWhenRunningScript() {
+        //even in single-quoted multi-line strings, backslashes must still be quoted
+        file("build.gradle") << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+applicationName = 'application'
+applicationDefaultJvmArgs = ['-DtestValue=value',
+                             /-DtestValue2=s\\o"me val'ue/ + '$PATH',
+                             /-DtestValue3=so\\"me value%PATH%/,
+                            ]
+'''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+package org.gradle.test;
+
+class Main {
+    public static void main(String[] args) {
+        if (!"value".equals(System.getProperty("testValue"))) {
+            throw new RuntimeException("Expected system property not specified (testValue)");
+        }
+        if (!"s\\\\o\\"me val'ue$PATH".equals(System.getProperty("testValue2"))) {
+            throw new RuntimeException("Expected system property not specified (testValue2)");
+        }
+        if (!"so\\\\\\"me value%PATH%".equals(System.getProperty("testValue3"))) {
+            throw new RuntimeException("Expected system property not specified (testValue3)");
+        }
+    }
+}
+'''
+
+        when:
+        run 'install'
+
+        def builder = new ScriptExecuter()
+        builder.workingDir file('build/install/application/bin')
+        builder.executable "application"
 
         def result = builder.run()
 
@@ -83,19 +203,64 @@ class Main {
 '''
 
         when:
-        run 'install', 'distZip'
+        run 'install', 'distZip', 'distTar'
 
         then:
         def installDir = file('build/install/mega-app')
         installDir.assertIsDir()
-        checkApplicationImage(installDir)
+        checkApplicationImage('mega-app', installDir)
 
-        def distFile = distribution.testFile('build/distributions/mega-app.zip')
-        distFile.assertIsFile()
+        def distZipFile = file('build/distributions/mega-app.zip')
+        distZipFile.assertIsFile()
 
-        def distDir = distribution.testFile('build/unzip')
-        distFile.usingNativeTools().unzipTo(distDir)
-        checkApplicationImage(distDir.file('mega-app'))
+        def distZipDir = file('build/unzip')
+        distZipFile.usingNativeTools().unzipTo(distZipDir)
+        checkApplicationImage('mega-app', distZipDir.file('mega-app'))
+
+        def distTarFile = file('build/distributions/mega-app.tar')
+        distTarFile.assertIsFile()
+
+        def distTarDir = file('build/untar')
+        distTarFile.usingNativeTools().untarTo(distTarDir)
+        checkApplicationImage('mega-app', distTarDir.file('mega-app'))
+    }
+
+    def "check distribution contents when all defaults used"() {
+        file('settings.gradle') << 'rootProject.name = "application"'
+        file('build.gradle') << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+'''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+package org.gradle.test;
+
+class Main {
+    public static void main(String[] args) {
+    }
+}
+'''
+
+        when:
+        run 'install', 'distZip', 'distTar'
+
+        then:
+        def installDir = file('build/install/application')
+        installDir.assertIsDir()
+        checkApplicationImage('application', installDir)
+        
+        def distZipFile = file('build/distributions/application.zip')
+        distZipFile.assertIsFile()
+        
+        def distZipDir = file('build/unzip')
+        distZipFile.usingNativeTools().unzipTo(distZipDir)
+        checkApplicationImage('application', distZipDir.file('application'))
+        
+        def distTarFile = file('build/distributions/application.tar')
+        distTarFile.assertIsFile()
+		
+        def distTarDir = file('build/untar')
+        distTarFile.usingNativeTools().untarTo(distTarDir)
+        checkApplicationImage('application', distTarDir.file('application'))
     }
 
     def "installApp complains if install directory exists and doesn't look like previous install"() {
@@ -109,7 +274,7 @@ installApp.destinationDir = buildDir
         runAndFail 'installApp'
 
         then:
-        result.assertThatCause(startsWith("The specified installation directory '${distribution.testFile('build')}' is neither empty nor does it contain an installation"))
+        result.assertThatCause(startsWith("The specified installation directory '${file('build')}' is neither empty nor does it contain an installation"))
     }
 
     def "startScripts respect OS dependent line separators"() {
@@ -133,20 +298,20 @@ installApp.destinationDir = buildDir
         assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 164);
         assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
 
-        distribution.testFile("build/scripts/mega-app").exists()
+        file("build/scripts/mega-app").exists()
     }
 
-    private void checkApplicationImage(TestFile installDir) {
-        installDir.file('bin/mega-app').assertIsFile()
-        installDir.file('bin/mega-app.bat').assertIsFile()
-        installDir.file('lib/application.jar').assertIsFile()
-
+    private void checkApplicationImage(String applicationName, TestFile installDir) {
+        installDir.file("bin/${applicationName}").assertIsFile()
+        installDir.file("bin/${applicationName}.bat").assertIsFile()
+        installDir.file("lib/application.jar").assertIsFile()
+        
         def builder = new ScriptExecuter()
         builder.workingDir installDir.file('bin')
-        builder.executable 'mega-app'
+        builder.executable applicationName
         builder.standardOutput = new ByteArrayOutputStream()
         builder.errorOutput = new ByteArrayOutputStream()
-
+        
         def result = builder.run()
         result.assertNormalExitValue()
     }

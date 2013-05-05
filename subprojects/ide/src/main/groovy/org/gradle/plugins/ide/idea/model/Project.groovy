@@ -15,7 +15,8 @@
  */
 package org.gradle.plugins.ide.idea.model
 
-import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.Incubating
+import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 /**
@@ -39,19 +40,28 @@ class Project extends XmlPersistableConfigurationObject {
      */
     Jdk jdk
 
+    /**
+     * The project-level libraries of the IDEA project.
+     */
+    @Incubating
+    Set<ProjectLibrary> projectLibraries = [] as LinkedHashSet
+
     private final PathFactory pathFactory
 
-    def Project(XmlTransformer xmlTransformer, pathFactory) {
+    Project(XmlTransformer xmlTransformer, pathFactory) {
         super(xmlTransformer)
         this.pathFactory = pathFactory
     }
 
-    def configure(Collection<Path> modulePaths, String jdkName, IdeaLanguageLevel languageLevel, Collection<String> wildcards) {
+    void configure(Collection<Path> modulePaths, String jdkName, IdeaLanguageLevel languageLevel,
+                   Collection<String> wildcards, Collection<ProjectLibrary> projectLibraries) {
         if (jdkName) {
             jdk = new Jdk(jdkName, languageLevel)
         }
         this.modulePaths.addAll(modulePaths)
         this.wildcards.addAll(wildcards)
+        // overwrite rather than append libraries
+        this.projectLibraries = projectLibraries
     }
 
     @Override protected void load(Node xml) {
@@ -66,6 +76,8 @@ class Project extends XmlPersistableConfigurationObject {
 
         jdk = new Jdk(Boolean.parseBoolean(jdkValues.'assert-keyword'), Boolean.parseBoolean(jdkValues.'jdk-15'),
                 jdkValues.languageLevel, jdkValues.'project-jdk-name')
+
+        loadProjectLibraries()
     }
 
     @Override protected String getDefaultResourceName() {
@@ -91,22 +103,55 @@ class Project extends XmlPersistableConfigurationObject {
         findProjectRootManager().@'assert-jdk-15' = jdk.jdk15
         findProjectRootManager().@languageLevel = jdk.languageLevel
         findProjectRootManager().@'project-jdk-name' = jdk.projectJdkName
+
+        storeProjectLibraries()
     }
 
-    private def findProjectRootManager() {
+    private findProjectRootManager() {
         return xml.component.find { it.@name == 'ProjectRootManager'}
     }
 
-    private def findWildcardResourcePatterns() {
+    private findWildcardResourcePatterns() {
         xml.component.find { it.@name == 'CompilerConfiguration'}.wildcardResourcePatterns
     }
 
-    private def findModules() {
+    private findModules() {
         def moduleManager = xml.component.find { it.@name == 'ProjectModuleManager'}
         if (!moduleManager.modules) {
             moduleManager.appendNode('modules')
         }
         moduleManager.modules
+    }
+
+    private Node findLibraryTable() {
+        def libraryTable = xml.component.find { it.@name == 'libraryTable' }
+        if (!libraryTable) {
+            libraryTable = xml.appendNode('component', [name:  'libraryTable'])
+        }
+        libraryTable
+    }
+
+    private void loadProjectLibraries() {
+        def libraryTable = findLibraryTable()
+        for (library in libraryTable.library) {
+            def name = library.@name
+            def classes = library.CLASSES.root.@url.collect { new File(it) }
+            def javadoc = library.JAVADOC.root.@url.collect { new File(it) }
+            def sources = library.SOURCES.root.@url.collect { new File(it) }
+            projectLibraries << new ProjectLibrary(name: name, classes: classes, javadoc: javadoc, sources: sources)
+        }
+    }
+
+    private void storeProjectLibraries() {
+        Node libraryTable = findLibraryTable()
+        if (projectLibraries.empty) {
+            xml.remove(libraryTable)
+            return
+        }
+        libraryTable.value = new NodeList()
+        for (library in projectLibraries) {
+            library.addToNode(libraryTable, pathFactory)
+        }
     }
 
     boolean equals(o) {

@@ -19,6 +19,7 @@ package org.gradle.util;
 import static org.gradle.util.GUtil.*
 
 public class GUtilTest extends spock.lang.Specification {
+    static sep = File.pathSeparator
     
     def convertStringToCamelCase() {
         expect:
@@ -152,5 +153,10 @@ public class GUtilTest extends spock.lang.Specification {
     def "flattens"() {
         expect:
         flattenElements(1, [2,3]) == [1,2,3]
+    }
+
+    def "convert to path notation"() {
+        expect:
+        asPath(["lib1.jar", "lib2.jar", new File("lib3.jar")]) == "lib1.jar${sep}lib2.jar${sep}lib3.jar"
     }
 }

@@ -17,7 +17,6 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
-import org.gradle.messaging.remote.internal.DisconnectAwareConnection;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,26 +31,27 @@ import java.util.List;
  */
 public class DaemonCommandExecution {
 
-    final private DisconnectAwareConnection<Object> connection;
+    final private DaemonConnection connection;
     final private Command command;
     final private DaemonContext daemonContext;
     final private DaemonStateControl daemonStateControl;
+    final private Runnable commandAbandoned;
     final private List<DaemonCommandAction> actions;
 
     private Throwable exception;
     private Object result;
-    private final List<Runnable> finalizers = new LinkedList<Runnable>();
 
-    public DaemonCommandExecution(DisconnectAwareConnection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, List<DaemonCommandAction> actions) {
+    public DaemonCommandExecution(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned, List<DaemonCommandAction> actions) {
         this.connection = connection;
         this.command = command;
         this.daemonContext = daemonContext;
         this.daemonStateControl = daemonStateControl;
+        this.commandAbandoned = commandAbandoned;
 
         this.actions = new LinkedList<DaemonCommandAction>(actions);
     }
 
-    public DisconnectAwareConnection<Object> getConnection() {
+    public DaemonConnection getConnection() {
         return connection;
     }
 
@@ -70,6 +70,10 @@ public class DaemonCommandExecution {
 
     public DaemonStateControl getDaemonStateControl() {
         return daemonStateControl;
+    }
+
+    public Runnable getCommandAbandonedHandler() {
+        return commandAbandoned;
     }
 
     /**
@@ -126,16 +130,5 @@ public class DaemonCommandExecution {
     @Override
     public String toString() {
         return String.format("DaemonCommandExecution[command = %s, connection = %s]", command, connection);
-    }
-
-    public void addFinalizer(Runnable runnable) {
-        assert runnable != null;
-        finalizers.add(runnable);
-    }
-
-    public void executeFinalizers() {
-        for (Runnable finalizer : finalizers) {
-            finalizer.run();
-        }
     }
 }

@@ -18,9 +18,12 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.launcher.daemon.protocol.Failure;
+import org.gradle.launcher.daemon.protocol.Finished;
+import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.internal.id.IdGenerator;
 
 /**
  * @author: Szczepan Faber, created at: 9/13/11
@@ -34,24 +37,20 @@ public class StopDispatcher {
     }
 
     public void dispatch(Connection<Object> connection) {
-        //At the moment if we cannot communicate with the daemon we assume it is stopped and print a message to the user
+        Throwable failure = null;
         try {
-            try {
-                connection.dispatch(new Stop(idGenerator.generateId()));
-            } catch (Exception e) {
-                LOGGER.lifecycle("Unable to send the Stop command to one of the daemons. The daemon has already stopped or crashed.");
-                LOGGER.debug("Unable to send Stop.", e);
-                return;
+            connection.dispatch(new Stop(idGenerator.generateId()));
+            Result result = (Result) connection.receive();
+            if (result instanceof Failure) {
+                failure = ((Failure) result).getValue();
             }
-            try {
-                connection.receive();
-            } catch (Exception e) {
-                LOGGER.lifecycle("The daemon didn't reply to Stop command. It is already stopped or crashed.");
-                LOGGER.debug("Unable to receive reply.", e);
-            }
-        } finally {
-            connection.stop();
+            connection.dispatch(new Finished());
+        } catch (Throwable e) {
+            failure = e;
+        }
+        if (failure != null) {
+            LOGGER.lifecycle("Unable to stop one of the daemons. The daemon may have crashed.");
+            LOGGER.debug(String.format("Unable to complete stop daemon using %s.", connection), failure);
         }
     }
-
 }

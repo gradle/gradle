@@ -17,11 +17,11 @@ package org.gradle.api.java.archives.internal
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
+import org.gradle.api.java.archives.ManifestMergeDetails
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.java.archives.ManifestMergeDetails
 
 /**
  * @author Hans Dockter
@@ -32,7 +32,7 @@ class DefaultManifestMergeSpecTest extends Specification {
 
     DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec()
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def from() {
         expect:

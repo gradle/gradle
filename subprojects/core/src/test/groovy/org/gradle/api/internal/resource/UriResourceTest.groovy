@@ -17,12 +17,13 @@
 
 package org.gradle.api.internal.resource
 
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Network
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.nullValue
 import static org.junit.Assert.*
@@ -32,7 +33,7 @@ class UriResourceTest {
     private File file;
     private URI fileUri;
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
     public void setUp() throws URISyntaxException {
@@ -42,7 +43,7 @@ class UriResourceTest {
     }
 
     private URI createJar() throws URISyntaxException {
-        TestFile jarFile = tmpDir.dir.file('test.jar');
+        TestFile jarFile = tmpDir.testDirectory.file('test.jar');
         testDir.file('ignoreme').write('content');
         testDir.zipTo(jarFile);
         return new URI("jar:${jarFile.toURI()}!/build.script")

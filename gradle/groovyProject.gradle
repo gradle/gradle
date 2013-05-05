@@ -8,20 +8,15 @@ sourceCompatibility = 1.5
 targetCompatibility = 1.5
 
 ext {
-    hasGroovySource = sourceSets.main.groovy.srcDirs.any { it.exists() }
     compileTasks = tasks.matching { it instanceof Compile || it instanceof GroovyCompile }
     testTasks = tasks.withType(Test)
     generatedResourcesDir = file("$buildDir/generated-resources/main")
+    generatedTestResourcesDir = file("$buildDir/generated-resources/test")
     jarTasks = tasks.withType(Jar)
 }
 
 dependencies {
     testCompile libraries.junit, libraries.jmock, libraries.spock
-}
-
-if (!hasGroovySource) {
-    // Remove Groovy configuration from compile classpath
-    configurations.compile.extendsFrom = []
 }
 
 // Extracted as it's also used by buildSrc
@@ -33,7 +28,6 @@ sourceSets {
     main.output.dir generatedResourcesDir, builtBy: classpathManifest
 }
 
-compileTasks.all { options.useAnt = false }
 testTasks.all { task ->
     maxParallelForks = rootProject.maxParallelForks
     if (isCiServer) {
@@ -45,8 +39,8 @@ testTasks.all { task ->
 
 jarTasks.all { jar ->
     jar.manifest.mainAttributes(
-        (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-        (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
+            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
     )
 }
 
@@ -74,6 +68,9 @@ if (file("src/integTest").exists()) {
 }
 
 class ClasspathManifest extends DefaultTask {
+
+    FileCollection input = project.configurations.runtime
+
     @OutputFile
     File getManifestFile() {
         return new File(project.generatedResourcesDir, "${project.archivesBaseName}-classpath.properties")
@@ -82,10 +79,10 @@ class ClasspathManifest extends DefaultTask {
     @Input
     Properties getProperties() {
         def properties = new Properties()
-        properties.runtime = project.configurations.runtime.fileCollection {
+        properties.runtime = input.fileCollection {
             (it instanceof ExternalDependency) || (it instanceof FileCollectionDependency)
         }.collect {it.name}.join(',')
-        properties.projects = project.configurations.runtime.allDependencies.withType(ProjectDependency).collect {it.dependencyProject.archivesBaseName}.join(',')
+        properties.projects = input.allDependencies.withType(ProjectDependency).collect {it.dependencyProject.archivesBaseName}.join(',')
         return properties
     }
 
@@ -94,3 +91,4 @@ class ClasspathManifest extends DefaultTask {
         manifestFile.withOutputStream { properties.save(it, 'module definition') }
     }
 }
+ext.ClasspathManifest = ClasspathManifest

@@ -14,6 +14,10 @@ configurations {
 
 dependencies {
     integTestCompile project(":internalIntegTesting")
+
+    //so that implicit help tasks are available:
+    integTestRuntime project(':diagnostics')
+    //above can be removed when we implement the auto-apply plugins
 }
 
 ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
@@ -30,6 +34,7 @@ integTestTasks.all { Test task ->
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty("testAllVersions") ? 'all' : 'latest'
     if (project.hasProperty('crossVersionTestsOnly')) {
         include '**/*CrossVersion*'
+        forkEvery = 1
     }
 
     dependsOn project.task("configure${task.name.capitalize()}") << {
@@ -56,14 +61,10 @@ task integTest(type: Test) {
 }
 check.dependsOn(integTest)
 
-['embedded', 'forking', 'daemon', 'embeddedDaemon'].each { mode ->
+['embedded', 'forking', 'daemon', 'embeddedDaemon', 'parallel'].each { mode ->
     def taskName = "${mode}IntegTest"
-    tasks.addRule(taskName) { name ->
-        if (name == taskName) { 
-            tasks.add(taskName, Test).configure {
-                systemProperties['org.gradle.integtest.executer'] = mode
-            }
-        }
+    tasks.create(taskName, Test).configure {
+        systemProperties['org.gradle.integtest.executer'] = mode
     }
 }
 

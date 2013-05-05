@@ -164,10 +164,12 @@ modules/bundles that are required. A native binary includes information about wh
 
 ## Publication
 
-A publication is the binary representation of a component in a repository.
+A publication is the binary representation of a component, ready to be used by some consuming project.
 
-* A publication is a set of artefacts.
+* A publication is a set of artefacts, including meta-data artifacts.
 * A publication may include auxiliary artefacts.
+
+The consumer of a publication might use the artifacts directly from the location where they were built, or via a binary artifact repository of some kind.
 
 ## Project
 
@@ -261,6 +263,7 @@ test fixtures have an API and an implementation?
 * Has an implementation
     * This is a runtime usage
     * Depends on zero or more native libraries. Each native library may have an associated install path and soname.
+* Has a debug usage
 * Common variants
     * Operating system
     * Architecture
@@ -268,6 +271,7 @@ test fixtures have an API and an implementation?
     * multi-threaded vs single-threaded (on windows)
     * Compiler
     * Statically vs dynamically linked
+* Dependencies generally vary per variant (eg need libcurses on linux, but not on windows).
 * May bundle static native libraries.
 
 ## Native executable
@@ -372,12 +376,18 @@ test fixtures have an API and an implementation?
 
 * Is-a JVM component
 * Packaged as a .apk artefact
+* Bundles Java application and zero or more native jni libraries
 * Common variants
     * Debug vs release
+    * jvm bytecode or dalvik bytecode. This affects dependency resolution, in that when you are compiling, you need to use the jvm bytecode artifacts,
+      but when packaging, you should prefer to use dalvik bytecode artifacts (to avoid converting them again). You also want to run a dependency
+      through dex once, and then reuse that artifact for subsequent packaging.
 
 ## Android library
 
-* Can only be packaged as source?
+* Have an API jar, which is a compile-time usage, and a classes jar, which is a runtime usage.
+* Provide a bunch of resources and native JNI libraries.
+* Packaged as a ZIP.
 
 ## iPhone application
 
@@ -403,23 +413,12 @@ other repository.
 
 ## Ivy
 
-A few options:
-
-1. Map a project to an ivy module, encode each (component, usage, variant) as an Ivy configuration.
-2. Map each (component, variant) to an ivy module, encode each usage as an Ivy configuration.
-3. Map each component to an ivy module, encode each (usage, variant) as an Ivy configuration.
-4. Map each component to an ivy module, encode each usage as an Ivy configuration. Fail if > 1 variant.
-5. Map each component to an ivy module, encode each usage as an Ivy configuration. Attach variant to each artefact. Fail if any usage does not have
-   the same set of dependencies for every variant.
-6. Map each component to an ivy module. Map each variant to an ivy module as well.
-
-The mapping for each component type will be versioned, with the mapping version included in the `ivy.xml` as an extra attribute.
+Map to a module for each variant, that contain variant-specific artifacts and meta-data, plus a module for component meta-data and variant-independent
+artifacts.
 
 ## Maven
 
-Similar to above, except encoding using hardcoded scopes + artefact classifiers. Can only really map JVM components.
-
-The mapping for each component type will be versioned, with the mapping version included in the pom.xml somehow (perhaps in the `<properties>` section).
+Similar to the above.
 
 # DSL
 
@@ -478,7 +477,7 @@ TODO - PublishArtifactSet currently extends DomainObjectSet.
     }
 
     class IvyXmlArtifact implements PublishArtifact {
-        // Contains an ivy xml artifact generated from a Component
+        // Contains an ivy XML artifact generated from a Component
     }
 
 #### Classpaths and other paths

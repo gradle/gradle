@@ -25,37 +25,48 @@ archivesBaseName = 'gradle'
 extensions.buildTypes = new BuildTypes(project)
 
 buildTypes {
+    sanityCheck "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
+
     // The minimum to be run before check-in
-    preCommitBuild "doc:checkstyleApi", "codeQuality", "classes", "test", noDistTests: true
-    quickCheck "doc:checkstyleApi", "codeQuality", "classes", "test", noDistTests: true
+    preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
+    quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
 
     // A full (in-process) test
     developerBuild "check"
 
     // Used by the first phase of the build pipeline
-    quickTest "test", "integTest", noDistTests: true
+    quickTest "runtimeTests", "runtimeIntegTests"
 
     // Used for builds to test the code on certain platforms
-    platformTest "test", "forkingIntegTest", noDistTests: true, useIncomingDistributions: true
+    platformTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
 
     // Tests using the daemon mode
-    daemonTest "daemonIntegTest", noDistTests: true, useIncomingDistributions: true
+    daemonTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "daemon"
+
+    // Run the integration tests using the parallel executer
+    parallelTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "parallel"
+
+    // Run the performance tests
+    performanceTest "performance:integTest", useIncomingDistributions: true
+
+    // Run the performance tests
+    localPerformanceTest "performance:integTest"
 
     // Used for cross version tests on CI
-    crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
+    crossVersionTest "runtimeIntegTests", crossVersionTestsOnly: "", testAllVersions: "", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
 
     // Used to build production distros and smoke test them
     packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
 
     // Used to build production distros and smoke test them
-    promotionBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest", "uploadArchives"
+    promotionBuild "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
 }
 
 ext {
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
     isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
-    isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+    isWindows = org.gradle.internal.os.OperatingSystem.current().windows
 
     if (project.hasProperty("maxParallelForks")) {
         project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
@@ -70,12 +81,13 @@ ext {
     }
 
     internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions"] }
-    groovyProjects = subprojects.findAll { !(it.name in ["docs"]) }
+    groovyProjects = subprojects
     publicGroovyProjects = groovyProjects - internalProjects
     publishedProjects = [project(':core'), project(':toolingApi'), project(':wrapper'), project(':baseServices'), project(':messaging')]
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
-        'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear', 'javascript', 'migration'
+        'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear', 'javascript', 'buildComparison',
+        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildSetup', 'languageJvm', 'languageBase'
     ].collect {
         project(it)
     }
@@ -88,6 +100,9 @@ apply from: "gradle/dependencies.gradle"
 apply from: "gradle/wrapper.gradle"
 apply from: "gradle/idea.gradle"
 apply from: "gradle/eclipse.gradle"
+apply from: "gradle/classycle.gradle"
+apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
+apply from: "gradle/testGroupings.gradle"
 
 allprojects {
     group = 'org.gradle'
@@ -104,6 +119,7 @@ subprojects {
         apply from: "$rootDir/gradle/groovyProject.gradle"
         apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
         check.dependsOn ":docs:checkstyleApi"
+        check.dependsOn "codeQuality"
     }
 
     if (project in publishedProjects) {
@@ -132,6 +148,7 @@ configurations {
 
 dependencies {
     runtime project(':launcher')
+    runtime project(':wrapper')
     plugins pluginProjects
     plugins project(':coreImpl')
 }
@@ -143,13 +160,15 @@ task verifyIsProductionBuildEnvironment << {
 }
 
 task waitForDaemonsToDie {
-    if (isWindows && isCiServer) {
-        gradle.startParameter.taskNames.add(0, it.path)
-    }
-    doLast {
-        def mins = 2
-        println "I'm waiting for $mins mins so that existing daemons can die with honour. It's a workaround until we fix it properly."
-        sleep mins * 60 * 1000
+    if (!project.hasProperty("noWaitForDaemonsToDie")) {
+        if (isWindows && isCiServer) {
+            gradle.startParameter.taskNames.add(0, it.path)
+        }
+        doLast {
+            def mins = 2
+            println "I'm waiting for $mins mins so that existing daemons can die with honour. It's a workaround until we fix it properly."
+            sleep mins * 60 * 1000
+        }
     }
 }
 

@@ -354,11 +354,11 @@ class CommandLineParserTest extends Specification {
         ]
     }
     
-    def formatsUsageMessageForDeprecatedAndExperimentalOptions() {
+    def formatsUsageMessageForDeprecatedAndIncubatingOptions() {
         parser.option('a', 'long-option').hasDescription('this is option a').deprecated("don't use this")
         parser.option('b').deprecated('will be removed')
-        parser.option('c').hasDescription('option c').experimental()
-        parser.option('d').experimental()
+        parser.option('c').hasDescription('option c').incubating()
+        parser.option('d').incubating()
         def outstr = new StringWriter()
 
         expect:
@@ -366,8 +366,8 @@ class CommandLineParserTest extends Specification {
         outstr.toString().readLines() == [
                 '-a, --long-option  this is option a [deprecated - don\'t use this]',
                 '-b                 [deprecated - will be removed]',
-                '-c                 option c [experimental]',
-                '-d                 [experimental]'
+                '-c                 option c [incubating]',
+                '-d                 [incubating]'
         ]
     }
 
@@ -590,15 +590,34 @@ class CommandLineParserTest extends Specification {
         parser.allowUnknownOptions()
 
         when:
-        def result = parser.parse(['-a', '-b'])
+        def result = parser.parse(['-a', '-b', '--long-option'])
 
         then:
         result.option("a") != null
         
         and:
-        result.extraArguments.contains("-b")
+        result.extraArguments == ['-b', '--long-option']
     }
-    
+
+    def "allow unknown options mode collects unknown short options combined with known short options"() {
+        given:
+        parser.option("a")
+        parser.option("Z")
+
+        and:
+        parser.allowUnknownOptions()
+
+        when:
+        def result = parser.parse(['-abCdZ'])
+
+        then:
+        result.option("a") != null
+        result.option("Z") != null
+
+        and:
+        result.extraArguments == ["-b", "-C", "-d"]
+    }
+
     @Issue("http://issues.gradle.org/browse/GRADLE-1871")
     def "unknown options containing known arguments in their value are allowed"() {
         given:
@@ -614,8 +633,7 @@ class CommandLineParserTest extends Specification {
         result.option("a") != null
         
         and:
-        "-ba" in result.extraArguments
-        "-ba=c" in result.extraArguments
+        result.extraArguments == ['-ba', '-ba=c']
     }
 
 }

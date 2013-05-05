@@ -28,4 +28,8 @@ public abstract class DaemonMessages {
     public final static String ABOUT_TO_START_RELAYING_LOGS = "About to start relaying all logs to the client via the connection.";
     public final static String DAEMON_VM_SHUTTING_DOWN = "Daemon vm is shutting down... The daemon has exited normally or was terminated in response to a user interrupt.";
     public final static String REMOVING_PRESENCE_DUE_TO_STOP = "Stop requested. Daemon is removing its presence from the registry...";
+    public static final String ADVERTISING_DAEMON = "Advertising the daemon address to the clients: ";
+    public static final String DAEMON_IDLE = "Daemon is idle, sleeping until state change or idle timeout at ";
+    public static final String DAEMON_BUSY = "Daemon is busy, sleeping until state changes.";
+    public static final String REMOVING_DAEMON_ADDRESS_ON_FAILURE = "Removing daemon from the registry due to communication failure. Daemon information: ";
 }

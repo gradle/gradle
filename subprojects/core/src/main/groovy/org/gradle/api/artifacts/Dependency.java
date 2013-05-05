@@ -17,7 +17,7 @@ package org.gradle.api.artifacts;
 
 /**
  * A {@code Dependency} represents a dependency on the artifacts from a particular source. A source can be an Ivy
- * module, a Maven pom, another Gradle project, a collection of Files, etc... A source can have zero or more artifacts.
+ * module, a Maven POM, another Gradle project, a collection of Files, etc... A source can have zero or more artifacts.
  *
  * @author Hans Dockter
  */

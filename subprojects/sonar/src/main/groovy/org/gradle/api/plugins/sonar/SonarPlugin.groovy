@@ -17,13 +17,14 @@ package org.gradle.api.plugins.sonar
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.util.GradleVersion
-import org.gradle.internal.jvm.Jvm
 import org.gradle.api.plugins.sonar.model.*
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import org.gradle.util.GradleVersion
 
 import javax.inject.Inject
 
@@ -60,7 +61,7 @@ class SonarPlugin implements Plugin<ProjectInternal> {
     }
 
     private SonarAnalyze configureSonarTask(Project project) {
-        project.tasks.add(SONAR_ANALYZE_TASK_NAME, SonarAnalyze)
+        project.tasks.create(SONAR_ANALYZE_TASK_NAME, SonarAnalyze)
     }
 
     private SonarRootModel configureSonarRootModel(Project project) {
@@ -145,8 +146,12 @@ class SonarPlugin implements Plugin<ProjectInternal> {
                 testReportPath = { project.test.testResultsDir }
                 language = { "java" }
             }
+            project.plugins.withType(JacocoPlugin) {
+                sonarProject.withProjectProperties { props ->
+                    props['sonar.jacoco.reportPath'] = project.test.jacoco.destinationFile
+                }
+            }
         }
-
         sonarProject
     }
 }

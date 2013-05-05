@@ -20,17 +20,12 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.UncheckedException;
-import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.hash.HashValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
-public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingExternalResourceHandler implements ExternalResourceAccessor {
-    private final static Logger LOGGER = LoggerFactory.getLogger(ProgressLoggingExternalResourceAccessor.class);
+public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
     private final ExternalResourceAccessor delegate;
 
     public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, ProgressLoggerFactory progressLoggerFactory) {
@@ -41,7 +36,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     public ExternalResource getResource(String location) throws IOException {
         ExternalResource resource = delegate.getResource(location);
         if (resource != null) {
-            return new ProgressLoggingExternalResource(resource, progressLoggerFactory);
+            return new ProgressLoggingExternalResource(resource);
         } else {
             return null;
         }
@@ -59,11 +54,9 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
 
     private class ProgressLoggingExternalResource implements ExternalResource {
         private ExternalResource resource;
-        private ProgressLoggerFactory progressLoggerFactory;
 
-        private ProgressLoggingExternalResource(ExternalResource resource, ProgressLoggerFactory progressLoggerFactory) {
+        private ProgressLoggingExternalResource(ExternalResource resource) {
             this.resource = resource;
-            this.progressLoggerFactory = progressLoggerFactory;
         }
 
         /**
@@ -74,27 +67,17 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             try {
                 writeTo(output);
             } finally {
-                try {
-                    output.close();
-                } catch (IOException e) {
-                    LOGGER.info(String.format("Unable to close FileOutputStream of %s", destination.getAbsolutePath()), e);
-                }
+                output.close();
             }
         }
 
-        public void writeTo(OutputStream outputStream) throws IOException {  //get rid of CopyProgress Logger
-            ProgressLogger progressLogger = startProgress(String.format("Download %s", getName()));
-            final ProgressLoggingOutputStream progressLoggingOutputStream = new ProgressLoggingOutputStream(outputStream, progressLogger, resource.getContentLength());
+        public void writeTo(OutputStream outputStream) throws IOException {
+            final ResourceOperation downloadOperation = createResourceOperation(resource.getName(), ResourceOperation.Type.download, getClass(), resource.getContentLength());
+            final ProgressLoggingOutputStream progressLoggingOutputStream = new ProgressLoggingOutputStream(outputStream, downloadOperation);
             try {
                 resource.writeTo(progressLoggingOutputStream);
-            } catch (IOException e) {
-                progressLogger.completed(String.format("Failed to write %s.", getName()));
-                throw e;
-            } catch (Exception e) {
-                progressLogger.completed(String.format("Failed to write %s.", getName()));
-                throw UncheckedException.throwAsUncheckedException(e);
             } finally {
-                progressLogger.completed();
+                downloadOperation.completed();
             }
         }
 
@@ -134,30 +117,40 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         public InputStream openStream() throws IOException {
             return resource.openStream();
         }
+
+        public String toString(){
+            return resource.toString();
+        }
     }
 
     private class ProgressLoggingOutputStream extends OutputStream {
-        private long totalWritten;
         private OutputStream outputStream;
-        private final ProgressLogger progressLogger;
-        private long contentLength;
+        private final ResourceOperation resourceOperation;
 
-
-        public ProgressLoggingOutputStream(OutputStream outputStream, ProgressLogger progressLogger, long contentLength) {
+        public ProgressLoggingOutputStream(OutputStream outputStream, ResourceOperation resourceOperation) {
             this.outputStream = outputStream;
-            this.progressLogger = progressLogger;
-            this.contentLength = contentLength;
+            this.resourceOperation = resourceOperation;
+        }
+
+        @Override
+        public void flush() throws IOException {
+            outputStream.flush();
+        }
+
+        @Override
+        public void close() throws IOException {
+            outputStream.close();
         }
 
         @Override
         public void write(int b) throws IOException {
             outputStream.write(b);
+            resourceOperation.logProcessedBytes(1l);
         }
 
         public void write(byte b[], int off, int len) throws IOException {
             outputStream.write(b, off, len);
-            totalWritten += len;
-            logProgress(progressLogger, totalWritten, contentLength, "downloaded");
+            resourceOperation.logProcessedBytes(len);
         }
     }
 }

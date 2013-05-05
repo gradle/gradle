@@ -54,7 +54,7 @@ class CoffeeScriptBasePlugin implements Plugin<Project> {
     }
 
     private Configuration addJsConfiguration(ConfigurationContainer configurations, DependencyHandler dependencies, CoffeeScriptExtension extension) {
-        Configuration configuration = configurations.add(CoffeeScriptExtension.JS_CONFIGURATION_NAME)
+        Configuration configuration = configurations.create(CoffeeScriptExtension.JS_CONFIGURATION_NAME)
         configuration.incoming.beforeResolve(new Action<ResolvableDependencies>() {
             void execute(ResolvableDependencies resolvableDependencies) {
                 if (configuration.dependencies.empty) {

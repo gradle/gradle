@@ -16,10 +16,12 @@
 package org.gradle.api.internal.notations;
 
 
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.GUtil
 import spock.lang.Specification
 
@@ -28,12 +30,13 @@ import spock.lang.Specification
  */
 public class ProjectDependencyFactoryTest extends Specification {
 
-    def ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(false);
-    def ProjectDependencyFactory factory = new ProjectDependencyFactory(projectDependenciesBuildInstruction, new DirectInstantiator());
-    def ProjectFinder projectFinder = Mock(ProjectFinder.class);
-    def ProjectInternal projectDummy = Mock(ProjectInternal.class);
+    def projectDummy = Mock(ProjectInternal)
+    def projectFinder = Mock(ProjectFinder)
 
-    def testCreateProjectDependencyWithMapNotation() {
+    def depFactory = new DefaultProjectDependencyFactory(Mock(ProjectAccessListener), new DirectInstantiator(), true)
+    def factory = new ProjectDependencyFactory(depFactory)
+
+    def "creates project dependency with map notation"() {
         given:
         boolean expectedTransitive = false;
         final Map<String, Object> mapNotation = GUtil.map("path", ":foo:bar", "configuration", "compile", "transitive", expectedTransitive);
@@ -48,5 +51,17 @@ public class ProjectDependencyFactoryTest extends Specification {
         projectDependency.getDependencyProject() == projectDummy
         projectDependency.getConfiguration() == "compile"
         projectDependency.isTransitive() == expectedTransitive
+    }
+
+    def "fails with decent message if provided map is invalid"() {
+        given:
+        projectFinder.getProject(':foo:bar') >> projectDummy
+
+        when:
+        factory.createFromMap(projectFinder, GUtil.map("paths", ":foo:bar"));
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message.contains("Required keys [path] are missing from map")
     }
 }

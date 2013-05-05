@@ -16,18 +16,16 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
-class SamplesGroovyQuickstartIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('groovy/quickstart')
+class SamplesGroovyQuickstartIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'groovy/quickstart')
 
     @Test
     public void groovyProjectQuickstartSample() {
@@ -35,11 +33,11 @@ class SamplesGroovyQuickstartIntegrationTest {
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(groovyProjectDir)
+        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(groovyProjectDir)
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check contents of jar
-        TestFile tmpDir = dist.testDir.file('jarContents')
+        TestFile tmpDir = file('jarContents')
         groovyProjectDir.file('build/libs/quickstart.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

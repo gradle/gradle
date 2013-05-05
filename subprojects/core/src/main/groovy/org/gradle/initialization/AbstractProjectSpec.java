@@ -15,7 +15,7 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.InvalidUserDataException;
 
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public abstract class AbstractProjectSpec implements ProjectSpec {
-    public boolean containsProject(IProjectRegistry<?> registry) {
+    public boolean containsProject(ProjectRegistry<?> registry) {
         checkPreconditions(registry);
         for (ProjectIdentifier project : registry.getAllProjects()) {
             if (select(project)) {
@@ -33,7 +33,7 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
         return false;
     }
 
-    public <T extends ProjectIdentifier> T selectProject(IProjectRegistry<? extends T> registry) {
+    public <T extends ProjectIdentifier> T selectProject(ProjectRegistry<? extends T> registry) {
         checkPreconditions(registry);
         List<T> matches = new ArrayList<T>();
         for (T project : registry.getAllProjects()) {
@@ -50,7 +50,7 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
         return matches.get(0);
     }
 
-    protected void checkPreconditions(IProjectRegistry<?> registry) {
+    protected void checkPreconditions(ProjectRegistry<?> registry) {
     }
 
     protected abstract String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches);

@@ -22,28 +22,25 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
-
-import static org.gradle.util.Matchers.*;
-
 import org.gradle.util.WrapUtil;
-
-import static org.hamcrest.Matchers.*;
-
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Map;
+
+import static org.gradle.util.Matchers.isEmpty;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
 abstract public class AbstractModuleDependencyTest {
+    //TODO SF rework the remaining coverage of this hierarchy in the spirit of AbstractModuleDependencySpec and DefaultProjectDependencyTest
 
     protected abstract AbstractModuleDependency getDependency();
 

@@ -47,7 +47,7 @@
             compiled and executed using JUnit or TestNG.
         </para>
     </section>
-    
+
     <section>
         <title>Tasks</title>
         <para>The Java plugin adds a number of tasks to your project, as shown below.</para>
@@ -69,7 +69,7 @@
                 <td>All tasks which produce the compile classpath. This includes the <literal>jar</literal> task for
                     project dependencies included in the <literal>compile</literal> configuration.
                 </td>
-                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+                <td><apilink class="org.gradle.api.tasks.compile.JavaCompile"/></td>
                 <td>Compiles production Java source files using javac.</td>
             </tr>
             <tr>
@@ -98,7 +98,7 @@
                 <td>
                     <literal>compile</literal>, plus all tasks which produce the test compile classpath.
                 </td>
-                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+                <td><apilink class="org.gradle.api.tasks.compile.JavaCompile"/></td>
                 <td>Compiles test Java source files using javac.</td>
             </tr>
             <tr>
@@ -199,7 +199,7 @@
                 <td>
                     All tasks which produce the source set's compile classpath.
                 </td>
-                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+                <td><apilink class="org.gradle.api.tasks.compile.JavaCompile"/></td>
                 <td>Compiles the given source set's Java source files using javac.</td>
             </tr>
             <tr>
@@ -223,7 +223,7 @@
                 <td>Assembles the given source set's classes directory.</td>
             </tr>
         </table>
-        
+
         <para>The Java plugin also adds a number of tasks which form a lifecycle for the project:</para>
 
         <table>
@@ -654,7 +654,7 @@
                 <td>
                     <literal>sourceCompatibility</literal>
                 </td>
-                <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or a Number, eg
+                <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or a Number, e.g.
                     <literal>'1.5'</literal> or <literal>1.5</literal>.
                 </td>
                 <td>Value of the current used JVM</td>
@@ -664,7 +664,7 @@
                 <td>
                     <literal>targetCompatibility</literal>
                 </td>
-                <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or Number, eg
+                <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or Number, e.g.
                     <literal>'1.5'</literal> or <literal>1.5</literal>.
                 </td>
                 <td>
@@ -958,7 +958,7 @@
             <ulink url='http://download.oracle.com/javase/1.5.0/docs/tooldocs/windows/javadoc.html#referenceguide'>reference documentation</ulink>
             of the Javadoc executable.
             For a complete list of supported Javadoc options consult the API documentation of the following classes:
-            <apilink class="org.gradle.external.javadoc.CoreJavadocOptions"/> and <apilink class="org.gradle.external.javadoc.StandardJavadocDocletOptions"/>. 
+            <apilink class="org.gradle.external.javadoc.CoreJavadocOptions"/> and <apilink class="org.gradle.external.javadoc.StandardJavadocDocletOptions"/>.
         </para>
         <table>
             <title>Java plugin - Javadoc properties</title>
@@ -1057,7 +1057,7 @@
 
     <section id='sec:compile'>
         <title>CompileJava</title>
-        <para>The Java plugin adds a <apilink class="org.gradle.api.tasks.compile.Compile"/> instance for each
+        <para>The Java plugin adds a <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> instance for each
             source set in the project. Some of the most common configuration options are shown below.
         </para>
         <table>
@@ -1091,11 +1091,11 @@
                 <td><literal><replaceable>sourceSet</replaceable>.output.classesDir</literal></td>
             </tr>
         </table>
-        
+
         <para>The compile task delegates to Ant's javac task. Setting <literal>options.useAnt</literal> to <literal>false</literal>
             activates Gradle's direct compiler integration, bypassing the Ant task. In a future Gradle release, this will become the default.
         </para>
-        
+
         <para>By default, the Java compiler runs in the Gradle process. Setting <literal>options.fork</literal> to <literal>true</literal>
             causes compilation to occur in a separate process. In the case of the Ant javac task, this means that a new process will be
             forked for each compile task, which can slow down compilation. Conversely, Gradle's direct compiler integration (see above) will
@@ -1114,7 +1114,7 @@
 
         <section>
             <title>Test execution</title>
-            <para>Tests are executed in a separate isolated JVM. The <apilink class="org.gradle.api.tasks.testing.Test"/> task's
+            <para>Tests are executed in a separate JVM, isolated from the main build process. The <apilink class="org.gradle.api.tasks.testing.Test"/> task's
                 API allows you some control over how this happens.
             </para>
             <para>There are a number of properties which control how the test process is launched. This includes
@@ -1123,7 +1123,7 @@
                 suspended and listening on port 5005. This makes it very easy to debug your tests.  You may also enable
                 this using a system property as specified below.
             </para>
-            <para>You can specify whether or not to execute your tests in parallel. Gradle provides parallel test execution 
+            <para>You can specify whether or not to execute your tests in parallel. Gradle provides parallel test execution
                 by running multiple test processes concurrently. Each test process executes only a single test at a time, so you
                 generally don't need to do anything special to your tests to take advantage of this.
                 The <literal>maxParallelForks</literal> property specifies the maximum number of test processes to run
@@ -1185,7 +1185,7 @@
             </para>
             <para>Setting a system property of <literal>taskName.debug</literal> will run the tests in debug mode,
                   suspended and listening on port 5005.  For example:
-                  <literal>gradle test -Dtest.single=ThisUniquelyNamedTest -Dtest.debug</literal>                
+                  <literal>gradle test -Dtest.single=ThisUniquelyNamedTest -Dtest.debug</literal>
             </para>
         </section>
 
@@ -1227,6 +1227,73 @@
                 respective defaults are used. For include this is <literal>"**/*Tests.class", "**/*Test.class"</literal>
                 and the for exclude it is <literal>"**/Abstract*.class"</literal>.
             </para>
+        </section>
+        <section id="test_grouping">
+            <title>Test grouping</title>
+            <para>JUnit and TestNG allows sophisticated groupings of test methods. </para>
+            <para>For grouping JUnit test classes and methods JUnit 4.8 introduces the concept of categories.
+                <footnote>
+                    <para>The JUnit wiki contains a detailed description on how to work with JUnit categories:
+                        <ulink url='https://github.com/junit-team/junit/wiki/Categories'/>.
+                    </para>
+                </footnote>
+                The <literal>test</literal> task allows the specification of the JUnit categories you want to include and exclude.
+            </para>
+            <sample id="junitcategories" dir="testing/junit/categories" title="JUnit Categories">
+                <sourcefile file="build.gradle" snippet="test-categories"/>
+            </sample>
+            <para>The TestNG framework has a quite similar concept. In TestNG you can specify different test groups.
+                <footnote>
+                    <para>The TestNG documentation contains more details about test groups:
+                        <ulink url='http://testng.org/doc/documentation-main.html#test-groups'/>.
+                    </para>
+                </footnote> The test groups that should be included or excluded from the test execution can be configured in the test task. </para>
+            <sample id="testnggrouping" dir="testing/testng/groups" title="Grouping TestNG tests">
+                <sourcefile file="build.gradle" snippet="test-config"/>
+            </sample>
+        </section>
+        <section id="test_reporting">
+            <title>Test reporting</title>
+
+            <para>The <literal>Test</literal> task generates the following results by default.</para>
+            <itemizedlist>
+                <listitem><para>An HTML test report.</para></listitem>
+                <listitem><para>The results in an XML format that is compatible with the Ant JUnit report task. This format is supported by many
+                    other tools, such as CI servers.</para></listitem>
+                <listitem><para>Results in an efficient binary format. The task generates the other results from these binary results.</para></listitem>
+            </itemizedlist>
+
+            <para>You can disable the HTML test report using the <apilink class="org.gradle.api.tasks.testing.Test" method="setTestReport"/> method. The other
+                results currently cannot be disabled.
+            </para>
+
+            <para>There is also a stand-alone <apilink class="org.gradle.api.tasks.testing.TestReport"/> task type which can generate the HTML test
+                report from the binary results generated by one or more <classname>Test</classname> task instances. To use this task type, you need
+                to define a <literal>destinationDir</literal> and the test results to include in the report. Here is a sample which generates a
+                combined report for the unit tests from subprojects:
+            </para>
+            <sample id="subProjectsTestReport" dir="testing/testReport" title="Creating a unit test report for subprojects">
+                <sourcefile file="build.gradle" snippet="test-report"/>
+            </sample>
+
+            <para>You should note that the <literal>TestReport</literal> type combines the results from multiple test
+                tasks, but it does not aggregate the results of individual test classes. This means that if a given test class is executed by
+                multiple test tasks, then the test report will include only one execution of that class and discard the other executions of that
+                class. This will be addressed in a future Gradle version.
+            </para>
+            <section id="testNgParameterizedReporting">
+                <title>TestNG parameterized methods and reporting</title>
+                <para>
+                    TestNG supports <ulink url="http://testng.org/doc/documentation-main.html#parameters">parameterizing test methods</ulink>,
+                    allowing a particular test method to be executed multiple times with different inputs. Gradle includes the parameter values
+                    in its reporting of the test method execution.
+                </para>
+                <para>
+                    Given a parameterized test method named <literal>aParameterizedTestMethod</literal> that takes two parameters, it will be reported with the name:
+                    <literal>aParameterizedTestMethod(toStringValueOfParam1, toStringValueOfParam2)</literal>. This makes identifying the parameter values for a
+                    particular iteration easy.
+                </para>
+            </section>
         </section>
 
         <section>
@@ -1321,5 +1388,5 @@
         <para>How to upload your archives is described in <xref linkend="artifact_management"/>.
         </para>
     </section>
-    
+
 </chapter>

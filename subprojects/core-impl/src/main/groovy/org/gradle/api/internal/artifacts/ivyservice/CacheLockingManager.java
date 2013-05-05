@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 
@@ -35,4 +36,14 @@ public interface CacheLockingManager extends ArtifactCacheMetaData, CacheAccess 
      * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType);
+
+    /**
+     * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.
+     *
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, org.gradle.internal.Factory)}.
+     * In this instance, an exclusive lock will be held on the cache.
+     *
+     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
+     */
+    <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer);
 }

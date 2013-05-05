@@ -59,7 +59,7 @@ class ShortExceptionFormatterTest extends Specification {
     }
 
     def "formats PlaceholderException's correctly"() {
-        def exception = new PlaceholderException(Exception.class.name, "oops", null)
+        def exception = new PlaceholderException(Exception.class.name, "oops", "java.lang.Exception: oops", null, null)
         testDescriptor.className = getClass().name
 
         expect:

@@ -58,10 +58,11 @@ public class FileSystemServices {
         serviceRegistry.add(Symlink.class, createSymlink(libC));
 
         // Use libc backed implementations on Linux and Mac, if libc available
-        if (libC != null && (operatingSystem.isLinux() || operatingSystem.isMacOsX())) {
+        POSIX posix = PosixUtil.current();
+        if ((libC != null && (operatingSystem.isLinux() || operatingSystem.isMacOsX())) && posix instanceof BaseNativePOSIX) {
             FilePathEncoder filePathEncoder = createEncoder(libC);
             serviceRegistry.add(Chmod.class, new LibcChmod(libC, filePathEncoder));
-            serviceRegistry.add(Stat.class, new LibCStat(libC, operatingSystem, (BaseNativePOSIX) PosixUtil.current(), filePathEncoder));
+            serviceRegistry.add(Stat.class, new LibCStat(libC, operatingSystem, (BaseNativePOSIX) posix, filePathEncoder));
             return;
         }
 

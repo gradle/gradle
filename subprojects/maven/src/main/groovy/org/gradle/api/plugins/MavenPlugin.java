@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.DefaultDeployerFactory;
@@ -31,7 +32,10 @@ import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.tasks.Upload;
+import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
+
+import javax.inject.Inject;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which allows project artifacts to be deployed to a Maven repository, or installed
@@ -50,6 +54,15 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
 
     public static final String INSTALL_TASK_NAME = "install";
 
+    private final Factory<LoggingManagerInternal> loggingManagerFactory;
+    private final FileResolver fileResolver;
+
+    @Inject
+    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver) {
+        this.loggingManagerFactory = loggingManagerFactory;
+        this.fileResolver = fileResolver;
+    }
+
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
 
@@ -57,8 +70,8 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         final MavenPluginConvention pluginConvention = addConventionObject(project, mavenFactory);
         final DefaultDeployerFactory deployerFactory = new DefaultDeployerFactory(
                 mavenFactory,
-                project.getServices().getFactory(LoggingManagerInternal.class),
-                project.getFileResolver(),
+                loggingManagerFactory,
+                fileResolver,
                 pluginConvention,
                 project.getConfigurations(),
                 pluginConvention.getConf2ScopeMappings());
@@ -111,11 +124,11 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureInstall(Project project) {
-        Upload installUpload = project.getTasks().add(INSTALL_TASK_NAME, Upload.class);
+        Upload installUpload = project.getTasks().create(INSTALL_TASK_NAME, Upload.class);
         Configuration configuration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         installUpload.setConfiguration(configuration);
         MavenRepositoryHandlerConvention repositories = new DslObject(installUpload.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
         repositories.mavenInstaller();
-        installUpload.setDescription("Does a maven install of the archives artifacts into the local .m2 cache.");
+        installUpload.setDescription("Installs the 'archives' artifacts into the local Maven repository.");
     }
 }

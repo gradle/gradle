@@ -15,14 +15,21 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.IntegrationTestHint
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Specification
-import org.gradle.integtests.fixtures.*
 
-class SamplesToolingApiIntegrationTest extends Specification {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final Sample sample = new Sample()
+class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule public final Sample sample = new Sample(temporaryFolder)
+
+    private IntegrationTestBuildContext buildContext
 
     @UsesSample('toolingApi/eclipse')
     def "can use tooling API to build Eclipse model"() {
@@ -78,12 +85,13 @@ class SamplesToolingApiIntegrationTest extends Specification {
         def buildScript = buildFile.text
         def index = buildScript.indexOf('repositories {')
         assert index >= 0
+        buildContext = new IntegrationTestBuildContext()
         buildScript = buildScript.substring(0, index) + """
 repositories {
-    maven { url "${distribution.libsRepo.toURI()}" }
+    maven { url "${buildContext.libsRepo.toURI()}" }
 }
 run {
-    args = ["${TextUtil.escapeString(distribution.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(distribution.userHomeDir.absolutePath)}"]
+    args = ["${TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath)}"]
     systemProperty 'org.gradle.daemon.idletimeout', 10000
     systemProperty 'org.gradle.daemon.registry.base', "${TextUtil.escapeString(projectDir.file("daemon").absolutePath)}"
 }
@@ -97,7 +105,8 @@ run {
 
     private ExecutionResult run() {
         try {
-            return new GradleDistributionExecuter(distribution).inDirectory(sample.dir)
+            return new GradleContextualExecuter(distribution, temporaryFolder)
+                    .inDirectory(sample.dir)
                     .withTasks('run')
                     .withDaemonIdleTimeoutSecs(60)
                     .run()

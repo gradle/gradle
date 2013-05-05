@@ -41,6 +41,7 @@ public class ClassFileExtractionManager {
     private final TemporaryFileProvider tempDirProvider;
 
     public ClassFileExtractionManager(final Factory<File> tempDirFactory) {
+        assert tempDirFactory != null;
         tempDirProvider = new DefaultTemporaryFileProvider(tempDirFactory);
         packageJarFilesMappings = new HashMap<String, Set<File>>();
         extractedJarClasses = new HashMap<String, File>();

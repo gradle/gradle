@@ -24,6 +24,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
@@ -60,7 +61,7 @@ public class CommandLineCppCompiler<T extends CppCompileSpec> implements CppComp
 
     private void ensureDirsExist(File... dirs) {
         for (File dir : dirs) {
-            dir.mkdirs();
+            GFileUtils.mkdirs(dir);
         }
     }
 

@@ -16,9 +16,11 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.Action;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.remote.ConnectEvent;
+import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
 
@@ -29,9 +31,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultWorkerProcess implements WorkerProcess {
+    private final static Logger LOGGER = Logging.getLogger(DefaultWorkerProcess.class);
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private ObjectConnection connection;
+    private ConnectionAcceptor acceptor;
     private ExecHandle execHandle;
     private boolean running;
     private Throwable processFailure;
@@ -53,22 +57,29 @@ public class DefaultWorkerProcess implements WorkerProcess {
         });
     }
 
-    public Action<ConnectEvent<ObjectConnection>> getConnectAction() {
-        return new Action<ConnectEvent<ObjectConnection>>() {
-            public void execute(ConnectEvent<ObjectConnection> event) {
-                onConnect(event.getConnection());
-            }
-        };
-    }
-
-    private void onConnect(ObjectConnection connection) {
+    public void startAccepting(ConnectionAcceptor acceptor) {
         lock.lock();
         try {
-            this.connection = connection;
-            condition.signalAll();
+            this.acceptor = acceptor;
         } finally {
             lock.unlock();
         }
+    }
+
+    public void onConnect(ObjectConnection connection) {
+        ConnectionAcceptor stoppable;
+
+        lock.lock();
+        try {
+            LOGGER.debug("Received connection {} from {}", connection, execHandle);
+            this.connection = connection;
+            condition.signalAll();
+            stoppable = acceptor;
+        } finally {
+            lock.unlock();
+        }
+
+        stoppable.requestStop();
     }
 
     private void onProcessStop(ExecResult execResult) {
@@ -88,7 +99,10 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     @Override
     public String toString() {
-        return execHandle.toString();
+        return "DefaultWorkerProcess{"
+                + "running=" + running
+                + ", execHandle=" + execHandle
+                + '}';
     }
 
     public ObjectConnection getConnection() {
@@ -96,6 +110,15 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     public void start() {
+        try {
+            doStart();
+        } catch (Throwable t) {
+            cleanup();
+            throw UncheckedException.throwAsUncheckedException(t);
+        }
+    }
+
+    private void doStart() {
         lock.lock();
         try {
             running = true;
@@ -111,7 +134,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
             while (connection == null && running) {
                 try {
                     if (!condition.awaitUntil(connectExpiry)) {
-                        throw new ExecException(String.format("Timeout after waiting %.1f seconds for %s to connect.", ((double) connectTimeout) / 1000, execHandle));
+                        throw new ExecException(String.format("Timeout after waiting %.1f seconds for %s (%s, running: %s) to connect.", ((double) connectTimeout) / 1000, execHandle, execHandle.getState(), running));
                     }
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
@@ -129,19 +152,24 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     public ExecResult waitForStop() {
-        ExecResult result = execHandle.waitForFinish();
-        ObjectConnection connection;
+        try {
+            return execHandle.waitForFinish().assertNormalExitValue();
+        } finally {
+            cleanup();
+        }
+    }
+
+    private void cleanup() {
+        CompositeStoppable stoppable;
         lock.lock();
         try {
-            connection = this.connection;
+            stoppable = CompositeStoppable.stoppable(acceptor, connection);
         } finally {
             this.connection = null;
+            this.acceptor = null;
             this.execHandle = null;
             lock.unlock();
         }
-        if (connection != null) {
-            connection.stop();
-        }
-        return result.assertNormalExitValue();
+        stoppable.stop();
     }
 }

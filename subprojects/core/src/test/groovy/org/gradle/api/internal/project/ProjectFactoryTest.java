@@ -24,11 +24,11 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.internal.Factory;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.testfixtures.internal.GlobalTestServices;
 import org.gradle.testfixtures.internal.TestTopLevelBuildServiceRegistry;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.MultiParentClassLoader;
-import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -51,8 +51,8 @@ public class ProjectFactoryTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final MultiParentClassLoader buildScriptClassLoader = new MultiParentClassLoader(getClass().getClassLoader());
     @Rule
-    public TemporaryFolder testDir = new TemporaryFolder();
-    private final File rootDir = testDir.getDir();
+    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
+    private final File rootDir = testDir.getTestDirectory();
     private final File projectDir = new File(rootDir, "project");
     private Factory<RepositoryHandler> repositoryHandlerFactory = context.mock(Factory.class);
     private RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
@@ -77,7 +77,7 @@ public class ProjectFactoryTest {
             allowing(gradle).getStartParameter();
             will(returnValue(startParameterStub));
             allowing(gradle).getProjectRegistry();
-            will(returnValue(gradleServices.get(IProjectRegistry.class)));
+            will(returnValue(gradleServices.get(ProjectRegistry.class)));
             allowing(gradle).getScriptClassLoader();
             will(returnValue(buildScriptClassLoader));
             allowing(gradle).getGradleUserHomeDir();

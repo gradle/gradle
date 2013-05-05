@@ -222,7 +222,6 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
         lock.lock();
         try {
-            ProcessParentingInitializer.intitialize();
             if (!stateIn(ExecHandleState.INIT)) {
                 throw new IllegalStateException(String.format("Cannot start process '%s' because it has already been started", displayName));
             }

@@ -16,24 +16,30 @@
 
 package org.gradle.plugins.ear.descriptor.internal
 
-import javax.xml.parsers.DocumentBuilderFactory
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
+
+import javax.xml.parsers.DocumentBuilderFactory
+
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 /**
  * @author: Szczepan Faber, created at: 6/3/11
  */
 class DefaultDeploymentDescriptorTest extends Specification {
-
-    def out = new StringWriter()
-    def descriptor = new DefaultDeploymentDescriptor(null)
+    def descriptor = new DefaultDeploymentDescriptor({ it } as FileResolver)
+    @Rule TestNameTestDirectoryProvider tmpDir
 
     def "writes default descriptor"() {
+        def file = tmpDir.file("out.xml")
+
         when:
-        descriptor.writeTo(out)
+        descriptor.writeTo(file)
 
         then:
-        def root = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(out.toString().getBytes("utf-8"))).documentElement
+        def root = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(file.bytes)).documentElement
         root.nodeName == 'application'
         root.getAttribute("xmlns") == "http://java.sun.com/xml/ns/javaee"
         root.getAttribute("xmlns:xsi") == "http://www.w3.org/2001/XMLSchema-instance"
@@ -43,6 +49,7 @@ class DefaultDeploymentDescriptorTest extends Specification {
     }
 
     def "writes version 1.3 default descriptor"() {
+        def out = new StringWriter()
         descriptor.version = '1.3'
 
         when:
@@ -56,6 +63,7 @@ class DefaultDeploymentDescriptorTest extends Specification {
     }
 
     def "writes customized descriptor"() {
+        def out = new StringWriter()
         descriptor.fileName = "myApp.xml"
         descriptor.version = "1.3"
         descriptor.applicationName = "myapp"

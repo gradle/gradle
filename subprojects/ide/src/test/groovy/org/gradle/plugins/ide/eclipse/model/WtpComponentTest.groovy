@@ -16,8 +16,8 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.custommonkey.xmlunit.XMLUnit
-import org.gradle.api.internal.XmlTransformer
-import org.gradle.util.TemporaryFolder
+import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -32,7 +32,7 @@ public class WtpComponentTest extends Specification {
     private final WtpComponent component = new WtpComponent(new XmlTransformer())
 
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def "load existing XML file"() {
         when:
@@ -47,16 +47,20 @@ public class WtpComponentTest extends Specification {
     def "merge existing and new configuration"() {
         def constructorDeployName = 'build'
         def constructorContextPath = 'context'
-        def constructorWbModuleEntries = [createSomeWbModuleEntry()]
+        def constructorWbModuleEntries = createSomeWbModuleEntries()
 
         when:
         component.load(customComponentReader)
-        component.configure(constructorDeployName, constructorContextPath, constructorWbModuleEntries + [CUSTOM_WB_MODULE_ENTRIES[0]])
+        component.configure(constructorDeployName, constructorContextPath, constructorWbModuleEntries)
 
         then:
-        component.wbModuleEntries == CUSTOM_WB_MODULE_ENTRIES + constructorWbModuleEntries
         component.deployName == constructorDeployName
         component.contextPath == constructorContextPath
+        // dependent modules are replaced, other entries are added up
+        component.wbModuleEntries as Set == [
+                new WbDependentModule('/WEB-INF/lib', "module:/classpath/foo-1.2.3.jar"),
+                new WbResource("/WEB-INF/classes", "src/main/java"),
+                new WbResource("/WEB-INF/classes", "src/other/java")] as Set
     }
 
     def "load defaults"() {
@@ -85,7 +89,8 @@ public class WtpComponentTest extends Specification {
         getClass().getResourceAsStream('customOrgEclipseWstCommonComponent.xml')
     }
 
-    private WbProperty createSomeWbModuleEntry() {
-        return new WbProperty('someProp', 'someValue')
+    private List createSomeWbModuleEntries() {
+        [new WbDependentModule('/WEB-INF/lib', "module:/classpath/foo-1.2.3.jar"),
+        new WbResource("/WEB-INF/classes", "src/other/java")]
     }
 }

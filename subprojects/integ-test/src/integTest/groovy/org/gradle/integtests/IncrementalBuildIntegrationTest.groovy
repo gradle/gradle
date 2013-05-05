@@ -18,16 +18,17 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
-    @Rule public final TestResources resource = new TestResources()
+    @Rule public final TestResources resource = new TestResources(testDirectoryProvider)
 
     @Test
     public void skipsTaskWhenOutputFileIsUpToDate() {

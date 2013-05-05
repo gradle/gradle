@@ -28,7 +28,7 @@ class ToolingApiBuildableEclipseModelFixesCrossVersionSpec extends ToolingApiSpe
     @Issue("GRADLE-1529")
     //this is just one of the ways of fixing the problem. See the issue for details
     def "should not show not executable tasks"() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 task a
 task b
 '''
@@ -36,21 +36,23 @@ task b
         def project = withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
-        def tasks = project.tasks.collect { it.name }
-        assert tasks == ['a', 'b']: "temp tasks like 'cleanEclipse', 'eclipse', e.g. should not show on this list: " + tasks
+        def tasks = project.tasks*.name
+        tasks.contains('a')
+        tasks.contains('b')
+        !tasks.contains('cleanEclipse')
+        !tasks.contains('eclipse')
     }
 
     @Issue("GRADLE-1529")
     //this is just one of the ways of fixing the problem. See the issue for details
     def "should hide not executable tasks when necessary for a multi module build"() {
-        def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = '''
+        file('build.gradle').text = '''
 project(':api') {
     apply plugin: 'java'
     apply plugin: 'eclipse'
 }
 '''
-        projectDir.file('settings.gradle').text = "include 'api', 'impl'"
+        file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
         EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }

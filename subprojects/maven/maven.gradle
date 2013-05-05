@@ -15,17 +15,20 @@
  */
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     compile project(':core')
     compile project(':coreImpl')
     compile project(':plugins')
+    compile project(':publish')
     compile libraries.slf4j_api
 
     compile libraries.maven_ant_tasks
     compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
     compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
     compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
+
+    integTestCompile project(":ear")
 }
 
 useTestFixtures()

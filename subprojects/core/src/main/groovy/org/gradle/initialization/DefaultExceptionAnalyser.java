@@ -46,7 +46,7 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
     }
 
     public Throwable transform(Throwable exception) {
-        Throwable actualException = findDeepest(exception);
+        Throwable actualException = findDeepestRootException(exception);
         if (actualException == null) {
             return exception;
         }
@@ -85,7 +85,8 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
         return new LocationAwareException(actualException, target, source, lineNumber);
     }
 
-    private Throwable findDeepest(Throwable exception) {
+    private Throwable findDeepestRootException(Throwable exception) {
+        // TODO: fix the way we work out which exception is important: TaskExecutionException is not always the most helpful
         Throwable locationAware = null;
         Throwable result = null;
         Throwable contextMatch = null;

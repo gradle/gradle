@@ -16,11 +16,13 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.id.*;
+import org.gradle.internal.id.CompositeIdGenerator;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -30,12 +32,8 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
-import org.gradle.internal.id.CompositeIdGenerator;
-import org.gradle.internal.id.LongIdGenerator;
-import org.gradle.internal.id.UUIDGenerator;
 
 import java.io.InputStream;
 
@@ -53,7 +51,7 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
     public DaemonClientServicesSupport(ServiceRegistry loggingServices, InputStream buildStandardInput) {
         this.loggingServices = loggingServices;
         this.buildStandardInput = buildStandardInput;
-        add(new NativeServices());
+        add(NativeServices.getInstance());
     }
 
     public ServiceRegistry getLoggingServices() {
@@ -98,8 +96,8 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new CompositeIdGenerator(new UUIDGenerator().generateId(), new LongIdGenerator());
     }
 
-    protected OutgoingConnector<Object> createOutgoingConnector() {
-        return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader()));
+    protected OutgoingConnector createOutgoingConnector() {
+        return new TcpOutgoingConnector();
     }
 
     protected DaemonConnector createDaemonConnector() {
@@ -107,7 +105,7 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
     }
 
     protected DocumentationRegistry createDocumentationRegistry() {
-        return new DocumentationRegistry(get(GradleDistributionLocator.class));
+        return new DocumentationRegistry();
     }
 
     protected DefaultModuleRegistry createModuleRegistry() {

@@ -32,7 +32,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     private final String className;
     private String superClassName;
     private final String packageName;
-    private final boolean isInterface;
+    private final MetaType metaType;
     private final boolean isGroovy;
     private final List<String> imports = new ArrayList<String>();
     private final List<String> interfaceNames = new ArrayList<String>();
@@ -42,17 +42,18 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     private String outerClassName;
     private transient ClassMetaDataRepository<ClassMetaData> metaDataRepository;
     public final HashMap<String, String> constants = new HashMap<String, String>();
+    private final List<EnumConstantMetaData> enumConstants = new ArrayList<EnumConstantMetaData>();
 
-    public ClassMetaData(String className, String packageName, boolean isInterface, boolean isGroovy, String rawClassComment) {
+    public ClassMetaData(String className, String packageName, MetaType metaType, boolean isGroovy, String rawClassComment) {
         super(rawClassComment);
         this.className = className;
         this.packageName = packageName;
-        this.isInterface = isInterface;
+        this.metaType = metaType;
         this.isGroovy = isGroovy;
     }
 
     public ClassMetaData(String className) {
-        this(className, StringUtils.substringBeforeLast(className, "."), false, false, "");
+        this(className, StringUtils.substringBeforeLast(className, "."), MetaType.CLASS, false, "");
     }
 
     @Override
@@ -73,11 +74,15 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     }
 
     public boolean isInterface() {
-        return isInterface;
+        return metaType == MetaType.INTERFACE;
     }
 
     public boolean isGroovy() {
         return isGroovy;
+    }
+
+    public boolean isEnum() {
+        return metaType == MetaType.ENUM;
     }
 
     public String getSuperClassName() {
@@ -243,7 +248,24 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     public Map<String, String> getConstants() {
         return constants;
     }
-    
+
+    public void addEnumConstant(String name) {
+        enumConstants.add(new EnumConstantMetaData(name, this));
+    }
+
+    public List<EnumConstantMetaData> getEnumConstants() {
+        return enumConstants;
+    }
+
+    public EnumConstantMetaData getEnumConstant(String name) {
+        for (EnumConstantMetaData enumConstant : enumConstants) {
+            if (enumConstant.getName().equals(name)) {
+                return enumConstant;
+            }
+        }
+        return null;
+    }
+
     public void attach(ClassMetaDataRepository<ClassMetaData> metaDataRepository) {
         this.metaDataRepository = metaDataRepository;
     }
@@ -279,5 +301,9 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         for (MethodMetaData methodMetaData : declaredMethods) {
             methodMetaData.visitTypes(action);
         }
+    }
+
+    public static enum MetaType {
+        CLASS, INTERFACE, ENUM, ANNOTATION
     }
 }

@@ -32,8 +32,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final DefaultConfigurableFileCollection outputFiles;
     private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
     private TaskExecutionHistory history;
+    private final TaskStatusNagger taskStatusNagger;
 
-    public DefaultTaskOutputs(FileResolver resolver, TaskInternal task) {
+    public DefaultTaskOutputs(FileResolver resolver, TaskInternal task, TaskStatusNagger taskStatusNagger) {
+        this.taskStatusNagger = taskStatusNagger;
         outputFiles = new DefaultConfigurableFileCollection(String.format("%s output files", task), resolver, null);
         outputFiles.builtBy(task);
     }
@@ -43,10 +45,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public void upToDateWhen(Closure upToDateClosure) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.upToDateWhen(Closure)");
         upToDateSpec = upToDateSpec.and(upToDateClosure);
     }
 
     public void upToDateWhen(Spec<? super Task> upToDateSpec) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.upToDateWhen(Spec)");
         this.upToDateSpec = this.upToDateSpec.and(upToDateSpec);
     }
 
@@ -59,17 +63,20 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public TaskOutputs files(Object... paths) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.files(Object...)");
         outputFiles.from(paths);
         return this;
     }
 
     public TaskOutputs file(Object path) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.file(Object)");
         files(path);
         return this;
     }
 
-    public TaskOutputs dir(Object path) {
-        files(path);
+    public TaskOutputs dir(final Object path) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.dir(Object)");
+        outputFiles.from(path);
         return this;
     }
 

@@ -15,18 +15,16 @@
  */
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
 
 @MinToolingApiVersion('1.0-milestone-5')
-@MinTargetGradleVersion('1.0-milestone-3')
 class ToolingApiGradleProjectCrossVersionSpec extends ToolingApiSpecification {
 
     def "provides tasks of a project"() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 task a {
    description = 'this is task a'
 }
@@ -48,8 +46,8 @@ task c
     }
 
     def "provides hierarchy"() {
-        dist.testFile('settings.gradle') << "include 'a', 'a:b', 'a:c', 'a:c:d'"
-        dist.testFile('build.gradle') << '''
+        file('settings.gradle') << "include 'a', 'a:b', 'a:c', 'a:c:d'"
+        file('build.gradle') << '''
 task rootTask
 project (':a') { description = 'A rocks!' }
 '''
@@ -74,8 +72,8 @@ project (':a') { description = 'A rocks!' }
     }
 
     def "can provide tasks for hierarchical project"() {
-        dist.testFile('settings.gradle') << "include 'a', 'a:b', 'a:c'"
-        dist.testFile('build.gradle') << '''
+        file('settings.gradle') << "include 'a', 'a:b', 'a:c'"
+        file('build.gradle') << '''
 task rootTask
 project(':a') { task taskA }
 project(':a:b') { task taskAB }

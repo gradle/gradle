@@ -16,16 +16,13 @@
 
 package org.gradle.integtests.samples
 
-import org.junit.Rule
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import spock.lang.Specification
+import org.junit.Rule
 
-class SamplesAnnounceIntegrationTest extends Specification {
-    @Rule GradleDistribution dist
-    @Rule GradleDistributionExecuter executer
-    @Rule Sample sample = new Sample("announce")
+class SamplesAnnounceIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule Sample sample = new Sample(temporaryFolder, "announce")
 
     def "make some announcements"() {
         // tweak sample to print all messages to standard out

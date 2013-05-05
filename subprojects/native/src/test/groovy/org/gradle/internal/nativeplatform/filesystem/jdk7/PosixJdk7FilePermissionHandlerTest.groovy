@@ -16,15 +16,15 @@
 
 package org.gradle.internal.nativeplatform.filesystem.jdk7
 
-import spock.lang.Specification
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import org.gradle.util.TemporaryFolder
+import spock.lang.Specification
 
 @Requires(TestPrecondition.NOT_WINDOWS)
 class PosixJdk7FilePermissionHandlerTest extends Specification {
-    @Rule TemporaryFolder temporaryFolder
+    @Rule TestNameTestDirectoryProvider temporaryFolder
 
     def "test chmod on non windows platforms with JDK7"() {
         setup:

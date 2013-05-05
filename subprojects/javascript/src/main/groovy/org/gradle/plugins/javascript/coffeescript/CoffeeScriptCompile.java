@@ -19,7 +19,6 @@ package org.gradle.plugins.javascript.coffeescript;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
@@ -32,6 +31,7 @@ import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
+import javax.inject.Inject;
 import java.io.File;
 
 public class CoffeeScriptCompile extends SourceTask {
@@ -40,6 +40,12 @@ public class CoffeeScriptCompile extends SourceTask {
     private Object destinationDir;
     private Object rhinoClasspath;
     private CoffeeScriptCompileOptions options = new CoffeeScriptCompileOptions();
+    private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
+
+    @Inject
+    public CoffeeScriptCompile(Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
+        this.workerProcessBuilderFactory = workerProcessBuilderFactory;
+    }
 
     @InputFiles
     public FileCollection getCoffeeScriptJs() {
@@ -82,8 +88,6 @@ public class CoffeeScriptCompile extends SourceTask {
 
     @TaskAction
     public void doCompile() {
-        ProjectInternal projectInternal = (ProjectInternal)getProject();
-        Factory<WorkerProcessBuilder> workerProcessBuilderFactory = projectInternal.getServices().getFactory(WorkerProcessBuilder.class);
         RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(workerProcessBuilderFactory);
 
         CoffeeScriptCompileSpec spec = new DefaultCoffeeScriptCompileSpec();

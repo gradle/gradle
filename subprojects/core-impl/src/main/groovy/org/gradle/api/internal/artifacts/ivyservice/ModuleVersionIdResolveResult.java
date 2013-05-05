@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 
 public interface ModuleVersionIdResolveResult {
     /**
@@ -26,14 +27,20 @@ public interface ModuleVersionIdResolveResult {
     ModuleVersionResolveException getFailure();
 
     /**
-     * Returns the id of this module version.
+     * Returns the identifier of this module version.
      *
-     * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
+     * @throws ModuleVersionResolveException If id resolution was unsuccessful and the id is unknown.
      */
-    ModuleRevisionId getId() throws ModuleVersionResolveException;
+    ModuleVersionIdentifier getId() throws ModuleVersionResolveException;
 
     /**
      * Resolves the meta-data for this module version, if required. Failures are packaged up in the result.
+     * @throws ModuleVersionResolveException If id resolution was unsuccessful and the id is unknown.
      */
-    ModuleVersionResolveResult resolve();
+    ModuleVersionResolveResult resolve() throws ModuleVersionResolveException;
+
+    /**
+     * @return why given id was selected. Should return a value even if the resolve failed.
+     */
+    ModuleVersionSelectionReason getSelectionReason();
 }

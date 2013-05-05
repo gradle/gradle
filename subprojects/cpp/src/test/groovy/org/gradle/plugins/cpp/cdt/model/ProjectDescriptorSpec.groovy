@@ -15,13 +15,13 @@
  */
 package org.gradle.plugins.cpp.cdt.model
 
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class ProjectDescriptorSpec extends Specification {
 
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     ProjectDescriptor descriptor = new ProjectDescriptor()
 
     def "method"() {

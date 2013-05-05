@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.util.TemporaryFolder
+import com.google.common.collect.Lists
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import com.google.common.collect.Lists
-
+import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
-    @Rule TemporaryFolder tempDir
+    @Rule TestNameTestDirectoryProvider tempDir
     TemporaryFileProvider tempFileProvider = Mock()
     CommandLineJavaCompilerArgumentsGenerator argsGenerator = new CommandLineJavaCompilerArgumentsGenerator(tempFileProvider)
 
@@ -59,6 +59,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         def sources = createFiles(numFiles)
         def classpath = createFiles(numFiles)
         def spec = new DefaultJavaCompileSpec()
+        spec.compileOptions = new CompileOptions()
         spec.compileOptions.forkOptions.memoryMaximumSize = "256m"
         spec.source = new SimpleFileCollection(sources)
         spec.classpath = new SimpleFileCollection(classpath)

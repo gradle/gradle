@@ -23,11 +23,13 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
     private final OutputEventListener listener;
     private final Console console;
     private final LinkedList<Operation> operations = new LinkedList<Operation>();
+    private final StatusBarFormatter statusBarFormatter;
     private Label statusBar;
 
-    public ConsoleBackedProgressRenderer(OutputEventListener listener, Console console) {
+    public ConsoleBackedProgressRenderer(OutputEventListener listener, Console console, StatusBarFormatter statusBarFormatter) {
         this.listener = listener;
         this.console = console;
+        this.statusBarFormatter = statusBarFormatter;
     }
 
     public void onOutput(OutputEvent event) {
@@ -47,25 +49,13 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
     }
 
     private void updateText() {
-        StringBuilder builder = new StringBuilder();
-        for (Operation operation : operations) {
-            String message = operation.getMessage();
-            if (message == null) {
-                continue;
-            }
-            if (builder.length() > 0) {
-                builder.append(' ');
-            }
-            builder.append("> ");
-            builder.append(message);
-        }
         if (statusBar == null) {
             statusBar = console.getStatusBar();
         }
-        statusBar.setText(builder.toString());
+        statusBar.setText(statusBarFormatter.format(operations));
     }
 
-    private static class Operation {
+    static class Operation {
         private final String shortDescription;
         private String status;
 

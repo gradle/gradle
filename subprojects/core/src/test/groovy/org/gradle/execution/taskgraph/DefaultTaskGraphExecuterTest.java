@@ -16,13 +16,15 @@
 
 package org.gradle.execution.taskgraph;
 
+import groovy.lang.Closure;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess;
+import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -75,7 +77,7 @@ public class DefaultTaskGraphExecuterTest {
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
         }});
-        taskExecuter = new org.gradle.execution.taskgraph.DefaultTaskGraphExecuter(listenerManager, new DefaultTaskExecutor());
+        taskExecuter = new org.gradle.execution.taskgraph.DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor());
     }
 
     @Test
@@ -243,8 +245,9 @@ public class DefaultTaskGraphExecuterTest {
         Task c = task("c", b);
         dependsOn(a, c);
 
+        taskExecuter.addTasks(toList(c));
         try {
-            taskExecuter.addTasks(toList(c));
+            taskExecuter.execute();
             fail();
         } catch (CircularReferenceException e) {
             // Expected
@@ -368,52 +371,15 @@ public class DefaultTaskGraphExecuterTest {
 
         assertThat(executedTasks, equalTo(toList(a)));
     }
-    
-    @Test
-    public void testContinuesExecutionOnFailureWhenFailureHandlerIndicatesThatExecutionShouldContinue() {
-        final TaskFailureHandler handler = context.mock(TaskFailureHandler.class);
 
-        final RuntimeException failure = new RuntimeException();
-        final Task a = brokenTask("a", failure);
-        final Task b = task("b");
-
-        taskExecuter.useFailureHandler(handler);
-        taskExecuter.addTasks(toList(a, b));
-
-        context.checking(new Expectations(){{
-            one(handler).onTaskFailure(a);
-        }});
-        taskExecuter.execute();
-
-        assertThat(executedTasks, equalTo(toList(a, b)));
-    }
-    
-    @Test
-    public void testDoesNotAttemptToExecuteTasksWhoseDependenciesFailedToExecute() {
-        final TaskFailureHandler handler = context.mock(TaskFailureHandler.class);
-
-        final RuntimeException failure = new RuntimeException();
-        final Task a = brokenTask("a", failure);
-        final Task b = task("b", a);
-        final Task c = task("c");
-
-        taskExecuter.useFailureHandler(handler);
-        taskExecuter.addTasks(toList(b, c));
-
-        context.checking(new Expectations() {{
-            one(handler).onTaskFailure(a);
-        }});
-        taskExecuter.execute();
-        assertThat(executedTasks, equalTo(toList(a, c)));
-    }
-    
     @Test
     public void testNotifiesBeforeTaskClosureAsTasksAreExecuted() {
         final TestClosure runnable = context.mock(TestClosure.class);
         final Task a = task("a");
         final Task b = task("b");
 
-        taskExecuter.beforeTask(toClosure(runnable));
+        final Closure closure = toClosure(runnable);
+        taskExecuter.beforeTask(closure);
 
         taskExecuter.addTasks(toList(a, b));
 
@@ -501,7 +467,12 @@ public class DefaultTaskGraphExecuterTest {
         context.checking(new Expectations() {{
             ignoring(handler);
         }});
-        taskExecuter.execute();
+        try {
+            taskExecuter.execute();
+            fail();
+        } catch (RuntimeException e) {
+            assertThat(e, sameInstance(failure));
+        }
 
         assertThat(executedTasks, equalTo(toList(a, c)));
     }
@@ -555,6 +526,8 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(":" + name));
             allowing(task).getState();
             will(returnValue(state));
+            allowing(task).getMustRunAfter();
+            will(returnValue(new DefaultTaskDependency()));
             allowing(task).compareTo(with(notNullValue(TaskInternal.class)));
             will(new org.jmock.api.Action() {
                 public Object invoke(Invocation invocation) throws Throwable {

@@ -22,22 +22,22 @@ import org.gradle.api.reporting.SingleFileReport;
 /**
  * The reporting configuration for the the {@link FindBugs} task.
  *
- * Only one of the xml or html reports can be enabled when the task executes. If more than one is enabled, an {@link org.gradle.api.InvalidUserDataException}
+ * Only one of the XML or HTML reports can be enabled when the task executes. If more than one is enabled, an {@link org.gradle.api.InvalidUserDataException}
  * will be thrown.
  */
 public interface FindBugsReports extends ReportContainer<SingleFileReport> {
 
     /**
-     * The findbugs xml report
+     * The findbugs XML report
      *
-     * @return The findbugs xml report
+     * @return The findbugs XML report
      */
     SingleFileReport getXml();
 
     /**
-     * The findbugs html report
+     * The findbugs HTML report
      *
-     * @return The findbugs html report
+     * @return The findbugs HTML report
      */
     SingleFileReport getHtml();
     

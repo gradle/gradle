@@ -15,6 +15,7 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 
 import java.io.Serializable;
@@ -24,7 +25,8 @@ import java.io.Serializable;
  */
 public abstract class OutputEvent implements Serializable {
     /**
-     * Returns the log level for this event. May return null.
+     * Returns the log level for this event.
      */
+    @Nullable
     public abstract LogLevel getLogLevel();
 }

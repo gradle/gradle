@@ -18,7 +18,7 @@ package org.gradle.groovy.compile
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.VersionNumber
 
-@TargetVersions(['1.6.9', '1.7.11', '1.8.7', '2.0.1'])
+@TargetVersions(['1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.0'])
 class AntForkingGroovyCompilerIntegrationTest extends GroovyCompilerIntegrationSpec {
 
     @Override

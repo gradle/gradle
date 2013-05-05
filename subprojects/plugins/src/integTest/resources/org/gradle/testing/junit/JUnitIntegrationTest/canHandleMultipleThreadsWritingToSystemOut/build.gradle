@@ -1,0 +1,11 @@
+apply plugin: 'groovy'
+repositories { mavenCentral() }
+dependencies {
+    testCompile localGroovy()
+    testCompile 'junit:junit:4.11'
+}
+test {
+    testLogging {
+        showStandardStreams = true
+    }
+}

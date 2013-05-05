@@ -15,29 +15,42 @@
  */
 package org.gradle.groovy.compile
 
-import org.gradle.integtests.fixtures.ExecutionResult
+import com.google.common.collect.Ordering
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 
-import com.google.common.collect.Ordering
-
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.7', '2.0.1'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.0'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
-    @Rule TestResources resources = new TestResources()
+    @Rule TestResources resources = new TestResources(temporaryFolder)
+
+    String groovyDependency = "org.codehaus.groovy:groovy-all:$version"
 
     def setup() {
-        executer.withArguments("-i")
+        // necessary for picking up some of the output/errorOutput when forked executer is used
+        executer.withArgument("-i")
     }
 
-    def "badCodeBreaksBuild"() {
-        when:
-        runAndFail("classes")
+    def "compileGoodCode"() {
+        groovyDependency = "org.codehaus.groovy:$module:$version"
 
-        then:
+        expect:
+        succeeds("compileGroovy")
+        !errorOutput
+        file("build/classes/main/Person.class").exists()
+        file("build/classes/main/Address.class").exists()
+
+        where:
+        module << ["groovy-all", "groovy"]
+    }
+
+    def "compileBadCode"() {
+        expect:
+        fails("compileGroovy")
         // for some reasons, line breaks occur in different places when running this
         // test in different environments; hence we only check for short snippets
         compileErrorOutput.contains 'unable'
@@ -47,59 +60,64 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasCause(compilationFailureMessage)
     }
 
-    def "badJavaCodeBreaksBuild"() {
-        when:
-        runAndFail("classes")
-
-        then:
+    def "compileBadJavaCode"() {
+        expect:
+        fails("compileGroovy")
         compileErrorOutput.contains 'illegal start of type'
         failure.assertHasCause(compilationFailureMessage)
     }
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
         if (getClass() == AntInProcessGroovyCompilerIntegrationTest &&
-                versionNumber >= VersionNumber.parse('1.7.0')) {
-            return // known not to work
+                (version == '1.6.9' || version == '1.7.11' || versionNumber >= VersionNumber.parse('1.8.7'))) {
+            // known not to work in 1.7.11, 1.8.7 and beyond (see comment on GRADLE-2404)
+            // only works with 1.6.9 if JUnit makes it on Ant (!) class path, which is no longer the case
+            // note that these problems only apply to useAnt=true; fork=false
+            return
         }
 
-        when:
-        run("test")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds("test")
     }
 
     def "canListSourceFiles"() {
-        when:
-        run("compileGroovy")
-
-        then:
+        expect:
+        succeeds("compileGroovy")
         output.contains(new File("src/main/groovy/compile/test/Person.groovy").toString())
         output.contains(new File("src/main/groovy/compile/test/Person2.groovy").toString())
         !errorOutput
-        file("build/classes/main/compile/test/Person.class").exists()
-        file("build/classes/main/compile/test/Person2.class").exists()
     }
 
-    @Override
     protected ExecutionResult run(String... tasks) {
-        tweakBuildFile()
-        return super.run(tasks)
+        configureGroovy()
+        super.run(tasks)
     }
 
-    @Override
     protected ExecutionFailure runAndFail(String... tasks) {
-        tweakBuildFile()
-        return super.runAndFail(tasks)
+        configureGroovy()
+        super.runAndFail(tasks)
     }
 
-    private void tweakBuildFile() {
-        buildFile << """
-dependencies { groovy 'org.codehaus.groovy:groovy-all:$version' }
-        """
+    protected ExecutionResult succeeds(String... tasks) {
+        configureGroovy()
+        super.succeeds(tasks)
+    }
 
-        buildFile << compilerConfiguration()
-        println "->> USING BUILD FILE: ${buildFile.text}"
+    protected ExecutionFailure fails(String... tasks) {
+        configureGroovy()
+        super.fails(tasks)
+    }
+
+    private void configureGroovy() {
+        buildFile << """
+dependencies {
+    compile '${groovyDependency.toString()}'
+}
+
+DeprecationLogger.whileDisabled {
+    ${compilerConfiguration()}
+}
+        """
     }
 
     abstract String compilerConfiguration()

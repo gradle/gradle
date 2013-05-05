@@ -16,51 +16,45 @@
 
 package org.gradle.tooling.internal.consumer.versioning;
 
-import org.gradle.util.GradleVersion;
-
 /**
  * by Szczepan Faber, created at: 1/13/12
  */
-public class VersionDetails {
-
-    private final GradleVersion gradleVersion;
-    private static final GradleVersion M5 = GradleVersion.version("1.0-milestone-5");
-    private static final GradleVersion M6 = GradleVersion.version("1.0-milestone-6");
-    private static final GradleVersion M7 = GradleVersion.version("1.0-milestone-7");
+public abstract class VersionDetails {
+    private final String providerVersion;
 
     public VersionDetails(String version) {
-        gradleVersion = GradleVersion.version(version);
-    }
-
-    public boolean supportsCompleteBuildEnvironment() {
-        return gradleVersion.compareTo(M7) > 0;
-    }
-
-    public boolean clientHangsOnEarlyDaemonFailure() {
-        return gradleVersion.equals(M5) || gradleVersion.equals(M6);
-    }
-
-    public <T> boolean isPostM6Model(Class<T> internalModelType) {
-        return !ModelMapping.getModelsUpToM6().containsValue(internalModelType);
-    }
-
-    public boolean supportsConfiguringJavaHome() {
-        return gradleVersion.compareTo(M7) > 0;
-    }
-
-    public boolean supportsConfiguringJvmArguments() {
-        return gradleVersion.compareTo(M7) > 0;
-    }
-
-    public boolean supportsConfiguringStandardInput() {
-        return gradleVersion.compareTo(M7) > 0;
+        providerVersion = version;
     }
 
     public String getVersion() {
-        return gradleVersion.getVersion();
+        return providerVersion;
+    }
+
+    /**
+     * Returns true if this provider may support the given model type. Returns false if it is known that the
+     * provider does not support the given model type and <em>should not</em> be asked to provide it.
+     */
+    public boolean isModelSupported(Class<?> modelType) {
+        return false;
+    }
+
+    public boolean supportsConfiguringJavaHome() {
+        return false;
+    }
+
+    public boolean supportsConfiguringJvmArguments() {
+        return false;
+    }
+
+    public boolean supportsConfiguringStandardInput() {
+        return false;
+    }
+
+    public boolean supportsRunningTasksWhenBuildingModel() {
+        return false;
     }
 
     public boolean supportsGradleProjectModel() {
-        return gradleVersion.compareTo(M5) >= 0;
+        return false;
     }
 }

@@ -31,6 +31,7 @@ class TaskStateInternalTest {
     public void defaultValues() {
         assertFalse(state.getExecuted())
         assertFalse(state.getExecuting())
+        assertTrue(state.configurable)
         assertThat(state.getFailure(), nullValue())
         assertFalse(state.getDidWork())
         assertFalse(state.getSkipped())
@@ -42,6 +43,7 @@ class TaskStateInternalTest {
         state.executed()
         assertTrue(state.executed)
         assertFalse(state.skipped)
+        assertFalse(state.configurable)
         assertThat(state.getFailure(), nullValue())
     }
     
@@ -51,6 +53,7 @@ class TaskStateInternalTest {
         state.executed(failure)
         assertTrue(state.executed)
         assertFalse(state.skipped)
+        assertFalse(state.configurable)
         assertThat(state.failure, sameInstance(failure))
     }
 
@@ -59,6 +62,7 @@ class TaskStateInternalTest {
         state.skipped('skip-message')
         assertTrue(state.executed)
         assertTrue(state.skipped)
+        assertFalse(state.configurable)
         assertThat(state.skipMessage, equalTo('skip-message'))
     }
 
@@ -67,6 +71,7 @@ class TaskStateInternalTest {
         state.upToDate()
         assertTrue(state.executed)
         assertTrue(state.skipped)
+        assertFalse(state.configurable)
         assertThat(state.skipMessage, equalTo('UP-TO-DATE'))
     }
 

@@ -23,18 +23,18 @@ public class HashValue {
     public HashValue(byte[] digest) {
         this.digest = new BigInteger(1, digest);
     }
-    
+
     public HashValue(String hexString) {
         this.digest = new BigInteger(hexString, 16);
     }
-    
+
     public static HashValue parse(String inputString) {
         if (inputString == null || inputString.length() == 0) {
             return null;
         }
         return new HashValue(parseInput(inputString));
     }
-    
+
     private static String parseInput(String inputString) {
         if (inputString == null) {
             return null;
@@ -57,13 +57,17 @@ public class HashValue {
     public String asCompactString() {
         return digest.toString(32);
     }
-    
+
     public String asHexString() {
-        return digest.toString(16);        
+        return digest.toString(16);
     }
 
     public byte[] asByteArray() {
         return digest.toByteArray();
+    }
+
+    public BigInteger asBigInteger() {
+        return digest;
     }
 
     @Override

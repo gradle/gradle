@@ -7,7 +7,7 @@ version = '1.0'
 group = 'org.gradle.test'
 
 dependencies {
-   compile 'junit:junit:4.8.2', project(':subproject')
+   compile 'junit:junit:4.11', project(':subproject')
 }
 
 ant {
@@ -49,7 +49,7 @@ uploadArchives {
         def root = new XmlParser().parse(new File(repoDir, 'ivy.xml'))
         assert root.publications.artifact.find { it.@name == 'ivypublishSource' }.attribute(ns.classifier) == 'src'
         assert (root.configurations.conf.collect { it.@name } as Set) == ['archives', 'compile', 'default', 'runtime', 'testCompile', 'testRuntime'] as Set
-        assert root.dependencies.dependency.find { it.@org == 'junit' }.attributes() == [org: 'junit', name: 'junit', rev: '4.8.2', conf: 'compile->default']
+        assert root.dependencies.dependency.find { it.@org == 'junit' }.attributes() == [org: 'junit', name: 'junit', rev: '4.11', conf: 'compile->default']
         assert root.dependencies.dependency.find { it.@org == 'ivypublish' }.attributes() == [org: 'ivypublish', name: 'subproject', rev: 'unspecified',
                 conf: 'compile->default']
     }

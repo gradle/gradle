@@ -125,7 +125,7 @@ public class MultithreadedTestCase {
             throw new RuntimeException(String.format(
                     "Action did not block for expected time. Expected ~ %d ms, was %d ms.", expected, actual));
         }
-        if (actual > expected + 500) {
+        if (actual > expected + 1200) {
             throw new RuntimeException(String.format(
                     "Action did not complete within expected time. Expected ~ %d ms, was %d ms.", expected, actual));
         }
@@ -342,7 +342,7 @@ public class MultithreadedTestCase {
         start(new Runnable() {
             public void run() {
                 try {
-                    Thread.sleep(200L);
+                    Thread.sleep(500L);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }

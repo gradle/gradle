@@ -15,7 +15,6 @@
  */
 
 dependencies {
-    groovy libraries.groovy
     compile project(':core')
     compile project(":plugins")
     compile libraries.inject

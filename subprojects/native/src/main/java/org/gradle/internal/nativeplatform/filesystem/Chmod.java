@@ -20,5 +20,14 @@ import java.io.File;
 import java.io.IOException;
 
 public interface Chmod {
-    public void chmod(File f, int mode) throws IOException;
+    /**
+     * Changes the Unix permissions of a provided file. Implementations that don't
+     * support Unix permissions may choose to ignore this request.
+     *
+     * @param file the file to change permissions on
+     * @param mode the permissions, e.g. 0755
+     * @throws java.io.FileNotFoundException if {@code file} doesn't exist
+     * @throws IOException if the permissions can't be changed
+     */
+    public void chmod(File file, int mode) throws IOException;
 }

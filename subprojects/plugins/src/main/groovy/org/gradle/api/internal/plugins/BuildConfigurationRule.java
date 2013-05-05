@@ -44,7 +44,7 @@ public class BuildConfigurationRule extends AbstractRule {
             Configuration configuration = configurations.findByName(configurationName);
 
             if (configuration != null) {
-                Task task = tasks.add(taskName);
+                Task task = tasks.create(taskName);
                 task.dependsOn(configuration.getAllArtifacts());
                 task.setDescription(String.format("Builds the artifacts belonging to %s.", configuration));
             }

@@ -16,36 +16,39 @@
 package org.gradle.plugins.ide.idea.model
 
 /**
- * Represents an orderEntry of type module-library in the iml xml.
+ * Represents an orderEntry of type module-library in the iml XML.
  *
  * @author Hans Dockter
  */
 class ModuleLibrary implements Dependency {
     /**
-     * A set of {@link Path} instances for class libraries. Can be paths to jars or class folders.
+     * A set of Jar files or directories containing compiled code.
      */
-    Set<Path> classes
+    Set<Path> classes = [] as LinkedHashSet
 
     /**
-     * A set of {@link JarDirectory} instances for directories containing jars.
+     * A set of directories containing Jar files.
      */
-    Set<JarDirectory> jarDirectories
+    Set<JarDirectory> jarDirectories = [] as LinkedHashSet
 
     /**
-     * A set of {@link Path} instances for javadoc associated with the library elements.
+     * A set of Jar files or directories containing Javadoc.
      */
-    Set<Path> javadoc
+    Set<Path> javadoc = [] as LinkedHashSet
 
     /**
-     * A set of {@link Path} instances for source code associated with the library elements.
+     * A set of Jar files or directories containing source code.
      */
-    Set<Path> sources
+    Set<Path> sources = [] as LinkedHashSet
 
     /**
-     * The scope of this dependency. If <tt>null</tt>, the scope attribute is not added.
+     * The scope of this library. If <tt>null</tt>, the scope attribute is not added.
      */
     String scope
 
+    /**
+     * Whether the library is exported to dependent modules.
+     */
     boolean exported
 
     def ModuleLibrary(Collection<Path> classes, Collection<Path> javadoc, Collection<Path> sources, Collection<JarDirectory> jarDirectories, String scope) {

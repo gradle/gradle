@@ -27,8 +27,6 @@ class DefaultSettingsConverterTest extends Specification {
     final IBiblioResolver testResolver = new IBiblioResolver()
     final IBiblioResolver testResolver2 = new IBiblioResolver()
 
-    File testGradleUserHome = new File('gradleUserHome')
-
     final Factory<IvySettings> ivySettingsFactory = Mock()
     final IvySettings ivySettings = new IvySettings()
 
@@ -40,7 +38,7 @@ class DefaultSettingsConverterTest extends Specification {
 
     public void testConvertForResolve() {
         when:
-        IvySettings settings = converter.convertForResolve(defaultResolver, [testResolver, testResolver2])
+        IvySettings settings = converter.convertForResolve(defaultResolver)
 
         then:
         1 * ivySettingsFactory.create() >> ivySettings
@@ -51,59 +49,33 @@ class DefaultSettingsConverterTest extends Specification {
         assert settings.is(ivySettings)
 
         assert settings.defaultResolver == defaultResolver
-        assert settings.resolvers.size() == 3
-        [testResolver, testResolver2].each { resolver ->
-            assert settings.resolvers.any { it == resolver }
-            assert settings.getResolver(resolver.name) == resolver
-            assert settings == resolver.settings
-            assert settings == resolver.repositoryCacheManager.settings
-        }
+        assert settings.resolvers.size() == 1
     }
 
     public void shouldReuseResolveSettings() {
-        when:
-        IvySettings settings = converter.convertForResolve(defaultResolver, [testResolver, testResolver2])
-
-        then:
+        given:
         1 * ivySettingsFactory.create() >> ivySettings
-        1 * defaultResolver.setSettings(ivySettings)
         _ * defaultResolver.getName() >> 'default'
-        0 * _._
-
-        assert settings.is(ivySettings)
-
-        [testResolver, testResolver2].each { resolver ->
-            assert settings.resolvers.any { it == resolver }
-        }
+        IvySettings settings = converter.convertForResolve(defaultResolver)
+        settings.addResolver(testResolver)
+        settings.addResolver(testResolver2)
 
         when:
-        settings = converter.convertForResolve(defaultResolver, [testResolver])
+        settings = converter.convertForResolve(defaultResolver)
 
         then:
         assert settings.is(ivySettings)
 
         assert settings.defaultResolver == defaultResolver
-        assert settings.resolvers.size() == 2
-        [testResolver].each { resolver ->
-             assert settings.resolvers.any { it == resolver }
-             assert settings.getResolver(resolver.name) == resolver
-             assert settings == resolver.settings
-             assert settings == resolver.repositoryCacheManager.settings
-         }
+        assert settings.resolvers.size() == 1
     }
 
     public void testConvertForPublish() {
         when:
-        IvySettings settings = converter.convertForPublish([testResolver, testResolver2])
+        IvySettings settings = converter.convertForPublish()
 
         then:
         settings.is(ivySettings)
-
-        and:
-        [testResolver, testResolver2].each {
-            it.settings == settings
-            it.repositoryCacheManager.settings == settings
-        }
 
         and:
         1 * ivySettingsFactory.create() >> ivySettings
@@ -111,26 +83,18 @@ class DefaultSettingsConverterTest extends Specification {
     }
 
     public void reusesPublishSettings() {
+        given:
+        _ * ivySettingsFactory.create() >> ivySettings
+
+        and:
+        IvySettings settings = converter.convertForPublish()
+        settings.addResolver(testResolver)
+
         when:
-        IvySettings settings = converter.convertForPublish([testResolver])
+        settings = converter.convertForPublish()
 
         then:
         settings.is(ivySettings)
-
-        and:
-        1 * ivySettingsFactory.create() >> ivySettings
-        0 * _._
-
-        when:
-        settings = converter.convertForPublish([testResolver, testResolver2])
-
-        then:
-        settings.is(ivySettings)
-
-        and:
-            [testResolver, testResolver2].each {
-            it.settings == settings
-            it.repositoryCacheManager.settings == settings
-        }
+        settings.resolvers.empty
     }
 }

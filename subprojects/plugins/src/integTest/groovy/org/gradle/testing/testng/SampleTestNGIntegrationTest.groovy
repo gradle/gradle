@@ -15,38 +15,37 @@
  */
 package org.gradle.testing.testng
 
+import org.gradle.integtests.fixtures.*
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.*
 
 /**
  * @author Tom Eyckmans
  */
-public class SampleTestNGIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample()
+public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
 
-    @Test @UsesSample('testng/suitexmlbuilder')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider)
+
+    @Test @UsesSample('testing/testng/suitexmlbuilder')
     public void suiteXmlBuilder() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
-        def result = new TestNGExecutionResult(sample.dir)
+        def result = new JUnitXmlTestExecutionResult(sample.dir)
         result.assertTestClassesExecuted('org.gradle.testng.UserImplTest')
         result.testClass('org.gradle.testng.UserImplTest').assertTestsExecuted('testOkFirstName')
         result.testClass('org.gradle.testng.UserImplTest').assertTestPassed('testOkFirstName')
     }
 
-    @Test @UsesSample('testng/java-jdk14-passing')
+    @Test @UsesSample('testing/testng/java-jdk14-passing')
     public void javaJdk14Passing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
-        def result = new TestNGExecutionResult(sample.dir)
+        def result = new JUnitXmlTestExecutionResult(sample.dir)
         result.assertTestClassesExecuted('org.gradle.OkTest')
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     }
     
-    @Test @UsesSample('testng/java-jdk15-passing')
+    @Test @UsesSample('testing/testng/java-jdk15-passing')
     public void javaJdk15Passing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 

@@ -36,7 +36,7 @@ public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
     private boolean styleChange;
 
     public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, LogLevel logLevel, TimeProvider timeProvider) {
-        outstr = new LineBufferingOutputStream(new LogAction(listener, category, logLevel, timeProvider), true);
+        outstr = new LineBufferingOutputStream(new LogAction(listener, category, logLevel, timeProvider));
     }
 
     protected void doStyleChange(Style style) {

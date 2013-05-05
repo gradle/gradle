@@ -15,8 +15,17 @@
  */
 package org.gradle.cache.internal;
 
+/**
+ * Participates in a unit of work that accesses the cache. Implementations do not need to be thread-safe and are accessed by a single thread at a time.
+ */
 public interface UnitOfWorkParticipant {
+    /**
+     * Called just after the cache is locked. Called before any work has been performed.
+     */
     void onStartWork(String operationDisplayName);
 
+    /**
+     * Called just before the cache is to be unlocked. Called after all work has been completed.
+     */
     void onEndWork();
 }

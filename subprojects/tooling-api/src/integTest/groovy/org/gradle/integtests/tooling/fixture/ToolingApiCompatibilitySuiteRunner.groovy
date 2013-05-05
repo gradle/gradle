@@ -17,17 +17,10 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
-import org.gradle.integtests.fixtures.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.*
 
-/**
- * Executes instances of {@link ToolingApiSpecification} against all compatible versions of tooling API consumer
- * and provider, including the current Gradle version under test.
- *
- * <p>A test can be annotated with {@link MinToolingApiVersion} and {@link MinTargetGradleVersion} to indicate the
- * minimum tooling API or Gradle versions required for the test.
- */
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
 
@@ -47,34 +40,34 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     protected void createExecutions() {
         ToolingApiDistributionResolver resolver = new ToolingApiDistributionResolver().withDefaultRepository()
 
-        add(new Permutation(resolver.resolve(current.version), current))
+        add(new Permutation(resolver.resolve(current.version.version), current))
         previous.each {
             if (it.toolingApiSupported) {
-                add(new Permutation(resolver.resolve(current.version), it))
-                add(new Permutation(resolver.resolve(it.version), current))
+                add(new Permutation(resolver.resolve(current.version.version), it))
+                add(new Permutation(resolver.resolve(it.version.version), current))
             }
         }
     }
 
     private class Permutation extends AbstractMultiTestRunner.Execution {
         final ToolingApiDistribution toolingApi
-        final BasicGradleDistribution gradle
+        final GradleDistribution gradle
 
-        Permutation(ToolingApiDistribution toolingApi, BasicGradleDistribution gradle) {
+        Permutation(ToolingApiDistribution toolingApi, GradleDistribution gradle) {
             this.toolingApi = toolingApi
             this.gradle = gradle
         }
 
         @Override
         protected String getDisplayName() {
-            return "${displayName(toolingApi)} -> ${displayName(gradle)}"
+            return "${displayName(GradleVersion.version(toolingApi.version))} -> ${displayName(gradle.version)}"
         }
 
-        private String displayName(dist) {
-            if (dist.version == GradleVersion.current().version) {
+        private String displayName(GradleVersion version) {
+            if (version == GradleVersion.current()) {
                 return "current"
             }
-            return dist.version
+            return version.version
         }
 
         @Override
@@ -94,11 +87,11 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
                 return false
             }
             MinTargetGradleVersion minTargetGradleVersion = target.getAnnotation(MinTargetGradleVersion)
-            if (minTargetGradleVersion && GradleVersion.version(gradle.version) < extractVersion(minTargetGradleVersion)) {
+            if (minTargetGradleVersion && gradle.version < extractVersion(minTargetGradleVersion)) {
                 return false
             }
             MaxTargetGradleVersion maxTargetGradleVersion = target.getAnnotation(MaxTargetGradleVersion)
-            if (maxTargetGradleVersion && GradleVersion.version(gradle.version) > extractVersion(maxTargetGradleVersion)) {
+            if (maxTargetGradleVersion && gradle.version > extractVersion(maxTargetGradleVersion)) {
                 return false
             }
 
@@ -106,10 +99,6 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         }
 
         private GradleVersion extractVersion(annotation) {
-            if (GradleVersion.current().isSnapshot() && GradleVersion.current().version.startsWith(annotation.value())) {
-                //so that one can use an unreleased version in the annotation value
-                return GradleVersion.current()
-            }
             if ("current".equals(annotation.value())) {
                 //so that one can use 'current' literal in the annotation value
                 //(useful if you don't know if the feature makes its way to the upcoming release)
@@ -125,12 +114,14 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         }
 
         private ClassLoader getTestClassLoader() {
-            def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version)
-            if (!classLoader) {
-                classLoader = createTestClassLoader()
-                TEST_CLASS_LOADERS.put(toolingApi.version, classLoader)
+            synchronized(ToolingApiCompatibilitySuiteRunner) {
+                def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version)
+                if (!classLoader) {
+                    classLoader = createTestClassLoader()
+                    TEST_CLASS_LOADERS.put(toolingApi.version, classLoader)
+                }
+                return classLoader
             }
-            return classLoader
         }
 
         private ClassLoader createTestClassLoader() {
@@ -144,13 +135,13 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowPackage('org.codehaus.groovy')
             sharedClassLoader.allowPackage('spock')
             sharedClassLoader.allowPackage('org.spockframework')
-            sharedClassLoader.allowClass(TestFile)
             sharedClassLoader.allowClass(SetSystemProperties)
             sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
-            sharedClassLoader.allowPackage('org.gradle.tests.fixtures')
+            sharedClassLoader.allowPackage('org.gradle.test.fixtures')
             sharedClassLoader.allowClass(OperatingSystem)
             sharedClassLoader.allowClass(Requires)
             sharedClassLoader.allowClass(TestPrecondition)
+            sharedClassLoader.allowResources(target.name.replace('.', '/'))
 
             def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
 

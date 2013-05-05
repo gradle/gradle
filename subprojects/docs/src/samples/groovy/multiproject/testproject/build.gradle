@@ -4,9 +4,9 @@ group = 'org.gradle'
 version = '1.0'
 
 dependencies {
-    groovy 'org.codehaus.groovy:groovy-all:1.8.4'
+    compile 'org.codehaus.groovy:groovy-all:2.0.5'
     compile project(':groovycDetector')
-    testCompile 'junit:junit:4.8.2'
+    testCompile 'junit:junit:4.11'
 }
 
 sourceSets {

@@ -15,14 +15,14 @@
  */
 package org.gradle.api.artifacts.cache;
 
-import org.gradle.api.Experimental;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 /**
  * Command methods for controlling module resolution via the DSL.
  */
-@Experimental
+@Incubating
 public interface ModuleResolutionControl extends ResolutionControl<ModuleVersionIdentifier, ResolvedModuleVersion> {
     // TODO: This should be part of the cached result?
     /**

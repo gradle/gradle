@@ -15,63 +15,71 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Controls the lifecycle of the compiler daemon and provides access to it.
  */
-@NotThreadSafe
+@ThreadSafe
 public class CompilerDaemonManager implements CompilerDaemonFactory {
     private static final Logger LOGGER = Logging.getLogger(CompilerDaemonManager.class);
     private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager();
     
-    private volatile CompilerDaemonClient client;
-    private volatile WorkerProcess process;
-    
+    private final List<CompilerDaemonClient> clients = new ArrayList<CompilerDaemonClient>();
+
     public static CompilerDaemonManager getInstance() {
         return INSTANCE;
     }
-    
-    public CompilerDaemon getDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
-        if (client != null && !client.isCompatibleWith(forkOptions)) {
-            stop();
+
+    public synchronized CompilerDaemon getDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
+        if (clients.isEmpty()) {
+            registerStopOnBuildFinished(project);
         }
-        if (client == null) {
-            startDaemon(project, forkOptions);
-            stopDaemonOnceBuildFinished(project);
+
+        for (CompilerDaemonClient client: clients) {
+            if (client.isCompatibleWith(forkOptions)) {
+                return client;
+            }
         }
+
+        CompilerDaemonClient client = startDaemon(project, forkOptions);
+        clients.add(client);
         return client;
     }
-    
-    public void stop() {
-        if (client == null) {
-            return;
-        }
 
-        LOGGER.info("Stopping Gradle compiler daemon.");
-
-        client.stop();
-        client = null;
-        process.waitForStop();
-        process = null;
-
-        LOGGER.info("Gradle compiler daemon stopped.");
+    public synchronized void stop() {
+        LOGGER.info("Stopping {} Gradle compiler daemon(s).", clients.size());
+        CompositeStoppable.stoppable(clients).stop();
+        LOGGER.info("Stopped {} Gradle compiler daemon(s).", clients.size());
+        clients.clear();
     }
-    
-    private void startDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
-        LOGGER.info("Starting Gradle compiler daemon.");
+
+    private void registerStopOnBuildFinished(ProjectInternal project) {
+        project.getGradle().addBuildListener(new BuildAdapter() {
+            @Override
+            public void buildFinished(BuildResult result) {
+                stop();
+            }
+        });
+    }
+
+    private CompilerDaemonClient startDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
+        LOGGER.info("Starting Gradle compiler daemon with fork options {}.", forkOptions);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(forkOptions.toString());
         }
@@ -89,21 +97,14 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
         javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
-        process = builder.worker(new CompilerDaemonServer()).build();
+        WorkerProcess process = builder.worker(new CompilerDaemonServer()).build();
         process.start();
         CompilerDaemonServerProtocol server = process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
-        client = new CompilerDaemonClient(forkOptions, server);
+        CompilerDaemonClient client = new CompilerDaemonClient(forkOptions, process, server);
         process.getConnection().addIncoming(CompilerDaemonClientProtocol.class, client);
 
-        LOGGER.info("Gradle compiler daemon started.");
-    }
-    
-    private void stopDaemonOnceBuildFinished(ProjectInternal project) {
-        project.getGradle().addBuildListener(new BuildAdapter() {
-            @Override
-            public void buildFinished(BuildResult result) {
-                stop();
-            }
-        });
+        LOGGER.info("Started Gradle compiler daemon with fork options {}.", forkOptions);
+
+        return client;
     }
 }

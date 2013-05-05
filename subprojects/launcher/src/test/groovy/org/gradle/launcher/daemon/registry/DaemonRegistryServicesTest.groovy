@@ -17,13 +17,13 @@ package org.gradle.launcher.daemon.registry
 
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.messaging.remote.internal.inet.SocketInetAddress
-import org.gradle.tests.fixtures.ConcurrentTestUtil
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonRegistryServicesTest extends Specification {
-    @Rule TemporaryFolder tmp = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
     def registry(baseDir) {
         new DaemonRegistryServices(tmp.createDir(baseDir))
@@ -43,7 +43,7 @@ class DaemonRegistryServicesTest extends Specification {
         5.times { idx ->
             concurrent.start {
                 def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [])
-                registry.store(new SocketInetAddress(new Inet6Address(), 8888 + idx), context, "foo-$idx")
+                registry.store(new SocketInetAddress(new Inet6Address(), 8888 + idx), context, "foo-$idx", true)
             }
         }
         concurrent.finished()

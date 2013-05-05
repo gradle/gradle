@@ -74,13 +74,13 @@ public class JettyPlugin implements Plugin<Project> {
             }
         });
 
-        JettyRunWar jettyRunWar = project.getTasks().add(JETTY_RUN_WAR, JettyRunWar.class);
+        JettyRunWar jettyRunWar = project.getTasks().create(JETTY_RUN_WAR, JettyRunWar.class);
         jettyRunWar.setDescription("Assembles the webapp into a war and deploys it to Jetty.");
         jettyRunWar.setGroup(WarPlugin.WEB_APP_GROUP);
     }
 
     private void configureJettyStop(Project project, final JettyPluginConvention jettyConvention) {
-        JettyStop jettyStop = project.getTasks().add(JETTY_STOP, JettyStop.class);
+        JettyStop jettyStop = project.getTasks().create(JETTY_STOP, JettyStop.class);
         jettyStop.setDescription("Stops Jetty.");
         jettyStop.setGroup(WarPlugin.WEB_APP_GROUP);
         jettyStop.getConventionMapping().map("stopPort", new Callable<Object>() {
@@ -116,7 +116,7 @@ public class JettyPlugin implements Plugin<Project> {
             }
         });
 
-        JettyRun jettyRun = project.getTasks().add(JETTY_RUN, JettyRun.class);
+        JettyRun jettyRun = project.getTasks().create(JETTY_RUN, JettyRun.class);
         jettyRun.setDescription("Uses your files as and where they are and deploys them to Jetty.");
         jettyRun.setGroup(WarPlugin.WEB_APP_GROUP);
     }

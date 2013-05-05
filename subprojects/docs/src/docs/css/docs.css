@@ -1,6 +1,5 @@
 .variablelist dt {
     font-weight: bold;
-    font-size: 16px;
 }
 
 .variablelist dt a {
@@ -43,9 +42,7 @@
     padding-left: 1.7em;
     background: #FEFEDD;
     color: #777744;
-}
-
-.exampleLocation p {
+    border: 1px solid #DBDBA8;
     padding-top: 0.4em;
     padding-bottom: 0.4em;
 }
@@ -56,7 +53,7 @@
 }
 
 .cmdsynopsis {
-    font-family: Courier, monospace;
+    font-family: "Ubuntu Mono", courier, monospace;
     margin-left: 2em;
 }
 
@@ -69,11 +66,12 @@
     font-size: 100%;
 }
 
+.note > :last-child, .tip > :last-child, .examplelocation > :last-child {
+    margin-bottom: 0px
+}
+
 .note, .tip {
-    padding-top: 1em;
-    padding-bottom: 0;
-    padding-left: 1.2em;
-    padding-right: 1.2em;
+    padding: 1em 1.2em;
     margin-bottom: 1em;
 }
 
@@ -84,6 +82,7 @@
 
 .note .title {
     color: #5283a1;
+    margin-left: 0px;
 }
 
 .tip {
@@ -100,6 +99,7 @@
 
 .tip .title {
     color: #80614D;
+    margin-left: 0px;
 }
 
 .tip h1, .note h1
@@ -121,11 +121,13 @@
  */
 .hl-string, .hl-number, .hl-value { color: #83C283; }
 
-.hl-keyword { color: #C7B390 }
+.hl-keyword { color: #DDC498 }
 
-.hl-comment, .hl-doccomment { color: #929292; }
+.hl-comment, .hl-doccomment { color: #AFAFAF; }
 
-.hl-annotation { color: #777744; }
+.hl-annotation { color: #DDDD97; }
+
+.hl-directive { color: white !important; }
 
 a.link {
     white-space: nowrap;

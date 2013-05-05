@@ -134,4 +134,9 @@ public class GlobalServicesRegistryTest {
     public void providesAFileSystem() {
         assertThat(registry.get(FileSystem.class), notNullValue());
     }
+
+    @Test
+    public void providesADocumentationRegistry() throws Exception {
+        assertThat(registry.get(DocumentationRegistry.class), instanceOf(DocumentationRegistry.class));
+    }
 }

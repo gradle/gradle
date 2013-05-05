@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.loader;
+package org.gradle.tooling.internal.consumer.loader
 
+import org.gradle.logging.ProgressLogger
+import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.tooling.internal.consumer.Distribution
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
+import spock.lang.Specification
 
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.tests.fixtures.ConcurrentTestUtil
-import org.gradle.tooling.internal.consumer.Distribution
-import spock.lang.Specification
 
 /**
  * by Szczepan Faber, created at: 12/15/11
@@ -33,6 +34,7 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
     def factory = Mock(ProgressLoggerFactory)
     def distro = Mock(Distribution)
     def logger = Mock(ProgressLogger)
+    def params = Mock(ConsumerConnectionParameters)
 
     def loader = new SynchronizedToolingImplementationLoader(Mock(ToolingImplementationLoader))
 
@@ -42,7 +44,7 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
 
     def "reports progress when busy"() {
         when:
-        loader.create(distro, factory, true)
+        loader.create(distro, factory, params)
 
         then: "stubs"
         1 * loader.lock.tryLock() >> false
@@ -55,7 +57,7 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
         then:
         1 * loader.lock.lock()
         then:
-        1 * loader.delegate.create(distro, factory, true)
+        1 * loader.delegate.create(distro, factory, params)
         then:
         1 * logger.completed()
         1 * loader.lock.unlock()
@@ -64,12 +66,12 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
 
     def "does not report progress when appropriate"() {
         when:
-        loader.create(distro, factory, true)
+        loader.create(distro, factory, params)
 
         then:
         1 * loader.lock.tryLock() >> true
         then:
-        1 * loader.delegate.create(distro, factory, true)
+        1 * loader.delegate.create(distro, factory, params)
         then:
         1 * loader.lock.unlock()
         0 * _
@@ -84,7 +86,7 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
 
         when:
         5.times {
-            concurrent.start { loader.create(distro, factory, true) }
+            concurrent.start { loader.create(distro, factory, params) }
         }
 
         then:

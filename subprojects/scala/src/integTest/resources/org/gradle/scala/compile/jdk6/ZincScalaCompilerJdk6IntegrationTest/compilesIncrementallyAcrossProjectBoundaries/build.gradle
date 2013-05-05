@@ -1,0 +1,25 @@
+subprojects {
+    apply plugin: "scala"
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        compile "org.scala-lang:scala-library:$scalaVersion"
+    }
+
+    tasks.withType(ScalaCompile) {
+        scalaCompileOptions.with {
+            useAnt = false
+            fork = true
+        }
+    }
+}
+
+project(":prj2") {
+    dependencies {
+        compile project(":prj1")
+    }
+}
+

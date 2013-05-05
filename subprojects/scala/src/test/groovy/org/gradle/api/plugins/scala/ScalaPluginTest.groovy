@@ -23,23 +23,23 @@ import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import org.junit.Test
+
 import static org.gradle.util.Matchers.dependsOn
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
 
-public class ScalaPluginTest {
-
+class ScalaPluginTest {
     private final Project project = HelperUtil.createRootProject()
     private final ScalaPlugin scalaPlugin = new ScalaPlugin()
 
-    @Test public void appliesTheJavaPluginToTheProject() {
+    @Test void appliesTheJavaPluginToTheProject() {
         scalaPlugin.apply(project)
         assertTrue(project.getPlugins().hasPlugin(JavaPlugin))
     }
 
-    @Test public void addsScalaConventionToEachSourceSetAndAppliesMappings() {
+    @Test void addsScalaConventionToEachSourceSetAndAppliesMappings() {
         scalaPlugin.apply(project)
 
         def sourceSet = project.sourceSets.main
@@ -51,7 +51,7 @@ public class ScalaPluginTest {
         assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/test/scala"))))
     }
 
-    @Test public void addsCompileTaskForEachSourceSet() {
+    @Test void addsCompileTaskForEachSourceSet() {
         scalaPlugin.apply(project)
 
         def task = project.tasks['compileScala']
@@ -79,7 +79,7 @@ public class ScalaPluginTest {
         assertThat(task, dependsOn(hasItem('compileTestScala')))
     }
     
-    @Test public void addsScalaDocTasksToTheProject() {
+    @Test void addsScalaDocTasksToTheProject() {
         scalaPlugin.apply(project)
 
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
@@ -91,7 +91,7 @@ public class ScalaPluginTest {
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
 
-    @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {
+    @Test void configuresScalaDocTasksDefinedByTheBuildScript() {
         scalaPlugin.apply(project)
 
         def task = project.task('otherScaladoc', type: ScalaDoc)

@@ -17,18 +17,22 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import org.junit.Test
+
+import static org.hamcrest.Matchers.equalTo
 
 // cannot make assumptions about order in which test methods of JUnit4Test get executed
 class JUnitLoggingIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resources
+    @Rule TestResources resources = new TestResources(temporaryFolder)
     ExecutionResult result
 
     def setup() {
-        executer.setAllowExtraLogging(false).withStackTraceChecksDisabled().withTasks("test")
+        executer.noExtraLogging().withStackTraceChecksDisabled().withTasks("test")
     }
 
     def "defaultLifecycleLogging"() {
@@ -71,6 +75,46 @@ org.gradle.JUnit4StandardOutputTest > printTest STANDARD_OUT
     line 3
         """)
     }
+
+    @Test
+    void "test logging is included in XML results"() {
+        file("build.gradle") << """
+            apply plugin: 'java'
+                repositories { mavenCentral() }
+                dependencies { testCompile 'junit:junit:4.11' }
+        """
+
+        file("src/test/java/EncodingTest.java") << """
+import org.junit.*;
+
+public class EncodingTest {
+    @Test public void encodesCdata() {
+        System.out.println("< html allowed, cdata closing token ]]> encoded!");
+        System.out.print("no EOL, ");
+        System.out.println("non-asci char: ż");
+        System.out.println("xml entity: &amp;");
+        System.err.println("< html allowed, cdata closing token ]]> encoded!");
+    }
+    @Test public void encodesAttributeValues() {
+        throw new RuntimeException("html: <> cdata: ]]>");
+    }
+}
+"""
+        when:
+        executer.withTasks("test").runWithFailure()
+
+        then:
+        new JUnitXmlTestExecutionResult(testDirectory)
+                .testClass("EncodingTest")
+                .assertTestPassed("encodesCdata")
+                .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))
+                .assertStdout(equalTo("""< html allowed, cdata closing token ]]> encoded!
+no EOL, non-asci char: ż
+xml entity: &amp;
+"""))
+                .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
+    }
+
 
     private void outputContains(String text) {
         assert result.output.contains(TextUtil.toPlatformLineSeparators(text.trim()))

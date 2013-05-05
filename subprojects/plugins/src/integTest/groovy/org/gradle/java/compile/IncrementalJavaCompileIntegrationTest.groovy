@@ -15,29 +15,27 @@
  */
 package org.gradle.java.compile
 
-import org.junit.Rule
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.ExecutionFailure
 
-class IncrementalJavaCompileIntegrationTest {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final TestResources resources = new TestResources()
+class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
 
     @Test
     public void recompilesSourceWhenPropertiesChange() {
         executer.withTasks('compileJava').run().assertTasksSkipped()
 
-        distribution.testFile('build.gradle').text += '''
+        file('build.gradle').text += '''
             sourceCompatibility = 1.4
 '''
 
         executer.withTasks('compileJava').run().assertTasksSkipped()
 
-        distribution.testFile('build.gradle').text += '''
+        file('build.gradle').text += '''
             compileJava.options.debug = false
 '''
 
@@ -51,7 +49,7 @@ class IncrementalJavaCompileIntegrationTest {
         executer.withTasks("classes").run();
 
         // Update interface, compile should fail
-        distribution.testFile('src/main/java/IPerson.java').assertIsFile().copyFrom(distribution.testFile('NewIPerson.java'))
+        file('src/main/java/IPerson.java').assertIsFile().copyFrom(file('NewIPerson.java'))
         
         ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':compileJava'.");
@@ -62,7 +60,7 @@ class IncrementalJavaCompileIntegrationTest {
         executer.withTasks("app:classes").run();
 
         // Update interface, compile should fail
-        distribution.testFile('lib/src/main/java/IPerson.java').assertIsFile().copyFrom(distribution.testFile('NewIPerson.java'))
+        file('lib/src/main/java/IPerson.java').assertIsFile().copyFrom(file('NewIPerson.java'))
 
         ExecutionFailure failure = executer.withTasks("app:classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':app:compileJava'.");
@@ -70,7 +68,7 @@ class IncrementalJavaCompileIntegrationTest {
 
     @Test
     public void recompilesDependentClassesWhenUsingAntDepend() {
-        distribution.testFile("build.gradle").writelns(
+        file("build.gradle").writelns(
                 "apply plugin: 'java'",
                 "compileJava.options.depend()"
         );
@@ -88,11 +86,11 @@ class IncrementalJavaCompileIntegrationTest {
         failure.assertHasDescription("Execution failed for task ':compileJava'.");
 
         // assert that dependency caching is on
-        distribution.testFile("build/dependency-cache/dependencies.txt").assertExists();
+        file("build/dependency-cache/dependencies.txt").assertExists();
     }
 
     private void writeShortInterface() {
-        distribution.testFile("src/main/java/IPerson.java").writelns(
+        file("src/main/java/IPerson.java").writelns(
                 "interface IPerson {",
                 "    String getName();",
                 "}"
@@ -100,7 +98,7 @@ class IncrementalJavaCompileIntegrationTest {
     }
 
     private void writeLongInterface() {
-        distribution.testFile("src/main/java/IPerson.java").writelns(
+        file("src/main/java/IPerson.java").writelns(
                 "interface IPerson {",
                 "    String getName();",
                 "    String getAddress();",
@@ -109,7 +107,7 @@ class IncrementalJavaCompileIntegrationTest {
     }
 
     private void writeTestClass() {
-        distribution.testFile("src/main/java/Person.java").writelns(
+        file("src/main/java/Person.java").writelns(
                 "public class Person implements IPerson {",
                 "    private final String name = \"never changes\";",
                 "    public String getName() {",

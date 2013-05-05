@@ -20,7 +20,7 @@
         <title>Configuring the build environment via gradle.properties</title>
         <para>Gradle provides several options that make it easy to configure the Java process that will be used to execute your build.
             While it's possible to configure these in your local environment via GRADLE_OPTS or JAVA_OPTS,
-            certain settings like jvm memory settings, java home, daemon on/off
+            certain settings like JVM memory settings, Java home, daemon on/off
             can be more useful if they can versioned with the project in your VCS so that
             the entire team can work with consistent environment.
             Setting up a consistent environment for your build is as simple as placing those settings into a <filename>gradle.properties</filename> file.
@@ -57,6 +57,18 @@
                 <listitem><para>Specifies the jvmargs used for the daemon process.
                     The setting is particularly useful for tweaking memory settings.
                     At the moment the default settings are pretty generous with regards to memory.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.configureondemand</literal></term>
+                <listitem><para>Enables new incubating mode that makes Gradle selective when configuring projects.
+                    Only relevant projects are configured which results in faster builds for large multi-projects.
+                    See <xref linkend="sec:configuration_on_demand"/>.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.parallel</literal></term>
+                <listitem><para>When configured, Gradle will run in incubating parallel mode.</para>
                 </listitem>
             </varlistentry>
         </para>

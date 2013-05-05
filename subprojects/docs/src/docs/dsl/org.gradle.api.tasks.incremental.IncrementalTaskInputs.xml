@@ -1,0 +1,25 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr><td>incremental</td></tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr><td>outOfDate</td></tr>
+            <tr><td>removed</td></tr>
+        </table>
+    </section>
+</section>

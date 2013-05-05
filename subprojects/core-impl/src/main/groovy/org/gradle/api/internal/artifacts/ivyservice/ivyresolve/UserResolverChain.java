@@ -17,25 +17,20 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
-public class UserResolverChain implements DependencyToModuleResolver {
+public class UserResolverChain implements DependencyToModuleVersionResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
 
-    private final List<ModuleVersionRepository> moduleVersionRepositories = new ArrayList<ModuleVersionRepository>();
+    private final List<LocalAwareModuleVersionRepository> moduleVersionRepositories = new ArrayList<LocalAwareModuleVersionRepository>();
     private final List<String> moduleVersionRepositoryNames = new ArrayList<String>();
     private ResolverSettings settings;
 
@@ -43,43 +38,86 @@ public class UserResolverChain implements DependencyToModuleResolver {
         this.settings = settings;
     }
 
-    public void add(ModuleVersionRepository repository) {
+    public void add(LocalAwareModuleVersionRepository repository) {
         moduleVersionRepositories.add(repository);
         moduleVersionRepositoryNames.add(repository.getName());
     }
 
-    public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
-        LOGGER.debug("Attempting to resolve module '{}' using repositories '{}'", dependencyDescriptor.getDependencyRevisionId(), moduleVersionRepositoryNames);
+    public void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result) {
+        ModuleVersionSelector requested = dependency.getRequested();
+        LOGGER.debug("Attempting to resolve module '{}' using repositories {}", requested, moduleVersionRepositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
-        final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor, errors);
+        final ModuleResolution latestResolved = findLatestModule(dependency, errors);
         if (latestResolved != null) {
-            final ModuleVersionDescriptor downloadedModule = latestResolved.module;
+            final ModuleVersionMetaData downloadedModule = latestResolved.module;
             LOGGER.debug("Using module '{}' from repository '{}'", downloadedModule.getId(), latestResolved.repository.getName());
-            return latestResolved;
+            for (Throwable error : errors) {
+                LOGGER.debug("Discarding resolve failure.", error);
+            }
+            result.resolved(latestResolved.module, new ModuleVersionRepositoryArtifactResolverAdapter(latestResolved.repository, latestResolved.moduleSource));
+            return;
         }
         if (!errors.isEmpty()) {
-            return new BrokenModuleVersionResolveResult(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), errors));
+            result.failed(new ModuleVersionResolveException(requested, errors));
+        } else {
+            result.notFound(requested);
         }
-        
-        return new BrokenModuleVersionResolveResult(new ModuleVersionNotFoundException(dependencyDescriptor.getDependencyRevisionId()));
     }
 
-    private ModuleResolution findLatestModule(DependencyDescriptor dependencyDescriptor, Collection<Throwable> failures) {
-        boolean isStaticVersion = !settings.getVersionMatcher().isDynamic(dependencyDescriptor.getDependencyRevisionId());
-        
+    private ModuleResolution findLatestModule(DependencyMetaData dependency, Collection<Throwable> failures) {
+        LinkedList<RepositoryResolveState> queue = new LinkedList<RepositoryResolveState>();
+        for (LocalAwareModuleVersionRepository repository : moduleVersionRepositories) {
+            queue.add(new RepositoryResolveState(repository));
+        }
+        LinkedList<RepositoryResolveState> missing = new LinkedList<RepositoryResolveState>();
+
+        // A first pass to do local resolves only
+        ModuleResolution best = findLatestModule(dependency, queue, failures, missing);
+        if (best != null) {
+            return best;
+        }
+
+        // Nothing found - do a second pass
+        queue.addAll(missing);
+        missing.clear();
+        return findLatestModule(dependency, queue, failures, missing);
+    }
+
+    private ModuleResolution findLatestModule(DependencyMetaData dependency, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
+        boolean isStaticVersion = !settings.getVersionMatcher().isDynamic(dependency.getDescriptor().getDependencyRevisionId());
         ModuleResolution best = null;
-        for (ModuleVersionRepository repository : moduleVersionRepositories) {
+        while (!queue.isEmpty()) {
+            RepositoryResolveState request = queue.removeFirst();
             try {
-                ModuleVersionDescriptor module = repository.getDependency(dependencyDescriptor);
-                if (module != null) {
-                    ModuleResolution moduleResolution = new ModuleResolution(repository, module);
+                request.resolve(dependency);
+            } catch (Throwable t) {
+                failures.add(t);
+                continue;
+            }
+            switch (request.descriptor.getState()) {
+                case Missing:
+                    break;
+                case ProbablyMissing:
+                    // Queue this up for checking again later
+                    if (request.canMakeFurtherAttempts()) {
+                        missing.add(request);
+                    }
+                    break;
+                case Unknown:
+                    // Resolve again now
+                    if (request.canMakeFurtherAttempts()) {
+                        queue.addFirst(request);
+                    }
+                    break;
+                case Resolved:
+                    ModuleResolution moduleResolution = new ModuleResolution(request.repository, request.descriptor.getMetaData(), request.descriptor.getModuleSource());
                     if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
                         return moduleResolution;
                     }
                     best = chooseBest(best, moduleResolution);
-                }
-            } catch (Throwable e) {
-                failures.add(e);
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected state for resolution: " + request.descriptor.getState());
             }
         }
 
@@ -108,35 +146,61 @@ public class UserResolverChain implements DependencyToModuleResolver {
         return comparison < 0 ? two : one;
     }
 
-    private static class ModuleResolution implements ArtifactInfo, ModuleVersionResolveResult {
-        public final ModuleVersionRepository repository;
-        public final ModuleVersionDescriptor module;
+    private static class ModuleVersionRepositoryArtifactResolverAdapter implements ArtifactResolver {
+        private final ModuleVersionRepository delegate;
+        private final ModuleSource moduleSource;
 
-        public ModuleResolution(ModuleVersionRepository repository, ModuleVersionDescriptor module) {
+        public ModuleVersionRepositoryArtifactResolverAdapter(ModuleVersionRepository repository, ModuleSource moduleSource) {
+            this.delegate = repository;
+            this.moduleSource = moduleSource;
+        }
+
+        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
+            delegate.resolve(artifact, result, moduleSource);
+        }
+    }
+
+    private static class RepositoryResolveState {
+        final LocalAwareModuleVersionRepository repository;
+        final DefaultBuildableModuleVersionMetaDataResolveResult descriptor = new DefaultBuildableModuleVersionMetaDataResolveResult();
+
+        boolean searchedLocally;
+        boolean searchedRemotely;
+
+        private RepositoryResolveState(LocalAwareModuleVersionRepository repository) {
+            this.repository = repository;
+        }
+
+        void resolve(DependencyMetaData dependency) {
+            if (!searchedLocally) {
+                searchedLocally = true;
+                repository.getLocalDependency(dependency, descriptor);
+            } else {
+                searchedRemotely = true;
+                repository.getDependency(dependency, descriptor);
+            }
+            if (descriptor.getState() == BuildableModuleVersionMetaDataResolveResult.State.Failed) {
+                throw descriptor.getFailure();
+            }
+        }
+
+        public boolean canMakeFurtherAttempts() {
+            return !searchedRemotely;
+        }
+    }
+
+    private static class ModuleResolution implements ArtifactInfo {
+        public final ModuleVersionRepository repository;
+        public final ModuleVersionMetaData module;
+        public final ModuleSource moduleSource;
+
+        public ModuleResolution(ModuleVersionRepository repository, ModuleVersionMetaData module, ModuleSource moduleSource) {
             this.repository = repository;
             this.module = module;
-        }
-
-        public ModuleVersionResolveException getFailure() {
-            return null;
-        }
-
-        public ModuleRevisionId getId() throws ModuleVersionResolveException {
-            return module.getId();
-        }
-
-        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-            return module.getDescriptor();
-        }
-
-        public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
-            return new ModuleVersionRepositoryBackedArtifactResolver(repository);
+            this.moduleSource = moduleSource;
         }
 
         public boolean isGeneratedModuleDescriptor() {
-            if (module == null) {
-                throw new IllegalStateException();
-            }
             return module.getDescriptor().isDefault();
         }
 
@@ -145,29 +209,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         }
 
         public String getRevision() {
-            return module.getId().getRevision();
-        }
-    }
-
-    private static final class ModuleVersionRepositoryBackedArtifactResolver implements ArtifactResolver {
-        private final ModuleVersionRepository repository;
-
-        private ModuleVersionRepositoryBackedArtifactResolver(ModuleVersionRepository repository) {
-            this.repository = repository;
-        }
-
-        public ArtifactResolveResult resolve(Artifact artifact) {
-            LOGGER.debug("Attempting to download {} using repository '{}'", artifact, repository.getName());
-            DownloadedArtifact downloadedArtifact;
-            try {
-                downloadedArtifact = repository.download(artifact);
-            } catch (ArtifactResolveException e) {
-                return new BrokenArtifactResolveResult(e);
-            }
-            if (downloadedArtifact == null) {
-                return new BrokenArtifactResolveResult(new ArtifactNotFoundException(artifact));
-            }
-            return new FileBackedArtifactResolveResult(downloadedArtifact.getLocalFile());
+            return module.getId().getVersion();
         }
     }
 }

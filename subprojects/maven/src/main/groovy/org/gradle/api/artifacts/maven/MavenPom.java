@@ -24,19 +24,22 @@ import java.io.Writer;
 import java.util.List;
 
 /**
- * Is used for generating a Maven pom file and customizing the generation.
- * To learn about the Maven pom see: <a href="http://maven.apache.org/pom.html">http://maven.apache.org/pom.html</a>
+ * Is used for generating a Maven POM file and customizing the generation.
+ * To learn about the Maven POM see: <a href="http://maven.apache.org/pom.html">http://maven.apache.org/pom.html</a>
  *
  * @author Hans Dockter
  */
 public interface MavenPom {
+
+    String POM_FILE_ENCODING = "UTF-8";
+
     /**
-     * Returns the scope mappings used for generating this pom.
+     * Returns the scope mappings used for generating this POM.
      */
     Conf2ScopeMappingContainer getScopeMappings();
 
     /**
-     * Provides a builder for the Maven pom for adding or modifying properties of the Maven {@link #getModel()}.
+     * Provides a builder for the Maven POM for adding or modifying properties of the Maven {@link #getModel()}.
      * The syntax is exactly the same as used by polyglot Maven. For example:
      *
      * <pre>
@@ -152,37 +155,38 @@ public interface MavenPom {
     MavenPom setModel(Object model);
 
     /**
-     * Writes the {@link #getEffectivePom()} xml to a writer while applying the {@link #withXml(org.gradle.api.Action)} actions.
+     * Writes the {@link #getEffectivePom()} XML to a writer while applying the {@link #withXml(org.gradle.api.Action)} actions. Closes the supplied
+     * Writer when finished.
      *
-     * @param writer The writer to write the pom xml.
+     * @param writer The writer to write the POM to.
      * @return this
      */
     MavenPom writeTo(Writer writer);
 
     /**
-     * Writes the {@link #getEffectivePom()} xml to a file while applying the {@link #withXml(org.gradle.api.Action)} actions.
+     * Writes the {@link #getEffectivePom()} XML to a file while applying the {@link #withXml(org.gradle.api.Action)} actions.
      * The path is resolved as defined by {@link org.gradle.api.Project#files(Object...)}
      * The file will be encoded as UTF-8.
      *
-     * @param path The path of the file to write the pom xml into.
+     * @param path The path of the file to write the POM into.
      * @return this
      */
     MavenPom writeTo(Object path);
 
     /**
-     * <p>Adds a closure to be called when the pom has been configured. The pom is passed to the closure as a
+     * <p>Adds a closure to be called when the POM has been configured. The POM is passed to the closure as a
      * parameter.</p>
      *
-     * @param closure The closure to execute when the pom has been configured.
+     * @param closure The closure to execute when the POM has been configured.
      * @return this
      */
     MavenPom whenConfigured(Closure closure);
 
     /**
-     * <p>Adds an action to be called when the pom has been configured. The pom is passed to the action as a
+     * <p>Adds an action to be called when the POM has been configured. The POM is passed to the action as a
      * parameter.</p>
      *
-     * @param action The action to execute when the pom has been configured.
+     * @param action The action to execute when the POM has been configured.
      * @return this
      */
     MavenPom whenConfigured(Action<MavenPom> action);
@@ -206,20 +210,20 @@ public interface MavenPom {
     MavenPom withXml(Action<XmlProvider> action);
 
     /**
-     * Returns the configuration container used for mapping configurations to maven scopes.
+     * Returns the configuration container used for mapping configurations to Maven scopes.
      */
     ConfigurationContainer getConfigurations();
 
     /**
-     * Sets the configuration container used for mapping configurations to maven scopes.
+     * Sets the configuration container used for mapping configurations to Maven scopes.
      * @return this
      */
     MavenPom setConfigurations(ConfigurationContainer configurations);
 
     /**
-     * Returns a pom with the generated dependencies and the {@link #whenConfigured(org.gradle.api.Action)} actions applied.
+     * Returns a POM with the generated dependencies and the {@link #whenConfigured(org.gradle.api.Action)} actions applied.
      *
-     * @return the effective pom
+     * @return the effective POM
      */
     MavenPom getEffectivePom();
 }

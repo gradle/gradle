@@ -17,7 +17,6 @@
 package org.gradle.tooling.model.idea;
 
 import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.Element;
 import org.gradle.tooling.model.HierarchicalElement;
 
 /**
@@ -25,12 +24,13 @@ import org.gradle.tooling.model.HierarchicalElement;
  *
  * @since 1.0-milestone-5
  */
-public interface IdeaProject extends HierarchicalElement, Element {
+public interface IdeaProject extends HierarchicalElement {
 
     /**
      * Returns the name of the JDK.
      *
      * @return The name of the JDK.
+     * @since 1.0-milestone-5
      */
     String getJdkName();
 
@@ -38,6 +38,7 @@ public interface IdeaProject extends HierarchicalElement, Element {
      * Returns the language level to use within the current project.
      *
      * @return The language level to use within the current project.
+     * @since 1.0-milestone-5
      */
     IdeaLanguageLevel getLanguageLevel();
 
@@ -46,6 +47,7 @@ public interface IdeaProject extends HierarchicalElement, Element {
      * Alias for {@link #getModules()}.
      *
      * @return The modules of this IDEA project.
+     * @since 1.0-milestone-5
      */
     DomainObjectSet<? extends IdeaModule> getChildren();
 
@@ -54,6 +56,7 @@ public interface IdeaProject extends HierarchicalElement, Element {
      * Alias for {@link #getChildren()}.
      *
      * @return The modules of this IDEA project.
+     * @since 1.0-milestone-5
      */
     DomainObjectSet<? extends IdeaModule> getModules();
 }

@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.api;
 
-import org.gradle.api.internal.XmlTransformer;
+import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator;
 

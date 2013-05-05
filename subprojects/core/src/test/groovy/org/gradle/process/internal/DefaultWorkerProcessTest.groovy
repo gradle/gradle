@@ -18,18 +18,21 @@
 
 package org.gradle.process.internal
 
-import org.junit.runner.RunWith
-import org.jmock.integration.junit4.JMock
+import org.gradle.messaging.remote.ConnectionAcceptor
+import org.gradle.messaging.remote.ObjectConnection
+import org.gradle.process.ExecResult
+import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.MultithreadedTestCase
 import org.jmock.Mockery
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.messaging.remote.ConnectEvent
-import org.gradle.messaging.remote.ObjectConnection
+import org.jmock.integration.junit4.JMock
 import org.junit.Test
-import static org.hamcrest.Matchers.*
+import org.junit.runner.RunWith
+
 import java.util.concurrent.TimeUnit
-import static org.junit.Assert.*
-import org.gradle.process.ExecResult
+
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 @RunWith(JMock.class)
 class DefaultWorkerProcessTest extends MultithreadedTestCase {
@@ -41,16 +44,19 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
     @Test
     public void startsChildProcessAndBlocksUntilConnectionEstablished() {
         expectAttachesListener()
+        ConnectionAcceptor acceptor = context.mock(ConnectionAcceptor.class)
+        workerProcess.startAccepting(acceptor)
 
         context.checking {
             one(execHandle).start()
             will {
                 start {
                     expectUnblocks {
-                        workerProcess.getConnectAction().execute(new ConnectEvent<ObjectConnection>(connection, null, null))
+                        workerProcess.onConnect(connection)
                     }
                 }
             }
+            one(acceptor).requestStop()
         }
 
         expectBlocks {
@@ -59,11 +65,16 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
     }
 
     @Test
-    public void startThrowsExceptionOnConnectTimeout() {
+    public void startThrowsExceptionOnConnectTimeoutAndCleansUp() {
         expectAttachesListener()
+        ConnectionAcceptor acceptor = context.mock(ConnectionAcceptor.class)
+        workerProcess.startAccepting(acceptor)
 
         context.checking {
             one(execHandle).start()
+            one(execHandle).getState()
+            will(returnValue(ExecHandleState.STARTED))
+            one(acceptor).stop()
         }
 
         expectTimesOut(1, TimeUnit.SECONDS) {
@@ -71,15 +82,17 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
                 workerProcess.start()
                 fail()
             } catch (ExecException e) {
-                assertThat(e.message, equalTo("Timeout after waiting 1.0 seconds for $execHandle to connect." as String))
+                assertThat(e.message, equalTo("Timeout after waiting 1.0 seconds for $execHandle (STARTED, running: true) to connect." as String))
             }
         }
     }
 
     @Test
-    public void startThrowsExceptionWhenChildProcessNeverConnects() {
+    public void startThrowsExceptionWhenChildProcessNeverConnectsAndCleansUp() {
         def listener = expectAttachesListener()
         def execResult = context.mock(ExecResult.class)
+        ConnectionAcceptor acceptor = context.mock(ConnectionAcceptor.class)
+        workerProcess.startAccepting(acceptor)
 
         context.checking {
             one(execHandle).start()
@@ -94,6 +107,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
             will(returnValue(execResult))
             allowing(execResult).assertNormalExitValue()
             will(returnValue(execResult))
+            one(acceptor).stop()
         }
 
         expectBlocks {
@@ -107,10 +121,12 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
     }
 
     @Test
-    public void startThrowsExceptionOnChildProcessFailure() {
+    public void startThrowsExceptionOnChildProcessFailureAndCleansUp() {
         def listener = expectAttachesListener()
         def failure = new RuntimeException('broken')
         ExecResult execResult = context.mock(ExecResult.class)
+        ConnectionAcceptor acceptor = context.mock(ConnectionAcceptor.class)
+        workerProcess.startAccepting(acceptor)
 
         context.checking {
             one(execHandle).start()
@@ -123,6 +139,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
             }
             one(execResult).rethrowFailure()
             will(throwException(failure))
+            one(acceptor).stop()
         }
 
         expectBlocks {
@@ -140,12 +157,15 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
         expectAttachesListener()
 
         ExecResult execResult = context.mock(ExecResult.class)
+        ConnectionAcceptor acceptor = context.mock(ConnectionAcceptor.class)
+        workerProcess.startAccepting(acceptor)
 
         context.checking {
             one(execHandle).start()
             will {
-                workerProcess.getConnectAction().execute(new ConnectEvent<ObjectConnection>(connection, null, null))
+                workerProcess.onConnect(connection)
             }
+            one(acceptor).requestStop()
         }
 
         workerProcess.start()
@@ -153,6 +173,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
         context.checking {
             one(execHandle).waitForFinish()
             will(returnValue(execResult))
+            one(acceptor).stop()
             one(connection).stop()
             one(execResult).assertNormalExitValue()
         }

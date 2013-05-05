@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import org.gradle.internal.os.OperatingSystem
+
 ext {
     buildReceiptFileName = "build-receipt.properties"
 
@@ -48,16 +50,32 @@ task determineCommitId {
             env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_Master") }?.value
         }
 
+        // For the discovery release builds, this points to the Gradle revision
+        strategies << {
+            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_release_branch") }?.value
+        }
+
         // If it's a checkout, ask Git for it
         strategies << {
-            if (file(".git").exists()) {
+            if (file(".git/HEAD").exists()) {
                 def baos = new ByteArrayOutputStream()
-                exec {
-                    executable "git"
-                    args "log", "-1", "--format=%H"
+                def execResult = exec {
+                    ignoreExitValue = true
+                    commandLine = ["git", "log", "-1", "--format=%H"]
+                    if (OperatingSystem.current().windows) {
+                        commandLine = ["cmd", "/c"] + commandLine
+                    }
+
                     standardOutput = baos
                 }
-                new String(baos.toByteArray(), "utf8").trim()
+                if (execResult.exitValue == 0) {
+                    new String(baos.toByteArray(), "utf8").trim()
+                } else {
+                    // Read commit id directly from filesystem
+                    def headRef = file(".git/HEAD").text
+                    headRef = headRef.replaceAll('ref: ', '').trim()
+                    file(".git/$headRef").text.trim()
+                }
             } else {
                 null
             }
@@ -87,15 +105,25 @@ task createBuildReceipt(dependsOn: determineCommitId) {
     outputs.file receiptFile
     outputs.upToDateWhen { false }
     doLast {
+        def hostName
+        try {
+            hostName = InetAddress.localHost.hostName
+        } catch (UnknownHostException e) {
+            hostName = "unknown"
+        }
         def data = [
-                commitId:  determineCommitId.commitId,
+                commitId: determineCommitId.commitId,
                 versionNumber: version,
+                versionBase: versionBase,
+                isSnapshot: isSnapshot,
+                rcNumber: rcNumber == null ? "" : rcNumber,
                 buildTimestamp: buildTimestamp,
                 username: System.properties["user.name"],
-                hostname: InetAddress.localHost.hostName,
+                hostname: hostName,
                 javaVersion: System.properties["java.version"],
                 osName: System.properties["os.name"],
-                osVersion: System.properties["os.version"]
+                osVersion: System.properties["os.version"],
+                project: 'gradle'
         ]
 
         receiptFile.parentFile.mkdirs()

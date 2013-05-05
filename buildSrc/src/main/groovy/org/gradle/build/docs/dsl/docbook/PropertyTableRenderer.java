@@ -65,10 +65,10 @@ public class PropertyTableRenderer {
                 td.appendChild(caution);
                 caution.appendChild(document.createTextNode("Deprecated"));
             }
-            if (propDoc.isExperimental()) {
+            if (propDoc.isIncubating()) {
                 Element caution = document.createElement("caution");
                 td.appendChild(caution);
-                caution.appendChild(document.createTextNode("Experimental"));
+                caution.appendChild(document.createTextNode("Incubating"));
             }
             td.appendChild(document.importNode(propDoc.getDescription(), true));
         }

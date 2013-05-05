@@ -19,6 +19,7 @@ import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.*;
+import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.GradleVersion;
 

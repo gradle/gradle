@@ -20,20 +20,20 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.invocation.Gradle
 import org.gradle.cache.CacheBuilder.VersionStrategy
-import org.gradle.cache.DefaultSerializer
+import org.gradle.cache.CacheValidator
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.cache.PersistentStateCache
+import org.gradle.messaging.serialize.DefaultSerializer
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.cache.CacheValidator
 
 class DefaultCacheRepositoryTest extends Specification {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TestFile homeDir = tmpDir.createDir("home")
     private final TestFile buildRootDir = tmpDir.createDir("build")
     private final TestFile sharedCacheDir = homeDir.file("caches")
@@ -46,7 +46,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
     public void setup() {
         Project project = Mock()
-        _ * cache.baseDir >> tmpDir.dir
+        _ * cache.baseDir >> tmpDir.testDirectory
         _ * gradle.rootProject >> project
         _ * project.projectDir >> buildRootDir
     }

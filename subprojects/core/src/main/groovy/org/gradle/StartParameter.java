@@ -20,8 +20,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.gradle.api.Incubating;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.initialization.CompositeInitScriptFinder;
+import org.gradle.initialization.DistributionInitScriptFinder;
+import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.SystemProperties;
 import org.gradle.logging.LoggingConfiguration;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -45,14 +52,15 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     public static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getUserHome() + "/.gradle");
 
     private List<String> taskNames = new ArrayList<String>();
-    private Set<String> excludedTaskNames = new HashSet<String>();
+    private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;
     private File currentDir;
     private File projectDir;
-    private boolean searchUpwards = true;
+    private boolean searchUpwards;
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
+    private File gradleHomeDir;
     private CacheUsage cacheUsage = CacheUsage.ON;
     private File settingsFile;
     private boolean useEmptySettings;
@@ -66,6 +74,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private File projectCacheDir;
     private boolean refreshDependencies;
     private boolean recompileScripts;
+    private int parallelThreadCount;
+    private boolean configureOnDemand;
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -87,16 +97,12 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
      */
     public StartParameter() {
-        String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
-        if (gradleUserHome == null) {
-            gradleUserHome = System.getenv("GRADLE_USER_HOME");
-            if (gradleUserHome == null) {
-                gradleUserHome = DEFAULT_GRADLE_USER_HOME.getAbsolutePath();
-            }
-        }
+        gradleHomeDir = new DefaultModuleRegistry().getGradleHome();
 
-        gradleUserHomeDir = GFileUtils.canonicalise(new File(gradleUserHome));
-        setCurrentDir(null);
+        BuildLayoutParameters layoutDefaults = new BuildLayoutParameters();
+        searchUpwards = layoutDefaults.getSearchUpwards();
+        currentDir = layoutDefaults.getProjectDir();
+        gradleUserHomeDir = layoutDefaults.getGradleUserHomeDir();
     }
 
     /**
@@ -105,32 +111,25 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return the new parameters.
      */
     public StartParameter newInstance() {
-        StartParameter startParameter = new StartParameter();
-        startParameter.buildFile = buildFile;
-        startParameter.projectDir = projectDir;
-        startParameter.settingsFile = settingsFile;
-        startParameter.useEmptySettings = useEmptySettings;
-        startParameter.taskNames = taskNames;
-        startParameter.buildProjectDependencies = buildProjectDependencies;
-        startParameter.currentDir = currentDir;
-        startParameter.searchUpwards = searchUpwards;
-        startParameter.projectProperties = projectProperties;
-        startParameter.systemPropertiesArgs = systemPropertiesArgs;
-        startParameter.gradleUserHomeDir = gradleUserHomeDir;
-        startParameter.cacheUsage = cacheUsage;
-        startParameter.initScripts = new ArrayList<File>(initScripts);
-        startParameter.setLogLevel(getLogLevel());
-        startParameter.setColorOutput(isColorOutput());
-        startParameter.setShowStacktrace(getShowStacktrace());
-        startParameter.dryRun = dryRun;
-        startParameter.rerunTasks = rerunTasks;
-        startParameter.recompileScripts = recompileScripts;
-        startParameter.profile = profile;
-        startParameter.projectCacheDir = projectCacheDir;
-        startParameter.continueOnFailure = continueOnFailure;
-        startParameter.offline = offline;
-        startParameter.refreshDependencies = refreshDependencies;
-        return startParameter;
+        StartParameter p = newBuild();
+
+        p.buildFile = buildFile;
+        p.projectDir = projectDir;
+        p.settingsFile = settingsFile;
+        p.useEmptySettings = useEmptySettings;
+        p.taskNames = new ArrayList<String>(taskNames);
+        p.excludedTaskNames = new LinkedHashSet<String>(excludedTaskNames);
+        p.buildProjectDependencies = buildProjectDependencies;
+        p.currentDir = currentDir;
+        p.searchUpwards = searchUpwards;
+        p.projectProperties = new HashMap<String, String>(projectProperties);
+        p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
+        p.gradleHomeDir = gradleHomeDir;
+        p.initScripts = new ArrayList<File>(initScripts);
+        p.dryRun = dryRun;
+        p.projectCacheDir = projectCacheDir;
+
+        return p;
     }
 
     /**
@@ -140,19 +139,23 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return The new parameters.
      */
     public StartParameter newBuild() {
-        StartParameter startParameter = new StartParameter();
-        startParameter.gradleUserHomeDir = gradleUserHomeDir;
-        startParameter.cacheUsage = cacheUsage;
-        startParameter.setLogLevel(getLogLevel());
-        startParameter.setColorOutput(isColorOutput());
-        startParameter.setShowStacktrace(getShowStacktrace());
-        startParameter.profile = profile;
-        startParameter.continueOnFailure = continueOnFailure;
-        startParameter.offline = offline;
-        startParameter.rerunTasks = rerunTasks;
-        startParameter.recompileScripts = recompileScripts;
-        startParameter.refreshDependencies = refreshDependencies;
-        return startParameter;
+        StartParameter p = new StartParameter();
+
+        p.gradleUserHomeDir = gradleUserHomeDir;
+        p.cacheUsage = cacheUsage;
+        p.setLogLevel(getLogLevel());
+        p.setColorOutput(isColorOutput());
+        p.setShowStacktrace(getShowStacktrace());
+        p.profile = profile;
+        p.continueOnFailure = continueOnFailure;
+        p.offline = offline;
+        p.rerunTasks = rerunTasks;
+        p.recompileScripts = recompileScripts;
+        p.refreshDependencies = refreshDependencies;
+        p.parallelThreadCount = parallelThreadCount;
+        p.configureOnDemand = configureOnDemand;
+
+        return p;
     }
 
     public boolean equals(Object obj) {
@@ -271,13 +274,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      * Sets the directory to use to select the default project, and to search for the settings file. Set to null to use the default current directory.
      *
-     * @param currentDir The directory. Should not be null.
+     * @param currentDir The directory. Set to null to use the default.
      */
     public void setCurrentDir(File currentDir) {
         if (currentDir != null) {
             this.currentDir = GFileUtils.canonicalise(currentDir);
         } else {
-            this.currentDir = GFileUtils.canonicalise(new File(System.getProperty("user.dir")));
+            this.currentDir = new BuildLayoutParameters().getProjectDir();
         }
     }
 
@@ -306,14 +309,20 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns a newly constructed map that is the JVM system properties merged with the system property args. <p> System property args take precedency overy JVM system properties.
+     * Deprecated. It is no longer used internally and there's no good reason to keep it.
+     * There is no replacement method.
+     *
+     * Returns a newly constructed map that is the JVM system properties merged with the system property args. <p> System property args take precedence over JVM system properties.
      *
      * @return The merged system properties
+     * @deprecated
      */
+    @Deprecated
     public Map<String, String> getMergedSystemProperties() {
         Map<String, String> merged = new HashMap<String, String>();
         merged.putAll((Map) System.getProperties());
         merged.putAll(getSystemPropertiesArgs());
+        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.getMergedSystemProperties()");
         return merged;
     }
 
@@ -455,6 +464,22 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
+     * Returns all init scripts, including explicit init scripts and implicit init scripts.
+     *
+     * @return All init scripts, including explicit init scripts and implicit init scripts.
+     */
+    @Incubating
+    public List<File> getAllInitScripts() {
+        CompositeInitScriptFinder initScriptFinder = new CompositeInitScriptFinder(
+                new UserHomeInitScriptFinder(getGradleUserHomeDir()), new DistributionInitScriptFinder(gradleHomeDir)
+        );
+
+        List<File> scripts = new ArrayList<File>(getInitScripts());
+        initScriptFinder.findScripts(scripts);
+        return Collections.unmodifiableList(scripts);
+    }
+
+    /**
      * Sets the project directory to use to select the default project. Use null to use the default criteria for selecting the default project.
      *
      * @param projectDir The project directory. May be null.
@@ -585,6 +610,34 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.recompileScripts = recompileScripts;
     }
 
+    /**
+     * Returns the number of parallel threads to use for build execution.
+     *
+     * <0: Automatically determine the optimal number of executors to use.
+     *  0: Do not use parallel execution.
+     * >0: Use this many parallel execution threads.
+     */
+    public int getParallelThreadCount() {
+        return parallelThreadCount;
+    }
+
+    /**
+     * Specifies the number of parallel threads to use for build execution.
+     * 
+     * @see #getParallelThreadCount()
+     */
+    public void setParallelThreadCount(int parallelThreadCount) {
+        this.parallelThreadCount = parallelThreadCount;
+    }
+
+    /**
+     * If the configure-on-demand mode is active
+     */
+    @Incubating
+    public boolean isConfigureOnDemand() {
+        return configureOnDemand;
+    }
+
     @Override
     public String toString() {
         return "StartParameter{"
@@ -595,6 +648,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", projectProperties=" + projectProperties
                 + ", systemPropertiesArgs=" + systemPropertiesArgs
                 + ", gradleUserHomeDir=" + gradleUserHomeDir
+                + ", gradleHome=" + gradleHomeDir
                 + ", cacheUsage=" + cacheUsage
                 + ", logLevel=" + getLogLevel()
                 + ", showStacktrace=" + getShowStacktrace()
@@ -605,6 +659,20 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", recompileScripts=" + recompileScripts
                 + ", offline=" + offline
                 + ", refreshDependencies=" + refreshDependencies
+                + ", parallelThreadCount=" + parallelThreadCount
+                + ", configureOnDemand=" + configureOnDemand
                 + '}';
+    }
+
+    /**
+     * Package scope for testing purposes.
+     */
+    void setGradleHomeDir(File gradleHomeDir) {
+        this.gradleHomeDir = gradleHomeDir;
+    }
+
+    @Incubating
+    public void setConfigureOnDemand(boolean configureOnDemand) {
+        this.configureOnDemand = configureOnDemand;
     }
 }

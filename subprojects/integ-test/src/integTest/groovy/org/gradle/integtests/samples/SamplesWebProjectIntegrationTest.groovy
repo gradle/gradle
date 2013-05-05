@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
 /**
@@ -27,7 +27,7 @@ import org.junit.Rule
 class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
     static final String WEB_PROJECT_NAME = 'customised'
 
-    @Rule public final Sample sample = new Sample('webApplication/customised')
+    @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/customised')
 
     def "can build war"() {
         when:

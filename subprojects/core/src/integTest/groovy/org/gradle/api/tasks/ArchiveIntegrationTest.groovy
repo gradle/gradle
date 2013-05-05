@@ -19,10 +19,13 @@
 
 package org.gradle.api.tasks
 
+import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
+
 import static org.hamcrest.Matchers.equalTo
 
 public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
@@ -219,7 +222,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @Rule public final TestResources resources = new TestResources()
+    @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     def "tarTreeFailsGracefully"() {
         given:
@@ -293,6 +296,79 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 'scripts/dir2/script.sh')
 
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
+    }
+
+    def canCreateAZipArchiveWithContentsUncompressed() {
+        def randomAscii = RandomStringUtils.randomAscii(300)
+        given:
+        createDir('test') {
+            dir1 {
+                file('file1.txt').write(randomAscii)
+            }
+            file 'file1.txt'
+            dir2 {
+                file 'file2.txt'
+                file 'script.sh'
+            }
+        }
+        and:
+        buildFile << '''
+            task uncompressedZip(type: Zip) {
+                into('prefix') {
+                    from 'test'
+                    include '**/*.txt'
+                }
+                into('scripts') {
+                    from 'test'
+                    include '**/*.sh'
+                }
+                destinationDir = buildDir
+                archiveName = 'uncompressedTest.zip'
+                entryCompression = ZipEntryCompression.STORED
+            }
+
+            task compressedZip(type: Zip) {
+                into('prefix') {
+                    from 'test'
+                    include '**/*.txt'
+                }
+                into('scripts') {
+                    from 'test'
+                    include '**/*.sh'
+                }
+                destinationDir = buildDir
+                archiveName = 'compressedTest.zip'
+            }
+        '''
+        when:
+        run 'uncompressedZip'
+        run 'compressedZip'
+        then:
+	def uncompressedSize = file('build/uncompressedTest.zip').length()
+	def compressedSize = file('build/compressedTest.zip').length()
+	println "uncompressed" + uncompressedSize
+	println "compressed" + compressedSize
+    assert compressedSize < uncompressedSize
+
+        def expandDir = file('expandedUncompressed')
+        file('build/uncompressedTest.zip').unzipTo(expandDir)
+        expandDir.assertHasDescendants(
+                'prefix/dir1/file1.txt',
+                'prefix/file1.txt',
+                'prefix/dir2/file2.txt',
+                'scripts/dir2/script.sh')
+
+        expandDir.file('prefix/dir1/file1.txt').assertContents(equalTo(randomAscii))
+
+        def expandCompressedDir = file('expandedCompressed')
+        file('build/compressedTest.zip').unzipTo(expandCompressedDir)
+        expandCompressedDir.assertHasDescendants(
+                'prefix/dir1/file1.txt',
+                'prefix/file1.txt',
+                'prefix/dir2/file2.txt',
+                'scripts/dir2/script.sh')
+
+        expandCompressedDir.file('prefix/dir1/file1.txt').assertContents(equalTo(randomAscii))
     }
 
     def canCreateATarArchive() {

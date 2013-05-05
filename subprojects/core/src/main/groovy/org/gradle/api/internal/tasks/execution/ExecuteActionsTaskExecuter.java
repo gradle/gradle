@@ -15,23 +15,23 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Task;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.*;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A {@link org.gradle.api.internal.tasks.TaskExecuter} which executes the actions of a task.
  */
-public class ExecuteActionsTaskExecuter implements TaskExecuter {
+public class ExecuteActionsTaskExecuter implements ContextualTaskExecuter {
     private static Logger logger = Logging.getLogger(ExecuteActionsTaskExecuter.class);
     private final TaskActionListener listener;
 
@@ -39,11 +39,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.listener = listener;
     }
 
-    public void execute(TaskInternal task, TaskStateInternal state) {
+    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         listener.beforeActions(task);
         state.setExecuting(true);
         try {
-            GradleException failure = executeActions(task, state);
+            GradleException failure = executeActions(task, state, context);
             state.executed(failure);
         } finally {
             state.setExecuting(false);
@@ -51,13 +51,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private GradleException executeActions(TaskInternal task, TaskStateInternal state) {
+    private GradleException executeActions(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         logger.debug("Executing actions for {}.", task);
-        for (Action<? super Task> action : task.getActions()) {
+        final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>(task.getTaskActions());
+        for (ContextAwareTaskAction action : actions) {
             state.setDidWork(true);
             task.getStandardOutputCapture().start();
             try {
-                action.execute(task);
+                executeAction(task, action, context);
             } catch (StopActionException e) {
                 // Ignore
                 logger.debug("Action stopped by some action with message: {}", e.getMessage());
@@ -71,5 +72,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             }
         }
         return null;
+    }
+
+    private void executeAction(TaskInternal task, ContextAwareTaskAction action, TaskExecutionContext context) {
+        action.contextualise(context);
+        try {
+            action.execute(task);
+        } finally {
+            action.contextualise(null);
+        }
     }
 }

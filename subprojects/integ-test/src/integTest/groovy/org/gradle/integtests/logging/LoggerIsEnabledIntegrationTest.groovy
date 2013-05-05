@@ -22,7 +22,7 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 class LoggerIsEnabledIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resources
+    @Rule TestResources resources = new TestResources(temporaryFolder)
 
     @Unroll
     def "logger.isEnabled() works correctly for log level #level"() {

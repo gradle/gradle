@@ -23,9 +23,9 @@ import java.io.OutputStream;
 /**
  * by Szczepan Faber, created at: 11/16/11
  */
-public class SimpleCompressor implements Compressor {
+public class SimpleCompressor implements ArchiveOutputStreamFactory {
 
-    public OutputStream compress(File destination) {
+    public OutputStream createArchiveOutputStream(File destination) {
         try {
             return new FileOutputStream(destination);
         } catch (Exception e) {

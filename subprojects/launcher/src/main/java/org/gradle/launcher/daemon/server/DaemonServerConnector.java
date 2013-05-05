@@ -34,7 +34,7 @@ public interface DaemonServerConnector extends Stoppable {
      * @return the address that clients can use to connect
      * @throws IllegalStateException if this method has previously been called on this object, or if the stop method has previously been called on this object.
      */
-    Address start(final IncomingConnectionHandler handler);
+    Address start(IncomingConnectionHandler handler);
 
     /**
      * Stops accepting new connections, and blocks until all active connections close.

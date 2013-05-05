@@ -39,6 +39,15 @@ public class MethodMetaInfo extends Message {
         }
     }
 
+    @Override
+    public String toString() {
+        return "MethodMetaInfo{"
+                + "type=" + type
+                + ", methodName='" + methodName + '\''
+                + ", paramTypes=" + (paramTypes == null ? null : Arrays.asList(paramTypes))
+                + '}';
+    }
+
     public Object getKey() {
         return key;
     }
@@ -110,6 +119,13 @@ public class MethodMetaInfo extends Message {
         @Override
         public int hashCode() {
             return typeName.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "Type{"
+                    + "typeName='" + typeName + '\''
+                    + '}';
         }
     }
 }

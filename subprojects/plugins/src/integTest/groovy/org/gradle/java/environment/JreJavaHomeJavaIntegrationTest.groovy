@@ -25,18 +25,18 @@ import spock.lang.Unroll
 
 class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreIf({ AvailableJavaHomes.bestJreAlternative == null})
+    @IgnoreIf({ AvailableJavaHomes.bestJre == null})
     @Unroll
     def "java compilation works in forking mode = #forkMode and useAnt = #useAnt when JAVA_HOME is set to JRE"() {
         given:
-        def jreJavaHome = AvailableJavaHomes.bestJreAlternative
+        def jreJavaHome = AvailableJavaHomes.bestJre
         writeJavaTestSource("src/main/java");
         file('build.gradle') << """
         println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
         apply plugin:'java'
         compileJava{
             options.fork = ${forkMode}
-            options.useAnt = ${useAnt}
+            DeprecationLogger.whileDisabled { options.useAnt = ${useAnt} }
         }
         """
         when:
@@ -50,6 +50,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.WINDOWS)
+    @Unroll
     def "java compilation works in forking mode = #forkMode and useAnt = #useAnt when gradle is started with no JAVA_HOME defined"() {
         given:
         writeJavaTestSource("src/main/java");
@@ -57,10 +58,10 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
                     apply plugin:'java'
                     compileJava{
                         options.fork = ${forkMode}
-                        options.useAnt = ${useAnt}
+                        DeprecationLogger.whileDisabled { options.useAnt = ${useAnt} }
         }
         """
-        def envVars = System.getenv().findAll { it.key != 'JAVA_HOME' || it.key != 'Path'}
+        def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
         envVars.put("Path", "C:\\Windows\\System32")
         when:
         executer.withEnvironmentVars(envVars).withTasks("compileJava").run()

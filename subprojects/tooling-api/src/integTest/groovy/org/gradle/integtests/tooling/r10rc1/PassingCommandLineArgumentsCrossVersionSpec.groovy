@@ -18,7 +18,6 @@
 
 package org.gradle.integtests.tooling.r10rc1
 
-import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -35,7 +34,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
     def "understands project properties for building model"() {
         given:
         toolingApi.verboseLogging = false //sanity check, see GRADLE-2226
-        dist.file("build.gradle") << """
+        file("build.gradle") << """
         description = project.getProperty('theDescription')
 """
 
@@ -50,7 +49,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "understands system properties"() {
         given:
-        dist.file("build.gradle") << """
+        file("build.gradle") << """
         task printProperty << {
             file('sysProperty.txt') << System.getProperty('sysProperty')
         }
@@ -62,12 +61,12 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         }
 
         then:
-        dist.file('sysProperty.txt').text.contains('welcomeToTheJungle')
+        file('sysProperty.txt').text.contains('welcomeToTheJungle')
     }
 
     def "can use custom build file"() {
         given:
-        dist.file("foo.gradle") << """
+        file("foo.gradle") << """
         task someCoolTask
 """
 
@@ -86,26 +85,16 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         toolingApi.isEmbedded = false
 
         given:
-        dist.file("build.gradle") << """
+        file("build.gradle") << """
         logger.debug("debugging stuff")
         logger.info("infoing stuff")
 """
 
         when:
-        def debug = withConnection {
-            def build = it.newBuild().withArguments('-d')
-            def op = new ConfigurableOperation(build)
-            build.run()
-            op.standardOutput
-        }
+        String debug = withBuild { it.withArguments('-d') }.standardOutput
 
         and:
-        def info = withConnection {
-            def build = it.newBuild().withArguments('-i')
-            def op = new ConfigurableOperation(build)
-            build.run()
-            op.standardOutput
-        }
+        String info = withBuild { it.withArguments('-i') }.standardOutput
 
         then:
         debug.count("debugging stuff") == 1
@@ -118,19 +107,19 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "gives decent feedback for invalid option"() {
         when:
-        def ex = maybeFailWithConnection { ProjectConnection it ->
+        maybeFailWithConnection { ProjectConnection it ->
             it.newBuild().withArguments('--foreground').run()
         }
 
         then:
-        ex instanceof UnsupportedBuildArgumentException
+        UnsupportedBuildArgumentException ex = thrown()
         ex.message.contains('--foreground')
     }
 
     def "can overwrite project dir via build arguments"() {
         given:
-        dist.file('otherDir').createDir()
-        dist.file('build.gradle') << "assert projectDir.name.endsWith('otherDir')"
+        file('otherDir').createDir()
+        file('build.gradle') << "assert projectDir.name.endsWith('otherDir')"
 
         when:
         withConnection { 
@@ -143,8 +132,8 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "can overwrite gradle user home via build arguments"() {
         given:
-        dist.file('.myGradle').createDir()
-        dist.file('build.gradle') << "assert gradle.gradleUserHomeDir.name.endsWith('.myGradle')"
+        file('.myGradle').createDir()
+        file('build.gradle') << "assert gradle.gradleUserHomeDir.name.endsWith('.myGradle')"
 
         when:
         withConnection {
@@ -155,12 +144,11 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         noExceptionThrown()
     }
 
-    def "can overwrite searchUpwards via build arguments"() {
+    def "can configure searchUpwards via build arguments"() {
         given:
-        dist.file('build.gradle') << "assert !gradle.startParameter.searchUpwards"
+        file('build.gradle') << "assert !gradle.startParameter.searchUpwards"
 
         when:
-        toolingApi.withConnector { it.searchUpwards(true) }
         withConnection {
             it.newBuild().withArguments('-u').run()
         }
@@ -171,7 +159,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "can overwrite task names via build arguments"() {
         given:
-        dist.file('build.gradle') << """
+        file('build.gradle') << """
 task foo << { assert false }
 task bar << { assert true }
 """

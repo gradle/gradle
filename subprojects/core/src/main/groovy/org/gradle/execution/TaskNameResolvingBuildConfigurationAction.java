@@ -15,24 +15,15 @@
  */
 package org.gradle.execution;
 
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.SetMultimap;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.tasks.CommandLineOption;
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
+import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.util.GUtil;
-import org.gradle.util.JavaMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A {@link BuildConfigurationAction} which selects tasks which match the provided names. For each name, selects all tasks in all
@@ -70,41 +61,7 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
     }
 
     private Multimap<String, Task> doSelect(GradleInternal gradle, List<String> paths, TaskNameResolver taskNameResolver) {
-        SetMultimap<String, Task> matches = LinkedHashMultimap.create();
-        TaskSelector selector = new TaskSelector(taskNameResolver);
-        List<String> remainingPaths = paths;
-        while (!remainingPaths.isEmpty()) {
-            String path = remainingPaths.get(0);
-            selector.selectTasks(gradle, path);
-
-            CommandLineParser commandLineParser = new CommandLineParser();
-            Set<Task> tasks = selector.getTasks();
-            Map<String, JavaMethod<Task, ?>> options = new HashMap<String, JavaMethod<Task, ?>>();
-            if (tasks.size() == 1) {
-                for (Class<?> type = tasks.iterator().next().getClass(); type != Object.class; type = type.getSuperclass()) {
-                    for (Method method : type.getDeclaredMethods()) {
-                        CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
-                        if (commandLineOption != null) {
-                            commandLineParser.option(commandLineOption.options()).hasDescription(commandLineOption.description());
-                            options.put(commandLineOption.options()[0], JavaMethod.create(Task.class, Object.class, method));
-                        }
-                    }
-                }
-            }
-
-            ParsedCommandLine commandLine = commandLineParser.parse(remainingPaths.subList(1, remainingPaths.size()));
-            for (Map.Entry<String, JavaMethod<Task, ?>> entry : options.entrySet()) {
-                if (commandLine.hasOption(entry.getKey())) {
-                    for (Task task : tasks) {
-                        entry.getValue().invoke(task, true);
-                    }
-                }
-            }
-            remainingPaths = commandLine.getExtraArguments();
-
-            matches.putAll(selector.getTaskName(), tasks);
-        }
-
-        return matches;
+        TaskSelector selector = new TaskSelector(gradle, taskNameResolver);
+        return new CommandLineTaskParser().parseTasks(paths, selector);
     }
 }

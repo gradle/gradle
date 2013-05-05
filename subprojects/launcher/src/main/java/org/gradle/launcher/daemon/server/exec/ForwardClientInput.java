@@ -15,35 +15,22 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
-import org.gradle.messaging.dispatch.AsyncReceive;
-import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.util.StdinSwapper;
 
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 
 /**
- * Listens for ForwardInput commands during the execution and sends that to a piped input stream
- * that we install.
+ * Listens for ForwardInput commands during the execution and sends that to a piped input stream that we install.
  */
 public class ForwardClientInput implements DaemonCommandAction {
     private static final Logger LOGGER = Logging.getLogger(ForwardClientInput.class);
-    private final ExecutorFactory executorFactory;
-
-    public ForwardClientInput(ExecutorFactory executorFactory) {
-        this.executorFactory = executorFactory;
-    }
 
     public void execute(final DaemonCommandExecution execution) {
         final PipedOutputStream inputSource = new PipedOutputStream();
@@ -51,73 +38,43 @@ public class ForwardClientInput implements DaemonCommandAction {
         try {
             replacementStdin = new PipedInputStream(inputSource);
         } catch (IOException e) {
-            throw new GradleException("unable to wire client stdin to daemon stdin", e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        final CountDownLatch inputOrConnectionClosedLatch = new CountDownLatch(1);
-        final Runnable countDownInputOrConnectionClosedLatch = new Runnable() {
-            public void run() {
-                inputOrConnectionClosedLatch.countDown();
-            }
-        };
-
-        Dispatch<Object> dispatcher = new Dispatch<Object>() {
-            public void dispatch(Object command) {
-                if (command instanceof ForwardInput) {
-                    try {
-                        ForwardInput forwardedInput = (ForwardInput)command;
-                        LOGGER.debug("Putting forwarded input '{}' on daemon's stdin.", new String(forwardedInput.getBytes()).replace("\n", "\\n"));
-                        inputSource.write(forwardedInput.getBytes());
-
-                    } catch (Exception e) {
-                        LOGGER.warn("Received exception trying to forward client input.", e);
-                    }
-                } else if (command instanceof CloseInput) {
-                    try {
-                        LOGGER.info("Closing daemons standard input as requested by received command: {} ...", command);
-                        inputSource.close();
-                    } catch (Throwable e) {
-                        LOGGER.warn("Problem closing output stream connected to replacement stdin", e);
-                    } finally {
-                        LOGGER.info("The daemon will no longer process any standard input.");
-                        countDownInputOrConnectionClosedLatch.run();
-                    }
-                } else {
-                    LOGGER.warn("While listening for IOCommands, received unexpected command: {}.", command);
+        execution.getConnection().onStdin(new StdinHandler() {
+            public void onInput(ForwardInput input) {
+                LOGGER.debug("Writing forwarded input on daemon's stdin.");
+                try {
+                    inputSource.write(input.getBytes());
+                } catch (IOException e) {
+                    LOGGER.warn("Received exception trying to forward client input.", e);
                 }
             }
-        };
 
-        StoppableExecutor inputReceiverExecuter = executorFactory.create("daemon client input forwarder");
-        final AsyncReceive<Object> inputReceiver = new AsyncReceive<Object>(inputReceiverExecuter, dispatcher, countDownInputOrConnectionClosedLatch);
-        inputReceiver.receiveFrom(execution.getConnection());
-
-        execution.addFinalizer(new Runnable() {
-            public void run() {
-                // means we are going to sit here until the client disconnects, which we are expecting it to
-                // very soon because we are assuming we've just sent back the build result. We do this here
-                // in case the client tries to send input in between us sending back the result and it closing the connection.
+            public void onEndOfInput() {
+                LOGGER.info("Closing daemon's stdin at end of input.");
                 try {
-                    LOGGER.debug("Waiting until the client disconnects so that we may no longer consume input...");
-                    inputOrConnectionClosedLatch.await();
-                } catch (InterruptedException e) {
-                    LOGGER.debug("Interrupted while waiting for client to disconnect.");
-                    throw UncheckedException.throwAsUncheckedException(e);
+                    inputSource.close();
+                } catch (IOException e) {
+                    LOGGER.warn("Problem closing output stream connected to replacement stdin", e);
                 } finally {
-                    inputReceiver.stop();
-                    LOGGER.debug("The input receiver has been stopped.");
+                    LOGGER.info("The daemon will no longer process any standard input.");
                 }
             }
         });
 
         try {
-            new StdinSwapper().swap(replacementStdin, new Callable<Void>() {
-                public Void call() {
-                    execution.proceed();
-                    return null;
-                }
-            });
-            replacementStdin.close();
+            try {
+                new StdinSwapper().swap(replacementStdin, new Callable<Void>() {
+                    public Void call() {
+                        execution.proceed();
+                        return null;
+                    }
+                });
+            } finally {
+                execution.getConnection().onStdin(null);
+                replacementStdin.close();
+            }
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

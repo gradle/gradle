@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.Incubating
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
 
@@ -26,6 +27,8 @@ import org.gradle.util.ConfigureUtil
  * Typically you don't have configure IDEA module directly because Gradle configures it for you.
  *
  * <pre autoTested=''>
+ * import org.gradle.plugins.ide.idea.model.*
+ *
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
@@ -43,11 +46,14 @@ import org.gradle.util.ConfigureUtil
  *
  *     //you can change the output file
  *     outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
+ *
+ *     //you can add project-level libraries
+ *     projectLibraries &lt;&lt; new ProjectLibrary(name: "my-library", classes: [new Path("path/to/library")])
  *   }
  * }
  * </pre>
  *
- * For tackling edge cases users can perform advanced configuration on resulting xml file.
+ * For tackling edge cases users can perform advanced configuration on resulting XML file.
  * It is also possible to affect the way IDEA plugin merges the existing configuration
  * via beforeMerged and whenMerged closures.
  * <p>
@@ -129,6 +135,12 @@ class IdeaProject {
     File outputFile
 
     /**
+     * The project-level libraries to be added to the IDEA project.
+     */
+    @Incubating
+    Set<ProjectLibrary> projectLibraries = [] as LinkedHashSet
+
+    /**
      * The name of the IDEA project. It is a convenience property that returns the name of the output file (without the file extension).
      * In IDEA, the project name is driven by the name of the 'ipr' file.
      */
@@ -137,7 +149,7 @@ class IdeaProject {
     }
 
     /**
-     * Enables advanced configuration like tinkering with the output xml
+     * Enables advanced configuration like tinkering with the output XML
      * or affecting the way existing *.ipr content is merged with Gradle build information.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
@@ -162,7 +174,7 @@ class IdeaProject {
         def modulePaths = getModules().collect {
             getPathFactory().relativePath('PROJECT_DIR', it.outputFile)
         }
-        xmlProject.configure(modulePaths, getJdkName(), getLanguageLevel(), getWildcards())
+        xmlProject.configure(modulePaths, getJdkName(), getLanguageLevel(), getWildcards(), getProjectLibraries())
         ipr.whenMerged.execute(xmlProject)
     }
 }

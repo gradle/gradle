@@ -19,11 +19,13 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.HelperUtil
+import org.gradle.api.plugins.JavaBasePlugin
+
 import spock.lang.Specification
+
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
-import org.gradle.api.plugins.JavaBasePlugin
 
 class CheckstylePluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
@@ -80,12 +82,13 @@ class CheckstylePluginTest extends Specification {
             assert configFile == project.file("config/checkstyle/checkstyle.xml")
             assert configProperties == [:]
             assert resultFile == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
-            assert ignoreFailures == false
+            assert !ignoreFailures
+            assert showViolations
         }
     }
     
     def "configures any additional checkstyle tasks"() {
-        def task = project.tasks.add("checkstyleCustom", Checkstyle)
+        def task = project.tasks.create("checkstyleCustom", Checkstyle)
 
         expect:
         task.description == null
@@ -94,7 +97,7 @@ class CheckstylePluginTest extends Specification {
         task.configFile == project.file("config/checkstyle/checkstyle.xml")
         task.configProperties == [:]
         task.resultFile == project.file("build/reports/checkstyle/custom.xml")
-        task.ignoreFailures == false
+        !task.ignoreFailures
     }
 
     def "adds checkstyle tasks to check lifecycle task"() {
@@ -123,6 +126,7 @@ class CheckstylePluginTest extends Specification {
             configProperties = [foo: "foo"]
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true
+            displayViolations = true
         }
         
         expect:
@@ -143,12 +147,13 @@ class CheckstylePluginTest extends Specification {
             assert configFile == project.file("checkstyle-config")
             assert configProperties == [foo: "foo"]
             assert resultFile == project.file("checkstyle-reports/${sourceSet.name}.xml")
-            assert ignoreFailures == true
+            assert ignoreFailures
+            assert showViolations
         }
     }
     
     def "can customize any additional checkstyle tasks via extension"() {
-        def task = project.tasks.add("checkstyleCustom", Checkstyle)
+        def task = project.tasks.create("checkstyleCustom", Checkstyle)
         project.checkstyle {
             configFile = project.file("checkstyle-config")
             configProperties = [foo: "foo"]
@@ -163,7 +168,7 @@ class CheckstylePluginTest extends Specification {
         task.configFile == project.file("checkstyle-config")
         task.configProperties == [foo: "foo"]
         task.resultFile == project.file("checkstyle-reports/custom.xml")
-        task.ignoreFailures == true
+        task.ignoreFailures
     }
     
 }

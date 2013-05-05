@@ -29,11 +29,9 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
@@ -43,7 +41,8 @@ import java.util.List;
 public class GroovyCompile extends AbstractCompile {
     private Compiler<GroovyJavaJointCompileSpec> compiler;
     private FileCollection groovyClasspath;
-    private final GroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec();
+    private final CompileOptions compileOptions = new CompileOptions();
+    private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
     private final TemporaryFileProvider tempFileProvider;
     
     public GroovyCompile() {
@@ -54,33 +53,35 @@ public class GroovyCompile extends AbstractCompile {
         JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
         tempFileProvider = projectInternal.getServices().get(TemporaryFileProvider.class);
         DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, tempFileProvider, antBuilderFactory, inProcessCompilerFactory);
-        javaCompilerFactory.setGroovyJointCompilation(false);
         GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, antBuilder, classPathRegistry, javaCompilerFactory);
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = new DelegatingGroovyCompiler(groovyCompilerFactory);
         compiler = new IncrementalGroovyCompiler(delegatingCompiler, getOutputs());
     }
 
     protected void compile() {
-        List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
-        throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
+        checkGroovyClasspathIsNonEmpty();
+        DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setClasspath(getClasspath());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
-        spec.setGroovyClasspath(taskClasspath);
+        spec.setGroovyClasspath(getGroovyClasspath());
+        spec.setCompileOptions(compileOptions);
+        spec.setGroovyCompileOptions(groovyCompileOptions);
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
             File dir = tempFileProvider.newTemporaryFile("groovy-java-stubs");
-            dir.mkdirs();
+            GFileUtils.mkdirs(dir);
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
         WorkResult result = compiler.execute(spec);
         setDidWork(result.getDidWork());
     }
 
-    private void throwExceptionIfTaskClasspathIsEmpty(Collection<File> taskClasspath) {
-        if (taskClasspath.size() == 0) {
-            throw new InvalidUserDataException("You must assign a Groovy library to the 'groovy' configuration.");
+    private void checkGroovyClasspathIsNonEmpty() {
+        if (getGroovyClasspath().isEmpty()) {
+            throw new InvalidUserDataException("'" + getName() + ".groovyClasspath' must not be empty. If a Groovy compile dependency is provided, "
+                    + "the 'groovy-base' plugin will attempt to configure 'groovyClasspath' automatically. Alternatively, you may configure 'groovyClasspath' explicitly.");
         }
     }
 
@@ -92,7 +93,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @Nested
     public GroovyCompileOptions getGroovyOptions() {
-        return spec.getGroovyCompileOptions();
+        return groovyCompileOptions;
     }
 
     /**
@@ -102,7 +103,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return spec.getCompileOptions();
+        return compileOptions;
     }
 
     /**

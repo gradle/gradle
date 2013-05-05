@@ -28,16 +28,20 @@ import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomReader;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.url.URLResource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.Message;
+import org.gradle.internal.UncheckedException;
 import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.Date;
@@ -51,13 +55,7 @@ import java.util.Map;
 public final class GradlePomModuleDescriptorParser implements ModuleDescriptorParser {
     public void toIvyFile(InputStream is, Resource res, File destFile, ModuleDescriptor md)
             throws ParseException, IOException {
-        try {
-            XmlModuleDescriptorWriter.write(md, destFile);
-        } finally {
-            if (is != null) {
-                is.close();
-            }
-        }
+        throw new UnsupportedOperationException();
     }
 
     public boolean accept(Resource res) {
@@ -84,8 +82,9 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
     }
 
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL descriptorURL,
-                                            Resource res, boolean validate) throws ParseException, IOException {
+                                            Resource resource, boolean validate) throws ParseException, IOException {
 
+        Resource res = encodedUrlResource(resource, descriptorURL);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(this, res, ivySettings);
 
         try {
@@ -110,17 +109,14 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                         domReader.getParentGroupId(),
                         domReader.getParentArtifactId(),
                         domReader.getParentVersion());
-                ResolvedModuleRevision parentModule = parseOtherPom(ivySettings,
-                        parentModRevID);
+                ResolvedModuleRevision parentModule = parseOtherPom(ivySettings, parentModRevID);
                 if (parentModule != null) {
                     parentDescr = parentModule.getDescriptor();
                 } else {
-                    throw new IOException("Impossible to load parent for " + res.getName() + "."
-                            + " Parent=" + parentModRevID);
+                    throw new IOException("Impossible to load parent for " + res.getName() + ". Parent=" + parentModRevID);
                 }
                 if (parentDescr != null) {
-                    Map parentPomProps = GradlePomModuleDescriptorBuilder.extractPomProperties(
-                            parentDescr.getExtraInfo());
+                    Map parentPomProps = GradlePomModuleDescriptorBuilder.extractPomProperties(parentDescr.getExtraInfo());
                     for (Object o : parentPomProps.entrySet()) {
                         Map.Entry prop = (Map.Entry) o;
                         domReader.setProperty((String) prop.getKey(), (String) prop.getValue());
@@ -131,7 +127,8 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
             String groupId = domReader.getGroupId();
             String artifactId = domReader.getArtifactId();
             String version = domReader.getVersion();
-            mdBuilder.setModuleRevId(groupId, artifactId, version);
+            ModuleScopedParserSettings scopedSettings = (ModuleScopedParserSettings) ivySettings;
+            mdBuilder.setModuleRevId(scopedSettings.getCurrentRevisionId(), groupId, artifactId, version);
 
             mdBuilder.setHomePage(domReader.getHomePage());
             mdBuilder.setDescription(domReader.getDescription());
@@ -165,8 +162,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                             + " is relocated to " + relocation
                             + ". Please update your dependencies.");
                     Message.verbose("Relocated module will be considered as a dependency");
-                    DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(mdBuilder
-                            .getModuleDescriptor(), relocation, true, false, true);
+                    DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(mdBuilder.getModuleDescriptor(), relocation, true, false, true);
                     /* Map all public dependencies */
                     Configuration[] m2Confs = GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
                     for (Configuration m2Conf : m2Confs) {
@@ -197,8 +193,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                     }
 
                     // add plugins from parent
-                    List /*<PomDependencyMgt>*/ plugins =
-                            GradlePomModuleDescriptorBuilder.getPlugins(parentDescr);
+                    List /*<PomDependencyMgt>*/ plugins = GradlePomModuleDescriptorBuilder.getPlugins(parentDescr);
                     for (Object plugin : plugins) {
                         mdBuilder.addPlugin((PomDependencyMgt) plugin);
                     }
@@ -211,8 +206,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                                 dep.getGroupId(),
                                 dep.getArtifactId(),
                                 dep.getVersion());
-                        ResolvedModuleRevision importModule = parseOtherPom(ivySettings,
-                                importModRevID);
+                        ResolvedModuleRevision importModule = parseOtherPom(ivySettings, importModRevID);
                         if (importModule != null) {
                             ModuleDescriptor importDescr = importModule.getDescriptor();
 
@@ -273,8 +267,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
             return null;
         } else {
             dd = NameSpaceHelper.toSystem(dd, ivySettings.getContextNamespace());
-            ResolvedModuleRevision otherModule = resolver.getDependency(dd, data);
-            return otherModule;
+            return resolver.getDependency(dd, data);
         }
     }
 
@@ -285,4 +278,19 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
         return pe;
     }
 
+    private Resource encodedUrlResource(final Resource base, final URL url) {
+        Object proxy = Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{Resource.class}, new InvocationHandler() {
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                if ("getName".equals(method.getName())) {
+                    return url.toString();
+                }
+                try {
+                    return method.invoke(base, args);
+                } catch (InvocationTargetException e) {
+                    throw UncheckedException.throwAsUncheckedException(e.getTargetException());
+                }
+            }
+        });
+        return (Resource) proxy;
+    }
 }

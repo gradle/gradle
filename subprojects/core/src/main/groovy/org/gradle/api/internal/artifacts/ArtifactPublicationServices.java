@@ -16,9 +16,16 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 
 public interface ArtifactPublicationServices {
-    ArtifactPublisher getArtifactPublisher();
 
-    RepositoryHandler getRepositoryHandler();
+    RepositoryHandler createRepositoryHandler();
+
+    ModuleDescriptorConverter getDescriptorFileModuleConverter();
+
+    IvyModuleDescriptorWriter getIvyModuleDescriptorWriter();
+
+    ArtifactPublisher createArtifactPublisher();
 }

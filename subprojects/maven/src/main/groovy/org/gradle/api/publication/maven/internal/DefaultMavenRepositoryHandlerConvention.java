@@ -18,6 +18,9 @@ package org.gradle.api.publication.maven.internal;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
+import org.gradle.api.internal.Actions;
+import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention;
 
@@ -37,15 +40,18 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
     }
 
     public GroovyMavenDeployer mavenDeployer(Closure configureClosure) {
-        return container.addRepository(createMavenDeployer(), configureClosure, DEFAULT_MAVEN_DEPLOYER_NAME);
+        return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME, new ClosureBackedAction<GroovyMavenDeployer>(configureClosure));
     }
 
     public GroovyMavenDeployer mavenDeployer(Map<String, ?> args) {
-        return container.addRepository(createMavenDeployer(), args, DEFAULT_MAVEN_DEPLOYER_NAME);
+        return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME, new ConfigureByMapAction<GroovyMavenDeployer>(args));
     }
 
     public GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Closure configureClosure) {
-        return container.addRepository(createMavenDeployer(), args, configureClosure, DEFAULT_MAVEN_DEPLOYER_NAME);
+        //noinspection unchecked
+        return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME, Actions.<GroovyMavenDeployer>composite(
+                new ConfigureByMapAction<GroovyMavenDeployer>(args), new ClosureBackedAction<GroovyMavenDeployer>(configureClosure)
+        ));
     }
 
     private GroovyMavenDeployer createMavenDeployer() {
@@ -57,15 +63,18 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
     }
 
     public MavenResolver mavenInstaller(Closure configureClosure) {
-        return container.addRepository(createMavenInstaller(), configureClosure, DEFAULT_MAVEN_INSTALLER_NAME);
+        return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME, new ClosureBackedAction<MavenResolver>(configureClosure));
     }
 
     public MavenResolver mavenInstaller(Map<String, ?> args) {
-        return container.addRepository(createMavenInstaller(), args, DEFAULT_MAVEN_INSTALLER_NAME);
+        return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME, new ConfigureByMapAction<MavenResolver>(args));
     }
 
     public MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure) {
-        return container.addRepository(createMavenInstaller(), args, configureClosure, DEFAULT_MAVEN_INSTALLER_NAME);
+        //noinspection unchecked
+        return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME, Actions.<MavenResolver>composite(
+                new ConfigureByMapAction<MavenResolver>(args), new ClosureBackedAction<MavenResolver>(configureClosure)
+        ));
     }
 
     private MavenResolver createMavenInstaller() {

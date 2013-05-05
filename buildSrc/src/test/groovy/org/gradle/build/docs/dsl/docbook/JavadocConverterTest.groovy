@@ -140,6 +140,16 @@ line 2</para>'''
         format(result.docbook) == '''<para>This is <literal>code</literal>. So is <literal>this</literal>.</para>'''
     }
 
+    def convertsLiteralTagsToText() {
+        _ * classMetaData.rawCommentText >> '{@literal <b>markup</b> {@ignore}}'
+
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook) == '''<para>&lt;b&gt;markup&lt;/b&gt; {@ignore}</para>'''
+    }
+
     def doesNotInterpretContentsOfCodeTagAsHtml() {
         _ * classMetaData.rawCommentText >> '{@code List<String> && a < 9} <code>&amp;</code>'
 
@@ -287,6 +297,16 @@ literal code</programlisting><para> does something.
         format(result.docbook) == '''<para><literal>text</literal></para>'''
     }
 
+    def convertsDlElementToVariableList() {
+        _ * classMetaData.rawCommentText >> '<dl><dt>term<dd>definition<dt>term 2<dd>definition 2</dd></dl>'
+
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook) == '''<variablelist><varlistentry><term>term</term><listitem>definition</listitem></varlistentry><varlistentry><term>term 2</term><listitem>definition 2</listitem></varlistentry></variablelist>'''
+    }
+
     def convertsHeadingsToSections() {
         _ * classMetaData.rawCommentText >> '''
 <h2>section1</h2>
@@ -301,12 +321,12 @@ text3
         def result = parser.parse(classMetaData, listener)
 
         then:
-        format(result.docbook) == '''<section><title>section1</title>
+        format(result.docbook) == '''<section><title>section1</title><para>
 text1
-<section><title>section 1.1</title>
+</para><section><title>section 1.1</title><para>
 text2
-</section></section><section><title>section 2</title>
-text3</section>'''
+</para></section></section><section><title>section 2</title><para>
+text3</para></section>'''
     }
 
     def convertsTable() {
@@ -321,10 +341,7 @@ text3</section>'''
         def result = parser.parse(classMetaData, listener)
 
         then:
-        format(result.docbook) == '''<table>
-    <thead><tr><td>column1</td><td>column2</td></tr></thead>
-    <tr><td>cell1</td><td>cell2</td></tr>
-</table>'''
+        format(result.docbook) == '''<table><thead><tr><td>column1</td><td>column2</td></tr></thead><tr><td>cell1</td><td>cell2</td></tr></table>'''
     }
 
     def convertsPropertyGetterMethodCommentToPropertyComment() {
@@ -350,9 +367,11 @@ text3</section>'''
         _ * propertyMetaData.overriddenProperty >> overriddenMetaData
         _ * overriddenMetaData.rawCommentText >> ''' *
  * <em>inherited value</em>
+ * <p>another
  *
 '''
-        format(result.docbook) == '''<para>before </para><para><emphasis>inherited value</emphasis></para><para> after</para>'''
+        format(result.docbook) == '''<para>before </para><para><emphasis>inherited value</emphasis>
+</para><para>another</para><para> after</para>'''
     }
 
     def convertsValueTag() {
@@ -388,7 +407,7 @@ text3</section>'''
         def result = parser.parse(propertyMetaData, listener)
 
         then:
-        format(result.docbook) == '''<para><UNHANDLED-ELEMENT>&lt;unknown&gt;text&lt;/unknown&gt;</UNHANDLED-ELEMENT><UNHANDLED-ELEMENT>&lt;inheritdoc&gt;<UNHANDLED-TAG>{@unknown text}</UNHANDLED-TAG><UNHANDLED-TAG>{@p text}</UNHANDLED-TAG><UNHANDLED-TAG>{@ unknown}</UNHANDLED-TAG></UNHANDLED-ELEMENT></para>'''
+        format(result.docbook) == '''<para><UNHANDLED-ELEMENT>&lt;unknown&gt;text&lt;/unknown&gt;</UNHANDLED-ELEMENT><UNHANDLED-ELEMENT>&lt;inheritdoc&gt;<UNHANDLED-TAG>{@unknown text}</UNHANDLED-TAG><UNHANDLED-TAG>{@p text}</UNHANDLED-TAG><UNHANDLED-TAG>{@ unknown}</UNHANDLED-TAG>&lt;/inheritdoc&gt;</UNHANDLED-ELEMENT></para>'''
     }
 
     def handlesMissingStartTags() {

@@ -1,0 +1,11 @@
+:generatePomFileForMavenJavaPublication
+:compileJava
+:processResources UP-TO-DATE
+:classes
+:jar
+:publishMavenJavaPublicationToMavenLocal
+:publishToMavenLocal
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

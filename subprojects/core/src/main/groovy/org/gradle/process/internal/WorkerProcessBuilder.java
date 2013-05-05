@@ -30,18 +30,16 @@ import java.util.Set;
 /**
  * <p>A builder which configures and creates a {@link WorkerProcess} instance.</p>
  *
- * <p>A worker process is specified using an {@link Action}. The given action instance is serialized across into the
- * worker process and executed.</p>
+ * <p>A worker process is specified using an {@link Action}. The given action instance is serialized across into the worker process and executed.</p>
  *
- * <p>A worker process can optionally specify an application classpath. The classes of this classpath are loaded into an
- * isolated ClassLoader, which is made visible to the worker action ClassLoader. Only the packages specified in the set
- * of shared packages are visible to the worker action ClassLoader.</p>
+ * <p>A worker process can optionally specify an application classpath. The classes of this classpath are loaded into an isolated ClassLoader, which is made visible to the worker action ClassLoader.
+ * Only the packages specified in the set of shared packages are visible to the worker action ClassLoader.</p>
  */
 public abstract class WorkerProcessBuilder {
     private final JavaExecHandleBuilder javaCommand;
     private final Set<String> packages = new HashSet<String>();
     private final Set<File> applicationClasspath = new LinkedHashSet<File>();
-    private Action<WorkerProcessContext> action;
+    private Action<? super WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private boolean loadApplicationInSystemClassLoader;
 
@@ -72,12 +70,12 @@ public abstract class WorkerProcessBuilder {
         return packages;
     }
 
-    public WorkerProcessBuilder worker(Action<WorkerProcessContext> action) {
+    public WorkerProcessBuilder worker(Action<? super WorkerProcessContext> action) {
         this.action = action;
         return this;
     }
 
-    public Action<WorkerProcessContext> getWorker() {
+    public Action<? super WorkerProcessContext> getWorker() {
         return action;
     }
 

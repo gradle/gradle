@@ -38,7 +38,7 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
     def "logs necessary information when verbose"() {
         toolingApi.verboseLogging = true
 
-        dist.file("build.gradle") << """
+        file("build.gradle") << """
 System.err.println "sys err logging xxx"
 
 println "println logging yyy"
@@ -50,18 +50,11 @@ project.logger.quiet("quiet logging yyy");
 project.logger.info ("info logging yyy");
 project.logger.debug("debug logging yyy");
 """
-        def output = new ByteArrayOutputStream()
-        def error = new ByteArrayOutputStream()
         when:
-        withConnection {
-            it.newBuild()
-                .setStandardOutput(output)
-                .setStandardError(error)
-                .run()
-        }
+        def op = withBuild()
 
         then:
-        def out = output.toString()
+        def out = op.standardOutput
         out.count("debug logging yyy") == 1
         out.count("info logging yyy") == 1
         out.count("quiet logging yyy") == 1
@@ -72,7 +65,7 @@ project.logger.debug("debug logging yyy");
 
         shouldNotContainProviderLogging(out)
 
-        def err = error.toString()
+        def err = op.standardError
         err.count("error logging") == 1
         err.toString().count("sys err") == 1
         err.toString().count("logging yyy") == 0
@@ -83,7 +76,7 @@ project.logger.debug("debug logging yyy");
     def "logs necessary information"() {
         toolingApi.verboseLogging = false
 
-        dist.file("build.gradle") << """
+        file("build.gradle") << """
 System.err.println "sys err logging xxx"
 
 println "println logging yyy"
@@ -95,18 +88,11 @@ project.logger.quiet("quiet logging yyy");
 project.logger.info ("info logging yyy");
 project.logger.debug("debug logging yyy");
 """
-        def output = new ByteArrayOutputStream()
-        def error = new ByteArrayOutputStream()
         when:
-        withConnection {
-            it.newBuild()
-                    .setStandardOutput(output)
-                    .setStandardError(error)
-                    .run()
-        }
+        def op = withBuild()
 
         then:
-        def out = output.toString()
+        def out = op.standardOutput
         out.count("debug logging yyy") == 0
         out.count("info logging yyy") == 0
         out.count("quiet logging yyy") == 1
@@ -117,7 +103,7 @@ project.logger.debug("debug logging yyy");
 
         shouldNotContainProviderLogging(out)
 
-        def err = error.toString()
+        def err = op.standardError
         err.count("error logging") == 1
         err.count("sys err") == 1
         err.count("logging yyy") == 0

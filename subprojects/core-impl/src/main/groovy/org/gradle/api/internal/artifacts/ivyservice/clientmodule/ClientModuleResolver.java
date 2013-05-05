@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,59 +18,32 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor;
 
 /**
  * @author Hans Dockter
  */
-public class ClientModuleResolver implements DependencyToModuleResolver {
-    private final DependencyToModuleResolver resolver;
+public class ClientModuleResolver implements DependencyToModuleVersionResolver {
+    private final DependencyToModuleVersionResolver resolver;
 
-    public ClientModuleResolver(DependencyToModuleResolver resolver) {
+    public ClientModuleResolver(DependencyToModuleVersionResolver resolver) {
         this.resolver = resolver;
     }
 
-    public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
-        final ModuleVersionResolveResult resolveResult = resolver.resolve(dependencyDescriptor);
+    public void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result) {
+        resolver.resolve(dependency, result);
 
-        if (resolveResult.getFailure() != null || !(dependencyDescriptor instanceof ClientModuleDependencyDescriptor)) {
-            return resolveResult;
+        DependencyDescriptor descriptor = dependency.getDescriptor();
+        if (result.getFailure() != null || !(descriptor instanceof ClientModuleDependencyDescriptor)) {
+            return;
         }
 
-        ClientModuleDependencyDescriptor clientModuleDependencyDescriptor = (ClientModuleDependencyDescriptor) dependencyDescriptor;
+        ClientModuleDependencyDescriptor clientModuleDependencyDescriptor = (ClientModuleDependencyDescriptor) descriptor;
         ModuleDescriptor moduleDescriptor = clientModuleDependencyDescriptor.getTargetModule();
 
-        return new ClientModuleResolveResult(resolveResult, moduleDescriptor);
-    }
-
-    private static class ClientModuleResolveResult implements ModuleVersionResolveResult {
-        private final ModuleVersionResolveResult resolveResult;
-        private final ModuleDescriptor moduleDescriptor;
-
-        public ClientModuleResolveResult(ModuleVersionResolveResult resolveResult, ModuleDescriptor moduleDescriptor) {
-            this.resolveResult = resolveResult;
-            this.moduleDescriptor = moduleDescriptor;
-        }
-
-        public ModuleVersionResolveException getFailure() {
-            return null;
-        }
-
-        public ModuleRevisionId getId() throws ModuleVersionResolveException {
-            return moduleDescriptor.getModuleRevisionId();
-        }
-
-        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-            return moduleDescriptor;
-        }
-
-        public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
-            return resolveResult.getArtifactResolver();
-        }
+        result.setMetaData(moduleDescriptor);
     }
 }

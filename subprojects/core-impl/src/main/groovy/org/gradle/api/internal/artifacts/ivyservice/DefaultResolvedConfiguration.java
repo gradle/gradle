@@ -40,7 +40,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
         return configuration;
     }
 
-    public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
+    public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
         return configuration.getFilesStrict(dependencySpec);
     }

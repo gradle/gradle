@@ -15,23 +15,21 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import java.util.Map;
-import java.util.HashMap;
-
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.FileResource;
 import org.gradle.api.internal.file.MaybeCompressedFileResource;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.Resources;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static java.util.Collections.EMPTY_LIST;
-import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
-import static org.gradle.api.file.FileVisitorUtil.assertVisits;
-import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
+import static org.gradle.api.file.FileVisitorUtil.*;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.containsString;
@@ -40,11 +38,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class TarFileTreeTest {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     @Rule public final Resources resources = new Resources();
-    private final TestFile tarFile = tmpDir.getDir().file("test.tar");
-    private final TestFile rootDir = tmpDir.getDir().file("root");
-    private final TestFile expandDir = tmpDir.getDir().file("tmp");
+    private final TestFile tarFile = tmpDir.getTestDirectory().file("test.tar");
+    private final TestFile rootDir = tmpDir.getTestDirectory().file("root");
+    private final TestFile expandDir = tmpDir.getTestDirectory().file("tmp");
     private final TarFileTree tree = new TarFileTree(new MaybeCompressedFileResource(new FileResource(tarFile)), expandDir);
 
     @Test
@@ -64,7 +62,7 @@ public class TarFileTreeTest {
 
     @Test
     public void readsGzippedTarFile() {
-        TestFile tgz = tmpDir.getDir().file("test.tgz");
+        TestFile tgz = tmpDir.getTestDirectory().file("test.tgz");
 
         rootDir.file("subdir/file1.txt").write("content");
         rootDir.file("subdir2/file2.txt").write("content");
@@ -78,7 +76,7 @@ public class TarFileTreeTest {
 
     @Test
     public void readsBzippedTarFile() {
-        TestFile tbz2 = tmpDir.getDir().file("test.tbz2");
+        TestFile tbz2 = tmpDir.getTestDirectory().file("test.tbz2");
 
         rootDir.file("subdir/file1.txt").write("content");
         rootDir.file("subdir2/file2.txt").write("content");

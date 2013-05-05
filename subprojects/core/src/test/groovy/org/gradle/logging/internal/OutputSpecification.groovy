@@ -70,6 +70,6 @@ class OutputSpecification extends Specification {
     }
 
     ProgressCompleteEvent complete(String status) {
-        return new ProgressCompleteEvent(tenAm, 'category', status)
+        return new ProgressCompleteEvent(tenAm, 'category', 'description', status)
     }
 }

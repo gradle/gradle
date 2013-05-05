@@ -84,9 +84,11 @@
         <module name="ConstantName"/>
         <module name="LocalFinalVariableName"/>
         <module name="LocalVariableName"/>
-        <module name="MemberName"/>
+        <module name="MemberName">
+            <property name="format" value="^[a-z_][a-zA-Z0-9_]*$"/>
+        </module>
         <module name="MethodName">
-            <property name="format" value="^[a-z][a-zA-Z0-9_]*$"/>
+            <property name="format" value="^[a-z_][a-zA-Z0-9_]*$"/>
         </module>
         <module name="MethodTypeParameterName"/>
         <module name="PackageName">
@@ -104,7 +106,10 @@
     </module>
     <module name="FileTabCharacter"/>
     <module name="RegexpSingleline">
-        <property name="format" value="To change body of implemented methods use File \| Settings \| File Templates"/>
+        <property name="format" value="File \| Settings \| File Templates"/>
+    </module>
+    <module name="RegexpSingleline">
+        <property name="format" value="Created with IntelliJ IDEA"/>
     </module>
 
     <!-- allows suppressing using the //CHECKSTYLE:ON //CHECKSTYLE:OFF -->

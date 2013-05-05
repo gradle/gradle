@@ -23,15 +23,15 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import javax.inject.Inject;
@@ -44,23 +44,25 @@ import java.util.concurrent.Callable;
  *
  * @author David Gileadi, Hans Dockter
  */
-public class EarPlugin implements Plugin<ProjectInternal> {
+public class EarPlugin implements Plugin<Project> {
 
     public static final String EAR_TASK_NAME = "ear";
 
     public static final String DEPLOY_CONFIGURATION_NAME = "deploy";
     public static final String EARLIB_CONFIGURATION_NAME = "earlib";
     private final Instantiator instantiator;
+    private final FileResolver fileResolver;
 
     @Inject
-    public EarPlugin(Instantiator instantiator) {
+    public EarPlugin(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
+        this.fileResolver = fileResolver;
     }
 
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPlugins().apply(BasePlugin.class);
 
-        final EarPluginConvention earPluginConvention = instantiator.newInstance(EarPluginConvention.class, project.getFileResolver());
+        final EarPluginConvention earPluginConvention = instantiator.newInstance(EarPluginConvention.class, fileResolver);
         project.getConvention().getPlugins().put("ear", earPluginConvention);
         earPluginConvention.setLibDirName("lib");
         earPluginConvention.setAppDirName("src/main/application");
@@ -76,7 +78,7 @@ public class EarPlugin implements Plugin<ProjectInternal> {
         configureWithNoJavaPluginApplied(project, earPluginConvention);
     }
 
-    private void configureWithNoJavaPluginApplied(final ProjectInternal project, final EarPluginConvention earPluginConvention) {
+    private void configureWithNoJavaPluginApplied(final Project project, final EarPluginConvention earPluginConvention) {
         project.getTasks().withType(Ear.class, new Action<Ear>() {
             public void execute(final Ear task) {
                 task.from(new Callable<FileCollection>() {
@@ -92,7 +94,7 @@ public class EarPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureWithJavaPluginApplied(final ProjectInternal project, final EarPluginConvention earPluginConvention, PluginContainer plugins) {
+    private void configureWithJavaPluginApplied(final Project project, final EarPluginConvention earPluginConvention, PluginContainer plugins) {
         plugins.withType(JavaPlugin.class, new Action<JavaPlugin>() {
             public void execute(JavaPlugin javaPlugin) {
                 final JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
@@ -123,7 +125,7 @@ public class EarPlugin implements Plugin<ProjectInternal> {
     }
 
     private void setupEarTask(final Project project, EarPluginConvention convention) {
-        Ear ear = project.getTasks().add(EAR_TASK_NAME, Ear.class);
+        Ear ear = project.getTasks().create(EAR_TASK_NAME, Ear.class);
         ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
         DeploymentDescriptor deploymentDescriptor = convention.getDeploymentDescriptor();
         if (deploymentDescriptor != null) {
@@ -170,9 +172,9 @@ public class EarPlugin implements Plugin<ProjectInternal> {
     private void configureConfigurations(final Project project) {
 
         ConfigurationContainer configurations = project.getConfigurations();
-        Configuration moduleConfiguration = configurations.add(DEPLOY_CONFIGURATION_NAME).setVisible(false)
+        Configuration moduleConfiguration = configurations.create(DEPLOY_CONFIGURATION_NAME).setVisible(false)
                 .setTransitive(false).setDescription("Classpath for deployable modules, not transitive.");
-        Configuration earlibConfiguration = configurations.add(EARLIB_CONFIGURATION_NAME).setVisible(false)
+        Configuration earlibConfiguration = configurations.create(EARLIB_CONFIGURATION_NAME).setVisible(false)
                 .setDescription("Classpath for module dependencies.");
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION)

@@ -19,12 +19,10 @@ package org.gradle.integtests.tooling.m5
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.util.TestFile
 import spock.lang.Issue
 
 @MinTargetGradleVersion('1.0-milestone-5')
 class EclipseModelWithFlatRepoCrossVersionSpec extends ToolingApiSpecification {
-    TestFile projectDir = dist.testDir
 
     @Issue("GRADLE-1621")
     def "can get Eclipse model for project with flatDir repo and external dependency without source Jar"() {

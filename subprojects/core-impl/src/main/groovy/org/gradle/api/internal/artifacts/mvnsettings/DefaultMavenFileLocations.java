@@ -38,7 +38,7 @@ public class DefaultMavenFileLocations implements MavenFileLocations {
             if(m2Home==null){
                 return null;
             }
-            DeprecationLogger.nagUserWith("Found defined M2_HOME system property. Handling M2_HOME system property is deprecated in Gradle and will be removed in the next version of Gradle. Please use the M2_HOME environment variable instead.");
+            DeprecationLogger.nagUserOfDeprecated("Found defined M2_HOME system property. Handling M2_HOME system property", "Please use the M2_HOME environment variable instead");
         }
         return new File(m2Home);
     }

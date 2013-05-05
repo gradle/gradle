@@ -36,7 +36,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         extension = project.extensions.create("checkstyle", CheckstyleExtension)
 
         extension.with {
-            toolVersion = "5.5"
+            toolVersion = "5.6"
             configFile = project.file("config/checkstyle/checkstyle.xml")
         }
 
@@ -58,6 +58,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             configFile = { extension.configFile }
             configProperties = { extension.configProperties }
             ignoreFailures = { extension.ignoreFailures }
+            showViolations = { extension.showViolations }
         }
 
         task.reports.xml.conventionMapping.with {

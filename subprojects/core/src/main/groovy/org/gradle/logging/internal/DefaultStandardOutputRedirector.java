@@ -29,8 +29,8 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
     private PrintStream originalStdErr;
     private final WriteAction stdOut = new WriteAction();
     private final WriteAction stdErr = new WriteAction();
-    private final PrintStream redirectedStdOut = new LinePerThreadBufferingOutputStream(stdOut, true);
-    private final PrintStream redirectedStdErr = new LinePerThreadBufferingOutputStream(stdErr, true);
+    private final PrintStream redirectedStdOut = new LinePerThreadBufferingOutputStream(stdOut);
+    private final PrintStream redirectedStdErr = new LinePerThreadBufferingOutputStream(stdErr);
 
     public void redirectStandardOutputTo(StandardOutputListener stdOutDestination) {
         stdOut.setDestination(stdOutDestination);

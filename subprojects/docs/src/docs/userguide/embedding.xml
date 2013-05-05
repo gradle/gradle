@@ -16,7 +16,7 @@
 <chapter id="embedding">
     <title>Embedding Gradle</title>
 
-    <section id='sec:Introduction'>
+    <section id='sec:embedding_introduction'>
         <title>Introduction to the Tooling API</title>
         <para>The 1.0 milestone 3 release brought a new API called the tooling API,
             which you can use for embedding Gradle. This API allows you to execute and monitor builds,
@@ -77,7 +77,7 @@
         </para>
     </section>
 
-    <section id='sec:Daemon'>
+    <section id='sec:embedding_daemon'>
         <title>Tooling API and the Gradle Build Daemon</title>
         <para>Please take a look at <xref linkend="gradle_daemon"/>.
             The Tooling API uses the daemon all the time, e.g. you cannot officially use the Tooling API without the daemon.
@@ -87,7 +87,7 @@
         </para>
     </section>
 
-    <section id='sec:Quickstart'>
+    <section id='sec:embedding_quickstart'>
         <title>Quickstart</title>
         <para>Since the tooling API is an interface for a programmer most of the documentation lives in the Javadoc.
             This is exactly our intention - we don't expect this chapter to grow very much.

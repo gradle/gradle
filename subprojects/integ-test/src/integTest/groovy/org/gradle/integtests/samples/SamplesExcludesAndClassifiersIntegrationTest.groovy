@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 import static org.junit.Assert.assertThat
@@ -28,10 +28,9 @@ import static org.junit.Assert.assertThat
 /**
  * @author Hans Dockter
  */
-class SamplesExcludesAndClassifiersIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('userguide/artifacts/excludesAndClassifiers')
+class SamplesExcludesAndClassifiersIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'userguide/artifacts/excludesAndClassifiers')
 
     @Test
     public void checkExcludeAndClassifier() {

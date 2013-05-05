@@ -35,6 +35,11 @@ class ApplicationPluginConvention {
     String mainClassName
 
     /**
+     * Array of string arguments to pass to the JVM when running the application
+     */
+    Iterable<String> applicationDefaultJvmArgs = []
+
+    /**
      * <p>The specification of the contents of the distribution.</p>
      * <p>
      * Use this {@link org.gradle.api.file.CopySpec} to include extra files/resource in the application distribution.

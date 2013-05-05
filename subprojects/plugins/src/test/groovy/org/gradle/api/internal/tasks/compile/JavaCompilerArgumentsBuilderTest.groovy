@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -22,6 +23,10 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection
 class JavaCompilerArgumentsBuilderTest extends Specification {
     def spec = new DefaultJavaCompileSpec()
     def builder = new JavaCompilerArgumentsBuilder(spec)
+
+    def setup() {
+        spec.compileOptions = new CompileOptions()
+    }
 
     def "generates options for an unconfigured spec"() {
         expect:
@@ -184,6 +189,33 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
         expect:
         builder.build() == ["-source", "1.4", "-g"]
+    }
+
+    def "can include/exclude classpath"() {
+        def file1 = new File("/lib/lib1.jar")
+        def file2 = new File("/lib/lib2.jar")
+        spec.classpath = [file1, file2]
+
+        when:
+        builder.includeClasspath(true)
+
+        then:
+        builder.build() == ["-g", "-classpath", "$file1$File.pathSeparator$file2"]
+
+        when:
+        builder.includeClasspath(false)
+
+        then:
+        builder.build() == ["-g"]
+    }
+
+    def "includes classpath by default"() {
+        def file1 = new File("/lib/lib1.jar")
+        def file2 = new File("/lib/lib2.jar")
+        spec.classpath = [file1, file2]
+
+        expect:
+        builder.build() == ["-g", "-classpath", "$file1$File.pathSeparator$file2"]
     }
 
     def "can include/exclude launcher options"() {

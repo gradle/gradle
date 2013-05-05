@@ -15,11 +15,16 @@
  */
 package org.gradle.listener;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 
 public class ActionBroadcast<T> implements Action<T> {
     private final ListenerBroadcast<Action> broadcast = new ListenerBroadcast<Action>(Action.class);
+
+    public ActionBroadcast() {}
+
+    public ActionBroadcast(Iterable<Action> actions) {
+        broadcast.addAll(actions);
+    }
 
     public void execute(T t) {
         broadcast.getSource().execute(t);
@@ -29,7 +34,4 @@ public class ActionBroadcast<T> implements Action<T> {
         broadcast.add(action);
     }
 
-    public void add(Closure action) {
-        broadcast.add("execute", action);
-    }
 }

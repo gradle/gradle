@@ -16,31 +16,51 @@
 
 package org.gradle
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.PreconditionVerifier
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Shared
-import spock.lang.Specification
+
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
-class DistributionIntegrationSpec extends Specification {
+abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
     @Shared String version = GradleVersion.current().version
 
-    protected TestFile unpackDistribution(type) {
-        TestFile srcZip = dist.distributionsDir.file("gradle-$version-${type}.zip")
-        srcZip.usingNativeTools().unzipTo(dist.testDir)
-        TestFile contentsDir = dist.testDir.file("gradle-$version")
+    abstract String getDistributionLabel()
+
+    def "no duplicate entries"() {
+        given:
+        ZipFile zipFile = new ZipFile(zip)
+
+        when:
+        def entries = zipFile.entries().toList()
+        def entriesByPath = entries.groupBy { ZipEntry zipEntry -> zipEntry.name }
+        def dupes = entriesByPath.findAll { it.value.size() > 1 && !it.key.contains('/META-INF/services/') }
+        def dupesWithCount = dupes.collectEntries { [it.key, it.value.size()]}
+
+        then:
+        dupesWithCount.isEmpty()
+    }
+
+    protected TestFile unpackDistribution(type = getDistributionLabel()) {
+        TestFile zip = getZip(type)
+        zip.usingNativeTools().unzipTo(testDirectory)
+        TestFile contentsDir = file("gradle-$version")
         contentsDir
+    }
+
+    protected TestFile getZip(String type = getDistributionLabel()) {
+        new IntegrationTestBuildContext().distributionsDir.file("gradle-$version-${type}.zip")
     }
 
     protected void checkMinimalContents(TestFile contentsDir) {
@@ -56,10 +76,12 @@ class DistributionIntegrationSpec extends Specification {
 
         // Core libs
         def coreLibs = contentsDir.file("lib").listFiles().findAll { it.name.startsWith("gradle-") }
-        assert coreLibs.size() == 10
+        assert coreLibs.size() == 12
         coreLibs.each { assertIsGradleJar(it) }
-        def wrapperJar = contentsDir.file("lib/gradle-wrapper-${version}.jar")
-        assert wrapperJar.length() < 20 * 1024; // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
+
+        def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${version}.jar")
+        toolingApiJar.assertIsFile()
+        assert toolingApiJar.length() < 200 * 1024; // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-core-impl-${version}.jar"))

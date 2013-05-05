@@ -1,5 +1,5 @@
 dependencies {
-    groovy libraries.groovy
+    testCompile libraries.groovy
 
     integTestCompile libraries.slf4j_api
     integTestCompile libraries.commons_lang
@@ -12,12 +12,4 @@ integTestTasks.all {
     if (isWindows && systemProperties['org.gradle.integtest.executer'] == "embedded") {
         systemProperties['org.gradle.integtest.executer'] =  "forking"
     }
-}
-
-eclipse {
-        classpath {
-            file.whenMerged { classpath ->
-                classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-            }
-        }
 }

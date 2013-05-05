@@ -17,19 +17,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.plugins.parser.ParserSettings;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.apache.ivy.plugins.repository.Resource;
 
 import java.io.IOException;
 import java.net.URL;
 import java.text.ParseException;
 
-public class DownloadedIvyModuleDescriptorParser extends XmlModuleDescriptorParser {
+public class DownloadedIvyModuleDescriptorParser extends IvyXmlModuleDescriptorParser {
     @Override
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL xmlURL, Resource res, boolean validate) throws ParseException, IOException {
-        DefaultModuleDescriptor descriptor = (DefaultModuleDescriptor) super.parseDescriptor(ivySettings, xmlURL, res, validate);
+    public DefaultModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL xmlURL, Resource res, boolean validate) throws ParseException, IOException {
+        DefaultModuleDescriptor descriptor = super.parseDescriptor(ivySettings, xmlURL, res, validate);
         descriptor.setDefault(false);
         return descriptor;
     }

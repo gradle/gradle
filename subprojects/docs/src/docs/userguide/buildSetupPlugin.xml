@@ -1,0 +1,180 @@
+<!--
+  ~ Copyright 2012 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id='build_setup_plugin'>
+    <title>Build Setup Plugin</title>
+
+    <note>
+        <para>
+            The build setup plugin is currently<link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+        </para>
+    </note>
+
+    <para>The Gradle build setup plugin prepares the current project for Gradle.
+        Typically it will create the relevant build.gradle, settings.gradle files.
+        If a
+        <filename>pom.xml</filename>
+        file is found in the project directory the Maven build is
+        converted to a Gradle build. At the moment only the conversion from Maven 3 is supported.
+    </para>
+    <para>
+        The plugin is currently <link linkend="feature_lifecycle">incubating</link>
+        which means it is already useful but not everything might work perfectly.
+        The API, plugin and task names may change before the final release.
+        Please let us know your feedback or report any issues.
+    </para>
+    <para>
+        This plugin provides a lifecycle task named<literal>setupBuild</literal>.
+        If a Gradle build with the task name <literal>setupBuild</literal> is triggered in a directory
+        without an existing build file in the project directory, the build setup plugin is auto applied.
+        This means that you can setup a Gradle project build without needing a stub build.gradle file declaring
+        the build-setup plugin.
+
+        If a pom.xml file is found in the project directory the <literal>setupBuild</literal> task triggers the maven2Gradle
+        conversion to create gradle build scripts from the information gathered from the pom file.
+
+        Furthermore the <literal>setupBuild</literal> task adds a dependency to the <literal>wrapper</literal>
+        task which is implicitly added by the<xref linkend='wrapper_plugin'/>.
+    </para>
+    <section>
+        <title>Tasks</title>
+        <para>The build-setup plugin adds the following tasks to the project:</para>
+        <table>
+            <title>Build Setup plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>buildSetup</literal>
+                </td>
+                <td>
+                    <literal>wrapper</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.buildsetup.tasks.SetupBuild"/>
+                </td>
+                <td>Generates a Gradle project.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>wrapper</literal>
+                </td>
+                <td>-</td>
+                <td>
+                    <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/>
+                </td>
+                <td>Generates Gradle wrapper files.
+                </td>
+            </tr>
+        </table>
+
+        <section>
+            <title>Generate specific project types</title>
+            <para>
+                The build-setup plugin allows the generation of specific project types by passing the type via <literal>--type</literal>
+                command-line option. For example generating a java library project you can run <code>gradle buildSetup --type java-library</code>
+                in an empty directory. When passing a <literal>--type</literal> parameter to the <literal>buildSetup</literal>
+                task, any pom file will be ignored for automatic conversion.
+            </para>
+
+            <section>
+                <title>Empty Gradle Project</title>
+                <para>The
+                    build setup type with id <literal>empty</literal> is the default type, when executing
+                    <literal>buildSetup</literal> in a directory with no existing gradle files and no existing pom file.
+                    This build setup type generates
+                    <itemizedlist>
+                        <listitem>a sample  <literal>build.gradle</literal> with comments and links to get started.
+                        </listitem>
+                    </itemizedlist>
+                </para>
+            </section>
+            <section>
+                <title>Maven conversion</title>
+                <para>The
+                    build setup type with id <literal>pom</literal> is the default type, when executing
+                    <literal>buildSetup</literal> in a directory with an existing pom file.
+                    This build setup type triggers the <literal>maven2Gradle</literal> conversion.
+                </para>
+                <para>
+                    The convertion of a pom to gradle build scripts works by obtaining the effective POM of the current project
+                    by executing Maven internally. Then it reads the dependencies and other information
+                    to generate build.gradle scripts. This task is inspired by the
+                    <ulink url="https://github.com/jbaruch/maven2gradle">maven2gradle tool</ulink>
+                    founded and maintained by recognized leaders of Gradle community;
+                    created by Baruch Sadogursky with contributions from Antony Stubbs, Matthew McCullough and others.
+                </para>
+            </section>
+            <section>
+                <title>Maven conversion - features</title>
+                <itemizedlist>
+                    <listitem>Uses effective POM and effective settings
+                        (support for POM inheritance, dependency management, properties)
+                    </listitem>
+                    <listitem>Supports both single module and multimodule projects.
+                        Generates settings.gradle for multimodule projects (*).
+                    </listitem>
+                    <listitem>Supports custom module names (that differ from directory names)</listitem>
+                    <listitem>Generates general metadata - id, description and version</listitem>
+                    <listitem>Applies maven, java and war plugins (as needed)</listitem>
+                    <listitem>Supports packaging war projects as jars if needed</listitem>
+                    <listitem>Generates dependencies (both external and inter-module)</listitem>
+                    <listitem>Generates download repositories (inc. local Maven repository)</listitem>
+                    <listitem>Adjusts java compiler settings</listitem>
+                    <listitem>Supports packaging of sources and tests</listitem>
+                    <listitem>Supports testng runner</listitem>
+                    <listitem>Generates global exclusions from Maven enforcer plugin settings</listitem>
+                </itemizedlist>
+
+                <para>
+                    (*) - Note: Your project will be considered multi-module
+                    only if your reactor is also a parent of at least one of your modules.
+                    Why so? Reactor project is built last, when Parent project is built first.
+                    The reactor has to be built first, because effective-pom Mojo generates needed output
+                    only if it finds modules in first project it encounters.
+                    Making reactor also a parent achieves this.
+                </para>
+
+                <para>To convert a Maven project follow the steps:</para>
+                <itemizedlist>
+                    <listitem>Make sure your Maven project builds and uses maven3.</listitem>
+                    <listitem>Make sure no <literal>build.gradle</literal>  file is available in your your Maven project folder.
+                    </listitem>
+                    <listitem>Run <code>gradle setupBuild</code> in your project directory.
+                        You should see that the maven 2 gradle conversion is executed in the<literal>setupBuild</literal>.
+                    </listitem>
+                </itemizedlist>
+            </section>
+        </section>
+        <section>
+            <title>Java Library</title>
+            <para>The build setup type with id <literal>java-library</literal> generates build setup type generates
+                <itemizedlist>
+                    <listitem>a <literal>build.gradle</literal> file that that applies the Java plugin, adds mavenCentral()
+                        and the dependencies to allow testing with JUnit.
+                    </listitem>
+                    <listitem>the appropriate source directories, if they do not exist.</listitem>
+                    <listitem>a sample class and a unit test, if there are no existing source or test files.</listitem>
+                </itemizedlist>
+            </para>
+        </section>
+    </section>
+</chapter>

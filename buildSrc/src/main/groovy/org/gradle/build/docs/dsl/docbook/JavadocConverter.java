@@ -114,7 +114,7 @@ public class JavadocConverter {
     private DocCommentImpl parse(String rawCommentText, ClassMetaData classMetaData,
                                  CommentSource inheritedCommentSource, GenerationListener listener) {
         JavadocLexer lexer = new HtmlToXmlJavadocLexer(new BasicJavadocLexer(new JavadocScanner(rawCommentText)));
-        NodeStack nodes = new NodeStack(document);
+        DocBookBuilder nodes = new DocBookBuilder(document);
         final HtmlGeneratingTokenHandler handler = new HtmlGeneratingTokenHandler(nodes, document);
         handler.add(new HtmlElementTranslatingHandler(nodes, document));
         handler.add(new PreElementHandler(nodes, document));
@@ -122,8 +122,10 @@ public class JavadocConverter {
         handler.add(new HeaderHandler(nodes, document));
         handler.add(new LinkHandler(nodes, linkConverter, classMetaData, listener));
         handler.add(new InheritDocHandler(nodes, inheritedCommentSource));
-        handler.add(new ValueHtmlElementHandler(nodes, linkConverter, classMetaData, listener));
+        handler.add(new ValueTagHandler(nodes, linkConverter, classMetaData, listener));
+        handler.add(new LiteralTagHandler(nodes));
         handler.add(new TableHandler(nodes, document));
+        handler.add(new DlElementHandler(nodes, document));
         handler.add(new AnchorElementHandler(nodes, document, classMetaData));
         handler.add(new AToLinkTranslatingHandler(nodes, document, classMetaData));
         handler.add(new AToUlinkTranslatingHandler(nodes, document));
@@ -132,8 +134,7 @@ public class JavadocConverter {
 
         lexer.visit(handler);
 
-        nodes.complete();
-        return new DocCommentImpl(nodes.nodes);
+        return new DocCommentImpl(nodes.getElements());
     }
 
     private static class DocCommentImpl implements DocComment {
@@ -148,121 +149,8 @@ public class JavadocConverter {
         }
     }
 
-    private static class NodeStack {
-        final Set<String> blockElements = new HashSet<String>();
-        final List<Element> nodes = new ArrayList<Element>();
-        final LinkedList<Element> stack = new LinkedList<Element>();
-        final LinkedList<String> tags = new LinkedList<String>();
-        final Document document;
-
-        private NodeStack(Document document) {
-            this.document = document;
-            blockElements.add("para");
-            blockElements.add("section");
-            blockElements.add("title");
-            blockElements.add("programlisting");
-            blockElements.add("itemizedlist");
-            blockElements.add("orderedlist");
-            blockElements.add("listitem");
-            blockElements.add("table");
-            blockElements.add("tr");
-            blockElements.add("td");
-            blockElements.add("thead");
-        }
-
-        public void appendChild(String text) {
-            if (stack.isEmpty() && text.trim().length() == 0) {
-                return;
-            }
-            appendChild(document.createTextNode(text));
-        }
-
-        public void appendChild(Node node) {
-            boolean blockElement = node instanceof Element && blockElements.contains(node.getNodeName());
-            boolean inlineNode = !blockElement && !(node instanceof Element && node.getNodeName().equals("anchor"));
-            if (blockElement) {
-                endCurrentPara();
-            }
-            if (stack.isEmpty()) {
-                if (!inlineNode) {
-                    appendToResult((Element) node);
-                } else {
-                    Element wrapper = document.createElement("para");
-                    wrapper.appendChild(node);
-                    stack.addFirst(wrapper);
-                    tags.addFirst("");
-                }
-            } else {
-                stack.getFirst().appendChild(node);
-            }
-        }
-
-        public void push(String tag, Element element) {
-            boolean blockElement = blockElements.contains(element.getNodeName());
-            if (blockElement) {
-                endCurrentPara();
-            }
-            if (stack.isEmpty()) {
-                if (blockElement) {
-                    stack.addFirst(element);
-                    tags.addFirst(tag);
-                } else {
-                    Element wrapper = document.createElement("para");
-                    wrapper.appendChild(element);
-                    stack.addFirst(wrapper);
-                    tags.addFirst("");
-                    stack.addFirst(element);
-                    tags.addFirst(tag);
-                }
-            } else {
-                stack.getFirst().appendChild(element);
-                stack.addFirst(element);
-                tags.addFirst(tag);
-            }
-        }
-
-        public Element pop(String tag) {
-            Element element = null;
-            if (!tags.isEmpty() && tags.getFirst().equals(tag)) {
-                element = stack.removeFirst();
-                tags.removeFirst();
-                if (stack.isEmpty()) {
-                    appendToResult(element);
-                }
-            }
-            return element;
-        }
-
-        private void endCurrentPara() {
-            if (stack.isEmpty() || !stack.getFirst().getNodeName().equals("para")) {
-                return;
-            }
-
-            Element para = stack.removeFirst();
-            tags.removeFirst();
-            if (stack.isEmpty()) {
-                appendToResult(para);
-            }
-        }
-
-        private void appendToResult(Element element) {
-            if (element.getFirstChild() == null && element.getAttributes().getLength() == 0) {
-                return;
-            }
-            nodes.add(element);
-        }
-
-        public void complete() {
-            if (!stack.isEmpty()) {
-                appendToResult(stack.getLast());
-            }
-            stack.clear();
-            tags.clear();
-        }
-    }
-
     private static class HtmlGeneratingTokenHandler extends JavadocLexer.TokenVisitor {
-        final NodeStack nodes;
+        final DocBookBuilder nodes;
         final List<HtmlElementHandler> elementHandlers = new ArrayList<HtmlElementHandler>();
         final List<JavadocTagHandler> tagHandlers = new ArrayList<JavadocTagHandler>();
         final LinkedList<HtmlElementHandler> handlerStack = new LinkedList<HtmlElementHandler>();
@@ -271,7 +159,7 @@ public class JavadocConverter {
         StringBuilder tagValue;
         final Document document;
 
-        public HtmlGeneratingTokenHandler(NodeStack nodes, Document document) {
+        public HtmlGeneratingTokenHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
         }
@@ -358,11 +246,11 @@ public class JavadocConverter {
     }
 
     private static class UnknownJavadocTagHandler implements JavadocTagHandler {
-        private final NodeStack nodes;
+        private final DocBookBuilder nodes;
         private final Document document;
         private final GenerationListener listener;
 
-        private UnknownJavadocTagHandler(NodeStack nodes, Document document, GenerationListener listener) {
+        private UnknownJavadocTagHandler(DocBookBuilder nodes, Document document, GenerationListener listener) {
             this.nodes = nodes;
             this.document = document;
             this.listener = listener;
@@ -378,11 +266,11 @@ public class JavadocConverter {
     }
 
     private static class UnknownHtmlElementHandler implements HtmlElementHandler {
-        private final NodeStack nodes;
+        private final DocBookBuilder nodes;
         private final Document document;
         private final GenerationListener listener;
 
-        private UnknownHtmlElementHandler(NodeStack nodes, Document document, GenerationListener listener) {
+        private UnknownHtmlElementHandler(DocBookBuilder nodes, Document document, GenerationListener listener) {
             this.nodes = nodes;
             this.document = document;
             this.listener = listener;
@@ -392,7 +280,7 @@ public class JavadocConverter {
             listener.warning(String.format("Unsupported HTML element <%s>", elementName));
             Element element = document.createElement("UNHANDLED-ELEMENT");
             element.appendChild(document.createTextNode(String.format("<%s>", elementName)));
-            nodes.push(elementName, element);
+            nodes.push(element);
             return true;
         }
 
@@ -402,16 +290,16 @@ public class JavadocConverter {
 
         public void onEndElement(String elementName) {
             nodes.appendChild(String.format("</%s>", elementName));
-            nodes.pop(elementName);
+            nodes.pop();
         }
     }
 
     private static class JavadocTagToElementTranslatingHandler implements JavadocTagHandler {
-        private final NodeStack nodes;
+        private final DocBookBuilder nodes;
         private final Document document;
         private final Map<String, String> tagToElementMap = new HashMap<String, String>();
 
-        private JavadocTagToElementTranslatingHandler(NodeStack nodes, Document document) {
+        private JavadocTagToElementTranslatingHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
             tagToElementMap.put("code", "literal");
@@ -430,11 +318,11 @@ public class JavadocConverter {
     }
 
     private static class HtmlElementTranslatingHandler implements HtmlElementHandler {
-        private final NodeStack nodes;
+        private final DocBookBuilder nodes;
         private final Document document;
         private final Map<String, String> elementToElementMap = new HashMap<String, String>();
 
-        private HtmlElementTranslatingHandler(NodeStack nodes, Document document) {
+        private HtmlElementTranslatingHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
             elementToElementMap.put("p", "para");
@@ -453,7 +341,7 @@ public class JavadocConverter {
             if (newElementName == null) {
                 return false;
             }
-            nodes.push(element, document.createElement(newElementName));
+            nodes.push(document.createElement(newElementName));
             return true;
         }
 
@@ -462,15 +350,15 @@ public class JavadocConverter {
         }
 
         public void onEndElement(String element) {
-            nodes.pop(element);
+            nodes.pop();
         }
     }
 
     private static class PreElementHandler implements HtmlElementHandler {
-        private final NodeStack nodes;
+        private final DocBookBuilder nodes;
         private final Document document;
 
-        private PreElementHandler(NodeStack nodes, Document document) {
+        private PreElementHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
         }
@@ -484,7 +372,7 @@ public class JavadocConverter {
             //this should mostly be true :)
             //if it isn't true then the syntax highlighting won't spoil the view too much anyway
             newElement.setAttribute("language", "java");
-            nodes.push(element, newElement);
+            nodes.push(newElement);
             return true;
         }
 
@@ -493,16 +381,16 @@ public class JavadocConverter {
         }
 
         public void onEndElement(String element) {
-            nodes.pop(element);
+            nodes.pop();
         }
     }
 
     private static class HeaderHandler implements HtmlElementHandler {
-        final NodeStack nodes;
+        final DocBookBuilder nodes;
         final Document document;
         int sectionDepth;
 
-        private HeaderHandler(NodeStack nodes, Document document) {
+        private HeaderHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
         }
@@ -517,15 +405,15 @@ public class JavadocConverter {
                 sectionDepth = depth - 1;
             }
             while (sectionDepth >= depth) {
-                nodes.pop("section");
+                nodes.pop();
                 sectionDepth--;
             }
             Element section = document.createElement("section");
             while (sectionDepth < depth) {
-                nodes.push("section", section);
+                nodes.push(section);
                 sectionDepth++;
             }
-            nodes.push("title", document.createElement("title"));
+            nodes.push(document.createElement("title"));
             sectionDepth = depth;
             return true;
         }
@@ -535,18 +423,18 @@ public class JavadocConverter {
         }
 
         public void onEndElement(String element) {
-            nodes.pop("title");
+            nodes.pop();
         }
     }
 
     private static class TableHandler implements HtmlElementHandler {
-        private final NodeStack nodes;
+        private final DocBookBuilder nodes;
         private final Document document;
         private Element currentTable;
         private Element currentRow;
         private Element header;
 
-        public TableHandler(NodeStack nodes, Document document) {
+        public TableHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
         }
@@ -557,12 +445,12 @@ public class JavadocConverter {
                     throw new UnsupportedOperationException("A table within a table is not supported.");
                 }
                 currentTable = document.createElement("table");
-                nodes.push(elementName, currentTable);
+                nodes.push(currentTable);
                 return true;
             }
             if (elementName.equals("tr")) {
                 currentRow = document.createElement("tr");
-                nodes.push(elementName, currentRow);
+                nodes.push(currentRow);
                 return true;
             }
             if (elementName.equals("th")) {
@@ -571,11 +459,11 @@ public class JavadocConverter {
                     currentTable.insertBefore(header, null);
                     header.appendChild(currentRow);
                 }
-                nodes.push(elementName, document.createElement("td"));
+                nodes.push(document.createElement("td"));
                 return true;
             }
             if (elementName.equals("td")) {
-                nodes.push(elementName, document.createElement("td"));
+                nodes.push(document.createElement("td"));
                 return true;
             }
             return false;
@@ -589,7 +477,7 @@ public class JavadocConverter {
             if (elementName.equals("tr")) {
                 currentRow = null;
             }
-            nodes.pop(elementName);
+            nodes.pop();
         }
 
         public void onText(String text) {
@@ -598,11 +486,11 @@ public class JavadocConverter {
     }
 
     private static class AnchorElementHandler implements HtmlElementHandler {
-        private final NodeStack nodes;
+        private final DocBookBuilder nodes;
         private final Document document;
         private final ClassMetaData classMetaData;
 
-        private AnchorElementHandler(NodeStack nodes, Document document, ClassMetaData classMetaData) {
+        private AnchorElementHandler(DocBookBuilder nodes, Document document, ClassMetaData classMetaData) {
             this.nodes = nodes;
             this.document = document;
             this.classMetaData = classMetaData;
@@ -627,11 +515,11 @@ public class JavadocConverter {
     }
 
     private static class AToLinkTranslatingHandler implements HtmlElementHandler {
-        private final NodeStack nodes;
+        private final DocBookBuilder nodes;
         private final Document document;
         private final ClassMetaData classMetaData;
 
-        private AToLinkTranslatingHandler(NodeStack nodes, Document document, ClassMetaData classMetaData) {
+        private AToLinkTranslatingHandler(DocBookBuilder nodes, Document document, ClassMetaData classMetaData) {
             this.nodes = nodes;
             this.document = document;
             this.classMetaData = classMetaData;
@@ -648,12 +536,12 @@ public class JavadocConverter {
             Element element = document.createElement("link");
             String targetId = String.format("%s.%s", classMetaData.getClassName(), href.substring(1));
             element.setAttribute("linkend", targetId);
-            nodes.push(elementName, element);
+            nodes.push(element);
             return true;
         }
 
         public void onEndElement(String element) {
-            nodes.pop(element);
+            nodes.pop();
         }
 
         public void onText(String text) {
@@ -662,10 +550,10 @@ public class JavadocConverter {
     }
 
     private static class AToUlinkTranslatingHandler implements HtmlElementHandler {
-        private final NodeStack nodes;
+        private final DocBookBuilder nodes;
         private final Document document;
 
-        private AToUlinkTranslatingHandler(NodeStack nodes, Document document) {
+        private AToUlinkTranslatingHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
             this.document = document;
         }
@@ -680,12 +568,12 @@ public class JavadocConverter {
             }
             Element element = document.createElement("ulink");
             element.setAttribute("url", href);
-            nodes.push(elementName, element);
+            nodes.push(element);
             return true;
         }
 
         public void onEndElement(String element) {
-            nodes.pop(element);
+            nodes.pop();
         }
 
         public void onText(String text) {
@@ -693,14 +581,76 @@ public class JavadocConverter {
         }
     }
 
-    private static class ValueHtmlElementHandler implements JavadocTagHandler {
+    private static class DlElementHandler implements HtmlElementHandler {
+        private final DocBookBuilder nodes;
+        private final Document document;
+        private Element currentList;
+        private Element currentItem;
+
+        public DlElementHandler(DocBookBuilder nodes, Document document) {
+            this.nodes = nodes;
+            this.document = document;
+        }
+
+        public boolean onStartElement(String elementName, Map<String, String> attributes) {
+            if (elementName.equals("dl")) {
+                if (currentList != null) {
+                    throw new UnsupportedOperationException("<dl> within a <dl> is not supported.");
+                }
+                currentList = document.createElement("variablelist");
+                nodes.push(currentList);
+                return true;
+            }
+            if (elementName.equals("dt")) {
+                if (currentItem != null) {
+                    nodes.pop();
+                }
+                currentItem = document.createElement("varlistentry");
+                nodes.push(currentItem);
+                nodes.push(document.createElement("term"));
+                return true;
+            }
+            if (elementName.equals("dd")) {
+                if (currentItem == null) {
+                    throw new IllegalStateException("No <dt> element preceeding <dd> element.");
+                }
+                nodes.push(document.createElement("listitem"));
+                return true;
+            }
+
+            return false;
+        }
+
+        public void onEndElement(String element) {
+            if (element.equals("dl")) {
+                currentList = null;
+                if (currentItem != null) {
+                    currentItem = null;
+                    nodes.pop();
+                }
+                nodes.pop();
+            }
+            if (element.equals("dt")) {
+                nodes.pop();
+            }
+            if (element.equals("dd")) {
+                nodes.pop();
+            }
+        }
+
+        public void onText(String text) {
+            nodes.appendChild(text);
+        }
+    }
+
+    private static class ValueTagHandler implements JavadocTagHandler {
         private final JavadocLinkConverter linkConverter;
         private final ClassMetaData classMetaData;
-        private final NodeStack nodes;
+        private final DocBookBuilder nodes;
         private final GenerationListener listener;
 
-        public ValueHtmlElementHandler(NodeStack nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
-                                       GenerationListener listener) {
+        public ValueTagHandler(DocBookBuilder nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
+                               GenerationListener listener) {
             this.nodes = nodes;
             this.linkConverter = linkConverter;
             this.classMetaData = classMetaData;
@@ -716,13 +666,29 @@ public class JavadocConverter {
         }
     }
 
+    private static class LiteralTagHandler implements JavadocTagHandler {
+        private final DocBookBuilder nodes;
+
+        private LiteralTagHandler(DocBookBuilder nodes) {
+            this.nodes = nodes;
+        }
+
+        public boolean onJavadocTag(String tag, String value) {
+            if (!tag.equals("literal")) {
+                return false;
+            }
+            nodes.appendChild(value);
+            return true;
+        }
+    }
+
     private static class LinkHandler implements JavadocTagHandler {
-        private final NodeStack nodes;
+        private final DocBookBuilder nodes;
         private final JavadocLinkConverter linkConverter;
         private final ClassMetaData classMetaData;
         private final GenerationListener listener;
 
-        private LinkHandler(NodeStack nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
+        private LinkHandler(DocBookBuilder nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
                             GenerationListener listener) {
             this.nodes = nodes;
             this.linkConverter = linkConverter;
@@ -741,9 +707,9 @@ public class JavadocConverter {
 
     private static class InheritDocHandler implements JavadocTagHandler {
         private final CommentSource source;
-        private final NodeStack nodeStack;
+        private final DocBookBuilder nodeStack;
 
-        private InheritDocHandler(NodeStack nodeStack, CommentSource source) {
+        private InheritDocHandler(DocBookBuilder nodeStack, CommentSource source) {
             this.nodeStack = nodeStack;
             this.source = source;
         }

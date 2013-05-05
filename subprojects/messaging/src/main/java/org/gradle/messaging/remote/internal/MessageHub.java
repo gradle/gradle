@@ -33,8 +33,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class MessageHub implements AsyncStoppable {
     private final Lock lock = new ReentrantLock();
-    private final CompositeStoppable executors = new CompositeStoppable();
-    private final CompositeStoppable connections = new CompositeStoppable();
+    private final CompositeStoppable executors = CompositeStoppable.stoppable();
+    private final CompositeStoppable connections = CompositeStoppable.stoppable();
     private final Collection<ProtocolStack<Message>> handlers = new ArrayList<ProtocolStack<Message>>();
     private final Collection<ProtocolStack<Message>> workers = new ArrayList<ProtocolStack<Message>>();
     private final Map<String, ProtocolStack<Message>> outgoingUnicasts = new HashMap<String, ProtocolStack<Message>>();

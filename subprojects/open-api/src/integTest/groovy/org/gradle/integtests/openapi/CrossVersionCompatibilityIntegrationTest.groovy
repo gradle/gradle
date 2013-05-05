@@ -15,13 +15,13 @@
  */
 package org.gradle.integtests.openapi
 
-import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.DefaultClassLoaderFactory
-import org.gradle.util.TestPrecondition
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assert
 import org.junit.Rule
 import org.slf4j.Logger
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory
 @Requires(TestPrecondition.SWING)
 class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSpec {
     private final Logger logger = LoggerFactory.getLogger(CrossVersionCompatibilityIntegrationTest)
-    @Rule public final TestResources resources = new TestResources()
+    @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     public void canUseOpenApiFromCurrentVersionToBuildUsingAnOlderVersion() {
         expect:
@@ -42,7 +42,7 @@ class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSp
         checkCanBuildUsing(previous, current)
     }
 
-    void checkCanBuildUsing(BasicGradleDistribution openApiVersion, BasicGradleDistribution buildVersion) {
+    void checkCanBuildUsing(GradleDistribution openApiVersion, GradleDistribution buildVersion) {
         if (!buildVersion.openApiSupported) {
             System.out.println("skipping $buildVersion as it does not support the open API.")
             return
@@ -58,8 +58,8 @@ class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSp
         def classloader = new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI() })
         def builder = classloader.loadClass(CrossVersionBuilder.class.name).newInstance()
         builder.targetGradleHomeDir = buildVersion.gradleHomeDir
-        builder.currentDir = testDir
-        builder.version = buildVersion.version
+        builder.currentDir = testDirectory
+        builder.version = buildVersion.version.version
         builder.build()
     }
 }

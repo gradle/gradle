@@ -18,7 +18,7 @@ package org.gradle.tooling.model.eclipse;
 import org.gradle.tooling.model.Task;
 
 /**
- * Deprecated because gradle tasks are not associated with eclipse projects.
+ * Deprecated because gradle tasks are not associated with Eclipse projects.
  */
 @Deprecated
 public interface EclipseTask extends Task {

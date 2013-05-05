@@ -19,13 +19,11 @@ import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.Resources
 import org.gradle.internal.SystemProperties
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Resources
 import org.hamcrest.Matchers
 import org.junit.Assert
 import org.junit.Before
@@ -35,14 +33,11 @@ import org.junit.Test
 /**
  * @author Hans Dockter
  */
-class SamplesMavenPomGenerationIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-
+class SamplesMavenPomGenerationIntegrationTest extends AbstractIntegrationTest {
     private TestFile pomProjectDir
 
     @Rule public Resources resources = new Resources();
-    @Rule public final Sample sample = new Sample('maven/pomGeneration')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'maven/pomGeneration')
 
     @Before
     void setUp() {
@@ -51,10 +46,10 @@ class SamplesMavenPomGenerationIntegrationTest {
     
     @Test
     void "can deploy to local repository"() {
-        def repo = new MavenRepository(pomProjectDir.file('pomRepo'))
+        def repo = maven(pomProjectDir.file('pomRepo'))
         def module = repo.module('deployGroup', 'mywar', '1.0MVN')
 
-        executer.inDirectory(pomProjectDir).withTasks('uploadArchives').withArguments("--stacktrace").run()
+        executer.inDirectory(pomProjectDir).withTasks('uploadArchives').run()
 
         compareXmlWithIgnoringOrder(expectedPom('1.0MVN', "deployGroup"), module.pomFile.text)
         module.moduleDir.file("mywar-1.0MVN.war").assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
@@ -65,7 +60,7 @@ class SamplesMavenPomGenerationIntegrationTest {
 
     @Test
     void "can install to local repository"() {
-        def repo = new MavenRepository(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def repo = maven(new TestFile("$SystemProperties.userHome/.m2/repository"))
         def module = repo.module('installGroup', 'mywar', '1.0MVN')
         module.moduleDir.deleteDir()
 

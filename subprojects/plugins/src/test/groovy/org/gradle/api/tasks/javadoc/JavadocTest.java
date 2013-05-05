@@ -21,12 +21,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
-import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecException;
+import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.TestFile;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -39,14 +39,15 @@ import java.io.File;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class JavadocTest extends AbstractConventionTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private final TestFile testDir = tmpDir.getDir();
+    private final TestFile testDir = tmpDir.getTestDirectory();
     private final File destDir = new File(testDir, "dest");
     private final File srcDir = new File(testDir, "srcdir");
     private final Set<File> classpath = WrapUtil.toSet(new File("classpath"));
@@ -75,7 +76,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).options(task.getOptions());
             will(returnValue(javadocExecHandleBuilderMock));
-            one(javadocExecHandleBuilderMock).optionsFile(new File(getProject().getBuildDir(), "tmp/taskname/javadoc.options"));
+            one(javadocExecHandleBuilderMock).optionsFile(new File(getProject().getBuildDir(), "tmp/testTask/javadoc.options"));
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).getExecHandle();
             will(returnValue(execActionMock));

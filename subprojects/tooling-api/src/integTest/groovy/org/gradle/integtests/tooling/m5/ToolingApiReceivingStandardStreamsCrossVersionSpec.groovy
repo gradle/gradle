@@ -31,7 +31,7 @@ class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiSpeci
     }
 
     def "receives standard streams while the build is executing"() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 System.out.println 'this is stdout'
 System.err.println 'this is stderr'
 '''
@@ -52,7 +52,7 @@ System.err.println 'this is stderr'
     }
 
     def "receives standard streams while the model is building"() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 System.out.println 'this is stdout'
 System.err.println 'this is stderr'
 '''

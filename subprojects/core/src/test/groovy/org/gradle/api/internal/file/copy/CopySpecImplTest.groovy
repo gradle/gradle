@@ -23,21 +23,22 @@ import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.jmock.integration.junit4.JMock
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 @RunWith(JMock)
 public class CopySpecImplTest {
 
-    @Rule public TemporaryFolder testDir = new TemporaryFolder();
-    private TestFile baseFile = testDir.dir
+    @Rule public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
+    private TestFile baseFile = testDir.testDirectory
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final FileResolver fileResolver = context.mock(FileResolver);
     private final CopySpecImpl spec = new CopySpecImpl(fileResolver)

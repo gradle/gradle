@@ -30,19 +30,11 @@ tasks.withType(AbstractArchiveTask) {
 }
 
 dependencies {
-    groovy libraries.groovy
+    testCompile libraries.groovy
 }
 
 configurations {
     dists
-}
-
-integTestTasks.all {
-    if (project.hasProperty("noDistTests")) {
-        enabled = false
-    } else {
-        inputs.files buildDists
-    }
 }
 
 daemonIntegTest.enabled = false
@@ -119,6 +111,7 @@ task srcZip(type: Zip) {
             include '*.gradle'
             include 'wrapper/'
             include 'gradlew.bat'
+            include 'version.txt'
         }
     }
 }

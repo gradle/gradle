@@ -22,7 +22,11 @@ import org.gradle.api.file.FileVisitorUtil;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.util.*;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.GUtil;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -42,7 +46,7 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class AbstractFileCollectionTest {
     @Rule
-    public final TemporaryFolder testDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
     final JUnit4Mockery context = new JUnit4GroovyMockery();
     final TaskDependency dependency = context.mock(TaskDependency.class);
 
@@ -161,7 +165,7 @@ public class AbstractFileCollectionTest {
 
     @Test
     public void includesOnlyExistingFilesWhenAddedToAntBuilderAsAFileSetOrMatchingTask() {
-        TestFile testDir = this.testDir.getDir();
+        TestFile testDir = this.testDir.getTestDirectory();
         TestFile file1 = testDir.file("f1").touch();
         TestFile dir1 = testDir.file("dir1").createDir();
         TestFile file2 = dir1.file("f2").touch();

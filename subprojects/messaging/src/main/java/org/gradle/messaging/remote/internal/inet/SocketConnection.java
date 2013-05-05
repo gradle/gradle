@@ -23,8 +23,13 @@ import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.MessageIOException;
 import org.gradle.messaging.remote.internal.MessageSerializer;
+import org.gradle.messaging.serialize.ObjectReader;
+import org.gradle.messaging.serialize.ObjectWriter;
 
-import java.io.*;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedSelectorException;
@@ -36,19 +41,19 @@ public class SocketConnection<T> implements Connection<T> {
     private final SocketChannel socket;
     private final SocketInetAddress localAddress;
     private final SocketInetAddress remoteAddress;
-    private final MessageSerializer<T> serializer;
-    private final DataInputStream instr;
-    private final DataOutputStream outstr;
+    private final ObjectWriter<T> objectWriter;
+    private final ObjectReader<T> objectReader;
+    private final InputStream instr;
+    private final OutputStream outstr;
 
     public SocketConnection(SocketChannel socket, MessageSerializer<T> serializer) {
         this.socket = socket;
-        this.serializer = serializer;
         try {
             // NOTE: we use non-blocking IO as there is no reliable way when using blocking IO to shutdown reads while
             // keeping writes active. For example, Socket.shutdownInput() does not work on Windows.
             socket.configureBlocking(false);
-            outstr = new DataOutputStream(new SocketOutputStream(socket));
-            instr = new DataInputStream(new SocketInputStream(socket));
+            outstr = new SocketOutputStream(socket);
+            instr = new SocketInputStream(socket);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -56,6 +61,8 @@ public class SocketConnection<T> implements Connection<T> {
         localAddress = new SocketInetAddress(localSocketAddress.getAddress(), localSocketAddress.getPort());
         InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
         remoteAddress = new SocketInetAddress(remoteSocketAddress.getAddress(), remoteSocketAddress.getPort());
+        objectReader = serializer.newReader(instr, localAddress, remoteAddress);
+        objectWriter = serializer.newWriter(outstr);
     }
 
     @Override
@@ -73,7 +80,7 @@ public class SocketConnection<T> implements Connection<T> {
 
     public T receive() {
         try {
-            return serializer.read(instr, localAddress, remoteAddress);
+            return objectReader.read();
         } catch (Exception e) {
             if (isEndOfStream(e)) {
                 return null;
@@ -102,7 +109,7 @@ public class SocketConnection<T> implements Connection<T> {
 
     public void dispatch(T message) {
         try {
-            serializer.write(message, outstr);
+            objectWriter.write(message);
             outstr.flush();
         } catch (Exception e) {
             throw new MessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
@@ -110,11 +117,11 @@ public class SocketConnection<T> implements Connection<T> {
     }
 
     public void requestStop() {
-        new CompositeStoppable(instr).stop();
+        CompositeStoppable.stoppable(instr).stop();
     }
 
     public void stop() {
-        new CompositeStoppable(instr, outstr, socket).stop();
+        CompositeStoppable.stoppable(instr, outstr, socket).stop();
     }
 
     private static class SocketInputStream extends InputStream {

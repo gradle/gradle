@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 
 class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
@@ -70,6 +70,6 @@ class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     protected EclipseClasspathFixture getClasspath() {
-        return new EclipseClasspathFixture(distribution.testDir, distribution.userHomeDir)
+        return new EclipseClasspathFixture(testDirectory, executer.gradleUserHomeDir)
     }
 }

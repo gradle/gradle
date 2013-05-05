@@ -23,6 +23,7 @@ class MethodDoc implements DslElementDoc {
     private final String id
     private final MethodMetaData metaData
     private final List<Element> comment
+    private final ClassMetaData referringClass
 
     MethodDoc(MethodMetaData metaData, List<Element> comment) {
         this(metaData.ownerClass, metaData, comment)
@@ -30,12 +31,17 @@ class MethodDoc implements DslElementDoc {
 
     MethodDoc(ClassMetaData referringClass, MethodMetaData metaData, List<Element> comment) {
         this.metaData = metaData
+        this.referringClass = referringClass
         id = "$referringClass.className:$metaData.overrideSignature"
         this.comment = comment
     }
 
-    MethodDoc forClass(ClassMetaData c) {
-        return new MethodDoc(c, metaData, comment)
+    MethodDoc forClass(ClassDoc referringClass) {
+        def refererMetaData = referringClass.classMetaData
+        if (refererMetaData == this.referringClass) {
+            return this
+        }
+        return new MethodDoc(refererMetaData, metaData, comment)
     }
 
     String getId() {
@@ -51,11 +57,11 @@ class MethodDoc implements DslElementDoc {
     }
 
     boolean isDeprecated() {
-        return metaData.deprecated
+        return metaData.deprecated && !referringClass.deprecated
     }
 
-    boolean isExperimental() {
-        return metaData.experimental
+    boolean isIncubating() {
+        return metaData.incubating || metaData.ownerClass.incubating
     }
 
     Element getDescription() {

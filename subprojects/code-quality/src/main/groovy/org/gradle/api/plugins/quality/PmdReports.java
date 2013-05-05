@@ -25,16 +25,16 @@ import org.gradle.api.reporting.SingleFileReport;
 public interface PmdReports extends ReportContainer<SingleFileReport> {
 
     /**
-     * The pmd (single file) html report
+     * The pmd (single file) HTML report
      *
-     * @return The pmd (single file) html report
+     * @return The pmd (single file) HTML report
      */
     SingleFileReport getHtml();
 
     /**
-     * The pmd (single file) xml report
+     * The pmd (single file) XML report
      *
-     * @return The pmd (single file) xml report
+     * @return The pmd (single file) XML report
      */
     SingleFileReport getXml();
 }

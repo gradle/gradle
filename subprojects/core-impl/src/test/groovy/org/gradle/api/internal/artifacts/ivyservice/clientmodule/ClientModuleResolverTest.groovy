@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,66 +20,75 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.core.resolve.ResolveData
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 /**
  * @author Hans Dockter
  */
 class ClientModuleResolverTest extends Specification {
     final ModuleDescriptor module = Mock()
-    final ResolveData resolveData = Mock()
     final ModuleRevisionId moduleId = new ModuleRevisionId(new ModuleId("org", "name"), "1.0")
-    final DependencyToModuleResolver target = Mock()
-    final ModuleVersionResolveResult resolvedModule = Mock()
+    final DependencyToModuleVersionResolver target = Mock()
     final ClientModuleResolver resolver = new ClientModuleResolver(target)
 
     def "replaces meta-data for a client module dependency"() {
         ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
+        DependencyMetaData dependencyMetaData = Mock()
+        BuildableModuleVersionResolveResult result = Mock()
+
+        given:
+        _ * dependencyMetaData.descriptor >> dependencyDescriptor
+        _ * dependencyDescriptor.targetModule >> module
+        _ * module.moduleRevisionId >> moduleId
 
         when:
-        def resolveResult = resolver.resolve(dependencyDescriptor)
+        resolver.resolve(dependencyMetaData, result)
 
         then:
-        1 * target.resolve(dependencyDescriptor) >> resolvedModule
-        _ * dependencyDescriptor.targetModule >> module
-
-        and:
-        resolveResult.descriptor == module
-        resolveResult.failure == null
-        resolveResult.id == module.moduleRevisionId
+        1 * target.resolve(dependencyMetaData, result)
+        1 * result.setMetaData(module)
+        _ * result.failure >> null
+        0 * result._
     }
 
     def "does not replace meta-data for unknown module version"() {
         DependencyDescriptor dependencyDescriptor = Mock()
-        
+        DependencyMetaData dependencyMetaData = Mock()
+        BuildableModuleVersionResolveResult result = Mock()
+
+        given:
+        _ * dependencyMetaData.descriptor >> dependencyDescriptor
+
         when:
-        def resolveResult = resolver.resolve(dependencyDescriptor)
+        resolver.resolve(dependencyMetaData, result)
 
         then:
-        1 * target.resolve(dependencyDescriptor) >> resolvedModule
-
-        and:
-        resolveResult == resolvedModule
+        1 * target.resolve(dependencyMetaData, result)
+        _ * result.failure >> null
+        0 * result._
     }
 
     def "does not replace meta-data for broken module version"() {
         ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
+        DependencyMetaData dependencyMetaData = Mock()
+        BuildableModuleVersionResolveResult result = Mock()
 
         given:
-        resolvedModule.failure >> new ModuleVersionResolveException("broken")
+        _ * dependencyMetaData.descriptor >> dependencyDescriptor
 
         when:
-        def resolveResult = resolver.resolve(dependencyDescriptor)
+        resolver.resolve(dependencyMetaData, result)
 
         then:
-        1 * target.resolve(dependencyDescriptor) >> resolvedModule
-
-        and:
-        resolveResult == resolvedModule
+        1 * target.resolve(dependencyMetaData, result)
+        _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
+        0 * result._
     }
 }

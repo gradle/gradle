@@ -16,32 +16,30 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.internal.TaskInternal;
 
-import java.util.Set;
+import java.util.TreeSet;
 
-public class TaskInfo {
+class TaskInfo implements Comparable<TaskInfo> {
 
     private enum TaskExecutionState {
-        READY, EXECUTING, SUCCEEDED, FAILED
+        NOT_REQUIRED, READY, EXECUTING, EXECUTED, SKIPPED
     }
 
     private final TaskInternal task;
-    private final Set<TaskInfo> dependencies;
     private TaskExecutionState state;
+    private Throwable executionFailure;
+    private final TreeSet<TaskInfo> hardSuccessors = new TreeSet<TaskInfo>();
+    private final TreeSet<TaskInfo> softSuccessors = new TreeSet<TaskInfo>();
 
-    public TaskInfo(TaskInternal task, Set<TaskInfo> dependencies) {
+    public TaskInfo(TaskInternal task) {
         this.task = task;
-        this.dependencies = dependencies;
-        this.state = TaskExecutionState.READY;
+        this.state = TaskExecutionState.NOT_REQUIRED;
     }
 
     public TaskInternal getTask() {
         return task;
-    }
-
-    public Set<TaskInfo> getDependencies() {
-        return dependencies;
     }
 
     public boolean isReady() {
@@ -49,11 +47,15 @@ public class TaskInfo {
     }
 
     public boolean isComplete() {
-        return state == TaskExecutionState.SUCCEEDED || state == TaskExecutionState.FAILED;
+        return state == TaskExecutionState.EXECUTED || state == TaskExecutionState.SKIPPED || state == TaskExecutionState.NOT_REQUIRED;
+    }
+
+    public boolean isSuccessful() {
+        return (state == TaskExecutionState.EXECUTED && !isFailed()) || state == TaskExecutionState.NOT_REQUIRED;
     }
 
     public boolean isFailed() {
-        return state == TaskExecutionState.FAILED;
+        return getTaskFailure() != null || getExecutionFailure() != null;
     }
 
     public void startExecution() {
@@ -61,33 +63,72 @@ public class TaskInfo {
         state = TaskExecutionState.EXECUTING;
     }
 
-    public void executionSucceeded() {
+    public void finishExecution() {
         assert state == TaskExecutionState.EXECUTING;
-        state = TaskExecutionState.SUCCEEDED;
+        state = TaskExecutionState.EXECUTED;
     }
 
-    public void executionFailed() {
-        assert state == TaskExecutionState.EXECUTING;
-        state = TaskExecutionState.FAILED;
+    public void skipExecution() {
+        assert state == TaskExecutionState.READY;
+        state = TaskExecutionState.SKIPPED;
     }
 
-    public boolean dependenciesExecuted() {
-        for (TaskInfo dependency : getDependencies()) {
+    public void setExecutionFailure(Throwable failure) {
+        assert state == TaskExecutionState.EXECUTING;
+        this.executionFailure = failure;
+    }
+
+    public Throwable getExecutionFailure() {
+        return this.executionFailure;
+    }
+
+    public Throwable getTaskFailure() {
+        return this.getTask().getState().getFailure();
+    }
+
+    public boolean allDependenciesComplete() {
+        for (TaskInfo dependency : Iterables.concat(softSuccessors, hardSuccessors)) {
             if (!dependency.isComplete()) {
-                System.out.printf("Cannot start %s because %s is not yet executed\n", getTask().getPath(), dependency.getTask().getPath());
                 return false;
             }
         }
         return true;
     }
 
-    public boolean dependenciesFailed() {
-        for (TaskInfo dependency : getDependencies()) {
-            if (dependency.isFailed()) {
-                return true;
+    public boolean allDependenciesSuccessful() {
+        for (TaskInfo dependency : hardSuccessors) {
+            if (!dependency.isSuccessful()) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
+    public TreeSet<TaskInfo> getHardSuccessors() {
+        return hardSuccessors;
+    }
+
+    public TreeSet<TaskInfo> getSoftSuccessors() {
+        return softSuccessors;
+    }
+
+    public boolean getRequired() {
+        return state != TaskExecutionState.NOT_REQUIRED;
+    }
+
+    public void setRequired(boolean required) {
+        state = required ? TaskExecutionState.READY : TaskExecutionState.NOT_REQUIRED;
+    }
+
+    public void addHardSuccessor(TaskInfo toNode) {
+        hardSuccessors.add(toNode);
+    }
+
+    public void addSoftSuccessor(TaskInfo toNode) {
+        softSuccessors.add(toNode);
+    }
+
+    public int compareTo(TaskInfo otherInfo) {
+        return task.compareTo(otherInfo.getTask());
+    }
 }

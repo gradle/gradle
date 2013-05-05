@@ -19,6 +19,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.LimitedDescription;
 
 import java.io.*;
@@ -26,9 +27,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.zip.Checksum;
 
 /**
@@ -52,6 +51,29 @@ public class GFileUtils {
         }
     }
 
+    public static void moveFile(File source, File destination) {
+        try {
+            FileUtils.moveFile(source, destination);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void copyFile(File source, File destination) {
+        try {
+            FileUtils.copyFile(source, destination);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void moveDirectory(File source, File destination) {
+        try {
+            FileUtils.moveDirectory(source, destination);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
     public static String readFile(File file) {
         return readFile(file, Charset.defaultCharset().name());
     }
@@ -115,6 +137,14 @@ public class GFileUtils {
     public static void deleteDirectory(File directory) {
         try {
             FileUtils.deleteDirectory(directory);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void cleanDirectory(File directory) {
+        try {
+            FileUtils.cleanDirectory(directory);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -189,13 +219,75 @@ public class GFileUtils {
             throw new UncheckedIOException(e);
         }
     }
+
     /**
-     * Creates a directory and any unexisting parent directories. Throws an
-     * UncheckedIOException if it fails to do so.
+     * Returns a relative path from 'from' to 'to'
+     *
+     * @param from where to calculate from
+     * @param to where to calculate to
+     * @return The relative path
      */
-    public static void createDirectory(File directory) {
-        if (!directory.exists() && !directory.mkdirs()) {
-            throw new UncheckedIOException("Failed to create directory " + directory);
+    public static String relativePath(File from, File to) {
+        try {
+            return org.apache.tools.ant.util.FileUtils.getRelativePath(from, to);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * Makes the parent directory of the file, and any non existent parents.
+     *
+     * @param child The file to create the parent dir for
+     * @return The parent dir file
+     * @see #mkdirs(java.io.File)
+     */
+    public static File parentMkdirs(File child) {
+        File parent = child.getParentFile();
+        mkdirs(parent);
+        return parent;
+    }
+
+    /**
+     * Like {@link java.io.File#mkdirs()}, except throws an informative error if a dir cannot be created.
+     *
+     * @param dir The dir to create, including any non existent parent dirs.
+     */
+    public static void mkdirs(File dir) {
+        dir = dir.getAbsoluteFile();
+        if (dir.isDirectory()) {
+            return;
+        }
+
+        if (dir.exists() && !dir.isDirectory()) {
+            throw new UncheckedIOException(String.format("Cannot create directory '%s' as it already exists, but is not a directory", dir));
+        }
+
+        List<File> toCreate = new LinkedList<File>();
+        File parent = dir.getParentFile();
+        while (!parent.exists()) {
+            toCreate.add(parent);
+            parent = parent.getParentFile();
+        }
+
+        Collections.reverse(toCreate);
+        for (File parentDirToCreate : toCreate) {
+            if (parentDirToCreate.isDirectory()) {
+                continue;
+            }
+
+            File parentDirToCreateParent = parentDirToCreate.getParentFile();
+            if (!parentDirToCreateParent.isDirectory()) {
+                throw new UncheckedIOException(String.format("Cannot create parent directory '%s' when creating directory '%s' as '%s' is not a directory", parentDirToCreate, dir, parentDirToCreateParent));
+            }
+
+            if (!parentDirToCreate.mkdir() && !parentDirToCreate.isDirectory()) {
+                throw new UncheckedIOException(String.format("Failed to create parent directory '%s' when creating directory '%s'", parentDirToCreate, dir));
+            }
+        }
+
+        if (!dir.mkdir() && !dir.isDirectory()) {
+            throw new UncheckedIOException(String.format("Failed to create directory '%s'", dir));
         }
     }
 }

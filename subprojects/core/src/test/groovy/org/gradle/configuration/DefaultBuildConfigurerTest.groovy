@@ -15,26 +15,49 @@
  */
 package org.gradle.configuration
 
+import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
-import org.gradle.api.Action
 
 class DefaultBuildConfigurerTest extends Specification {
-    private final GradleInternal gradle = Mock()
-    private final ProjectInternal rootProject = Mock()
-    private final Action<? super ProjectInternal> action = Mock()
-    private final DefaultBuildConfigurer configurer = new DefaultBuildConfigurer(action)
+    private startParameter = Mock(StartParameter)
+    private gradle = Mock(GradleInternal)
+    private rootProject = Mock(ProjectInternal)
+    private configurer = new DefaultBuildConfigurer()
 
-    def executesActionsForEachProject() {
+    def setup() {
+        gradle.startParameter >> startParameter
+        gradle.rootProject >> rootProject
+    }
+
+    def "configures build for standard mode"() {
+        def child1 = Mock(ProjectInternal)
+        def child2 = Mock(ProjectInternal)
+
+        given:
+        _ * rootProject.allprojects >> [rootProject, child1, child2]
+
         when:
         configurer.configure(gradle)
 
         then:
-        _ * gradle.rootProject >> rootProject
-        1 * rootProject.allprojects(!null) >> { args ->
-            args[0].execute(rootProject)
-        }
-        1 * action.execute(rootProject)
+        1 * gradle.addProjectEvaluationListener(_ as ProjectDependencies2TaskResolver);
+        1 * rootProject.evaluate()
+        1 * child1.evaluate()
+        1 * child2.evaluate()
+    }
+
+    def "configures build for on demand mode"() {
+        when:
+        configurer.configure(gradle)
+
+        then:
+        1 * startParameter.isConfigureOnDemand() >> true
+        1 * rootProject.evaluate()
+        0 * rootProject._
+
+        and:
+        1 * gradle.addProjectEvaluationListener(_ as ProjectDependencies2TaskResolver);
     }
 }

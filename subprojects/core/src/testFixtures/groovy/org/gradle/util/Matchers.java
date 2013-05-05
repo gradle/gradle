@@ -36,6 +36,22 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertTrue;
 
 public class Matchers {
+    /**
+     * A reimplementation of hamcrest's isA() but without the broken generics.
+     */
+    @Factory
+    public static Matcher<Object> isA(final Class<?> type) {
+        return new BaseMatcher<Object>() {
+            public boolean matches(Object item) {
+                return type.isInstance(item);
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("instanceof ").appendValue(type);
+            }
+        };
+    }
+
     @Factory
     public static <T> Matcher<T> reflectionEquals(T equalsTo) {
         return new ReflectionEqualsMatcher<T>(equalsTo);
@@ -86,6 +102,19 @@ public class Matchers {
 
             public void describeTo(Description description) {
                 description.appendText("a CharSequence that matches regexp ").appendValue(pattern);
+            }
+        };
+    }
+
+    @Factory
+    public static <T extends CharSequence> Matcher<T> containsText(final String pattern) {
+        return new BaseMatcher<T>() {
+            public boolean matches(Object o) {
+                return Pattern.compile(pattern).matcher((CharSequence) o).find();
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("a CharSequence that contains text ").appendValue(pattern);
             }
         };
     }
@@ -207,20 +236,6 @@ public class Matchers {
     }
 
     @Factory
-    public static Matcher<Object[]> isEmptyArray() {
-        return new BaseMatcher<Object[]>() {
-            public boolean matches(Object o) {
-                Object[] array = (Object[]) o;
-                return array != null && array.length == 0;
-            }
-
-            public void describeTo(Description description) {
-                description.appendText("an empty array");
-            }
-        };
-    }
-
-    @Factory
     public static Matcher<Object> isSerializable() {
         return new BaseMatcher<Object>() {
             public boolean matches(Object o) {
@@ -258,14 +273,23 @@ public class Matchers {
     }
 
     @Factory
-    public static Matcher<Task> dependsOn(final Matcher<? extends Iterable<String>> matcher) {
+    public static Matcher<Task> dependsOn(Matcher<? extends Iterable<String>> matcher) {
+        return dependsOn(matcher, false);
+    }
+
+    @Factory
+    public static Matcher<Task> dependsOnPaths(Matcher<? extends Iterable<String>> matcher) {
+        return dependsOn(matcher, true);
+    }
+
+    private static Matcher<Task> dependsOn(final Matcher<? extends Iterable<String>> matcher, final boolean matchOnPaths) {
         return new BaseMatcher<Task>() {
             public boolean matches(Object o) {
                 Task task = (Task) o;
                 Set<String> names = new HashSet<String>();
                 Set<? extends Task> depTasks = task.getTaskDependencies().getDependencies(task);
                 for (Task depTask : depTasks) {
-                    names.add(depTask.getName());
+                    names.add(matchOnPaths ? depTask.getPath() : depTask.getName());
                 }
                 boolean matches = matcher.matches(names);
                 if (!matches) {

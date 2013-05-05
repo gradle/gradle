@@ -16,10 +16,17 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.ThreadGlobalInstantiator;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.WrapUtil;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
@@ -47,9 +54,31 @@ public class SettingsFactoryTest {
         final File expectedSettingsDir = new File("settingsDir");
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
-        IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = new StartParameter();
-        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry);
+        final ServiceRegistryFactory serviceRegistryFactory = context.mock(ServiceRegistryFactory.class);
+        final SettingsInternalServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternalServiceRegistry.class);
+        final PluginContainer pluginContainer = context.mock(PluginContainer.class);
+        final FileResolver fileResolver = context.mock(FileResolver.class);
+        final ScriptPluginFactory scriptPluginFactory = context.mock(ScriptPluginFactory.class);
+
+        final ProjectDescriptorRegistry expectedProjectDescriptorRegistry = context.mock(ProjectDescriptorRegistry.class);
+
+        context.checking(new Expectations() {{
+            one(serviceRegistryFactory).createFor(with(any(Settings.class)));
+            will(returnValue(settingsInternallServiceRegistry));
+            one(settingsInternallServiceRegistry).get(PluginContainer.class);
+            will(returnValue(pluginContainer));
+            one(settingsInternallServiceRegistry).get(FileResolver.class);
+            will(returnValue(fileResolver));
+            one(settingsInternallServiceRegistry).get(ScriptPluginFactory.class);
+            will(returnValue(scriptPluginFactory));
+            one(settingsInternallServiceRegistry).get(ProjectDescriptorRegistry.class);
+            will(returnValue(expectedProjectDescriptorRegistry));
+            one(expectedProjectDescriptorRegistry).addProject(with(any(DefaultProjectDescriptor.class)));
+        }});
+
+
+        SettingsFactory settingsFactory = new SettingsFactory(ThreadGlobalInstantiator.getOrCreate(), serviceRegistryFactory);
         final URLClassLoader urlClassLoader = new URLClassLoader(new URL[0]);
         GradleInternal gradle = context.mock(GradleInternal.class);
 
@@ -59,7 +88,7 @@ public class SettingsFactoryTest {
         assertSame(gradle, settings.getGradle());
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
         for (Map.Entry<String, String> entry : expectedGradleProperties.entrySet()) {
-            assertEquals(entry.getValue(), ((DynamicObjectAware)settings).getAsDynamicObject().getProperty(entry.getKey()));
+            assertEquals(entry.getValue(), ((DynamicObjectAware) settings).getAsDynamicObject().getProperty(entry.getKey()));
         }
 
         assertSame(expectedSettingsDir, settings.getSettingsDir());

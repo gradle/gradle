@@ -63,7 +63,7 @@ public class AsyncConnectionAdapter<T> implements AsyncConnection<T>, Stoppable 
     }
 
     public void stop() {
-        new CompositeStoppable(stack, outgoing, connection, incoming).add(executors).stop();
+        CompositeStoppable.stoppable(stack, outgoing, connection, incoming).add(executors).stop();
     }
 
     private class ConnectionReceive<T> implements Receive<T> {

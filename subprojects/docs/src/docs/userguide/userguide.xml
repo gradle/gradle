@@ -60,7 +60,9 @@
     <xi:include href='findBugsPlugin.xml'/>
     <xi:include href='jdependPlugin.xml'/>
     <xi:include href='pmdPlugin.xml'/>
+    <xi:include href='jacocoPlugin.xml'/>
     <xi:include href='sonarPlugin.xml'/>
+    <xi:include href='sonarRunnerPlugin.xml'/>
     <xi:include href='osgi.xml'/>
     <xi:include href='eclipsePlugin.xml'/>
     <xi:include href='ideaPlugin.xml'/>
@@ -68,7 +70,12 @@
     <xi:include href='projectReports.xml'/>
     <xi:include href='announcePlugin.xml'/>
     <xi:include href='buildAnnouncementsPlugin.xml'/>
+    <xi:include href='distributionPlugin.xml'/>
     <xi:include href='applicationPlugin.xml'/>
+    <xi:include href='javaLibraryDistributionPlugin.xml'/>
+    <xi:include href='buildSetupPlugin.xml'/>
+    <xi:include href='wrapperPlugin.xml'/>
+    <xi:include href='buildDashboardPlugin.xml'/>
 	<xi:include href='depMngmt.xml'/>
     <xi:include href='artifactMngmt.xml'/>
     <xi:include href='mavenPlugin.xml'/>
@@ -77,15 +84,19 @@
     <xi:include href='buildLifecycle.xml'/>
     <xi:include href='multiproject.xml'/>
     <xi:include href='customTasks.xml'/>
+    <xi:include href='incrementalTasks.xml'/>
     <xi:include href='customPlugins.xml'/>
     <xi:include href='organizeBuildLogic.xml'/>
     <xi:include href='initscripts.xml'/>
     <xi:include href='gradleWrapper.xml'/>
     <xi:include href='embedding.xml'/>
-    <xi:include href='bootstrapPlugin.xml'/>
+    <xi:include href='comparingBuilds.xml'/>
+    <xi:include href='publishingIvy.xml'/>
+    <xi:include href='publishingMaven.xml'/>
     <!-- this is generated -->
     <xi:include href='../../../build/src/samplesList.xml'/>
     <xi:include href='potentialTraps.xml'/>
+    <xi:include href='featureLifecycle.xml'/>
     <xi:include href='commandLine.xml'/>
     <xi:include href='ideSupport.xml'/>
     <xi:include href='glossary.xml'/>

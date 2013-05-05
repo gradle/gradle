@@ -19,9 +19,9 @@ package org.gradle.cache.internal
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.internal.Factory
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,7 +34,7 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
  * @author: Szczepan Faber, created at: 8/30/11
  */
 class DefaultFileLockManagerTest extends Specification {
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def metaDataProvider = Mock(ProcessMetaDataProvider)
     FileLockManager manager = new DefaultFileLockManager(metaDataProvider)
 

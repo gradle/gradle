@@ -20,23 +20,40 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
+import java.util.LinkedList;
+
 public class DependencyResolutionLogger implements DependencyResolutionListener {
+    private final ThreadLocal<LinkedList<ProgressLogger>> progressLoggers = new ThreadLocal<LinkedList<ProgressLogger>>() {
+        protected LinkedList<ProgressLogger> initialValue() {
+            return new LinkedList<ProgressLogger>();
+        }
+    };
     private final ProgressLoggerFactory loggerFactory;
-    private ProgressLogger logger;
 
     public DependencyResolutionLogger(ProgressLoggerFactory loggerFactory) {
         this.loggerFactory = loggerFactory;
     }
 
+    //TODO SF add concurrent unit test coverage
     public void beforeResolve(ResolvableDependencies dependencies) {
-        logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
+        LinkedList<ProgressLogger> loggers = progressLoggers.get();
+        progressLoggers.set(loggers);
+        ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
         logger.setDescription(String.format("Resolve %s", dependencies));
         logger.setShortDescription(String.format("Resolving %s", dependencies));
         logger.started();
+        loggers.add(logger);
     }
 
     public void afterResolve(ResolvableDependencies dependencies) {
+        LinkedList<ProgressLogger> loggers = progressLoggers.get();
+        if (loggers.isEmpty()) {
+            throw new IllegalStateException("Logging operation was not started or it has already completed.");
+        }
+        ProgressLogger logger = loggers.removeLast();
         logger.completed();
-        logger = null;
+        if (loggers.isEmpty()) {
+            progressLoggers.remove();
+        }
     }
 }

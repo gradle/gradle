@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.externalresource.local
 
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.hash.HashUtil
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.util.hash.HashUtil
 
 public class DefaultLocallyAvailableResourceTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def "uses value from origin file"() {
         given:

@@ -15,26 +15,22 @@
  */
 package org.gradle.api.dsl
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.util.TestFile
-import org.junit.Rule
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 import spock.lang.Issue
 
-class DynamicObjectIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
 
     TestFile getBuildFile() {
-        dist.testDir.file("build.gradle")
+        file("build.gradle")
     }
 
     @Test
     public void canAddDynamicPropertiesToProject() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file("settings.gradle").writelns("include 'child'");
-        testDir.file("build.gradle").writelns(
+        
+        file("settings.gradle").writelns("include 'child'");
+        file("build.gradle").writelns(
                 "ext.rootProperty = 'root'",
                 "ext.sharedProperty = 'ignore me'",
                 "ext.property = 'value'",
@@ -43,7 +39,7 @@ class DynamicObjectIntegrationTest {
                 "task testTask",
                 "class ConventionBean { def getConventionProperty() { 'convention' } }"
         );
-        testDir.file("child/build.gradle").writelns(
+        file("child/build.gradle").writelns(
                 "ext.childProperty = 'child'",
                 "ext.sharedProperty = 'shared'",
                 "task testTask << {",
@@ -73,14 +69,14 @@ class DynamicObjectIntegrationTest {
                 "}"
         );
 
-        executer.inDirectory(testDir).withTasks("testTask").run();
+        executer.withTasks("testTask").run();
     }
 
     @Test
     public void canAddDynamicMethodsToProject() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file("settings.gradle").writelns("include 'child'");
-        testDir.file("build.gradle").writelns(
+        
+        file("settings.gradle").writelns("include 'child'");
+        file("build.gradle").writelns(
                 "def rootMethod(p) { 'root' + p }",
                 "def sharedMethod(p) { 'ignore me' }",
                 "convention.plugins.test = new ConventionBean()",
@@ -88,7 +84,7 @@ class DynamicObjectIntegrationTest {
                 "task testTask",
                 "class ConventionBean { def conventionMethod(name) { 'convention' + name } }"
         );
-        testDir.file("child/build.gradle").writelns(
+        file("child/build.gradle").writelns(
                 "def childMethod(p) { 'child' + p }",
                 "def sharedMethod(p) { 'shared' + p }",
                 "task testTask << {",
@@ -107,13 +103,13 @@ class DynamicObjectIntegrationTest {
                 "}"
         );
 
-        executer.inDirectory(testDir).withTasks("testTask").run();
+        executer.withTasks("testTask").run();
     }
 
     @Test
     public void canAddMixinsToProject() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file('build.gradle') << '''
+        
+        file('build.gradle') << '''
 convention.plugins.test = new ConventionBean()
 
 assert conventionProperty == 'convention'
@@ -125,13 +121,13 @@ class ConventionBean {
 }
 '''
 
-        executer.inDirectory(testDir).run();
+        executer.run();
     }
 
     @Test
     public void canAddExtensionsToProject() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file('build.gradle') << '''
+        
+        file('build.gradle') << '''
 extensions.test = new ExtensionBean()
 
 assert test instanceof ExtensionBean
@@ -142,17 +138,17 @@ class ExtensionBean {
 }
 '''
 
-        executer.inDirectory(testDir).run();
+        executer.run();
     }
 
     @Test
     public void canAddPropertiesToProjectUsingGradlePropertiesFile() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file("settings.gradle").writelns("include 'child'");
-        testDir.file("gradle.properties") << '''
+        
+        file("settings.gradle").writelns("include 'child'");
+        file("gradle.properties") << '''
 global=some value
 '''
-        testDir.file("build.gradle") << '''
+        file("build.gradle") << '''
 assert 'some value' == global
 assert hasProperty('global')
 assert 'some value' == property('global')
@@ -162,20 +158,20 @@ assert project.hasProperty('global')
 assert 'some value' == project.property('global')
 assert 'some value' == project.properties.global
 '''
-        testDir.file("child/gradle.properties") << '''
+        file("child/gradle.properties") << '''
 global=overridden value
 '''
-        testDir.file("child/build.gradle") << '''
+        file("child/build.gradle") << '''
 assert 'overridden value' == global
 '''
 
-        executer.inDirectory(testDir).run();
+        executer.run();
     }
 
     @Test
     public void canAddDynamicPropertiesToCoreDomainObjects() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file('build.gradle') << '''
+        
+        file('build.gradle') << '''
             class GroovyTask extends DefaultTask { }
 
             task defaultTask {
@@ -231,13 +227,13 @@ assert 'overridden value' == global
             }
 '''
 
-        executer.inDirectory(testDir).withTasks("defaultTask").run();
+        executer.withTasks("defaultTask").run();
     }
 
     @Test
     public void canAddMixInsToCoreDomainObjects() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file('build.gradle') << '''
+        
+        file('build.gradle') << '''
             class Extension { def doStuff() { 'method' } }
             class GroovyTask extends DefaultTask { }
 
@@ -285,13 +281,13 @@ assert 'overridden value' == global
             }
 '''
 
-        executer.inDirectory(testDir).withTasks("defaultTask").run();
+        executer.withTasks("defaultTask").run();
     }
 
     @Test
     public void canAddExtensionsToCoreDomainObjects() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file('build.gradle') << '''
+        
+        file('build.gradle') << '''
             class Extension { def doStuff() { 'method' } }
             class GroovyTask extends DefaultTask { }
 
@@ -339,13 +335,13 @@ assert 'overridden value' == global
             }
 '''
 
-        executer.inDirectory(testDir).withTasks("defaultTask").run();
+        executer.withTasks("defaultTask").run();
     }
 
     @Test
     public void mixesDslMethodsIntoCoreDomainObjects() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file('build.gradle') << '''
+        
+        file('build.gradle') << '''
             class GroovyTask extends DefaultTask {
                 def String prop
                 void doStuff(Action<Task> action) { action.execute(this) }
@@ -365,13 +361,13 @@ assert 'overridden value' == global
             assert test.prop == 'new value'
 '''
 
-        executer.inDirectory(testDir).withTasks("test").run();
+        executer.withTasks("test").run();
     }
 
     @Test
     void canAddExtensionsToDynamicExtensions() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file('build.gradle') << '''
+        
+        file('build.gradle') << '''
             class Extension {
                 String name
                 Extension(String name) {
@@ -390,30 +386,30 @@ assert 'overridden value' == global
             }
         '''
 
-        executer.inDirectory(testDir).withTasks("test").run();
+        executer.withTasks("test").run();
     }
 
     @Test
     public void canInjectMethodsFromParentProject() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file("settings.gradle").writelns("include 'child'");
-        testDir.file("build.gradle").writelns(
+        
+        file("settings.gradle").writelns("include 'child'");
+        file("build.gradle").writelns(
                 "subprojects {",
                 "  ext.injectedMethod = { project.name }",
                 "}"
         );
-        testDir.file("child/build.gradle").writelns(
+        file("child/build.gradle").writelns(
                 "task testTask << {",
                 "   assert injectedMethod() == 'child'",
                 "}"
         );
 
-        executer.inDirectory(testDir).withTasks("testTask").run();
+        executer.withTasks("testTask").run();
     }
     
     @Test void canAddNewPropertiesViaTheAdhocNamespace() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file("build.gradle") << """
+        
+        file("build.gradle") << """
             assert !hasProperty("p1")
 
             ext {
@@ -452,8 +448,8 @@ assert 'overridden value' == global
     }
 
     @Test void warnsWhenNewPropertiesAreAddedDirectlyOnTargetObject() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file("build.gradle") << """
+        
+        file("build.gradle") << """
             assert !hasProperty("p1")
 
             p1 = 1
@@ -472,15 +468,15 @@ assert 'overridden value' == global
         executer.withDeprecationChecksDisabled()
         def result = executer.withTasks("run").run()
 
-        assert result.output.contains('Dynamic properties are deprecated: http://gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html')
+        assert result.output.contains('Creating properties on demand (a.k.a. dynamic properties) has been deprecated')
         assert result.output.contains('Deprecated dynamic property: "p1" on "root project ')
         assert result.output.contains('Deprecated dynamic property: "p2" on "task \':run\'", value: "2".')
     }
 
     @Issue("GRADLE-2163")
     @Test void canDecorateBooleanPrimitiveProperties() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file("build.gradle") << """
+        
+        file("build.gradle") << """
             class CustomBean {
                 boolean b
             }

@@ -78,7 +78,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':codenarcTest'")
+        failure.assertHasDescription("Execution failed for task ':codenarcTest'.")
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
         !file("build/reports/codenarc/main.html").text.contains("Class2")
         file("build/reports/codenarc/test.html").text.contains("testclass2")
@@ -98,6 +98,20 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         !file("build/reports/codenarc/main.html").text.contains("Class2")
         file("build/reports/codenarc/test.html").text.contains("testclass2")
 
+    }
+
+    def "can configure max violations"() {
+        badCode()
+        buildFile << """
+            codenarcTest {
+                maxPriority2Violations = 1
+            }
+        """
+
+        expect:
+        succeeds("check")
+        !output.contains("CodeNarc rule violations were found. See the report at:")
+        file("build/reports/codenarc/test.html").text.contains("testclass2")
     }
 
     private goodCode() {
@@ -124,7 +138,7 @@ repositories {
 }
 
 dependencies { 
-    groovy localGroovy()
+    compile localGroovy()
 }
         """
     }

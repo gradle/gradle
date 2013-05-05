@@ -27,7 +27,7 @@ import spock.lang.Issue
 @Issue("GRADLE-443")
 class ProjectDependencyArtifactIdExtractorHackTest extends Specification {
     def project = HelperUtil.createRootProject()
-    def extractor = new ProjectDependencyArtifactIdExtractorHack(new DefaultProjectDependency(project, null))
+    def extractor = new ProjectDependencyArtifactIdExtractorHack(new DefaultProjectDependency(project, null, true))
 
     def "artifact ID defaults to project name if neither archivesBaseName nor mavenDeployer.pom.artifactId is configured"() {
         expect:

@@ -1,25 +1,10 @@
-<!--
-  ~ Copyright 2010 the original author or authors.
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
 <chapter id="standard_plugins">
     <title>Standard Gradle plugins</title>
     <para>There are a number of plugins included in the Gradle distribution. These are listed below.
     </para>
     <section>
         <title>Language plugins</title>
-        <para>These plugins add support for various languages which can be compiled and executed in the JVM.</para>
+        <para>These plugins add support for various languages which can be compiled for and executed in the JVM.</para>
         <table>
             <title>Language plugins</title>
             <thead>
@@ -32,9 +17,13 @@
             </thead>
             <tr>
                 <td>
-                    <link linkend='java_plugin'><literal>java</literal></link>
+                    <link linkend='java_plugin'>
+                        <literal>java</literal>
+                    </link>
                 </td>
-                <td><literal>java-base</literal></td>
+                <td>
+                    <literal>java-base</literal>
+                </td>
                 <td>-</td>
                 <td>
                     <para>Adds Java compilation, testing and bundling capabilities to a project. It serves
@@ -44,19 +33,28 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='groovy_plugin'><literal>groovy</literal></link>
+                    <link linkend='groovy_plugin'>
+                        <literal>groovy</literal>
+                    </link>
                 </td>
-                <td><literal>java</literal>, <literal>groovy-base</literal></td>
+                <td><literal>java</literal>,
+                    <literal>groovy-base</literal>
+                </td>
                 <td>-</td>
                 <td>
-                    <para>Adds support for building Groovy projects. See also <xref linkend="tutorial_groovy_projects"/>.</para>
+                    <para>Adds support for building Groovy projects. See also <xref linkend="tutorial_groovy_projects"/>.
+                    </para>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <link linkend="scala_plugin"><literal>scala</literal></link>
+                    <link linkend="scala_plugin">
+                        <literal>scala</literal>
+                    </link>
                 </td>
-                <td><literal>java</literal>, <literal>scala-base</literal></td>
+                <td><literal>java</literal>,
+                    <literal>scala-base</literal>
+                </td>
                 <td>-</td>
                 <td>
                     <para>Adds support for building Scala projects.</para>
@@ -64,19 +62,24 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='antlr_plugin'><literal>antlr</literal></link>
+                    <link linkend='antlr_plugin'>
+                        <literal>antlr</literal>
+                    </link>
                 </td>
-                <td><literal>java</literal></td>
+                <td>
+                    <literal>java</literal>
+                </td>
                 <td>-</td>
                 <td>
-                    <para>Adds support for generating parsers using <ulink url="http://www.antlr.org/">Antlr</ulink>.</para>
+                    <para>Adds support for generating parsers using <ulink url="http://www.antlr.org/">Antlr</ulink>.
+                    </para>
                 </td>
             </tr>
         </table>
     </section>
     <section>
-        <title>Experimental language plugins</title>
-        <para>These experimental plugins add support for various languages:</para>
+        <title>Incubating language plugins</title>
+        <para>These plugins add support for various languages:</para>
         <table>
             <title>Language plugins</title>
             <thead>
@@ -89,7 +92,9 @@
             </thead>
             <tr>
                 <td>
-                    <link linkend='cpp'><literal>cpp</literal></link>
+                    <link linkend='cpp'>
+                        <literal>cpp</literal>
+                    </link>
                 </td>
                 <td>-</td>
                 <td>-</td>
@@ -99,9 +104,13 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='cpp'><literal>cpp-exe</literal></link>
+                    <link linkend='cpp'>
+                        <literal>cpp-exe</literal>
+                    </link>
                 </td>
-                <td><literal>cpp</literal></td>
+                <td>
+                    <literal>cpp</literal>
+                </td>
                 <td>-</td>
                 <td>
                     <para>Adds C++ executable compilation and linking capabilities to a project.</para>
@@ -109,9 +118,13 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='cpp'><literal>cpp-lib</literal></link>
+                    <link linkend='cpp'>
+                        <literal>cpp-lib</literal>
+                    </link>
                 </td>
-                <td><literal>cpp</literal></td>
+                <td>
+                    <literal>cpp</literal>
+                </td>
                 <td>-</td>
                 <td>
                     <para>Adds C++ library compilation and linking capabilities to a project.</para>
@@ -121,7 +134,7 @@
     </section>
     <section>
         <title>Integration plugins</title>
-        <para>These plugins provide some integration with various build and runtime technologies.</para>
+        <para>These plugins provide some integration with various runtime technologies.</para>
         <table>
             <title>Integration plugins</title>
             <thead>
@@ -134,50 +147,42 @@
             </thead>
             <tr>
                 <td>
-                    <link linkend='announce_plugin'><literal>announce</literal></link>
+                    <link linkend='application_plugin'>
+                        <literal>application</literal>
+                    </link>
+                </td>
+                <td>
+                    <literal>java</literal>
                 </td>
                 <td>-</td>
-                <td>-</td>
                 <td>
-                    <para>Publish messages to your favourite platforms, such as Twitter or Growl.</para>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <link linkend='application_plugin'><literal>application</literal></link>
-                </td>
-                <td><literal>java</literal></td>
-                <td>-</td>
-                <td>
-                    <para>Adds tasks for running and bundling a project as application.
+                    <para>Adds tasks for running and bundling a Java project as a command-line application.
                     </para>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <link linkend='build_announcements_plugin'><literal>build-announcements</literal></link>
-                </td>
-                <td>announce</td>
-                <td>-</td>
-                <td>
-                    <para>Sends local announcements to your desktop about interesting events in the build lifecycle.</para>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <link linkend='ear_plugin'><literal>ear</literal></link>
+                    <link linkend='ear_plugin'>
+                        <literal>ear</literal>
+                    </link>
                 </td>
                 <td>-</td>
-                <td><literal>java</literal></td>
+                <td>
+                    <literal>java</literal>
+                </td>
                 <td>
                     <para>Adds support for building J2EE applications.</para>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <link linkend='jetty_plugin'><literal>jetty</literal></link>
+                    <link linkend='jetty_plugin'>
+                        <literal>jetty</literal>
+                    </link>
                 </td>
-                <td><literal>war</literal></td>
+                <td>
+                    <literal>war</literal>
+                </td>
                 <td>-</td>
                 <td>
                     <para>Deploys your web application to a Jetty web container embedded in the build. See also <xref linkend="web_project_tutorial"/>.
@@ -186,30 +191,113 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend="maven_plugin"><literal>maven</literal></link>
+                    <link linkend="maven_plugin">
+                        <literal>maven</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td><literal>java</literal>,
+                    <literal>war</literal>
+                </td>
+                <td>
+                    <para>Adds support for publishing artifacts to Maven repositories.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="osgi_plugin">
+                        <literal>osgi</literal>
+                    </link>
+                </td>
+                <td>
+                    <literal>java-base</literal>
+                </td>
+                <td>
+                    <literal>java</literal>
+                </td>
+                <td>
+                    <para>Adds support for building OSGi bundles.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="war_plugin">
+                        <literal>war</literal>
+                    </link>
+                </td>
+                <td>
+                    <literal>java</literal>
+                </td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for assembling web application WAR files. See also <xref linkend="web_project_tutorial"/>.
+                    </para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Incubating integration plugins</title>
+        <para>These plugins provide some integration with various runtime technologies.</para>
+        <table>
+            <title>Incubating integration plugins</title>
+            <thead>
+                <tr>
+                    <td>Plugin Id</td>
+                    <td>Automatically applies</td>
+                    <td>Works with</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend="distribution_plugin">
+                        <literal>distribution</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for building ZIP and TAR distributions.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="javaLibraryDistribution_plugin">
+                        <literal>java-library-distribution</literal>
+                    </link>
+                </td>
+                <td><literal>java</literal>, <literal>distribution</literal></td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for building ZIP and TAR distributions for a Java library.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="publishing_ivy">
+                        <literal>ivy-publish</literal>
+                    </link>
                 </td>
                 <td>-</td>
                 <td><literal>java</literal>, <literal>war</literal></td>
                 <td>
-                    <para>Adds support for deploying artifacts to Maven repositories.</para>
+                    <para>This plugin provides a new DSL to support publishing artifacts to Ivy repositories, which improves on the existing DSL.
+                    </para>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <link linkend="osgi_plugin"><literal>osgi</literal></link>
+                    <link linkend="publishing_maven">
+                        <literal>maven-publish</literal>
+                    </link>
                 </td>
-                <td><literal>java-base</literal></td>
-                <td><literal>java</literal></td>
-                <td><para>Adds support for building OSGi bundles.</para></td>
-            </tr>
-            <tr>
-                <td>
-                    <link linkend="war_plugin"><literal>war</literal></link>
-                </td>
-                <td><literal>java</literal></td>
                 <td>-</td>
+                <td><literal>java</literal>, <literal>war</literal></td>
                 <td>
-                    <para>Adds support for assembling web application WAR files. See also <xref linkend="web_project_tutorial"/>.
+                    <para>This plugin provides a new DSL to support publishing artifacts to Maven repositories, which improves on the existing DSL.
                     </para>
                 </td>
             </tr>
@@ -229,35 +317,73 @@
                 </tr>
             </thead>
             <tr>
+                <tr>
+                    <td>
+                        <link linkend='announce_plugin'>
+                            <literal>announce</literal>
+                        </link>
+                    </td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>
+                        <para>Publish messages to your favourite platforms, such as Twitter or Growl.</para>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <link linkend='build_announcements_plugin'>
+                            <literal>build-announcements</literal>
+                        </link>
+                    </td>
+                    <td>announce</td>
+                    <td>-</td>
+                    <td>
+                        <para>Sends local announcements to your desktop about interesting events in the build lifecycle.</para>
+                    </td>
+                </tr>
                 <td>
-                    <link linkend='checkstyle_plugin'><literal>checkstyle</literal></link>
+                    <link linkend='checkstyle_plugin'>
+                        <literal>checkstyle</literal>
+                    </link>
                 </td>
-                <td><literal>java-base</literal></td>
+                <td>
+                    <literal>java-base</literal>
+                </td>
                 <td>-</td>
                 <td>
-                    <para>Performs quality checks on your project's Java source files using <ulink url="http://checkstyle.sourceforge.net/index.html">Checkstyle</ulink>
+                    <para>Performs quality checks on your project's Java source files using
+                        <ulink url="http://checkstyle.sourceforge.net/index.html">Checkstyle</ulink>
                         and generates reports from these checks.
                     </para>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <link linkend='codenarc_plugin'><literal>codenarc</literal></link>
+                    <link linkend='codenarc_plugin'>
+                        <literal>codenarc</literal>
+                    </link>
                 </td>
-                <td><literal>groovy-base</literal></td>
+                <td>
+                    <literal>groovy-base</literal>
+                </td>
                 <td>-</td>
                 <td>
-                    <para>Performs quality checks on your project's Groovy source files using <ulink url="http://codenarc.sourceforge.net/index.html">CodeNarc</ulink>
+                    <para>Performs quality checks on your project's Groovy source files using
+                        <ulink url="http://codenarc.sourceforge.net/index.html">CodeNarc</ulink>
                         and generates reports from these checks.
                     </para>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <link linkend='eclipse_plugin'><literal>eclipse</literal></link>
+                    <link linkend='eclipse_plugin'>
+                        <literal>eclipse</literal>
+                    </link>
                 </td>
                 <td>-</td>
-                <td><literal>java</literal>, <literal>groovy</literal>, <literal>scala</literal></td>
+                <td><literal>java</literal>,<literal>groovy</literal>,
+                    <literal>scala</literal>
+                </td>
                 <td>
                     <para>Generates files that are used by <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus making
                         it possible to import the project into Eclipse. See also <xref linkend="tutorial_java_projects"/>.
@@ -266,10 +392,14 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='eclipse_plugin'><literal>eclipse-wtp</literal></link>
+                    <link linkend='eclipse_plugin'>
+                        <literal>eclipse-wtp</literal>
+                    </link>
                 </td>
                 <td>-</td>
-                <td><literal>ear</literal>, <literal>war</literal></td>
+                <td><literal>ear</literal>,
+                    <literal>war</literal>
+                </td>
                 <td>
                     <para>Does the same as the eclipse plugin plus generates eclipse WTP (Web Tools Platform) configuration files.
                         After importing to eclipse your war/ear projects should be configured to work with WTP.
@@ -279,22 +409,31 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='findbugs_plugin'><literal>findbugs</literal></link>
+                    <link linkend='findbugs_plugin'>
+                        <literal>findbugs</literal>
+                    </link>
                 </td>
-                <td><literal>java-base</literal></td>
+                <td>
+                    <literal>java-base</literal>
+                </td>
                 <td>-</td>
                 <td>
-                    <para>Performs quality checks on your project's Java source files using <ulink url="http://findbugs.sourceforge.net">FindBugs</ulink>
+                    <para>Performs quality checks on your project's Java source files using
+                        <ulink url="http://findbugs.sourceforge.net">FindBugs</ulink>
                         and generates reports from these checks.
                     </para>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <link linkend='idea_plugin'><literal>idea</literal></link>
+                    <link linkend='idea_plugin'>
+                        <literal>idea</literal>
+                    </link>
                 </td>
                 <td>-</td>
-                <td><literal>java</literal></td>
+                <td>
+                    <literal>java</literal>
+                </td>
                 <td>
                     <para>Generates files that are used by <ulink url="http://www.jetbrains.com/idea/index.html">Intellij IDEA IDE</ulink>,
                         thus making it possible to import the project into IDEA.
@@ -303,33 +442,47 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='jdepend_plugin'><literal>jdepend</literal></link>
+                    <link linkend='jdepend_plugin'>
+                        <literal>jdepend</literal>
+                    </link>
                 </td>
-                <td><literal>java-base</literal></td>
+                <td>
+                    <literal>java-base</literal>
+                </td>
                 <td>-</td>
                 <td>
-                    <para>Performs quality checks on your project's source files using <ulink url="http://clarkware.com/software/JDepend.html">JDepend</ulink>
+                    <para>Performs quality checks on your project's source files using
+                        <ulink url="http://clarkware.com/software/JDepend.html">JDepend</ulink>
                         and generates reports from these checks.
                     </para>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <link linkend='pmd_plugin'><literal>pmd</literal></link>
+                    <link linkend='pmd_plugin'>
+                        <literal>pmd</literal>
+                    </link>
                 </td>
-                <td><literal>java-base</literal></td>
+                <td>
+                    <literal>java-base</literal>
+                </td>
                 <td>-</td>
                 <td>
-                    <para>Performs quality checks on your project's Java source files using <ulink url="http://pmd.sourceforge.net">PMD</ulink>
+                    <para>Performs quality checks on your project's Java source files using
+                        <ulink url="http://pmd.sourceforge.net">PMD</ulink>
                         and generates reports from these checks.
                     </para>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <link linkend='project_reports_plugin'><literal>project-report</literal></link>
+                    <link linkend='project_reports_plugin'>
+                        <literal>project-report</literal>
+                    </link>
                 </td>
-                <td><literal>reporting-base</literal></td>
+                <td>
+                    <literal>reporting-base</literal>
+                </td>
                 <td>-</td>
                 <td>
                     <para>Generates reports containing useful information about your Gradle build.
@@ -338,7 +491,9 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='signing_plugin'> <literal>signing</literal> </link>
+                    <link linkend='signing_plugin'>
+                        <literal>signing</literal>
+                    </link>
                 </td>
                 <td>base</td>
                 <td>-</td>
@@ -349,12 +504,100 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='sonar_plugin'> <literal>sonar</literal> </link>
+                    <link linkend='sonar_plugin'>
+                        <literal>sonar</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>java-base, java, jacoco</td>
+                <td>
+                    <para>Provides integration with the
+                        <ulink url="http://www.sonarsource.org">Sonar</ulink>
+                        code quality platform. Superceeded by the <link linkend='sonar_runner_plugin'><literal>sonar-runner</literal></link> plugin.
+                    </para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Incubating software development plugins</title>
+        <para>These plugins provide help with your software development process.</para>
+        <table>
+            <title>Software development plugins</title>
+            <thead>
+                <tr>
+                    <td>Plugin Id</td>
+                    <td>Automatically applies</td>
+                    <td>Works with</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend="buildDashboard_plugin">
+                        <literal>build-dashboard</literal>
+                    </link>
+                </td>
+                <td>reporting-base</td>
+                <td>-</td>
+                <td>
+                    <para>Generates build dashboard report.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="build_setup_plugin">
+                        <literal>build-setup</literal>
+                    </link>
+                </td>
+                <td>wrapper</td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for initializing a new Gradle build. Handles converting a Maven build to a Gradle build.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='jacoco_plugin'>
+                        <literal>jacoco</literal>
+                    </link>
+                </td>
+                <td>reporting-base</td>
+                <td>java</td>
+                <td>
+                    <para>Provides integration with the
+                        <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>
+                            code coverage library for Java.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='sonar_runner_plugin'>
+                        <literal>sonar-runner</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>java-base, java, jacoco</td>
+                <td>
+                    <para>Provides integration with the
+                        <ulink url="http://www.sonarsource.org">Sonar</ulink>
+                        code quality platform. Superceeds the <link linkend='sonar_plugin'><literal>sonar</literal></link> plugin.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="wrapper_plugin">
+                        <literal>wrapper</literal>
+                    </link>
                 </td>
                 <td>-</td>
                 <td>-</td>
                 <td>
-                    <para>Provides integration with the <ulink url="http://www.sonarsource.org">Sonar</ulink> code quality platform.
+                    <para>Adds a <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/> task for generating Gradle wrapper files.
                     </para>
                 </td>
             </tr>
@@ -377,42 +620,58 @@
             </thead>
             <tr>
                 <td>base</td>
-                <td><para>Adds the standard lifecycle tasks and configures reasonable defaults for the archive tasks:
-                    <itemizedlist>
-                        <listitem>adds build<replaceable>ConfigurationName</replaceable> tasks.
-                            Those tasks assemble the artifacts belonging to the specified configuration.
-                        </listitem>
-                        <listitem>adds upload<replaceable>ConfigurationName</replaceable> tasks.
-                            Those tasks assemble and upload the artifacts belonging to the specified configuration.
-                        </listitem>
-                        <listitem>configures reasonable default values for all archive tasks (e.g. tasks that inherit from
-                            <apilink class="org.gradle.api.tasks.bundling.AbstractArchiveTask"/>).
-                            For example, the archive tasks are tasks of types: <apilink class="org.gradle.api.tasks.bundling.Jar"/>,
-                            <apilink class="org.gradle.api.tasks.bundling.Tar"/>, <apilink class="org.gradle.api.tasks.bundling.Zip"/>.
-                            Specifically, <literal>destinationDir</literal>, <literal>baseName</literal> and <literal>version</literal>
-                            properties of the archive tasks are preconfigured with defaults.
-                            This is extremely useful because it drives consistency across projects;
-                            the consistency regarding naming conventions of archives and their location after the build completed.
-                        </listitem>
-                    </itemizedlist>
+                <td>
+                    <para>Adds the standard lifecycle tasks and configures reasonable defaults for the archive tasks:
+                        <itemizedlist>
+                            <listitem>adds build
+                                <replaceable>ConfigurationName</replaceable>
+                                tasks.
+                                Those tasks assemble the artifacts belonging to the specified configuration.
+                            </listitem>
+                            <listitem>adds upload
+                                <replaceable>ConfigurationName</replaceable>
+                                tasks.
+                                Those tasks assemble and upload the artifacts belonging to the specified configuration.
+                            </listitem>
+                            <listitem>configures reasonable default values for all archive tasks (e.g. tasks that inherit from
+                                <apilink class="org.gradle.api.tasks.bundling.AbstractArchiveTask"/>).
+                                For example, the archive tasks are tasks of types: <apilink class="org.gradle.api.tasks.bundling.Jar"/>,
+                                <apilink class="org.gradle.api.tasks.bundling.Tar"/>, <apilink class="org.gradle.api.tasks.bundling.Zip"/>.
+                                Specifically, <literal>destinationDir</literal>,
+                                <literal>baseName</literal>
+                                and
+                                <literal>version</literal>
+                                properties of the archive tasks are preconfigured with defaults.
+                                This is extremely useful because it drives consistency across projects;
+                                the consistency regarding naming conventions of archives and their location after the build completed.
+                            </listitem>
+                        </itemizedlist>
                     </para>
                 </td>
             </tr>
             <tr>
                 <td>java-base</td>
-                <td><para>Adds the source sets concept to the project. Does not add any particular source sets.</para></td>
+                <td>
+                    <para>Adds the source sets concept to the project. Does not add any particular source sets.</para>
+                </td>
             </tr>
             <tr>
                 <td>groovy-base</td>
-                <td><para>Adds the Groovy source sets concept to the project.</para></td>
+                <td>
+                    <para>Adds the Groovy source sets concept to the project.</para>
+                </td>
             </tr>
             <tr>
                 <td>scala-base</td>
-                <td><para>Adds the Scala source sets concept to the project.</para></td>
+                <td>
+                    <para>Adds the Scala source sets concept to the project.</para>
+                </td>
             </tr>
             <tr>
                 <td>reporting-base</td>
-                <td><para>Adds some shared convention properties to the project, relating to report generation.</para></td>
+                <td>
+                    <para>Adds some shared convention properties to the project, relating to report generation.</para>
+                </td>
             </tr>
         </table>
     </section>

@@ -28,20 +28,18 @@ import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.api.internal.externalresource.transport.http.ntlm.NTLMSchemeFactory;
+import org.gradle.api.internal.resource.UriResource;
 import org.gradle.util.GUtil;
-import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.ProxySelector;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
@@ -55,7 +53,7 @@ public class HttpClientConfigurer {
     public void configure(DefaultHttpClient httpClient) {
         NTLMSchemeFactory.register(httpClient);
         configureCredentials(httpClient, httpSettings.getCredentials());
-        configureProxy(httpClient, httpSettings.getProxySettings());
+        configureProxyCredentials(httpClient, httpSettings.getProxySettings());
         configureRetryHandler(httpClient);
         configureUserAgent(httpClient);
     }
@@ -69,11 +67,7 @@ public class HttpClientConfigurer {
         }
     }
 
-    private void configureProxy(DefaultHttpClient httpClient, HttpProxySettings proxySettings) {
-        // Use standard JVM proxy settings
-        ProxySelectorRoutePlanner routePlanner = new ProxySelectorRoutePlanner(httpClient.getConnectionManager().getSchemeRegistry(), ProxySelector.getDefault());
-        httpClient.setRoutePlanner(routePlanner);
-
+    private void configureProxyCredentials(DefaultHttpClient httpClient, HttpProxySettings proxySettings) {
         HttpProxySettings.HttpProxy proxy = proxySettings.getProxy();
         if (proxy != null && proxy.credentials != null) {
             useCredentials(httpClient, proxy.credentials, proxy.host, proxy.port);
@@ -100,8 +94,7 @@ public class HttpClientConfigurer {
     }
 
     public void configureUserAgent(DefaultHttpClient httpClient) {
-        String userAgent = "Gradle/" + GradleVersion.current().getVersion();
-        HttpProtocolParams.setUserAgent(httpClient.getParams(), userAgent);
+        HttpProtocolParams.setUserAgent(httpClient.getParams(), UriResource.getUserAgentString());
     }
 
     static class PreemptiveAuth implements HttpRequestInterceptor {

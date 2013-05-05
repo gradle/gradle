@@ -15,17 +15,22 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.internal.Factory;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.Factory;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 
 public class DefaultCacheLockingManager implements CacheLockingManager {
-    public static final int CACHE_LAYOUT_VERSION = 14;
+
+    // If you update this, also update DefaultGradleDistribution.getArtifactCacheLayoutVersion() (which is the historical record)
+    // You should also update LocallyAvailableResourceFinderFactory
+    public static final int CACHE_LAYOUT_VERSION = 24;
+
     private final PersistentCache cache;
 
     public DefaultCacheLockingManager(CacheRepository cacheRepository) {
@@ -59,5 +64,9 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
 
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
         return cache.createCache(cacheFile, keyType, valueType);
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        return cache.createCache(cacheFile, keySerializer, valueSerializer);
     }
 }

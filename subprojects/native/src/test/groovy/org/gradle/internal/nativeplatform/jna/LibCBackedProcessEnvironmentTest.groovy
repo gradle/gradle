@@ -24,7 +24,7 @@ import org.gradle.util.TestPrecondition
 
 class LibCBackedProcessEnvironmentTest extends Specification {
 
-    NativeServices registry = new NativeServices();
+    NativeServices registry = NativeServices.getInstance();
 
     @Requires(TestPrecondition.FILE_PERMISSIONS) //MACOSX & UNIX
     def "setNativeEnvironmentVariable throws NativeEnvironmentException for NULL value on env name with errno code"() {

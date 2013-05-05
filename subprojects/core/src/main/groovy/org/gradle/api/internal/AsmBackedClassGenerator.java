@@ -16,20 +16,26 @@
 package org.gradle.api.internal;
 
 import groovy.lang.*;
-import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.ConfigureUtil;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.JavaMethod;
 import org.objectweb.asm.*;
+import org.objectweb.asm.Type;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
+    private static final JavaMethod<ClassLoader, Class> DEFINE_CLASS_METHOD = JavaMethod.create(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
+
     @Override
     protected <T> ClassBuilder<T> start(Class<T> type) {
         return new ClassBuilderImpl<T>(type);
@@ -83,8 +89,21 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
             String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, paramTypes.toArray(
                     new Type[paramTypes.size()]));
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", methodDescriptor, null,
+
+            String signature = signature(constructor);
+
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", methodDescriptor, signature,
                     new String[0]);
+
+            for (Annotation annotation : constructor.getDeclaredAnnotations()) {
+                if (annotation.annotationType().getAnnotation(Inherited.class) != null) {
+                    continue;
+                }
+                Retention retention = annotation.annotationType().getAnnotation(Retention.class);
+                AnnotationVisitor annotationVisitor = methodVisitor.visitAnnotation(Type.getType(annotation.annotationType()).getDescriptor(), retention != null && retention.value() == RetentionPolicy.RUNTIME);
+                annotationVisitor.visitEnd();
+            }
+
             methodVisitor.visitCode();
 
             // this.super(p0 .. pn)
@@ -108,6 +127,101 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitInsn(Opcodes.RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
+        }
+
+        /**
+         * Generates the signature for the given constructor
+         */
+        private String signature(Constructor<?> constructor) {
+            StringBuilder builder = new StringBuilder();
+            if (constructor.getTypeParameters().length > 0) {
+                builder.append('<');
+                for (TypeVariable<?> typeVariable : constructor.getTypeParameters()) {
+                    builder.append(typeVariable.getName());
+                    for (java.lang.reflect.Type bound : typeVariable.getBounds()) {
+                        builder.append(':');
+                        visitType(bound, builder);
+                    }
+                }
+                builder.append('>');
+            }
+            builder.append('(');
+            for (java.lang.reflect.Type paramType : constructor.getGenericParameterTypes()) {
+                visitType(paramType, builder);
+            }
+            builder.append(")V");
+            for (java.lang.reflect.Type exceptionType : constructor.getGenericExceptionTypes()) {
+                builder.append('^');
+                visitType(exceptionType, builder);
+            }
+            return builder.toString();
+        }
+
+        private void visitType(java.lang.reflect.Type type, StringBuilder builder) {
+            if (type instanceof Class) {
+                Class<?> cl = (Class<?>) type;
+                if (cl.isPrimitive()) {
+                    builder.append(Type.getType(cl).getDescriptor());
+                } else {
+                    if (cl.isArray()) {
+                        builder.append(cl.getName().replace('.', '/'));
+                    } else {
+                        builder.append('L');
+                        builder.append(cl.getName().replace('.', '/'));
+                        builder.append(';');
+                    }
+                }
+            } else if (type instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) type;
+                visitNested(parameterizedType.getRawType(), builder);
+                builder.append('<');
+                for (java.lang.reflect.Type param : parameterizedType.getActualTypeArguments()) {
+                    visitType(param, builder);
+                }
+                builder.append(">;");
+            } else if (type instanceof WildcardType) {
+                WildcardType wildcardType = (WildcardType) type;
+                if (wildcardType.getUpperBounds().length == 1 && wildcardType.getUpperBounds()[0].equals(Object.class)) {
+                    if (wildcardType.getLowerBounds().length == 0) {
+                        builder.append('*');
+                        return;
+                    }
+                } else {
+                    for (java.lang.reflect.Type upperType : wildcardType.getUpperBounds()) {
+                        builder.append('+');
+                        visitType(upperType, builder);
+                    }
+                }
+                for (java.lang.reflect.Type lowerType : wildcardType.getLowerBounds()) {
+                    builder.append('-');
+                    visitType(lowerType, builder);
+                }
+            } else if (type instanceof TypeVariable) {
+                TypeVariable<?> typeVar = (TypeVariable) type;
+                builder.append('T');
+                builder.append(typeVar.getName());
+                builder.append(';');
+            } else if (type instanceof GenericArrayType) {
+                GenericArrayType arrayType = (GenericArrayType) type;
+                builder.append('[');
+                visitType(arrayType.getGenericComponentType(), builder);
+            } else {
+                throw new IllegalArgumentException(String.format("Cannot generate signature for %s.", type));
+            }
+        }
+
+        private void visitNested(java.lang.reflect.Type type, StringBuilder builder) {
+            if (type instanceof Class) {
+                Class<?> cl = (Class<?>) type;
+                if (cl.isPrimitive()) {
+                    builder.append(Type.getType(cl).getDescriptor());
+                } else {
+                    builder.append('L');
+                    builder.append(cl.getName().replace('.', '/'));
+                }
+            } else {
+                visitType(type, builder);
+            }
         }
 
         public void mixInDynamicAware() throws Exception {
@@ -659,23 +773,38 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type actionImplType = Type.getType(ClosureBackedAction.class);
             Type closureType = Type.getType(Closure.class);
 
-            String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{closureType});
+            Type[] originalParameterTypes = CollectionUtils.collectArray(method.getNativeParameterTypes(), Type.class, new Transformer<Type, Class>() {
+                public Type transform(Class clazz) {
+                    return Type.getType(clazz);
+                }
+            });
+            int numParams = originalParameterTypes.length;
+            Type[] closurisedParameterTypes = new Type[numParams];
+            System.arraycopy(originalParameterTypes, 0, closurisedParameterTypes, 0, numParams);
+            closurisedParameterTypes[numParams - 1] = closureType;
 
-            // GENERATE public void <method>(Closure v) { <method>(new ClosureBackedAction(v)); }
+            String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, closurisedParameterTypes);
+
+            // GENERATE public void <method>(Closure v) { <method>(…, new ClosureBackedAction(v)); }
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), methodDescriptor, null, new String[0]);
             methodVisitor.visitCode();
 
-            // GENERATE <method>(new ClosureBackedAction(v));
+            // GENERATE <method>(…, new ClosureBackedAction(v));
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+
+            for (int stackVar = 1; stackVar < numParams; ++stackVar) {
+                methodVisitor.visitVarInsn(closurisedParameterTypes[stackVar - 1].getOpcode(Opcodes.ILOAD), stackVar);
+            }
 
             // GENERATE new ClosureBackedAction(v);
             methodVisitor.visitTypeInsn(Opcodes.NEW, actionImplType.getInternalName());
             methodVisitor.visitInsn(Opcodes.DUP);
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, numParams);
             String constuctorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{closureType});
             methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, actionImplType.getInternalName(), "<init>", constuctorDescriptor);
 
-            methodDescriptor = Type.getMethodDescriptor(Type.getType(method.getReturnType()), new Type[]{Type.getType(method.getParameterTypes()[0].getTheClass())});
+
+            methodDescriptor = Type.getMethodDescriptor(Type.getType(method.getReturnType()), originalParameterTypes);
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), method.getName(), methodDescriptor);
 
             methodVisitor.visitInsn(Opcodes.RETURN);
@@ -687,9 +816,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             visitor.visitEnd();
 
             byte[] bytecode = visitor.toByteArray();
-            return (Class<T>) ReflectionUtil.invoke(type.getClassLoader(), "defineClass", new Object[]{
-                    typeName, bytecode, 0, bytecode.length
-            });
+            return DEFINE_CLASS_METHOD.invoke(type.getClassLoader(), typeName, bytecode, 0, bytecode.length);
         }
     }
 
@@ -711,15 +838,4 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
     }
 
-    public static class ClosureBackedAction implements Action<Object> {
-        private final Closure cl;
-
-        public ClosureBackedAction(Closure cl) {
-            this.cl = cl;
-        }
-
-        public void execute(Object o) {
-            ConfigureUtil.configure(cl, o);
-        }
-    }
 }

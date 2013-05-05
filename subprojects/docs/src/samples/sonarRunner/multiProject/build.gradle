@@ -1,0 +1,43 @@
+apply plugin: "sonar-runner"
+
+// START SNIPPET global-configuration-settings
+sonarRunner {
+    sonarProperties {
+        property "sonar.host.url", "http://my.server.com"
+        property "sonar.jdbc.url", "jdbc:mysql://my.server.com/sonar"
+        property "sonar.jdbc.driverClassName", "com.mysql.jdbc.Driver"
+        property "sonar.jdbc.username", "Fred Flintstone"
+        property "sonar.jdbc.password", "very clever"
+    }
+}
+// END SNIPPET global-configuration-settings
+
+
+// START SNIPPET shared-configuration-settings
+subprojects {
+    sonarRunner {
+        sonarProperties {
+            property "sonar.sourceEncoding", "UTF-8"
+        }
+    }
+}
+// END SNIPPET shared-configuration-settings
+
+// START SNIPPET individual-configuration-settings
+project(":project1") {
+    sonarRunner {
+        sonarProperties {
+            property "sonar.language", "grvy"
+        }
+    }
+}
+// END SNIPPET individual-configuration-settings
+
+// START SNIPPET skip-project
+project(":project2") {
+    sonarRunner {
+        skipProject = true
+    }
+}
+// END SNIPPET skip-project
+

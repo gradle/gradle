@@ -20,7 +20,6 @@ import spock.lang.Specification
 import org.gradle.util.HelperUtil
 import org.gradle.plugins.cpp.gpp.GppCompileSpec
 import org.gradle.plugins.cpp.gpp.GppLibraryCompileSpec
-import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.api.NamedDomainObjectContainer
@@ -40,13 +39,24 @@ class CppPluginTest extends Specification {
         project.libraries instanceof NamedDomainObjectContainer
     }
 
-    def "compiler adapters are available"() {
+    @Requires(TestPrecondition.WINDOWS)
+    def "gcc and visual cpp adapters are available on windows"() {
         given:
         project.plugins.apply(CppPlugin)
 
         expect:
         project.compilers.collect { it.name } == ['gpp', 'visualCpp']
         project.compilers.searchOrder.collect { it.name } == ['visualCpp', 'gpp']
+    }
+
+    @Requires(TestPrecondition.UNIX)
+    def "gcc adapter is available on unix"() {
+        given:
+        project.plugins.apply(CppPlugin)
+
+        expect:
+        project.compilers.collect { it.name } == ['gpp']
+        project.compilers.searchOrder.collect { it.name } == ['gpp']
     }
 
     def "can create some cpp source sets"() {
@@ -151,7 +161,7 @@ class CppPluginTest extends Specification {
 
         then:
         def compile = project.tasks['compileTest']
-        compile instanceof Compile
+        compile instanceof CppCompile
         compile.spec == project.executables.test.spec
 
         def install = project.tasks['installTest']
@@ -219,7 +229,7 @@ class CppPluginTest extends Specification {
 
         then:
         def compile = project.tasks['compileTest']
-        compile instanceof Compile
+        compile instanceof CppCompile
         compile.spec == project.libraries.test.spec
     }
 }

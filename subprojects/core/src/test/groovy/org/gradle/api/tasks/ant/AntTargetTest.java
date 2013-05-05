@@ -20,25 +20,27 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.TemporaryFolder;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 
 import java.io.File;
 import java.util.Set;
+
+import static org.gradle.util.WrapUtil.toSet;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class AntTargetTest {
     private final Target antTarget = new Target();
     private final DefaultProject project = HelperUtil.createRootProject();
     private final AntTarget task = HelperUtil.createTask(AntTarget.class, project);
     @Rule
-    public TemporaryFolder testDir = new TemporaryFolder();
-    private final File baseDir = testDir.getDir();
+    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
+    private final File baseDir = testDir.getTestDirectory();
 
     @Before
     public void setUp() {
@@ -60,8 +62,8 @@ public class AntTargetTest {
 
     @Test
     public void dependsOnTargetDependencies() {
-        Task a = project.getTasks().add("a");
-        Task b = project.getTasks().add("b");
+        Task a = project.getTasks().create("a");
+        Task b = project.getTasks().create("b");
         antTarget.setDepends("a, b");
 
         task.setTarget(antTarget);

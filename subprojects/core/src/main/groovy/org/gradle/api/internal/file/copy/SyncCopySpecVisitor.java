@@ -76,7 +76,7 @@ public class SyncCopySpecVisitor extends DelegatingCopySpecVisitor {
             }
         };
 
-        MinimalFileTree walker = new DirectoryFileTree(baseDestDir).depthFirst();
+        MinimalFileTree walker = new DirectoryFileTree(baseDestDir).postfix();
         walker.visit(visitor);
         visited.clear();
 

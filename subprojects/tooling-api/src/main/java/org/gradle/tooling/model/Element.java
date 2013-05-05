@@ -29,6 +29,7 @@ public interface Element extends Model {
      * Returns the name of the element. Note that the name is not a unique identifier.
      *
      * @return The name of the element.
+     * @since 1.0-milestone-5
      */
     String getName();
 
@@ -36,6 +37,7 @@ public interface Element extends Model {
      * Returns the description of the element, or {@code null} if it has no description.
      *
      * @return The description of the element, or {@code null} if it has no description.
+     * @since 1.0-milestone-5
      */
     @Nullable
     String getDescription();

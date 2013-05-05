@@ -16,11 +16,14 @@
 package org.gradle.api.publication.maven.internal;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.maven.*;
-import org.gradle.internal.Factory;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.artifacts.maven.MavenResolver;
+import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publication.maven.internal.ant.BaseMavenInstaller;
 import org.gradle.api.publication.maven.internal.ant.DefaultGroovyMavenDeployer;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 public class DefaultDeployerFactory implements DeployerFactory {
@@ -31,7 +34,8 @@ public class DefaultDeployerFactory implements DeployerFactory {
     private final ConfigurationContainer configurationContainer;
     private final Conf2ScopeMappingContainer scopeMapping;
 
-    public DefaultDeployerFactory(MavenFactory mavenFactory, Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver, MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping) {
+    public DefaultDeployerFactory(MavenFactory mavenFactory, Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver, MavenPomMetaInfoProvider pomMetaInfoProvider,
+                                  ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping) {
         this.mavenFactory = mavenFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
@@ -40,7 +44,7 @@ public class DefaultDeployerFactory implements DeployerFactory {
         this.scopeMapping = scopeMapping;
     }
 
-    public GroovyMavenDeployer createMavenDeployer() {
+    public DefaultGroovyMavenDeployer createMavenDeployer() {
         PomFilterContainer pomFilterContainer = createPomFilterContainer(
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
         return new DefaultGroovyMavenDeployer(pomFilterContainer, createArtifactPomContainer(

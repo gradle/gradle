@@ -45,7 +45,7 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
 
     public DaemonRegistryServices(File daemonBaseDir) {
         this(daemonBaseDir, REGISTRY_CACHE);
-        add(new NativeServices());
+        add(NativeServices.getInstance());
     }
 
     protected DaemonRegistryServices(File daemonBaseDir, Cache<File, DaemonRegistry> daemonRegistryCache) {

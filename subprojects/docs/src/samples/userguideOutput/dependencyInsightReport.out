@@ -1,0 +1,3 @@
+org.codehaus.groovy:groovy-all:2.0.5
+\--- projectReports:api:1.0-SNAPSHOT
+     \--- compile

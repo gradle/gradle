@@ -15,53 +15,41 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.*;
+import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.ModelBuilder;
+import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
-import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.model.Model;
 
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConnection connection;
-    private final ModelMapping modelMapping = new ModelMapping();
-    private ProtocolToModelAdapter adapter;
     private final ConnectionParameters parameters;
 
-    public DefaultProjectConnection(AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+    public DefaultProjectConnection(AsyncConnection connection, ConnectionParameters parameters) {
         this.connection = connection;
         this.parameters = parameters;
-        this.adapter = adapter;
     }
 
     public void close() {
         connection.stop();
     }
 
-    public <T extends Model> T getModel(Class<T> viewType) {
-        return model(viewType).get();
+    public <T> T getModel(Class<T> modelType) {
+        return model(modelType).get();
     }
 
-    public <T extends Model> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
-        model(viewType).get(handler);
+    public <T> void getModel(final Class<T> modelType, final ResultHandler<? super T> handler) {
+        model(modelType).get(handler);
     }
 
     public BuildLauncher newBuild() {
         return new DefaultBuildLauncher(connection, parameters);
     }
 
-    public <T extends Model> ModelBuilder<T> model(Class<T> modelType) {
-        return new DefaultModelBuilder<T, Class>(modelType, mapToProtocol(modelType), connection, adapter, parameters);
-    }
-
-    private Class mapToProtocol(Class<? extends Model> viewType) {
-        Class protocolViewType = modelMapping.getInternalType(viewType);
-        if (protocolViewType == null) {
-            throw new UnknownModelException(
-                    "Unknown model: '" + viewType.getSimpleName() + "'.\n"
-                        + "Most likely you are trying to acquire a model for a class that is not a valid Tooling API model class.\n"
-                        + "Review the documentation on the version of Tooling API you use to find out what models can be build."
-            );
+    public <T> ModelBuilder<T> model(Class<T> modelType) {
+        if (!modelType.isInterface()) {
+            throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
         }
-        return protocolViewType;
+        return new DefaultModelBuilder<T>(modelType, connection, parameters);
     }
 }

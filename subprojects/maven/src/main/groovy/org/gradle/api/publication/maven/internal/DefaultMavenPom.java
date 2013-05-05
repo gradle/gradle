@@ -16,7 +16,6 @@
 package org.gradle.api.publication.maven.internal;
 
 import groovy.lang.Closure;
-import org.apache.commons.io.IOUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
@@ -27,11 +26,16 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.api.internal.XmlTransformer;
+import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.ErroringAction;
+import org.gradle.api.internal.IoActions;
+import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.listener.ActionBroadcast;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 
@@ -39,6 +43,7 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class DefaultMavenPom implements MavenPom {
+
     private PomDependenciesConverter pomDependenciesConverter;
     private FileResolver fileResolver;
     private MavenProject mavenProject = new MavenProject();
@@ -68,7 +73,7 @@ public class DefaultMavenPom implements MavenPom {
         this.configurations = configurations;
         return this;
     }
-    
+
     public DefaultMavenPom setGroupId(String groupId) {
         getModel().setGroupId(groupId);
         return this;
@@ -183,54 +188,37 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public DefaultMavenPom writeTo(final Writer pomWriter) {
-        getEffectivePom().writeNonEffectivePom(pomWriter);
+        try {
+            getEffectivePom().writeNonEffectivePom(pomWriter);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         return this;
     }
 
     public DefaultMavenPom writeTo(Object path) {
-        OutputStream stream = null;
-
-        try {
-            File file = fileResolver.resolve(path);
-            if (file.getParentFile() != null) {
-                file.getParentFile().mkdirs();
+        IoActions.writeTextFile(fileResolver.resolve(path), POM_FILE_ENCODING, new Action<BufferedWriter>() {
+            public void execute(BufferedWriter writer) {
+                writeTo(writer);
             }
-            stream = new FileOutputStream(file);
-            getEffectivePom().writeNonEffectivePom(stream);
-            return this;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } finally {
-            IOUtils.closeQuietly(stream);
-        }
+        });
+        return this;
     }
 
-    private void writeNonEffectivePom(final Writer pomWriter) {
+    private void writeNonEffectivePom(final Writer pomWriter) throws IOException {
         try {
-            final StringWriter stringWriter = new StringWriter();
-            mavenProject.writeModel(stringWriter);
-            withXmlActions.transform(stringWriter.toString(), pomWriter);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            withXmlActions.transform(pomWriter, POM_FILE_ENCODING, new ErroringAction<Writer>() {
+                protected void doExecute(Writer writer) throws IOException {
+                    mavenProject.writeModel(writer);
+                }
+            });
         } finally {
-            IOUtils.closeQuietly(pomWriter);
-        }
-    }
-
-    private void writeNonEffectivePom(OutputStream stream) {
-        try {
-            final StringWriter stringWriter = new StringWriter();
-            mavenProject.writeModel(stringWriter);
-            withXmlActions.transform(stringWriter.toString(), stream);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } finally {
-            IOUtils.closeQuietly(stream);
+            pomWriter.close();
         }
     }
 
     public DefaultMavenPom whenConfigured(final Closure closure) {
-        whenConfiguredActions.add(closure);
+        whenConfiguredActions.add(new ClosureBackedAction<MavenPom>(closure));
         return this;
     }
 

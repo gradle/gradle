@@ -15,16 +15,18 @@
  */
 package org.gradle.integtests.openapi
 
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.apache.commons.lang.builder.ReflectionToStringBuilder
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.openapi.external.runner.GradleRunnerFactory
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1
 import org.gradle.openapi.external.runner.GradleRunnerVersion1
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.apache.commons.lang.builder.ReflectionToStringBuilder
 
 class GradleRunnerTest {
 
@@ -37,12 +39,13 @@ class GradleRunnerTest {
 
   private File javaprojectDir
 
-  @Rule public final GradleDistribution dist = new GradleDistribution()
-  @Rule public final TestResources resources = new TestResources('testproject')
+  @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+  final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
+  @Rule public final TestResources resources = new TestResources(temporaryFolder, 'testproject')
 
   @Before
   void setUp() {
-      javaprojectDir = dist.testDir
+      javaprojectDir = temporaryFolder.testDirectory
   }
 
   /**

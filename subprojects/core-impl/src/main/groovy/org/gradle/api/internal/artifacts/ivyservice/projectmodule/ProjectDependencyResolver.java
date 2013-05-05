@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,62 +19,53 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 
 import java.io.File;
+import java.util.Set;
 
-public class ProjectDependencyResolver implements DependencyToModuleResolver {
+public class ProjectDependencyResolver implements DependencyToModuleVersionResolver, ModuleToModuleVersionResolver {
     private final ProjectModuleRegistry projectModuleRegistry;
-    private final DependencyToModuleResolver resolver;
+    private final DependencyToModuleVersionResolver resolver;
     private final ProjectArtifactResolver artifactResolver;
+    private final ModuleDescriptorConverter moduleDescriptorConverter;
 
-    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleResolver resolver) {
+    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleVersionResolver resolver, ModuleDescriptorConverter moduleDescriptorConverter) {
         this.projectModuleRegistry = projectModuleRegistry;
         this.resolver = resolver;
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
         artifactResolver = new ProjectArtifactResolver();
     }
 
-    public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
-        ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(dependencyDescriptor);
-
-        if (moduleDescriptor == null) {
-            return resolver.resolve(dependencyDescriptor);
+    public void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result) {
+        DependencyDescriptor descriptor = dependency.getDescriptor();
+        if (descriptor instanceof ProjectDependencyDescriptor) {
+            ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) descriptor;
+            ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(desc);
+            ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
+            DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+            result.resolved(moduleVersionIdentifier, moduleDescriptor, artifactResolver);
+        } else {
+            resolver.resolve(dependency, result);
         }
+    }
 
-        return new ProjectDependencyModuleVersionResolveResult(moduleDescriptor, artifactResolver);
+    public void resolve(Module module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result) {
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configurations, module);
+        ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
+        DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+        result.resolved(moduleVersionIdentifier, moduleDescriptor, artifactResolver);
     }
 
     private static class ProjectArtifactResolver implements ArtifactResolver {
-        public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
+        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
             String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE);
-            return new FileBackedArtifactResolveResult(new File(path));
-        }
-    }
-
-    private static class ProjectDependencyModuleVersionResolveResult implements ModuleVersionResolveResult {
-        private final ModuleDescriptor moduleDescriptor;
-        private final ArtifactResolver artifactResolver;
-
-        public ProjectDependencyModuleVersionResolveResult(ModuleDescriptor moduleDescriptor, ArtifactResolver artifactResolver) {
-            this.moduleDescriptor = moduleDescriptor;
-            this.artifactResolver = artifactResolver;
-        }
-
-        public ModuleVersionResolveException getFailure() {
-            return null;
-        }
-
-        public ModuleRevisionId getId() throws ModuleVersionResolveException {
-            return moduleDescriptor.getModuleRevisionId();
-        }
-
-        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-            return moduleDescriptor;
-        }
-
-        public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
-            return artifactResolver;
+            result.resolved(new File(path));
         }
     }
 }

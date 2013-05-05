@@ -104,7 +104,7 @@ public class DisconnectableInputStream extends BulkReadInputStream {
                                 assert buffer.length >= writePos;
                                 condition.signalAll();
                             }
-                            if (closed || nread < 0) {
+                            if (nread < 0) {
                                 // End of the stream
                                 inputFinished = true;
                                 condition.signalAll();
@@ -133,35 +133,36 @@ public class DisconnectableInputStream extends BulkReadInputStream {
     @Override
     public int read(byte[] bytes, int pos, int count) throws IOException {
         lock.lock();
-        int nread;
         try {
             while (!inputFinished && !closed && readPos == writePos) {
                 condition.await();
             }
-            if (inputFinished && readPos == writePos) {
-                return -1;
-            }
             if (closed) {
                 return -1;
             }
-            assert writePos > readPos;
-            nread = Math.min(count, writePos - readPos);
-            System.arraycopy(buffer, readPos, bytes, pos, nread);
-            readPos += nread;
-            assert writePos >= readPos;
-            condition.signalAll();
+
+            // Drain the buffer before returning end-of-stream
+            if (writePos > readPos) {
+                int nread = Math.min(count, writePos - readPos);
+                System.arraycopy(buffer, readPos, bytes, pos, nread);
+                readPos += nread;
+                assert writePos >= readPos;
+                condition.signalAll();
+                return nread;
+            }
+
+            assert inputFinished;
+            return -1;
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             lock.unlock();
         }
-        return nread;
     }
 
     /**
-     * Closes this {@code InputStream} for reading. Any threads blocked in read() will receive a {@link
-     * java.nio.channels.AsynchronousCloseException}. Also requests that the reader thread stop reading, if possible,
-     * but does not block waiting for this to happen.
+     * Closes this {@code InputStream} for reading. Any threads blocked in read() will receive an end-of-stream. Also requests that the
+     * reader thread stop reading, if possible, but does not block waiting for this to happen.
      *
      * <p>NOTE: this method does not close the source input stream.</p>
      */

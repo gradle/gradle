@@ -190,7 +190,7 @@ public interface DeploymentDescriptor {
 
     /**
      * Reads the deployment descriptor from a file. The paths are resolved as defined by
-     * {@link org.gradle.api.Project#files(Object...)}
+     * {@link org.gradle.api.Project#file(Object)}
      * 
      * @param path
      *            The path of the file to read the deployment descriptor from
@@ -209,7 +209,7 @@ public interface DeploymentDescriptor {
 
     /**
      * Writes the deployment descriptor into a file. The paths are resolved as defined by
-     * {@link org.gradle.api.Project#files(Object...)}
+     * {@link org.gradle.api.Project#file(Object)}
      * 
      * @param path
      *            The path of the file to write the deployment descriptor into.

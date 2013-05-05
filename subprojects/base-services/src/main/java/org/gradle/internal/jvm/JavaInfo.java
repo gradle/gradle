@@ -61,6 +61,4 @@ public interface JavaInfo {
     File getToolsJar();
 
     Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars);
-
-    boolean getSupportsAppleScript();
 }

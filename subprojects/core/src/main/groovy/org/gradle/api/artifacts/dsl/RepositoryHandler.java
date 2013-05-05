@@ -48,7 +48,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * The default is a Hash value of the rootdir paths. The name is used in the console output,
      * to point to information related to a particular repository. A name must be unique amongst a repository group.</td></tr>
      * <tr><td><code>dirs</code></td>
-     *     <td>Specifies a list of rootDirs where to look for dependencies. These are evaluated as for {@link org.gradle.api.Project#files(Object...)}</td></tr>
+     *     <td>Specifies a list of rootDirs where to look for dependencies. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}</td></tr>
      * </table>
      *
      * <p>Examples:
@@ -85,7 +85,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
-     * always {@link org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The behavior of this resolver
+     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The behavior of this resolver
      * is otherwise the same as the ones added by {@link #mavenRepo(java.util.Map)}.
      *
      * The following parameter are accepted as keys for the map:
@@ -99,9 +99,9 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * must be unique amongst a repository group.
      * </td></tr>
      * <tr><td><code>artifactUrls</code></td>
-     *     <td>A single jar repository or a collection of jar repositories containing additional artifacts not found in the maven central repository.
-     * But be aware that the POM must exist in maven central.
-     * The provided values are evaluated as for {@link org.gradle.api.Project#uri(Object)}.</td></tr>
+     *     <td>A single jar repository or a collection of jar repositories containing additional artifacts not found in the Maven central repository.
+     * But be aware that the POM must exist in Maven central.
+     * The provided values are evaluated as per {@link org.gradle.api.Project#uri(Object)}.</td></tr>
      * </table>
      *
      * <p>Examples:
@@ -158,10 +158,10 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * to a Maven repository, have a look at {@link org.gradle.api.plugins.MavenRepositoryHandlerConvention#mavenDeployer(java.util.Map)} or
      * {@link org.gradle.api.plugins.MavenRepositoryHandlerConvention#mavenInstaller(java.util.Map)}.
      *
-     * By default the repository accepts to resolve artifacts without a pom. The repository always looks first for the pom
+     * By default the repository accepts to resolve artifacts without a POM. The repository always looks first for the POM
      * in the root repository. It then looks for the artifact in the root repository. Sometimes the artifact
-     * lives in a different repository than the pom. In such a case you can specify further locations to look for an artifact.
-     * But be aware that the pom is only looked up in the root repository.
+     * lives in a different repository than the POM. In such a case you can specify further locations to look for an artifact.
+     * But be aware that the POM is only looked up in the root repository.
      *
      * The following parameter are accepted as keys for the map:
      *
@@ -175,12 +175,12 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * </td></tr>
      * <tr><td><code>url</code></td>
      *     <td>The root repository where POM files and artifacts are located.
-     * The provided values are evaluated as for {@link org.gradle.api.Project#uri(Object)}.</td></tr>
+     * The provided values are evaluated as per {@link org.gradle.api.Project#uri(Object)}.</td></tr>
      * <tr><td><code>artifactUrls</code></td>
      *     <td>A single jar repository or a collection of jar repositories containing additional artifacts not found in the root repository. Sometimes the artifact
      * lives in a different repository than the POM. In such a case you can specify further locations to look for an artifact.
      * But be aware that the POM is only looked up in the root repository.
-     * The provided values are evaluated as for {@link org.gradle.api.Project#uri(Object)}.</td></tr>
+     * The provided values are evaluated as per {@link org.gradle.api.Project#uri(Object)}.</td></tr>
      * </table>
      *
      * <p>Examples:

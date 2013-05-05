@@ -15,29 +15,21 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import org.gradle.util.SingleMessageLogger;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
-    private List<Action<? super ProjectInternal>> actions;
-
-    public DefaultBuildConfigurer(Action<? super ProjectInternal>... actions) {
-        this.actions = new ArrayList<Action<? super ProjectInternal>>(Arrays.asList(actions));
-    }
-
     public void configure(GradleInternal gradle) {
-        gradle.getRootProject().allprojects(new Action<Project>() {
-            public void execute(Project project) {
-                for (Action<? super ProjectInternal> action : actions) {
-                    action.execute((ProjectInternal) project);
-                }
+        gradle.addProjectEvaluationListener(new ProjectDependencies2TaskResolver());
+        if (gradle.getStartParameter().isConfigureOnDemand()) {
+            SingleMessageLogger.informAboutIncubating("Configuration on demand");
+            gradle.getRootProject().evaluate();
+        } else {
+            for (Project project : gradle.getRootProject().getAllprojects()) {
+                ((ProjectInternal) project).evaluate();
             }
-        });
+        }
     }
 }

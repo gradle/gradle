@@ -18,13 +18,20 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.graph.CachingDirectedGraphWalker;
+import org.gradle.internal.graph.DirectedGraph;
+import org.gradle.internal.graph.DirectedGraphRenderer;
+import org.gradle.internal.graph.GraphNodeRenderer;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.util.CollectionUtils;
 
+import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -34,31 +41,38 @@ import java.util.concurrent.locks.ReentrantLock;
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize
  * access to these methods.
  */
-public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
+class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
+    private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
+    private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
+    private final List<Throwable> failures = new ArrayList<Throwable>();
     private Spec<? super Task> filter = Specs.satisfyAll();
-    private Exception failure;
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
+    private final List<String> runningProjects = new ArrayList<String>();
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
         List<Task> queue = new ArrayList<Task>(tasks);
         Collections.sort(queue);
-
+        for (Task task : queue) {
+            entryTasks.add(graph.addNode(task));
+        }
         Set<Task> visiting = new HashSet<Task>();
         CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
 
         while (!queue.isEmpty()) {
             Task task = queue.get(0);
-            if (!filter.isSatisfiedBy(task)) {
-                // Filtered - skip
+            TaskInfo node = graph.addNode(task);
+            if (node.getRequired()) {
+                // Have already visited this task - skip it
                 queue.remove(0);
                 continue;
             }
-            if (executionPlan.containsKey(task)) {
-                // Already in plan - skip
+            boolean filtered = !filter.isSatisfiedBy(task);
+            if (filtered) {
+                // Task is not required - skip it
                 queue.remove(0);
                 continue;
             }
@@ -66,34 +80,109 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (visiting.add(task)) {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
-                Set<Task> dependsOnTasks = new TreeSet<Task>(Collections.reverseOrder());
-                dependsOnTasks.addAll(context.getDependencies(task));
+                Set<? extends Task> dependsOnTasks = context.getDependencies(task);
                 for (Task dependsOnTask : dependsOnTasks) {
                     if (visiting.contains(dependsOnTask)) {
-                        throw new CircularReferenceException(String.format(
-                                "Circular dependency between tasks. Cycle includes [%s, %s].", task, dependsOnTask));
+                        // A cycle - skip the task and keep building the graph. The cycle is reported later (with more detail)
+                        continue;
                     }
                     queue.add(0, dependsOnTask);
                 }
             } else {
-                // Have visited this task's dependencies - add it to the end of the plan
+                // Have visited this task's dependencies - add it to the graph
                 queue.remove(0);
                 visiting.remove(task);
-                Set<TaskInfo> dependencies = new HashSet<TaskInfo>();
-                for (Task dependency : context.getDependencies(task)) {
-                    TaskInfo dependencyInfo = executionPlan.get(dependency);
-                    if (dependencyInfo != null) {
-                        dependencies.add(dependencyInfo);
-                    }
-                    // else - the dependency has been filtered, so ignore it
+                node.setRequired(true);
+                Set<? extends Task> dependencies = context.getDependencies(task);
+                for (Task dependency : dependencies) {
+                    graph.addHardEdge(node, dependency);
                 }
-                executionPlan.put(task, new TaskInfo((TaskInternal) task, dependencies));
+                for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
+                    graph.addSoftEdge(node, mustRunAfter);
+                }
             }
         }
     }
 
+    private <T> void addAllReversed(List<T> list, TreeSet<T> set) {
+        List<T> elements = CollectionUtils.toList(set);
+        Collections.reverse(elements);
+        list.addAll(elements);
+    }
+
+    public void determineExecutionPlan() {
+        List<TaskInfo> nodeQueue = new ArrayList<TaskInfo>(entryTasks);
+
+        Set<TaskInfo> visitingNodes = new HashSet<TaskInfo>();
+        while (!nodeQueue.isEmpty()) {
+            TaskInfo taskNode = nodeQueue.get(0);
+
+            if (!taskNode.getRequired() || executionPlan.containsKey(taskNode.getTask())) {
+                nodeQueue.remove(0);
+                continue;
+            }
+
+            if (visitingNodes.add(taskNode)) {
+                // Have not seen this task before - add its dependencies to the head of the queue and leave this
+                // task in the queue
+                ArrayList<TaskInfo> dependsOnTasks = new ArrayList<TaskInfo>();
+                addAllReversed(dependsOnTasks, taskNode.getHardSuccessors());
+                addAllReversed(dependsOnTasks, taskNode.getSoftSuccessors());
+                for (TaskInfo dependsOnTask : dependsOnTasks) {
+                    if (visitingNodes.contains(dependsOnTask)) {
+                        onOrderingCycle();
+                    }
+                    nodeQueue.add(0, dependsOnTask);
+                }
+            } else {
+                // Have visited this task's dependencies - add it to the end of the plan
+                nodeQueue.remove(0);
+                visitingNodes.remove(taskNode);
+                executionPlan.put(taskNode.getTask(), taskNode);
+            }
+        }
+    }
+
+    private void onOrderingCycle() {
+        CachingDirectedGraphWalker<TaskInfo, Void> graphWalker = new CachingDirectedGraphWalker<TaskInfo, Void>(new DirectedGraph<TaskInfo, Void>() {
+            public void getNodeValues(TaskInfo node, Collection<? super Void> values, Collection<? super TaskInfo> connectedNodes) {
+                connectedNodes.addAll(node.getHardSuccessors());
+                connectedNodes.addAll(node.getSoftSuccessors());
+            }
+        });
+        graphWalker.add(entryTasks);
+        final List<TaskInfo> firstCycle = new ArrayList<TaskInfo>(graphWalker.findCycles().get(0));
+        Collections.sort(firstCycle);
+
+        DirectedGraphRenderer<TaskInfo> graphRenderer = new DirectedGraphRenderer<TaskInfo>(new GraphNodeRenderer<TaskInfo>() {
+            public void renderTo(TaskInfo node, StyledTextOutput output) {
+                output.withStyle(StyledTextOutput.Style.Identifier).text(node.getTask().getPath());
+            }
+        }, new DirectedGraph<TaskInfo, Object>() {
+            public void getNodeValues(TaskInfo node, Collection<? super Object> values, Collection<? super TaskInfo> connectedNodes) {
+                for (TaskInfo dependency : firstCycle) {
+                    if (node.getHardSuccessors().contains(dependency) || node.getSoftSuccessors().contains(dependency)) {
+                        connectedNodes.add(dependency);
+                    }
+                }
+            }
+        });
+        StringWriter writer = new StringWriter();
+        graphRenderer.renderTo(firstCycle.get(0), writer);
+        throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer.toString()));
+    }
+
     public void clear() {
-        executionPlan.clear();
+        lock.lock();
+        try {
+            graph.clear();
+            entryTasks.clear();
+            executionPlan.clear();
+            failures.clear();
+            runningProjects.clear();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public List<Task> getTasks() {
@@ -108,84 +197,86 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         this.failureHandler = handler;
     }
 
-    public TaskInfo getTaskToExecute(Spec<TaskInfo> criteria) {
+    public TaskInfo getTaskToExecute() {
         lock.lock();
         try {
-
-            TaskInfo nextMatching;
-            while ((nextMatching = getNextReadyAndMatching(criteria)) != null) {
-                while (!nextMatching.dependenciesExecuted()) {
+            while (true) {
+                TaskInfo nextMatching = null;
+                boolean allTasksComplete = true;
+                for (TaskInfo taskInfo : executionPlan.values()) {
+                    allTasksComplete = allTasksComplete && taskInfo.isComplete();
+                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && !runningProjects.contains(taskInfo.getTask().getProject().getPath())) {
+                        nextMatching = taskInfo;
+                        break;
+                    }
+                }
+                if (allTasksComplete) {
+                    return null;
+                }
+                if (nextMatching == null) {
                     try {
                         condition.await();
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                }
-
-                nextMatching.startExecution();
-
-                if (nextMatching.dependenciesFailed()) {
-                    abortTask(nextMatching);
                 } else {
-                    return nextMatching;
+                    if (nextMatching.allDependenciesSuccessful()) {
+                        nextMatching.startExecution();
+                        runningProjects.add(nextMatching.getTask().getProject().getPath());
+                        return nextMatching;
+                    } else {
+                        nextMatching.skipExecution();
+                        condition.signalAll();
+                    }
                 }
             }
-
-            return null;
-
         } finally {
             lock.unlock();
         }
-
     }
 
-    private TaskInfo getNextReadyAndMatching(Spec<TaskInfo> criteria) {
-        for (TaskInfo taskInfo : executionPlan.values()) {
-            if (taskInfo.isReady() && criteria.isSatisfiedBy(taskInfo)) {
-                return taskInfo;
-            }
-        }
-        return null;
-    }
-
-    private void abortTask(TaskInfo taskInfo) {
-        taskInfo.executionFailed();
-        condition.signalAll();
-    }
-
-    public void taskComplete(TaskInfo task) {
+    public void taskComplete(TaskInfo taskInfo) {
         lock.lock();
         try {
-            task.executionSucceeded();
+            if (taskInfo.isFailed()) {
+                handleFailure(taskInfo);
+            }
+
+            taskInfo.finishExecution();
+            runningProjects.remove(taskInfo.getTask().getProject().getPath());
             condition.signalAll();
         } finally {
             lock.unlock();
         }
     }
 
-    public void taskFailed(TaskInfo taskInfo) {
-        lock.lock();
+    private void handleFailure(TaskInfo taskInfo) {
+        Throwable executionFailure = taskInfo.getExecutionFailure();
+        if (executionFailure != null) {
+            // Always abort execution for an execution failure (as opposed to a task failure)
+            abortExecution();
+            this.failures.add(executionFailure);
+            return;
+        }
+
+        // Task failure
         try {
-            taskInfo.executionFailed();
-            try {
-                failureHandler.onTaskFailure(taskInfo.getTask());
-            } catch (Exception e) {
-                abortExecution(e);
-            }
-            condition.signalAll();
-        } finally {
-            lock.unlock();
+            failureHandler.onTaskFailure(taskInfo.getTask());
+            this.failures.add(taskInfo.getTaskFailure());
+        } catch (Exception e) {
+            // If the failure handler rethrows exception, then execution of other tasks is aborted. (--continue will collect failures)
+            abortExecution();
+            this.failures.add(e);
         }
     }
 
-    private void abortExecution(Exception e) {
+    private void abortExecution() {
+        // Allow currently executing tasks to complete, but skip everything else.
         for (TaskInfo taskInfo : executionPlan.values()) {
             if (taskInfo.isReady()) {
-                taskInfo.startExecution();
-                taskInfo.executionFailed();
+                taskInfo.skipExecution();
             }
         }
-        this.failure = e;
     }
 
     public void awaitCompletion() {
@@ -198,12 +289,22 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     throw new RuntimeException(e);
                 }
             }
-            if (failure != null) {
-                UncheckedException.throwAsUncheckedException(failure);
-            }
+            rethrowFailures();
         } finally {
             lock.unlock();
         }
+    }
+
+    private void rethrowFailures() {
+        if (failures.isEmpty()) {
+            return;
+        }
+
+        if (failures.size() > 1) {
+            throw new MultipleBuildFailures(failures);
+        }
+
+        throw UncheckedException.throwAsUncheckedException(failures.get(0));
     }
 
     private boolean allTasksComplete() {

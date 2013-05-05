@@ -31,6 +31,7 @@ import java.util.Map;
  * A listener which logs the execution of tasks.
  */
 public class TaskExecutionLogger implements TaskExecutionListener {
+    // TODO:PARALLEL Seems to be some thread-safety issues here (get 'failed' logged for wrong task)
     private final Map<Task, ProgressLogger> currentTasks = new HashMap<Task, ProgressLogger>();
     private final ProgressLoggerFactory progressLoggerFactory;
 
@@ -52,7 +53,8 @@ public class TaskExecutionLogger implements TaskExecutionListener {
 
     public void afterExecute(Task task, TaskState state) {
         ProgressLogger currentTask = currentTasks.remove(task);
-        currentTask.completed(state.getSkipMessage());
+        String taskMessage = state.getFailure() != null ? "FAILED" : state.getSkipMessage();
+        currentTask.completed(taskMessage);
     }
 
     private String getDisplayName(Task task) {

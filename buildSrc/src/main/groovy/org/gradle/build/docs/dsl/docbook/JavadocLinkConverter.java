@@ -113,6 +113,10 @@ public class JavadocLinkConverter {
             methodSignature = signature.toString();
         }
 
+        if (targetClass.isEnum() && targetClass.getEnumConstant(methodSignature) != null) {
+            return linkRenderer.link(targetClass.getEnumConstant(methodSignature), listener);
+        }
+
         MethodMetaData method = findMethod(methodSignature, targetClass);
         if (method == null) {
             return null;
@@ -165,6 +169,10 @@ public class JavadocLinkConverter {
             return element;
         }
 
+        return createLiteralNode(value);
+    }
+
+    private Node createLiteralNode(String value) {
         Element element = document.createElement("literal");
         element.appendChild(document.createTextNode(value));
         return element;

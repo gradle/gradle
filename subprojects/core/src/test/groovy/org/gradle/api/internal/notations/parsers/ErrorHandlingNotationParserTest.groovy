@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.internal.notations.api.UnsupportedNotationException
 import spock.lang.Specification
+
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ErrorHandlingNotationParserTest extends Specification {
@@ -26,10 +27,6 @@ class ErrorHandlingNotationParserTest extends Specification {
     def parser = new ErrorHandlingNotationParser<String>("String", "<broken>", target)
 
     def "reports unable to parse null"() {
-        given:
-        target.parseNotation(null) >> { throw new UnsupportedNotationException(null) }
-        target.describe(!null) >> { args -> args[0].add("format 1"); args[0].add("format 2") }
-
         when:
         parser.parseNotation(null)
 
@@ -40,6 +37,9 @@ The following types/formats are supported:
   - format 1
   - format 2
 <broken>''')
+
+        1 * target.describe(!null) >> { args -> args[0].add("format 1"); args[0].add("format 2") }
+        0 * target._  //no parsing
     }
 
     def "reports unable to parse non-null"() {

@@ -111,7 +111,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             assertStarted();
             assertNotCompleted();
             state = State.completed;
-            listener.completed(new ProgressCompleteEvent(timeProvider.getCurrentTime(), category, toStatus(status)));
+            listener.completed(new ProgressCompleteEvent(timeProvider.getCurrentTime(), category, description, toStatus(status)));
         }
 
         private String toStatus(String status) {

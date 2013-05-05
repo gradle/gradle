@@ -69,12 +69,15 @@ import java.util.Set;
  * next task by throwing a {@link org.gradle.api.tasks.StopExecutionException}. Using these exceptions allows you to
  * have precondition actions which skip execution of the task, or part of the task, if not true.</p>
  *
- * <a name="dependencies"/><h3>Dependencies</h3>
+ * <a name="dependencies"/><h3>Task Dependencies and Task Ordering</h3>
  *
- * <p>A task may have dependencies on other tasks. Gradle ensures that tasks are executed in dependency order, so that
- * the dependencies of a task are executed before the task is executed.  You can add dependencies to a task using {@link
- * #dependsOn(Object...)} or {@link #setDependsOn(Iterable)}.  You can add objects of any of the following types as a
- * dependency:</p>
+ * <p>A task may have dependencies on other tasks or might be scheduled to always run after another task.
+ * Gradle ensures that all task dependencies and ordering rules are honored when executing tasks, so that the task is executed after
+ * all of it's dependencies and any "must run after" tasks have been executed.</p>
+ *
+ * <p>Dependencies to a task are controlled using {@link #dependsOn(Object...)} or {@link #setDependsOn(Iterable)},
+ * and {@link #mustRunAfter(Object...)} or {@link #setMustRunAfter(Iterable)} are used to specify ordering between tasks. You can use objects
+ * of any of the following types to specify dependencies and ordering:</p>
  *
  * <ul>
  *
@@ -538,5 +541,55 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return The directory. Never returns null. The directory will already exist.
      */
     File getTemporaryDir();
+
+    /**
+     * <p>Specifies that this task must run after all of the supplied tasks.</p>
+     *
+     * <pre autoTested="true">
+     * task taskY {
+     *     mustRunAfter "taskX"
+     * }
+     * </pre>
+     *
+     * <p>For each supplied task, this action adds a task 'ordering', and does not specify a 'dependency' between the tasks.
+     * As such, it is still possible to execute 'taskY' without first executing the 'taskX' in the example.</p>
+     *
+     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * an ordering relationship.</p>
+     *
+     * @param paths The tasks this task must run after.
+     *
+     * @return the task object this method is applied to
+     */
+    @Incubating
+    Task mustRunAfter(Object... paths);
+
+    /**
+     * <p>Specifies the set of tasks that this task must run after.</p>
+     *
+     * <pre autoTested="true">
+     * task taskY {
+     *     mustRunAfter = ["taskX1", "taskX2"]
+     * }
+     * </pre>
+     *
+     * <p>For each supplied task, this action adds a task 'ordering', and does not specify a 'dependency' between the tasks.
+     * As such, it is still possible to execute 'taskY' without first executing the 'taskX' in the example.</p>
+     *
+     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * an ordering relationship.</p>
+     *
+     * @param mustRunAfter The set of task paths this task must run after.
+     */
+    @Incubating
+    void setMustRunAfter(Iterable<?> mustRunAfter);
+
+    /**
+     * <p>Returns tasks that this task must run after.</p>
+     *
+     * @return The tasks that this task must run after. Returns an empty set if this task has no tasks it must run after.
+     */
+    @Incubating
+    TaskDependency getMustRunAfter();
 }
 

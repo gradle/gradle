@@ -20,9 +20,9 @@ import org.gradle.api.PathValidation
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Rule
@@ -44,11 +44,11 @@ class BaseDirFileResolverTest {
     File testDir
 
     BaseDirFileResolver baseDirConverter
-    @Rule public TemporaryFolder rootDir = new TemporaryFolder()
+    @Rule public TestNameTestDirectoryProvider rootDir = new TestNameTestDirectoryProvider()
     @Rule public PreconditionVerifier preconditions = new PreconditionVerifier()
 
     @Before public void setUp() {
-        baseDir = rootDir.dir
+        baseDir = rootDir.testDirectory
         baseDirConverter = new BaseDirFileResolver(FileSystems.default, baseDir)
         testFile = new File(baseDir, 'testfile')
         testDir = new File(baseDir, 'testdir')

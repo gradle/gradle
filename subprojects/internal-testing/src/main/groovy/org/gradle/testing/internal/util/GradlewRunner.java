@@ -18,6 +18,9 @@ package org.gradle.testing.internal.util;
 
 import java.io.*;
 
+/**
+ * This is used to launch Gradle from within IDEA. See gradle/idea.gradle.
+ */
 public class GradlewRunner {
     public static void main(String[] args) {
         Process process = null;

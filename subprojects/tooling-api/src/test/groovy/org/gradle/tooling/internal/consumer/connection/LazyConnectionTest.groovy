@@ -20,16 +20,15 @@ import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.LoggingProvider
 import org.gradle.tooling.internal.consumer.ModelProvider
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.consumer.versioning.FeatureValidator
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import spock.lang.Specification
 
 class LazyConnectionTest extends Specification {
     final Distribution distribution = Mock()
     final ToolingImplementationLoader implementationLoader = Mock()
-    final BuildParametersVersion1 buildParams = Mock()
     final ConsumerOperationParameters params = Mock()
+    final ConsumerConnectionParameters connectionParams = Mock()
     final ConsumerConnection consumerConnection = Mock()
     final LoggingProvider loggingProvider = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
@@ -38,70 +37,43 @@ class LazyConnectionTest extends Specification {
     static class SomeModel {}
 
     def setup() {
+        connection.connectionParameters = connectionParams
         connection.modelProvider = Mock(ModelProvider)
-        connection.featureValidator = Mock(FeatureValidator)
-    }
-
-    def createsConnectionOnDemandToExecuteBuild() {
-        when:
-        connection.executeBuild(buildParams, params)
-
-        then:
-        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> consumerConnection
-        1 * consumerConnection.executeBuild(buildParams, params)
-        1 * connection.featureValidator.validate(consumerConnection, params)
-        0 * _._
     }
 
     def createsConnectionOnDemandToBuildModel() {
         when:
-        connection.getModel(SomeModel, params)
+        connection.run(SomeModel, params)
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> consumerConnection
+        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
         1 * connection.modelProvider.provide(!null, SomeModel, params)
-        1 * connection.featureValidator.validate(consumerConnection, params)
         0 * _._
-    }
-
-    def "informs the loader about the verbose logging"() {
-        given:
-        connection.verboseLogging = true
-
-        when:
-        connection.getModel(SomeModel, params)
-
-        then:
-        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, _ as ProgressLoggerFactory, true)
     }
 
     def reusesConnection() {
         when:
-        connection.getModel(SomeModel, params)
-        connection.executeBuild(buildParams, params)
+        connection.run(SomeModel, params)
+        connection.run(String, params)
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> consumerConnection
+        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
         1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
-        1 * consumerConnection.executeBuild(buildParams, params)
-        2 * connection.featureValidator.validate(consumerConnection, params)
+        1 * connection.modelProvider.provide(consumerConnection, String, params)
         0 * _._
     }
 
     def stopsConnectionOnStop() {
         when:
-        connection.getModel(SomeModel, params)
+        connection.run(SomeModel, params)
         connection.stop()
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> consumerConnection
+        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
         1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
-        1 * connection.featureValidator.validate(consumerConnection, params)
         1 * consumerConnection.stop()
         0 * _._
     }
@@ -118,13 +90,13 @@ class LazyConnectionTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        connection.getModel(SomeModel, params)
+        connection.run(SomeModel, params)
 
         then:
         RuntimeException e = thrown()
         e == failure
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, false) >> { throw failure }
+        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> { throw failure }
 
         when:
         connection.stop()

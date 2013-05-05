@@ -74,23 +74,22 @@
             </tr>
             <tr>
                 <td>
-                    <literal>-q</literal>
+                    <literal>-q</literal> or <literal>--quiet</literal>
                 </td>
                 <td>QUIET and higher</td>
             </tr>
             <tr>
                 <td>
-                    <literal>-i</literal>
+                    <literal>-i</literal> or <literal>--info</literal>
                 </td>
                 <td>INFO and higher</td>
             </tr>
             <tr>
                 <td>
-                    <literal>-d</literal>
+                    <literal>-d</literal> or <literal>--debug</literal>
                 </td>
                 <td>DEBUG and higher (that is, all log messages)</td>
             </tr>
-
         </table>
         <table id='stacktraces'>
             <title>Stacktrace command-line options</title>
@@ -103,13 +102,13 @@
             <tr>
                 <td>No stacktrace options</td>
                 <td>No stacktraces are printed to the console in case of a build error (e.g. a compile error). Only in
-                    case of internal exceptions will stacktraces be printed. If the loglevel option <literal>-d</literal>
+                    case of internal exceptions will stacktraces be printed. If the <literal>DEBUG</literal> log level
                     is chosen, truncated stacktraces are always printed.
                 </td>
             </tr>
             <tr>
                 <td>
-                    <literal>-s</literal>
+                    <literal>-s</literal> or <literal>--stacktrace</literal>
                 </td>
                 <td>Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces
                     are extremely verbose (Due to the underlying dynamic invocation mechanisms. Yet they usually do not
@@ -118,7 +117,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>-S</literal>
+                    <literal>-S</literal> or <literal>--full-stacktrace</literal>
                 </td>
                 <td>The full stacktraces are printed out.</td>
             </tr>

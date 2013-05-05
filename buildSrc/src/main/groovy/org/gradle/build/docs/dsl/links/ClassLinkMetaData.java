@@ -16,10 +16,11 @@
 package org.gradle.build.docs.dsl.links;
 
 import org.gradle.build.docs.dsl.source.model.ClassMetaData;
+import org.gradle.build.docs.dsl.source.model.EnumConstantMetaData;
 import org.gradle.build.docs.dsl.source.model.MethodMetaData;
 import org.gradle.build.docs.model.Attachable;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
-import org.gradle.util.GUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -41,6 +42,9 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         this.style = classMetaData.isGroovy() ? LinkMetaData.Style.Groovydoc : LinkMetaData.Style.Javadoc;
         for (MethodMetaData method : classMetaData.getDeclaredMethods()) {
             addMethod(method, style);
+        }
+        for (EnumConstantMetaData enumConstant : classMetaData.getEnumConstants()) {
+            addEnumConstant(enumConstant, style);
         }
     }
 
@@ -80,7 +84,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         }
         if (candidates.size() != 1) {
             String message = String.format("Found multiple methods called '%s' in class '%s'. Candidates: %s",
-                    method, className, GUtil.join(candidates, ", "));
+                    method, className, CollectionUtils.join(", ", candidates));
             message += "\nThis problem may happen when some apilink from docbook template xmls is incorrect. Example:"
                     +  "\nIncorrect: <apilink class=\"org.gradle.api.Project\" method=\"tarTree\"/>"
                     +  "\nCorrect:   <apilink class=\"org.gradle.api.Project\" method=\"tarTree(Object)\"/>";
@@ -99,6 +103,11 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
 
     public void addMethod(MethodMetaData method, LinkMetaData.Style style) {
         methods.put(method.getOverrideSignature(), new MethodLinkMetaData(method.getName(), method.getOverrideSignature(), style));
+    }
+
+    public void addEnumConstant(EnumConstantMetaData enumConstant, LinkMetaData.Style style) {
+        String name = enumConstant.getName();
+        methods.put(name, new EnumConstantLinkMetaData(name, style));
     }
 
     public void addBlockMethod(MethodMetaData method) {
@@ -159,6 +168,17 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         @Override
         public String getUrlFragment(String className) {
             return String.format("%s:%s", className, propertyName);
+        }
+    }
+
+    private static class EnumConstantLinkMetaData extends MethodLinkMetaData {
+        private EnumConstantLinkMetaData(String name, LinkMetaData.Style style) {
+            super(name, name, style);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return name;
         }
     }
 }

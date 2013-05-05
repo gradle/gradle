@@ -15,38 +15,47 @@
  */
 package org.gradle.launcher.cli
 
-import org.gradle.StartParameter
-import org.gradle.cli.CommandLineConverter
 import org.gradle.cli.CommandLineParser
+import org.gradle.cli.SystemPropertiesCommandLineConverter
+import org.gradle.initialization.DefaultCommandLineConverter
+import org.gradle.initialization.LayoutCommandLineConverter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
+import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
+import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter
+import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.launcher.daemon.bootstrap.DaemonMain
-import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.client.DaemonClient
+import org.gradle.launcher.daemon.client.SingleUseDaemonClient
+import org.gradle.launcher.exec.InProcessBuildActionExecuter
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.internal.OutputEventListener
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.launcher.daemon.client.DaemonClient
-import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter
 
 class BuildActionsFactoryTest extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties();
     @Rule
-    TemporaryFolder tmpDir = new TemporaryFolder();
-    final CommandLineConverter<StartParameter> startParameterConverter = Mock()
-    final ServiceRegistry loggingServices = Mock()
-    final BuildActionsFactory factory = new BuildActionsFactory(loggingServices, startParameterConverter)
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    ServiceRegistry loggingServices = Mock()
+    PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter = Stub()
 
-    def setup() {        
+    BuildActionsFactory factory = new BuildActionsFactory(
+            loggingServices, Stub(DefaultCommandLineConverter), new DaemonCommandLineConverter(),
+            Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
+            Stub(LayoutToPropertiesConverter), Stub(PropertiesToStartParameterConverter),
+            propertiesToDaemonParametersConverter)
+
+    def setup() {
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
         _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
     }
 
-    def executesBuild() {
+    def "executes build"() {
         when:
         def action = convert('args')
 
@@ -54,7 +63,15 @@ class BuildActionsFactoryTest extends Specification {
         isInProcess(action)
     }
 
-    def executesBuildUsingDaemon() {
+    def "by default daemon is not used"() {
+        when:
+        def action = convert('args')
+
+        then:
+        isInProcess action
+    }
+
+    def "daemon is used when command line option is used"() {
         when:
         def action = convert('--daemon', 'args')
 
@@ -62,23 +79,7 @@ class BuildActionsFactoryTest extends Specification {
         isDaemon action
     }
 
-    def executesBuildUsingDaemonWhenSystemPropertyIsSetToTrue() {
-        when:
-        System.properties['org.gradle.daemon'] = 'false'
-        def action = convert('args')
-
-        then:
-        isInProcess action
-
-        when:
-        System.properties['org.gradle.daemon'] = 'true'
-        action = convert('args')
-
-        then:
-        isDaemon action
-    }
-
-    def doesNotUseDaemonWhenNoDaemonOptionPresent() {
+    def "does not use daemon when no-daemon command line option issued"() {
         when:
         def action = convert('--no-daemon', 'args')
 
@@ -86,99 +87,35 @@ class BuildActionsFactoryTest extends Specification {
         isInProcess action
     }
 
-    def daemonOptionTakesPrecedenceOverSystemProperty() {
-        when:
-        System.properties['org.gradle.daemon'] = 'false'
-        def action = convert('--daemon', 'args')
-
-        then:
-        isDaemon action
-
-        when:
-        System.properties['org.gradle.daemon'] = 'true'
-        action = convert('--no-daemon', 'args')
-
-        then:
-        isInProcess action
-    }
-
-    def stopsDaemon() {
+    def "stops daemon"() {
         when:
         def action = convert('--stop')
 
         then:
-        action instanceof ActionAdapter
-        action.action instanceof StopDaemonAction
+        // Relying on impl of Actions.toAction(Runnable)
+        action.runnable instanceof StopDaemonAction
     }
 
-    def runsDaemonInForeground() {
+    def "runs daemon in foreground"() {
         when:
         def action = convert('--foreground')
 
         then:
-        action instanceof ActionAdapter
-        action.action instanceof DaemonMain
+        // Relying on impl of Actions.toAction(Runnable)
+        action.runnable instanceof DaemonMain
     }
 
-    def executesBuildWithSingleUseDaemonIfJavaHomeIsNotCurrent() {
-        when:
+    def "executes with single use daemon if java home is not current"() {
+        given:
         def javaHome = tmpDir.createDir("javahome")
         javaHome.createFile(OperatingSystem.current().getExecutableName("bin/java"))
+        propertiesToDaemonParametersConverter.convert(_, _) >> { args -> args[1].javaHome = javaHome }
 
-        System.properties['org.gradle.java.home'] = javaHome.canonicalPath
+        when:
         def action = convert()
 
         then:
         isSingleUseDaemon action
-    }
-
-    def "daemon setting in precedence is system prop, user home then project directory"() {
-        given:
-        def userHome = tmpDir.createDir("user_home")
-        userHome.file("gradle.properties").withOutputStream { outstr ->
-            new Properties((DaemonParameters.DAEMON_SYS_PROPERTY): 'false').store(outstr, "HEADER")
-        }
-        def projectDir = tmpDir.createDir("project_dir")
-        projectDir.createFile("settings.gradle")
-        projectDir.file("gradle.properties").withOutputStream { outstr ->
-            new Properties((DaemonParameters.DAEMON_SYS_PROPERTY): 'true').store(outstr, "HEADER")
-        }
-
-        when:
-        def action = convert()
-
-        then:
-        startParameterConverter.convert(!null, !null) >> { args, startParam ->
-            startParam.currentDir = projectDir
-        }
-
-        and:
-        isDaemon action
-
-        when:
-        action = convert()
-
-        then:
-        startParameterConverter.convert(!null, !null) >> { args, startParam ->
-            startParam.gradleUserHomeDir = userHome
-            startParam.currentDir = projectDir
-        }
-
-        and:
-        isInProcess action
-
-        when:
-        System.properties['org.gradle.daemon'] = 'true'
-        action = convert()
-
-        then:
-        startParameterConverter.convert(!null, !null) >> { args, startParam ->
-            startParam.gradleUserHomeDir = userHome
-            startParam.currentDir = projectDir
-        }
-
-        and:
-        isDaemon action
     }
 
     def convert(String... args) {
@@ -189,20 +126,20 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     void isDaemon(def action) {
-        assert action instanceof ActionAdapter
-        assert action.action instanceof RunBuildAction
-        assert action.action.executer instanceof DaemonClient
+        // Relying on impl of Actions.toAction(Runnable)
+        assert action.runnable instanceof RunBuildAction
+        assert action.runnable.executer instanceof DaemonClient
     }
 
     void isInProcess(def action) {
-        assert action instanceof ActionAdapter
-        assert action.action instanceof RunBuildAction
-        assert action.action.executer instanceof InProcessGradleLauncherActionExecuter
+        // Relying on impl of Actions.toAction(Runnable)
+        assert action.runnable instanceof RunBuildAction
+        assert action.runnable.executer instanceof InProcessBuildActionExecuter
     }
 
     void isSingleUseDaemon(def action) {
-        assert action instanceof ActionAdapter
-        assert action.action instanceof RunBuildAction
-        assert action.action.executer instanceof SingleUseDaemonClient
+        // Relying on impl of Actions.toAction(Runnable)
+        assert action.runnable instanceof RunBuildAction
+        assert action.runnable.executer instanceof SingleUseDaemonClient
     }
 }

@@ -18,20 +18,20 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.containsString
 
 /**
  * @author Hans Dockter
  */
-class SamplesJavaMultiProjectIntegrationTest {
+class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
 
     static final String JAVA_PROJECT_NAME = 'java/multiproject'
     static final String SHARED_NAME = 'shared'
@@ -43,9 +43,7 @@ class SamplesJavaMultiProjectIntegrationTest {
     private TestFile javaprojectDir
     private List projects;
 
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('java/multiproject')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/multiproject')
 
     @Before
     void setUp() {
@@ -66,7 +64,7 @@ class SamplesJavaMultiProjectIntegrationTest {
         TestFile buildSrcDir = javaprojectDir.file('buildSrc')
 
         buildSrcDir.file('build/libs/buildSrc.jar').assertIsFile()
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(buildSrcDir)
+        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(buildSrcDir)
         result.assertTestClassesExecuted('org.gradle.buildsrc.BuildSrcClassTest')
     }
 
@@ -87,14 +85,14 @@ class SamplesJavaMultiProjectIntegrationTest {
         assertExists(javaprojectDir, WEBAPP_PATH, packagePrefix, WEBAPP_NAME, 'TestTest.class')
 
         // Check test results and report
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(javaprojectDir.file(SHARED_NAME))
+        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(javaprojectDir.file(SHARED_NAME))
         result.assertTestClassesExecuted('org.gradle.shared.PersonTest')
 
-        result = new JUnitTestExecutionResult(javaprojectDir.file(WEBAPP_PATH))
+        result = new JUnitXmlTestExecutionResult(javaprojectDir.file(WEBAPP_PATH))
         result.assertTestClassesExecuted('org.gradle.webservice.TestTestTest')
 
         // Check contents of shared jar
-        TestFile tmpDir = dist.testDir.file("$SHARED_NAME-1.0.jar")
+        TestFile tmpDir = file("$SHARED_NAME-1.0.jar")
         javaprojectDir.file(SHARED_NAME, "build/libs/$SHARED_NAME-1.0.jar").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
@@ -105,7 +103,7 @@ class SamplesJavaMultiProjectIntegrationTest {
         )
 
         // Check contents of API jar
-        tmpDir = dist.testDir.file("$API_NAME-1.0.jar")
+        tmpDir = file("$API_NAME-1.0.jar")
         javaprojectDir.file(API_NAME, "build/libs/$API_NAME-1.0.jar").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
@@ -113,14 +111,14 @@ class SamplesJavaMultiProjectIntegrationTest {
                 'org/gradle/apiImpl/Impl.class')
 
         // Check contents of API jar
-        tmpDir = dist.testDir.file("$API_NAME-spi-1.0.jar")
+        tmpDir = file("$API_NAME-spi-1.0.jar")
         javaprojectDir.file(API_NAME, "build/libs/$API_NAME-spi-1.0.jar").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/api/PersonList.class')
 
         // Check contents of War
-        tmpDir = dist.testDir.file("$WEBAPP_NAME-2.5.war")
+        tmpDir = file("$WEBAPP_NAME-2.5.war")
         javaprojectDir.file(WEBAPP_PATH, "build/libs/$WEBAPP_NAME-2.5.war").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
@@ -134,7 +132,7 @@ class SamplesJavaMultiProjectIntegrationTest {
         )
 
         // Check contents of dist zip
-        tmpDir = dist.testDir.file("$API_NAME-1.0.zip")
+        tmpDir = file("$API_NAME-1.0.zip")
         javaprojectDir.file(API_NAME, "build/distributions/$API_NAME-1.0.zip").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'README.txt',

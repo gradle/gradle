@@ -32,10 +32,6 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         this.configurers.addAll(Arrays.asList(configurers));
     }
 
-    public void add(LoggingConfigurer configurer) {
-        this.configurers.add(configurer);
-    }
-
     public void configure(LogLevel logLevel) {
         for (LoggingConfigurer configurer : configurers) {
             configurer.configure(logLevel);

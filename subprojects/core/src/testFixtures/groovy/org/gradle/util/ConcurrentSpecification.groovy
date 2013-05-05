@@ -15,7 +15,7 @@
  */
 package org.gradle.util
 
-import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 

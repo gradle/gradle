@@ -15,13 +15,23 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.messaging.remote.internal.inet.InetEndpoint;
+import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.serialize.ObjectReader;
+import org.gradle.messaging.serialize.ObjectWriter;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public interface MessageSerializer<T> {
-    T read(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) throws Exception;
+    /**
+     * Creates a reader that can deserialize objects from the given input stream. Note that the implementation may perform buffering, and may consume any or all of the
+     * content from the given input stream.
+     */
+    ObjectReader<T> newReader(InputStream inputStream, Address localAddress, Address remoteAddress);
 
-    void write(T message, DataOutputStream outputStream) throws Exception;
+    /**
+     * Creates a writer that can write objects to the given output stream. Note that the implementation must not perform any buffering, so that after calling {@link ObjectWriter#write(Object)}
+     * the serialized object has been flushed to the output stream.
+     */
+    ObjectWriter<T> newWriter(OutputStream outputStream);
 }

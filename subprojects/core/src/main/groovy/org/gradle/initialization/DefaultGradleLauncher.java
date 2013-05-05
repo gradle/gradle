@@ -41,6 +41,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final InitScriptHandler initScriptHandler;
     private final LoggingManagerInternal loggingManager;
     private final ModelConfigurationListener modelConfigurationListener;
+    private final TasksCompletionListener tasksCompletionListener;
     private final BuildExecuter buildExecuter;
 
     /**
@@ -50,7 +51,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
                                  BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,
                                  ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager,
-                                 ModelConfigurationListener modelConfigurationListener, BuildExecuter buildExecuter) {
+                                 ModelConfigurationListener modelConfigurationListener, TasksCompletionListener tasksCompletionListener,
+                                 BuildExecuter buildExecuter) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -60,6 +62,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.buildListener = buildListener;
         this.loggingManager = loggingManager;
         this.modelConfigurationListener = modelConfigurationListener;
+        this.tasksCompletionListener = tasksCompletionListener;
         this.buildExecuter = buildExecuter;
     }
 
@@ -137,7 +140,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
         // Configure build
         buildConfigurer.configure(gradle);
-        buildListener.projectsEvaluated(gradle);
+
+        if (!gradle.getStartParameter().isConfigureOnDemand()) {
+            buildListener.projectsEvaluated(gradle);
+        }
+
         modelConfigurationListener.onConfigure(gradle);
 
         if (upTo == Stage.Configure) {
@@ -147,12 +154,17 @@ public class DefaultGradleLauncher extends GradleLauncher {
         // Populate task graph
         buildExecuter.select(gradle);
 
+        if (gradle.getStartParameter().isConfigureOnDemand()) {
+            buildListener.projectsEvaluated(gradle);
+        }
+
         if (upTo == Stage.PopulateTaskGraph) {
             return;
         }
 
         // Execute build
         buildExecuter.execute();
+        tasksCompletionListener.onTasksFinished(gradle);
 
         assert upTo == Stage.Build;
     }

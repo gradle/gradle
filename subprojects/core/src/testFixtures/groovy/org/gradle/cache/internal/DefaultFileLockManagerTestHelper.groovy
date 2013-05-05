@@ -16,9 +16,6 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.internal.nativeplatform.services.NativeServices
-import org.gradle.internal.nativeplatform.ProcessEnvironment
-
 abstract class DefaultFileLockManagerTestHelper {
 
     private static class AnException extends RuntimeException {}
@@ -46,7 +43,15 @@ abstract class DefaultFileLockManagerTestHelper {
     }
 
     static DefaultFileLockManager createDefaultFileLockManager() {
-        new DefaultFileLockManager(new DefaultProcessMetaDataProvider(new NativeServices().get(ProcessEnvironment)))
+        new DefaultFileLockManager(new ProcessMetaDataProvider() {
+            String getProcessIdentifier() {
+                return "pid"
+            }
+
+            String getProcessDisplayName() {
+                return "process"
+            }
+        })
     }
     
     static FileLock createDefaultFileLock(File file, FileLockManager.LockMode mode = FileLockManager.LockMode.Exclusive, DefaultFileLockManager manager = createDefaultFileLockManager()) {

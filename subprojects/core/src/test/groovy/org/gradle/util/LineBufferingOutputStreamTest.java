@@ -31,7 +31,7 @@ import java.io.IOException;
 public class LineBufferingOutputStreamTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private Action<String> action = context.mock(Action.class);
-    private LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, false, 8);
+    private LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8);
     private String eol;
 
     @Before
@@ -47,43 +47,32 @@ public class LineBufferingOutputStreamTest {
     @Test
     public void logsEachLineAsASeparateLogMessage() throws IOException {
         context.checking(new Expectations() {{
-            one(action).execute("line 1");
-            one(action).execute("line 2");
+            one(action).execute(TextUtil.toPlatformLineSeparators("line 1\n"));
+            one(action).execute(TextUtil.toPlatformLineSeparators("line 2\n"));
         }});
 
-        outputStream.write(String.format("line 1%nline 2%n").getBytes());
-    }
-
-    @Test
-    public void canReceiveEachLineWithSeparator() throws IOException {
-        context.checking(new Expectations() {{
-            one(action).execute(String.format("line 1%n"));
-            one(action).execute(String.format("line 2%n"));
-        }});
-
-        outputStream = new LineBufferingOutputStream(action, true);
-        outputStream.write(String.format("line 1%nline 2%n").getBytes());
+        outputStream.write(TextUtil.toPlatformLineSeparators("line 1\nline 2\n").getBytes());
     }
 
     @Test
     public void logsEmptyLines() throws IOException {
         context.checking(new Expectations() {{
-            one(action).execute("");
-            one(action).execute("");
+            one(action).execute(TextUtil.getPlatformLineSeparator());
+            one(action).execute(TextUtil.getPlatformLineSeparator());
         }});
 
-        outputStream.write(String.format("%n%n").getBytes());
+        outputStream.write(TextUtil.toPlatformLineSeparators("\n\n").getBytes());
     }
 
     @Test
     public void handlesSingleCharacterLineSeparator() throws IOException {
         context.checking(new Expectations() {{
-            one(action).execute("line 1");
-            one(action).execute("line 2");
+            one(action).execute("line 1-");
+            one(action).execute("line 2-");
         }});
 
         System.setProperty("line.separator", "-");
-        outputStream = new LineBufferingOutputStream(action, false, 8);
+        outputStream = new LineBufferingOutputStream(action, 8);
 
         outputStream.write(String.format("line 1-line 2-").getBytes());
     }
@@ -91,12 +80,12 @@ public class LineBufferingOutputStreamTest {
     @Test
     public void handlesMultiCharacterLineSeparator() throws IOException {
         context.checking(new Expectations() {{
-            one(action).execute("line 1");
-            one(action).execute("line 2");
+            one(action).execute("line 1----");
+            one(action).execute("line 2----");
         }});
 
         System.setProperty("line.separator", "----");
-        outputStream = new LineBufferingOutputStream(action, false, 8);
+        outputStream = new LineBufferingOutputStream(action, 8);
 
         outputStream.write(String.format("line 1----line 2----").getBytes());
     }
@@ -104,10 +93,10 @@ public class LineBufferingOutputStreamTest {
     @Test
     public void logsLineWhichIsLongerThanInitialBufferLength() throws IOException {
         context.checking(new Expectations() {{
-            one(action).execute("a line longer than 8 bytes long");
+            one(action).execute(TextUtil.toPlatformLineSeparators("a line longer than 8 bytes long\n"));
             one(action).execute("line 2");
         }});
-        outputStream.write(String.format("a line longer than 8 bytes long%n").getBytes());
+        outputStream.write(TextUtil.toPlatformLineSeparators("a line longer than 8 bytes long\n").getBytes());
         outputStream.write("line 2".getBytes());
         outputStream.close();
     }

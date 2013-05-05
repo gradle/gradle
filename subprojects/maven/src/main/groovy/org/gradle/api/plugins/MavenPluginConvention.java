@@ -73,7 +73,7 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
     /**
      * Sets the directory to generate Maven POMs into.
      *
-     * @param pomDir The new POM directory. Evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @param pomDir The new POM directory. Evaluated as per {@link org.gradle.api.Project#file(Object)}.
      */
     public void setMavenPomDir(Object pomDir) {
         this.pomDir = pomDir;

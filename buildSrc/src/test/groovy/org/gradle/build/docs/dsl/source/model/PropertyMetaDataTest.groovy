@@ -99,36 +99,24 @@ class PropertyMetaDataTest extends Specification {
         p == null
     }
 
-    def "is deprecated when @Deprecated is attached to property or owner is deprecated"() {
-        ClassMetaData deprecatedClass = Mock()
+    def "is deprecated when @Deprecated is attached to property"() {
         def notDeprecated = new PropertyMetaData('param', classMetaData)
         def deprecated = new PropertyMetaData('param', classMetaData)
-        def ownerDeprecated = new PropertyMetaData('param', deprecatedClass)
-
-        given:
         deprecated.addAnnotationTypeName(Deprecated.class.name)
-        deprecatedClass.deprecated >> true
 
         expect:
         !notDeprecated.deprecated
         deprecated.deprecated
-        ownerDeprecated.deprecated
     }
 
-    def "is experimental when @Experimental is attached to property or owner is experimental"() {
-        ClassMetaData experimentalClass = Mock()
-        def notExperimental = new PropertyMetaData('param', classMetaData)
-        def experimental = new PropertyMetaData('param', classMetaData)
-        def ownerExperimental = new PropertyMetaData('param', experimentalClass)
-
-        given:
-        experimental.addAnnotationTypeName("org.gradle.api.Experimental")
-        experimentalClass.experimental >> true
+    def "is incubating when @Incubating is attached to property"() {
+        def notIncubating = new PropertyMetaData('param', classMetaData)
+        def incubating = new PropertyMetaData('param', classMetaData)
+        incubating.addAnnotationTypeName("org.gradle.api.Incubating")
 
         expect:
-        !notExperimental.experimental
-        experimental.experimental
-        ownerExperimental.experimental
+        !notIncubating.incubating
+        incubating.incubating
     }
 }
 

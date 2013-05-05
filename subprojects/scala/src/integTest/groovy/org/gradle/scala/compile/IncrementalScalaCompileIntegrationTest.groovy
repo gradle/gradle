@@ -15,40 +15,69 @@
  */
 package org.gradle.scala.compile
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ExecutionFailure
-
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Ignore
+import spock.lang.Issue
 
-class IncrementalScalaCompileIntegrationTest {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final TestResources resources = new TestResources()
+class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
-    @Test
-    public void recompilesSourceWhenPropertiesChange() {
-        executer.withTasks('compileScala').run().assertTasksSkipped(':compileJava')
+    @Rule TestResources resources = new TestResources(temporaryFolder)
 
-        distribution.testFile('build.gradle').text += '''
+    def recompilesSourceWhenPropertiesChange() {
+        expect:
+        run('compileScala').assertTasksSkipped(':compileJava')
+
+        when:
+        file('build.gradle').text += '''
             compileScala.options.debug = false
 '''
+        then:
+        run('compileScala').assertTasksSkipped(':compileJava')
 
-        executer.withTasks('compileScala').run().assertTasksSkipped(':compileJava')
-
-        executer.withTasks('compileScala').run().assertTasksSkipped(':compileJava', ':compileScala')
+        run('compileScala').assertTasksSkipped(':compileJava', ':compileScala')
     }
 
-    @Test
-    public void recompilesDependentClasses() {
-        executer.withTasks("classes").run();
+    def recompilesDependentClasses() {
+        given:
+        run("classes")
 
-        // Update interface, compile should fail
-        distribution.testFile('src/main/scala/IPerson.scala').assertIsFile().copyFrom(distribution.testFile('NewIPerson.scala'))
+        when: // Update interface, compile should fail
+        file('src/main/scala/IPerson.scala').assertIsFile().copyFrom(file('NewIPerson.scala'))
 
-        ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
-        failure.assertHasDescription("Execution failed for task ':compileScala'.");
+        then:
+        runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
+    }
+
+    @Issue("GRADLE-2548")
+    @Ignore
+    def recompilesScalaWhenJavaChanges() {
+        file("build.gradle") << """
+            apply plugin: 'scala'
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile 'org.scala-lang:scala-library:2.9.2'
+            }
+        """
+
+        file("src/main/java/Person.java") << "public interface Person { String getName(); }"
+
+        file("src/main/scala/DefaultPerson.scala") << """class DefaultPerson(name: String) extends Person {
+    def getName(): String = name
+}"""
+        when:
+        run('classes') //makes everything up-to-date
+
+        //change the java interface
+        file("src/main/java/Person.java").text = "public interface Person { String fooBar(); }"
+
+        then:
+        //the build should fail because the interface the scala class needs has changed
+        runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
 }

@@ -61,6 +61,7 @@ public class ExecHandleRunner implements Runnable {
     }
 
     public void run() {
+        ProcessParentingInitializer.intitialize();
         ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
         try {
             Process process;

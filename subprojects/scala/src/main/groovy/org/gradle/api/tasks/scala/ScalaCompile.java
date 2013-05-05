@@ -15,31 +15,54 @@
  */
 package org.gradle.api.tasks.scala;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
 import org.gradle.api.AntBuilder;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.scala.*;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.Factory;
+
+import javax.inject.Inject;
+import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Compiles Scala source files, and optionally, Java source files.
  */
 public class ScalaCompile extends AbstractCompile {
-    private FileCollection scalaClasspath;
-    private Compiler<ScalaJavaJointCompileSpec> compiler;
-    private final ScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
+    private static final Logger LOGGER = Logging.getLogger(ScalaCompile.class);
 
+    private FileCollection scalaClasspath;
+    private FileCollection zincClasspath;
+    private Compiler<ScalaJavaJointCompileSpec> compiler;
+    private final CompileOptions compileOptions = new CompileOptions();
+    private final ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions();
+
+    @Inject
     public ScalaCompile() {
-        Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
-        Compiler<JavaCompileSpec> javaCompiler = new AntJavaCompiler(getServices().getFactory(AntBuilder.class));
-        compiler = new IncrementalScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler), getOutputs());
+        ProjectInternal projectInternal = (ProjectInternal) getProject();
+        IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
+        Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
+        ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal, antBuilder, antBuilderFactory);
+        Compiler<ScalaJavaJointCompileSpec> delegatingCompiler = new DelegatingScalaCompiler(scalaCompilerFactory);
+        compiler = new IncrementalScalaCompiler(delegatingCompiler, getOutputs());
     }
 
     /**
@@ -54,12 +77,17 @@ public class ScalaCompile extends AbstractCompile {
         this.scalaClasspath = scalaClasspath;
     }
 
-    public Compiler<ScalaJavaJointCompileSpec> getCompiler() {
-        return compiler;
+    /**
+     * Returns the classpath to use to load the Zinc incremental compiler.
+     * This compiler in turn loads the Scala compiler.
+     */
+    @InputFiles
+    public FileCollection getZincClasspath() {
+        return zincClasspath;
     }
 
-    public void setCompiler(Compiler<ScalaJavaJointCompileSpec> compiler) {
-        this.compiler = compiler;
+    public void setZincClasspath(FileCollection zincClasspath) {
+        this.zincClasspath = zincClasspath;
     }
 
     /**
@@ -67,7 +95,7 @@ public class ScalaCompile extends AbstractCompile {
      */
     @Nested
     public ScalaCompileOptions getScalaCompileOptions() {
-        return spec.getScalaCompileOptions();
+        return scalaCompileOptions;
     }
 
     /**
@@ -75,18 +103,83 @@ public class ScalaCompile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return spec.getCompileOptions();
+        return compileOptions;
+    }
+
+    /**
+     * For testing only.
+     */
+    void setCompiler(Compiler<ScalaJavaJointCompileSpec> compiler) {
+        this.compiler = compiler;
     }
 
     @Override
     protected void compile() {
-        FileTree source = getSource();
-        spec.setSource(source);
+        checkScalaClasspathIsNonEmpty();
+        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
+        spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setClasspath(getClasspath());
         spec.setScalaClasspath(getScalaClasspath());
+        spec.setZincClasspath(getZincClasspath());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
+        spec.setCompileOptions(compileOptions);
+        spec.setScalaCompileOptions(scalaCompileOptions);
+        if (!scalaCompileOptions.isUseAnt()) {
+            configureIncrementalCompilation(spec);
+        }
+
         compiler.execute(spec);
+    }
+
+    private void checkScalaClasspathIsNonEmpty() {
+        if (getScalaClasspath().isEmpty()) {
+            throw new InvalidUserDataException("'" + getName() + ".scalaClasspath' must not be empty. If a Scala compile dependency is provided, "
+                    + "the 'scala-base' plugin will attempt to configure 'scalaClasspath' automatically. Alternatively, you may configure 'scalaClasspath' explicitly.");
+        }
+    }
+
+    private void configureIncrementalCompilation(ScalaCompileSpec spec) {
+        Map<File, File> globalAnalysisMap = getOrCreateGlobalAnalysisMap();
+        HashMap<File, File> filteredMap = filterForClasspath(globalAnalysisMap, spec.getClasspath());
+        spec.setAnalysisMap(filteredMap);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Analysis file: {}", scalaCompileOptions.getIncrementalOptions().getAnalysisFile());
+            LOGGER.debug("Published code: {}", scalaCompileOptions.getIncrementalOptions().getPublishedCode());
+            LOGGER.debug("Analysis map: {}", filteredMap);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<File, File> getOrCreateGlobalAnalysisMap() {
+        ExtraPropertiesExtension extraProperties = getProject().getRootProject().getExtensions().getExtraProperties();
+        Map<File, File> analysisMap;
+
+        if (extraProperties.has("scalaCompileAnalysisMap")) {
+            analysisMap = (Map) extraProperties.get("scalaCompileAnalysisMap");
+        } else {
+            analysisMap = Maps.newHashMap();
+            for (Project project : getProject().getRootProject().getAllprojects()) {
+                for (ScalaCompile task : project.getTasks().withType(ScalaCompile.class)) {
+                    if (task.getScalaCompileOptions().isUseAnt()) { continue; }
+                    File publishedCode = task.getScalaCompileOptions().getIncrementalOptions().getPublishedCode();
+                    File analysisFile = task.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile();
+                    analysisMap.put(publishedCode, analysisFile);
+                }
+            }
+            extraProperties.set("scalaCompileAnalysisMap", Collections.unmodifiableMap(analysisMap));
+        }
+        return analysisMap;
+    }
+
+    private HashMap<File, File> filterForClasspath(Map<File, File> analysisMap, Iterable<File> classpath) {
+        final Set<File> classpathLookup = Sets.newHashSet(classpath);
+        return Maps.newHashMap(Maps.filterEntries(analysisMap, new Predicate<Map.Entry<File, File>>() {
+            public boolean apply(Map.Entry<File, File> entry) {
+                return classpathLookup.contains(entry.getKey());
+            }
+        }));
     }
 }

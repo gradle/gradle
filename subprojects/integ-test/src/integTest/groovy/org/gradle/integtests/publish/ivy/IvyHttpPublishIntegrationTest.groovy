@@ -18,16 +18,19 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.IvyModule
-import org.gradle.integtests.fixtures.IvyRepository
+import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.ivy.IvyHttpModule
+import org.gradle.test.fixtures.ivy.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.util.GradleVersion
 import org.gradle.util.Jvm
-import org.gradle.util.TestFile
-import org.gradle.util.TextUtil
 import org.hamcrest.Matchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
 import spock.lang.Unroll
+
+import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 public class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
     private static final String BAD_CREDENTIALS = '''
@@ -36,47 +39,51 @@ credentials {
     password 'bad'
 }
 '''
-    @Rule
-    public final HttpServer server = new HttpServer()
+    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
+    @Rule HttpServer server = new HttpServer()
 
-    private IvyModule module
+    private IvyHttpModule module
+    private IvyHttpRepository ivyHttpRepo
 
     def setup() {
-        def repo = new IvyRepository(distribution.testFile('ivy-repo'))
-        module = repo.module("org.gradle", "publish", "2")
-        module.moduleDir.mkdirs()
+        ivyHttpRepo = new IvyHttpRepository(server, ivyRepo)
+        module = ivyHttpRepo.module("org.gradle", "publish", "2")
+        server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
     }
 
     public void canPublishToUnauthenticatedHttpRepository() {
         given:
         server.start()
-
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
 apply plugin: 'java'
 version = '2'
 group = 'org.gradle'
+
 uploadArchives {
     repositories {
         ivy {
-            url "http://localhost:${server.port}"
+            url "${ivyHttpRepo.uri}"
         }
     }
 }
 """
-        when:
-        expectUpload('/org.gradle/publish/2/publish-2.jar', module, module.jarFile, HttpStatus.ORDINAL_200_OK)
-        expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, HttpStatus.ORDINAL_201_Created)
-
         and:
-        succeeds 'uploadArchives'
+        module.expectJarPut()
+        module.expectJarSha1Put()
+        module.expectIvyPut(HttpStatus.ORDINAL_201_Created)
+        module.expectIvySha1Put(HttpStatus.ORDINAL_201_Created)
+
+        when:
+        run 'uploadArchives'
 
         then:
-        module.ivyFile.assertIsFile()
-        module.assertChecksumPublishedFor(module.ivyFile)
-
+        module.assertIvyAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
-        module.assertChecksumPublishedFor(module.jarFile)
+
+        and:
+        progressLogging.uploadProgressLogged(module.ivyFileUri)
+        progressLogging.uploadProgressLogged(module.jarFileUri)
     }
 
     @Unroll
@@ -96,25 +103,29 @@ uploadArchives {
                 username 'testuser'
                 password 'password'
             }
-            url "http://localhost:${server.port}"
+            url "${ivyHttpRepo.uri}"
         }
     }
 }
 """
 
-        when:
+        and:
         server.authenticationScheme = authScheme
-        expectUpload('/org.gradle/publish/2/publish-2.jar', module, module.jarFile, 'testuser', 'password')
-        expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
+        module.expectJarPut('testuser', 'password')
+        module.expectJarSha1Put('testuser', 'password')
+        module.expectIvyPut('testuser', 'password')
+        module.expectIvySha1Put('testuser', 'password')
+
+        when:
+        run 'uploadArchives'
 
         then:
-        succeeds 'uploadArchives'
+        module.assertIvyAndJarFilePublished()
+        module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
         and:
-        module.ivyFile.assertIsFile()
-        module.assertChecksumPublishedFor(module.ivyFile)
-        module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
-        module.assertChecksumPublishedFor(module.jarFile)
+        progressLogging.uploadProgressLogged(module.ivyFileUri)
+        progressLogging.uploadProgressLogged(module.jarFileUri)
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
@@ -125,7 +136,7 @@ uploadArchives {
         given:
         server.start()
 
-        when:
+        and:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
 apply plugin: 'java'
@@ -135,7 +146,7 @@ uploadArchives {
     repositories {
         ivy {
             $creds
-            url "http://localhost:${server.port}"
+            url "${ivyHttpRepo.uri}"
         }
     }
 }
@@ -143,14 +154,14 @@ uploadArchives {
 
         and:
         server.authenticationScheme = authScheme
-        server.allowPut('/org.gradle/publish/2/publish-2.jar', 'testuser', 'password')
+        server.allowPut('/repo/org.gradle/publish/2/publish-2.jar', 'testuser', 'password')
 
-        then:
+        when:
         fails 'uploadArchives'
 
-        and:
+        then:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertHasCause('Could not publish configuration \'archives\'')
         failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
@@ -171,7 +182,7 @@ apply plugin: 'java'
 uploadArchives {
     repositories {
         ivy {
-            url "${repositoryUrl}"
+            url "${ivyHttpRepo.uri}"
         }
     }
 }
@@ -185,7 +196,7 @@ uploadArchives {
 
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertHasCause('Could not publish configuration \'archives\'')
         failure.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
 
         when:
@@ -196,7 +207,7 @@ uploadArchives {
 
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
-        failure.assertHasCause('Could not publish configuration \':archives\'.')
+        failure.assertHasCause('Could not publish configuration \'archives\'')
         failure.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
     }
 
@@ -212,31 +223,33 @@ uploadArchives {
     uploadArchives {
         repositories {
             ivy {
-                artifactPattern "http://localhost:${server.port}/primary/[module]/[artifact]-[revision].[ext]"
+                artifactPattern "${ivyHttpRepo.artifactPattern}"
                 artifactPattern "http://localhost:${server.port}/alternative/[module]/[artifact]-[revision].[ext]"
-                ivyPattern "http://localhost:${server.port}/primary-ivy/[module]/ivy-[revision].xml"
+                ivyPattern "${ivyHttpRepo.ivyPattern}"
                 ivyPattern "http://localhost:${server.port}/secondary-ivy/[module]/ivy-[revision].xml"
             }
         }
     }
     """
 
+        and:
+        module.expectJarPut()
+        module.expectJarSha1Put()
+        module.expectIvyPut()
+        module.expectIvySha1Put()
+
         when:
-        expectUpload('/primary/publish/publish-2.jar', module, module.jarFile, HttpStatus.ORDINAL_200_OK)
-        expectUpload('/primary-ivy/publish/ivy-2.xml', module, module.ivyFile)
+        run 'uploadArchives'
 
         then:
-        succeeds 'uploadArchives'
-
-        and:
-        module.ivyFile.assertIsFile()
+        module.assertIvyAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
     }
 
     public void "can publish large artifact (tools.jar) to authenticated repository"() {
         given:
         server.start()
-        def toolsJar = TextUtil.escapeString(Jvm.current().toolsJar)
+        def toolsJar = Jvm.current().toolsJar
 
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -248,8 +261,8 @@ configurations {
     tools
 }
 artifacts {
-    tools(file('$toolsJar')) {
-        name 'tools'
+    tools(file('${toolsJar.toURI()}')) {
+        name 'publish'
     }
 }
 
@@ -260,24 +273,24 @@ uploadTools {
                 username 'testuser'
                 password 'password'
             }
-            url "http://localhost:${server.port}"
+            url "${ivyHttpRepo.uri}"
         }
     }
 }
 """
 
+        and:
+        module.expectJarPut('testuser', 'password')
+        module.expectJarSha1Put('testuser', 'password')
+        module.expectIvyPut('testuser', 'password')
+        module.expectIvySha1Put('testuser', 'password')
+
         when:
-        def uploadedToolsJar = module.moduleDir.file('toolsJar')
-        expectUpload('/org.gradle/publish/2/tools-2.jar', module, uploadedToolsJar, 'testuser', 'password')
-        expectUpload('/org.gradle/publish/2/ivy-2.xml', module, module.ivyFile, 'testuser', 'password')
+        run 'uploadTools'
 
         then:
-        succeeds 'uploadTools'
-
-        and:
-        module.ivyFile.assertIsFile()
-        uploadedToolsJar.assertIsCopyOf(new TestFile(toolsJar));
-
+        module.assertIvyAndJarFilePublished()
+        module.jarFile.assertIsCopyOf(new TestFile(toolsJar))
     }
 
     public void "does not upload meta-data file if artifact upload fails"() {
@@ -292,29 +305,19 @@ group = 'org.gradle'
 uploadArchives {
     repositories {
         ivy {
-            url "http://localhost:${server.port}"
+            url "${ivyHttpRepo.uri}"
         }
     }
 }
 """
-        when:
-        server.expectPut("/org.gradle/publish/2/publish-2.jar", module.jarFile, HttpStatus.ORDINAL_500_Internal_Server_Error)
+        and:
+        module.expectJarPut(HttpStatus.ORDINAL_500_Internal_Server_Error)
 
-        then:
+        when:
         fails 'uploadArchives'
 
-        and:
+        then:
         module.jarFile.assertExists()
         module.ivyFile.assertDoesNotExist()
-    }
-
-    private void expectUpload(String path, IvyModule module, TestFile file, int statusCode = HttpStatus.ORDINAL_200_OK) {
-        server.expectPut(path, file, statusCode)
-        server.expectPut("${path}.sha1", module.sha1File(file), statusCode)
-    }
-
-    private void expectUpload(String path, IvyModule module, TestFile file, String username, String password) {
-        server.expectPut(path, username, password, file)
-        server.expectPut("${path}.sha1", username, password, module.sha1File(file))
     }
 }

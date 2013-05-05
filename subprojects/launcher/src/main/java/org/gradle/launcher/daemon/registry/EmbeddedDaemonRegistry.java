@@ -69,8 +69,8 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         return daemonInfosOfEntriesMatching(busySpec);
     }
 
-    public void store(Address address, DaemonContext daemonContext, String password) {
-        daemonInfos.put(address, new DaemonInfo(address, daemonContext, password));
+    public void store(Address address, DaemonContext daemonContext, String password, boolean idle) {
+        daemonInfos.put(address, new DaemonInfo(address, daemonContext, password, idle));
     }
 
     public void remove(Address address) {

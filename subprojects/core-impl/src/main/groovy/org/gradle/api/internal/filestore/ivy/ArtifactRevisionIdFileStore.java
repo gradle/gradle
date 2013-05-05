@@ -20,16 +20,17 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.filestore.GroupedAndNamedUniqueFileStore;
-import org.gradle.api.internal.filestore.UniquePathFileStore;
+import org.gradle.api.internal.filestore.PathKeyFileStore;
 
 public class ArtifactRevisionIdFileStore extends GroupedAndNamedUniqueFileStore<ArtifactRevisionId> {
 
     private static final String GROUP_PATTERN = "[organisation]/[module](/[branch])/[revision]/[type]";
     private static final String NAME_PATTERN = "[artifact]-[revision](-[classifier])(.[ext])";
 
-    public ArtifactRevisionIdFileStore(UniquePathFileStore delegate) {
-        super(delegate, toTransformer(GROUP_PATTERN), toTransformer(NAME_PATTERN));
+    public ArtifactRevisionIdFileStore(PathKeyFileStore pathKeyFileStore, TemporaryFileProvider temporaryFileProvider) {
+        super(pathKeyFileStore, temporaryFileProvider, toTransformer(GROUP_PATTERN), toTransformer(NAME_PATTERN));
     }
 
     private static Transformer<String, ArtifactRevisionId> toTransformer(final String pattern) {

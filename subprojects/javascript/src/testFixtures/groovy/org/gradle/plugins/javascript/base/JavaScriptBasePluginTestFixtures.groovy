@@ -21,7 +21,7 @@ class JavaScriptBasePluginTestFixtures {
     static String getGradlePublicJSRepoScript() {
         """
         repositories {
-            add ${JavaScriptExtension.NAME}.gradlePublicJavaScriptRepository
+            javaScript.gradle()
         }
         """
     }
@@ -29,7 +29,7 @@ class JavaScriptBasePluginTestFixtures {
     static String getGoogleRepoScript() {
         """
         repositories {
-            add ${JavaScriptExtension.NAME}.googleApisRepository
+            javaScript.googleApis()
         }
         """
     }

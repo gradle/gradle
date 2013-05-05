@@ -16,7 +16,8 @@
 package org.gradle.plugins.cpp.gpp
 
 import org.gradle.api.Plugin
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.Project
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.binaries.BinariesPlugin
@@ -25,18 +26,26 @@ import org.gradle.plugins.cpp.gpp.internal.GppCompilerAdapter
 import org.gradle.process.internal.DefaultExecAction
 import org.gradle.process.internal.ExecAction
 
+import javax.inject.Inject
+
 /**
  * A {@link Plugin} which makes the <a href="http://gcc.gnu.org/">GNU G++ compiler</a> available for compiling C/C++ code.
  */
-class GppCompilerPlugin implements Plugin<ProjectInternal> {
+class GppCompilerPlugin implements Plugin<Project> {
+    private final FileResolver fileResolver
 
-    void apply(ProjectInternal project) {
+    @Inject
+    GppCompilerPlugin(FileResolver fileResolver) {
+        this.fileResolver = fileResolver
+    }
+
+    void apply(Project project) {
         project.plugins.apply(BinariesPlugin)
         project.extensions.getByType(CompilerRegistry).add(new GppCompilerAdapter(
                 OperatingSystem.current(),
                 new Factory<ExecAction>() {
                     ExecAction create() {
-                        new DefaultExecAction(project.getFileResolver())
+                        new DefaultExecAction(fileResolver)
                     }
                 }))
     }

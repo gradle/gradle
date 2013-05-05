@@ -27,7 +27,9 @@ import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * An {@link Instantiator} that applies JSR-330 style dependency injection.
@@ -82,7 +84,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
                 resolvedParameters[i] = parameters[pos];
                 pos++;
             } else {
-                resolvedParameters[i] = services.get(targetType);
+                resolvedParameters[i] = services.get(match.getGenericParameterTypes()[i]);
             }
         }
         if (pos != parameters.length) {
@@ -94,26 +96,24 @@ public class DependencyInjectingInstantiator implements Instantiator {
     private <T> Constructor<?> selectConstructor(Class<T> type, Object... parameters) {
         Constructor<?>[] constructors = type.getDeclaredConstructors();
 
-        // If the class has only 1 constructor, then use it.
-        // Note: this does not quite match the JSR-330 spec. We should only do this for default (no-args) constructors.
-        if (constructors.length == 1) {
-            return constructors[0];
-        }
-
         // For backwards compatibility, first we look for a public constructor that accepts the provided parameters
         // Then we find a candidate constructor as per JSR-330
         // If we find an old style match, then warn if this is not the same as the JSR-330 match. Use the old style match
         // If we find a JSR-330 match and no old style match, use the JSR-330 match
         // Otherwise, fail
 
-        Constructor<?> injectConstructor = null;
+        Constructor<?> defaultConstructor = null;
+        List<Constructor<?>> injectConstructors = new ArrayList<Constructor<?>>();
         for (Constructor<?> constructor : constructors) {
             if (constructor.getAnnotation(Inject.class) != null) {
-                if (injectConstructor != null) {
-                    throw new IllegalArgumentException(String.format("Class %s has multiple constructors with @Inject annotation.", type.getName()));
-                }
-                injectConstructor = constructor;
+                injectConstructors.add(constructor);
             }
+            if (constructor.getParameterTypes().length == 0) {
+                defaultConstructor = constructor;
+            }
+        }
+        if (injectConstructors.isEmpty() && constructors.length == 1 && defaultConstructor != null) {
+            injectConstructors.add(defaultConstructor);
         }
 
         Constructor<?> parameterMatchConstructor = null;
@@ -139,18 +139,36 @@ public class DependencyInjectingInstantiator implements Instantiator {
             }
         }
 
-        if (parameterMatchConstructor == null && injectConstructor == null) {
-            throw new IllegalArgumentException(String.format("Class %s has no constructor that accepts parameters %s or that is annotated with @Inject.", type.getName(), Arrays.toString(parameters)));
+        if (parameterMatchConstructor == null && type.getConstructors().length == 1) {
+            // No match - allow a single constructor
+            parameterMatchConstructor = type.getConstructors()[0];
         }
-        if (parameterMatchConstructor != null) {
-            if (injectConstructor == null) {
-                onDeprecationWarning.execute(String.format("Class %s has multiple constructors and none of them are annotated with @Inject.", type.getName()));
-            } else if (!parameterMatchConstructor.equals(injectConstructor)) {
-                onDeprecationWarning.execute(String.format("Class %s has @Inject annotation on the incorrect constructor.", type.getName()));
+
+        if (parameterMatchConstructor == null) {
+            // Use JSR-330 semantics
+            if (injectConstructors.isEmpty()) {
+                throw new IllegalArgumentException(String.format("Class %s has no constructor that accepts parameters %s or that is annotated with @Inject.", type.getName(), Arrays.toString(parameters)));
             }
-            return parameterMatchConstructor;
+            if (injectConstructors.size() > 1) {
+                throw new IllegalArgumentException(String.format("Class %s has multiple constructors with @Inject annotation.", type.getName()));
+            }
+            return injectConstructors.get(0);
         }
-        return injectConstructor;
+
+        // Use backwards compatible semantics, but warn when they don't match
+
+        if (injectConstructors.isEmpty()) {
+            if (type.getConstructors().length == 1) {
+                onDeprecationWarning.execute(String.format("Constructor for class %s is not annotated with @Inject. In Gradle 2.0 this will be treated as an error.", type.getName()));
+            } else {
+                onDeprecationWarning.execute(String.format("Class %s has multiple constructors and no constructor is annotated with @Inject. In Gradle 2.0 this will be treated as an error.", type.getName()));
+            }
+        } else if (injectConstructors.size() > 1) {
+            onDeprecationWarning.execute(String.format("Class %s has multiple constructors with @Inject annotation. In Gradle 2.0 this will be treated as an error.", type.getName()));
+        } else if (!injectConstructors.get(0).equals(parameterMatchConstructor)) {
+            onDeprecationWarning.execute(String.format("Class %s has @Inject annotation on an unexpected constructor. In Gradle 2.0 the constructor annotated with @Inject will be used instead of the current default constructor.", type.getName()));
+        }
+        return parameterMatchConstructor;
     }
 
     private <T> void validateType(Class<T> type) {

@@ -19,7 +19,9 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.internal.specs.ExplainingSpecs;
-import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.initialization.BuildAction;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -27,14 +29,12 @@ import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.BuildAndStop;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.messaging.remote.internal.Connection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 
 public class SingleUseDaemonClient extends DaemonClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SingleUseDaemonClient.class);
+    public static final String MESSAGE = "To honour java settings for this build new JVM is forked.";
+    private static final Logger LOGGER = Logging.getLogger(SingleUseDaemonClient.class);
     private final DocumentationRegistry documentationRegistry;
 
     public SingleUseDaemonClient(DaemonConnector connector, OutputEventListener outputEventListener, ExplainingSpec<DaemonContext> compatibilitySpec, InputStream buildStandardInput,
@@ -44,15 +44,12 @@ public class SingleUseDaemonClient extends DaemonClient {
     }
 
     @Override
-    public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
-        LOGGER.warn("Note: in order to honour the org.gradle.jvmargs and/or org.gradle.java.home values specified for this build, it is necessary to fork a new JVM.");
-        LOGGER.warn("To avoid the slowdown associated with this extra process, you might want to consider running Gradle with the daemon enabled.");
-        LOGGER.warn("Please see the user guide chapter on the daemon at {}.", documentationRegistry.getDocumentationFor("gradle_daemon"));
+    public <T> T execute(BuildAction<T> action, BuildActionParameters parameters) {
+        LOGGER.lifecycle("{} Consider using the daemon {}.", MESSAGE, documentationRegistry.getDocumentationFor("gradle_daemon"));
         Build build = new BuildAndStop(getIdGenerator().generateId(), action, parameters);
 
-        DaemonConnection daemonConnection = getConnector().createConnection(ExplainingSpecs.<DaemonContext>satisfyAll());
-        Connection<Object> connection = daemonConnection.getConnection();
+        DaemonClientConnection daemonConnection = getConnector().createConnection(ExplainingSpecs.<DaemonContext>satisfyAll());
 
-        return (T) executeBuild(build, connection);
+        return (T) executeBuild(build, daemonConnection);
     }
 }

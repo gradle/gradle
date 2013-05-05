@@ -40,12 +40,12 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         this.http = http;
     }
 
-    public ExternalResource getResource(String location) throws IOException {
+    public HttpResponseResource getResource(String location) throws IOException {
         abortOpenResources();
         LOGGER.debug("Constructing external resource: {}", location);
         HttpResponse response = http.performGet(location);
         if (response != null) {
-            ExternalResource resource = new HttpResponseResource("GET", location, response) {
+            HttpResponseResource resource = new HttpResponseResource("GET", location, response) {
                 @Override
                 public void close() throws IOException {
                     super.close();
@@ -66,10 +66,8 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         return response == null ? null : new HttpResponseResource("HEAD", location, response).getMetaData();
     }
 
-    private ExternalResource recordOpenGetResource(ExternalResource httpResource) {
-        if (httpResource instanceof HttpResponseResource) {
-            openResources.add(httpResource);
-        }
+    private HttpResponseResource recordOpenGetResource(HttpResponseResource httpResource) {
+        openResources.add(httpResource);
         return httpResource;
     }
 

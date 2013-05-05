@@ -18,7 +18,7 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -27,7 +27,7 @@ import spock.lang.Unroll
  * @author Hans Dockter
  */
 class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample sample = new Sample('webApplication/quickstart')
+    @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart')
 
     def "can build a war"() {
         given:
@@ -93,7 +93,7 @@ task sayHearthyGoodbye << {
 
         //running web test then stopping jetty
         sample sample
-        def jettyStop = executer.withTasks('runTest', 'jettyStop').withArguments("-d").run()
+        def jettyStop = executer.withTasks('runTest', 'jettyStop').run()
 
         //test has completed
         assert jettyStop.output.contains('hello Gradle')
@@ -110,9 +110,10 @@ task sayHearthyGoodbye << {
             try {
                 url.text
                 return
-            } catch (ConnectException e) {
-                Thread.sleep(200)
+            } catch (IOException e) {
+                // continue
             }
+            Thread.sleep(200)
         }
         throw new RuntimeException("Timeout waiting for jetty to become available.")
     }

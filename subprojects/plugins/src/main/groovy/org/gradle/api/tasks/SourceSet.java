@@ -85,7 +85,7 @@ public interface SourceSet {
 
    /**
      * {@link SourceSetOutput} is a {@link FileCollection} of all output directories (compiled classes, processed resources, etc.)
-     *  and it provides means configure the default output dirs and register additional output dirs. See examples in {@link SourceSetOutput}
+     *  and it provides means to configure the default output dirs and register additional output dirs. See examples in {@link SourceSetOutput}
      *
      * @return The output dirs, as a {@link SourceSetOutput}.
      */
@@ -93,7 +93,7 @@ public interface SourceSet {
 
     /**
      * Registers a set of tasks which are responsible for compiling this source set into the classes directory. The
-     * paths are evaluated as for {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * paths are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      *
      * @param taskPaths The tasks which compile this source set.
      * @return this
@@ -177,6 +177,13 @@ public interface SourceSet {
      * @return The task name. Never returns null.
      */
     String getCompileTaskName(String language);
+
+    /**
+     * Returns the name of the Jar task for this source set, if such a task exists.
+     *
+     * @return The task name. Never returns null.
+     */
+    String getJarTaskName();
 
     /**
      * Returns the name of a task for this source set.

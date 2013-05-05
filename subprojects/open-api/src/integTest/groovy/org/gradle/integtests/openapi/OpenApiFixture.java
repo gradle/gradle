@@ -15,12 +15,12 @@
  */
 package org.gradle.integtests.openapi;
 
-import org.gradle.integtests.fixtures.GradleDistribution;
-import org.gradle.integtests.fixtures.RuleHelper;
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.internal.UncheckedException;
 import org.gradle.openapi.external.ui.DualPaneUIVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1;
 import org.gradle.openapi.external.ui.UIFactory;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.junit.Assert;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -32,14 +32,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OpenApiFixture implements MethodRule {
-    private GradleDistribution dist;
+    private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
+    private final TestDirectoryProvider testDirectoryProvider;
     private final List<JFrame> frames = new ArrayList<JFrame>();
+
+    public OpenApiFixture(TestDirectoryProvider testDirectoryProvider) {
+        this.testDirectoryProvider = testDirectoryProvider;
+    }
 
     public Statement apply(final Statement base, FrameworkMethod method, final Object target) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                dist = RuleHelper.getField(target, GradleDistribution.class);
                 try {
                     base.evaluate();
                 } finally {
@@ -59,7 +63,7 @@ public class OpenApiFixture implements MethodRule {
         TestSingleDualPaneUIInteractionVersion1 testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1(new TestAlternateUIInteractionVersion1(), new TestSettingsNodeVersion1());
         SinglePaneUIVersion1 singlePane;
         try {
-            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), dist.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
+            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), buildContext.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -67,8 +71,8 @@ public class OpenApiFixture implements MethodRule {
         //make sure we got something
         Assert.assertNotNull(singlePane);
 
-        singlePane.setCurrentDirectory(dist.getTestDir());
-        singlePane.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(dist.getUserHomeDir()));
+        singlePane.setCurrentDirectory(testDirectoryProvider.getTestDirectory());
+        singlePane.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(buildContext.getGradleUserHomeDir()));
 
         return singlePane;
     }
@@ -77,7 +81,7 @@ public class OpenApiFixture implements MethodRule {
         TestSingleDualPaneUIInteractionVersion1 testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1(new TestAlternateUIInteractionVersion1(), new TestSettingsNodeVersion1());
         DualPaneUIVersion1 dualPane;
         try {
-            dualPane = UIFactory.createDualPaneUI(getClass().getClassLoader(), dist.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
+            dualPane = UIFactory.createDualPaneUI(getClass().getClassLoader(), buildContext.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -85,8 +89,8 @@ public class OpenApiFixture implements MethodRule {
         //make sure we got something
         Assert.assertNotNull(dualPane);
 
-        dualPane.setCurrentDirectory(dist.getTestDir());
-        dualPane.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(dist.getUserHomeDir()));
+        dualPane.setCurrentDirectory(testDirectoryProvider.getTestDirectory());
+        dualPane.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(buildContext.getGradleUserHomeDir()));
 
         return dualPane;
     }

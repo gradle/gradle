@@ -1,0 +1,8 @@
+
+------------------------------------------------------------
+Project :api - The shared API for the application
+------------------------------------------------------------
+
+testCompile
+\--- junit:junit:4.11
+     \--- org.hamcrest:hamcrest-core:1.3

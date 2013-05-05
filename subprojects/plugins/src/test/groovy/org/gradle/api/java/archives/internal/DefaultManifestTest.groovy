@@ -20,8 +20,8 @@ import org.apache.tools.ant.taskdefs.Manifest
 import org.apache.tools.ant.taskdefs.Manifest.Attribute
 import org.apache.tools.ant.taskdefs.Manifest.Section
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -35,7 +35,7 @@ class DefaultManifestTest extends Specification {
     DefaultManifest gradleManifest = new DefaultManifest(fileResolver)
 
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def testInitWithFileReolver() {
         expect:

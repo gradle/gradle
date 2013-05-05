@@ -15,45 +15,63 @@
  */
 package org.gradle.tooling.internal.consumer.loader
 
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.actor.ActorFactory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.Distribution
+import org.gradle.tooling.internal.consumer.connection.ConnectionVersion4BackedConsumerConnection
+import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection
+import org.gradle.tooling.internal.consumer.connection.InternalConnectionBackedConsumerConnection
+import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
+import org.gradle.tooling.internal.protocol.*
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.GradleVersion
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Specification
-import org.gradle.internal.classpath.DefaultClassPath
 
 class DefaultToolingImplementationLoaderTest extends Specification {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     Distribution distribution = Mock()
     ProgressLoggerFactory loggerFactory = Mock()
 
-    def usesMetaInfServiceToDetermineFactoryImplementation() {
+    def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
         def loader = new DefaultToolingImplementationLoader()
         distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(
-                getToolingApiResourcesDir(),
+                getToolingApiResourcesDir(connectionImplementation),
                 ClasspathUtil.getClasspathForClass(TestConnection.class),
                 ClasspathUtil.getClasspathForClass(ActorFactory.class),
                 ClasspathUtil.getClasspathForClass(Logger.class),
+                ClasspathUtil.getClasspathForClass(GroovyObject.class),
                 getVersionResourcesDir(),
                 ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
-        def adaptedConnection = loader.create(distribution, loggerFactory, true)
+        def adaptedConnection = loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true))
 
         then:
-        adaptedConnection.delegate.class != TestConnection.class //different classloaders
-        adaptedConnection.delegate.class.name == TestConnection.class.name
+        adaptedConnection.delegate.class != connectionImplementation //different classloaders
+        adaptedConnection.delegate.class.name == connectionImplementation.name
+        adaptedConnection.delegate.configured
+
+        and:
+        adaptedConnection.class == adapter
+
+        where:
+        connectionImplementation  | adapter
+        TestConnection.class      | ModelBuilderBackedConsumerConnection.class
+        TestR12Connection.class   | BuildActionRunnerBackedConsumerConnection.class
+        TestR10M8Connection.class | InternalConnectionBackedConsumerConnection.class
+        TestR10M3Connection.class | ConnectionVersion4BackedConsumerConnection.class
     }
 
-    private getToolingApiResourcesDir() {
-        tmpDir.file("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionVersion4") << TestConnection.name
-        return tmpDir.dir;
+    private getToolingApiResourcesDir(Class implementation) {
+        tmpDir.file("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionVersion4") << implementation.name
+        return tmpDir.testDirectory;
     }
 
     private getVersionResourcesDir() {
@@ -65,12 +83,134 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader(cl)
 
         when:
-        loader.create(distribution, loggerFactory, true)
+        loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true))
 
         then:
         UnsupportedVersionException e = thrown()
         e.message == "The specified <dist-display-name> is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
         _ * distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath()
         _ * distribution.displayName >> '<dist-display-name>'
+    }
+}
+
+class TestMetaData implements ConnectionMetaDataVersion1 {
+    String getVersion() {
+        return "1.1"
+    }
+
+    String getDisplayName() {
+        throw new UnsupportedOperationException()
+    }
+}
+
+class TestConnection implements ConnectionVersion4, BuildActionRunner, ConfigurableConnection, ModelBuilder {
+    boolean configured
+
+    void configure(ConnectionParameters parameters) {
+        configured = parameters.verboseLogging
+    }
+
+    def <T> BuildResult<T> run(Class<T> type, BuildParameters parameters) {
+        throw new UnsupportedOperationException()
+    }
+
+    BuildResult<Object> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        throw new UnsupportedOperationException()
+    }
+
+    void stop() {
+        throw new UnsupportedOperationException()
+    }
+
+    ConnectionMetaDataVersion1 getMetaData() {
+        return new TestMetaData()
+    }
+
+    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
+        throw new UnsupportedOperationException()
+    }
+
+    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
+        throw new UnsupportedOperationException()
+    }
+}
+
+class TestR12Connection implements ConnectionVersion4, BuildActionRunner, ConfigurableConnection {
+    boolean configured
+
+    void configure(ConnectionParameters parameters) {
+        configured = parameters.verboseLogging
+    }
+
+    def <T> BuildResult<T> run(Class<T> type, BuildParameters parameters) {
+        throw new UnsupportedOperationException()
+    }
+
+    void stop() {
+        throw new UnsupportedOperationException()
+    }
+
+    ConnectionMetaDataVersion1 getMetaData() {
+        return new TestMetaData()
+    }
+
+    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
+        throw new UnsupportedOperationException()
+    }
+
+    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
+        throw new UnsupportedOperationException()
+    }
+}
+
+class TestR10M8Connection implements InternalConnection {
+    boolean configured
+
+    void configureLogging(boolean verboseLogging) {
+        configured = verboseLogging
+    }
+
+    def <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) {
+        throw new UnsupportedOperationException()
+    }
+
+    void stop() {
+        throw new UnsupportedOperationException()
+    }
+
+    ConnectionMetaDataVersion1 getMetaData() {
+        return new TestMetaData()
+    }
+
+    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
+        throw new UnsupportedOperationException()
+    }
+
+    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
+        throw new UnsupportedOperationException()
+    }
+}
+
+class TestR10M3Connection implements ConnectionVersion4 {
+    boolean configured
+
+    void configureLogging(boolean verboseLogging) {
+        configured = verboseLogging
+    }
+
+    void stop() {
+        throw new UnsupportedOperationException()
+    }
+
+    ConnectionMetaDataVersion1 getMetaData() {
+        return new TestMetaData()
+    }
+
+    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
+        throw new UnsupportedOperationException()
+    }
+
+    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
+        throw new UnsupportedOperationException()
     }
 }

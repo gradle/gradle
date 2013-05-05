@@ -15,6 +15,15 @@
   -->
 <chapter id="artifact_management">
     <title>Publishing artifacts</title>
+    <note>
+        <para>
+            This chapter describes the <emphasis>original</emphasis> publishing mechanism available in Gradle 1.0: in Gradle 1.3 a new mechanism for publishing was introduced.
+            While this new mechanism is <link linkend="feature_lifecycle">incubating</link> and not yet complete, it introduces some new concepts and features that do (and will) make Gradle publishing even more powerful.
+        </para>
+        <para>
+            You can read about the new publishing plugins in <xref linkend="publishing_ivy"/> and <xref linkend="publishing_maven"/>. Please try them out and give us feedback.
+        </para>
+    </note>
     <section>
         <title>Introduction</title>
         <para>This chapter is about how you declare the outgoing artifacts of your project, and how to work with
@@ -83,7 +92,13 @@
         </sample>
         <para>As you can see, you can either use a reference to an existing repository or create a new repository.
         As described in <xref linkend="sub:more_about_ivy_resolvers"/>, you can use all the Ivy resolvers suitable
-        for the purpose of uploading.</para>
+        for the purpose of uploading.
+        </para>
+        <para>If an upload repository is defined with multiple patterns, Gradle must choose a pattern to use for uploading each file.
+            By default, Gradle will upload to the pattern defined by the <literal>url</literal> parameter, combined with the optional <literal>layout</literal> parameter.
+            If no <literal>url</literal> parameter is supplied, then Gradle will use the first defined <literal>artifactPattern</literal> for uploading,
+            or the first defined <literal>ivyPattern</literal> for uploading Ivy files, if this is set.
+        </para>
         <para>Uploading to a Maven repository is described in <xref linkend="uploading_to_maven_repositories"/>.</para>
     </section>
     <section id="project_libraries">
@@ -101,7 +116,7 @@
             is not specified, the <code>default</code> configuration is used (see <xref linkend="sec:dependency_configurations"/>).
             Using your project as a library
             can either happen from within a multi-project build or by retrieving your project from a repository. In
-            the latter case, an ivy.xml descriptor in the repository is supposed to contain all the necessary information. If you
+            the latter case, an <filename>ivy.xml</filename> descriptor in the repository is supposed to contain all the necessary information. If you
             work with Maven repositories you don't have the flexibility as described above. For how to publish to a Maven
             repository, see the section <xref linkend="uploading_to_maven_repositories"/>.
         </para>

@@ -17,6 +17,7 @@ package org.gradle.internal.nativeplatform.jna;
 
 import com.sun.jna.Native;
 import org.gradle.internal.nativeplatform.NativeIntegrationException;
+import org.gradle.internal.nativeplatform.processenvironment.AbstractProcessEnvironment;
 
 import java.io.File;
 
@@ -29,7 +30,7 @@ public class WindowsProcessEnvironment extends AbstractProcessEnvironment {
 
     public void setNativeEnvironmentVariable(String name, String value) {
         boolean retval = kernel32.SetEnvironmentVariable(name, value == null ? null : value);
-        if (!retval) {
+        if (!retval && (kernel32.GetLastError() != 203/*ERROR_ENVVAR_NOT_FOUND*/)) {
             throw new NativeIntegrationException(String.format("Could not set environment variable '%s'. errno: %d", name, kernel32.GetLastError()));
         }
     }

@@ -22,9 +22,9 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 @MinTargetGradleVersion('1.0-milestone-4')
 class ToolingApiEclipseMinimalModelCrossVersionSpec extends ToolingApiSpecification {
     def "minimal Eclipse model does not attempt to resolve external dependencies"() {
-        def projectDir = dist.testDir
-        projectDir.file('settings.gradle').text = 'include "child"'
-        projectDir.file('build.gradle').text = '''
+
+        file('settings.gradle').text = 'include "child"'
+        file('build.gradle').text = '''
 apply plugin: 'java'
 dependencies {
     compile project(':child')
@@ -49,8 +49,7 @@ project(':child') {
     }
 
     def "minimal Eclipse model does not attempt to call any tasks"() {
-        def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = '''
+        file('build.gradle').text = '''
 apply plugin: 'java'
 
 sourceSets.main.output.dir "$buildDir/foo", builtBy: 'generateResources'

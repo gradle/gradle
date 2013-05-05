@@ -15,31 +15,61 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleVersionIdResolver resolver;
-    private final Map<ModuleId, ModuleRevisionId> forcedModules = new HashMap<ModuleId, ModuleRevisionId>();
+    private Action<DependencyResolveDetailsInternal> rule;
 
-    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Iterable<? extends ModuleVersionSelector> forcedModules) {
+    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Action<DependencyResolveDetailsInternal> rule) {
         this.resolver = resolver;
-        for (ModuleVersionSelector forcedModule : forcedModules) {
-            ModuleId moduleId = new ModuleId(forcedModule.getGroup(), forcedModule.getName());
-            this.forcedModules.put(moduleId, new ModuleRevisionId(moduleId, forcedModule.getVersion()));
-        }
+        this.rule = rule;
     }
 
-    public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
-        ModuleRevisionId newRevisionId = forcedModules.get(dependencyDescriptor.getDependencyId());
-        if (newRevisionId != null) {
-            return resolver.resolve(dependencyDescriptor.clone(newRevisionId));
+    public ModuleVersionIdResolveResult resolve(DependencyMetaData dependency) {
+        ModuleVersionSelector module = dependency.getRequested();
+        DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails(module);
+        try {
+            rule.execute(details);
+        } catch (Throwable e) {
+            return new FailedDependencyResolveRuleResult(module, e);
         }
-        return resolver.resolve(dependencyDescriptor);
+        if (details.isUpdated()) {
+            DependencyMetaData substitutedDependency = dependency.withRequestedVersion(details.getTarget());
+            ModuleVersionIdResolveResult result = resolver.resolve(substitutedDependency);
+            return new SubstitutedModuleVersionIdResolveResult(result, details.getSelectionReason());
+        }
+        return resolver.resolve(dependency);
+    }
+
+    private class FailedDependencyResolveRuleResult implements ModuleVersionIdResolveResult {
+
+        private final ModuleVersionResolveException failure;
+
+        public FailedDependencyResolveRuleResult(ModuleVersionSelector module, Throwable problem) {
+            this.failure = new ModuleVersionResolveException(module, problem);
+        }
+
+        public ModuleVersionResolveException getFailure() {
+            return failure;
+        }
+
+        public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
+            throw failure;
+        }
+
+        public ModuleVersionResolveResult resolve() throws ModuleVersionResolveException {
+            throw failure;
+        }
+
+        public ModuleVersionSelectionReason getSelectionReason() {
+            return VersionSelectionReasons.REQUESTED;
+        }
     }
 }

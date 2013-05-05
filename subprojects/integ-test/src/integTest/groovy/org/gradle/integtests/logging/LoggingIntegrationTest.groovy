@@ -16,20 +16,23 @@
 
 package org.gradle.integtests.logging
 
-import org.gradle.util.TestFile
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.SystemProperties
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
-class LoggingIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final TestResources resources = new TestResources()
-    @Rule public final Sample sampleResources = new Sample()
+class LoggingIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
+    @Rule public final Sample sampleResources = new Sample(testDirectoryProvider)
 
     private final LogOutput logOutput = new LogOutput() {{
         quiet(
@@ -216,28 +219,28 @@ class LoggingIntegrationTest {
 
     def run(LogLevel level) {
         resources.maybeCopy('LoggingIntegrationTest/logging')
-        TestFile loggingDir = dist.testDir
+        TestFile loggingDir = testDirectory
         loggingDir.file("buildSrc/build/.gradle").deleteDir()
         loggingDir.file("nestedBuild/buildSrc/.gradle").deleteDir()
 
         String initScript = new File(loggingDir, 'init.gradle').absolutePath
         String[] allArgs = level.args + ['-I', initScript]
-        return executer.setAllowExtraLogging(false).inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
+        return executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
     }
 
     def runBroken(LogLevel level) {
-        TestFile loggingDir = dist.testDir
+        TestFile loggingDir = testDirectory
 
-        return executer.setAllowExtraLogging(false).inDirectory(loggingDir).withTasks('broken').runWithFailure()
+        return executer.noExtraLogging().inDirectory(loggingDir).withTasks('broken').runWithFailure()
     }
 
     def runMultiThreaded(LogLevel level) {
         resources.maybeCopy('LoggingIntegrationTest/multiThreaded')
-        return executer.setAllowExtraLogging(false).withArguments(level.args).withTasks('log').run()
+        return executer.noExtraLogging().withArguments(level.args).withTasks('log').run()
     }
 
     def runSample(LogLevel level) {
-        return executer.setAllowExtraLogging(false).inDirectory(sampleResources.dir).withArguments(level.args).withTasks('log').run()
+        return executer.noExtraLogging().inDirectory(sampleResources.dir).withArguments(level.args).withTasks('log').run()
     }
 
     void checkOutput(Closure run, LogLevel level) {

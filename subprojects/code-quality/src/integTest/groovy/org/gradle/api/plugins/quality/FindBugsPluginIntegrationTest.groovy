@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.hamcrest.Matcher
+
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
@@ -44,9 +45,9 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':findbugsMain'")
+        failure.assertHasDescription("Execution failed for task ':findbugsMain'.")
         failure.assertThatCause(startsWith("FindBugs rule violations were found. See the report at:"))
-        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
+        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.BadClass"))
     }
 
     void "can ignore failures"() {
@@ -60,7 +61,8 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         expect:
         succeeds("check")
         output.contains("FindBugs rule violations were found. See the report at:")
-        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
+        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.BadClass"))
+        file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.BadClassTest"))
     }
 
     def "is incremental"() {
@@ -93,7 +95,37 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         expect:
         fails "findbugsMain"
 
-        failure.assertHasCause "Findbugs tasks can only have one report enabled"
+        failure.assertHasCause "FindBugs tasks can only have one report enabled"
+    }
+
+    def "can use optional arguments"() {
+        given:
+        buildFile << """
+            findbugs {
+                effort 'max'
+                reportLevel 'high'
+                includeFilter file('include.xml')
+                excludeFilter file('exclude.xml')
+                visitors = ['FindDeadLocalStores', 'UnreadFields']
+                omitVisitors = ['WaitInLoop', 'UnnecessaryMath']
+            }
+            findbugsMain.reports {
+                xml.enabled true
+            }
+        """
+
+        and:
+        goodCode()
+        badCode()
+
+        and:
+        writeFilterFile('include.xml', '.*')
+        writeFilterFile('exclude.xml', 'org\\.gradle\\.Bad.*')
+
+        expect:
+        succeeds("check")
+        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
+        file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
     def "can generate html reports"() {
@@ -147,13 +179,16 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
 
     private goodCode(int numberOfClasses = 1) {
         1.upto(numberOfClasses) {
-            file("src/main/java/org/gradle/Class${it}.java") << "package org.gradle; class Class${it} { public boolean isFoo(Object arg) { return true; } }"
-            file("src/test/java/org/gradle/Class${it}Test.java") << "package org.gradle; class Class${it}Test { public boolean isFoo(Object arg) { return true; } }"
+            file("src/main/java/org/gradle/Class${it}.java") << "package org.gradle; public class Class${it} { public boolean isFoo(Object arg) { return true; } }"
+            file("src/test/java/org/gradle/Class${it}Test.java") << "package org.gradle; public class Class${it}Test { public boolean isFoo(Object arg) { return true; } }"
         }
     }
 
     private badCode() {
-        file("src/main/java/org/gradle/Class1.java") << "package org.gradle; class Class1 { public boolean equals(Object arg) { return true; } }"
+        // Has DM_EXIT
+        file('src/main/java/org/gradle/BadClass.java') << 'package org.gradle; public class BadClass { public boolean isFoo(Object arg) { System.exit(1); return true; } }'
+        // Has ES_COMPARING_PARAMETER_STRING_WITH_EQ
+        file('src/test/java/org/gradle/BadClassTest.java') << 'package org.gradle; public class BadClassTest { public boolean isFoo(Object arg) { return "true" == "false"; } }'
     }
 
     private Matcher<String> containsClass(String className) {
@@ -162,13 +197,22 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
 
     private void writeBuildFile() {
         file("build.gradle") << """
-        apply plugin: "java"
-        apply plugin: "findbugs"
-        
-        repositories {
-            mavenCentral()
-        }
+            apply plugin: "java"
+            apply plugin: "findbugs"
 
+            repositories {
+                mavenCentral()
+            }
+        """
+    }
+
+    private void writeFilterFile(String filename, String className) {
+        file(filename) << """
+            <FindBugsFilter>
+            <Match>
+                <Class name="${className}" />
+            </Match>
+            </FindBugsFilter>
         """
     }
 }

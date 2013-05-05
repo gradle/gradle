@@ -13,21 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-dependencies {
-    groovy libraries.groovy
 
-    compile project(':core')
-    compile project(':plugins')
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
+dependencies {
+    compile libraries.groovy
+
+    compile project(":core")
+    compile project(":languageJvm")
+    compile project(":plugins")
+
+    // keep in sync with ScalaBasePlugin code
+    provided("com.typesafe.zinc:zinc:0.2.1")
 
     testCompile libraries.slf4j_api
 }
 
 useTestFixtures(project: ":plugins") // includes core test fixtures
 
-eclipse {
-	classpath {
-    	file.whenMerged { classpath ->
-        	classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-        }
+if (!javaVersion.java6Compatible) {
+    sourceSets.all {
+        groovy.exclude '**/jdk6/**'
     }
+}
+
+configure([integTest, daemonIntegTest]) {
+    jvmArgs "-XX:MaxPermSize=1g" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
 }

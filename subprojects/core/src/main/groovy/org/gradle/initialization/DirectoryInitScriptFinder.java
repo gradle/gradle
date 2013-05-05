@@ -15,9 +15,6 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.UriScriptSource;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
-    protected void findScriptsInDir(File initScriptsDir, Collection<ScriptSource> scripts) {
+    protected void findScriptsInDir(File initScriptsDir, Collection<File> scripts) {
         if (!initScriptsDir.isDirectory()) {
             return;
         }
@@ -37,7 +34,7 @@ public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
         }
         Collections.sort(files);
         for (File file : files) {
-            scripts.add(new UriScriptSource("initialization script", file));
+            scripts.add(file);
         }
     }
 }

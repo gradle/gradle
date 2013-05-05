@@ -31,6 +31,10 @@ class BlockDoc implements DslElementDoc {
         this.multiValued = multiValued
     }
 
+    BlockDoc forClass(ClassDoc referringClass) {
+        return new BlockDoc(blockMethod.forClass(referringClass), blockProperty.forClass(referringClass), type, multiValued)
+    }
+
     String getId() {
         return blockMethod.id
     }
@@ -59,8 +63,8 @@ class BlockDoc implements DslElementDoc {
         return blockProperty.deprecated || blockMethod.deprecated
     }
 
-    boolean isExperimental() {
-        return blockProperty.experimental || blockMethod.experimental
+    boolean isIncubating() {
+        return blockProperty.incubating || blockMethod.incubating
     }
 
     PropertyDoc getBlockProperty() {

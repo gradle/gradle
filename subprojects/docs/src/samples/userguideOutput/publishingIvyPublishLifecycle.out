@@ -1,0 +1,11 @@
+:generateIvyJavaIvyModuleDescriptor
+:compileJava UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:publishIvyJavaPublicationToIvyRepository
+:publish
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

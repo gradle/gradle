@@ -15,10 +15,12 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.messaging.remote.internal.inet.InetEndpoint;
+import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.serialize.ObjectReader;
+import org.gradle.messaging.serialize.ObjectWriter;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class DefaultMessageSerializer<T> implements MessageSerializer<T> {
     private final ClassLoader classLoader;
@@ -27,11 +29,37 @@ public class DefaultMessageSerializer<T> implements MessageSerializer<T> {
         this.classLoader = classLoader;
     }
 
-    public T read(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) throws Exception {
-        return (T) Message.receive(inputStream, classLoader);
+    public ObjectReader<T> newReader(InputStream inputStream, Address localAddress, Address remoteAddress) {
+        return new MessageReader<T>(inputStream, classLoader);
     }
 
-    public void write(T message, DataOutputStream outputStream) throws Exception {
-        Message.send(message, outputStream);
+    public ObjectWriter<T> newWriter(OutputStream outputStream) {
+        return new MessageWriter<T>(outputStream);
+    }
+
+    private static class MessageReader<T> implements ObjectReader<T> {
+        private final InputStream inputStream;
+        private final ClassLoader classLoader;
+
+        public MessageReader(InputStream inputStream, ClassLoader classLoader) {
+            this.inputStream = inputStream;
+            this.classLoader = classLoader;
+        }
+
+        public T read() throws Exception {
+            return (T) Message.receive(inputStream, classLoader);
+        }
+    }
+
+    private static class MessageWriter<T> implements ObjectWriter<T> {
+        private final OutputStream outputStream;
+
+        public MessageWriter(OutputStream outputStream) {
+            this.outputStream = outputStream;
+        }
+
+        public void write(T value) throws Exception {
+            Message.send(value, outputStream);
+        }
     }
 }

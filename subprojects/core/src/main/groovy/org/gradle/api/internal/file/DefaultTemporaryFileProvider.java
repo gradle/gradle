@@ -19,8 +19,8 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,22 +33,22 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
     }
 
     public File newTemporaryFile(String... path) {
-        return GFileUtils.canonicalise(new File(baseDirFactory.create(), GUtil.join(path, "/")));
+        return GFileUtils.canonicalise(new File(baseDirFactory.create(), CollectionUtils.join("/", path)));
     }
 
     public File createTemporaryFile(String prefix, @Nullable String suffix, String... path) {
-        File dir = new File(baseDirFactory.create(), GUtil.join(path, "/"));
-        GFileUtils.createDirectory(dir);
+        File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
+        GFileUtils.mkdirs(dir);
         try {
             return File.createTempFile(prefix, suffix, dir);
         } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
+            throw new UncheckedIOException(e);
         }
     }
 
     public File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path) {
-        File dir = new File(baseDirFactory.create(), GUtil.join(path, "/"));
-        GFileUtils.createDirectory(dir);
+        File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
+        GFileUtils.mkdirs(dir);
         try {
             // TODO: This is not a great paradigm for creating a temporary directory.
             // See http://guava-libraries.googlecode.com/svn/tags/release08/javadoc/com/google/common/io/Files.html#createTempDir%28%29 for an alternative.
@@ -57,7 +57,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
             tmpDir.mkdir();
             return tmpDir;
         } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
+            throw new UncheckedIOException(e);
         }
     }
 }

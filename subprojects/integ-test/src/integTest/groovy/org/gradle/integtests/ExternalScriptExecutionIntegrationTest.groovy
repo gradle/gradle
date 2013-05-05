@@ -18,12 +18,15 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.ArtifactBuilder
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.matchers.UserAgentMatcher
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 import static org.junit.Assert.assertThat
@@ -145,7 +148,7 @@ class ListenerImpl extends BuildAdapter {
     @Test
     public void canFetchScriptViaHttp() {
         TestFile script = testFile('external.gradle')
-
+        server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         server.expectGet('/external.gradle', script)
         server.start()
 

@@ -21,7 +21,10 @@ import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -33,7 +36,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
-    private static final int LOCK_TIMEOUT = 60000;
+    private static final int DEFAULT_LOCK_TIMEOUT = 60000;
     private static final byte STATE_REGION_PROTOCOL = 1;
     private static final int STATE_REGION_SIZE = 2;
     private static final int STATE_REGION_POS = 0;
@@ -43,9 +46,15 @@ public class DefaultFileLockManager implements FileLockManager {
     public static final int INFORMATION_REGION_DESCR_CHUNK_LIMIT = 340;
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
     private final ProcessMetaDataProvider metaDataProvider;
+    private final int lockTimeoutMs;
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider) {
+        this(metaDataProvider, DEFAULT_LOCK_TIMEOUT);
+    }
+
+    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs) {
         this.metaDataProvider = metaDataProvider;
+        this.lockTimeoutMs = lockTimeoutMs;
     }
 
     public FileLock lock(File target, LockMode mode, String targetDisplayName) throws LockTimeoutException {
@@ -93,7 +102,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 lockFile = new File(target.getParentFile(), target.getName() + ".lock");
             }
 
-            lockFile.getParentFile().mkdirs();
+            GFileUtils.mkdirs(lockFile.getParentFile());
             lockFile.createNewFile();
             lockFileAccess = new RandomAccessFile(lockFile, "rw");
             try {
@@ -218,7 +227,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private java.nio.channels.FileLock lock(FileLockManager.LockMode lockMode) throws Throwable {
             LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
-            long timeout = System.currentTimeMillis() + LOCK_TIMEOUT;
+            long timeout = System.currentTimeMillis() + lockTimeoutMs;
 
             // Lock the state region, with the requested mode
             java.nio.channels.FileLock stateRegionLock = lockStateRegion(lockMode, timeout);
@@ -231,7 +240,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
                 } else {
                     try {
-                        if (lockFileAccess.length() < INFORMATION_REGION_POS) {
+                        if (lockFileAccess.length() <= INFORMATION_REGION_POS) {
                             LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.", displayName);
                         } else {
                             lockFileAccess.seek(INFORMATION_REGION_POS);

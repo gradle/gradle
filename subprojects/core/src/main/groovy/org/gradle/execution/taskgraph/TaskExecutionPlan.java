@@ -17,35 +17,18 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
 
 import java.util.List;
 
 /**
  * Represents a graph of dependent tasks, returned in execution order.
- * TODO:DAZ Make TaskInfo private to this guy, and deal with Task instances outside.
  */
 public interface TaskExecutionPlan {
     /**
-     * Provides a ready-to-execute task that matches the specified criteria. A task is ready-to-execute if all of it's dependencies have been completed successfully.
-     * If the next matching task is not ready-to-execute, this method will block until it is ready.
-     * If no tasks remain that match the criteria, null will be returned.
-     * @param criteria Only tasks matching this Spec will be returned.
-     * @return The next matching task, or null if no matching tasks remain.
-     */
-    TaskInfo getTaskToExecute(Spec<TaskInfo> criteria);
-
-    /**
-     * Signals to the plan that this task has completed successfully.
+     * Signals to the plan that execution of this task has completed. Execution is complete if the task succeeds, fails, or an exception is thrown during execution.
      * @param task the completed task.
      */
     void taskComplete(TaskInfo task);
-
-    /**
-     * Signals to the plan that this task has completed with failure. Other tasks that depend on this task will not be executed.
-     * @param task the failed task.
-     */
-    void taskFailed(TaskInfo task);
 
     /**
      * Blocks until all tasks in the plan have been processed. This method will only return when every task in the plan has either completed, failed or been skipped.
@@ -56,4 +39,12 @@ public interface TaskExecutionPlan {
      * @return The list of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
      */
     List<Task> getTasks();
+
+    /**
+     * Provides a ready-to-execute task. A task is ready-to-execute if all of it's dependencies have been completed successfully.
+     * This method blocks until the at least one task is ready-to-execute.
+     * If no tasks remain, null will be returned.
+     * @return The task, or null if no matching tasks remain.
+     */
+    TaskInfo getTaskToExecute();
 }

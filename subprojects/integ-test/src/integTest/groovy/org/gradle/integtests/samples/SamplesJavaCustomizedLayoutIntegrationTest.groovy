@@ -16,11 +16,10 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
@@ -28,10 +27,9 @@ import org.junit.Test
  * @author Hans Dockter
  */
 
-class SamplesJavaCustomizedLayoutIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('java/customizedLayout')
+class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/customizedLayout')
 
     @Test
     public void canBuildAndUploadJar() {
@@ -41,14 +39,14 @@ class SamplesJavaCustomizedLayoutIntegrationTest {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
 
         // Check tests have run
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(javaprojectDir)
+        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(javaprojectDir)
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check jar exists
         javaprojectDir.file('build/libs/customizedLayout.jar').assertIsFile()
 
         // Check contents of Jar
-        TestFile jarContents = dist.testDir.file('jar')
+        TestFile jarContents = file('jar')
         javaprojectDir.file('build/libs/customizedLayout.jar').unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

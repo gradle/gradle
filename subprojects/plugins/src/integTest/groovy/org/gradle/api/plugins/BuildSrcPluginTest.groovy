@@ -17,7 +17,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import spock.lang.Issue
 
 class BuildSrcPluginTest extends AbstractIntegrationSpec {
@@ -25,9 +24,7 @@ class BuildSrcPluginTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-2001") // when using the daemon
     def "can use plugin from buildSrc that changes"() {
         given:
-        if (executer.type == GradleDistributionExecuter.Executer.daemon) {
-            distribution.requireIsolatedDaemons() // make sure we get the same daemon both times
-        }
+        executer.requireIsolatedDaemons() // make sure we get the same daemon both times
 
         buildFile << "apply plugin: 'test-plugin'"
 
@@ -44,7 +41,7 @@ class BuildSrcPluginTest extends AbstractIntegrationSpec {
             apply plugin: "groovy"
 
             dependencies {
-                groovy localGroovy()
+                compile localGroovy()
                 compile gradleApi()
             }
         """

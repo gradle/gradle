@@ -22,11 +22,10 @@ import org.gradle.util.HelperUtil
 
 class AntlrPluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject()
-    private final AntlrPlugin plugin = new AntlrPlugin()
 
     def addsAntlrPropertiesToEachSourceSet() {
         when:
-        plugin.apply(project)
+        project.apply plugin: AntlrPlugin
 
         then:
         def main = project.sourceSets.main
@@ -36,7 +35,7 @@ class AntlrPluginTest extends Specification {
         test.antlr.srcDirs == [project.file('src/test/antlr')] as Set
 
         when:
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
 
         then:
         def custom = project.sourceSets.custom
@@ -45,7 +44,7 @@ class AntlrPluginTest extends Specification {
     
     def addsTaskForEachSourceSet() {
         when:
-        plugin.apply(project)
+        project.apply plugin: AntlrPlugin
 
         then:
         def main = project.tasks.generateGrammarSource
@@ -57,7 +56,7 @@ class AntlrPluginTest extends Specification {
         project.tasks.compileTestJava.taskDependencies.getDependencies(null).contains(test)
 
         when:
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
 
         then:
         def custom = project.tasks.generateCustomGrammarSource

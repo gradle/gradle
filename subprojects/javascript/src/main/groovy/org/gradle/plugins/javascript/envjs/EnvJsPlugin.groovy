@@ -35,10 +35,17 @@ import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory
 import org.gradle.process.internal.WorkerProcessBuilder
 
+import javax.inject.Inject
+
 import static org.gradle.plugins.javascript.envjs.EnvJsExtension.*
-import org.gradle.api.logging.LogLevel
 
 class EnvJsPlugin implements Plugin<Project> {
+    private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory
+
+    @Inject
+    EnvJsPlugin(Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
+        this.workerProcessBuilderFactory = workerProcessBuilderFactory
+    }
 
     void apply(Project project) {
         project.plugins.apply(RhinoPlugin)
@@ -59,10 +66,8 @@ class EnvJsPlugin implements Plugin<Project> {
         project.tasks.withType(BrowserEvaluate) { BrowserEvaluate task ->
             conventionMapping.with {
                 map("evaluator") {
-                    Factory<WorkerProcessBuilder> workerProcessBuilderFactory = project.services.getFactory(WorkerProcessBuilder);
                     RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(workerProcessBuilderFactory);
 
-                    LogLevel logLevel = task.logging.level
                     File workDir = project.projectDir
                     Factory<File> envJsFactory = new Factory<File>() {
                         File create() {
@@ -78,7 +83,7 @@ class EnvJsPlugin implements Plugin<Project> {
     }
 
     Configuration addConfiguration(ConfigurationContainer configurations, DependencyHandler dependencies, EnvJsExtension extension) {
-        Configuration configuration = configurations.add(EnvJsExtension.CONFIGURATION_NAME)
+        Configuration configuration = configurations.create(EnvJsExtension.CONFIGURATION_NAME)
         configuration.incoming.beforeResolve(new Action<ResolvableDependencies>() {
             void execute(ResolvableDependencies resolvableDependencies) {
                 if (configuration.dependencies.empty) {

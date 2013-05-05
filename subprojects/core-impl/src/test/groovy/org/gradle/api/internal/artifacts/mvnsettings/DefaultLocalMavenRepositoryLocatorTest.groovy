@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings
 
-import org.gradle.util.TemporaryFolder
-
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.util.TestFile
 import spock.lang.Unroll
 
 class DefaultLocalMavenRepositoryLocatorTest extends Specification {
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     SimpleMavenFileLocations locations
     DefaultLocalMavenRepositoryLocator locator
@@ -36,7 +35,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
 
     def setup() {
         locations = new SimpleMavenFileLocations()
-        locator = new DefaultLocalMavenRepositoryLocator(locations, systemProperties, environmentVariables)
+        locator = new DefaultLocalMavenRepositoryLocator(new DefaultMavenSettingsProvider(locations), systemProperties, environmentVariables)
     }
 
     def "returns default location if no settings file exists"() {
@@ -53,7 +52,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository
         then:
         def ex = thrown(CannotLocateLocalMavenRepositoryException);
-        ex.message == "Unable to parse local maven settings."
+        ex.message == "Unable to parse local Maven settings."
         ex.cause.message.contains(settingsFile.absolutePath)
     }
 
@@ -65,7 +64,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository
         then:
         def ex = thrown(CannotLocateLocalMavenRepositoryException)
-        ex.message == "Unable to parse local maven settings."
+        ex.message == "Unable to parse local Maven settings."
         ex.cause.message.contains(settingsFile.absolutePath)
     }
 

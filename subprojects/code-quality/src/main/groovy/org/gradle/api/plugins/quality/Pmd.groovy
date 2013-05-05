@@ -15,14 +15,16 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
-import org.gradle.api.GradleException
+
+import javax.inject.Inject
 
 /**
  * Runs a set of static code analysis rules on Java source code files and
@@ -46,6 +48,12 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     List<String> ruleSets
 
     /**
+     * The target JDK to use with PMD.
+     */
+    @Input
+    TargetJdk targetJdk
+
+    /**
      * The custom rule set files to be used. See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for
      * how to author a rule set file.
      *
@@ -55,7 +63,9 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     FileCollection ruleSetFiles
 
     @Nested
-    private final PmdReportsImpl reports = services.get(Instantiator).newInstance(PmdReportsImpl, this)
+    private final PmdReportsImpl reports
+
+    private final IsolatedAntBuilder antBuilder
 
     /**
      * Whether or not to allow the build to continue if there are warnings.
@@ -64,29 +74,48 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      */
     boolean ignoreFailures
 
+    @Inject Pmd(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
+        reports = instantiator.newInstance(PmdReportsImpl, this)
+        this.antBuilder = antBuilder
+    }
+
     @TaskAction
     void run() {
-        def antBuilder = services.get(IsolatedAntBuilder)
+        def prePmd5 = getPmdClasspath().any {
+            it.name ==~ /pmd-([1-4]\.[0-9\.]+)\.jar/
+        }
+        def antPmdArgs = [failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount"]
+        if (prePmd5) {
+            // NOTE: PMD 5.0.2 apparently introduces an element called "language" that serves the same purpose
+            // http://sourceforge.net/p/pmd/bugs/1004/
+            // http://java-pmd.30631.n5.nabble.com/pmd-pmd-db05bc-pmd-AntTask-support-for-language-td5710041.html
+            antPmdArgs["targetjdk"] = getTargetJdk().getName()
+        } else {
+            // allow PmdPlugin to set a version-independent default
+            if (getRuleSets() == ["basic"]) {
+                setRuleSets(["java-basic"])
+            }
+        }
+
         antBuilder.withClasspath(getPmdClasspath()).execute {
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
-            ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount") {
-                getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-                getRuleSets().each {
-                    ruleset(it)
-                }
-                getRuleSetFiles().each {
-                    ruleset(it)
-                }
+                ant.pmd(antPmdArgs) {
+                    getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                    getRuleSets().each {
+                        ruleset(it)
+                    }
+                    getRuleSetFiles().each {
+                        ruleset(it)
+                    }
 
-                if (reports.html.enabled) {
-                    assert reports.html.destination.parentFile.exists()
-                    formatter(type: 'betterhtml', toFile: reports.html.destination)
+                    if (reports.html.enabled) {
+                        assert reports.html.destination.parentFile.exists()
+                        formatter(type: prePmd5 ? "betterhtml" : "html", toFile: reports.html.destination)
+                    }
+                    if (reports.xml.enabled) {
+                        formatter(type: 'xml', toFile: reports.xml.destination)
+                    }
                 }
-                if (reports.xml.enabled) {
-                    formatter(type: 'xml', toFile: reports.xml.destination)
-                }
-            }
-
             def failureCount = ant.project.properties["pmdFailureCount"]
             if (failureCount) {
                 def message = "$failureCount PMD rule violations were found."

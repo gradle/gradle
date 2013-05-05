@@ -16,17 +16,17 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ArtifactBuilder
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.file.TestFile
 
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "executes init.gradle from user home dir"() {
         given:
-        distribution.requireOwnUserHomeDir()
-        
+        executer.requireOwnGradleUserHomeDir()
+
         and:
-        distribution.userHomeDir.file('init.gradle') << 'println "greetings from user home"'
+        executer.gradleUserHomeDir.file('init.gradle') << 'println "greetings from user home"'
 
         when:
         run()
@@ -37,20 +37,20 @@ class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "executes init scripts from init.d directory in user home dir in alphabetical order"() {
         given:
-        distribution.requireOwnUserHomeDir()
+        executer.requireOwnGradleUserHomeDir()
 
         and:
-        distribution.userHomeDir.file('init.d/a.gradle') << 'println "init #a#"'
-        distribution.userHomeDir.file('init.d/b.gradle') << 'println "init #b#"'
-        distribution.userHomeDir.file('init.d/c.gradle') << 'println "init #c#"'
+        executer.gradleUserHomeDir.file('init.d/a.gradle') << 'println "init #a#"'
+        executer.gradleUserHomeDir.file('init.d/b.gradle') << 'println "init #b#"'
+        executer.gradleUserHomeDir.file('init.d/c.gradle') << 'println "init #c#"'
 
         when:
         run()
 
         then:
-        def a = output.indexOf('init #a#') 
-        def b = output.indexOf('init #b#') 
-        def c = output.indexOf('init #c#') 
+        def a = output.indexOf('init #a#')
+        def b = output.indexOf('init #b#')
+        def c = output.indexOf('init #c#')
         a < b
         b < c
     }
@@ -125,7 +125,7 @@ try {
         then:
         notThrown(Throwable)
     }
-    
+
     def "init script can inject configuration into the root project and all projects"() {
         given:
         settingsFile << "include 'a', 'b'"
@@ -139,13 +139,13 @@ rootProject {
     task root(dependsOn: allprojects*.worker)
 }
         """
-        
+
         when:
         executer.withArguments("-I", "init.gradle")
         run "root"
 
         then:
-        executedTasks == [':worker', ':a:worker', ':b:worker', ':root']
+        result.assertTasksExecuted(':worker', ':a:worker', ':b:worker', ':root')
     }
 
     private def createExternalJar() {

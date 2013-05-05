@@ -1,3 +1,16 @@
-allprojects {
+allprojects { project->
 	apply plugin: "eclipse"
+    plugins.withType(JavaPlugin) {
+        eclipse {
+            classpath {
+                file.whenMerged { classpath ->
+                    //There are classes in here not designed to be compiled, but just used in our testing
+                    classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+                    //Workaround for some projects referring to themselves as dependent projects
+                    classpath.entries.removeAll { it.path.contains("$project.name") && it.kind=='src' }
+                    classpath.entries.removeAll { it.path.contains("$project.name/build") && it.kind=='lib' }
+                }
+            }
+        }
+    }
 }

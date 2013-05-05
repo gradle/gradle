@@ -73,7 +73,7 @@ import org.gradle.util.ConfigureUtil
  * }
  * </pre>
  *
- * For tackling edge cases users can perform advanced configuration on resulting xml file.
+ * For tackling edge cases users can perform advanced configuration on resulting XML file.
  * It is also possible to affect the way eclipse plugin merges the existing configuration
  * via beforeMerged and whenMerged closures.
  * <p>
@@ -91,7 +91,7 @@ import org.gradle.util.ConfigureUtil
  *   wtp {
  *     component {
  *       file {
- *         //if you want to mess with the resulting xml in whatever way you fancy
+ *         //if you want to mess with the resulting XML in whatever way you fancy
  *         withXml {
  *           def node = it.asNode()
  *           node.appendNode('xml', 'is what I love')
@@ -229,7 +229,7 @@ class EclipseWtpComponent {
     String libDeployPath = "/WEB-INF/lib"
 
     /**
-     * Enables advanced configuration like tinkering with the output xml
+     * Enables advanced configuration like tinkering with the output XML
      * or affecting the way existing wtp component file content is merged with gradle build information
      * <p>
      * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link WtpComponent}

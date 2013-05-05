@@ -14,52 +14,39 @@
  * limitations under the License.
  */
 
-
-
-
 package org.gradle.api.internal.tasks.execution
 
-import org.gradle.api.Action
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.ContextualTaskExecuter
+import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Specification
 
-@RunWith(JMock.class)
-class PostExecutionAnalysisTaskExecuterTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final TaskExecuter target = context.mock(TaskExecuter.class)
-    private final TaskInternal task = context.mock(TaskInternal.class)
-    private final TaskStateInternal state = context.mock(TaskStateInternal.class)
-    private final PostExecutionAnalysisTaskExecuter executer = new PostExecutionAnalysisTaskExecuter(target)
+class PostExecutionAnalysisTaskExecuterTest extends Specification {
+    def target = Mock(ContextualTaskExecuter.class)
+    def task = Mock(TaskInternal.class)
+    def state = Mock(TaskStateInternal.class)
+    def context = Mock(TaskExecutionContext.class)
+    final PostExecutionAnalysisTaskExecuter executer = new PostExecutionAnalysisTaskExecuter(target)
 
-    @Test
-    public void marksTaskUpToDateWhenItHasActionsAndItDidNotDoWork() {
-        context.checking {
-            one(target).execute(task, state)
-            allowing(task).getActions();
-            will(returnValue([{} as Action]))
-            allowing(state).getDidWork()
-            will(returnValue(false))
-            one(state).upToDate()
-        }
+    def marksTaskUpToDateWhenItHasActionsAndItDidNotDoWork() {
+        when:
+        executer.execute(task, state, context)
 
-        executer.execute(task, state)
+        then:
+        1 * target.execute(task, state, context)
+        1 * state.didWork >> false
+        1 * state.upToDate()
+        0 * _
     }
 
-    @Test
-    public void doesNotMarkTaskUpToDateWhenItHasActionsAndDidWork() {
-        context.checking {
-            one(target).execute(task, state)
-            allowing(task).getActions();
-            will(returnValue([{} as Action]))
-            allowing(state).getDidWork()
-            will(returnValue(true))
-        }
+    def doesNotMarkTaskUpToDateWhenItHasActionsAndDidWork() {
+        when:
+        executer.execute(task, state, context)
 
-        executer.execute(task, state)
+        then:
+        1 * target.execute(task, state, context)
+        1 * state.didWork >> true
+        0 * _
     }
 }
