@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfigurationMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
@@ -299,7 +300,7 @@ public class DependencyGraphBuilder {
         }
 
         public boolean isTransitive() {
-            return from.isTransitive() && dependencyDescriptor.isTransitive();
+            return from.isTransitive() && dependencyMetaData.isTransitive();
         }
 
         public void attachToTargetConfigurations() {
@@ -356,7 +357,7 @@ public class DependencyGraphBuilder {
         }
 
         private Set<ResolvedArtifact> getArtifacts(ConfigurationNode childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory) {
-            String[] targetConfigurations = from.hierarchy.toArray(new String[from.hierarchy.size()]);
+            String[] targetConfigurations = from.metaData.getHierarchy().toArray(new String[from.metaData.getHierarchy().size()]);
             DependencyArtifactDescriptor[] dependencyArtifacts = dependencyDescriptor.getDependencyArtifacts(targetConfigurations);
             if (dependencyArtifacts.length == 0) {
                 return Collections.emptySet();
@@ -393,7 +394,7 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleVersionSpec getSelector() {
-            String[] configurations = from.hierarchy.toArray(new String[from.hierarchy.size()]);
+            String[] configurations = from.metaData.getHierarchy().toArray(new String[from.metaData.getHierarchy().size()]);
             ModuleVersionSpec selector = ModuleVersionSpec.forExcludes(dependencyDescriptor.getExcludeRules(configurations));
             return selector.intersect(selectorSpec);
         }
@@ -691,32 +692,25 @@ public class DependencyGraphBuilder {
 
     private static class ConfigurationNode {
         final DefaultModuleRevisionResolveState moduleRevision;
-        final ModuleVersionMetaData metaData;
+        final ModuleVersionMetaData moduleMetaData;
+        final ConfigurationMetaData metaData;
         final ResolveState resolveState;
         final DefaultModuleDescriptor descriptor;
         final String configurationName;
-        final Set<String> hierarchy = new LinkedHashSet<String>();
         final Set<DependencyEdge> incomingEdges = new LinkedHashSet<DependencyEdge>();
         final Set<DependencyEdge> outgoingEdges = new LinkedHashSet<DependencyEdge>();
         DefaultResolvedDependency result;
         ModuleVersionSpec previousTraversal;
         Set<ResolvedArtifact> artifacts;
 
-        private ConfigurationNode(DefaultModuleRevisionResolveState moduleRevision, ModuleVersionMetaData metaData, String configurationName, ResolveState resolveState) {
+        private ConfigurationNode(DefaultModuleRevisionResolveState moduleRevision, ModuleVersionMetaData moduleMetaData, String configurationName, ResolveState resolveState) {
             this.moduleRevision = moduleRevision;
-            this.metaData = metaData;
+            this.moduleMetaData = moduleMetaData;
             this.resolveState = resolveState;
-            this.descriptor = (DefaultModuleDescriptor) metaData.getDescriptor();
+            this.descriptor = (DefaultModuleDescriptor) moduleMetaData.getDescriptor();
             this.configurationName = configurationName;
-            findAncestors(configurationName, resolveState, hierarchy);
+            this.metaData = moduleMetaData.getConfiguration(configurationName);
             moduleRevision.addConfiguration(this);
-        }
-
-        void findAncestors(String config, ResolveState container, Set<String> ancestors) {
-            ancestors.add(config);
-            for (String parentConfig : descriptor.getConfiguration(config).getExtends()) {
-                ancestors.addAll(container.getConfigurationNode(moduleRevision, parentConfig).hierarchy);
-            }
         }
 
         @Override
@@ -727,10 +721,8 @@ public class DependencyGraphBuilder {
         public Set<ResolvedArtifact> getArtifacts(ResolvedArtifactFactory resolvedArtifactFactory) {
             if (artifacts == null) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
-                for (String config : hierarchy) {
-                    for (Artifact artifact : metaData.getArtifacts(config)) {
-                        artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, moduleRevision.resolve().getArtifactResolver()));
-                    }
+                for (Artifact artifact : metaData.getArtifacts()) {
+                    artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, moduleRevision.resolve().getArtifactResolver()));
                 }
             }
             return artifacts;
@@ -749,7 +741,7 @@ public class DependencyGraphBuilder {
         }
 
         public boolean isTransitive() {
-            return descriptor.getConfiguration(configurationName).isTransitive();
+            return metaData.isTransitive();
         }
 
         public void visitOutgoingDependencies(Collection<DependencyEdge> target) {
@@ -813,7 +805,7 @@ public class DependencyGraphBuilder {
         Set<String> getTargetConfigurations(DependencyDescriptor dependencyDescriptor) {
             Set<String> targetConfigurations = new LinkedHashSet<String>();
             for (String moduleConfiguration : dependencyDescriptor.getModuleConfigurations()) {
-                if (moduleConfiguration.equals("*") || hierarchy.contains(moduleConfiguration)) {
+                if (moduleConfiguration.equals("*") || metaData.getHierarchy().contains(moduleConfiguration)) {
                     for (String targetConfiguration : dependencyDescriptor.getDependencyConfigurations(moduleConfiguration)) {
                         targetConfigurations.add(targetConfiguration);
                     }
@@ -860,7 +852,7 @@ public class DependencyGraphBuilder {
                     selector = selector.union(dependencyEdge.getSelector());
                 }
             }
-            String[] configurations = hierarchy.toArray(new String[hierarchy.size()]);
+            String[] configurations = metaData.getHierarchy().toArray(new String[metaData.getHierarchy().size()]);
             selector = selector.intersect(ModuleVersionSpec.forExcludes(descriptor.getExcludeRules(configurations)));
             return selector;
         }
@@ -976,7 +968,7 @@ public class DependencyGraphBuilder {
                     }
                 }
             }
-            return (DefaultModuleRevisionResolveState) resolver.select(candidates, root);
+            return (DefaultModuleRevisionResolveState) resolver.select(candidates);
         }
     }
 }

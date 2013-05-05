@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
-import java.util.List;
+import java.util.Set;
 
-/**
- * The meta-data for a module version.
- */
-public interface ModuleVersionMetaData {
-    ModuleVersionIdentifier getId();
+public interface ConfigurationMetaData {
+    /**
+     * The set of configurations that this configuration extends. Includes this configuration.
+     */
+    Set<String> getHierarchy();
 
-    ModuleDescriptor getDescriptor();
+    Set<Artifact> getArtifacts();
 
-    List<DependencyMetaData> getDependencies();
-
-    List<Artifact> getArtifacts(String configurationName);
-
-    @Nullable
-    ConfigurationMetaData getConfiguration(String name);
-
-    boolean isChanging();
+    boolean isTransitive();
 }

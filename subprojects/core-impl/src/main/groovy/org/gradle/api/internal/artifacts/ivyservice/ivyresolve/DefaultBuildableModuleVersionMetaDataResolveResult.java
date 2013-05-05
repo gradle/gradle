@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -24,16 +25,16 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
+// TODO - split out a buildable ModuleVersionMetaData implementation
 public class DefaultBuildableModuleVersionMetaDataResolveResult implements BuildableModuleVersionMetaDataResolveResult, ModuleVersionMetaData {
     private ModuleDescriptor moduleDescriptor;
     private boolean changing;
     private State state = State.Unknown;
     private ModuleSource moduleSource;
     private List<DependencyMetaData> dependencies;
+    private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
     private ModuleVersionResolveException failure;
     private ModuleVersionIdentifier moduleVersionIdentifier;
 
@@ -126,6 +127,25 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         this.dependencies = CollectionUtils.toList(dependencies);
     }
 
+    public DefaultConfigurationMetaData getConfiguration(final String name) {
+        assertResolved();
+        DefaultConfigurationMetaData configuration = configurations.get(name);
+        if (configuration == null) {
+            Configuration descriptor = moduleDescriptor.getConfiguration(name);
+            if (descriptor == null) {
+                return null;
+            }
+            Set<String> hierarchy = new LinkedHashSet<String>();
+            hierarchy.add(name);
+            for (String parent : descriptor.getExtends()) {
+                hierarchy.addAll(getConfiguration(parent).hierarchy);
+            }
+            configuration = new DefaultConfigurationMetaData(descriptor, hierarchy);
+            configurations.put(name, configuration);
+        }
+        return configuration;
+    }
+
     public List<Artifact> getArtifacts(String configurationName) {
         assertResolved();
         return Arrays.asList(moduleDescriptor.getArtifacts(configurationName));
@@ -146,4 +166,31 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         this.moduleSource = moduleSource;
     }
 
+    private class DefaultConfigurationMetaData implements ConfigurationMetaData {
+        private final Configuration descriptor;
+        private final Set<String> hierarchy;
+
+        private DefaultConfigurationMetaData(Configuration descriptor, Set<String> hierarchy) {
+            this.descriptor = descriptor;
+            this.hierarchy = hierarchy;
+        }
+
+        public Set<String> getHierarchy() {
+            return hierarchy;
+        }
+
+        public boolean isTransitive() {
+            return descriptor.isTransitive();
+        }
+
+        public Set<Artifact> getArtifacts() {
+            Set<Artifact> artifacts = new LinkedHashSet<Artifact>();
+            for (String ancestor : hierarchy) {
+                for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
+                    artifacts.add(artifact);
+                }
+            }
+            return artifacts;
+        }
+    }
 }
