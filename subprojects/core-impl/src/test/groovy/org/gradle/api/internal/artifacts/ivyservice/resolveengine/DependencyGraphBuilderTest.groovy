@@ -845,15 +845,15 @@ class DependencyGraphBuilderTest extends Specification {
         def idResolveResult = selectorResolvesTo(descriptor, to.id);
         ModuleVersionResolveResult resolveResult = Mock()
         1 * idResolveResult.resolve() >> resolveResult
-        1 * resolveResult.id >> to.id
-        1 * resolveResult.metaData >> to
+        _ * resolveResult.id >> to.id
+        _ * resolveResult.metaData >> to
     }
 
     def doesNotResolve(Map<String, ?> args = [:], ModuleVersionMetaData from, ModuleVersionMetaData to) {
         def descriptor = dependsOn(args, from.descriptor, to.descriptor.moduleRevisionId)
         ModuleVersionIdResolveResult result = Mock()
         (0..1) * dependencyResolver.resolve({it.descriptor == descriptor}) >> result
-        (0..1) * result.id >> to.id;
+        _ * result.id >> to.id;
         _ * result.failure >> null
         _ * result.selectionReason >> null
         0 * result._
@@ -864,7 +864,7 @@ class DependencyGraphBuilderTest extends Specification {
         def idResolveResult = selectorResolvesTo(descriptor, to.id)
         ModuleVersionResolveResult resolveResult = Mock()
         1 * idResolveResult.resolve() >> resolveResult
-        1 * resolveResult.id >> { throw new ModuleVersionNotFoundException(newId("org", "a", "1.2")) }
+        _ * resolveResult.failure >> { return new ModuleVersionNotFoundException(newId("org", "a", "1.2")) }
     }
 
     def traversesBroken(Map<String, ?> args = [:], ModuleVersionMetaData from, ModuleVersionMetaData to) {
@@ -872,7 +872,7 @@ class DependencyGraphBuilderTest extends Specification {
         def idResolveResult = selectorResolvesTo(descriptor, to.id)
         ModuleVersionResolveResult resolveResult = Mock()
         1 * idResolveResult.resolve() >> resolveResult
-        1 * resolveResult.id >> { throw new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken") }
+        _ * resolveResult.failure >> { return new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken") }
     }
 
     ModuleVersionIdentifier toModuleVersionIdentifier(ModuleRevisionId moduleRevisionId) {
