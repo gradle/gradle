@@ -151,15 +151,38 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         0 * moduleDescriptor._
     }
 
-    def "cannot get descriptor when not resolved"() {
+    def "cannot get failure when not resolved"() {
         when:
-        descriptor.descriptor
+        descriptor.failure
 
         then:
         thrown(IllegalStateException)
+    }
+
+    def "cannot get meta-data when not resolved"() {
+        when:
+        descriptor.metaData
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "cannot get meta-data when failed"() {
+        given:
+        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
+        descriptor.failed(failure)
 
         when:
-        descriptor.failure
+        descriptor.metaData
+
+        then:
+        ModuleVersionResolveException e = thrown()
+        e == failure
+    }
+
+    def "cannot get descriptor when not resolved"() {
+        when:
+        descriptor.descriptor
 
         then:
         thrown(IllegalStateException)

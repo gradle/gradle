@@ -90,9 +90,10 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
                 moduleDescriptorCache.cacheModuleDescriptor(delegate, moduleVersionIdentifier, null, null, dependency.isChanging());
                 break;
             case Resolved:
-                moduleResolutionCache.cacheModuleResolution(delegate, dependency.getRequested(), result.getId());
+                ModuleVersionMetaData metaData = result.getMetaData();
+                moduleResolutionCache.cacheModuleResolution(delegate, dependency.getRequested(), metaData.getId());
                 final ModuleSource moduleSource = result.getModuleSource();
-                final ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.cacheModuleDescriptor(delegate, result.getId(), result.getDescriptor(), moduleSource, isChangingDependency(dependency, result));
+                final ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.cacheModuleDescriptor(delegate, metaData.getId(), metaData.getDescriptor(), moduleSource, isChangingDependency(dependency, metaData));
                 result.setModuleSource(new CachingModuleSource(cachedModuleDescriptor.getDescriptorHash(), cachedModuleDescriptor.isChangingModule(), moduleSource));
                 break;
             case Failed:

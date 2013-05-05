@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DefaultBuildableModuleVersionMetaDataResolveResult implements BuildableModuleVersionMetaDataResolveResult {
+public class DefaultBuildableModuleVersionMetaDataResolveResult implements BuildableModuleVersionMetaDataResolveResult, ModuleVersionMetaData {
     private ModuleDescriptor moduleDescriptor;
     private boolean changing;
     private State state = State.Unknown;
@@ -78,6 +78,11 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     public ModuleVersionResolveException getFailure() {
         assertHasResult();
         return failure;
+    }
+
+    public ModuleVersionMetaData getMetaData() throws ModuleVersionResolveException {
+        assertResolved();
+        return this;
     }
 
     private void assertHasResult() {

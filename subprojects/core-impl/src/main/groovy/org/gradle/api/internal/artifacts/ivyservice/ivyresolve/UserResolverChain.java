@@ -110,7 +110,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
                     }
                     break;
                 case Resolved:
-                    ModuleResolution moduleResolution = new ModuleResolution(request.repository, request.descriptor, request.descriptor.getModuleSource());
+                    ModuleResolution moduleResolution = new ModuleResolution(request.repository, request.descriptor.getMetaData(), request.descriptor.getModuleSource());
                     if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
                         return moduleResolution;
                     }

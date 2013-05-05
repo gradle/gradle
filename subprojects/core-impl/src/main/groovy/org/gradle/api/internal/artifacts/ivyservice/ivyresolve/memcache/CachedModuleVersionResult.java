@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult.State.Missing;
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult.State.ProbablyMissing;
@@ -38,9 +39,10 @@ class CachedModuleVersionResult {
     public CachedModuleVersionResult(BuildableModuleVersionMetaDataResolveResult result) {
         this.state = result.getState();
         if (state == Resolved) {
-            this.id = result.getId();
-            this.moduleDescriptor = result.getDescriptor();
-            this.isChanging = result.isChanging();
+            ModuleVersionMetaData metaData = result.getMetaData();
+            this.id = metaData.getId();
+            this.moduleDescriptor = metaData.getDescriptor();
+            this.isChanging = metaData.isChanging();
             this.moduleSource = result.getModuleSource();
         } else {
             this.id = null;

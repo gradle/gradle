@@ -22,6 +22,7 @@ import spock.lang.Specification
 
 class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
     final target = Mock(LocalAwareModuleVersionRepository)
+    final metaData = Mock(ModuleVersionMetaData)
     final requestedDependency = Mock(DependencyMetaData)
     final result = Mock(BuildableModuleVersionMetaDataResolveResult)
     final repository = new IvyDynamicResolveModuleVersionRepository(target)
@@ -32,6 +33,7 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
 
         given:
         result.state >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
+        result.metaData >> metaData
 
         when:
         repository.getLocalDependency(requestedDependency, result)
@@ -40,7 +42,7 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
         1 * target.getLocalDependency(requestedDependency, result)
 
         and:
-        1 * result.dependencies >> [original]
+        1 * metaData.dependencies >> [original]
         1 * original.withRequestedVersion('1.2+') >> transformed
         1 * result.setDependencies([transformed])
     }

@@ -63,7 +63,7 @@ public class DependencyGraphBuilder {
         BuildableModuleVersionMetaDataResolveResult rootMetaData = new DefaultBuildableModuleVersionMetaDataResolveResult();
         rootMetaData.resolved(rootModuleDescriptor, false, null);
 
-        ResolveState resolveState = new ResolveState(rootMetaData, configuration.getName(), dependencyResolver, resolveData);
+        ResolveState resolveState = new ResolveState(rootMetaData.getMetaData(), configuration.getName(), dependencyResolver, resolveData);
         traverseGraph(resolveState);
 
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult(), cacheLockingManager);
@@ -432,7 +432,7 @@ public class DependencyGraphBuilder {
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
 
-        public ResolveState(BuildableModuleVersionMetaDataResolveResult rootModule, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver, ResolveData resolveData) {
+        public ResolveState(ModuleVersionMetaData rootModule, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver, ResolveData resolveData) {
             this.resolver = resolver;
             this.resolveData = resolveData;
             DefaultModuleRevisionResolveState rootVersion = getRevision(rootModule.getId());
