@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,17 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor;
 
 /**
  * @author Hans Dockter
  */
-public class ClientModuleResolver implements DependencyToModuleResolver {
-    private final DependencyToModuleResolver resolver;
+public class ClientModuleResolver implements DependencyToModuleVersionResolver {
+    private final DependencyToModuleVersionResolver resolver;
 
-    public ClientModuleResolver(DependencyToModuleResolver resolver) {
+    public ClientModuleResolver(DependencyToModuleVersionResolver resolver) {
         this.resolver = resolver;
     }
 

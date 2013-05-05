@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor
@@ -35,7 +35,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class ClientModuleResolverTest extends Specification {
     final ModuleDescriptor module = Mock()
     final ModuleRevisionId moduleId = new ModuleRevisionId(new ModuleId("org", "name"), "1.0")
-    final DependencyToModuleResolver target = Mock()
+    final DependencyToModuleVersionResolver target = Mock()
     final ClientModuleResolver resolver = new ClientModuleResolver(target)
 
     def "replaces meta-data for a client module dependency"() {

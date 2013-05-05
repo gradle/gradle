@@ -20,7 +20,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
 import org.gradle.api.internal.project.ProjectInternal
@@ -29,7 +29,7 @@ import spock.lang.Specification
 class ProjectDependencyResolverTest extends Specification {
     final ProjectModuleRegistry registry = Mock()
     final ModuleRevisionId moduleRevisionId = Mock()
-    final DependencyToModuleResolver target = Mock()
+    final DependencyToModuleVersionResolver target = Mock()
     final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target)
 
     def "resolves project dependency"() {

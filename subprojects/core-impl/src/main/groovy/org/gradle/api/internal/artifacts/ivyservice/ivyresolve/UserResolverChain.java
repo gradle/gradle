@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class UserResolverChain implements DependencyToModuleResolver {
+public class UserResolverChain implements DependencyToModuleVersionResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
 
     private final List<LocalAwareModuleVersionRepository> moduleVersionRepositories = new ArrayList<LocalAwareModuleVersionRepository>();

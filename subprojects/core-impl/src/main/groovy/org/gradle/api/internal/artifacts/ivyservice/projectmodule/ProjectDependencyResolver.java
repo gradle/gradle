@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
 import java.io.File;
 
-public class ProjectDependencyResolver implements DependencyToModuleResolver {
+public class ProjectDependencyResolver implements DependencyToModuleVersionResolver {
     private final ProjectModuleRegistry projectModuleRegistry;
-    private final DependencyToModuleResolver resolver;
+    private final DependencyToModuleVersionResolver resolver;
     private final ProjectArtifactResolver artifactResolver;
 
-    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleResolver resolver) {
+    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleVersionResolver resolver) {
         this.projectModuleRegistry = projectModuleRegistry;
         this.resolver = resolver;
         artifactResolver = new ProjectArtifactResolver();

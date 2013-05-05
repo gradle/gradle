@@ -16,10 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.resolve.ResolveData;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 
 public interface IvyAdapter {
     ResolveData getResolveData();
 
-    DependencyToModuleResolver getDependencyToModuleResolver();
+    DependencyToModuleVersionResolver getDependencyToModuleResolver();
 }

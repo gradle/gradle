@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaDat
 /**
  * Resolves a dependency to the meta-data for a module.
  */
-public interface DependencyToModuleResolver {
+public interface DependencyToModuleVersionResolver {
     /**
      * Resolves the given dependency to a module version id. Failures are packaged up in the returned result.
      */

@@ -56,7 +56,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         IvyAdapter ivyAdapter = ivyFactory.create(configuration, repositories);
 
-        DependencyToModuleResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver();
+        DependencyToModuleVersionResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver();
         dependencyResolver = new ClientModuleResolver(dependencyResolver);
         dependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver);
         DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, ivyAdapter.getResolveData().getSettings().getVersionMatcher());

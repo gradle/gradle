@@ -31,7 +31,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class LazyDependencyToModuleResolverTest extends Specification {
-    final DependencyToModuleResolver target = Mock()
+    final DependencyToModuleVersionResolver target = Mock()
     final VersionMatcher matcher = Mock()
     final LazyDependencyToModuleResolver resolver = new LazyDependencyToModuleResolver(target, matcher)
 
