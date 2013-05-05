@@ -914,7 +914,7 @@ public class DependencyGraphBuilder {
         }
 
         private ModuleVersionResolveException getFailure() {
-            return targetModuleRevision == null ? failure : targetModuleRevision.getFailure();
+            return failure != null ? failure : targetModuleRevision.getFailure();
         }
 
         public ModuleVersionSelectionReason getSelectionReason() {
@@ -957,7 +957,6 @@ public class DependencyGraphBuilder {
         public void restart(DefaultModuleRevisionResolveState moduleRevision) {
             this.targetModuleRevision = moduleRevision;
             this.targetModule = moduleRevision.module;
-            this.failure = targetModuleRevision.getFailure();
         }
     }
 
