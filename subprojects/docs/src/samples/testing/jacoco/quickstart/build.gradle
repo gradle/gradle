@@ -24,7 +24,7 @@ apply plugin: "jacoco"
 // START SNIPPET jacoco-configuration
 jacoco {
     toolVersion = "0.6.2.201302030002"
-    reportsDir = new File(buildDir, "customJacocoReportDir")
+    reportsDir = file("$buildDir/customJacocoReportDir")
 }
 // END SNIPPET jacoco-configuration
 
@@ -37,22 +37,22 @@ dependencies {
 }
 
 // START SNIPPET testtask-configuration
-test{
-    jacoco{
+test {
+    jacoco {
         append = false
-        destPath = file("$buildDir/jacoco/jacocoTest.exec")
-        classDumpPath = file("$buildDir/jacoco/classpathdumps")
+        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+        classDumpFile = file("$buildDir/jacoco/classpathdumps")
     }
 }
 // END SNIPPET testtask-configuration
 
 
 // START SNIPPET report-configuration
-jacocoTestReport{
+jacocoTestReport {
     reports {
-            xml.enabled false
-            csv.enabled false
-            html.destination "${buildDir}/jacocoHtml"
+        xml.enabled false
+        csv.enabled false
+        html.destination "${buildDir}/jacocoHtml"
     }
 }
 // END SNIPPET report-configuration
