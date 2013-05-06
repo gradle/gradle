@@ -1,9 +1,9 @@
 An Ivy module has a *status*, declared in the module's descriptor, which indicates the module's maturity. A *status scheme* is a
-list of statuses ordered by maturity. The default Ivy status scheme is `integration`, `milestone`, `release`, with
+list of statuses ordered by decreasing maturity. The default Ivy status scheme is `release`, `milestone`, `integration`, with
 `integration` being the default (and least mature).
 
-Since Ivy 1.4, the status scheme can be customized at will. For example, it could be changed to `bronze`, `silver`,
-`gold`, `platinum`. This spec is about adding support for custom status schemes.
+Since Ivy 1.4, the status scheme can be customized at will. For example, it could be changed to `platinum`, `gold`, `silver`,
+`bronze`. This spec is about adding support for custom status schemes.
 
 # Use cases
 
@@ -48,7 +48,7 @@ TBD.
 
 A version selector may be of the form `latest.someStatus` (see http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html).
 This will select the highest version with either the given status or a more mature status. For example, given a status scheme
-`bronze`, `silver`, `gold`, `latest.silver` will select the highest version whose status is either `silver` or `gold`.
+`gold`, `silver`, `bronze`, `latest.silver` will select the highest version whose status is either `silver` or `gold`.
 
 ### User visible changes
 
