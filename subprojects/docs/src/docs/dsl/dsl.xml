@@ -343,6 +343,9 @@
                 <td>org.gradle.api.tasks.scala.ScalaDoc</td>
             </tr>
             <tr>
+                <td>org.gradle.buildsetup.tasks.SetupBuild</td>
+            </tr>
+            <tr>
                 <td>org.gradle.plugins.signing.Sign</td>
             </tr>
             <tr>

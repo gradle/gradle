@@ -23,11 +23,24 @@ import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.tasks.TaskAction
 import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
 
+/**
+ * Generates a Gradle project structure.
+ * */
 @Incubating
 class SetupBuild extends DefaultTask {
 
+    /**
+     * The desired setup type, defaults to 'pom' if 'pom.xml' is found in project root
+     * if no pom.xml is found, it defaults to 'empty'.
+     *
+     * This property can be set via command-line option '--type'.
+     * */
     String type
 
+    /**
+     * The project layout registry used to lookup the given setup type.
+     *
+     * */
     ProjectLayoutSetupRegistry projectLayoutRegistry
 
     SetupBuild() {
@@ -40,7 +53,7 @@ class SetupBuild extends DefaultTask {
             type = project.file("pom.xml").exists() ? "pom" : "empty"
         }
         if (!projectLayoutRegistry.supports(type)) {
-            throw new GradleException("Declared setup-type '${type}' is not supported. Supported types: ${projectLayoutRegistry.all.collect{"'${it.id}'"}.join(", ")}.")
+            throw new GradleException("Declared setup-type '${type}' is not supported. Supported types: ${projectLayoutRegistry.all.collect { "'${it.id}'" }.join(", ")}.")
         }
         projectLayoutRegistry.get(type).generateProject()
     }
