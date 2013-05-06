@@ -21,12 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
-
-    private WrapperTestFixture wrapper
-
-    def setup() {
-        wrapper = new WrapperTestFixture(testDirectory)
-    }
+    final wrapper = new WrapperTestFixture(testDirectory)
 
     def "can apply wrapper plugin dynamically"() {
         when:

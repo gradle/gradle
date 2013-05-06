@@ -38,8 +38,8 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         run 'setupBuild'
 
         then:
-        file("settings.gradle").exists()
-        file("build.gradle").exists()
+        settingsFile.exists()
+        buildFile.exists()
         wrapperFilesGenerated()
 
         when:
@@ -49,7 +49,6 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
         file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
         file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
-        file('webinar-impl/build/reports/tests/index.html').exists()
 
         new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
@@ -83,7 +82,6 @@ Root project 'webinar-parent'
         file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
         file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
         file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
-        file('webinar-impl/build/reports/tests/index.html').exists()
 
         new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
@@ -105,8 +103,8 @@ Root project 'webinar-parent'
         run 'setupBuild'
 
         then:
-        file("settings.gradle").exists()
-        file("build.gradle").exists()
+        buildFile.exists()
+        settingsFile.exists()
         wrapperFilesGenerated()
 
         when:
@@ -124,8 +122,8 @@ Root project 'webinar-parent'
         run 'setupBuild'
 
         then:
-        file("settings.gradle").exists()
-        file("build.gradle").exists()
+        settingsFile.exists()
+        settingsFile.exists()
         wrapperFilesGenerated()
 
         when:
@@ -141,8 +139,8 @@ Root project 'webinar-parent'
         run 'setupBuild'
 
         then:
-        file("settings.gradle").exists()
-        file("build.gradle").exists()
+        settingsFile.exists()
+        buildFile.exists()
         wrapperFilesGenerated()
 
         and:
@@ -163,8 +161,8 @@ it.exclude group: '*', module: 'badArtifact'
       run 'setupBuild'
 
       then:
-      file("settings.gradle").exists()
-      file("build.gradle").exists()
+      settingsFile.exists()
+      buildFile.exists()
       wrapperFilesGenerated()
 
       when:
