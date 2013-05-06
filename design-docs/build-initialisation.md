@@ -91,7 +91,7 @@ For all builds:
   We cannot have the converter using one mapping and the importer using a different mapping.
   Plus this means the converter can make use of any type of import (see below).
 
-# Story: Build initialisation generates the Gradle wrapper files
+# Story: Build initialisation generates the Gradle wrapper files (DONE)
 
 This story adds support for generating the Gradle wrapper files, and changes the existing plugin so that it is more
 general purpose:
@@ -120,7 +120,7 @@ general purpose:
 * Verify that when `setupBuild` is run in a directory that does not contain a `pom.xml` then an empty `build.gradle` file,
   plus a `settings.gradle` and the wrapper files are generated.
 
-# Story: User initializes a Gradle build without writing a stub build script
+# Story: User initializes a Gradle build without writing a stub build script (DONE)
 
 This story adds support for automatically applying the `build-setup` plugin when `gradle setupBuild` is run:
 
