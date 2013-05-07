@@ -34,11 +34,13 @@ This will be used in later stories to handle the cases where a given logical nat
     - Add a `SharedLibraryBinary` instance to the `binaries` container for each library added to the `libraries` container.
     - Add a rule that adds a compile task for each `SharedLibraryBinary` instance added to the `binaries` container.
 
-TBD - change the native model to use deferred configuration.
-TBD - add output file and input source sets to binaries. Remove output file from the component.
-TBD - add windows and linux specific output files (eg .lib file for a shared library on windows).
-TBD - move source sets from `cpp.sourceSets` container to `source` container.
-TBD - allow `ExecutableBinary` and `SharedLibraryBinary` instances to be added manually.
+TBD:
+
+- change the native model to use deferred configuration.
+- add output file and input source sets to binaries. Remove output file from the component.
+- add windows and linux specific output files (eg .lib file for a shared library on windows).
+- move source sets from `cpp.sourceSets` container to `source` container.
+- allow `ExecutableBinary` and `SharedLibraryBinary` instances to be added manually.
 
 # Story: Separate compilation and linking
 
@@ -58,11 +60,13 @@ This story separates C++ compilation and linking of binaries into separate tasks
 - Change the link task types to declare their input and output files as properties with the appropriate annotations.
 - Add these task types to the DSL reference and mark as incubating.
 
-TBD - introduce a toolchain concept, so that the compiler and linker from the same toolchain are always used together.
-TBD - add compiler and linker options to the binaries.
-TBD - add object files directory property to the binaries.
-TBD - separate out compiler and linker options on the component.
-TBD - add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
+TBD:
+
+- introduce a toolchain concept, so that the compiler and linker from the same toolchain are always used together.
+- add compiler and linker options to the binaries.
+- add object files directory property to the binaries.
+- separate out compiler and linker options on the component.
+- add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
 
 # Story: Build a static library binary
 
@@ -79,11 +83,13 @@ This story introduces the concept of a static library binary.
     - Don't use any shared library flags (`-shared`, `-fPIC`) when compiling source files for a static library.
     - Use `ar` to link the static library.
 
-TBD - allow `StaticLibraryBinary` instances to be added manually.
-TBD - need to consume locally and between projects and between builds.
-TBD - need separate compiler and linker options for building shared and static library.
-TBD - need shared compiler and linker options for building shared and static library.
-TBD - can in theory share the compile task between a static library and an executable built from the same source.
+TBD:
+
+- allow `StaticLibraryBinary` instances to be added manually.
+- need to consume locally and between projects and between builds.
+- need separate compiler and linker options for building shared and static library.
+- need shared compiler and linker options for building shared and static library.
+- can in theory share the compile task between a static library and an executable built from the same source.
 
 # Compile C source files using the C compiler
 
