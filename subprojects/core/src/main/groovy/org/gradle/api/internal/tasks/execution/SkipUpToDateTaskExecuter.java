@@ -25,6 +25,9 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Formatter;
+import java.util.List;
+
 /**
  * A {@link ContextualTaskExecuter} which skips tasks whose outputs are up-to-date.
  */
@@ -46,9 +49,8 @@ public class SkipUpToDateTaskExecuter implements ContextualTaskExecuter {
                 LOGGER.info("Skipping {} as it is up-to-date", task);
                 state.upToDate();
                 return;
-
             }
-            LOGGER.debug("{} is not up-to-date", task);
+            logOutOfDateMessages(taskArtifactState.getOutOfDateMessages(), task);
 
             task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
             context.setTaskArtifactState(taskArtifactState);
@@ -67,4 +69,17 @@ public class SkipUpToDateTaskExecuter implements ContextualTaskExecuter {
             taskArtifactState.finished();
         }
     }
+
+
+    private void logOutOfDateMessages(List<String> messages, TaskInternal task) {
+        if (LOGGER.isInfoEnabled()) {
+            Formatter formatter = new Formatter();
+            formatter.format("Executing %s due to:", task);
+            for (String message : messages) {
+                formatter.format("%n  %s", message);
+            }
+            LOGGER.info(formatter.toString());
+        }
+    }
+
 }

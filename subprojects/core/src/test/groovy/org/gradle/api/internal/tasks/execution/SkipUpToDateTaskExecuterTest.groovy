@@ -61,6 +61,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         then:
         1 * repository.getStateFor(task) >> taskArtifactState
         1 * taskArtifactState.isUpToDate() >> false
+        1 * taskArtifactState.getOutOfDateMessages() >> ["foo", "bar"]
 
         then:
         1 * taskArtifactState.beforeTask()
@@ -89,6 +90,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         then:
         1 * repository.getStateFor(task) >> taskArtifactState
         1 * taskArtifactState.isUpToDate() >> false
+        1 * taskArtifactState.getOutOfDateMessages() >> ["foo", "bar"]
 
         then:
         1 * taskArtifactState.beforeTask()

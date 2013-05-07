@@ -21,9 +21,16 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
+import java.util.Collections;
+import java.util.List;
+
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
     public boolean isUpToDate() {
         return false;
+    }
+
+    public List<String> getOutOfDateMessages() {
+        return Collections.singletonList("Task has not declared any outputs.");
     }
 
     public IncrementalTaskInputs getInputChanges() {

@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
+import org.gradle.api.specs.Spec
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
@@ -30,6 +31,7 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
     TaskArtifactState taskArtifactState = Mock(TaskArtifactState)
     TaskInternal task = Mock(TaskInternal)
     TaskOutputsInternal outputs = Mock(TaskOutputsInternal)
+    Spec upToDateSpec = Mock(Spec)
 
     def doesNotLoadHistoryWhenTaskHasNoDeclaredOutputs() {
         when:
@@ -51,8 +53,12 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         TaskArtifactState state = repository.getStateFor(task);
 
         then:
-        1 * task.getOutputs() >> outputs
+        2 * task.getOutputs() >> outputs
         1 * outputs.getHasOutput() >> true
+        1 * outputs.getUpToDateSpec() >> upToDateSpec
+        1 * upToDateSpec.isSatisfiedBy(task) >> true
+
+        and:
         1 * delegate.getStateFor(task) >> taskArtifactState
         state == taskArtifactState
     }
@@ -65,6 +71,27 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         then:
         1 * task.getOutputs() >> outputs
         1 * outputs.getHasOutput() >> true
+        1 * delegate.getStateFor(task) >> taskArtifactState
+        0 * taskArtifactState._
+
+        and:
+        !state.upToDate
+
+        and:
+        !state.inputChanges.incremental
+    }
+
+    def taskArtifactsAreAlwaysOutOfDateWhenUpToDateSpecReturnsFalse() {
+        when:
+        def state = repository.getStateFor(task)
+
+        then:
+        2 * task.getOutputs() >> outputs
+        1 * outputs.getHasOutput() >> true
+        1 * outputs.getUpToDateSpec() >> upToDateSpec
+        1 * upToDateSpec.isSatisfiedBy(task) >> false
+
+        and:
         1 * delegate.getStateFor(task) >> taskArtifactState
         0 * taskArtifactState._
 

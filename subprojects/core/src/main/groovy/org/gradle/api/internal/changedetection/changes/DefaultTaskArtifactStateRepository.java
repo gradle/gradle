@@ -28,18 +28,14 @@ import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.ArrayList;
-import java.util.Formatter;
 import java.util.List;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
 
-    private static final Logger LOGGER = Logging.getLogger(DefaultTaskArtifactStateRepository.class);
     private final TaskHistoryRepository taskHistoryRepository;
     private final FileSnapshotter outputFilesSnapshotter;
     private final FileSnapshotter inputFilesSnapshotter;
@@ -72,21 +68,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             final List<String> messages = getChangeMessages(getStates().getAllTaskChanges());
             if (messages.isEmpty()) {
                 upToDate = true;
-                LOGGER.info("Skipping {} as it is up-to-date.", task);
                 return true;
             }
-            logUpToDateMessages(messages, "Executing");
             return false;
         }
 
-        public boolean canPerformIncrementalBuild() {
-            final List<String> messages = getChangeMessages(getStates().getRebuildChanges());
-            if (messages.isEmpty()) {
-                LOGGER.info("Executing {} against out-of-date files only.", task);
-                return true;
-            }
-            logUpToDateMessages(messages, "All files are considered out-of-date for");
-            return false;
+        public List<String> getOutOfDateMessages() {
+            return getChangeMessages(getStates().getAllTaskChanges());
         }
 
         private List<String> getChangeMessages(TaskStateChanges stateChanges) {
@@ -97,17 +85,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return messages;
         }
 
-        private void logUpToDateMessages(List<String> messages, String action) {
-            if (LOGGER.isInfoEnabled()) {
-                Formatter formatter = new Formatter();
-                formatter.format("%s %s due to:", action, task);
-                for (String message : messages) {
-                    formatter.format("%n  %s", message);
-                }
-                LOGGER.info(formatter.toString());
-            }
-        }
-
         public IncrementalTaskInputs getInputChanges() {
             assert !upToDate : "Should not be here if the task is up-to-date";
 
@@ -115,6 +92,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             }
             return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
+        }
+
+        private boolean canPerformIncrementalBuild() {
+            final List<String> messages = getChangeMessages(getStates().getRebuildChanges());
+            return messages.isEmpty();
         }
 
         public FileCollection getOutputFiles() {

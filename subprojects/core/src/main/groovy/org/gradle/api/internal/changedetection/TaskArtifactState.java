@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.internal.TaskExecutionHistory;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+
+import java.util.List;
 
 /**
  * Encapsulates the state of the task when its outputs were last generated.
@@ -26,6 +28,8 @@ public interface TaskArtifactState {
      * Returns true if the task outputs were generated using the given task inputs.
      */
     boolean isUpToDate();
+
+    List<String> getOutOfDateMessages();
 
     IncrementalTaskInputs getInputChanges();
 

@@ -510,18 +510,6 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         upToDate noOutputsTask
     }
 
-    def artifactsAreNotUpToDateWhenTaskUpToDateSpecIsFalse() {
-        when:
-        task.outputs.upToDateWhen {
-            false
-        }
-        execute(task)
-
-        then:
-        outOfDate task
-        outOfDate task
-    }
-
     def taskCanProduceIntoDifferentSetsOfOutputFiles() {
         when:
         TestFile outputDir2 = tmpDir.createDir("output-dir-2")
