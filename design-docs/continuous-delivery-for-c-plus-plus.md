@@ -23,50 +23,84 @@ and runs the result. In the case of a published executable, the consumer general
 
 # Story: Introduce the concept of native binaries
 
-This story introduces domain objects to represent each native binary that is built, sharing the concepts introduced by the new Jvm language DSL.
+This story introduces domain objects to represent each native binary that is built, sharing the concepts introduced by the new JVM language DSL.
 This will be used in later stories to handle the cases where a given logical native application or library is built into a number of different variants.
 
 - Add `ExecutableBinary` and `SharedLibraryBinary` types, as analogs to `ClassDirectoryBinary` from the JVM domain.
+- Extract a `Binary` supertype out of the above types and change the `BinariesContainer` so that it is a container of `Binary` instances.
+    - Can remove `JvmBinaryContainer` specialisation.
 - Change the `cpp` plugin to:
-    - Add an `ExecutableBinary` instance to the `binaries` container for each executable added to the `executables` container.
-    - Add a rule that adds a compile task for each `ExecutableBinary` instance added to the `binaries` container.
-    - Add a rule that adds an install task for each `ExecutableBinary` instance added to the `binaries` container.
-    - Add a `SharedLibraryBinary` instance to the `binaries` container for each library added to the `libraries` container.
-    - Add a rule that adds a compile task for each `SharedLibraryBinary` instance added to the `binaries` container.
+    - Apply the `lang-base` plugin.
+    - Add an `ExecutableBinary` instance to the `binaries` container for each executable added to the `executables` container. The instance should be
+      called `${executable.name}Executable`.
+    - Add a rule that adds a compile task for each `ExecutableBinary` instance added to the `binaries` container. The task should be called `${binary.name}`.
+    - Add a rule that adds an install task for each `ExecutableBinary` instance added to the `binaries` container. The task should be called `install${binary.name}`.
+    - Add a `SharedLibraryBinary` instance to the `binaries` container for each library added to the `libraries` container. The instance should be called
+      `${library.name}SharedLibrary`.
+    - Add a rule that adds a compile task for each `SharedLibraryBinary` instance added to the `binaries` container. The task should be called `${binary.name}`.
 
-TBD:
+Note: there's a breaking change here, as the name of the compile task added by the C++ plugin will have changed.
 
-- change the native model to use deferred configuration.
-- add output file and input source sets to binaries. Remove output file from the component.
-- add windows and linux specific output files (eg .lib file for a shared library on windows).
-- move source sets from `cpp.sourceSets` container to `source` container.
-- allow `ExecutableBinary` and `SharedLibraryBinary` instances to be added manually.
+## User visible changes
+
+For this story, a read-only view of the binaries is available:
+
+    apply plugin: 'java'
+    apply plugin: 'cpp-exe'
+    apply plugin: 'cpp-lib'
+
+    assert binaries.mainClasses instanceof ClassDirectoryBinary
+    assert binaries.mainExecutable instanceof ExecutableBinary
+    assert binaries.mainSharedLibrary instanceof SharedLibraryBinary
+
+Running `gradle mainExecutable` will build the main executable binary.
+
+## Test cases
+
+- Can apply the `java`, `cpp-exe` and `cpp-lib` plugins together, as shown in the example above.
+
+## Open issues
+
+- Change the native model to use deferred configuration.
+- Add output file to binaries. Remove output file from the component.
+- Add windows and linux specific output files (eg .lib file for a shared library on windows).
+- Allow `ExecutableBinary` and `SharedLibraryBinary` instances to be added manually.
 
 # Story: Separate compilation and linking
 
 This story separates C++ compilation and linking of binaries into separate tasks, so that 1) object files built from other languages can be linked into a binary, and
-2) so that different implementations of linking can be used.
+2) so that the object files can be consumed in different ways, such as assembling into a static library.
 
 - Split `LinkExecutable` and `LinkSharedLibrary` task types out of `CppCompile` task type.
 - Change the `cpp` plugin to add a `CppCompile` and `LinkExecutable` task for each `ExecutableBinary`.
 - Change the `cpp` plugin to add a `CppCompile` and `LinkSharedExecutable` task for each `SharedLibraryBinary`.
 - Change the `CppCompile` task type to declare its source files, include directories and output directories as properties with
    the appropriate annotations.
-- Change the GCC compiler to:
+- Change the GCC toolchain to:
     - Use `g++` to link the executable and shared libraries.
     - Move the `-Wl` and `-shared` options from compilation to linking.
-- Change the visual C++ compiler to:
+- Change the visual C++ toolchain to:
     - Use `link.exe` to link the executable and shared libraries.
 - Change the link task types to declare their input and output files as properties with the appropriate annotations.
 - Add these task types to the DSL reference and mark as incubating.
 
-TBD:
+## Open issues
 
+- Naming scheme for tasks and binaries.
 - introduce a toolchain concept, so that the compiler and linker from the same toolchain are always used together.
 - add compiler and linker options to the binaries.
 - add object files directory property to the binaries.
+- add link path to binaries. This is resolved to determine which dependencies to link against.
 - separate out compiler and linker options on the component.
 - add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
+- add an `InstallExecutable` task type and use this to install an executable.
+
+## Test cases
+
+- Incremental build:
+    - Changing a compile option causes source files to be compiled and binary to be linked.
+    - Changing a link option causes the binary to be linked but does not recompile source files.
+    - Changing a comment in a source file causes the source file to be compiled by the but does not relink the binary.
 
 # Story: Build a static library binary
 
@@ -75,16 +109,27 @@ This story introduces the concept of a static library binary.
 - Add `StaticLibraryBinary` type.
 - Add `LinkStaticLibrary` task type.
 - Change the `cpp` plugin to:
-    - Add a `StaticLibraryBinary` instance to the `binaries` container for each library added to the `libraries` container.
-    - Add a rule that adds a `CppCompile` and `LinkStaticLibrary` task for each `StaticLibraryBinary` instance added to the `binaries` container.
-- Change visual C++ compiler to:
+    - Add a `StaticLibraryBinary` instance to the `binaries` container for each library added to the `libraries` container. The instance should be called
+      `${library.name}StaticLibrary`.
+    - Add a rule that adds a `CppCompile` and `LinkStaticLibrary` task for each `StaticLibraryBinary` instance added to the `binaries` container. The link task should be
+      called `${binary.name}`.
+- Change visual C++ toolchain to:
      - Use `lib.exe` to assemble the static library.
-- Change the GCC compiler to:
+- Change the GCC toolchain to:
     - Don't use any shared library flags (`-shared`, `-fPIC`) when compiling source files for a static library.
     - Use `ar` to link the static library.
 
-TBD:
+## User visible changes
 
+Given:
+
+    apply plugin: `cpp-lib`
+
+Running `gradle mainStaticLibrary` will build the static library.
+
+## Open issues
+
+- add output file and input source sets to binaries.
 - allow `StaticLibraryBinary` instances to be added manually.
 - need to consume locally and between projects and between builds.
 - need separate compiler and linker options for building shared and static library.
@@ -93,18 +138,53 @@ TBD:
 
 # Compile C source files using the C compiler
 
-- mixed C/C++ binary.
-- all kinds of binaries.
+- Add `c` and `c++` source set types and allow these to be attached as inputs to a native binary.
+- Add a `CCompile` task type.
+- Change the `cpp` plugin to add a `CppCompile` instance for each C++ source set added to a native binary.
+- Change the `cpp` plugin to add a `CCompile` instance for each C source set added to a native binary.
+- Change the visual C++ toolchain to:
+    - Use `/TC` to force source language to C for all source files in a `c` source set.
+    - Don't use C++ options when compiling C source files.
+    - Use `/TP` to force source language to C++ for all source files in a `c++` source set.
+- Change the GCC toolchain to:
+    - Use `gcc` to compile all source files in a `c` source set. Should also use `-x c` to force source language to C.
+    - Use `g++` to compile all source files in a `c++` source set. Should also use `-x c++` to force source language to C++.
+- Invoke the C compiler for all source files in a `c` source set type, and the C++ compiler for all source files in a `cpp` source set type.
+
+## Open issues
+
+- add input source sets to binaries.
+- move source sets from `cpp.sourceSets` container to `source` container.
+- linker to use for GCC toolchain, when no C++ is present
 - must use the C compiler and C++ compiler from the same toolchain for a given binary.
 - need separate compiler options for C and C++.
 - need shared compiler options for C and C++.
 
+## Test cases
+
+- mixed C/C++ binary.
+- each type of binary.
+
 # Build a binary from assembler source files
 
-- mixed C/C++/ASM binary.
+- Add an `assembler` source set type and allow these to be added to a native binary.
+- Add an `Assemble` task type.
+- Change the `cpp` plugin to add an `Assemble` instance for each assembler source set added to a native binary.
+- Change the visual C++ toolchain to:
+    - Use `ml /nologo /c` to assemble a source file to an object file.
+- Change the GCC toolchain to:
+    - Use `as` to assemble a source file to an object file.
+
+## Open issues
+
+- need to extract an assembler and a binaries plugin
 - must use the assembler, C and C++ compiler from the same toolchain for a given binary.
-- all kinds of binaries.
 - need assembler options.
+
+## Test cases
+
+- mixed C/C++/ASM binary.
+- each kind of binary.
 
 # Build different flavours of a binary
 
@@ -123,13 +203,13 @@ TBD:
 
 # Cross-compile for multiple platforms
 
-- TBD
+TBD
 
-# Publishing and resolving dynamic libraries
+# Publishing and resolving shared libraries
 
 ## Use cases
 
-A producer project produces a single dynamic library, for a single platform. The library depends on zero or more other dynamic libraries.
+A producer project produces a single shared library, for a single platform. The library depends on zero or more other dynamic libraries.
 The library is published to a repository.
 
 A consumer project resolves the library from the repository, and links an executable against it. Some libraries may be installed on the consumer
@@ -144,7 +224,7 @@ against the library's export file (`.lib`), which is created when the library is
 
 On most platforms, the name of the binary file is important, and at runtime must match the name that was used at link time. On UNIX platforms,
 the so_name (or install_path on OS X) that is built into the library binary is used. If not present, the absolute path of the library binary file
-is used. This means that in order to execute against a dynamic library.
+is used. This means that in order to execute against a shared library.
 
 Generally, this means that the library must be installed in some form before it can be linked against.
 
@@ -158,13 +238,13 @@ To implement this story:
 * Consumer project installs the libraries into a location where the executable can find them, with their correct names, and uses these locations
   at link time.
 * Consumer determine which libraries are already installed on the machine, and uses these from their installed location at link time.
-* Define some standard artifact types for dynamic libraries, header archibes and export files.
+* Define some standard artifact types for shared libraries, header archives and export files.
 
 # Publishing and resolving executables
 
 ## Use cases
 
-A producer project produces a single executable, for a single platform. The executable depends on zero or more dynamic libraries.
+A producer project produces a single executable, for a single platform. The executable depends on zero or more shared libraries.
 The executable is published to a repository.
 
 A consumer project resolves the executable from the repository, and executes it. Some libraries may be installed on the consumer machine, and the
@@ -177,7 +257,7 @@ permission set. On Windows platforms, the executable should have a `.exe` extens
 
 To implement this:
 
-* There are a number of tasks in common with [publishing and resolving dynamic libraries](#shared-libraries) above.
+* There are a number of tasks in common with [publishing and resolving shared libraries](#shared-libraries) above.
 * Producer project publishes the dependency meta-data for the executable.
 * Consumer project uses correct names for resolved executables.
 * Consumer project sets the UNIX file executable permission for resolved executables on UNIX filesystems.
@@ -188,7 +268,7 @@ To implement this:
 
 ## Use cases
 
-A producer project compiles and links a dynamic library for multiple Intel x86 architectures, for a single operating system. The library has zero or
+A producer project compiles and links a shared library for multiple Intel x86 architectures, for a single operating system. The library has zero or
 more dependencies. The library is published to a repository.
 
 A consumer project links and runs an executable against the appropriate variant of the library, resolved from the repository.
@@ -221,7 +301,7 @@ To implement this:
 * Include in the published meta-data information about which (CPU + data model) each binary was built for.
 * Consumer project selects the binaries with the appropriate (CPU + data model) when resolving the link and runtime dependencies for the executable.
 * Allow compiler and linker settings to be specified for each architecture.
-* Allow resolved binaries to have the same file name across architectures. For example, a dynamic library should be called `libsomething.so` regardless
+* Allow resolved binaries to have the same file name across architectures. For example, a shared library should be called `libsomething.so` regardless
   of whether it happens to be built for the x86 or amd64 architectures.
 * Define some standard names for CPU instruction sets and architectures, plus mappings to platform specific names.
 * Define some default architectures for the x86 chipset. So, every C++ binary may be built for the x86 and amd64 architectures by default.
@@ -241,8 +321,8 @@ Native architecture names:
 
 ## Use cases
 
-A producer project compiles, links and publishes a dynamic library for multiple combinations of operating system and architecture. The library depends
-on zero or more dynamic libraries. The library is published to a repository.
+A producer project compiles, links and publishes a shared library for multiple combinations of operating system and architecture. The library depends
+on zero or more shared libraries. The library is published to a repository.
 
 A consumer project compiles, links and runs an executable against the libary.
 
@@ -296,7 +376,7 @@ To implement this:
 
 ## Use case
 
-Producer project publishes a dynamic library with both debug and release variants.
+Producer project publishes a shared library with both debug and release variants.
 
 Consumer project compiles, links and debugs an executable against this library.
 
@@ -340,15 +420,14 @@ To generate the debug binaries (default):
 
 Publisher project publishes a shared library.
 
-Consumer project compiles, links and publishes a dynamic library that includes the shared library.
+Consumer project compiles, links and publishes a shared library that includes the shared library.
 
 ## Implementation
 
 To implement this:
 
-* Add tasks to the publisher project to allow both static and dynamic library binaries to be built and published.
+* Add tasks to the publisher project to allow both static and shared library binaries to be built and published.
 * Include in the published meta-data, information about which static libraries are linked statically into the binary.
-* Allow compiler and linker settings to be specified separately for static and dynamic binaries.
 * Consumer project selects either the static or dynamic binaries for a given dependency at link time. A dependency that is statically linked
   into a binary has no files that are required at runtime, but may have files that are required at debug time.
 
@@ -374,25 +453,6 @@ TBD
 # Building binaries for all operating systems in a single build
 
 TBD
-
-# Compiling C source using the C compiler
-
-## Implementation
-
-To implement this:
-* Add a `c` source set type and allow these to be attached to a binary.
-* Invoke the C compiler for all source files in a `c` source set type, and the C++ compiler for all source files in a `cpp` source set type.
-
-# Including assembly source in binaries
-
-## Implementation
-
-To implement this:
-* Separate the existing `CppCompile` task into separate tasks for compilation and linking.
-* Add an `asm` source set type and allow these to be attached to a binary.
-* Add the appropriate tasks to assemble source files to object files.
-* On Windows, use `ml /nologo /c` to assemble a source file to an object file.
-* On other platforms, use `as` to assemble a source file to an object file.
 
 # Incremental compilation for C and C++
 
@@ -451,7 +511,7 @@ Resource files can be linked into a binary.
 * Selecting a compatible architecture at resolve time. For example, if I'm building for the amd64 cpu, I can use an x86 cpu + 64 bit data model.
 * Selecting a compatible operating system version at resolve time.
 * Selecting a compatible release binary when the debug binaries are not available.
-* Need to include meta-data about which runtime a DLL is linked against. Same for dynamic libraries, but less common.
+* Need to include meta-data about which runtime an DLL is linked against. Same for UNIX shared libraries, but less common.
 * Need to include meta-data about which optimisation level a binary is compiled for.
 * Cross compilation.
 * Custom variants.
