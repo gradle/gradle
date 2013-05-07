@@ -21,6 +21,104 @@ via a repository.
 A project that uses the published binary in some form. In the case of a published library, the consumer usually installs, links against the library,
 and runs the result. In the case of a published executable, the consumer generally installs and runs the executable.
 
+# Story: Introduce the concept of native binaries
+
+This story introduces domain objects to represent each native binary that is built, sharing the concepts introduced by the new Jvm language DSL.
+This will be used in later stories to handle the cases where a given logical native application or library is built into a number of different variants.
+
+- Add `ExecutableBinary` and `SharedLibraryBinary` types, as analogs to `ClassDirectoryBinary` from the JVM domain.
+- Change the `cpp` plugin to:
+    - Add an `ExecutableBinary` instance to the `binaries` container for each executable added to the `executables` container.
+    - Add a rule that adds a compile task for each `ExecutableBinary` instance added to the `binaries` container.
+    - Add a rule that adds an install task for each `ExecutableBinary` instance added to the `binaries` container.
+    - Add a `SharedLibraryBinary` instance to the `binaries` container for each library added to the `libraries` container.
+    - Add a rule that adds a compile task for each `SharedLibraryBinary` instance added to the `binaries` container.
+
+TBD - change the native model to use deferred configuration.
+TBD - add output file and input source sets to binaries. Remove output file from the component.
+TBD - add windows and linux specific output files (eg .lib file for a shared library on windows).
+TBD - move source sets from `cpp.sourceSets` container to `source` container.
+TBD - allow `ExecutableBinary` and `SharedLibraryBinary` instances to be added manually.
+
+# Story: Separate compilation and linking
+
+This story separates C++ compilation and linking of binaries into separate tasks, so that 1) object files built from other languages can be linked into a binary, and
+2) so that different implementations of linking can be used.
+
+- Split `LinkExecutable` and `LinkSharedLibrary` task types out of `CppCompile` task type.
+- Change the `cpp` plugin to add a `CppCompile` and `LinkExecutable` task for each `ExecutableBinary`.
+- Change the `cpp` plugin to add a `CppCompile` and `LinkSharedExecutable` task for each `SharedLibraryBinary`.
+- Change the `CppCompile` task type to declare its source files, include directories and output directories as properties with
+   the appropriate annotations.
+- Change the GCC compiler to:
+    - Use `g++` to link the executable and shared libraries.
+    - Move the `-Wl` and `-shared` options from compilation to linking.
+- Change the visual C++ compiler to:
+    - Use `link.exe` to link the executable and shared libraries.
+- Change the link task types to declare their input and output files as properties with the appropriate annotations.
+- Add these task types to the DSL reference and mark as incubating.
+
+TBD - introduce a toolchain concept, so that the compiler and linker from the same toolchain are always used together.
+TBD - add compiler and linker options to the binaries.
+TBD - add object files directory property to the binaries.
+TBD - separate out compiler and linker options on the component.
+TBD - add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
+
+# Story: Build a static library binary
+
+This story introduces the concept of a static library binary.
+
+- Add `StaticLibraryBinary` type.
+- Add `LinkStaticLibrary` task type.
+- Change the `cpp` plugin to:
+    - Add a `StaticLibraryBinary` instance to the `binaries` container for each library added to the `libraries` container.
+    - Add a rule that adds a `CppCompile` and `LinkStaticLibrary` task for each `StaticLibraryBinary` instance added to the `binaries` container.
+- Change visual C++ compiler to:
+     - Use `lib.exe` to assemble the static library.
+- Change the GCC compiler to:
+    - Don't use any shared library flags (`-shared`, `-fPIC`) when compiling source files for a static library.
+    - Use `ar` to link the static library.
+
+TBD - allow `StaticLibraryBinary` instances to be added manually.
+TBD - need to consume locally and between projects and between builds.
+TBD - need separate compiler and linker options for building shared and static library.
+TBD - need shared compiler and linker options for building shared and static library.
+TBD - can in theory share the compile task between a static library and an executable built from the same source.
+
+# Compile C source files using the C compiler
+
+- mixed C/C++ binary.
+- all kinds of binaries.
+- must use the C compiler and C++ compiler from the same toolchain for a given binary.
+- need separate compiler options for C and C++.
+- need shared compiler options for C and C++.
+
+# Build a binary from assembler source files
+
+- mixed C/C++/ASM binary.
+- must use the assembler, C and C++ compiler from the same toolchain for a given binary.
+- all kinds of binaries.
+- need assembler options.
+
+# Build different flavours of a binary
+
+- build multiple "flavours" of a binary.
+- need to be able to build a single flavour or all flavours.
+- need separate compiler, linker and assembler options for each flavour.
+- need shared compiler, linker and assembler options for all flavours.
+- need to consume locally and between projects and between builds.
+
+# Build a binary for multiple tool chains
+
+- need to be able to build for a single toolchain or all available toolchains.
+- need separate compiler, linker and assembler options for each toolchain.
+- need shared compiler, linker and assembler options for all toolchains.
+- need to consume locally and between projects and between builds.
+
+# Cross-compile for multiple platforms
+
+- TBD
+
 # Publishing and resolving dynamic libraries
 
 ## Use cases
