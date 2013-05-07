@@ -37,9 +37,6 @@ class TaskTypeStateChangeRule {
                             StringUtils.capitalize(task.toString()), previousExecution.getTaskClass(), task.getClass().getName()));
                 }
             }
-
-            public void snapshotAfterTask() {
-            }
         };
     }
 

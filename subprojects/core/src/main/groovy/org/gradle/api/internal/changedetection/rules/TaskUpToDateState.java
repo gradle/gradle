@@ -25,7 +25,7 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
  * Represents the complete changes in a tasks state
  */
 public class TaskUpToDateState {
-    private static final int MAX_OUT_OF_DATE_MESSAGES = 10;
+    private static final int MAX_OUT_OF_DATE_MESSAGES = 3;
 
     private TaskStateChanges upToDateSpecState;
     private TaskStateChanges noHistoryState;
