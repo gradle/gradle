@@ -68,7 +68,7 @@ binaries for a native application or library.
       `${library.name}SharedLibrary`.
     - Add a rule that adds a compile task for each `SharedLibraryBinary` instance added to the `binaries` container. The task should be called `${binary.name}`.
 
-Note: there's a breaking change here, as the name of the compile task added by the C++ plugins will have changed.
+*Note*: there's a breaking change here, as the name of the compile task added by the C++ plugins will have changed.
 
 ## User visible changes
 
@@ -119,12 +119,13 @@ This story separates C++ compilation and linking of binaries into separate tasks
 - Naming scheme for tasks and binaries.
 - Introduce a toolchain concept, so that the compiler and linker from the same toolchain are always used together.
 - Add compiler and linker options to the binaries.
-- Add object files directory property to the binaries.
-- Add a convention to give each binary a separate output directory.
-- Add link dependencies to binaries. This is resolved to determine which dependencies to link against.
 - Separate out compiler and linker options on the component.
+- Add object file directory property to the binaries.
+- Add a convention to give each binary a separate object file directory.
+- Add link dependencies to binaries. This is resolved to determine which dependencies to link against.
 - Add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
 - Add an `InstallExecutable` task type and use this to install an executable.
+- Allow the C++ compiler and linker executables for a toolchain to be specified.
 
 ## Test cases
 
@@ -156,11 +157,11 @@ Given:
 
     apply plugin: `cpp-lib`
 
-Running `gradle mainStaticLibrary` will build the static library.
+Running `gradle mainStaticLibrary` will build the main static library.
 
 ## Open issues
 
-- Add output file and input source sets to binaries.
+- Add output file and object file properties to static binaries.
 - Allow `StaticLibraryBinary` instances to be added manually.
 - Need to consume locally and between projects and between builds.
 - Need separate compiler and linker options for building shared and static library.
@@ -188,11 +189,16 @@ This story adds support for C source files as inputs to native binaries.
 
 - Add input source sets to binaries.
 - Move source sets from `cpp.sourceSets` container to `source` container.
-- Linker to use for GCC toolchain, when no C++ is present
+- Add a convention for C and C++ source directories.
+- Add compile dependencies to each source set.
+- Add link dependencies to each source set, use these to infer the link dependencies of the binary.
+- Should probably not use `g++` to link when there is no C++ source included in a binary.
 - Must use the C compiler and C++ compiler from the same toolchain for a given binary.
 - Need separate compiler options for C and C++.
 - Need shared compiler options for C and C++.
-- Add compile dependencies for each source set.
+- Need to manually define C++ and C source sets.
+- Need to compose assembler/C/C++ source sets.
+- Allow the C compiler executable for a toolchain to be specified.
 
 ## Test cases
 
@@ -213,9 +219,13 @@ This story adds support for using assembler source files as inputs to a native b
 
 ## Open issues
 
-- need to extract an assembler and a binaries plugin
-- must use the assembler, C and C++ compiler from the same toolchain for a given binary.
-- need assembler options.
+- Extract an assembler and a binaries plugin
+- Add a convention for assembler source directories.
+- Should possibly use `ld` instead of `gcc` or `g++` to link the binaries.
+- Must use the assembler, C and C++ compiler from the same toolchain for a given binary.
+- Need assembler options.
+- Need to manually define assembler source sets.
+- Allow the assembler executable for a toolchain to be specified.
 
 ## Test cases
 
@@ -278,6 +288,7 @@ This story adds support for cross-compilation. Add the concept of an operating s
 - Need separate compiler, linker and assembler options for each operating system.
 - Need to discover which platforms a tool chain can build for.
 - Define some conventions for operating system names.
+- Add some opt-in way to define variants using a matrix of (flavour, tool chain, architecture, operating system).
 
 # Publishing and resolving shared libraries
 
