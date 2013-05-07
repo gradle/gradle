@@ -49,13 +49,12 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
                         new SkipTaskWithNoActionsExecuter(
                                 new SkipEmptySourceFilesTaskExecuter(
                                         new ValidatingTaskExecuter(
-                                                new CacheLockAcquiringTaskExecuter(cacheAccess,
-                                                        new SkipUpToDateTaskExecuter(repository,
-                                                                new CacheLockReleasingTaskExecuter(cacheAccess,
-                                                                        new PostExecutionAnalysisTaskExecuter(
-                                                                                new ExecuteActionsTaskExecuter(
-                                                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class)
-                                                                                ))))))))));
+                                                new SkipUpToDateTaskExecuter(repository,
+                                                        new CacheLockReleasingTaskExecuter(cacheAccess,
+                                                                new PostExecutionAnalysisTaskExecuter(
+                                                                        new ExecuteActionsTaskExecuter(
+                                                                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class)
+                                                                        )))))))));
     }
 
     protected TaskArtifactStateCacheAccess createCacheAccess() {
