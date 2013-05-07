@@ -60,10 +60,4 @@ public interface FileCollectionSnapshot extends Serializable {
     interface ChangeIterator<T> {
         boolean next(ChangeListener<T> listener);
     }
-
-    public interface SnapshotChangeListener extends ChangeListener<String> {
-        String getResumeAfter();
-
-        boolean isStopped();
-    }
 }

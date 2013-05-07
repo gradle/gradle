@@ -25,7 +25,7 @@ import spock.lang.Specification
 public class DefaultFileSnapshotterTest extends Specification {
     private final Hasher hasher = new DefaultHasher()
     private final DefaultFileSnapshotter snapshotter = new DefaultFileSnapshotter(hasher)
-    def listener = Mock(FileCollectionSnapshot.SnapshotChangeListener)
+    def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
