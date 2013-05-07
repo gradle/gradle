@@ -43,7 +43,6 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         and:
         state instanceof NoHistoryArtifactState
         !state.upToDate
-        !state.executionHistory.hasHistory()
 
     }
 

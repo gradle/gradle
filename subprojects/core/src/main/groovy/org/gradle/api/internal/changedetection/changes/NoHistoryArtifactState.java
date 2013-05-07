@@ -43,10 +43,6 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     public void finished() {
     }
 
-    public boolean hasHistory() {
-        return false;
-    }
-
     public FileCollection getOutputFiles() {
         throw new UnsupportedOperationException();
     }

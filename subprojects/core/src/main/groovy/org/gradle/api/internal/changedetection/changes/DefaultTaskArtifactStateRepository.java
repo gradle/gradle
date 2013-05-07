@@ -117,10 +117,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
         }
 
-        public boolean hasHistory() {
-            return history.getPreviousExecution() != null;
-        }
-
         public FileCollection getOutputFiles() {
             TaskExecution lastExecution = history.getPreviousExecution();
             return lastExecution != null && lastExecution.getOutputFilesSnapshot() != null ? lastExecution.getOutputFilesSnapshot().getFiles() : new SimpleFileCollection();
