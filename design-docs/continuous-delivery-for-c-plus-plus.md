@@ -21,10 +21,39 @@ via a repository.
 A project that uses the published binary in some form. In the case of a published library, the consumer usually installs, links against the library,
 and runs the result. In the case of a published executable, the consumer generally installs and runs the executable.
 
-# Story: Introduce the concept of native binaries
+### Native binary
 
-This story introduces domain objects to represent each native binary that is built, sharing the concepts introduced by the new JVM language DSL.
-This will be used in later stories to handle the cases where a given logical native application or library is built into a number of different variants.
+A binary that runs on a particular native C runtime. This refers to the physical binary file.
+
+### Executable binary
+
+An executable native binary.
+
+### Shared library binary
+
+A library binary that is linked into an executable or shared library at runtime
+
+### Static library binary
+
+A library binary that is linked into an executable or shared library at link time.
+
+### Native component
+
+A software component that runs on the native C runtime. This refers to the logical entity, rather than the physical.
+
+### Native application
+
+A native component that represents an application.
+
+### Native library
+
+A native component that represents a library to be used in other native components.
+
+# Story: Introduce native binaries
+
+This story introduces domain objects to represent each native binary that is built, sharing the concepts introduced in the new JVM language DSL.
+This separates the physical binary from the logical component that it is built for. This will be used in later stories to handle building multiple
+binaries for a native application or library.
 
 - Add `ExecutableBinary` and `SharedLibraryBinary` types, as analogs to `ClassDirectoryBinary` from the JVM domain.
 - Extract a `Binary` supertype out of the above types and change the `BinariesContainer` so that it is a container of `Binary` instances.
@@ -39,7 +68,7 @@ This will be used in later stories to handle the cases where a given logical nat
       `${library.name}SharedLibrary`.
     - Add a rule that adds a compile task for each `SharedLibraryBinary` instance added to the `binaries` container. The task should be called `${binary.name}`.
 
-Note: there's a breaking change here, as the name of the compile task added by the C++ plugin will have changed.
+Note: there's a breaking change here, as the name of the compile task added by the C++ plugins will have changed.
 
 ## User visible changes
 
@@ -63,6 +92,7 @@ Running `gradle mainExecutable` will build the main executable binary.
 
 - Change the native model to use deferred configuration.
 - Add output file to binaries. Remove output file from the component.
+- Add a convention to give each binary a separate output directory.
 - Add windows and linux specific output files (eg .lib file for a shared library on windows).
 - Allow `ExecutableBinary` and `SharedLibraryBinary` instances to be added manually.
 
@@ -87,13 +117,14 @@ This story separates C++ compilation and linking of binaries into separate tasks
 ## Open issues
 
 - Naming scheme for tasks and binaries.
-- introduce a toolchain concept, so that the compiler and linker from the same toolchain are always used together.
-- add compiler and linker options to the binaries.
-- add object files directory property to the binaries.
-- add link path to binaries. This is resolved to determine which dependencies to link against.
-- separate out compiler and linker options on the component.
-- add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
-- add an `InstallExecutable` task type and use this to install an executable.
+- Introduce a toolchain concept, so that the compiler and linker from the same toolchain are always used together.
+- Add compiler and linker options to the binaries.
+- Add object files directory property to the binaries.
+- Add a convention to give each binary a separate output directory.
+- Add link dependencies to binaries. This is resolved to determine which dependencies to link against.
+- Separate out compiler and linker options on the component.
+- Add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
+- Add an `InstallExecutable` task type and use this to install an executable.
 
 ## Test cases
 
@@ -104,7 +135,7 @@ This story separates C++ compilation and linking of binaries into separate tasks
 
 # Story: Build a static library binary
 
-This story introduces the concept of a static library binary.
+This story introduces the concept of a static library binary that can be build for a C++ library.
 
 - Add `StaticLibraryBinary` type.
 - Add `LinkStaticLibrary` task type.
@@ -129,14 +160,16 @@ Running `gradle mainStaticLibrary` will build the static library.
 
 ## Open issues
 
-- add output file and input source sets to binaries.
-- allow `StaticLibraryBinary` instances to be added manually.
-- need to consume locally and between projects and between builds.
-- need separate compiler and linker options for building shared and static library.
-- need shared compiler and linker options for building shared and static library.
-- can in theory share the compile task between a static library and an executable built from the same source.
+- Add output file and input source sets to binaries.
+- Allow `StaticLibraryBinary` instances to be added manually.
+- Need to consume locally and between projects and between builds.
+- Need separate compiler and linker options for building shared and static library.
+- Need shared compiler and linker options for building shared and static library.
+- Can in theory share the compile task between a static library and an executable built from the same source.
 
 # Compile C source files using the C compiler
+
+This story adds support for C source files as inputs to native binaries.
 
 - Add `c` and `c++` source set types and allow these to be attached as inputs to a native binary.
 - Add a `CCompile` task type.
@@ -153,12 +186,13 @@ Running `gradle mainStaticLibrary` will build the static library.
 
 ## Open issues
 
-- add input source sets to binaries.
-- move source sets from `cpp.sourceSets` container to `source` container.
-- linker to use for GCC toolchain, when no C++ is present
-- must use the C compiler and C++ compiler from the same toolchain for a given binary.
-- need separate compiler options for C and C++.
-- need shared compiler options for C and C++.
+- Add input source sets to binaries.
+- Move source sets from `cpp.sourceSets` container to `source` container.
+- Linker to use for GCC toolchain, when no C++ is present
+- Must use the C compiler and C++ compiler from the same toolchain for a given binary.
+- Need separate compiler options for C and C++.
+- Need shared compiler options for C and C++.
+- Add compile dependencies for each source set.
 
 ## Test cases
 
@@ -166,6 +200,8 @@ Running `gradle mainStaticLibrary` will build the static library.
 - each type of binary.
 
 # Build a binary from assembler source files
+
+This story adds support for using assembler source files as inputs to a native binary.
 
 - Add an `assembler` source set type and allow these to be added to a native binary.
 - Add an `Assemble` task type.
@@ -186,24 +222,62 @@ Running `gradle mainStaticLibrary` will build the static library.
 - mixed C/C++/ASM binary.
 - each kind of binary.
 
-# Build different flavours of a binary
+# Build different variants of a native component
 
-- build multiple "flavours" of a binary.
-- need to be able to build a single flavour or all flavours.
-- need separate compiler, linker and assembler options for each flavour.
-- need shared compiler, linker and assembler options for all flavours.
-- need to consume locally and between projects and between builds.
+This story adds support for building multiple variants of a native component. For each variant of a component, a binary of the
+appropriate type is defined.
 
-# Build a binary for multiple tool chains
+## Open issues
 
-- need to be able to build for a single toolchain or all available toolchains.
-- need separate compiler, linker and assembler options for each toolchain.
-- need shared compiler, linker and assembler options for all toolchains.
-- need to consume locally and between projects and between builds.
+- Need to be able to build a single variant or all variants.
+- Need separate compiler, linker and assembler options for each variant.
+- Need shared compiler, linker and assembler options for all variants.
+- Need to consume locally and between projects and between builds.
+- Need to infer the default variant.
+
+# Build a native component using multiple tool chains
+
+This story adds support for building a native component using multiple tool chains. Each variant may have a tool chain associated with it.
+
+## Open issues
+
+- Need to be able to build for a single toolchain or all available toolchains.
+- Need separate compiler, linker and assembler options for each toolchain.
+- Need shared compiler, linker and assembler options for all toolchains.
+- Need to consume locally and between projects and between builds.
+- Need to discover the available tool chains.
+
+## Tests
+
+- Build on windows using visual c++ and gcc.
+
+# Build a native component for multiple architectures
+
+This story adds support for building a component for multiple architectures. Introduce the concept of a platform, and each variant may have a platform associated
+with it.
+
+## Open issues
+
+- Need to be able to build for a single architecture or all available architectures.
+- Need to discover which architectures a tool chain can build for.
+- Need separate compiler, linker and assembler options for each platform.
+- Infer the default platform and architecture.
+- Define some conventions for architecture names.
+
+## Tests
+
+- Cross compile a 32-bit binary on a 64-bit linux machine.
 
 # Cross-compile for multiple platforms
 
-TBD
+This story adds support for cross-compilation. Add the concept of an operating system to the platform.
+
+## Open issues
+
+- Need to be able to build for a single platform or all available platforms.
+- Need separate compiler, linker and assembler options for each operating system.
+- Need to discover which platforms a tool chain can build for.
+- Define some conventions for operating system names.
 
 # Publishing and resolving shared libraries
 
