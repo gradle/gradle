@@ -22,14 +22,11 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.reflect.Instantiator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
 
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitTaskArtifactStateRepository.class);
 
     private final StartParameter startParameter;
     private final TaskArtifactStateRepository repository;
