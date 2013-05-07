@@ -6,20 +6,20 @@ task originalInputs() << {
 }
 
 // START SNIPPET updated-inputs
-task updatedInputs() << {
+task updateInputs() << {
     file('inputs/1.txt').text = "Changed content for existing file 1."
     file('inputs/4.txt').text = "Content for new file 4."
 }
 // END SNIPPET updated-inputs
 
 // START SNIPPET removed-input
-task removedInput() << {
+task removeInput() << {
     file('inputs/3.txt').delete()
 }
 // END SNIPPET removed-input
 
 // START SNIPPET removed-output
-task removedOutput() << {
+task removeOutput() << {
     file("$buildDir/outputs/1.txt").delete()
 }
 // END SNIPPET removed-output
@@ -28,6 +28,7 @@ task removedOutput() << {
 task incrementalReverse(type: IncrementalReverseTask) {
     inputDir = file('inputs')
     outputDir = file("$buildDir/outputs")
+    inputProperty = project.properties['taskInputProperty'] ?: "original"
 }
 // END SNIPPET reverse
 
@@ -39,13 +40,16 @@ class IncrementalReverseTask extends DefaultTask {
     @OutputDirectory
     def File outputDir
 
+    @Input
+    def inputProperty
+
     @TaskAction
     void execute(IncrementalTaskInputs inputs) {
         println inputs.incremental ? "CHANGED inputs considered out of date" : "ALL inputs considered out of date"
         // START SNIPPET out-of-date-inputs
         inputs.outOfDate({ change ->
             println "out of date: ${change.file.name}"
-            def targetFile = project.file("$outputDir/${change.file.name}")
+            def targetFile = new File(outputDir, change.file.name)
             targetFile.text = change.file.text.reverse()
         } as Action)
         // END SNIPPET out-of-date-inputs
@@ -53,7 +57,7 @@ class IncrementalReverseTask extends DefaultTask {
         // START SNIPPET removed-inputs
         inputs.removed({ change ->
             println "removed: ${change.file.name}"
-            def targetFile = project.file("$outputDir/${change.file.name}")
+            def targetFile = new File(outputDir, change.file.name)
             if (targetFile.exists()) {
                 targetFile.delete()
             }

@@ -71,6 +71,7 @@
         </para>
         <itemizedlist>
             <listitem>There is no history available from a previous execution.</listitem>
+            <listitem>You are building with a different version of Gradle. (Gradle does not use task history from a different version).</listitem>
             <listitem>An <literal>upToDateWhen</literal> criteria added to the task returns <literal>false</literal>.</listitem>
             <listitem>An input property has changed since the previous execution.</listitem>
             <listitem>One or more output files have changed since the previous execution.</listitem>
@@ -88,7 +89,10 @@
         <title>An incremental task in action</title>
         <para>
             Given the incremental task implementation <link linkend="taskDefinition">above</link>, we can explore the various change scenarios by example.
-            First, consider the an <literal>IncrementalReverseTask</literal> executed against a set of inputs for the first time.
+            Note that the various mutation tasks ('updateInputs', 'removeInput', etc) are only present for demonstration purposes: these would not normally be part of your build script.
+        </para>
+        <para>
+            First, consider the <literal>IncrementalReverseTask</literal> executed against a set of inputs for the first time.
             In this case, all inputs will be considered "out of date":
         </para>
         <sample id="incrementalTaskFirstRun" dir="userguide/tasks/incrementalTask" title="Running the incremental task for the first time">
@@ -116,7 +120,7 @@
         <sample id="incrementalTaskUpdatedInputs" dir="userguide/tasks/incrementalTask" title="Running the incremental task with updated input files">
             <sourcefile file="build.gradle" snippet="updated-inputs" />
             <test args="-q originalInputs incrementalReverse"/>
-            <output args="-q updatedInputs incrementalReverse" ignoreLineOrder="true"/>
+            <output args="-q updateInputs incrementalReverse" ignoreLineOrder="true"/>
         </sample>
 
         <para>
@@ -125,7 +129,7 @@
         <sample id="incrementalTaskRemovedInput" dir="userguide/tasks/incrementalTask" title="Running the incremental task with an input file removed">
             <sourcefile file="build.gradle" snippet="removed-input" />
             <test args="-q originalInputs incrementalReverse"/>
-            <output args="-q removedInput incrementalReverse" ignoreLineOrder="true"/>
+            <output args="-q removeInput incrementalReverse" ignoreLineOrder="true"/>
         </sample>
 
         <para>
@@ -136,7 +140,18 @@
         <sample id="incrementalTaskRemovedOutput" dir="userguide/tasks/incrementalTask" title="Running the incremental task with an output file removed">
             <sourcefile file="build.gradle" snippet="removed-output" />
             <test args="-q originalInputs incrementalReverse"/>
-            <output args="-q removedOutput incrementalReverse" ignoreLineOrder="true"/>
+            <output args="-q removeOutput incrementalReverse" ignoreLineOrder="true"/>
+        </sample>
+
+        <para>
+            When a task input property modified, Gradle is not able to determine how this property impacted the task outputs, so all input files are assumed to be out of date.
+            So similar to the changed output file example, <emphasis>all</emphasis> input files are reported to
+            the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/> action,
+            and no input files are reported to the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/> action:
+        </para>
+        <sample id="incrementalTaskChangedProperty" dir="userguide/tasks/incrementalTask" title="Running the incremental task with an input property changed">
+            <test args="-q originalInputs incrementalReverse"/>
+            <output args="-q -PtaskInputProperty=changed incrementalReverse" ignoreLineOrder="true"/>
         </sample>
     </section>
  </chapter>
