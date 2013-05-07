@@ -15,18 +15,17 @@
  */
 
 package org.gradle.api.internal.tasks.execution
-
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.tasks.ContextualTaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 
 class PostExecutionAnalysisTaskExecuterTest extends Specification {
-    def target = Mock(ContextualTaskExecuter.class)
-    def task = Mock(TaskInternal.class)
-    def state = Mock(TaskStateInternal.class)
-    def context = Mock(TaskExecutionContext.class)
+    def target = Mock(TaskExecuter)
+    def task = Mock(TaskInternal)
+    def state = Mock(TaskStateInternal)
+    def context = Mock(TaskExecutionContext)
     final PostExecutionAnalysisTaskExecuter executer = new PostExecutionAnalysisTaskExecuter(target)
 
     def marksTaskUpToDateWhenItHasActionsAndItDidNotDoWork() {

@@ -23,13 +23,13 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
-import org.gradle.api.internal.tasks.ContextualTaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 
 public class SkipUpToDateTaskExecuterTest extends Specification {
-    def delegate = Mock(ContextualTaskExecuter)
+    def delegate = Mock(TaskExecuter)
     def outputs = Mock(TaskOutputsInternal)
     def task = Mock(TaskInternal)
     def taskState = Mock(TaskStateInternal)

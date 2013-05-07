@@ -22,5 +22,5 @@ public interface TaskExecuter {
      * Executes the given task. If the task fails with an exception, the exception is packaged in the provided task
      * state.
      */
-    void execute(TaskInternal task, TaskStateInternal state);
+    void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context);
 }

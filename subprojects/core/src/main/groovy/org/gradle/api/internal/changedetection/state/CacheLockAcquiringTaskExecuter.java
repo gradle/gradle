@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 
 /**
@@ -33,10 +34,10 @@ public class CacheLockAcquiringTaskExecuter implements TaskExecuter {
         this.cacheAccess = cacheAccess;
     }
 
-    public void execute(final TaskInternal task, final TaskStateInternal state) {
+    public void execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
         cacheAccess.useCache(String.format("execute %s", task), new Runnable() {
             public void run() {
-                executer.execute(task, state);
+                executer.execute(task, state, context);
             }
         });
     }

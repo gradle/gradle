@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
@@ -145,7 +146,7 @@ public abstract class AbstractTaskTest {
         task.setExecuter(executer);
 
         context.checking(new Expectations() {{
-            one(executer).execute(with(sameInstance(task)), with(notNullValue(TaskStateInternal.class)));
+            one(executer).execute(with(sameInstance(task)), with(notNullValue(TaskStateInternal.class)), with(notNullValue(TaskExecutionContext.class)));
         }});
 
         task.execute();

@@ -16,15 +16,15 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.ContextualTaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 
-public class CacheLockReleasingTaskExecuter implements ContextualTaskExecuter {
-    private final ContextualTaskExecuter executer;
+public class CacheLockReleasingTaskExecuter implements TaskExecuter {
+    private final TaskExecuter executer;
     private final TaskArtifactStateCacheAccess cacheAccess;
 
-    public CacheLockReleasingTaskExecuter(TaskArtifactStateCacheAccess cacheAccess, ContextualTaskExecuter executer) {
+    public CacheLockReleasingTaskExecuter(TaskArtifactStateCacheAccess cacheAccess, TaskExecuter executer) {
         this.executer = executer;
         this.cacheAccess = cacheAccess;
     }

@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.tasks.execution;
 
-package org.gradle.api.internal.tasks;
+import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 
-import org.gradle.api.internal.TaskInternal;
+public class DefaultTaskExecutionContext implements TaskExecutionContext {
+    private TaskArtifactState taskArtifactState;
 
-public interface ContextualTaskExecuter {
-    /**
-     * Executes the given task. If the task fails with an exception, the exception is packaged in the provided task
-     * state.
-     */
-    void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context);
+    public TaskArtifactState getTaskArtifactState() {
+        return taskArtifactState;
+    }
+
+    public void setTaskArtifactState(TaskArtifactState taskArtifactState) {
+        this.taskArtifactState = taskArtifactState;
+    }
 }
