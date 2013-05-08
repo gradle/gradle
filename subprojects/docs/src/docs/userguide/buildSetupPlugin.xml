@@ -63,7 +63,7 @@
             </thead>
             <tr>
                 <td>
-                    <literal>buildSetup</literal>
+                    <literal>setupBuild</literal>
                 </td>
                 <td>
                     <literal>wrapper</literal>
