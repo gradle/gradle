@@ -24,11 +24,9 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultJavaSourceSet;
-import org.gradle.language.base.BinariesContainer;
-import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -37,12 +35,13 @@ import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.BinariesContainer;
 import org.gradle.language.base.Classpath;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.ClassDirectoryBinary;
-import org.gradle.language.jvm.JvmBinaryContainer;
+import org.gradle.language.jvm.ResourceSet;
+import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -140,8 +139,8 @@ public class JavaBasePlugin implements Plugin<Project> {
                 ResourceSet resourceSet = instantiator.newInstance(DefaultResourceSet.class, "resources", sourceSet.getResources(), functionalSourceSet);
                 functionalSourceSet.add(resourceSet);
 
-                JvmBinaryContainer jvmBinaryContainer = (JvmBinaryContainer) project.getExtensions().getByType(BinariesContainer.class).getByName("jvm");
-                ClassDirectoryBinary binary = jvmBinaryContainer.create(sourceSet.getName(), ClassDirectoryBinary.class);
+                BinariesContainer binariesContainer = project.getExtensions().getByType(BinariesContainer.class);
+                ClassDirectoryBinary binary = binariesContainer.create(sourceSet.getName(), ClassDirectoryBinary.class);
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {

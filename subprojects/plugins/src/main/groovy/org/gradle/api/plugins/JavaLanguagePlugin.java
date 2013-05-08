@@ -19,18 +19,17 @@ import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.compile.AbstractCompile;
-import org.gradle.language.base.BinariesContainer;
-import org.gradle.language.base.internal.DefaultClasspath;
 import org.gradle.api.internal.tasks.DefaultJavaSourceSet;
-import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.JavaSourceSet;
+import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.BinariesContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.DefaultClasspath;
+import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.jvm.ClassDirectoryBinary;
-import org.gradle.language.jvm.JvmBinaryContainer;
 import org.gradle.language.jvm.JvmLanguageSourceSet;
 import org.gradle.language.jvm.plugins.JvmLanguagePlugin;
 
@@ -56,8 +55,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     public void apply(final Project target) {
         target.getPlugins().apply(JvmLanguagePlugin.class);
 
-        JvmBinaryContainer jvmBinaryContainer = (JvmBinaryContainer) target.getExtensions().getByType(BinariesContainer.class).getByName("jvm");
-        jvmBinaryContainer.all(new Action<ClassDirectoryBinary>() {
+        BinariesContainer jvmBinaryContainer = target.getExtensions().getByType(BinariesContainer.class);
+        jvmBinaryContainer.withType(ClassDirectoryBinary.class).all(new Action<ClassDirectoryBinary>() {
             public void execute(final ClassDirectoryBinary binary) {
                 binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
                     public void execute(JavaSourceSet javaSourceSet) {

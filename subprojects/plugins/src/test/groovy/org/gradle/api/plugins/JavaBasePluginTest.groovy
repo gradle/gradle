@@ -283,7 +283,7 @@ class JavaBasePluginTest extends Specification {
         }
 
         then:
-        def binary = project.binaries.jvm.findByName("custom")
+        def binary = project.binaries.findByName("custom")
         binary instanceof ClassDirectoryBinary
         binary.classesDir == project.file("classes")
         binary.resourcesDir == project.file("resources")

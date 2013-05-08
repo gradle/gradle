@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.jvm;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+package org.gradle.language.base;
+
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * A container for JVM binaries.
+ * A physical binary artifact, which can run on a particular platform or runtime.
  */
 @Incubating
-public interface JvmBinaryContainer extends ExtensiblePolymorphicDomainObjectContainer<ClassDirectoryBinary>, Named {
+public interface Binary extends Named {
 }

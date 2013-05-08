@@ -18,10 +18,8 @@ package org.gradle.language.base;
 import org.gradle.api.*;
 
 /**
- * A container for binaries that in turn contains more specialized containers.
+ * A container for project binaries, which represent physical artifacts that can run on a particular platform or runtime.
  * Added to a project by the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
  */
-// TODO: ideally this would be a container where each element type is only allowed once and elements can be looked up by type
-// for now I solved the lookup (usability) problem with a JvmLanguagePlugin.getJvmBinariesContainer() method; maybe that's good enough
 @Incubating
-public interface BinariesContainer extends NamedDomainObjectSet<Named> {}
+public interface BinariesContainer extends ExtensiblePolymorphicDomainObjectContainer<Binary> {}
