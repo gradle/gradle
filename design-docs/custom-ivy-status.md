@@ -141,6 +141,9 @@ TBD. May turn out that it's better/easier to implement cross-repository "latest"
 
 # Open issues
 
+* Does module metadata have `project` or `gradle` scope? In the former case, how to deal with the situation
+  where a configuration extends a configuration from another project?
+
 * Figure out what the `integration` flag of an Ivy status means, and if/how we need to support it. See: http://ant.apache.org/ivy/history/2.0.0/settings/statuses.html
 
 * How does "latest" resolution interact with conflict resolution? (If the latest integration version is higher than the latest release version, our conflict resolution might declare it as the winner.)
