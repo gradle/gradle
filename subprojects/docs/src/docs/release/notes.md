@@ -27,7 +27,7 @@ You can also turn off the in-memory dependency metadata cache via a system prope
 
 To avoid increased heap consumption, the in-memory dependency metadata cache may clear the cached data if the system is running out of heap space.
 
-### TestNG parameters included in test reports
+### TestNG parameters included in test reports (i)
 
 TestNG supports [parameterizing test methods](http://testng.org/doc/documentation-main.html#parameters), allowing a particular test method to be executed multiple times with different inputs.
 Previously in Gradle's test reports, parameterized methods were listed multiple times (for each parameterized iteration) with no way to differentiate the executions.

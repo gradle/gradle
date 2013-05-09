@@ -41,6 +41,8 @@ repositories {
             ivy '[organisation]/v[revision]/ivy(.[ext])'
         }
     }
+
+    maven { url 'http://repo.gradle.org/gradle/gradle-build-internal' }
 }
 
 configurations {
@@ -48,6 +50,7 @@ configurations {
     userGuideStyleSheets
     userGuideTask
     jquery
+    jqueryTipTip
     fonts
 }
 
@@ -60,6 +63,7 @@ dependencies {
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
     jquery "jquery:jquery.min:1.8.0@js"
+    jqueryTipTip "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
     fonts \
         "lato:regular:6:v0SdcGFAl2aezM9Vq_aFTQ@ttf",
