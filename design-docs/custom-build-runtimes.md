@@ -18,6 +18,7 @@ may not be packaged in a ZIP or set of JAR or whatever.
 - Locate or install compatible JVM.
 - Wrapper works well when added to the command-line PATH.
 - Wrapper cannot be used because 3rd-party libraries (i.e. gradle-wrapper.jar) cannot be checked into source control.
+- All libs that are part of the build runtime should be available as local resource candidates
 
 # Implementation plan
 
