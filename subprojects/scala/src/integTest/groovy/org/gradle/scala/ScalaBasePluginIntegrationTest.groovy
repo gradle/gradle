@@ -108,4 +108,34 @@ task verify << {
         expect:
         succeeds("verify")
     }
+
+    def "not specifying a scala runtime produces decent error message"() {
+        given:
+        buildFile << """
+            apply plugin: "scala-base"
+
+            sourceSets {
+                main {}
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile "com.google.guava:guava:11.0.2"
+            }
+        """
+
+        file("src/main/scala/Thing.scala") << """
+            class Thing
+        """
+
+        when:
+        fails "compileScala"
+
+        then:
+        errorOutput.contains "Cannot infer Scala class path because no Scala library Jar was found on class path: configuration ':compile'"
+    }
+
 }
