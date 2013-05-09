@@ -246,7 +246,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         ":a" in executedTasks
     }
 
-    def "finalizer task is executed even if the build fails"() {
+    def "finalizer task is executed even if the finalised task fails"() {
         buildFile << """
     task a
     task b  {
@@ -261,20 +261,24 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         ":a" in executedTasks
     }
 
-    def "finalizer task is not executed if the finalized task does not do any work"() {
+    def "finalizer task is not executed if the finalized task does not run"() {
         buildFile << """
-    task a
-    task b {
+    task a {
+        doLast { throw new RuntimeException() }
+    }
+    task b
+    task c {
         doLast {}
-        finalizedBy a
+        dependsOn a
+        finalizedBy b
         onlyIf { false }
     }
 """
         when:
-        succeeds 'b'
+        fails 'c'
 
         then:
-        !(":a" in executedTasks)
+        !(":b" in executedTasks)
     }
 
     def "sensible error message for circular task dependency due to mustRunAfter"() {

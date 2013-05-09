@@ -33,6 +33,7 @@ class TaskInfo implements Comparable<TaskInfo> {
     private boolean dependenciesProcessed;
     private final TreeSet<TaskInfo> hardSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> softSuccessors = new TreeSet<TaskInfo>();
+    private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
 
     public TaskInfo(TaskInternal task) {
         this.task = task;
@@ -45,6 +46,10 @@ class TaskInfo implements Comparable<TaskInfo> {
 
     public boolean getMustRun() {
         return state == TaskExecutionState.MUST_RUN;
+    }
+
+    public boolean getShouldRun() {
+        return state == TaskExecutionState.SHOULD_RUN;
     }
 
     public boolean isReady() {
@@ -122,6 +127,10 @@ class TaskInfo implements Comparable<TaskInfo> {
         return softSuccessors;
     }
 
+    public TreeSet<TaskInfo> getFinalizers() {
+        return finalizers;
+    }
+
     public boolean isRequired() {
         return state != TaskExecutionState.NOT_REQUIRED;
     }
@@ -134,10 +143,6 @@ class TaskInfo implements Comparable<TaskInfo> {
         state = TaskExecutionState.SHOULD_NOT_RUN;
     }
     
-    public boolean isOnlyFinalising() {
-        return state == TaskExecutionState.SHOULD_NOT_RUN;
-    }
-
     public boolean getDependenciesProcessed() {
         return dependenciesProcessed;
     }
@@ -157,6 +162,10 @@ class TaskInfo implements Comparable<TaskInfo> {
 
     public void addSoftSuccessor(TaskInfo toNode) {
         softSuccessors.add(toNode);
+    }
+
+    public void addFinalizer(TaskInfo finalizerNode) {
+        finalizers.add(finalizerNode);
     }
 
     public int compareTo(TaskInfo otherInfo) {

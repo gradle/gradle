@@ -77,11 +77,12 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
     }
 
-    private void failingDependencyForCodenarcMain() {
+    private void failingDependenciesForCodenarcTasks() {
         buildFile << """
             task failingTask << { throw new RuntimeException() }
 
             codenarcMain.dependsOn failingTask
+            codenarcTest.dependsOn failingTask
         """
     }
 
@@ -155,7 +156,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     void 'build dashboard task is not executed if a dependency of the report generating task fails'() {
         given:
         goodCode()
-        failingDependencyForCodenarcMain()
+        failingDependenciesForCodenarcTasks()
 
         when:
         runAndFail('check')
@@ -167,7 +168,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     void 'build dashboard task is not executed if a dependency of the report generating task fails even with --continue'() {
         given:
         goodCode()
-        failingDependencyForCodenarcMain()
+        failingDependenciesForCodenarcTasks()
 
         when:
         args('--continue')
@@ -251,9 +252,9 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         when:
-        run("test", "jacocoTestReport", BUILD_DASHBOARD_TASK_NAME, 'check')
+        run("test", "jacocoTestReport")
         then:
-        dashboardLinksCount == 3
+        dashboardLinksCount == 2
         jacocoLinks() == 1
 
     }

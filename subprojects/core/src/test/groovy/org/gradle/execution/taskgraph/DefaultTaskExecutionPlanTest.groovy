@@ -49,6 +49,12 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.determineExecutionPlan()
     }
 
+    private TaskFailureHandler createIgnoreTaskFailureHandler(Task task) {
+        Mock(TaskFailureHandler) {
+            onTaskFailure(task) >> {}
+        }
+    }
+
     def "returns tasks in dependency order"() {
         given:
         Task a = task("a");
@@ -253,28 +259,31 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executedTasks == [finalized]
     }
 
-    def "finalizer tasks and their dependencies are not executed if finalized task did not do any work"() {
+    def "finalizer tasks and their dependencies are not executed if finalized task did not run"() {
         Task finalizerDependency = task("finalizerDependency")
         Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
-        Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
+        Task finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
+        Task finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
 
         when:
         addToGraphAndPopulate([finalized])
 
         then:
-        executedTasks == [finalized]
+        executedTasks == [finalizedDependency]
     }
 
-    def "finalizer tasks and their dependencies are executed if they are previously required even if the finalized task did not do any work"() {
+    def "finalizer tasks and their dependencies are executed if they are previously required even if the finalized task did not run"() {
         Task finalizerDependency = task("finalizerDependency")
         Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
-        Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
+        Task finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
+        Task finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
+        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(finalizedDependency));
 
         when:
         addToGraphAndPopulate([finalizer, finalized])
 
         then:
-        executedTasks == [finalized, finalizerDependency, finalizer]
+        executedTasks == [finalizedDependency, finalizerDependency, finalizer]
     }
 
     def "finalizer tasks and their dependencies are executed if they are later required via dependency even if the finalized task did not do any work"() {
@@ -476,12 +485,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task b = task("b");
         addToGraphAndPopulate([a, b])
 
-        TaskFailureHandler handler = Mock()
-        handler.onTaskFailure(a) >> {
-        }
-
         when:
-        executionPlan.useFailureHandler(handler);
+        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a));
 
         then:
         executedTasks == [a, b]
@@ -500,12 +505,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task b = task("b", mustRunAfter: [a]);
         addToGraphAndPopulate([a, b])
 
-        TaskFailureHandler handler = Mock()
-        handler.onTaskFailure(a) >> {
-        }
-
         when:
-        executionPlan.useFailureHandler(handler);
+        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a));
 
         then:
         executedTasks == [a, b]
@@ -525,13 +526,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         final Task c = task("c")
         addToGraphAndPopulate([b, c])
 
-        TaskFailureHandler handler = Mock()
-        handler.onTaskFailure(a) >> {
-            // Ignore failure
-        }
-
         when:
-        executionPlan.useFailureHandler(handler)
+        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a))
 
         then:
         executedTasks == [a, c]
