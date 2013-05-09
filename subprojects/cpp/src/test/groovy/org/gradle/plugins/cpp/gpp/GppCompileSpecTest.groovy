@@ -18,7 +18,7 @@ package org.gradle.plugins.cpp.gpp
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.plugins.binaries.model.internal.DefaultBinary
+import org.gradle.plugins.binaries.model.internal.DefaultNativeComponent
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 import org.gradle.plugins.binaries.model.internal.CompileSpecFactory
@@ -29,7 +29,7 @@ class GppCompileSpecTest extends Specification {
     
     def "is built by the compile task"() {
         given:
-        def binary = new DefaultBinary("binary", project, Mock(CompileSpecFactory))
+        def binary = new DefaultNativeComponent("binary", project, Mock(CompileSpecFactory))
         def spec = new GppCompileSpec(binary, Mock(Compiler), project)
         def compileTask = project.tasks.create("compile", CppCompile)
         spec.configure(compileTask)

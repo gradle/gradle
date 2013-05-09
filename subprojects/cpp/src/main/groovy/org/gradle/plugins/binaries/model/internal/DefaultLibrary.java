@@ -28,7 +28,7 @@ import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultLibrary extends DefaultBinary implements Library {
+public class DefaultLibrary extends DefaultNativeComponent implements Library {
     private final DefaultSourceDirectorySet headers;
 
     public DefaultLibrary(String name, ProjectInternal project, CompileSpecFactory specFactory) {

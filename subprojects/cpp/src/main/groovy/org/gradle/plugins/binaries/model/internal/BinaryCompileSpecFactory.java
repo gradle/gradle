@@ -17,11 +17,11 @@
 package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.plugins.binaries.model.Binary;
+import org.gradle.plugins.binaries.model.NativeComponent;
 
 /**
  * This is ugly. Currently, the CompileSpec impls need access to a Compiler, so we need use this interface to provide one at construction time.
  */
 public interface BinaryCompileSpecFactory {
-    BinaryCompileSpec create(Binary binary, Compiler<?> compiler);
+    BinaryCompileSpec create(NativeComponent binary, Compiler<?> compiler);
 }

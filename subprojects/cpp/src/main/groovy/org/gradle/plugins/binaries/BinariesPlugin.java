@@ -15,17 +15,19 @@
  */
 package org.gradle.plugins.binaries;
 
+import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.BinariesContainer;
+import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.plugins.binaries.model.Executable;
 import org.gradle.plugins.binaries.model.Library;
-import org.gradle.plugins.binaries.model.internal.DefaultCompilerRegistry;
-import org.gradle.plugins.binaries.model.internal.DefaultExecutable;
-import org.gradle.plugins.binaries.model.internal.DefaultLibrary;
+import org.gradle.plugins.binaries.model.internal.*;
 
 import javax.inject.Inject;
 
@@ -42,6 +44,8 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
+        project.getPlugins().apply(LanguageBasePlugin.class);
+        final BinariesContainer binaries = project.getExtensions().getByType(BinariesContainer.class);
 
         project.getExtensions().create("compilers",
                 DefaultCompilerRegistry.class,
@@ -49,18 +53,32 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
         );
         DefaultCompilerRegistry registry = project.getExtensions().getByType(DefaultCompilerRegistry.class);
 
-        project.getExtensions().create("executables",
+        NamedDomainObjectSet<Executable> executables = project.getExtensions().create(
+                "executables",
                 FactoryNamedDomainObjectContainer.class,
                 Executable.class,
                 instantiator,
                 new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class, project, registry)
         );
-        project.getExtensions().create("libraries",
+
+        executables.all(new Action<Executable>() {
+            public void execute(Executable executable) {
+                binaries.add(new DefaultExecutableBinary(executable));
+            }
+        });
+
+        NamedDomainObjectSet<Library> libraries = project.getExtensions().create("libraries",
                 FactoryNamedDomainObjectContainer.class,
                 Library.class,
                 instantiator,
                 new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project, registry)
         );
+
+        libraries.all(new Action<Library>() {
+            public void execute(Library library) {
+                binaries.add(new DefaultSharedLibraryBinary(library));
+            }
+        });
     }
 
 }

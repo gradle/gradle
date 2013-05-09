@@ -19,7 +19,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.binaries.model.Binary;
+import org.gradle.plugins.binaries.model.NativeComponent;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerAdapter;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 import org.gradle.plugins.cpp.gpp.internal.version.GppVersionDeterminer;
@@ -68,7 +68,7 @@ public class GppCompilerAdapter extends CommandLineCppCompilerAdapter<GppCompile
         return version != null;
     }
 
-    public Compiler<GppCompileSpec> createCompiler(Binary binary) {
+    public Compiler<GppCompileSpec> createCompiler(NativeComponent binary) {
         String version = getVersion();
         if (version == null) {
             throw new IllegalStateException("Cannot create gpp compiler when it is not available");

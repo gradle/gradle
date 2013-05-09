@@ -17,7 +17,7 @@
 package org.gradle.plugins.cpp.gpp
 
 import org.gradle.plugins.binaries.model.LibraryCompileSpec
-import org.gradle.plugins.binaries.model.Binary
+import org.gradle.plugins.binaries.model.NativeComponent
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.api.internal.project.ProjectInternal
@@ -25,7 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal
 class GppLibraryCompileSpec extends GppCompileSpec implements LibraryCompileSpec {
     String installName
 
-    GppLibraryCompileSpec(Binary binary, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
+    GppLibraryCompileSpec(NativeComponent binary, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
         super(binary, compiler, project)
     }
 

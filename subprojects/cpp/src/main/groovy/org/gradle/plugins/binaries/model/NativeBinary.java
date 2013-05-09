@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.Named;
-import org.gradle.api.Project;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.language.base.Binary;
 
 /**
- * Something to be created.
+ * A native binary.
  */
-public interface Binary extends Named, Buildable {
+public interface NativeBinary extends Binary {
 
     CompileSpec getSpec();
 
-    /**
-     * Returns the project that this binary is built by.
-     *
-     * @deprecated No replacement
-     */
-    @Deprecated
-    Project getProject();
-    
     DomainObjectSet<SourceSet> getSourceSets();
+
 }

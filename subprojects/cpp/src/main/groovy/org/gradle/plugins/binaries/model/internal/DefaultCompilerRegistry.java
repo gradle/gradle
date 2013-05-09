@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.plugins.binaries.model.Binary;
+import org.gradle.plugins.binaries.model.NativeComponent;
 import org.gradle.plugins.binaries.model.Compiler;
 import org.gradle.plugins.binaries.model.CompilerRegistry;
 import org.slf4j.Logger;
@@ -66,15 +66,15 @@ public class DefaultCompilerRegistry extends DefaultNamedDomainObjectSet<Compile
         return null;
     }
 
-    public BinaryCompileSpec create(final Binary binary) {
+    public BinaryCompileSpec create(final NativeComponent binary) {
         org.gradle.api.internal.tasks.compile.Compiler<BinaryCompileSpec> lazyCompiler = new LazyCompiler(binary);
         return specFactory.create(binary, lazyCompiler);
     }
 
     private class LazyCompiler implements org.gradle.api.internal.tasks.compile.Compiler<BinaryCompileSpec> {
-        private final Binary binary;
+        private final NativeComponent binary;
 
-        public LazyCompiler(Binary binary) {
+        public LazyCompiler(NativeComponent binary) {
             this.binary = binary;
         }
 

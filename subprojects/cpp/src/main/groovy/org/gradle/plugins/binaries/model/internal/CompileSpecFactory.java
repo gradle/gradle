@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.plugins.binaries.model.Binary;
+import org.gradle.plugins.binaries.model.NativeComponent;
 
 /**
  * Producer of compile specs
@@ -25,5 +25,5 @@ public interface CompileSpecFactory {
     /**
      * Create a new spec to compile this binary
      */
-    BinaryCompileSpec create(Binary binary);
+    BinaryCompileSpec create(NativeComponent binary);
 }

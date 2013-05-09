@@ -25,11 +25,11 @@ import org.gradle.plugins.binaries.model.*
  */
 class CprojectSettings {
 
-    Binary binary
+    NativeComponent binary
     private final ConfigurableFileCollection includeRoots
     private final ConfigurableFileCollection libs
 
-    CprojectSettings(Binary binary, ProjectInternal project) {
+    CprojectSettings(NativeComponent binary, ProjectInternal project) {
         this.binary = binary
         includeRoots = project.files()
         libs = project.files()

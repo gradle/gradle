@@ -20,7 +20,7 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.plugins.binaries.model.Binary
+import org.gradle.plugins.binaries.model.NativeComponent
 import org.gradle.plugins.binaries.model.CompileSpec
 import org.gradle.plugins.binaries.model.Library
 import org.gradle.plugins.binaries.model.internal.CompileTaskAware
@@ -35,7 +35,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.plugins.cpp.CppCompile
 
 class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
-    Binary binary
+    NativeComponent binary
 
     private CppCompile task
     List<Closure> settings = []
@@ -49,7 +49,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     private final ConfigurableFileCollection includes
     private final ConfigurableFileCollection source
 
-    GppCompileSpec(Binary binary, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
+    GppCompileSpec(NativeComponent binary, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
         this.binary = binary
         this.compiler = compiler
         this.project = project
@@ -116,7 +116,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
      * @deprecated No replacement
      */
     @Deprecated
-    void setBinary(Binary binary) {
+    void setBinary(NativeComponent binary) {
         DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.setBinary()")
         this.binary = binary
     }

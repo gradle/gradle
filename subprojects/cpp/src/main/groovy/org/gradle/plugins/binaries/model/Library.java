@@ -20,7 +20,7 @@ import org.gradle.api.file.SourceDirectorySet;
 /**
  * A library
  */
-public interface Library extends Binary {
+public interface Library extends NativeComponent {
     LibraryCompileSpec getSpec();
 
     SourceDirectorySet getHeaders();

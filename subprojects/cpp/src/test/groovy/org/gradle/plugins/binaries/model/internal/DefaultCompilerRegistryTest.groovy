@@ -18,7 +18,7 @@ package org.gradle.plugins.binaries.model.internal
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.plugins.binaries.model.Binary
+import org.gradle.plugins.binaries.model.NativeComponent
 import spock.lang.Specification
 
 class DefaultCompilerRegistryTest extends Specification {
@@ -53,7 +53,7 @@ class DefaultCompilerRegistryTest extends Specification {
     }
 
     def "compilation searches adapters in the order added and uses the first available"() {
-        Binary binary = Mock()
+        NativeComponent binary = Mock()
         BinaryCompileSpec compileSpec = Mock()
         CompilerAdapter<BinaryCompileSpec> compiler1 = compiler("z")
         CompilerAdapter<BinaryCompileSpec> compiler2 = compiler("b")
@@ -84,7 +84,7 @@ class DefaultCompilerRegistryTest extends Specification {
     }
 
     def "compilation fails when no adapter is available"() {
-        Binary binary = Mock()
+        NativeComponent binary = Mock()
         BinaryCompileSpec compileSpec = Mock()
         CompilerAdapter<BinaryCompileSpec> compiler1 = compiler("z")
         CompilerAdapter<BinaryCompileSpec> compiler2 = compiler("b")

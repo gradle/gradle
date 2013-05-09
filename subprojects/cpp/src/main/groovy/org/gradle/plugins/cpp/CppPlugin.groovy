@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.plugins.cpp
-
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.Sync
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.binaries.BinariesPlugin
-import org.gradle.plugins.binaries.model.Binary
-import org.gradle.plugins.binaries.model.Executable
+import org.gradle.plugins.binaries.model.ExecutableBinary
+import org.gradle.plugins.binaries.model.NativeBinary
+import org.gradle.plugins.binaries.model.SharedLibraryBinary
 import org.gradle.plugins.binaries.model.internal.DefaultCompilerRegistry
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
 import org.gradle.plugins.cpp.gpp.internal.GppCompileSpecFactory
@@ -45,25 +45,23 @@ class CppPlugin implements Plugin<ProjectInternal> {
             sourceSet.exportedHeaders.srcDir "src/${sourceSet.name}/headers"
         }
 
-        // Defaults for all executables
-        project.executables.all { executable ->
+        project.binaries.withType(ExecutableBinary) { executable ->
             configureExecutable(project, executable)
         }
 
-        // Defaults for all libraries
-        project.libraries.all { library ->
+        project.binaries.withType(SharedLibraryBinary) { library ->
             configureBinary(project, library)
         }
     }
 
-    def configureExecutable(ProjectInternal project, Executable executable) {
-        configureBinary(project, executable)
+    def configureExecutable(ProjectInternal project, ExecutableBinary executable) {
+        def executableTask = configureBinary(project, executable)
 
         def baseName = GUtil.toCamelCase(executable.name).capitalize()
         project.task("install${baseName}", type: Sync) {
             description = "Installs a development image of $executable"
             into { project.file("${project.buildDir}/install/$executable.name") }
-            dependsOn executable
+            dependsOn executableTask
             if (OperatingSystem.current().windows) {
                 from { executable.spec.outputFile }
                 from { executable.sourceSets*.libs*.spec*.outputFile }
@@ -87,7 +85,7 @@ exec "\$APP_BASE_NAME/lib/${executable.spec.outputFile.name}" \"\$@\"
         }
     }
 
-    def configureBinary(ProjectInternal project, Binary binary) {
+    def configureBinary(ProjectInternal project, NativeBinary binary) {
         def baseName = GUtil.toCamelCase(binary.name).capitalize()
 
         def task = project.task("compile${baseName}", type: CppCompile) {
@@ -95,5 +93,6 @@ exec "\$APP_BASE_NAME/lib/${executable.spec.outputFile.name}" \"\$@\"
             group = BasePlugin.BUILD_GROUP
         }
         binary.spec.configure(task)
+        return task
     }
 }

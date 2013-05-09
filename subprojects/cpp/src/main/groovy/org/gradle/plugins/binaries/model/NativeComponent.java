@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.binaries.model.internal;
+package org.gradle.plugins.binaries.model;
 
-import org.gradle.plugins.binaries.model.Executable;
+import org.gradle.api.Buildable;
+import org.gradle.api.Named;
+import org.gradle.api.Project;
+import org.gradle.api.DomainObjectSet;
 
-import org.gradle.api.internal.project.ProjectInternal;
+/**
+ * Something to be created.
+ */
+public interface NativeComponent extends Named, Buildable {
 
-public class DefaultExecutable extends DefaultNativeComponent implements Executable {
-    public DefaultExecutable(String name, ProjectInternal project, CompileSpecFactory specFactory) {
-        super(name, project, specFactory);
-    }
+    CompileSpec getSpec();
 
-    @Override
-    public String toString() {
-        return String.format("executable '%s'", getName());
-    }
+    /**
+     * Returns the project that this binary is built by.
+     *
+     * @deprecated No replacement
+     */
+    @Deprecated
+    Project getProject();
+    
+    DomainObjectSet<SourceSet> getSourceSets();
 }

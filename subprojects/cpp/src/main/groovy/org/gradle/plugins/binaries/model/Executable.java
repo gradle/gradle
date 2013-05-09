@@ -18,6 +18,6 @@ package org.gradle.plugins.binaries.model;
 /**
  * An executable binary
  */
-public interface Executable extends Binary {
+public interface Executable extends NativeComponent {
     
 }
