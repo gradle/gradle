@@ -36,7 +36,7 @@
         Please let us know your feedback or report any issues.
     </para>
     <para>
-        This plugin provides a lifecycle task named<literal>setupBuild</literal>.
+        This plugin provides a lifecycle task named <literal>setupBuild</literal>.
         If a Gradle build with the task name <literal>setupBuild</literal> is triggered in a directory
         without an existing build file in the project directory, the build setup plugin is auto applied.
         This means that you can setup a Gradle project build without needing a stub build.gradle file declaring
@@ -90,8 +90,8 @@
             <title>Generate specific project types</title>
             <para>
                 The build-setup plugin allows the generation of specific project types by passing the type via <literal>--type</literal>
-                command-line option. For example generating a java library project you can run <code>gradle buildSetup --type java-library</code>
-                in an empty directory. When passing a <literal>--type</literal> parameter to the <literal>buildSetup</literal>
+                command-line option. For example generating a java library project you can run <code>gradle setupBuild --type java-library</code>
+                in an empty directory. When passing a <literal>--type</literal> parameter to the <literal>setupBuild</literal>
                 task, any pom file will be ignored for automatic conversion.
             </para>
 
@@ -99,7 +99,7 @@
                 <title>Empty Gradle Project</title>
                 <para>The
                     build setup type with id <literal>empty</literal> is the default type, when executing
-                    <literal>buildSetup</literal> in a directory with no existing gradle files and no existing pom file.
+                    <literal>setupBuild</literal> in a directory with no existing gradle files and no existing pom file.
                     This build setup type generates
                     <itemizedlist>
                         <listitem>a sample  <literal>build.gradle</literal> with comments and links to get started.
@@ -111,7 +111,7 @@
                 <title>Maven conversion</title>
                 <para>The
                     build setup type with id <literal>pom</literal> is the default type, when executing
-                    <literal>buildSetup</literal> in a directory with an existing pom file.
+                    <literal>setupBuild</literal> in a directory with an existing pom file.
                     This build setup type triggers the <literal>maven2Gradle</literal> conversion.
                 </para>
                 <para>
