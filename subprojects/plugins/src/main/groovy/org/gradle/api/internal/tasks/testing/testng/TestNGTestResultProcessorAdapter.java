@@ -88,7 +88,11 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
         Object[] parameters = iTestResult.getParameters();
         String name = iTestResult.getName();
         if (parameters != null && parameters.length > 0) {
-            StringBuilder builder = new StringBuilder(name).append("(");
+            StringBuilder builder = new StringBuilder(name).
+                    append("[").
+                    append(iTestResult.getMethod().getCurrentInvocationCount()).
+                    append("](");
+
             int i = 0;
             for (Object parameter : parameters) {
                 builder.append(calculateParameterRepresentation(parameter));

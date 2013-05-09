@@ -120,12 +120,12 @@ xml entity: &amp;
         executionResult.testClass("org.ParameterizedTest")
                 .assertTestCount(6, 3, 0)
                 .assertTestsExecuted(
-                    "p1(1, 2)", "p3(1, «toString() threw java.lang.RuntimeException: bang!»)", "p4(1, \">…Ú)",
-                    "p1(3, 4)", "p3(2, «toString() threw java.lang.RuntimeException: bang!»)", "p4(2, \">…Ú)"
+                    "p1[0](1, 2)", "p3[0](1, «toString() threw java.lang.RuntimeException: bang!»)", "p4[0](1, \">…Ú)",
+                    "p1[1](3, 4)", "p3[1](2, «toString() threw java.lang.RuntimeException: bang!»)", "p4[1](2, \">…Ú)"
                 )
-                .assertTestFailed("p1(3, 4)", anything())
-                .assertTestFailed("p3(2, «toString() threw java.lang.RuntimeException: bang!»)", anything())
-                .assertTestFailed("p4(2, \">…Ú)", anything())
+                .assertTestFailed("p1[1](3, 4)", anything())
+                .assertTestFailed("p3[1](2, «toString() threw java.lang.RuntimeException: bang!»)", anything())
+                .assertTestFailed("p4[1](2, \">…Ú)", anything())
     }
 
 
