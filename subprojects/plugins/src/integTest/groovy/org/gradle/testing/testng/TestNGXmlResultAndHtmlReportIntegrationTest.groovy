@@ -118,13 +118,13 @@ xml entity: &amp;
                 .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
 
         executionResult.testClass("org.ParameterizedTest")
-                .assertTestCount(6, 3, 0)
+                .assertTestCount(6, 4, 0)
                 .assertTestsExecuted(
-                    "p1[0](1, 2)", "p3[0](1, «toString() threw java.lang.RuntimeException: bang!»)", "p4[0](1, \">…Ú)",
-                    "p1[1](3, 4)", "p3[1](2, «toString() threw java.lang.RuntimeException: bang!»)", "p4[1](2, \">…Ú)"
-                )
+                "p1[0](1, 2)", "p4[0](1, \">…Ú)", "p1[1](3, 4)", "p3[0]", "p3[1]", "p4[1](2, \">…Ú)"
+        )
                 .assertTestFailed("p1[1](3, 4)", anything())
-                .assertTestFailed("p3[1](2, «toString() threw java.lang.RuntimeException: bang!»)", anything())
+                .assertTestFailed("p3[0]", containsString("Parameter 2 of iteration 1 of method 'p3' toString() method threw exception"))
+                .assertTestFailed("p3[1]", containsString("Parameter 2 of iteration 2 of method 'p3' toString() method threw exception"))
                 .assertTestFailed("p4[1](2, \">…Ú)", anything())
     }
 
