@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 package org.gradle.plugins.cpp.gpp
-
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.plugins.binaries.model.NativeComponent
 import org.gradle.plugins.binaries.model.CompileSpec
 import org.gradle.plugins.binaries.model.Library
+import org.gradle.plugins.binaries.model.NativeComponent
 import org.gradle.plugins.binaries.model.internal.CompileTaskAware
+import org.gradle.plugins.cpp.CppCompile
 import org.gradle.plugins.cpp.CppSourceSet
 import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
 import org.gradle.plugins.cpp.internal.CppCompileSpec
-import org.gradle.util.DeprecationLogger
-import org.gradle.api.file.ConfigurableFileCollection
-
-import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.internal.tasks.DefaultTaskDependency
-import org.gradle.plugins.cpp.CppCompile
 
 class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
     NativeComponent binary
@@ -42,7 +39,6 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
 
     String outputFileName
     String baseName
-    String extension
     private final Compiler<? super GppCompileSpec> compiler
     private final ProjectInternal project
     private final ConfigurableFileCollection libs
@@ -94,33 +90,6 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
         return source
     }
 
-    /**
-     * @deprecated No replacement
-     */
-    @Deprecated
-    String getExtension() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.getExtension()")
-        return extension
-    }
-
-    /**
-     * @deprecated No replacement
-     */
-    @Deprecated
-    void setExtension(String extension) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.setExtension()")
-        this.extension = extension
-    }
-
-    /**
-     * @deprecated No replacement
-     */
-    @Deprecated
-    void setBinary(NativeComponent binary) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.setBinary()")
-        this.binary = binary
-    }
-
     File getOutputFile() {
         project.file "$project.buildDir/binaries/${getOutputFileName()}"
     }
@@ -128,8 +97,6 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     String getOutputFileName() {
         if (outputFileName) {
             return outputFileName
-        } else if (extension) {
-            return "${getBaseName()}.${extension}"
         } else {
             return getDefaultOutputFileName()
         }
@@ -139,6 +106,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
         return OperatingSystem.current().getExecutableName(getBaseName())
     }
 
+    // TODO:DAZ Remove this
     String getBaseName() {
         baseName ?: name
     }
@@ -197,22 +165,5 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
         setting {
             it.args args
         }
-    }
-
-    /**
-     * @deprecated No replacement
-     */
-    @Deprecated
-    void sharedLibrary() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileSpec.sharedLibrary()")
-    }
-
-    /**
-     * @deprecated No replacement
-     */
-    @Deprecated
-    void compile() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileSpec.compile()")
-        compiler.execute(this)
     }
 }

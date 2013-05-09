@@ -29,7 +29,7 @@ class GppCompileSpecTest extends Specification {
     
     def "is built by the compile task"() {
         given:
-        def binary = new DefaultNativeComponent("binary", project, Mock(CompileSpecFactory))
+        def binary = new DefaultNativeComponent("binary", Mock(CompileSpecFactory))
         def spec = new GppCompileSpec(binary, Mock(Compiler), project)
         def compileTask = project.tasks.create("compile", CppCompile)
         spec.configure(compileTask)

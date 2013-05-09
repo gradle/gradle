@@ -28,7 +28,7 @@ class GppLibraryCompileSpecTest extends Specification {
 
     def "has default installPath"() {
         given:
-        def library = new DefaultLibrary("binary", project, Mock(CompileSpecFactory))
+        def library = new DefaultLibrary("binary", Mock(CompileSpecFactory), project.getFileResolver())
         def spec = new GppLibraryCompileSpec(library, Mock(Compiler), project)
 
         expect:

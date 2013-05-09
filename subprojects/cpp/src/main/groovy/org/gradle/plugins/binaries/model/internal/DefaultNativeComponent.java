@@ -18,23 +18,19 @@ package org.gradle.plugins.binaries.model.internal;
 import groovy.lang.Closure;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.plugins.binaries.model.NativeComponent;
 import org.gradle.plugins.binaries.model.CompileSpec;
+import org.gradle.plugins.binaries.model.NativeComponent;
 import org.gradle.plugins.binaries.model.SourceSet;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 public class DefaultNativeComponent implements NativeComponent {
     private final String name;
-    private final ProjectInternal project;
     private final BinaryCompileSpec spec;
     private final DomainObjectSet<SourceSet> sourceSets;
 
-    public DefaultNativeComponent(String name, ProjectInternal project, CompileSpecFactory specFactory) {
+    public DefaultNativeComponent(String name, CompileSpecFactory specFactory) {
         this.name = name;
-        this.project = project;
         this.sourceSets = new DefaultDomainObjectSet<SourceSet>(SourceSet.class);
         this.spec = specFactory.create(this);
     }
@@ -45,11 +41,6 @@ public class DefaultNativeComponent implements NativeComponent {
 
     public TaskDependency getBuildDependencies() {
         return spec.getBuildDependencies();
-    }
-
-    public ProjectInternal getProject() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Binary.getProject()");
-        return project;
     }
 
     public CompileSpec getSpec() {

@@ -58,7 +58,7 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
                 FactoryNamedDomainObjectContainer.class,
                 Executable.class,
                 instantiator,
-                new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class, project, registry)
+                new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class, registry)
         );
 
         executables.all(new Action<Executable>() {
@@ -71,7 +71,7 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
                 FactoryNamedDomainObjectContainer.class,
                 Library.class,
                 instantiator,
-                new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project, registry)
+                new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, registry, project.getFileResolver())
         );
 
         libraries.all(new Action<Library>() {
