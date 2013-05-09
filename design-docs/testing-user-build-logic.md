@@ -1,6 +1,6 @@
 The support Gradle provides for users to test their custom build logic is inadequate. Both the tooling and documentation is deficient. As a philosophy of Gradle is that a build is just another kind of software endeavour, it should be possible to follow the state of the art software development practices such as testing, continuous integration and TDD.
 
-The concept of a Gradle “test-kit” will be developed. This will a library of one or more jars that contain utilities to aid in testing Gradle code; this library will not be considered part of the normal Gradle runtime. It will be testing technology agnostic, and not Groovy dependent at its core. There may be adapters added for different testing technologies (e.g. Groovy, Spock, JUnit) added over time.
+The concept of a Gradle “test-kit” will be developed. This will be a library of one or more jars that contain utilities to aid in testing Gradle code; this library will not be considered part of the normal Gradle runtime. It will be testing technology agnostic, and not Groovy dependent at its core. There may be adapters added for different testing technologies (e.g. Groovy, Spock, JUnit) added over time.
 
 The Gradle project internally already has something resembling a “test-kit”. Initially, the public “test-kit” will have no relation to this internal test-kit and will focus on the testing needs of users which may prove to be a subset of the requirements for testing Gradle itself. If there is significant convergence, the internal kit will over time come to be based on the public kit. The design of the public kit will likely be inspired by the internal kit, but need not share code.
 
@@ -13,6 +13,10 @@ The tools developed may support testing build instances, but this is not a prima
 ## Integration testing
 
 Code under test is executed in a test fixture that simulates the build environment.
+
+Examples:
+
+* Creating a dependency injected instance of either a core or custom type, with the ability to inject test doubles
 
 ## Functional testing
 
