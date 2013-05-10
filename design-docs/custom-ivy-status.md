@@ -16,7 +16,7 @@ for module metadata. Initially, this type of metadata will be declared in the bu
 * For an Ivy module, `status` defaults to the module's Ivy status, which in turn defaults to the least mature status in `statusScheme`.
 * For a Maven module, `status` defaults to the least mature status in `statusScheme` if the version contains `-SNAPSHOT`, and to the most mature otherwise.
   (This can be improved over time, for example by taking `maven-metadata.xml` into consideration.)
-* For a flatDir module, `status` defaults to the least mature status in `statusScheme` if the version contains `-SNAPSHOT`, and to the most mature otherwise.
+* For a flatDir module, `status` defaults to the least mature status in `statusScheme`.
 
 (Other defaults are conceivable. We could even have different default status schemes per repository type, for example `release` and `snapshot` for Maven repositories.)
 
