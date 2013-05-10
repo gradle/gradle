@@ -176,9 +176,74 @@ HTML report is generated from the binary format, not from XML results
 - Change test task to persist test results in internal format.
 - Add test report task.
 
-## Story: HTML test report shows output per test
+## Story: XML test report shows output per test
 
--instead of showing output for the entire test class the report shows output per test method
+This is about providing a way to produce XML like:
+
+    <?xml version="1.1" encoding="UTF-8"?>
+    <testsuite name="junit.TheTest" tests="2" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="hasdrubal.local" time="1.366372749405E9">
+     <properties/>
+     <testcase name="t1" classname="junit.TheTest" time="0.001">
+       <system-out><![CDATA[from t1]]></system-out>
+     </testcase>
+     <testcase name="t2" classname="junit.TheTest" time="0.001">
+       <system-out><![CDATA[from t2]]></system-out>
+     </testcase>
+    </testsuite>
+
+Where as we currently produce:
+
+    <?xml version="1.1" encoding="UTF-8"?>
+    <testsuite name="junit.TheTest" tests="1" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="hasdrubal.local" time="1.366372749405E9">
+     <properties/>
+     <testcase name="t" classname="junit.TheTest" time="0.001"/>
+     <testcase name="t2" classname="junit.TheTest" time="0.001/">
+     <system-out><![CDATA[from t1
+    from t2]]></system-out>
+    </testsuite>
+
+Jenkins support the output-nested-under-testcase approach outlined above. Having output in this format will produce better test result reporting in the Jenkins UI.
+
+As this is a communication protocol between Gradle and other tools (e.g. CI servers) changing this format needs to be managed carefully.
+
+### User visible changes
+
+This improved format will be opt in.
+
+1. The `Test` task will be made to implement `Reporting`.
+1. It will expose one report named `junitXml` of type `JunitXmlReport implements Report`
+1. `JunitXmlReport` will have a boolean flag named `outputPerTestCase` which defaults to `false`
+
+To enable this feature:
+
+    test {
+      reporting {
+        junitXml.outputPerTestCase true
+      }
+    }
+
+Note: Respecting the `enabled` flag of the report could be implemented at this time, or an exception could be thrown if someone tries to disable the XML report.
+
+### Implementation
+
+Our test execution infrastructure already correctly associates output events with test cases. Nothing needs to change there. When we serialise the results to disk back in the build process we discard this association and write a single text file for each stream (out & err) of each class. The JUnit XML generator uses these files (along with the binary results file) to generate the XML. The association between output and test case needs to be added to this serialisation. Note that the text files of the stdout and stderr are internal.
+
+- An index of the output will be appended to the output files, mapping starting line number to test case “id”.
+
+This is preferable to creating a file per test case as that could cause an explosion of files (slowing test execution and cleaning). This also assumes that test methods are never executed concurrently within a test class. 
+
+The output serializer can do this regardless of how the XML is generated. Only the XML generator needs to know about the `outputPerTestCase` parameter.
+
+### Test coverage
+
+- Test class with multiple methods producing output produces correctly nested output elements in XML (JUnit and TestNG)
+- Test class with parameterised methods producing output produces correctly … (JUnit and TestNG)
+- Useful output/result when test case names are not unique 
+- With `outputPerTestCase` on, output from class level methods (e.g. `@BeforeClass`) is associated with the test class
+- With `outputPerTestCase` on, output from test case level methods (e.g. `@Before`) is associated with the test case
+- With `outputPerTestCase` off, existing output format is unchanged (should be covered by not introducing failures for our existing tests)
+
+## Story: HTML test report shows output per test
 
 ## Story: HTML test report shows aggregated output (out + err)
 
