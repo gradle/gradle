@@ -19,6 +19,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.util.HelperUtil
@@ -135,6 +136,21 @@ class IdeaPluginTest extends Specification {
         test.any { it.name.contains('generated-test') }
         test.any { it.name.contains('test-resources') }
      }
+
+    def "makes scala modules depend on root's project"() {
+        applyPluginToProjects()
+
+        when:
+        childProject.plugins.apply(ScalaPlugin)
+
+        then:
+        def parentIdeaProject = project.tasks.ideaProject
+        def parentIdeaModule = project.tasks.ideaModule
+        def childIdeaModule = childProject.tasks.ideaModule
+
+        childIdeaModule.taskDependencies.getDependencies(childIdeaModule).contains(parentIdeaProject)
+        !parentIdeaModule.taskDependencies.getDependencies(parentIdeaModule).contains(parentIdeaProject)
+    }
 
     private void assertThatIdeaModuleIsProperlyConfigured(Project project) {
         GenerateIdeaModule ideaModuleTask = project.ideaModule
