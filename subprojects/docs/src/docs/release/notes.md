@@ -98,6 +98,13 @@ For more details, please refer to the section about the in-memory dependency met
 - `JacocoTaskExtension.classDumpPath` renamed to `classDumpFile`
 - `JacocoMerge.destFile` renamed to `destinationFile`
 
+### Incubating BuildSetup plugin changes
+
+- `ConvertMaven2Gradle`, `GenerateBuildScript` and `GenerateSettingsScript` have been removed. The according logic is now part of the `SetupBuild` task.
+- The plugin creates different set of tasks, with different types and names depending on the build-setup type
+- The `setupWrapper` task is now called `wrapper`.
+
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
