@@ -10,20 +10,21 @@ class EnterpriseRepositoryPlugin implements Plugin<Gradle> {
     private static String ENTERPRISE_REPOSITORY_URL = "http://repo.gradle.org/gradle/repo"
 
     void apply(Gradle gradle) {
-        // ONLY USE COPORATE REPO FOR DEPENDENCIES
-        gradle.allProjects { project ->
+        // ONLY USE ENTERPRISE REPO FOR DEPENDENCIES
+        gradle.allprojects{ project ->
             project.repositories {
 
                 //remove all repositories not pointing to the enterprise repository url
                 all { ArtifactRepository repo ->
                     if (!(repo instanceof MavenArtifactRepository) || repo.url.toString() != ENTERPRISE_REPOSITORY_URL) {
-                        project.logger.warn "Repository ${repo.url} removed. Only $ENTERPRISE_REPOSITORY_URL is allowed"
+                        project.logger.lifecycle "Repository ${repo.url} removed. Only $ENTERPRISE_REPOSITORY_URL is allowed"
                         remove repo
                     }
                 }
 
                 // add the enterprise repository
                 maven {
+                    name "STANDARD_ENTERPRISE_REPO"
                     url ENTERPRISE_REPOSITORY_URL
                 }
             }
