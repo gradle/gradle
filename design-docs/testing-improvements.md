@@ -224,6 +224,8 @@ To enable this feature:
 
 Note: Respecting the `enabled` flag of the report could be implemented at this time, or an exception could be thrown if someone tries to disable the XML report.
 
+Note: Moving the HTML report underneath the reporting infrastructure is not part of this story
+
 ### Implementation
 
 Our test execution infrastructure already correctly associates output events with test cases. Nothing needs to change there. When we serialise the results to disk back in the build process we discard this association and write a single text file for each stream (out & err) of each class. The JUnit XML generator uses these files (along with the binary results file) to generate the XML. The association between output and test case needs to be added to this serialisation. Note that the text files of the stdout and stderr are internal.
