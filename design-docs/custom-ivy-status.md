@@ -141,8 +141,9 @@ TBD. May turn out that it's better/easier to implement cross-repository "latest"
 
 # Open issues
 
-* Does module metadata have `project` or `gradle` scope? In the former case, how to deal with the situation
-  where a configuration extends a configuration from another project?
+* How to deal with the situation where a configuration depends on a configuration from another project? Will all metadata come from the
+  project whose configuration gets resolved, rather than from the project that declares the dependency? (We already have the same problem
+  for repositories.)
 
 * Figure out what the `integration` flag of an Ivy status means, and if/how we need to support it. See: http://ant.apache.org/ivy/history/2.0.0/settings/statuses.html
 
