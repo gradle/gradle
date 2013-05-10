@@ -65,6 +65,10 @@ task retrieve(type: Sync) {
 
         then:
         UnexpectedBuildFailure e = thrown()
-        e.cause.cause.cause instanceof ModuleVersionNotFoundException
+        causes(e).any { it instanceof ModuleVersionNotFoundException }
+    }
+
+    def causes(e) {
+        if (e == null) [] else [e] + causes(e.cause)
     }
 }
