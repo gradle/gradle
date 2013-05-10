@@ -88,7 +88,7 @@ public class JUnitXmlResultWriter {
             for (Throwable failure : methodResult.getExceptions()) {
                 writer.startElement("failure")
                         .attribute("message", failureMessage(failure))
-                        .attribute("type", failure.getClass().getName());
+                        .attribute("type", failure == null ? "(null)" : failure.getClass().getName());
 
                 writer.characters(stackTrace(failure));
 
@@ -102,7 +102,14 @@ public class JUnitXmlResultWriter {
         try {
             return throwable.toString();
         } catch (Throwable t) {
-            String exceptionClassName = throwable instanceof PlaceholderException ? ((PlaceholderException)throwable).getExceptionClassName() : throwable.getClass().getName();
+            String exceptionClassName;
+            if (throwable instanceof PlaceholderException) {
+                exceptionClassName = ((PlaceholderException)throwable).getExceptionClassName();
+            } else if (throwable != null) {
+                exceptionClassName = throwable.getClass().getName();
+            } else {
+                exceptionClassName = "(null exception)";
+            }
             return String.format("Could not determine failure message for exception of type %s: %s",
                     exceptionClassName, t);
         }

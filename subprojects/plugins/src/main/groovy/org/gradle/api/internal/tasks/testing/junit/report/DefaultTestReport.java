@@ -63,7 +63,8 @@ public class DefaultTestReport implements TestReporter {
                     } else {
                         List<Throwable> failures = collectedResult.getExceptions();
                         for (Throwable throwable : failures) {
-                            testResult.addFailure(throwable.getMessage(), stackTrace(throwable));
+                            String message = throwable == null ? "(null exception)" : throwable.getMessage();
+                            testResult.addFailure(message, stackTrace(throwable));
                         }
                     }
                 }
