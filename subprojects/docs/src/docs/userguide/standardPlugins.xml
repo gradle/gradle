@@ -317,30 +317,30 @@
                 </tr>
             </thead>
             <tr>
-                <tr>
-                    <td>
-                        <link linkend='announce_plugin'>
-                            <literal>announce</literal>
-                        </link>
-                    </td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>
-                        <para>Publish messages to your favourite platforms, such as Twitter or Growl.</para>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <link linkend='build_announcements_plugin'>
-                            <literal>build-announcements</literal>
-                        </link>
-                    </td>
-                    <td>announce</td>
-                    <td>-</td>
-                    <td>
-                        <para>Sends local announcements to your desktop about interesting events in the build lifecycle.</para>
-                    </td>
-                </tr>
+                <td>
+                    <link linkend='announce_plugin'>
+                        <literal>announce</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Publish messages to your favourite platforms, such as Twitter or Growl.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='build_announcements_plugin'>
+                        <literal>build-announcements</literal>
+                    </link>
+                </td>
+                <td>announce</td>
+                <td>-</td>
+                <td>
+                    <para>Sends local announcements to your desktop about interesting events in the build lifecycle.</para>
+                </td>
+            </tr>
+            <tr>
                 <td>
                     <link linkend='checkstyle_plugin'>
                         <literal>checkstyle</literal>
