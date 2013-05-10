@@ -376,14 +376,12 @@ public class DependencyGraphBuilder {
             parent.addChild(child);
 
             Set<ResolvedArtifact> artifacts = getArtifacts(childConfiguration, artifactFactory);
-            if (!artifacts.isEmpty()) {
-                child.addParentSpecificArtifacts(parent, artifacts);
-            }
-
             if (artifacts.isEmpty()) {
-                child.addParentSpecificArtifacts(parent, childConfiguration.getArtifacts(artifactFactory));
+                artifacts = childConfiguration.getArtifacts(artifactFactory);
             }
-            for (ResolvedArtifact artifact : child.getParentArtifacts(parent)) {
+            child.addParentSpecificArtifacts(parent, artifacts);
+
+            for (ResolvedArtifact artifact : artifacts) {
                 result.addArtifact(artifact);
             }
 
