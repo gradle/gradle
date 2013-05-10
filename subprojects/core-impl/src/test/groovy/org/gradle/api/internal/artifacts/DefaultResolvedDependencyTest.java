@@ -15,10 +15,15 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.internal.Factory;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.jmock.Expectations;
+import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 
@@ -28,7 +33,6 @@ import java.util.Set;
 
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.newHashSet;
-import static org.gradle.api.artifacts.ArtifactsTestUtils.createResolvedArtifact;
 import static org.gradle.util.Matchers.strictlyEqual;
 import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.equalTo;
@@ -86,6 +90,38 @@ public class DefaultResolvedDependencyTest {
 
     private ResolvedArtifact createArtifact(String name) {
         return createResolvedArtifact(context, name, "someType", "someExt", new File("pathTo" + name));
+    }
+
+    public static DefaultResolvedArtifact createResolvedArtifact(final Mockery context, final String name, final String type, final String extension, final File file) {
+        final Artifact artifactStub = context.mock(Artifact.class, "artifact" + name);
+        context.checking(new Expectations() {{
+            allowing(artifactStub).getName();
+            will(returnValue(name));
+            allowing(artifactStub).getType();
+            will(returnValue(type));
+            allowing(artifactStub).getExt();
+            will(returnValue(extension));
+            allowing(artifactStub).getExtraAttributes();
+            will(returnValue(Collections.emptyMap()));
+            allowing(artifactStub).getQualifiedExtraAttributes();
+            will(returnValue(Collections.emptyMap()));
+            allowing(artifactStub).getExtraAttribute(with(org.hamcrest.Matchers.notNullValue(String.class)));
+            will(returnValue(null));
+        }});
+        final Factory artifactSource = context.mock(Factory.class);
+        context.checking(new Expectations() {{
+            allowing(artifactSource).create();
+            will(returnValue(file));
+        }});
+        final ResolvedDependency resolvedDependency = context.mock(ResolvedDependency.class);
+        final ResolvedModuleVersion version = context.mock(ResolvedModuleVersion.class);
+        context.checking(new Expectations() {{
+            allowing(resolvedDependency).getModule();
+            will(returnValue(version));
+            allowing(version).getId();
+            will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
+        }});
+        return new DefaultResolvedArtifact(resolvedDependency, artifactStub, artifactSource);
     }
 
     private DefaultResolvedDependency createResolvedDependency() {
