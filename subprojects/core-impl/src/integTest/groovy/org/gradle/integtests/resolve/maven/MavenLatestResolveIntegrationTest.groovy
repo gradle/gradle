@@ -69,6 +69,6 @@ task retrieve(type: Sync) {
     }
 
     def causes(e) {
-        if (e == null) [] else [e] + causes(e.cause)
+        e == null ? [] : [e] + causes(e.cause)
     }
 }
