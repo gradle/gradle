@@ -61,14 +61,9 @@ task retrieve(type: Sync) {
 """
 
         when:
-        run 'retrieve'
+        runAndFail("retrieve")
 
         then:
-        UnexpectedBuildFailure e = thrown()
-        causes(e).any { it instanceof ModuleVersionNotFoundException }
-    }
-
-    def causes(e) {
-        e == null ? [] : [e] + causes(e.cause)
+        failure.assertHasCause("Could not find any version that matches group:projectA:latest.release")
     }
 }
