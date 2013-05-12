@@ -150,7 +150,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void shouldNotRunWithDependencies(TaskInfo taskInfo) {
-        if (!taskInfo.isRequired()) {
+        if (!taskInfo.isRequired() && filter.isSatisfiedBy(taskInfo.getTask())) {
             taskInfo.shouldNotRun();
             for (TaskInfo dependency : taskInfo.getHardSuccessors()) {
                 shouldNotRunWithDependencies(dependency);
@@ -319,7 +319,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         for (TaskInfo dependencyNode : node.getHardSuccessors()) {
             enforceWithDependencies(dependencyNode);
         }
-        node.enforceRun();
+        if ((node.getShouldNotRun() || !node.isComplete())) {
+            node.enforceRun();
+        }
     }
 
     private void handleFailure(TaskInfo taskInfo) {

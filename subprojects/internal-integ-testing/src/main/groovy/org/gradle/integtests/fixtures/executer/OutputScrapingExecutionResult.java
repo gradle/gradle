@@ -36,7 +36,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private final Pattern skippedTaskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE))");
 
     //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
-    private final Pattern taskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s*))");
+    private final Pattern taskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FAILED)|(\\s*))");
 
     public OutputScrapingExecutionResult(String output, String error) {
         this.output = output;

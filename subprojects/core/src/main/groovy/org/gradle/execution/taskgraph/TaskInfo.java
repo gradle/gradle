@@ -52,6 +52,10 @@ class TaskInfo implements Comparable<TaskInfo> {
         return state == TaskExecutionState.SHOULD_RUN;
     }
 
+    public boolean getShouldNotRun() {
+        return state == TaskExecutionState.SHOULD_NOT_RUN;
+    }
+
     public boolean isReady() {
         return state == TaskExecutionState.SHOULD_RUN || state == TaskExecutionState.MUST_RUN;
     }
