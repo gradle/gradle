@@ -60,6 +60,15 @@ The test report will show that the following test cases were executed:
 This includes Gradle's own HTML test report and the “JUnit XML” file.
 The “JUnit XML” file is typically used to convey test execution information to the CI server running the automated build, which means the parameter info is also visible via the CI server.
 
+
+### Improved build-setup plugin.
+
+The `build-setup` plugin now supports declaring a project type when setting up a build. With version 1.7 Gradle, now supports `java-library` as a setup project type
+which generates a simple build file with the java plugin applied, a sample junit test class and a sample production code class if no sources already exist.
+To declare the project type you have to specifcy a `--type` command line argument:
+
+    gradle setupBuild --type java-library
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -100,7 +109,8 @@ For more details, please refer to the section about the in-memory dependency met
 
 ### Incubating BuildSetup plugin changes
 
-- `ConvertMaven2Gradle`, `GenerateBuildScript` and `GenerateSettingsScript` have been removed. The according logic is now part of the `SetupBuild` task.
+- `ConvertMaven2Gradle`, `GenerateBuildScript` and `GenerateSettingsScript` have been removed. The according logic is now part of the `buildSetup` task
+which has now the type`SetupBuild` task.
 - The plugin creates different set of tasks, with different types and names depending on the build-setup type
 - The `setupWrapper` task is now called `wrapper`.
 
