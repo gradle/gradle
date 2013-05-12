@@ -15,9 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 
 class MavenLatestResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "can use latest version selector with release versions"() {
