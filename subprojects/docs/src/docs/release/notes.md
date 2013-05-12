@@ -60,8 +60,22 @@ The test report will show that the following test cases were executed:
 This includes Gradle's own HTML test report and the “JUnit XML” file.
 The “JUnit XML” file is typically used to convey test execution information to the CI server running the automated build, which means the parameter info is also visible via the CI server.
 
+### Generate Gradle wrapper files without touching your build script (i)
 
-### Improved build-setup plugin.
+In Gradle 1.7 all files necessary to run your build with the Gradle Wrapper can be generated without explicitly declaring a task of type `Wrapper` in your build scripts.
+By just running
+
+    gradle wrapper
+
+The Gradle Wrapper files are generated pointing to the gradle version used to generate the wrapper files. To customize the wrapper task you can easily modify the task in your build script:
+
+    wrapper{
+        gradleVersion = '1.6'
+    }
+
+If you already defined a task of type `Wrapper`, the explicit declared in your build script, this task will be used when running `gradle wrapper`, otherwise the implicit default task will be used.
+
+### Improved build-setup plugin (i)
 
 The `build-setup` plugin now supports declaring a project type when setting up a build. With version 1.7 Gradle, now supports `java-library` as a setup project type
 which generates a simple build file with the java plugin applied, a sample junit test class and a sample production code class if no sources already exist.
