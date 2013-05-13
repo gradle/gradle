@@ -222,7 +222,7 @@ To enable this feature:
       }
     }
 
-Note: Respecting the `enabled` flag of the report could be implemented at this time, or an exception could be thrown if someone tries to disable the XML report.
+Note: This also implies the ability to disable the XML test report using the standard `reporting.«report».enabled = false` idiom.
 
 Note: Moving the HTML report underneath the reporting infrastructure is not part of this story
 
@@ -244,6 +244,8 @@ The output serializer can do this regardless of how the XML is generated. Only t
 - With `outputPerTestCase` on, output from class level methods (e.g. `@BeforeClass`) is associated with the test class
 - With `outputPerTestCase` on, output from test case level methods (e.g. `@Before`) is associated with the test case
 - With `outputPerTestCase` off, existing output format is unchanged (should be covered by not introducing failures for our existing tests)
+- Output is correctly associated with test cases when test cases within a class are executed in parallel
+- Output is correctly associated with test cases when a test cases logs output from multiple threads 
 
 ## Story: HTML test report shows output per test
 
