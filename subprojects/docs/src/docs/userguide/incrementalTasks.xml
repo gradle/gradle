@@ -71,7 +71,7 @@
         </para>
         <itemizedlist>
             <listitem>There is no history available from a previous execution.</listitem>
-            <listitem>You are building with a different version of Gradle. (Gradle does not use task history from a different version).</listitem>
+            <listitem>You are building with a different version of Gradle. Currently, Gradle does not use task history from a different version.</listitem>
             <listitem>An <literal>upToDateWhen</literal> criteria added to the task returns <literal>false</literal>.</listitem>
             <listitem>An input property has changed since the previous execution.</listitem>
             <listitem>One or more output files have changed since the previous execution.</listitem>
