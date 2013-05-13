@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.tasks.execution
+
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskExecutionHistory
@@ -22,7 +23,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
-import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -38,7 +38,6 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
     def taskArtifactState = Mock(TaskArtifactState)
     def executionHistory = Mock(TaskExecutionHistory)
     Action<Task> action = Mock(Action)
-    def incrementalAction = Mock(ContextAwareTaskAction)
 
     def executer = new SkipUpToDateTaskExecuter(repository, delegate)
 
@@ -48,7 +47,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
 
         then:
         1 * repository.getStateFor(task) >> taskArtifactState
-        1 * taskArtifactState.isUpToDate() >> true
+        1 * taskArtifactState.isUpToDate([]) >> true
         1 * taskState.upToDate()
         1 * taskArtifactState.finished()
         0 * _
@@ -60,8 +59,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
 
         then:
         1 * repository.getStateFor(task) >> taskArtifactState
-        1 * taskArtifactState.isUpToDate() >> false
-        1 * taskArtifactState.getOutOfDateMessages() >> ["foo", "bar"]
+        1 * taskArtifactState.isUpToDate([]) >> false
 
         then:
         1 * taskArtifactState.beforeTask()
@@ -89,8 +87,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
 
         then:
         1 * repository.getStateFor(task) >> taskArtifactState
-        1 * taskArtifactState.isUpToDate() >> false
-        1 * taskArtifactState.getOutOfDateMessages() >> ["foo", "bar"]
+        1 * taskArtifactState.isUpToDate([]) >> false
 
         then:
         1 * taskArtifactState.beforeTask()

@@ -334,7 +334,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         state = repository.getStateFor(task2)
 
         then:
-        !state.upToDate
+        !state.isUpToDate([])
         
         when:
         task2.execute()
@@ -350,8 +350,8 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         execute(task)
 
         expect:
-        repository.getStateFor(task).upToDate
-        repository.getStateFor(task).upToDate
+        repository.getStateFor(task).isUpToDate([])
+        repository.getStateFor(task).isUpToDate([])
     }
 
     def artifactsAreUpToDateWhenOutputFileWhichDidNotExistNowExists() {
@@ -436,7 +436,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         then:
         TaskArtifactState state = repository.getStateFor(task)
-        state.upToDate
+        state.isUpToDate([])
         !state.getExecutionHistory().getOutputFiles().getFiles().contains(otherFile)
     }
 
@@ -446,7 +446,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         TaskArtifactState state = repository.getStateFor(task)
 
         then:
-        !state.upToDate
+        !state.isUpToDate([])
 
         when:
         task.execute()
@@ -473,7 +473,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         then:
         def stateAfter = repository.getStateFor(task)
-        stateAfter.upToDate
+        stateAfter.isUpToDate([])
         !stateAfter.executionHistory.outputFiles.files.contains(outputDirFile)
     }
 
@@ -521,12 +521,12 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         then:
         def state1 = repository.getStateFor(task1)
-        state1.upToDate
+        state1.isUpToDate([])
         state1.executionHistory.outputFiles.files == [outputDirFile] as Set
 
         and:
         def state2 = repository.getStateFor(task2)
-        state2.upToDate
+        state2.isUpToDate([])
         state2.executionHistory.outputFiles.files == [outputDirFile2] as Set
     }
 
@@ -570,13 +570,13 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
     private void upToDate(TaskInternal task) {
         final state = repository.getStateFor(task)
-        assert state.upToDate
+        assert state.isUpToDate([])
     }
 
     private void execute(TaskInternal... tasks) {
         for (TaskInternal task : tasks) {
             TaskArtifactState state = repository.getStateFor(task)
-            state.isUpToDate()
+            state.isUpToDate([])
             task.execute()
             state.afterTask()
         }

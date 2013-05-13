@@ -23,8 +23,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Collection;
 
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
 
@@ -68,12 +67,9 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             this.reason = reason;
         }
 
-        public boolean isUpToDate() {
+        public boolean isUpToDate(Collection<String> messages) {
+            messages.add(reason);
             return false;
-        }
-
-        public List<String> getOutOfDateMessages() {
-            return Collections.singletonList(reason);
         }
 
         public IncrementalTaskInputs getInputChanges() {

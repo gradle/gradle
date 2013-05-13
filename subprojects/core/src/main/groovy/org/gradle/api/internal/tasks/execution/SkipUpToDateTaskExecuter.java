@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
 
@@ -45,12 +46,13 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         LOGGER.debug("Determining if {} is up-to-date", task);
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
         try {
-            if (taskArtifactState.isUpToDate()) {
+            List<String> messages = new ArrayList<String>();
+            if (taskArtifactState.isUpToDate(messages)) {
                 LOGGER.info("Skipping {} as it is up-to-date", task);
                 state.upToDate();
                 return;
             }
-            logOutOfDateMessages(taskArtifactState.getOutOfDateMessages(), task);
+            logOutOfDateMessages(messages, task);
 
             task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
             context.setTaskArtifactState(taskArtifactState);

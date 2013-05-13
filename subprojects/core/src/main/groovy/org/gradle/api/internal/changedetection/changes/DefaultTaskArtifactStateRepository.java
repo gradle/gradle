@@ -32,6 +32,7 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
@@ -64,17 +65,14 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             this.history = history;
         }
 
-        public boolean isUpToDate() {
-            final List<String> messages = getChangeMessages(getStates().getAllTaskChanges());
-            if (messages.isEmpty()) {
+        public boolean isUpToDate(Collection<String> messages) {
+            final List<String> reasons = getChangeMessages(getStates().getAllTaskChanges());
+            messages.addAll(reasons);
+            if (reasons.isEmpty()) {
                 upToDate = true;
                 return true;
             }
             return false;
-        }
-
-        public List<String> getOutOfDateMessages() {
-            return getChangeMessages(getStates().getAllTaskChanges());
         }
 
         private List<String> getChangeMessages(TaskStateChanges stateChanges) {

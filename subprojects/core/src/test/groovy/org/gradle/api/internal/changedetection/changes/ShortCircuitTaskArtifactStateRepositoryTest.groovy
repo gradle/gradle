@@ -34,6 +34,8 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
     Spec upToDateSpec = Mock(Spec)
 
     def doesNotLoadHistoryWhenTaskHasNoDeclaredOutputs() {
+        def messages = []
+
         when:
         TaskArtifactState state = repository.getStateFor(task);
 
@@ -44,8 +46,8 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
 
         and:
         state instanceof NoHistoryArtifactState
-        !state.upToDate
-
+        !state.isUpToDate(messages)
+        !messages.empty
     }
 
     def delegatesDirectToBackingRepositoryWithoutRerunTasks() {
@@ -64,6 +66,8 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
     }
 
     def taskArtifactsAreAlwaysOutOfDateWithRerunTasks() {
+        def messages = []
+
         when:
         startParameter.setRerunTasks(true);
         def state = repository.getStateFor(task)
@@ -75,13 +79,16 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         0 * taskArtifactState._
 
         and:
-        !state.upToDate
+        !state.isUpToDate(messages)
+        !messages.empty
 
         and:
         !state.inputChanges.incremental
     }
 
     def taskArtifactsAreAlwaysOutOfDateWhenUpToDateSpecReturnsFalse() {
+        def messages = []
+
         when:
         def state = repository.getStateFor(task)
 
@@ -96,7 +103,8 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         0 * taskArtifactState._
 
         and:
-        !state.upToDate
+        !state.isUpToDate(messages)
+        !messages.empty
 
         and:
         !state.inputChanges.incremental
