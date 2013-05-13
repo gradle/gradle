@@ -176,6 +176,74 @@ HTML report is generated from the binary format, not from XML results
 - Change test task to persist test results in internal format.
 - Add test report task.
 
+## Story: A user uses a test execution mode that executes test cases concurrently within the same VM
+
+We currently do not fully support running tests concurrently within the same JVM. More specifically, our listening/event infrastructure does not support this.
+
+An example of a configuration where this becomes an issue is using the following configuration:
+
+    test {
+      useTestNG {
+        parallel = "methods"
+      }
+    }
+
+There is currently no way to configure method level parallelism with JUnit with our testing infrastructure (though Surefire does support this).
+
+### Implementation plan
+
+TBD.
+
+### User visible changes
+
+None.
+
+### Test coverage
+
+When using `methods` level parallelism with TestNG:
+
+- Test execution events are correctly (associated with the correct test case) fired to listeners 
+  - stop/start events
+  - failure events
+  - output events
+- HTML report is equivalent to report generated in serial mode
+- XML report is equivalent to report generated in serial mode
+- All of the above when also using multi VM parallelism
+
+## Story: A user uses a test execution mode that executes test suites concurrently within the same VM
+
+We currently do not fully support running tests classes concurrently within the same JVM. More specifically, our listening/event infrastructure does not support this.
+
+An example of a configuration where this becomes an issue is using the following configuration:
+
+    test {
+      useTestNG {
+        parallel = "classes"
+      }
+    }
+
+There is currently no way to configure test class level parallelism (within the same VM) with JUnit with our testing infrastructure (though Surefire does support this).
+
+### Implementation plan
+
+TBD.
+
+### User visible changes
+
+None.
+    
+### Test coverage
+
+When using `classes` level parallelism with TestNG:
+
+- Test execution events are correctly (associated with the correct test case) fired to listeners 
+  - stop/start events
+  - failure events
+  - output events
+- HTML report is equivalent to report generated in serial mode
+- XML report is equivalent to report generated in serial mode
+- All of the above when also using multi VM parallelism
+
 ## Story: XML test report shows output per test
 
 This is about providing a way to produce XML like:
@@ -228,7 +296,9 @@ Note: Moving the HTML report underneath the reporting infrastructure is not part
 
 ### Implementation
 
-Our test execution infrastructure already correctly associates output events with test cases. Nothing needs to change there. When we serialise the results to disk back in the build process we discard this association and write a single text file for each stream (out & err) of each class. The JUnit XML generator uses these files (along with the binary results file) to generate the XML. The association between output and test case needs to be added to this serialisation. Note that the text files of the stdout and stderr are internal.
+#### Test Execution Events
+
+Nothing needs to change there. When we serialise the results to disk back in the build process we discard this association and write a single text file for each stream (out & err) of each class. The JUnit XML generator uses these files (along with the binary results file) to generate the XML. The association between output and test case needs to be added to this serialisation. Note that the text files of the stdout and stderr are internal.
 
 - An index of the output will be appended to the output files, mapping starting line number to test case “id”.
 
@@ -244,8 +314,8 @@ The output serializer can do this regardless of how the XML is generated. Only t
 - With `outputPerTestCase` on, output from class level methods (e.g. `@BeforeClass`) is associated with the test class
 - With `outputPerTestCase` on, output from test case level methods (e.g. `@Before`) is associated with the test case
 - With `outputPerTestCase` off, existing output format is unchanged (should be covered by not introducing failures for our existing tests)
-- Output is correctly associated with test cases when test cases within a class are executed in parallel
-- Output is correctly associated with test cases when a test cases logs output from multiple threads 
+- Output is correctly associated with test cases when test cases within a class are executed in parallel (dependent on parallel test case story)
+- Output is correctly associated with test cases when a test cases logs output from multiple threads (dependent on parallel test case story)
 
 ## Story: HTML test report shows output per test
 
