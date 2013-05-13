@@ -25,9 +25,10 @@ import java.util.Comparator;
  * by Szczepan Faber, created at: 10/9/12
  */
 public class LatestVersionSemanticComparator implements Comparator<String> {
+    private final Comparator<SimpleArtifactInfo> comparator = new LatestRevisionStrategy().getComparator();
 
     public int compare(String left, String right) {
-        return new LatestRevisionStrategy().getComparator().compare(new SimpleArtifactInfo(left), new SimpleArtifactInfo(right));
+        return comparator.compare(new SimpleArtifactInfo(left), new SimpleArtifactInfo(right));
     }
 
     private static class SimpleArtifactInfo implements ArtifactInfo {
