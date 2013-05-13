@@ -296,15 +296,20 @@ Note: Moving the HTML report underneath the reporting infrastructure is not part
 
 ### Implementation
 
-#### Test Execution Events
+Our test execution infrastructure already associates output events with test cases. When we serialise the results to disk back in the build process we discard this association and write a single text file for each stream (out & err) of each class. The JUnit XML generator uses these files (along with the binary results file) to generate the XML.
 
-Nothing needs to change there. When we serialise the results to disk back in the build process we discard this association and write a single text file for each stream (out & err) of each class. The JUnit XML generator uses these files (along with the binary results file) to generate the XML. The association between output and test case needs to be added to this serialisation. Note that the text files of the stdout and stderr are internal.
+Instead of writing the output to text files, we will serialize the TestOutputEvent into the results binary file.
 
-- An index of the output will be appended to the output files, mapping starting line number to test case “id”.
+The data structure that gets serialized must provide the means to reconstruct the ordered "stream" of output events:
 
-This is preferable to creating a file per test case as that could cause an explosion of files (slowing test execution and cleaning). This also assumes that test methods are never executed concurrently within a test class. 
+1. for the execution of each suite
+2. for the execution of each test case within a suite
 
-The output serializer can do this regardless of how the XML is generated. Only the XML generator needs to know about the `outputPerTestCase` parameter.
+This implies that a sequence identifier id is added to the association between an output event and the test suite, and the output event and the test case. There is no requirement at this time to be able to reconstruct the ordered stream of output events for an execution (i.e. all tests).
+
+The result data structure needs to support being able to render the HTML and XML reports efficiently. Different ways of structuring the output event storage (e.g. are event children of `TestMethodResult` or `TestClassResult`?) will need to be trialled and measured.
+
+The impact of the new data structure on report generation will need to be measured for both the output-per-suite case and the output-per-test-case case.
 
 ### Test coverage
 
