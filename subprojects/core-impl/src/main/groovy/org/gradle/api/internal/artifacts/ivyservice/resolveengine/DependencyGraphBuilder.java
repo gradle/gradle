@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.gradle.api.artifacts.*;
@@ -280,7 +279,7 @@ public class DependencyGraphBuilder {
             this.targetConfigurationRules = targetConfigurationRules;
             this.selectorSpec = selectorSpec;
             this.resolveState = resolveState;
-            selector = resolveState.getSelector(dependencyMetaData, dependencyDescriptor.getDependencyRevisionId());
+            selector = resolveState.getSelector(dependencyMetaData);
         }
 
         @Override
@@ -424,7 +423,7 @@ public class DependencyGraphBuilder {
     private static class ResolveState {
         private final Map<ModuleIdentifier, ModuleResolveState> modules = new LinkedHashMap<ModuleIdentifier, ModuleResolveState>();
         private final Map<ResolvedConfigurationIdentifier, ConfigurationNode> nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, ConfigurationNode>();
-        private final Map<ModuleRevisionId, ModuleVersionSelectorResolveState> selectors = new LinkedHashMap<ModuleRevisionId, ModuleVersionSelectorResolveState>();
+        private final Map<ModuleVersionSelector, ModuleVersionSelectorResolveState> selectors = new LinkedHashMap<ModuleVersionSelector, ModuleVersionSelectorResolveState>();
         private final ConfigurationNode root;
         private final DependencyToModuleVersionIdResolver resolver;
         private final ResolveData resolveData;
@@ -468,12 +467,12 @@ public class DependencyGraphBuilder {
             return configuration;
         }
 
-        public ModuleVersionSelectorResolveState getSelector(DependencyMetaData dependencyMetaData, ModuleRevisionId original) {
-            ModuleRevisionId selectorId = ModuleRevisionId.newInstance(original.getOrganisation(), original.getName(), original.getRevision());
-            ModuleVersionSelectorResolveState resolveState = selectors.get(selectorId);
+        public ModuleVersionSelectorResolveState getSelector(DependencyMetaData dependencyMetaData) {
+            ModuleVersionSelector requested = dependencyMetaData.getRequested();
+            ModuleVersionSelectorResolveState resolveState = selectors.get(requested);
             if (resolveState == null) {
                 resolveState = new ModuleVersionSelectorResolveState(dependencyMetaData, resolver, this);
-                selectors.put(selectorId, resolveState);
+                selectors.put(requested, resolveState);
             }
             return resolveState;
         }
@@ -630,8 +629,8 @@ public class DependencyGraphBuilder {
         }
 
         public void restart(DefaultModuleRevisionResolveState selected) {
-            for (ConfigurationNode conflictConfiguration : configurations) {
-                conflictConfiguration.restart(selected);
+            for (ConfigurationNode configuration : configurations) {
+                configuration.restart(selected);
             }
         }
 
@@ -863,15 +862,15 @@ public class DependencyGraphBuilder {
             previousTraversal = null;
         }
 
-        public void restart(DefaultModuleRevisionResolveState state) {
+        public void restart(DefaultModuleRevisionResolveState selected) {
             // Restarting this configuration after conflict resolution.
             // If this configuration belongs to the select version, queue ourselves up for traversal.
             // If not, then move our incoming edges across to the selected configuration
-            if (moduleRevision == state) {
+            if (moduleRevision == selected) {
                 resolveState.onMoreSelected(this);
             } else {
                 for (DependencyEdge dependency : incomingEdges) {
-                    dependency.restart(state);
+                    dependency.restart(selected);
                 }
                 incomingEdges.clear();
             }
