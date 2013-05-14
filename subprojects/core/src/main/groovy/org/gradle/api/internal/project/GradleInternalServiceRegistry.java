@@ -19,8 +19,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
-import org.gradle.api.internal.changedetection.state.TaskCacheLockHandlingBuildExecuter;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
@@ -62,8 +60,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
         return new DefaultBuildExecuter(
                 configs,
                 asList(new DryRunBuildExecutionAction(),
-                        new TaskCacheLockHandlingBuildExecuter(get(TaskArtifactStateCacheAccess.class)),
-                        new SelectedTaskExecutionAction()));
+                       new SelectedTaskExecutionAction()));
     }
 
     protected ProjectFinder createProjectFinder() {

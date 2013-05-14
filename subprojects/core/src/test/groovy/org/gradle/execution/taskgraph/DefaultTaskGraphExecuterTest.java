@@ -42,6 +42,7 @@ import org.jmock.Expectations;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.action.CustomAction;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,9 +62,9 @@ import static org.junit.Assert.*;
  */
 @RunWith(JMock.class)
 public class DefaultTaskGraphExecuterTest {
-
-    JUnit4Mockery context = new JUnit4GroovyMockery();
-    private final ListenerManager listenerManager = context.mock(ListenerManager.class);
+    final JUnit4Mockery context = new JUnit4GroovyMockery();
+    final ListenerManager listenerManager = context.mock(ListenerManager.class);
+    final TaskArtifactStateCacheAccess taskArtifactStateCacheAccess = context.mock(TaskArtifactStateCacheAccess.class);
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
     List<Task> executedTasks = new ArrayList<Task>();
@@ -76,8 +77,16 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
+            allowing(taskArtifactStateCacheAccess).useCache(with(notNullValue(String.class)), with(notNullValue(Runnable.class)));
+            will(new CustomAction("run action") {
+                public Object invoke(Invocation invocation) throws Throwable {
+                    Runnable action = (Runnable) invocation.getParameter(1);
+                    action.run();
+                    return null;
+                }
+            });
         }});
-        taskExecuter = new org.gradle.execution.taskgraph.DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor());
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(taskArtifactStateCacheAccess));
     }
 
     @Test
