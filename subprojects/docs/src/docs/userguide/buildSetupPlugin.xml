@@ -158,17 +158,6 @@
                 <listitem>Supports testng runner</listitem>
                 <listitem>Generates global exclusions from Maven enforcer plugin settings</listitem>
             </itemizedlist>
-            <section>
-                <title>Multi project Maven builds</title>
-                <para>
-                    Your project will only be considered multi-module
-                    only if your reactor is also a parent of at least one of your modules.
-                    Why so? The reactor project is built last, when Parent project is built first.
-                    The reactor has to be built first, because effective-pom Mojo generates needed output
-                    only if it finds modules in first project it encounters.
-                    Making reactor also a parent achieves this.
-                </para>
-            </section>
         </section>
         <section>
             <title>"empty"</title>
