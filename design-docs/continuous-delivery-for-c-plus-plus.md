@@ -1,4 +1,3 @@
-
 This document describes a number of improvements to allow C++ projects to be built, tested, published are shared between teams.
 
 # Current state
@@ -96,7 +95,7 @@ Running `gradle mainExecutable` will build the main executable binary.
 - Add windows and linux specific output files (eg .lib file for a shared library on windows).
 - Allow `ExecutableBinary` and `SharedLibraryBinary` instances to be added manually.
 
-# Story: Separate compilation and linking
+# Story: Separate C++ compilation and linking of binaries
 
 This story separates C++ compilation and linking of binaries into separate tasks, so that 1) object files built from other languages can be linked into a binary, and
 2) so that the object files can be consumed in different ways, such as assembling into a static library.
@@ -149,7 +148,7 @@ This story introduces the concept of a static library binary that can be build f
      - Use `lib.exe` to assemble the static library.
 - Change the GCC toolchain to:
     - Don't use any shared library flags (`-shared`, `-fPIC`) when compiling source files for a static library.
-    - Use `ar` to link the static library.
+    - Use `ar` to assemble the static library.
 
 ## User visible changes
 
@@ -219,6 +218,7 @@ This story adds support for using assembler source files as inputs to a native b
 
 ## Open issues
 
+- Different source files by platform
 - Extract an assembler and a binaries plugin
 - Add a convention for assembler source directories.
 - Should possibly use `ld` instead of `gcc` or `g++` to link the binaries.
@@ -278,12 +278,13 @@ with it.
 
 - Cross compile a 32-bit binary on a 64-bit linux machine.
 
-# Cross-compile for multiple platforms
+# Cross-compile for multiple operating systems
 
 This story adds support for cross-compilation. Add the concept of an operating system to the platform.
 
 ## Open issues
 
+- Different source files by platform
 - Need to be able to build for a single platform or all available platforms.
 - Need separate compiler, linker and assembler options for each operating system.
 - Need to discover which platforms a tool chain can build for.
