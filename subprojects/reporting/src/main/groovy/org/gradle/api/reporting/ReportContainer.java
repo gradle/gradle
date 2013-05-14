@@ -21,13 +21,13 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.util.Configurable;
 
 /**
- * A container of potential reports.
- * 
+ * A container of {@link Report} objects, that represent potential reports.
+ * <p>
  * Things that produce reports (typically tasks) expose a report container that contains {@link Report} objects for each
  * possible report that they can produce. Each report object can be configured individually, including whether or not it should
  * be produced by way of its {@link Report#setEnabled(boolean) enabled} property.
- *
- * ReportContainer implementations are <b>immutable</b> in that standard collection methods such as {@code add()}, {@code remove()}
+ * <p>
+ * {@code ReportContainer} implementations are <b>immutable</b> in that standard collection methods such as {@code add()}, {@code remove()}
  * and {@code clear()} will throw an {@link ImmutableViolationException}. However, implementations may provide new methods that allow
  * the addition of new report object and/or the removal of existing report objects.
  * 
@@ -37,7 +37,7 @@ public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<
 
     /**
      * The exception thrown when any of this container's mutation methods are called.
-     *
+     * <p>
      * This applies to the standard {@link java.util.Collection} methods such as {@code add()}, {@code remove()}
      * and {@code clear()}.
      */
@@ -48,8 +48,8 @@ public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<
     }
 
     /**
-     * Returns an immutable collection of all the enabled reports.
-     *
+     * Returns an immutable collection of all the enabled {@link Report} objects in this container.
+     * <p>
      * The returned collection is live. That is, as reports are enabled/disabled the returned collection always
      * reflects the current set of enabled reports.
      *

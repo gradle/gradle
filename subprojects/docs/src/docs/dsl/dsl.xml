@@ -170,6 +170,15 @@
                 <td>org.gradle.api.publish.PublishingExtension</td>
             </tr>
             <tr>
+                <td>org.gradle.api.reporting.Report</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.Reporting</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.ReportContainer</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.publish.ivy.IvyPublication</td>
             </tr>
             <tr>
