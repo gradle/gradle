@@ -67,9 +67,11 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
     }
 
     private Set<Report> getEnabledInputReports() {
-        Set<NamedDomainObjectSet<Report>> enabledReportSets = CollectionUtils.collect(aggregated, new Transformer<NamedDomainObjectSet<Report>, Reporting<ReportContainer<Report>>>() {
-            public NamedDomainObjectSet<Report> transform(Reporting<ReportContainer<Report>> reporting) {
-                return reporting.getReports().getEnabled();
+        Set<NamedDomainObjectSet<Report>> enabledReportSets = CollectionUtils.collect(aggregated, new Transformer<NamedDomainObjectSet<Report>, Reporting>() {
+            public NamedDomainObjectSet<Report> transform(Reporting reporting) {
+                @SuppressWarnings("unchecked")
+                NamedDomainObjectSet<Report> enabled = reporting.getReports().getEnabled();
+                return enabled;
             }
         });
         return new LinkedHashSet<Report>(CollectionUtils.flattenToList(Report.class, enabledReportSets));
