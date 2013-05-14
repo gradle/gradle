@@ -25,6 +25,7 @@ class TaskDependencyGraphTest extends Specification {
     def b = task('b')
     def c = task('c')
     def d = task('d')
+    def e = task('e')
 
     private TaskInternal task(String name) {
         Mock(TaskInternal) {
@@ -43,6 +44,7 @@ class TaskDependencyGraphTest extends Specification {
         !node.required
         node.softSuccessors.empty
         node.hardSuccessors.empty
+        node.finalizers.empty
     }
 
     void 'can add multiple nodes'() {
@@ -66,6 +68,7 @@ class TaskDependencyGraphTest extends Specification {
             getNode(a).hardSuccessors*.task == [b, c]
             [b, c].every { !getNode(it).hardSuccessors }
             [a, b, c].every { !getNode(it).softSuccessors }
+            [a, b, c].every { !getNode(it).finalizers }
         }
     }
 
@@ -81,6 +84,23 @@ class TaskDependencyGraphTest extends Specification {
             getNode(a).softSuccessors*.task == [b, c]
             [b, c].every { !getNode(it).softSuccessors }
             [a, b, c].every { !getNode(it).hardSuccessors }
+            [a, b, c].every { !getNode(it).finalizers }
+        }
+    }
+
+    void 'adding finalized by edges'() {
+        when:
+        def nodeA = graph.addNode(a)
+        graph.addFinalizedByEdge(nodeA, c)
+        graph.addFinalizedByEdge(nodeA, b)
+
+        then:
+        with graph, {
+            tasks == [a, c, b] as Set
+            getNode(a).finalizers*.task == [b, c]
+            [b, c].every { !getNode(it).finalizers }
+            [a, b, c].every { !getNode(it).hardSuccessors }
+            [a, b, c].every { !getNode(it).softSuccessors }
         }
     }
 
@@ -99,9 +119,11 @@ class TaskDependencyGraphTest extends Specification {
         when:
         def nodeA = graph.addNode(a)
         graph.addHardEdge(nodeA, b)
-        graph.addNode(c)
+        graph.addSoftEdge(nodeA, c)
+        graph.addFinalizedByEdge(nodeA, d)
+        graph.addNode(e)
 
         then:
-        [a, b, c].every { graph.hasTask(it) }
+        [a, b, c, d, e].every { graph.hasTask(it) }
     }
 }

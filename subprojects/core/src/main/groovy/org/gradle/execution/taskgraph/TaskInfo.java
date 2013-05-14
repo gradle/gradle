@@ -24,14 +24,16 @@ import java.util.TreeSet;
 class TaskInfo implements Comparable<TaskInfo> {
 
     private enum TaskExecutionState {
-        NOT_REQUIRED, READY, EXECUTING, EXECUTED, SKIPPED
+        NOT_REQUIRED, SHOULD_RUN, MUST_RUN, SHOULD_NOT_RUN, EXECUTING, EXECUTED, SKIPPED;
     }
 
     private final TaskInternal task;
     private TaskExecutionState state;
     private Throwable executionFailure;
+    private boolean dependenciesProcessed;
     private final TreeSet<TaskInfo> hardSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> softSuccessors = new TreeSet<TaskInfo>();
+    private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
 
     public TaskInfo(TaskInternal task) {
         this.task = task;
@@ -42,16 +44,33 @@ class TaskInfo implements Comparable<TaskInfo> {
         return task;
     }
 
+    public boolean getMustRun() {
+        return state == TaskExecutionState.MUST_RUN;
+    }
+
+    public boolean getShouldRun() {
+        return state == TaskExecutionState.SHOULD_RUN;
+    }
+
+    public boolean getShouldNotRun() {
+        return state == TaskExecutionState.SHOULD_NOT_RUN;
+    }
+
     public boolean isReady() {
-        return state == TaskExecutionState.READY;
+        return state == TaskExecutionState.SHOULD_RUN || state == TaskExecutionState.MUST_RUN;
     }
 
     public boolean isComplete() {
-        return state == TaskExecutionState.EXECUTED || state == TaskExecutionState.SKIPPED || state == TaskExecutionState.NOT_REQUIRED;
+        return state == TaskExecutionState.EXECUTED
+                || state == TaskExecutionState.SKIPPED
+                || state == TaskExecutionState.NOT_REQUIRED
+                || state == TaskExecutionState.SHOULD_NOT_RUN;
     }
 
     public boolean isSuccessful() {
-        return (state == TaskExecutionState.EXECUTED && !isFailed()) || state == TaskExecutionState.NOT_REQUIRED;
+        return (state == TaskExecutionState.EXECUTED && !isFailed())
+                || state == TaskExecutionState.NOT_REQUIRED
+                || state == TaskExecutionState.SHOULD_NOT_RUN;
     }
 
     public boolean isFailed() {
@@ -59,7 +78,7 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public void startExecution() {
-        assert state == TaskExecutionState.READY;
+        assert isReady();
         state = TaskExecutionState.EXECUTING;
     }
 
@@ -69,7 +88,7 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public void skipExecution() {
-        assert state == TaskExecutionState.READY;
+        assert state == TaskExecutionState.SHOULD_RUN;
         state = TaskExecutionState.SKIPPED;
     }
 
@@ -112,12 +131,33 @@ class TaskInfo implements Comparable<TaskInfo> {
         return softSuccessors;
     }
 
-    public boolean getRequired() {
+    public TreeSet<TaskInfo> getFinalizers() {
+        return finalizers;
+    }
+
+    public boolean isRequired() {
         return state != TaskExecutionState.NOT_REQUIRED;
     }
 
     public void setRequired(boolean required) {
-        state = required ? TaskExecutionState.READY : TaskExecutionState.NOT_REQUIRED;
+        state = required ? TaskExecutionState.SHOULD_RUN : TaskExecutionState.NOT_REQUIRED;
+    }
+
+    public void shouldNotRun() {
+        state = TaskExecutionState.SHOULD_NOT_RUN;
+    }
+    
+    public boolean getDependenciesProcessed() {
+        return dependenciesProcessed;
+    }
+
+    public void dependenciesProcessed() {
+        dependenciesProcessed = true;
+    }
+
+    public void enforceRun() {
+        assert state == TaskExecutionState.SHOULD_RUN || state == TaskExecutionState.SHOULD_NOT_RUN || state == TaskExecutionState.MUST_RUN;
+        state = TaskExecutionState.MUST_RUN;
     }
 
     public void addHardSuccessor(TaskInfo toNode) {
@@ -126,6 +166,10 @@ class TaskInfo implements Comparable<TaskInfo> {
 
     public void addSoftSuccessor(TaskInfo toNode) {
         softSuccessors.add(toNode);
+    }
+
+    public void addFinalizer(TaskInfo finalizerNode) {
+        finalizers.add(finalizerNode);
     }
 
     public int compareTo(TaskInfo otherInfo) {

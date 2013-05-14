@@ -49,6 +49,12 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.determineExecutionPlan()
     }
 
+    private TaskFailureHandler createIgnoreTaskFailureHandler(Task task) {
+        Mock(TaskFailureHandler) {
+            onTaskFailure(task) >> {}
+        }
+    }
+
     def "returns tasks in dependency order"() {
         given:
         Task a = task("a");
@@ -200,6 +206,125 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executedTasks == [b]
     }
 
+    def "finalizer tasks are executed if a finalized task is added to the graph"() {
+        Task finalizer = task("a")
+        Task finalized = task("b", finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate([finalized])
+
+        then:
+        executedTasks == [finalized, finalizer]
+    }
+
+    def "finalizer tasks are executed after the finalized task"() {
+        Task finalizer = task("finalizer")
+        Task finalized = task("finalized", finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate([finalizer, finalized])
+
+        then:
+        executedTasks == [finalized, finalizer]
+    }
+
+    def "finalizer tasks and their dependencies are executed even in case of a task failure"() {
+        Task finalizerDependency = task("finalizerDependency")
+        Task finalizer1 = task("finalizer1", dependsOn: [finalizerDependency])
+        Task finalized1 = task("finalized1", finalizedBy: [finalizer1])
+        Task finalizer2 = task("finalizer2")
+        Task finalized2 = task("finalized2", finalizedBy: [finalizer2], failure: new RuntimeException("failure"))
+
+        when:
+        addToGraphAndPopulate([finalized1, finalized2])
+
+        then:
+        executedTasks == [finalized1, finalized2, finalizerDependency, finalizer1, finalizer2]
+    }
+
+    def "finalizer task is not added to the graph if it is filtered"() {
+        given:
+        Task finalizer = filteredTask("finalizer")
+        Task finalized = task("finalized", finalizedBy: [finalizer])
+        Spec<Task> filter = Mock() {
+            isSatisfiedBy(_) >> { Task t -> t != finalizer }
+        }
+
+        when:
+        executionPlan.useFilter(filter);
+        addToGraphAndPopulate([finalized])
+
+        then:
+        executionPlan.getTasks() == [finalized]
+        executedTasks == [finalized]
+    }
+
+    def "finalizer tasks and their dependencies are not executed if finalized task did not run"() {
+        Task finalizerDependency = task("finalizerDependency")
+        Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
+        Task finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
+        Task finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate([finalized])
+
+        then:
+        executedTasks == [finalizedDependency]
+    }
+
+    def "finalizer tasks and their dependencies are executed if they are previously required even if the finalized task did not run"() {
+        Task finalizerDependency = task("finalizerDependency")
+        Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
+        Task finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
+        Task finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
+        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(finalizedDependency));
+
+        when:
+        addToGraphAndPopulate([finalizer, finalized])
+
+        then:
+        executedTasks == [finalizedDependency, finalizerDependency, finalizer]
+    }
+
+    def "finalizer tasks and their dependencies are executed if they are later required via dependency even if the finalized task did not do any work"() {
+        Task finalizerDependency = task("finalizerDependency")
+        Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
+        Task dependsOnFinalizer = task("dependsOnFinalizer", dependsOn: [finalizer])
+        Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
+
+        when:
+        executionPlan.addToTaskGraph([finalized])
+        executionPlan.addToTaskGraph([dependsOnFinalizer])
+        executionPlan.determineExecutionPlan()
+
+        then:
+        executedTasks == [finalized, finalizerDependency, finalizer, dependsOnFinalizer]
+    }
+
+    def "finalizer tasks run as soon as possible for tasks that depend on finalized tasks"() {
+        Task finalizer = task("finalizer")
+        Task finalized = task("finalized", finalizedBy: [finalizer])
+        Task dependsOnFinalized = task("dependsOnFinalized", dependsOn: [finalized])
+
+        when:
+        addToGraphAndPopulate([dependsOnFinalized])
+
+        then:
+        executedTasks == [finalized, finalizer, dependsOnFinalized]
+    }
+
+    def "finalizer tasks run as soon as possible for tasks that must run after finalized tasks"() {
+        Task finalizer = task("finalizer")
+        Task finalized = task("finalized", finalizedBy: [finalizer])
+        Task mustRunAfterFinalized = task("mustRunAfterFinalized", mustRunAfter: [finalized])
+
+        when:
+        addToGraphAndPopulate([mustRunAfterFinalized, finalized])
+
+        then:
+        executedTasks == [finalized, finalizer, mustRunAfterFinalized]
+    }
+
     def "getAllTasks returns tasks in execution order"() {
         Task e = task("e");
         Task d = task("d", mustRunAfter: [e]);
@@ -216,12 +341,11 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     }
 
     def "cannot add task with circular reference"() {
-        Task a = createTask("a");
-        Task b = task("b", dependsOn: [a]);
-        Task c = task("c", dependsOn: [b]);
-        Task d = task("d");
-        dependsOn(a, [c, d]);
-        mustRunAfter(a, []);
+        Task a = createTask("a")
+        Task b = task("b", dependsOn: [a])
+        Task c = task("c", dependsOn: [b])
+        Task d = task("d")
+        relationships(a, dependsOn: [c, d])
 
         when:
         addToGraphAndPopulate([c])
@@ -242,8 +366,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task a = createTask("a")
         Task b = task("b", mustRunAfter: [a])
         Task c = task("c", dependsOn: [b])
-        dependsOn(a, [c])
-        mustRunAfter(a, [])
+        relationships(a, dependsOn: [c])
 
         when:
         addToGraphAndPopulate([a])
@@ -265,8 +388,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task b = task("b", mustRunAfter: [a])
         Task c = task("c", dependsOn: [b])
         Task d = task("d", dependsOn: [c])
-        dependsOn(a, [c])
-        mustRunAfter(a, [])
+        relationships(a, mustRunAfter: [c])
         executionPlan.addToTaskGraph([d])
 
         when:
@@ -363,12 +485,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task b = task("b");
         addToGraphAndPopulate([a, b])
 
-        TaskFailureHandler handler = Mock()
-        handler.onTaskFailure(a) >> {
-        }
-
         when:
-        executionPlan.useFailureHandler(handler);
+        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a));
 
         then:
         executedTasks == [a, b]
@@ -387,12 +505,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task b = task("b", mustRunAfter: [a]);
         addToGraphAndPopulate([a, b])
 
-        TaskFailureHandler handler = Mock()
-        handler.onTaskFailure(a) >> {
-        }
-
         when:
-        executionPlan.useFailureHandler(handler);
+        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a));
 
         then:
         executedTasks == [a, b]
@@ -412,13 +526,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         final Task c = task("c")
         addToGraphAndPopulate([b, c])
 
-        TaskFailureHandler handler = Mock()
-        handler.onTaskFailure(a) >> {
-            // Ignore failure
-        }
-
         when:
-        executionPlan.useFailureHandler(handler)
+        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a))
 
         then:
         executedTasks == [a, c]
@@ -613,6 +722,10 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         task.getMustRunAfter() >> taskDependencyResolvingTo(task, mustRunAfterTasks)
     }
 
+    private void finalizedBy(TaskInternal task, List<Task> finalizedByTasks) {
+        task.getFinalizedBy() >> taskDependencyResolvingTo(task, finalizedByTasks)
+    }
+
     private void failure(TaskInternal task, final RuntimeException failure) {
         task.state.getFailure() >> failure
         task.state.rethrowFailure() >> { throw failure }
@@ -624,18 +737,25 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     private TaskInternal task(Map options, final String name) {
         def task = createTask(name)
-        dependsOn(task, options.dependsOn ?: [])
-        mustRunAfter(task, options.mustRunAfter ?: [])
+        relationships(options, task)
         if (options.failure) {
             failure(task, options.failure)
         }
+        task.getDidWork() >> (options.containsKey('didWork') ? options.didWork : true)
         return task
+    }
+
+    private void relationships(Map options, TaskInternal task) {
+        dependsOn(task, options.dependsOn ?: [])
+        mustRunAfter(task, options.mustRunAfter ?: [])
+        finalizedBy(task, options.finalizedBy ?: [])
     }
 
     private TaskInternal filteredTask(final String name) {
         def task = createTask(name);
         task.getTaskDependencies() >> brokenDependencies()
         task.getMustRunAfter() >> brokenDependencies()
+        task.getFinalizedBy() >> taskDependencyResolvingTo(task, [])
         return task
     }
 

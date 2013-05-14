@@ -1,0 +1,9 @@
+task taskX << {
+    println 'taskX'
+    throw new RuntimeException()
+}
+task taskY << {
+    println 'taskY'
+}
+
+taskX.finalizedBy taskY
