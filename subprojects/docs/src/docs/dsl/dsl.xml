@@ -179,6 +179,9 @@
                 <td>org.gradle.api.reporting.ReportContainer</td>
             </tr>
             <tr>
+                <td>org.gradle.api.reporting.ReportingExtension</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.publish.ivy.IvyPublication</td>
             </tr>
             <tr>
