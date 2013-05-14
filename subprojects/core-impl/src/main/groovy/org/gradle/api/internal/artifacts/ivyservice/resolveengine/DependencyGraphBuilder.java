@@ -464,7 +464,7 @@ public class DependencyGraphBuilder {
 
         public ConfigurationNode getConfigurationNode(ModuleVersionResolveState module, String configurationName) {
             ModuleVersionIdentifier original = module.id;
-            ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(original.getGroup(), original.getName(), original.getVersion(), configurationName);
+            ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(original, configurationName);
             ConfigurationNode configuration = nodes.get(id);
             if (configuration == null) {
                 configuration = new ConfigurationNode(module, module.metaData, configurationName, this);
@@ -742,11 +742,7 @@ public class DependencyGraphBuilder {
 
         public DefaultResolvedDependency getResult() {
             if (result == null) {
-                result = new DefaultResolvedDependency(
-                        moduleRevision.id.getGroup(),
-                        moduleRevision.id.getName(),
-                        moduleRevision.id.getVersion(),
-                        configurationName);
+                result = new DefaultResolvedDependency(moduleRevision.id, configurationName);
             }
 
             return result;

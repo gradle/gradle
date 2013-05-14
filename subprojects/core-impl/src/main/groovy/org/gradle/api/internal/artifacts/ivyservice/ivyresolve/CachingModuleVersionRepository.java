@@ -86,7 +86,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         switch (result.getState()) {
             case Missing:
                 final ModuleRevisionId dependencyRevisionId = dependency.getDescriptor().getDependencyRevisionId();
-                final DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision());
+                final ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(dependencyRevisionId);
                 moduleDescriptorCache.cacheModuleDescriptor(delegate, moduleVersionIdentifier, null, null, dependency.isChanging());
                 break;
             case Resolved:

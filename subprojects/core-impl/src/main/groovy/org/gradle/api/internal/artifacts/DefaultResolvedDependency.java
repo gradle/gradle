@@ -38,14 +38,10 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
-    public DefaultResolvedDependency(String name, String moduleGroup, String moduleName, String moduleVersion, String configuration) {
-        this.name = name;
-        id = new ResolvedConfigurationIdentifier(moduleGroup, moduleName, moduleVersion, configuration);
+    public DefaultResolvedDependency(ModuleVersionIdentifier moduleVersionIdentifier, String configuration) {
+        this.name = String.format("%s:%s:%s", moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
+        id = new ResolvedConfigurationIdentifier(moduleVersionIdentifier, configuration);
         this.moduleArtifacts = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
-    }
-
-    public DefaultResolvedDependency(String moduleGroup, String moduleName, String moduleVersion, String configuration) {
-        this(moduleGroup + ":" + moduleName + ":" + moduleVersion, moduleGroup, moduleName, moduleVersion, configuration);
     }
 
     public String getName() {
@@ -75,7 +71,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     public ResolvedModuleVersion getModule() {
         return new ResolvedModuleVersion() {
             public ModuleVersionIdentifier getId() {
-                return new DefaultModuleVersionIdentifier(id.getModuleGroup(), id.getModuleName(), id.getModuleVersion());
+                return id.getId();
             }
         };
     }

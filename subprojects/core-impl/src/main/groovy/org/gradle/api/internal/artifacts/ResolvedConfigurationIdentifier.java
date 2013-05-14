@@ -22,9 +22,9 @@ public class ResolvedConfigurationIdentifier {
     private final ModuleVersionIdentifier id;
     private final String configuration;
 
-    public ResolvedConfigurationIdentifier(String moduleGroup, String moduleName, String moduleVersion,
+    public ResolvedConfigurationIdentifier(ModuleVersionIdentifier moduleVersionIdentifier,
                                            String configuration) {
-        this.id = new DefaultModuleVersionIdentifier(moduleGroup, moduleName, moduleVersion);
+        this.id = moduleVersionIdentifier;
         this.configuration = configuration;
     }
 

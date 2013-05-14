@@ -47,7 +47,7 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
 
     public void resolved(ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource) {
         ModuleRevisionId moduleRevisionId = descriptor.getModuleRevisionId();
-        DefaultModuleVersionIdentifier id = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+        ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
         resolved(id, descriptor, changing, moduleSource);
     }
 
