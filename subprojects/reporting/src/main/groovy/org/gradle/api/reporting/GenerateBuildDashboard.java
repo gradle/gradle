@@ -54,6 +54,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
 
     /**
      * A set of report files that will be aggregated by the generated report.
+     *
      * @return A set of input report files.
      */
     @Input
@@ -66,8 +67,8 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
     }
 
     private Set<Report> getEnabledInputReports() {
-        Set<NamedDomainObjectSet<Report>> enabledReportSets = CollectionUtils.collect(aggregated, new Transformer<NamedDomainObjectSet<Report>, Reporting>() {
-            public NamedDomainObjectSet<Report> transform(Reporting reporting) {
+        Set<NamedDomainObjectSet<Report>> enabledReportSets = CollectionUtils.collect(aggregated, new Transformer<NamedDomainObjectSet<Report>, Reporting<ReportContainer<Report>>>() {
+            public NamedDomainObjectSet<Report> transform(Reporting<ReportContainer<Report>> reporting) {
                 return reporting.getReports().getEnabled();
             }
         });
@@ -125,7 +126,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
         if (getReports().getHtml().isEnabled()) {
             BuildDashboardGenerator generator = new BuildDashboardGenerator(getEnabledInputReports(), reports.getHtml().getEntryPoint());
             generator.generate();
-        }else {
+        } else {
             setDidWork(false);
         }
     }
