@@ -107,24 +107,24 @@
         <section>
             <title>"<literal>java-library</literal>"
             </title>
+            <para>
+                The "<literal>java-library</literal>" build setup type is not inferable. It must be explicitly specified.
+            </para>
+            <para>
+                It has the following features:
+            </para>
+            <itemizedlist>
+                <listitem>Uses the "<literal>java</literal>" plugin
+                </listitem>
+                <listitem>Uses the "
+                    <literal>mavenCentral()</literal>
+                    dependency repository
+                </listitem>
+                <listitem>Uses JUnit for testing</listitem>
+                <listitem>Has directories in the conventional locations for source code</listitem>
+                <listitem>Contains a sample class and unit test, if there are no existing source or test files</listitem>
+            </itemizedlist>
         </section>
-        <para>
-            The "<literal>java-library</literal>" build setup type is not inferable. It must be explicitly specified.
-        </para>
-        <para>
-            It has the following features:
-        </para>
-        <itemizedlist>
-            <listitem>Uses the "<literal>java</literal>" plugin
-            </listitem>
-            <listitem>Uses the "
-                <literal>mavenCentral()</literal>
-                dependency repository
-            </listitem>
-            <listitem>Uses JUnit for testing</listitem>
-            <listitem>Has directories in the conventional locations for source code</listitem>
-            <listitem>Contains a sample class and unit test, if there are no existing source or test files</listitem>
-        </itemizedlist>
         <section>
             <title>"<literal>pom</literal>" (Maven conversion)
             </title>
