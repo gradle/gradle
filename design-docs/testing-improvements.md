@@ -204,6 +204,43 @@ None.
   - Output during preflight/postflight methods (e.g. @Before, @BeforeClass etc.)
 - Test cases spawn threads that produce output
 
+## Story: Introduce `CreateTestReports` task
+
+This task will be responsible for generating user oriented reports from test results.
+
+    class CreateJvmTestReports implements Reporting<JvmTestReportContainer> {
+      void reportOn(Test... tasks)
+    }
+    
+    interface JvmTestReportContainer extends ReportContainer<Report> {
+      HtmlJvmTestReport getHtml()
+      JUnitXMLTestReport getXml()
+    }
+
+### Implementation plan
+
+- Extract existing logic for converting results into reports out of Test task
+
+### User visible changes
+
+- Potential deprecation of `Test` methods/properties (TBD)
+
+### Test coverage
+
+- Existing report test coverage for report generation is identical for a single test
+- Results can be aggregated for multiple test runs
+  - A different test class with the same name is executed by different test tasks that are being aggregated (potentially different test case names)
+  - The same test class with the same name is executed by different test tasks that are being aggregated (same test case names)
+- HTML report can be disabled
+- XML report can be disabled
+
+### Outstanding issues
+
+- What to do about the existing reporting functions that are part of the Test task?
+  - Provide off switches?
+  - Automatically disable on the presence of this task?
+  - Does the Java task add an instance of this task? Or is it manual to opt-in to new features?
+
 ## Story: XML test report shows output per test
 
 This is about providing a way to produce XML like:
@@ -236,23 +273,15 @@ As this is a communication protocol between Gradle and other tools (e.g. CI serv
 
 ### User visible changes
 
-This improved format will be opt in.
-
-1. The `Test` task will be made to implement `Reporting`.
-1. It will expose one report named `junitXml` of type `JunitXmlReport implements Report`
-1. `JunitXmlReport` will have a boolean flag named `outputPerTestCase` which defaults to `false`
+This is dependent on the `CreateTestReports` task, as it provides a place to expose the configuration option to opt-in to this format.
 
 To enable this feature:
 
-    test {
+    testReports {
       reporting {
         junitXml.outputPerTestCase true
       }
     }
-
-Note: This also implies the ability to disable the XML test report using the standard `reporting.«report».enabled = false` idiom.
-
-Note: Moving the HTML report underneath the reporting infrastructure is not part of this story
 
 ### Implementation
 
