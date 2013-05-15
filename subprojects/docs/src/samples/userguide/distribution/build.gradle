@@ -4,48 +4,28 @@ apply plugin: 'distribution'
 
 version = '1.0.0'
 
-// START SNIPPET name-conf
-distributions {
-    main {
-        baseName = 'my-name'
-    }
-}
-// END SNIPPET name-conf
-
-// START SNIPPET custom-distZip
-apply plugin: 'distribution'
-
-distributions {
-    custom
-}
-
-customDistZip {
-    from "custom/custom.txt"
-}
-// END SNIPPET custom-distZip
-
-// START SNIPPET custom-distribution
+// START SNIPPET configure-distribution
 apply plugin: 'distribution'
 
 distributions {
     main {
         baseName = 'someName'
         contents {
-            from { 'src/dist' }
+            from { 'src/readme' }
         }
     }
 }
-// END SNIPPET custom-distribution
+// END SNIPPET configure-distribution
 
-// START SNIPPET declare-distribution
+// START SNIPPET custom-distribution
 apply plugin: 'distribution'
 
 version = '1.2'
 distributions {
     custom {
         contents {
-            from { 'src/dist' }
+            from { 'src/readme' }
         }
     }
 }
-// END SNIPPET declare-distribution
+// END SNIPPET custom-distribution
