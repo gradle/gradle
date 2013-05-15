@@ -104,6 +104,10 @@
     </section>
     <section>
         <title>Build setup types</title>
+        <note>
+            As this plugin is currently <link linkend="feature_lifecycle">incubating</link>, only 3 build setup types are currently supported.
+            More types will be added in future Gradle releases.
+        </note>
         <section>
             <title>"<literal>java-library</literal>"
             </title>
