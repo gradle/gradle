@@ -18,11 +18,11 @@
     <title>The JaCoCo Plugin</title>
     <note>
         <para>
-            The JaCoCo plugin is currently<link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+            The JaCoCo plugin is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
     </note>
 
-    <para>The JaCoCo plugin provides code coverage metrics for Java code via integration with<ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>.
+    <para>The JaCoCo plugin provides code coverage metrics for Java code via integration with <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>.
     </para>
     <section>
         <title>Getting Started</title>
@@ -44,7 +44,7 @@
     <section>
         <title>Configuring the JaCoCo Plugin</title>
         <para>
-            The JaCoCo plugin adds a project extension named "<literal>jacoco</literal>" of type<apilink class="org.gradle.testing.jacoco.plugins.JacocoPluginExtension"/>,
+            The JaCoCo plugin adds a project extension named "<literal>jacoco</literal>" of type <apilink class="org.gradle.testing.jacoco.plugins.JacocoPluginExtension"/>,
             which allows configuring defaults for JaCoCo usage in your build.
         </para>
         <sample id="configJacoco" dir="testing/jacoco/quickstart" title="Configuring jacoco plugin settings">
@@ -176,7 +176,7 @@
             That is, any task that forks Java processes can be used to generate coverage information.
         </para>
         <para>
-            For example you can configure your build to generate code coverage using the<literal>application plugin</literal>.
+            For example you can configure your build to generate code coverage using the <literal>application plugin</literal>.
         </para>
         <sample id="jacoco-application-setup" dir="testing/jacoco/application" includeLocation="true" title="Using application plugin to generate code coverage data">
             <sourcefile file="build.gradle" snippet="application-configuration"/>
