@@ -30,7 +30,6 @@ import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
@@ -62,7 +61,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.hasMessage;
+import static org.gradle.util.Matchers.isEmpty;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -147,8 +147,6 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         System.getProperties().putAll(implicitJvmSystemProperties);
 
         StartParameter parameter = new StartParameter();
-        parameter.setLogLevel(LogLevel.INFO);
-        parameter.setSearchUpwards(true);
         parameter.setCurrentDir(getWorkingDir());
 
         CommandLineParser parser = new CommandLineParser();
