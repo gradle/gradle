@@ -18,7 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import java.io.Serializable;
 
+/**
+ * A memento for any resolution state that is relevant to locate the artifacts of a resolved module version.
+ *
+ * Implementations must retain as little state as possible and must be able to be serialized. Also note that
+ * a given instance may be passed to multiple repository instances.
+ */
 public interface ModuleSource extends Serializable {
 }
-
-
