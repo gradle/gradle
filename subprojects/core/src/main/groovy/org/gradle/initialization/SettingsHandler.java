@@ -23,7 +23,6 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 
 import java.io.File;
-import java.net.URLClassLoader;
 
 /**
  * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that modules is
@@ -88,7 +87,7 @@ public class SettingsHandler {
         StartParameter buildSrcStartParameter = startParameter.newBuild();
         buildSrcStartParameter.setCurrentDir(new File(settingsLocation.getSettingsDir(),
                 BaseSettings.DEFAULT_BUILD_SRC_DIR));
-        URLClassLoader buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
+        ClassLoader buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
 
         return loadSettings(gradle, settingsLocation, buildSourceClassLoader, startParameter);
     }
@@ -98,7 +97,7 @@ public class SettingsHandler {
     }
 
     private SettingsInternal loadSettings(GradleInternal gradle, SettingsLocation settingsLocation,
-                                          URLClassLoader buildSourceClassLoader, StartParameter startParameter) {
+                                          ClassLoader buildSourceClassLoader, StartParameter startParameter) {
         return settingsProcessor.process(gradle, settingsLocation, buildSourceClassLoader, startParameter);
     }
 }

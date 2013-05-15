@@ -25,7 +25,6 @@ import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.Map;
 
@@ -50,7 +49,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     public SettingsInternal process(GradleInternal gradle,
                                     SettingsLocation settingsLocation,
-                                    URLClassLoader buildSourceClassLoader,
+                                    ClassLoader buildSourceClassLoader,
                                     StartParameter startParameter) {
         Clock settingsProcessingClock = new Clock();
         Map<String, String> properties = propertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
