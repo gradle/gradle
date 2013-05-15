@@ -401,7 +401,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     * Get task optimization disabled.
     *
     * @param noOpt The boolean value for disabling task optimization.
-    * @deprecated Use {@link #setRefreshDependencies(boolean)} instead.
+    * @deprecated Use {@link #setRerunTasks(boolean)} instead.
     */
     @Deprecated
     public void setNoOpt(boolean noOpt) {
