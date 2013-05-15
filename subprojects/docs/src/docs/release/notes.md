@@ -79,7 +79,7 @@ If you already defined a task of type `Wrapper`, the explicit declared in your b
 
 The `build-setup` plugin now supports declaring a project type when setting up a build. With version 1.7 Gradle, now supports `java-library` as a setup project type
 which generates a simple build file with the java plugin applied, a sample junit test class and a sample production code class if no sources already exist.
-To declare the project type you have to specifcy a `--type` command line argument:
+To declare the project type you have to specify a `--type` command line argument:
 
     gradle setupBuild --type java-library
 
