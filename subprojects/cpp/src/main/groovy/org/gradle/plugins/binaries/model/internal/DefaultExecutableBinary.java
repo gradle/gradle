@@ -38,6 +38,6 @@ public class DefaultExecutableBinary implements ExecutableBinary {
     }
 
     public String getName() {
-        return executable.getName();
+        return executable.getName() + "Executable";
     }
 }

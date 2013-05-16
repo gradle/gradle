@@ -86,9 +86,7 @@ exec "\$APP_BASE_NAME/lib/${executable.spec.outputFile.name}" \"\$@\"
     }
 
     def configureBinary(ProjectInternal project, NativeBinary binary) {
-        def baseName = GUtil.toCamelCase(binary.name).capitalize()
-
-        def task = project.task("compile${baseName}", type: CppCompile) {
+        def task = project.task(binary.name, type: CppCompile) {
             description = "Compiles and links $binary"
             group = BasePlugin.BUILD_GROUP
         }

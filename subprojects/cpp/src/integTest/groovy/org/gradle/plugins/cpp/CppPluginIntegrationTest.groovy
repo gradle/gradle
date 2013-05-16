@@ -39,7 +39,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         """
 
         when:
-        run "compileMain"
+        run "mainExecutable"
 
         then:
         def executable = executable("build/binaries/test")
@@ -70,7 +70,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         """
 
         when:
-        run "compileMain"
+        run "mainSharedLibrary"
 
         then:
         sharedLibrary("build/binaries/test").isFile()
@@ -91,7 +91,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         """
 
         expect:
-        fails "compileMain"
+        fails "mainExecutable"
     }
 
     def "build fails when link fails"() {
@@ -107,7 +107,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         """
 
         expect:
-        fails "compileMain"
+        fails "mainExecutable"
     }
 
     def "build and execute program from multiple source files"() {
@@ -142,7 +142,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         """
 
         when:
-        run "compileMain"
+        run "mainExecutable"
 
         then:
         executable("build/binaries/test").exec().out == HELLO_WORLD
@@ -201,20 +201,20 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         """
 
         when:
-        run "installMain"
+        run "installMainExecutable"
 
         then:
         sharedLibrary("build/binaries/hello").isFile()
         executable("build/binaries/test").isFile()
 
-        executable("build/install/main/test").exec().out == HELLO_WORLD
-        executable("build/install/main/test").exec("a", "1 2 3").out.contains("[a][1 2 3]")
+        executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD
+        executable("build/install/mainExecutable/test").exec("a", "1 2 3").out.contains("[a][1 2 3]")
 
         // Ensure installed binary is not dependent on the libraries in their original locations
         when:
         file("build/binaries").deleteDir()
 
         then:
-        executable("build/install/main/test").exec().out == HELLO_WORLD
+        executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD
     }
 }

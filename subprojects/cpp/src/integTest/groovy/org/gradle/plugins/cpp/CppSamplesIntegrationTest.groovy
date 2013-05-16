@@ -32,15 +32,15 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         sample exewithlib
 
         when:
-        run "installMain"
+        run "installMainExecutable"
 
         then:
-        ":exe:compileMain" in executedTasks
+        ":exe:mainExecutable" in executedTasks
 
         and:
         sharedLibrary("cpp/exewithlib/lib/build/binaries/lib").isFile()
         executable("cpp/exewithlib/exe/build/binaries/exe").isFile()
-        executable("cpp/exewithlib/exe/build/install/main/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
+        executable("cpp/exewithlib/exe/build/install/mainExecutable/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
     }
 
     // Does not work on windows, due to GRADLE-2118
@@ -60,7 +60,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         
         then:
         ":exe:mainExtractHeaders" in nonSkippedTasks
-        ":exe:compileMain" in nonSkippedTasks
+        ":exe:mainExecutable" in nonSkippedTasks
         
         and:
         executable("cpp/dependencies/exe/build/binaries/exe").isFile()
@@ -75,11 +75,11 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installMain"
         
         then:
-        ":compileMain" in nonSkippedTasks
+        ":mainExecutable" in nonSkippedTasks
         
         and:
         executable("cpp/exe/build/binaries/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
-        executable("cpp/exe/build/install/main/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
+        executable("cpp/exe/build/install/mainExecutable/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
     }
     
 }

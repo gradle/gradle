@@ -15,4 +15,4 @@ project(":exe") {
 }
 // END SNIPPET project-dependencies
 
-task build(dependsOn: project(":exe").compileMain)
+task build(dependsOn: project(":exe").mainExecutable)

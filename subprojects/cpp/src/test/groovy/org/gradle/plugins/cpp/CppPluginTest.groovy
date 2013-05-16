@@ -160,14 +160,14 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        def compile = project.tasks['compileTest']
+        def compile = project.tasks['testExecutable']
         compile instanceof CppCompile
         compile.spec == project.executables.test.spec
 
-        def install = project.tasks['installTest']
+        def install = project.tasks['installTestExecutable']
         install instanceof Sync
-        install.destinationDir == project.file('build/install/test')
-        install Matchers.dependsOn("compileTest")
+        install.destinationDir == project.file('build/install/testExecutable')
+        install Matchers.dependsOn("testExecutable")
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
@@ -228,7 +228,7 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        def compile = project.tasks['compileTest']
+        def compile = project.tasks['testSharedLibrary']
         compile instanceof CppCompile
         compile.spec == project.libraries.test.spec
     }

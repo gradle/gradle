@@ -43,6 +43,6 @@ public class DefaultSharedLibraryBinary implements SharedLibraryBinary {
     }
 
     public String getName() {
-        return library.getName();
+        return library.getName() + "SharedLibrary";
     }
 }
