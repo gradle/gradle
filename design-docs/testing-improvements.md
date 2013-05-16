@@ -167,6 +167,30 @@ HTML report is generated from the binary format, not from XML results
 - Report is generated when one or more tests fail.
 - Report is not generated when tests cannot be run.
 
+## Story: `Test` task implements the `Reporting` contract
+
+### Implementation plan
+
+Move reporting configuration into this framework, leaving existing Test properties/methods in place as facades.
+
+### User visible changes
+
+The Test task reports container will expose the HTML and XML reports…
+
+    test {
+      reports {
+        html.enabled = false
+        xml.enabled = false
+      }
+    }
+
+The standard `Report` options will be respected. This deprecates Test methods/properties such as `testReportEnabled`, `testReportDir`.
+
+### Test coverage
+
+- HTML and XML reports can be disabled
+- Changing HTML report configuration through old properties (e.g. `testReportDisabled`) is respected (and deprecated)
+
 ## Story: HTML test report shows runtime grouping of tests into suites
 
 - Add the tree of test execution to the test report
