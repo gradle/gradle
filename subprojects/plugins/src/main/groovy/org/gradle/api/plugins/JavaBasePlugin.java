@@ -140,7 +140,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 functionalSourceSet.add(resourceSet);
 
                 BinariesContainer binariesContainer = project.getExtensions().getByType(BinariesContainer.class);
-                ClassDirectoryBinary binary = binariesContainer.create(sourceSet.getName(), ClassDirectoryBinary.class);
+                ClassDirectoryBinary binary = binariesContainer.create(String.format("%sClasses", sourceSet.getName()), ClassDirectoryBinary.class);
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {

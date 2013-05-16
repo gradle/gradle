@@ -15,12 +15,12 @@
  */
 package org.gradle.language.jvm.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.jvm.ClassDirectoryBinary;
 import org.gradle.util.GUtil;
@@ -29,6 +29,7 @@ import java.io.File;
 
 public class DefaultClassDirectoryBinary implements ClassDirectoryBinary {
     private final String name;
+    private final String baseName;
     private File classesDir;
     private File resourcesDir;
     private final DomainObjectCollection<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
@@ -37,6 +38,14 @@ public class DefaultClassDirectoryBinary implements ClassDirectoryBinary {
 
     public DefaultClassDirectoryBinary(String name) {
         this.name = name;
+        this.baseName = removeClassesSuffix(name);
+    }
+
+    private String removeClassesSuffix(String name) {
+        if (name.endsWith("Classes")) {
+            return name.substring(0, name.length() - 7);
+        }
+        return name;
     }
 
     public String getName() {
@@ -85,17 +94,20 @@ public class DefaultClassDirectoryBinary implements ClassDirectoryBinary {
     }
 
     public String getTaskName(@Nullable String verb, @Nullable String target) {
+        if (verb == null && target == null) {
+            return GUtil.toLowerCamelCase(baseName);
+        }
         if (verb == null) {
-            return StringUtils.uncapitalize(String.format("%s%s", getTaskBaseName(), StringUtils.capitalize(target)));
+            return GUtil.toLowerCamelCase(String.format("%s %s", getTaskBaseName(), target));
         }
         if (target == null) {
-            return StringUtils.uncapitalize(String.format("%s%s", verb, GUtil.toCamelCase(name)));
+            return GUtil.toLowerCamelCase(String.format("%s %s", verb, baseName));
         }
-        return StringUtils.uncapitalize(String.format("%s%s%s", verb, getTaskBaseName(), StringUtils.capitalize(target)));
+        return GUtil.toLowerCamelCase(String.format("%s %s %s", verb, getTaskBaseName(), target));
     }
 
     public String getTaskBaseName() {
-        return name.equals("main") ? "" : GUtil.toCamelCase(name);
+        return baseName.equals("main") ? "" : baseName;
     }
 
     public String toString() {

@@ -68,4 +68,22 @@ class JvmLanguagePluginTest extends Specification {
         task instanceof ProcessResources
         task.description == "Processes source set 'main:resources'."
     }
+
+    def "adds tasks based on short name when ClassDirectoryBinary has name ending in Classes"() {
+        when:
+        ClassDirectoryBinary binary = project.binaries.create("fooClasses", ClassDirectoryBinary)
+        ResourceSet resources = project.sources.create("main").create("resources", ResourceSet)
+        binary.source.add(resources)
+
+        then:
+        binary.classesDir == new File("$project.buildDir/classes/foo")
+        def task = project.tasks.findByName("fooClasses")
+        task != null
+        task.description == "Assembles binary 'fooClasses'."
+
+        and:
+        def resourcesTask = project.tasks.findByName("processFooResources")
+        resourcesTask instanceof ProcessResources
+        resourcesTask.description == "Processes source set 'main:resources'."
+    }
 }

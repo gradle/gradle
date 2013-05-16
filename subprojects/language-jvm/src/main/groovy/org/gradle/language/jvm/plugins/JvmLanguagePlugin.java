@@ -81,7 +81,7 @@ public class JvmLanguagePlugin implements Plugin<Project> {
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {
-                        return new File(new File(target.getBuildDir(), "classes"), binary.getName());
+                        return new File(new File(target.getBuildDir(), "classes"), binary.getTaskName(null, null));
                     }
                 });
                 final Task classesTask = target.getTasks().create(binary.getTaskName(null, "classes"));
