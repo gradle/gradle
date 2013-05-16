@@ -39,15 +39,18 @@
             If your build only produces one distribution you only need to configure this distribution (or use the defaults).
         </para>
         <para>
-            You can run <userinput>gradle distZip</userinput> to package the main distribution as a ZIP, or <userinput>gradle distTar</userinput> to create
+            You can run "<userinput>gradle distZip</userinput>" to package the main distribution as a ZIP, or "<userinput>gradle distTar</userinput>" to create
             a GZip compressed TAR file.
-            The files will be created at <literal><replaceable>$buildDir</replaceable>/distributions/<replaceable>$project.name</replaceable>-<replaceable>$project.version</replaceable>.<replaceable>«ext»</replaceable></literal>.
+            The files will be created at "<literal><replaceable>$buildDir</replaceable>/distributions/<replaceable>$project.name</replaceable>-<replaceable>$project.version</replaceable>.<replaceable>«ext»</replaceable></literal>".
+        </para>
+        <para>
+            You can run "<userinput>gradle installDist</userinput>" to assembles the distribution content, uncompressed, into "<literal><replaceable>$buildDir</replaceable>/install/<replaceable>main</replaceable></literal>".
         </para>
     </section>
 
     <section>
         <title>Tasks</title>
-        <para>The Distribution plugin adds the following tasks to the project.</para>
+        <para>The Distribution plugin adds the following tasks to the project:</para>
         <table>
             <title>Distribution plugin - tasks</title>
             <thead>
@@ -58,83 +61,137 @@
                     <td>Description</td>
                 </tr>
             </thead>
-		<tr>
-            <td>
-                <literal>distZip</literal>
-            </td>
-            <td>
-                <literal>-</literal>
-            </td>
-            <td>
-                <apilink class="org.gradle.api.tasks.bundling.Zip"/>
-            </td>
-                <td>Creates a full distribution ZIP archive.</td>
+            <tr>
+                <td>
+                    <literal>distZip</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.tasks.bundling.Zip"/>
+                </td>
+                <td>
+                    Creates a ZIP archive of the distribution contents
+                </td>
             </tr>
-        <tr>
-            <td>
-               <literal>distTar</literal>
-            </td>
-            <td>
-               <literal>-</literal>
-            </td>
-            <td>
-                <apilink class="org.gradle.api.tasks.bundling.Tar"/>
-            </td>
-                <td>Creates a full distribution TAR archive.</td>
+            <tr>
+                <td>
+                   <literal>distTar</literal>
+                </td>
+                <td>
+                   <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.tasks.bundling.Tar"/>
+                </td>
+                <td>
+                    Creates a ZIP archive of the distribution contents
+                </td>
             </tr>
-        <tr>
-            <td>
-                <literal>installDist</literal>
-            </td>
-            <td>
-                <literal>-</literal>
-            </td>
-            <td>
-                <apilink class="org.gradle.api.tasks.Sync"/>
-            </td>
-            <td>Install distribution contents.</td>
+            <tr>
+                <td>
+                    <literal>installDist</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.tasks.Sync"/>
+                </td>
+                <td>
+                    Assembles the distribution content and installs it on the current machine
+                </td>
             </tr>
-
         </table>
+        <para>For each extra distribution set you add to the project, the distribution plugin adds the following tasks:</para>
+        <table>
+            <title>Multiple distributions - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal><replaceable>${distribution.name}</replaceable>DistZip</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.tasks.bundling.Zip"/>
+                </td>
+                <td>
+                    Creates a ZIP archive of the distribution contents
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal><replaceable>${distribution.name}</replaceable>DistTar</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.tasks.bundling.Tar"/>
+                </td>
+                <td>
+                    Creates a TAR archive of the distribution contents
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>install<replaceable>${distribution.name.capitalize()}</replaceable>Dist</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.tasks.Sync"/>
+                </td>
+                <td>
+                    Assembles the distribution content and installs it on the current machine
+                </td>
+            </tr>
+        </table>
+        <sample id="multipleDistribution" dir="userguide/distribution" title="Adding extra distributions">
+            <sourcefile file="build.gradle" snippet="custom-distribution"/>
+        </sample>
+        <para>
+            This will add following tasks to the project:
+            <itemizedlist>
+                <listitem>customDistZip</listitem>
+                <listitem>customDistTar</listitem>
+                <listitem>installCustomDist</listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            Given that the project name is "<literal>myproject</literal>" and version "<literal>1.2</literal>", running "<userinput>gradle customDistZip</userinput>" will produce a
+            ZIP file named "<literal>myproject-custom-1.2.zip</literal>".
+        </para>
+        <para>
+            Running "<userinput>gradle installCustomDist</userinput>" will install the distribution contents into "<literal><replaceable>$buildDir</replaceable>/install/custom</literal>".
+        </para>
     </section>
     <section>
       <title>Distribution contents</title>
         <para>
-            All of the files in the <literal>src/<replaceable>$distribution.name</replaceable>/dist</literal> will automatically be included in the distribution.
+            All of the files in the "<literal>src/<replaceable>$distribution.name</replaceable>/dist</literal>" directory will automatically be included in the distribution.
             You can add additional files by configuring the <apilink class="org.gradle.api.distribution.Distribution" /> object that is part of the container.
         </para>
         <sample id="configureDistribution" dir="userguide/distribution" title="Configuring the main distribution">
             <sourcefile file="build.gradle" snippet="configure-distribution"/>
         </sample>
         <para>
-            In the above example, the content of the <literal>src/readme</literal> directory will be included in the distribution
-            (along with the files in the <literal>src/dist/main</literal> directory which are added by default).
-            The <literal>baseName</literal> property has also been changed. This will cause the distribution archives to be created with a different name.
-        </para>
-    </section>
-
-    <section>
-        <title>Multiple distributions</title>
-        <para>
-            The plugin only adds the "<literal>main</literal>" distribution. You can easily create others.
-        </para>
-        <sample id="multipleDistribution" dir="userguide/distribution" title="Declare multiple distributions">
-            <sourcefile file="build.gradle" snippet="custom-distribution"/>
-        </sample>
-        <para>
-            This will following tasks to the project:
-            <itemizedlist>
-                <listitem>customDistZip</listitem>
-                <listitem>customDistTar</listitem>
-                <listitem>installcustomDist</listitem>
-            </itemizedlist>
+            In the above example, the content of the "<literal>src/readme</literal>" directory will be included in the distribution
+            (along with the files in the "<literal>src/dist/main</literal>" directory which are added by default).
         </para>
         <para>
-            Given that the project name is "<literal>myproject</literal>" and version "<literal>1.2</literal>", running <userinput>gradle customDistZip</userinput> will produce a
-            ZIP file named <literal>myproject-custom-1.2.zip</literal>.
-        </para>
-        <para>
-            Running <literal>installCustomDist</literal> will install the distribution contents into <literal><replaceable>$buildDir</replaceable>/install/custom</literal>.
+            The "<literal>baseName</literal>" property has also been changed. This will cause the distribution archives to be created with a different name.
         </para>
     </section>
 </chapter>

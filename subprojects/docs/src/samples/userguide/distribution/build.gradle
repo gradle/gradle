@@ -22,10 +22,6 @@ apply plugin: 'distribution'
 
 version = '1.2'
 distributions {
-    custom {
-        contents {
-            from { 'src/readme' }
-        }
-    }
+    custom {}
 }
 // END SNIPPET custom-distribution
