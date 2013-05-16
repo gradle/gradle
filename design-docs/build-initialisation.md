@@ -245,6 +245,10 @@ This story adds the ability for the user to easily update the build to use the m
 * Running `gradle useReleaseCandidate` uses the most recent release candidate, if any.
 * Running `gradle useRelease` uses the most recent release.
 
+# Story: Users updates wrapper
+
+* Make it convenient to update the wrapper (as opposed to the Gradle runtime that the wrapper uses). Currently, you need to run the `wrapper` task twice.
+
 # Story: Handle existing Gradle build files
 
 Better handle the case where there is already some Gradle build scripts.

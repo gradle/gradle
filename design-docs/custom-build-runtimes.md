@@ -4,9 +4,9 @@ This spec describes how we might improve Gradle's support for customized build r
 # Use cases
 
 The following uses the term "build runtime" to mean a logical set of Java runtime, Gradle runtime and Gradle plugins. It may or
-may not be packaged in a ZIP or set of JAR or whatever.
+may not be packaged in a ZIP or set of JARs or whatever.
 
-- Make a set of custom plugins available by id for each build.
+- Make a set of custom plugins available by plugin id for each build.
 - Apply some implicit configuration (possibly implemented as a plugin) for each build.
 - Logic to determine where to download the runtime and plugins from.
 - Use the daemon with custom runtime.
@@ -18,7 +18,7 @@ may not be packaged in a ZIP or set of JAR or whatever.
 - Locate or install compatible JVM.
 - Wrapper works well when added to the command-line PATH.
 - Wrapper cannot be used because 3rd-party libraries (i.e. gradle-wrapper.jar) cannot be checked into source control.
-- All libs that are part of the build runtime should be available as local resource candidates
+- Dependency resolution should treat all libs that are part of the build runtime as local resource candidates, to avoid additional downloads.
 
 # Implementation plan
 
