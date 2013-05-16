@@ -59,7 +59,7 @@ public interface Distribution extends Named {
      * <p>
      * Can be used to configure the contents of the distribution:
      * <pre autoTested=''>
-     * apply plugin: "distributions"
+     * apply plugin: "distribution"
      *
      * distributions {
      *     main {
