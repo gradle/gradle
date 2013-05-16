@@ -204,43 +204,6 @@ None.
   - Output during preflight/postflight methods (e.g. @Before, @BeforeClass etc.)
 - Test cases spawn threads that produce output
 
-## Story: Introduce `CreateTestReports` task
-
-This task will be responsible for generating user oriented reports from test results.
-
-    class CreateJvmTestReports implements Reporting<JvmTestReportContainer> {
-      void reportOn(Test... tasks)
-    }
-    
-    interface JvmTestReportContainer extends ReportContainer<Report> {
-      HtmlJvmTestReport getHtml()
-      JUnitXMLTestReport getXml()
-    }
-
-### Implementation plan
-
-- Extract existing logic for converting results into reports out of Test task
-
-### User visible changes
-
-- Potential deprecation of `Test` methods/properties (TBD)
-
-### Test coverage
-
-- Existing report test coverage for report generation is identical for a single test
-- Results can be aggregated for multiple test runs
-  - A different test class with the same name is executed by different test tasks that are being aggregated (potentially different test case names)
-  - The same test class with the same name is executed by different test tasks that are being aggregated (same test case names)
-- HTML report can be disabled
-- XML report can be disabled
-
-### Outstanding issues
-
-- What to do about the existing reporting functions that are part of the Test task?
-  - Provide off switches?
-  - Automatically disable on the presence of this task?
-  - Does the Java task add an instance of this task? Or is it manual to opt-in to new features?
-
 ## Story: XML test report shows output per test
 
 This is about providing a way to produce XML like:
