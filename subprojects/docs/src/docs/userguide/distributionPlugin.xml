@@ -100,7 +100,7 @@
     <section>
       <title>Distribution contents</title>
         <para>
-            All of the files in the <literal>src/dist/<replaceable>$distribution.name</replaceable></literal> will automatically be included in the distribution.
+            All of the files in the <literal>src/<replaceable>$distribution.name</replaceable>/dist</literal> will automatically be included in the distribution.
             You can add additional files by configuring the <apilink class="org.gradle.api.distribution.Distribution" /> object that is part of the container.
         </para>
         <sample id="configureDistribution" dir="userguide/distribution" title="Configuring the main distribution">
