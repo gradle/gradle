@@ -186,6 +186,7 @@ This story adds support for C source files as inputs to native binaries.
 
 ## Open issues
 
+- Need a 'cross-platform' and 'platform-specific' source set.
 - Add input source sets to binaries.
 - Move source sets from `cpp.sourceSets` container to `source` container.
 - Add a convention for C and C++ source directories.

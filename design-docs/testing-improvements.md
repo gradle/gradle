@@ -92,7 +92,7 @@ HTML report is generated from the binary format, not from XML results
     - The XML results should include an XML file for `SomeClass` that includes each test method multiple times, one for each time it was executed.
     - The HTML report should include the same information.
 
-## Story: Add support for JUnit categories
+## Story: Add support for JUnit categories (DONE)
 
 - Add `JUnitOptions.includeCategories` and `excludeCategories` properties. These define a set of category types
   to include and exclude, respectively.
@@ -171,7 +171,7 @@ HTML report is generated from the binary format, not from XML results
 
 ### Implementation plan
 
-Move reporting configuration into this framework, leaving existing Test properties/methods in place as facades.
+Move reporting configuration into this framework, leaving existing Test properties/methods in place as deprecated facades.
 
 ### User visible changes
 
@@ -314,6 +314,10 @@ It's a breaking change in a way but I don't find the separate err/std output use
 I'm hoping we won't have to implement it. I don't know how popular the Reporter is.
 Also the problem can be avoided by using the Reporter methods that also print to the standard output (which is nice because the messages show up in IDE).
 
+## Separate test report generation from test execution
+
+Configure a `TestReport` task to always run after the `Test` task, and change the `TestReport` type to implement `Reporting`. Remove (via deprecation) the reporting from the `Test` task type.
+
 ## Bug GRADLE-2524: Missing stuff in TestNG output
 
 ### Problem
@@ -332,6 +336,4 @@ We could possibly fix it by starting redirecting the output at suite start in th
 
 # Other issues
 
-- Test report aggregates multiple test results with the same class name from separate test task executions.
-- Allow XML results to be disabled.
 - Provide some way to generate only the old TestNG reports, so that both test report and test XML generation can be disabled.
