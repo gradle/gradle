@@ -73,7 +73,6 @@ println 'error message'
 assert gradle != null
 assert initscript.classLoader == getClass().classLoader.parent
 assert initscript.classLoader == Thread.currentThread().contextClassLoader
-assert scriptClassLoader == initscript.classLoader.parent
 Gradle.class.classLoader.loadClass('${implClassName}')
 try {
     initscript.classLoader.loadClass('${implClassName}')

@@ -41,7 +41,6 @@ assert "${buildScript.absolutePath.replace("\\", "\\\\")}" == buildscript.source
 assert "${buildScript.toURI()}" == buildscript.sourceURI as String
 assert buildscript.classLoader == getClass().classLoader.parent
 assert buildscript.classLoader == Thread.currentThread().contextClassLoader
-assert gradle.scriptClassLoader == buildscript.classLoader.parent
 Gradle.class.classLoader.loadClass('${implClassName}')
 try {
     buildscript.classLoader.loadClass('${implClassName}')
