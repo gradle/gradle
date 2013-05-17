@@ -63,7 +63,8 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
 
         executables.all(new Action<Executable>() {
             public void execute(Executable executable) {
-                binaries.add(new DefaultExecutableBinary(executable));
+                DefaultExecutableBinary executableBinary = instantiator.newInstance(DefaultExecutableBinary.class, executable);
+                binaries.add(executableBinary);
             }
         });
 
@@ -76,7 +77,8 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
 
         libraries.all(new Action<Library>() {
             public void execute(Library library) {
-                binaries.add(new DefaultSharedLibraryBinary(library));
+                DefaultSharedLibraryBinary sharedLibraryBinary = instantiator.newInstance(DefaultSharedLibraryBinary.class, library);
+                binaries.add(sharedLibraryBinary);
             }
         });
     }
