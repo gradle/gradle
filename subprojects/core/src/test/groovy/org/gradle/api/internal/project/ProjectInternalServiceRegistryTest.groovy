@@ -41,8 +41,10 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -73,10 +75,11 @@ class ProjectInternalServiceRegistryTest extends Specification {
         parent.get(DependencyFactory) >> dependencyFactory
         parent.get(PluginRegistry) >> pluginRegistry
         parent.get(DependencyManagementServices) >> dependencyManagementServices
-        parent.get(org.gradle.internal.reflect.Instantiator) >> new DirectInstantiator()
+        parent.get(Instantiator) >> new DirectInstantiator()
         parent.get(FileSystem) >> Stub(FileSystem)
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
+        parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry)
     }
 
     def "creates a registry for a task"() {

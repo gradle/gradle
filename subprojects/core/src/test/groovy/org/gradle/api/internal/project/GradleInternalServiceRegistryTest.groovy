@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
-
+package org.gradle.api.internal.project
 
 import org.gradle.StartParameter
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.IdentityFileResolver
@@ -30,6 +28,7 @@ import org.gradle.execution.DefaultBuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.listener.ListenerManager
 import org.gradle.util.MultiParentClassLoader
 import spock.lang.Specification
@@ -50,8 +49,8 @@ public class GradleInternalServiceRegistryTest extends Specification {
         parent.get(StartParameter) >> Mock(StartParameter)
         parent.get(ListenerManager) >> listenerManager
         parent.get(CacheRepository) >> cacheRepository
-        parent.get(DocumentationRegistry) >> Mock(DocumentationRegistry)
         parent.get(PluginRegistry) >> pluginRegistryParent
+        parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry)
         gradle.getStartParameter() >> startParameter
         gradle.getScriptClassLoader() >> new MultiParentClassLoader()
         pluginRegistryParent.createChild(_, _) >> pluginRegistryChild

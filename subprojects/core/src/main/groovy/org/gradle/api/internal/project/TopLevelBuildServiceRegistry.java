@@ -57,6 +57,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLocator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.invocation.BuildClassLoaderRegistry;
+import org.gradle.invocation.DefaultBuildClassLoaderRegistry;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.actor.ActorFactory;
@@ -68,7 +70,6 @@ import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
 import org.gradle.util.ClassLoaderFactory;
-import org.gradle.util.MultiParentClassLoader;
 
 /**
  * Contains the singleton services which are shared by all builds executed by a single {@link org.gradle.GradleLauncher} invocation.
@@ -153,6 +154,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                                 get(ClassGenerator.class))));
     }
 
+    protected BuildClassLoaderRegistry createBuildClassLoaderRegistry() {
+        return new DefaultBuildClassLoaderRegistry(get(ClassLoaderRegistry.class));
+    }
+
     protected ScriptCompilerFactory createScriptCompileFactory() {
         ScriptExecutionListener scriptExecutionListener = get(ListenerManager.class).getBroadcaster(ScriptExecutionListener.class);
         EmptyScriptGenerator emptyScriptGenerator = new AsmBackedEmptyScriptGenerator();
@@ -178,12 +183,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 get(ScriptCompilerFactory.class),
                 get(ImportsReader.class),
                 get(ScriptHandlerFactory.class),
-                get(ClassLoader.class),
+                get(BuildClassLoaderRegistry.class).getScriptClassLoader(),
                 getFactory(LoggingManagerInternal.class));
-    }
-
-    protected MultiParentClassLoader createRootClassLoader() {
-        return get(ClassLoaderRegistry.class).createScriptClassLoader();
     }
 
     protected InitScriptHandler createInitScriptHandler() {
@@ -241,7 +242,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected PluginRegistry createPluginRegistry() {
         return new DefaultPluginRegistry(get(ClassLoaderRegistry.class).getPluginsClassLoader(), new DependencyInjectingInstantiator(this));
     }
-
 
     protected DependencyManagementServices createDependencyManagementServices() {
         ClassLoader coreImplClassLoader = get(ClassLoaderRegistry.class).getCoreImplClassLoader();

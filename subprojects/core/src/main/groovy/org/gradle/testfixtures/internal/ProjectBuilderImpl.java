@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.GFileUtils;
 
@@ -74,7 +75,7 @@ public class ProjectBuilderImpl {
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
 
-        gradle.getScriptClassLoader().addParent(getClass().getClassLoader());
+        gradle.getServices().get(BuildClassLoaderRegistry.class).addRootClassLoader(getClass().getClassLoader());
 
         return project;
     }

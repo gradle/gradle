@@ -52,6 +52,7 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
@@ -163,7 +164,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         if (project.getParent() != null) {
             parentClassLoader = project.getParent().getBuildscript().getClassLoader();
         } else {
-            parentClassLoader = project.getGradle().getScriptClassLoader();
+            parentClassLoader = get(BuildClassLoaderRegistry.class).getScriptClassLoader();
         }
         return factory.create(project.getBuildScriptSource(), parentClassLoader, project);
     }

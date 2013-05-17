@@ -55,14 +55,14 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         Map<String, String> properties = propertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(),
                 settingsLocation.getSettingsScriptSource(), properties, startParameter, buildSourceClassLoader);
-        applySettingsScript(settingsLocation, buildSourceClassLoader, settings);
+        applySettingsScript(settingsLocation, settings);
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
         return settings;
     }
 
-    private void applySettingsScript(SettingsLocation settingsLocation, ClassLoader buildSourceClassLoader, SettingsInternal settings) {
+    private void applySettingsScript(SettingsLocation settingsLocation, SettingsInternal settings) {
         ScriptPlugin configurer = configurerFactory.create(settingsLocation.getSettingsScriptSource());
-        configurer.setClassLoader(buildSourceClassLoader);
+        configurer.setClassLoader(settings.getClassLoader());
         configurer.setScriptBaseClass(SettingsScript.class);
         configurer.apply(settings);
     }

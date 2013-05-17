@@ -78,8 +78,6 @@ public class ProjectFactoryTest {
             will(returnValue(startParameterStub));
             allowing(gradle).getProjectRegistry();
             will(returnValue(gradleServices.get(ProjectRegistry.class)));
-            allowing(gradle).getScriptClassLoader();
-            will(returnValue(buildScriptClassLoader));
             allowing(gradle).getGradleUserHomeDir();
             will(returnValue(new File("gradleUserHomeDir")));
             ignoring(gradle).getProjectEvaluationBroadcaster();

@@ -21,6 +21,7 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
+import org.gradle.invocation.BuildClassLoaderRegistry;
 
 import java.io.File;
 
@@ -69,7 +70,7 @@ public class SettingsHandler {
             }
         }
 
-        gradle.getScriptClassLoader().addParent(settings.getClassLoader());
+        gradle.getServices().get(BuildClassLoaderRegistry.class).addRootClassLoader(settings.getClassLoader());
         return settings;
     }
 

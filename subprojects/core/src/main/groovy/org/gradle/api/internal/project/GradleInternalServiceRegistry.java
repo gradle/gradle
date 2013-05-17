@@ -29,6 +29,7 @@ import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.listener.ListenerManager;
 
 import java.util.LinkedList;
@@ -91,7 +92,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(gradle.getScriptClassLoader(), new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(get(BuildClassLoaderRegistry.class).getScriptClassLoader(), new DependencyInjectingInstantiator(this));
     }
 
     protected PluginContainer createPluginContainer() {
