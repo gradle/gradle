@@ -24,7 +24,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.testing.DefaultTestReports;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
@@ -38,8 +37,6 @@ import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.reporting.DirectoryReport;
-import org.gradle.api.reporting.Reporting;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.testing.logging.TestLogging;
@@ -60,7 +57,6 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -113,7 +109,7 @@ import static java.util.Arrays.asList;
  *
  * @author Hans Dockter
  */
-public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestReports> {
+public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask {
 
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
@@ -125,18 +121,18 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private TestExecuter testExecuter;
     private List<File> testSrcDirs = new ArrayList<File>();
     private File testClassesDir;
+    private File testResultsDir;
     private File binResultsDir;
+    private File testReportDir;
     private PatternFilterable patternSet = new PatternSet();
     private boolean ignoreFailures;
     private FileCollection classpath;
     private TestFramework testFramework;
+    private boolean testReport = true;
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestReporter testReporter;
-
-    @Nested
-    private final TestReports reports;
 
     @Inject
     public Test(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory, FileResolver fileResolver,
@@ -151,19 +147,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         testExecuter = new DefaultTestExecuter(processBuilderFactory, actorFactory);
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
         testReporter = new DefaultTestReport();
-
-        reports = instantiator.newInstance(DefaultTestReports.class, this);
-        reports.getJunitXml().setEnabled(true);
-        reports.getHtml().setEnabled(true);
     }
 
     /**
      * ATM. for testing only
-     */
-    void setTestReporter(TestReporter testReporter) {
+     * */
+    void setTestReporter(TestReporter testReporter){
         this.testReporter = testReporter;
     }
-
     void setTestExecuter(TestExecuter testExecuter) {
         this.testExecuter = testExecuter;
     }
@@ -460,17 +451,13 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             testOutputListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector));
         }
 
-        DirectoryReport junitXml = reports.getJunitXml();
-        if (junitXml.isEnabled()) {
-            Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testReportDataCollector);
-            binary2JUnitXmlReportGenerator.generate();
-        }
+        Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(getTestResultsDir(), testReportDataCollector);
+        binary2JUnitXmlReportGenerator.generate();
 
-        DirectoryReport html = reports.getHtml();
-        if (!html.isEnabled()) {
+        if (!isTestReport()) {
             getLogger().info("Test report disabled, omitting generation of the HTML test report.");
         } else {
-            testReporter.generateReport(testReportDataCollector, html.getDestination());
+            testReporter.generateReport(testReportDataCollector, getTestReportDir());
         }
 
         testFramework = null;
@@ -678,10 +665,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return the test result directory, containing the test results in XML format.
      */
-    @Deprecated
+    @OutputDirectory
     public File getTestResultsDir() {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testResultsDir", "Test.getReports().getJunitXml().destination");
-        return reports.getJunitXml().getDestination();
+        return testResultsDir;
     }
 
     /**
@@ -689,10 +675,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @param testResultsDir The root folder
      */
-    @Deprecated
     public void setTestResultsDir(File testResultsDir) {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testResultsDir", "Test.getReports().getJunitXml().destination");
-        reports.getJunitXml().setDestination(testResultsDir);
+        this.testResultsDir = testResultsDir;
     }
 
     /**
@@ -700,8 +684,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return the test result directory, containing the test results in binary format.
      */
-    @OutputDirectory
-    @Incubating
+    @OutputDirectory @Incubating
     public File getBinResultsDir() {
         return binResultsDir;
     }
@@ -720,24 +703,19 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Returns the root folder for the test reports.
      *
      * @return the test report directory, containing the test report mostly in HTML form.
-     * @deprecated Replaced by {@code reports.html.destination}
      */
-    @Deprecated
+    @OutputDirectory
     public File getTestReportDir() {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReportDir", "Test.getReports().getHtml().destination");
-        return reports.getHtml().getDestination();
+        return testReportDir;
     }
 
     /**
      * Sets the root folder for the test reports.
      *
      * @param testReportDir The root folder
-     * @deprecated Replaced by {@code reports.html.destination}
      */
-    @Deprecated
     public void setTestReportDir(File testReportDir) {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReportDir", "Test.getReports().getHtml().destination");
-        reports.getHtml().setDestination(testReportDir);
+        this.testReportDir = testReportDir;
     }
 
     /**
@@ -892,38 +870,22 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Specifies whether the test HTML report should be generated.
-     *
-     * @deprecated Replaced by {@code getReports().getHtml().enabled}
      */
-    @Deprecated
+    @Input
     public boolean isTestReport() {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReport", "Test.getReports().getHtml().enabled");
-        return reports.getHtml().isEnabled();
+        return testReport;
     }
 
-    /**
-     * Sets whether the test HTML report should be generated.
-     *
-     * @deprecated Replaced by {@code getReports().getHtml().enabled}
-     */
-    @Deprecated
     public void setTestReport(boolean testReport) {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReport", "Test.getReports().getHtml().enabled");
-        reports.getHtml().setEnabled(testReport);
+        this.testReport = testReport;
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
     public void enableTestReport() {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReport", "Test.getReports().getHtml().enabled");
-        reports.getHtml().setEnabled(true);
+        this.testReport = true;
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
     public void disableTestReport() {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReport", "Test.getReports().getHtml().enabled");
-        reports.getHtml().setEnabled(false);
+        this.testReport = false;
     }
 
     /**
@@ -1030,15 +992,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         ConfigureUtil.configure(closure, testLogging);
     }
 
-    public TestReports getReports() {
-        return reports;
-    }
-
-    public TestReports reports(Closure closure) {
-        reports.configure(closure);
-        return reports;
-    }
-
     // only way I know of to determine current log level
     private LogLevel getCurrentLogLevel() {
         for (LogLevel level : LogLevel.values()) {
@@ -1061,14 +1014,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     private void handleTestFailures() {
-        String message = "There were failing tests";
-
-        DirectoryReport htmlReport = reports.getHtml();
-        if (htmlReport.isEnabled()) {
-            String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
-            message = message.concat(". See the report at: " + reportUrl);
-        }
-
+        String reportUrl = new ConsoleRenderer().asClickableFileUrl(new File(getTestReportDir(), "index.html"));
+        String message = "There were failing tests. See the report at: " + reportUrl;
         if (getIgnoreFailures()) {
             getLogger().warn(message);
         } else {

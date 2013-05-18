@@ -17,7 +17,7 @@
 package org.gradle.internal.jacoco;
 
 import org.gradle.api.Task;
-import org.gradle.api.reporting.ConfigurableReport;
+import org.gradle.api.reporting.ConfigureableReport;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.SingleFileReport;
@@ -29,7 +29,7 @@ import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
 public class JacocoReportsContainerImpl extends TaskReportContainer<Report> implements JacocoReportsContainer {
 
     public JacocoReportsContainerImpl(Task task) {
-        super(ConfigurableReport.class, task);
+        super(ConfigureableReport.class, task);
         add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");
         add(TaskGeneratedSingleFileReport.class, "xml", task);
         add(TaskGeneratedSingleFileReport.class, "csv", task);

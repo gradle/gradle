@@ -327,15 +327,12 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureTestDefaults(final Test test, Project project, final JavaPluginConvention convention) {
-        DslObject htmlReport = new DslObject(test.getReports().getHtml());
-        DslObject xmlReport = new DslObject(test.getReports().getJunitXml());
-
-        xmlReport.getConventionMapping().map("destination", new Callable<Object>() {
+        test.getConventionMapping().map("testResultsDir", new Callable<Object>() {
             public Object call() throws Exception {
                 return convention.getTestResultsDir();
             }
         });
-        htmlReport.getConventionMapping().map("destination", new Callable<Object>() {
+        test.getConventionMapping().map("testReportDir", new Callable<Object>() {
             public Object call() throws Exception {
                 return convention.getTestReportDir();
             }

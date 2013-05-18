@@ -143,7 +143,7 @@ class SonarPlugin implements Plugin<ProjectInternal> {
                     }
                     libraries
                 }
-                testReportPath = { project.test.reports.html.destination }
+                testReportPath = { project.test.testResultsDir }
                 language = { "java" }
             }
             project.plugins.withType(JacocoPlugin) {

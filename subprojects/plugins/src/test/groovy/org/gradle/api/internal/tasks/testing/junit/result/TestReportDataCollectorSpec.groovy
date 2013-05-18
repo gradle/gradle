@@ -17,11 +17,11 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
-import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.internal.tasks.testing.*
 
 import static java.util.Arrays.asList
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
@@ -126,8 +126,8 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
 
         then:
-        1 * outputSerializer.onOutput("FooTest", "testMethod", StdErr, "err")
-        1 * outputSerializer.onOutput("FooTest", "testMethod2", StdOut, "out")
+        1 * outputSerializer.onOutput("FooTest", StdErr, "err")
+        1 * outputSerializer.onOutput("FooTest", StdOut, "out")
         0 * outputSerializer._
     }
 

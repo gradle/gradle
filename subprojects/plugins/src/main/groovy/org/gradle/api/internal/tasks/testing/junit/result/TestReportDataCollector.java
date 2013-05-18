@@ -87,7 +87,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             classResult = new TestClassResult(className, 0);
             results.put(className, classResult);
         }
-        outputSerializer.onOutput(className, testDescriptor.getName(), outputEvent.getDestination(), outputEvent.getMessage());
+        outputSerializer.onOutput(className, outputEvent.getDestination(), outputEvent.getMessage());
     }
 
     public void visitClasses(Action<? super TestClassResult> visitor) {

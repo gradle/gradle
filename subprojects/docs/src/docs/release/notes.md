@@ -134,10 +134,6 @@ The incubating C++ support in Gradle is undergoing a major update, in order to a
 the tasks, API and DSL is being given an overhaul. While some features may remain the same, it's likely that any existing C++ builds will need to be updated
 for the changes. You can read about the plan for proposed changes at https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md.
 
-### `ConfigureableReport` renamed to `ConfigurableReport`
-
-The (incubating) class `org.gradle.api.reporting.ConfigureableReport` was renamed to `org.gradle.api.reporting.ConfigurableReport` as the original name was misspelt. 
-
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

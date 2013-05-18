@@ -50,7 +50,7 @@ repositories { mavenCentral() }
 dependencies { testCompile 'org.testng:testng:6.3.1' }
 
 test {
-    reports.html.enabled = false
+    testReport = false
     useTestNG()
 }
 """
@@ -77,7 +77,7 @@ apply plugin: 'java'
 repositories { mavenCentral() }
 dependencies { testCompile 'org.testng:testng:6.3.1' }
 test {
-  reports.html.enabled = false
+  testReport = false
   useTestNG(){
     useDefaultListeners = true
   }

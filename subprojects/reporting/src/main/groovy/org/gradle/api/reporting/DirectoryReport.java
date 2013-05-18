@@ -24,7 +24,7 @@ import java.io.File;
  * A directory based report to be created.
  */
 @Incubating
-public interface DirectoryReport extends ConfigurableReport {
+public interface DirectoryReport extends ConfigureableReport {
 
     /**
      * Returns the entry point of a directory based Report

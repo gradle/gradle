@@ -14,7 +14,7 @@ subprojects {
 // START SNIPPET test-report
     // Disable the test report for the individual test task
     test {
-        reports.html.enabled = false
+        testReport = false
     }
 }
 
