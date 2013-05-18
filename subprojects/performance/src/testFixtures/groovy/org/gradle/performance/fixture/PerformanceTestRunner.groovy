@@ -19,19 +19,21 @@ package org.gradle.performance.fixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
 public class PerformanceTestRunner {
-    def testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def current = new UnderDevelopmentGradleDistribution()
-    def buildContext = new IntegrationTestBuildContext()
+    TestDirectoryProvider testDirectoryProvider
+    GradleDistribution current
+    IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+    DataReporter reporter = new TextFileDataReporter()
+    OperationTimer timer = new OperationTimer()
+    TestProjectLocator testProjectLocator = new TestProjectLocator()
 
     String testProject
     int runs
@@ -39,7 +41,6 @@ public class PerformanceTestRunner {
 
     List<String> tasksToRun = []
     DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
-    DataReporter  reporter = new TextFileDataReporter()
     List<String> args = []
 
     List<String> targetVersions = []
@@ -83,7 +84,7 @@ public class PerformanceTestRunner {
     }
 
     void runOnce() {
-        File projectDir = new TestProjectLocator().findProjectDir(testProject)
+        File projectDir = testProjectLocator.findProjectDir(testProject)
         results.baselineVersions.reverse().each {
             println "Gradle ${it.version}..."
             runOnce(buildContext.distribution(it.version), projectDir, it.results)
@@ -95,7 +96,7 @@ public class PerformanceTestRunner {
 
     void runOnce(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
         def executer = this.executer(dist, projectDir)
-        def operation = MeasuredOperation.measure { MeasuredOperation operation ->
+        def operation = timer.measure { MeasuredOperation operation ->
             executer.run()
         }
         dataCollector.collect(projectDir, operation)

@@ -16,10 +16,18 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 class AbstractPerformanceTest extends Specification {
+    @Rule TestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
     final def runner = new PerformanceTestRunner(
+            testDirectoryProvider: tmpDir,
+            current: new UnderDevelopmentGradleDistribution(),
             runs: 5,
             warmUpRuns: 1,
             targetVersions: ['1.0', '1.4', 'last']

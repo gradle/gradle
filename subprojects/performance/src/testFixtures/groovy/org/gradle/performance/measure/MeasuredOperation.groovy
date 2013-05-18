@@ -15,9 +15,6 @@
  */
 
 package org.gradle.performance.measure
-
-import org.gradle.util.Clock
-
 /**
  * by Szczepan Faber, created at: 2/10/12
  */
@@ -25,17 +22,4 @@ public class MeasuredOperation {
     Amount<Duration> executionTime
     Exception exception
     Amount<DataAmount> totalMemoryUsed
-
-    static MeasuredOperation measure(Closure operation) {
-        def out = new MeasuredOperation()
-        def clock = new Clock()
-        clock.reset()
-        try {
-            operation(out)
-        } catch (Exception e) {
-            out.exception = e
-        }
-        out.executionTime = Duration.millis(clock.timeInMs)
-        return out
-    }
 }

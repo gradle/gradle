@@ -20,7 +20,7 @@ import org.gradle.api.logging.Logging
 
 public class PerformanceResults {
 
-    private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
+    private final static LOGGER = Logging.getLogger(PerformanceResults.class)
 
     List<BaselineVersion> baselineVersions = []
     String displayName
