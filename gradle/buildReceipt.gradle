@@ -118,6 +118,7 @@ task createBuildReceipt(dependsOn: determineCommitId) {
                 isSnapshot: isSnapshot,
                 rcNumber: rcNumber == null ? "" : rcNumber,
                 buildTimestamp: buildTimestamp,
+                buildNumber: System.properties["build.number"] ?: 'none',
                 username: System.properties["user.name"],
                 hostname: hostName,
                 javaVersion: System.properties["java.version"],
