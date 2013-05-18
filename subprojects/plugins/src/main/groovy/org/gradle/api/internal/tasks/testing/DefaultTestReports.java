@@ -17,16 +17,16 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Task;
-import org.gradle.api.reporting.ConfigureableReport;
+import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 import org.gradle.api.tasks.testing.TestReports;
 
-public class DefaultTestReports extends TaskReportContainer<ConfigureableReport> implements TestReports {
+public class DefaultTestReports extends TaskReportContainer<ConfigurableReport> implements TestReports {
 
     public DefaultTestReports(Task task) {
-        super(ConfigureableReport.class, task);
+        super(ConfigurableReport.class, task);
 
         add(TaskGeneratedSingleDirectoryReport.class, "junitXml", task, null);
         add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");
