@@ -44,7 +44,7 @@ public abstract class AbstractReportTask extends ConventionTask {
     protected AbstractReportTask() {
         getOutputs().upToDateWhen(new Spec<Task>() {
             public boolean isSatisfiedBy(Task element) {
-                return getOutputFile() != null;
+                return false;
             }
         });
         projects = new HashSet<Project>();
