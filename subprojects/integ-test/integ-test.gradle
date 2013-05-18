@@ -19,7 +19,6 @@ integTestTasks.all {
     doFirst {
         systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
         systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
-        forkEvery = 15
     }
 
     // You can filter the userguide samples to be run by specifying this system property.
