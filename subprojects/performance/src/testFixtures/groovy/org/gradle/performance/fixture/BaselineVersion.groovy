@@ -27,7 +27,7 @@ class BaselineVersion {
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
-    MeasuredOperationList results
+    MeasuredOperationList results = new MeasuredOperationList()
 
     void clearResults() {
         results.clear()

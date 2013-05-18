@@ -9,6 +9,7 @@ dependencies {
     junit 'junit:junit:4.11'
     compile libraries.groovy
     testFixturesCompile project(':internalIntegTesting')
+    testFixturesRuntime 'com.h2database:h2:1.3.171'
     plugin gradleApi()
 }
 

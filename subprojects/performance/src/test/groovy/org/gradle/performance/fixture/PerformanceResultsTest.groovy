@@ -16,12 +16,12 @@
 
 package org.gradle.performance.fixture
 
-import spock.lang.Specification
+import org.gradle.performance.ResultSpecification
 
 import static org.gradle.performance.fixture.BaselineVersion.baseline
 
-class PerformanceResultsTest extends Specification {
-    def PerformanceResults result = new PerformanceResults()
+class PerformanceResultsTest extends ResultSpecification {
+    def PerformanceResults result = new PerformanceResults(baselineVersions: [baseline("1.x")])
 
     def "passes when average execution time for current release is smaller than average execution time for previous releases"() {
         given:
@@ -285,13 +285,5 @@ class PerformanceResultsTest extends Specification {
         e.message.contains("Speed <test>: we're slower than 1.2.")
         e.message.contains('Memory <test>: we need more memory than 1.1.')
         e.message.contains('Memory <test>: we need more memory than 1.2.')
-    }
-
-    private MeasuredOperation operation(Map<String, Object> args) {
-        def operation = new MeasuredOperation()
-        operation.executionTime = Duration.millis(args?.executionTime ?: 120)
-        operation.totalMemoryUsed = DataAmount.bytes(args?.heapUsed ?: 1024)
-        operation.exception = args?.failure
-        return operation
     }
 }

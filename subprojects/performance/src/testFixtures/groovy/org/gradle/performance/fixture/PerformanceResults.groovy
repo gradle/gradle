@@ -18,20 +18,25 @@ package org.gradle.performance.fixture
 
 import org.gradle.api.logging.Logging
 
-import static org.gradle.performance.fixture.BaselineVersion.baseline
-
 public class PerformanceResults {
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
-    List<BaselineVersion> baselineVersions = [ baseline("1.x")]
+    List<BaselineVersion> baselineVersions = []
     String displayName
+    long testTime
+    String versionUnderTest
 
     final MeasuredOperationList current = new MeasuredOperationList(name:  "Current G.")
 
     def clear() {
         baselineVersions.each { it.clearResults() }
         current.clear()
+    }
+
+    @Override
+    String toString() {
+        return displayName
     }
 
     void assertEveryBuildSucceeds() {

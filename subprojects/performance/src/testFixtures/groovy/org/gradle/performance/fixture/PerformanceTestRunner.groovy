@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GradleVersion
 
 public class PerformanceTestRunner {
     def testDirectoryProvider = new TestNameTestDirectoryProvider()
@@ -59,6 +60,8 @@ public class PerformanceTestRunner {
 
         results = new PerformanceResults(
                 baselineVersions: baselineVersions,
+                versionUnderTest: GradleVersion.current().getVersion(),
+                testTime: System.currentTimeMillis(),
                 displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
 
         println "Running performance tests for test project '$testProject', no. of runs: $runs"
