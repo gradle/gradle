@@ -53,5 +53,6 @@ tasks.withType(ScalaCompile) {
 <% } %>
 
 task dependencyReport(type: DependencyReportTask) {
+    outputs.upToDateWhen { false }
     outputFile = new File(buildDir, "dependencies.txt")
 }

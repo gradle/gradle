@@ -42,6 +42,6 @@ class DependencyReportPerformanceTest extends AbstractPerformanceTest {
 
         where:
         testProject       | maxExecutionTimeRegression | maxMemoryRegression
-        "lotDependencies" | millis(7000)               | kbytes(3000)
+        "lotDependencies" | millis(500)                | kbytes(3000)
     }
 }
