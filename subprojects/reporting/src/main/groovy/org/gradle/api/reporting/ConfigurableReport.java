@@ -23,7 +23,7 @@ import org.gradle.api.Incubating;
  * a configurable destination.
  */
 @Incubating
-public interface ConfigureableReport extends Report {
+public interface ConfigurableReport extends Report {
     /**
      * Sets the destination for the report.
      *
