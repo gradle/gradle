@@ -53,15 +53,16 @@ class CppCompile extends DefaultTask {
 
     @OutputFile
     public File getOutputFile() {
-        return getProject().file(outputFile);
+        return project.file(outputFile)
     }
 
     @TaskAction
     void compile() {
-        spec.outputFile = getOutputFile()
         spec.includeRoots = includes
         spec.libs = libs
         spec.source = source
+        spec.outputFile = getOutputFile()
+        spec.workDir = project.file("${project.buildDir}/tmp/cppCompile/${name}")
 
         def result = compiler.execute(spec)
         didWork = result.didWork

@@ -52,10 +52,6 @@ class GppCompileSpec extends DefaultCppCompileSpec implements CompileTaskAware {
         return new DefaultTaskDependency().add(task)
     }
 
-    File getWorkDir() {
-        project.file "$project.buildDir/compileWork/$name"
-    }
-
     void setting(Closure closure) {
         settings << closure
     }

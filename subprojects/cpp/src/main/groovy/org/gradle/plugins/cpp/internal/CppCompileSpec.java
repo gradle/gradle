@@ -42,4 +42,5 @@ public interface CppCompileSpec extends BinaryCompileSpec {
 
     File getWorkDir();
 
+    void setWorkDir(File workDir);
 }

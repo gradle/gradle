@@ -64,4 +64,12 @@ public abstract class DefaultCppCompileSpec implements CppCompileSpec {
     public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;
     }
+
+    public File getWorkDir() {
+        return workDir;
+    }
+
+    public void setWorkDir(File workDir) {
+        this.workDir = workDir;
+    }
 }
