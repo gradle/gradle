@@ -16,14 +16,14 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.reporting.ConfigureableReport;
+import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportContainer;
 
 /**
  * The reports produced by the {@link Test} task.
  */
-public interface TestReports extends ReportContainer<ConfigureableReport> {
+public interface TestReports extends ReportContainer<ConfigurableReport> {
 
     DirectoryReport getHtml();
 
