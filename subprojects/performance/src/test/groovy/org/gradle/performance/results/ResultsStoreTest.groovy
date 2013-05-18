@@ -43,9 +43,8 @@ class ResultsStoreTest extends ResultSpecification {
         def result2 = new PerformanceResults(displayName: "test2", testTime: 20000, versionUnderTest: "1.7-rc-2")
         result2.current << operation()
         result2.current << operation()
-        def baseline3 = baseline("1.0")
+        def baseline3 = baselineResults("1.0")
         result2.baselineVersions = [baseline3]
-        baseline3.results << operation()
 
         when:
         def writeStore = new ResultsStore(dbFile)
@@ -58,11 +57,16 @@ class ResultsStoreTest extends ResultSpecification {
 
         when:
         def readStore = new ResultsStore(dbFile)
-        def results = readStore.loadResults()
-        readStore.close()
+        def tests = readStore.testNames
 
         then:
-        results.size() == 2
+        tests == ["test1", "test2"]
+
+        when:
+        def results = readStore.getTestResults("test1")
+
+        then:
+        results.size() == 1
         results[0].displayName == "test1"
         results[0].testTime == 10000
         results[0].versionUnderTest == '1.7-rc-1'
@@ -72,11 +76,18 @@ class ResultsStoreTest extends ResultSpecification {
         results[0].baselineVersions*.version == ["1.0", "1.5"]
         results[0].baselineVersions.find { it.version == "1.0" }.results.size() == 1
         results[0].baselineVersions.find { it.version == "1.5" }.results.size() == 3
-        results[1].displayName == "test2"
-        results[1].testTime == 20000
-        results[1].versionUnderTest == '1.7-rc-2'
-        results[1].current.size() == 2
-        results[1].baselineVersions*.version == ["1.0"]
-        results[1].baselineVersions.find { it.version == "1.0" }.results.size() == 1
+
+        when:
+        results = readStore.getTestResults("test2")
+        readStore.close()
+
+        then:
+        results.size() == 1
+        results[0].displayName == "test2"
+        results[0].testTime == 20000
+        results[0].versionUnderTest == '1.7-rc-2'
+        results[0].current.size() == 2
+        results[0].baselineVersions*.version == ["1.0"]
+        results[0].baselineVersions.find { it.version == "1.0" }.results.size() == 1
     }
 }

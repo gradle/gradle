@@ -84,26 +84,44 @@ public class ResultsStore implements DataReporter {
         }
     }
 
-    public List<PerformanceResults> loadResults() {
+    public List<String> getTestNames() {
+        try {
+            return withConnection(new ConnectionAction<List<String>>() {
+                public List<String> execute(Connection connection) throws Exception {
+                    List<String> testNames = new ArrayList<String>();
+                    ResultSet testExecutions = connection.createStatement().executeQuery("select distinct testName from testExecution order by testName");
+                    while (testExecutions.next()) {
+                        testNames.add(testExecutions.getString(1));
+                    }
+                    return testNames;
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("Could not load test history from datastore '%s'.", dbFile), e);
+        }
+    }
+
+    public List<PerformanceResults> getTestResults(final String testName) {
         try {
             return withConnection(new ConnectionAction<List<PerformanceResults>>() {
                 public List<PerformanceResults> execute(Connection connection) throws Exception {
                     List<PerformanceResults> result = new ArrayList<PerformanceResults>();
-                    PreparedStatement preparedStatement = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes from results where testExecution = ?");
-                    ResultSet testExecutions = connection.createStatement().executeQuery("select id, executionTime, testName, targetVersion from testExecution order by executionTime, testName");
+                    PreparedStatement buildsForTest = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes from results where testExecution = ?");
+                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, targetVersion from testExecution where testName = ? order by executionTime");
+                    executionsForName.setString(1, testName);
+                    ResultSet testExecutions = executionsForName.executeQuery();
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);
                         Timestamp executionTime = testExecutions.getTimestamp(2);
-                        String testName = testExecutions.getString(3);
-                        String versionUnderTest = testExecutions.getString(4);
+                        String versionUnderTest = testExecutions.getString(3);
                         PerformanceResults performanceResults = new PerformanceResults();
                         performanceResults.setTestTime(executionTime.getTime());
                         performanceResults.setDisplayName(testName);
                         performanceResults.setVersionUnderTest(versionUnderTest);
                         result.add(performanceResults);
-                        preparedStatement.setLong(1, id);
+                        buildsForTest.setLong(1, id);
                         Map<String, BaselineVersion> versions = new TreeMap<String, BaselineVersion>();
-                        ResultSet builds = preparedStatement.executeQuery();
+                        ResultSet builds = buildsForTest.executeQuery();
                         while (builds.next()) {
                             String version = builds.getString(1);
                             BigDecimal executionTimeMs = builds.getBigDecimal(2);
@@ -127,7 +145,8 @@ public class ResultsStore implements DataReporter {
                         performanceResults.setBaselineVersions(new ArrayList<BaselineVersion>(versions.values()));
                     }
                     testExecutions.close();
-                    preparedStatement.close();
+                    buildsForTest.close();
+                    executionsForName.close();
                     return result;
                 }
             });

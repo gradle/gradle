@@ -2,15 +2,17 @@ apply from: 'src/generator.groovy'
 
 configurations {
     junit
-    plugin
 }
 
 dependencies {
     junit 'junit:junit:4.11'
     compile libraries.groovy
     testFixturesCompile project(':internalIntegTesting')
+    testFixturesCompile 'com.googlecode.jatl:jatl:0.2.2'
+
     testFixturesRuntime 'com.h2database:h2:1.3.171'
-    plugin gradleApi()
+
+    testCompile libraries.jsoup
 }
 
 useTestFixtures()

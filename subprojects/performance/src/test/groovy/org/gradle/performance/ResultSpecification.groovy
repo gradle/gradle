@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.fixture.BaselineVersion
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
@@ -23,6 +24,12 @@ import org.gradle.performance.measure.MeasuredOperation
 import spock.lang.Specification
 
 class ResultSpecification extends Specification {
+    BaselineVersion baselineResults(String version) {
+        def baselineVersion = BaselineVersion.baseline(version)
+        baselineVersion.results << operation()
+        return baselineVersion
+    }
+
     MeasuredOperation operation(Map<String, Object> args = [:]) {
         def operation = new MeasuredOperation()
         operation.executionTime = args.executionTime instanceof Amount ? args.executionTime : Duration.millis(args?.executionTime ?: 120)

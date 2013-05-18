@@ -17,13 +17,16 @@
 package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.performance.results.ReportGenerator
+import org.gradle.performance.results.ResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class AbstractPerformanceTest extends Specification {
-    @Rule TestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    static def resultStore = new ResultsStore(new File("build/performance-tests/results"))
+    static def textReporter = new TextFileDataReporter(new File("build/performance-tests/results.txt"))
 
     final def runner = new PerformanceTestRunner(
             testDirectoryProvider: tmpDir,
@@ -32,4 +35,13 @@ class AbstractPerformanceTest extends Specification {
             warmUpRuns: 1,
             targetVersions: ['1.0', '1.4', 'last']
     )
+
+    def setup() {
+        runner.reporter = new CompositeDataReporter([textReporter, resultStore])
+    }
+
+    def cleanupSpec() {
+        resultStore.close()
+        new ReportGenerator().generate(resultStore, new File("build/performance-tests/report"))
+    }
 }

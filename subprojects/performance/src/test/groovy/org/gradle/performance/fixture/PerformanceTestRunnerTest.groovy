@@ -23,10 +23,11 @@ import org.gradle.performance.measure.Duration
 
 class PerformanceTestRunnerTest extends ResultSpecification {
     final timer = Mock(OperationTimer)
+    final reporter = Mock(DataReporter)
     final testProjectLocator = Stub(TestProjectLocator)
     final dataCollector = Stub(DataCollector)
     final currentGradle = Stub(GradleDistribution)
-    final runner = new PerformanceTestRunner(timer: timer, testProjectLocator: testProjectLocator, dataCollector: dataCollector, current: currentGradle)
+    final runner = new PerformanceTestRunner(timer: timer, testProjectLocator: testProjectLocator, dataCollector: dataCollector, current: currentGradle, reporter: reporter)
 
     def "runs test and builds results"() {
         given:
@@ -49,6 +50,8 @@ class PerformanceTestRunnerTest extends ResultSpecification {
         // warmup runs are discarded
         3 * timer.measure(_) >> operation(executionTime: Duration.seconds(100), heapUsed: DataAmount.kbytes(100))
         12 * timer.measure(_) >> operation(executionTime: Duration.seconds(10), heapUsed: DataAmount.kbytes(10))
+        1 * reporter.report(_)
         0 * timer._
+        0 * reporter._
     }
 }

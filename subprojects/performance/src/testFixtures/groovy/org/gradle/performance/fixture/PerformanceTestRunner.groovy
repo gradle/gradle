@@ -31,7 +31,7 @@ public class PerformanceTestRunner {
     TestDirectoryProvider testDirectoryProvider
     GradleDistribution current
     IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    DataReporter reporter = new TextFileDataReporter()
+    DataReporter reporter
     OperationTimer timer = new OperationTimer()
     TestProjectLocator testProjectLocator = new TestProjectLocator()
 
