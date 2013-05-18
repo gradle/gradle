@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture
+package org.gradle.performance.measure
 
 import org.gradle.util.Clock
 

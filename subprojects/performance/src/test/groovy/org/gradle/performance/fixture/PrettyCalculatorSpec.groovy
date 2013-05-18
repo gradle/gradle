@@ -16,6 +16,8 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.performance.measure.Amount
+import org.gradle.performance.measure.Duration
 import spock.lang.Specification
 
 import static org.gradle.performance.fixture.PrettyCalculator.percentChange

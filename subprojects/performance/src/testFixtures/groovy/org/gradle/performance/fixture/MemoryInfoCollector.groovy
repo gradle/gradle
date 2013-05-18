@@ -16,6 +16,9 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.MeasuredOperation
+
 /**
  * by Szczepan Faber, created at: 8/14/12
  */

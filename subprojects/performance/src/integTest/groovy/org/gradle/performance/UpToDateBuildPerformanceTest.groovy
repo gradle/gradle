@@ -19,8 +19,8 @@ package org.gradle.performance
 import org.gradle.performance.fixture.AbstractPerformanceTest
 import spock.lang.Unroll
 
-import static org.gradle.performance.fixture.DataAmount.kbytes
-import static org.gradle.performance.fixture.Duration.millis
+import static org.gradle.performance.measure.DataAmount.kbytes
+import static org.gradle.performance.measure.Duration.millis
 
 /**
  * by Szczepan Faber, created at: 2/9/12

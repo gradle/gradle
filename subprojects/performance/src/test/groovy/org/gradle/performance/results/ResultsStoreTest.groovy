@@ -22,8 +22,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
 import static org.gradle.performance.fixture.BaselineVersion.baseline
-import static org.gradle.performance.fixture.DataAmount.kbytes
-import static org.gradle.performance.fixture.Duration.minutes
+import static org.gradle.performance.measure.DataAmount.kbytes
+import static org.gradle.performance.measure.Duration.minutes
 
 class ResultsStoreTest extends ResultSpecification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()

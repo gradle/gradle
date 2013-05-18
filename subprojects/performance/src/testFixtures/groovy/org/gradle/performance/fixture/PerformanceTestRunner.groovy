@@ -21,6 +21,10 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.performance.measure.Amount
+import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.Duration
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 

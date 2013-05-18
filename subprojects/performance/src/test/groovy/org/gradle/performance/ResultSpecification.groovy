@@ -16,10 +16,10 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.Amount
-import org.gradle.performance.fixture.DataAmount
-import org.gradle.performance.fixture.Duration
-import org.gradle.performance.fixture.MeasuredOperation
+import org.gradle.performance.measure.Amount
+import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.Duration
+import org.gradle.performance.measure.MeasuredOperation
 import spock.lang.Specification
 
 class ResultSpecification extends Specification {
