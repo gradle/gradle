@@ -20,6 +20,7 @@ import static org.gradle.util.TextUtil.escapeString
 class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
+    static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
 
     def "build and execute simple cpp program"() {
         given:
@@ -108,6 +109,57 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
 
         expect:
         fails "mainExecutable"
+    }
+
+    def "build and execute program with compiler arg"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp"
+            cpp {
+                sourceSets {
+                    main {}
+                }
+            }
+            executables {
+                english {
+                    sourceSets << project.cpp.sourceSets.main
+                }
+                french {
+                    sourceSets << project.cpp.sourceSets.main
+                    spec {
+                        args "-DFRENCH"
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = 'test'"
+
+        and:
+        file("src", "main", "cpp", "helloworld.cpp") << """
+            #include <iostream>
+
+            int main () {
+                #ifdef FRENCH
+                std::cout << "${escapeString(HELLO_WORLD_FRENCH)}";
+                #else
+                std::cout << "${escapeString(HELLO_WORLD)}";
+                #endif
+                return 0;
+            }
+        """
+
+        when:
+        run "englishExecutable", "frenchExecutable"
+
+        then:
+        def englishExecutable = executable("build/binaries/english")
+        englishExecutable.isFile()
+        englishExecutable.exec().out == HELLO_WORLD
+
+        and:
+        def frenchExecutable = executable("build/binaries/french")
+        frenchExecutable.isFile()
+        frenchExecutable.exec().out == HELLO_WORLD_FRENCH
     }
 
     def "build and execute program from multiple source files"() {
