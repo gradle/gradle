@@ -19,7 +19,7 @@ package org.gradle.util
 import spock.lang.Specification
 
 class CachingClassLoaderTest extends Specification {
-    final parent = Mock(ClassLoader)
+    final parent = Mock(ClassLoader, useObjenesis: false)
     final classLoader = new CachingClassLoader(parent)
 
     def "loads class once and caches result"() {

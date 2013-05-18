@@ -79,7 +79,9 @@ class ProjectInternalServiceRegistryTest extends Specification {
         parent.get(FileSystem) >> Stub(FileSystem)
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
-        parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry)
+        parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry) {
+            getScriptClassLoader() >> new ClassLoader() { }
+        }
     }
 
     def "creates a registry for a task"() {
