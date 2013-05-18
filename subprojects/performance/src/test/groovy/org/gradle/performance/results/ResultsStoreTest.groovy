@@ -21,7 +21,6 @@ import org.gradle.performance.fixture.PerformanceResults
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
-import static org.gradle.performance.fixture.BaselineVersion.baseline
 import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.minutes
 
@@ -31,9 +30,8 @@ class ResultsStoreTest extends ResultSpecification {
 
     def "persists results"() {
         def result1 = new PerformanceResults(displayName: "test1", testTime: 10000, versionUnderTest: "1.7-rc-1")
-        def baseline1 = baseline("1.0")
-        def baseline2 = baseline("1.5")
-        result1.baselineVersions = ["1.0": baseline1, "1.5": baseline2]
+        def baseline1 = result1.baseline("1.0")
+        def baseline2 = result1.baseline("1.5")
         result1.current << operation(executionTime: minutes(12), heapUsed: kbytes(12.33))
         baseline1.results << operation()
         baseline2.results << operation()
@@ -43,8 +41,8 @@ class ResultsStoreTest extends ResultSpecification {
         def result2 = new PerformanceResults(displayName: "test2", testTime: 20000, versionUnderTest: "1.7-rc-2")
         result2.current << operation()
         result2.current << operation()
-        def baseline3 = baselineResults("1.0")
-        result2.baselineVersions = ["1.0": baseline3]
+        def baseline3 = result2.baseline("1.0")
+        baseline3.results << operation()
 
         when:
         def writeStore = new ResultsStore(dbFile)
@@ -77,9 +75,9 @@ class ResultsStoreTest extends ResultSpecification {
         results[0].current.size() == 1
         results[0].current[0].executionTime == minutes(12)
         results[0].current[0].totalMemoryUsed == kbytes(12.33)
-        results[0].baselineVersions.values()*.version == ["1.0", "1.5"]
-        results[0].baselineVersions["1.0"].results.size() == 1
-        results[0].baselineVersions["1.5"].results.size() == 3
+        results[0].baselineVersions*.version == ["1.0", "1.5"]
+        results[0].baseline("1.0").results.size() == 1
+        results[0].baseline("1.5").results.size() == 3
 
         when:
         history = readStore.getTestResults("test2")
@@ -95,8 +93,8 @@ class ResultsStoreTest extends ResultSpecification {
         results[0].testTime == 20000
         results[0].versionUnderTest == '1.7-rc-2'
         results[0].current.size() == 2
-        results[0].baselineVersions.values()*.version == ["1.0"]
-        results[0].baselineVersions["1.0"].results.size() == 1
+        results[0].baselineVersions*.version == ["1.0"]
+        results[0].baseline("1.0").results.size() == 1
 
         cleanup:
         writeStore?.close()

@@ -57,7 +57,7 @@ public class ResultsStore implements DataReporter {
                     statement = connection.prepareStatement("insert into testOperation(testExecution, version, executionTimeMs, heapUsageBytes) values (?, ?, ?, ?)");
                     try {
                         addOperations(statement, testId, null, results.getCurrent());
-                        for (BaselineVersion baselineVersion : results.getBaselineVersions().values()) {
+                        for (BaselineVersion baselineVersion : results.getBaselineVersions()) {
                             addOperations(statement, testId, baselineVersion.getVersion(), baselineVersion.getResults());
                         }
                     } finally {
@@ -118,7 +118,6 @@ public class ResultsStore implements DataReporter {
                         performanceResults.setVersionUnderTest(versionUnderTest);
                         results.add(performanceResults);
                         buildsForTest.setLong(1, id);
-                        Map<String, BaselineVersion> versions = new TreeMap<String, BaselineVersion>();
                         ResultSet builds = buildsForTest.executeQuery();
                         while (builds.next()) {
                             String version = builds.getString(1);
@@ -131,17 +130,11 @@ public class ResultsStore implements DataReporter {
                             if (version == null) {
                                 performanceResults.getCurrent().add(operation);
                             } else {
-                                BaselineVersion baselineVersion = versions.get(version);
-                                if (baselineVersion == null) {
-                                    baselineVersion = new BaselineVersion();
-                                    baselineVersion.setVersion(version);
-                                    versions.put(version, baselineVersion);
-                                }
+                                BaselineVersion baselineVersion = performanceResults.baseline(version);
                                 baselineVersion.getResults().add(operation);
+                                allVersions.add(version);
                             }
                         }
-                        performanceResults.setBaselineVersions(versions);
-                        allVersions.addAll(versions.keySet());
                     }
                     testExecutions.close();
                     buildsForTest.close();

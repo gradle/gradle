@@ -20,16 +20,14 @@ import org.gradle.performance.ResultSpecification
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 
-import static org.gradle.performance.fixture.BaselineVersion.baseline
-
 class PerformanceResultsTest extends ResultSpecification {
-    def PerformanceResults result = new PerformanceResults(baselineVersions: ["1.0": baseline("1.0")])
+    def PerformanceResults result = new PerformanceResults()
 
     def "passes when average execution time for current release is smaller than average execution time for previous releases"() {
         given:
-        result.baselineVersions["1.0"].results.add(operation(executionTime: 110))
-        result.baselineVersions["1.0"].results.add(operation(executionTime: 100))
-        result.baselineVersions["1.0"].results.add(operation(executionTime: 90))
+        result.baseline("1.0").results.add(operation(executionTime: 110))
+        result.baseline("1.0").results.add(operation(executionTime: 100))
+        result.baseline("1.0").results.add(operation(executionTime: 90))
 
         and:
         result.current.add(operation(executionTime: 90))
@@ -42,15 +40,14 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "passes when average execution time for current release is within specified range of average execution time for previous releases"() {
         given:
-        result.baselineVersions["1.0"].maxExecutionTimeRegression = Duration.millis(10)
-        result.baselineVersions["1.0"].results << operation(executionTime: 100)
-        result.baselineVersions["1.0"].results << operation(executionTime: 100)
-        result.baselineVersions["1.0"].results << operation(executionTime: 100)
+        result.baseline("1.0").maxExecutionTimeRegression = Duration.millis(10)
+        result.baseline("1.0").results << operation(executionTime: 100)
+        result.baseline("1.0").results << operation(executionTime: 100)
+        result.baseline("1.0").results << operation(executionTime: 100)
 
-        result.baselineVersions["1.3"] = baseline("1.3")
-        result.baselineVersions["1.3"].results << operation(executionTime: 115)
-        result.baselineVersions["1.3"].results << operation(executionTime: 105)
-        result.baselineVersions["1.3"].results << operation(executionTime: 110)
+        result.baseline("1.3").results << operation(executionTime: 115)
+        result.baseline("1.3").results << operation(executionTime: 105)
+        result.baseline("1.3").results << operation(executionTime: 110)
 
         and:
         result.current << operation(executionTime: 110)
@@ -65,16 +62,15 @@ class PerformanceResultsTest extends ResultSpecification {
         given:
         result.displayName = '<test>'
 
-        result.baselineVersions["1.0"].maxExecutionTimeRegression = Duration.millis(10)
-        result.baselineVersions["1.0"].results << operation(executionTime: 100)
-        result.baselineVersions["1.0"].results << operation(executionTime: 100)
-        result.baselineVersions["1.0"].results << operation(executionTime: 100)
+        result.baseline("1.0").maxExecutionTimeRegression = Duration.millis(10)
+        result.baseline("1.0").results << operation(executionTime: 100)
+        result.baseline("1.0").results << operation(executionTime: 100)
+        result.baseline("1.0").results << operation(executionTime: 100)
 
-        result.baselineVersions["1.3"] = baseline("1.3") //pass
-        result.baselineVersions["1.3"].maxExecutionTimeRegression = Duration.millis(10)
-        result.baselineVersions["1.3"].results << operation(executionTime: 101)
-        result.baselineVersions["1.3"].results << operation(executionTime: 100)
-        result.baselineVersions["1.3"].results << operation(executionTime: 100)
+        result.baseline("1.3").maxExecutionTimeRegression = Duration.millis(10)
+        result.baseline("1.3").results << operation(executionTime: 101)
+        result.baseline("1.3").results << operation(executionTime: 100)
+        result.baseline("1.3").results << operation(executionTime: 100)
 
         and:
         result.current << operation(executionTime: 110)
@@ -93,14 +89,13 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "passes when average heap usage for current release is smaller than average heap usage for previous releases"() {
         given:
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1000)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1000)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1000)
+        result.baseline("1.0").results << operation(heapUsed: 1000)
+        result.baseline("1.0").results << operation(heapUsed: 1000)
+        result.baseline("1.0").results << operation(heapUsed: 1000)
 
-        result.baselineVersions["1.3"] = baseline("1.3")
-        result.baselineVersions["1.3"].results << operation(heapUsed: 800)
-        result.baselineVersions["1.3"].results << operation(heapUsed: 1000)
-        result.baselineVersions["1.3"].results << operation(heapUsed: 1200)
+        result.baseline("1.3").results << operation(heapUsed: 800)
+        result.baseline("1.3").results << operation(heapUsed: 1000)
+        result.baseline("1.3").results << operation(heapUsed: 1200)
 
         and:
         result.current << operation(heapUsed: 1000)
@@ -113,16 +108,15 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "passes when average heap usage for current release is slightly larger than average heap usage for previous releases"() {
         given:
-        result.baselineVersions["1.0"].maxMemoryRegression = DataAmount.bytes(100)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1000)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1000)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1000)
+        result.baseline("1.0").maxMemoryRegression = DataAmount.bytes(100)
+        result.baseline("1.0").results << operation(heapUsed: 1000)
+        result.baseline("1.0").results << operation(heapUsed: 1000)
+        result.baseline("1.0").results << operation(heapUsed: 1000)
 
-        result.baselineVersions["1.3"] = baseline("1.3")
-        result.baselineVersions["1.3"].maxMemoryRegression = DataAmount.bytes(100)
-        result.baselineVersions["1.3"].results << operation(heapUsed: 900)
-        result.baselineVersions["1.3"].results << operation(heapUsed: 1000)
-        result.baselineVersions["1.3"].results << operation(heapUsed: 1100)
+        result.baseline("1.3").maxMemoryRegression = DataAmount.bytes(100)
+        result.baseline("1.3").results << operation(heapUsed: 900)
+        result.baseline("1.3").results << operation(heapUsed: 1000)
+        result.baseline("1.3").results << operation(heapUsed: 1100)
 
         and:
         result.current << operation(heapUsed: 1100)
@@ -137,16 +131,15 @@ class PerformanceResultsTest extends ResultSpecification {
         given:
         result.displayName = '<test>'
 
-        result.baselineVersions["1.0"].maxMemoryRegression = DataAmount.bytes(100)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1001)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1001)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1001)
+        result.baseline("1.0").maxMemoryRegression = DataAmount.bytes(100)
+        result.baseline("1.0").results << operation(heapUsed: 1001)
+        result.baseline("1.0").results << operation(heapUsed: 1001)
+        result.baseline("1.0").results << operation(heapUsed: 1001)
 
-        result.baselineVersions["1.2"] = baseline("1.2") //fail
-        result.baselineVersions["1.2"].maxMemoryRegression = DataAmount.bytes(100)
-        result.baselineVersions["1.2"].results << operation(heapUsed: 1000)
-        result.baselineVersions["1.2"].results << operation(heapUsed: 1000)
-        result.baselineVersions["1.2"].results << operation(heapUsed: 1000)
+        result.baseline("1.2").maxMemoryRegression = DataAmount.bytes(100)
+        result.baseline("1.2").results << operation(heapUsed: 1000)
+        result.baseline("1.2").results << operation(heapUsed: 1000)
+        result.baseline("1.2").results << operation(heapUsed: 1000)
 
         and:
         result.current << operation(heapUsed: 1100)
@@ -166,14 +159,13 @@ class PerformanceResultsTest extends ResultSpecification {
     def "fails when both heap usage and execution time have regressed"() {
         given:
         result.displayName = '<test>'
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1200, executionTime: 150)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1000, executionTime: 100)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1200, executionTime: 150)
+        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 150)
+        result.baseline("1.0").results << operation(heapUsed: 1000, executionTime: 100)
+        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 150)
 
-        result.baselineVersions["1.2"] = baseline("1.2") //fail
-        result.baselineVersions["1.2"].results << operation(heapUsed: 1000, executionTime: 100)
-        result.baselineVersions["1.2"].results << operation(heapUsed: 1000, executionTime: 100)
-        result.baselineVersions["1.2"].results << operation(heapUsed: 1000, executionTime: 100)
+        result.baseline("1.2").results << operation(heapUsed: 1000, executionTime: 100)
+        result.baseline("1.2").results << operation(heapUsed: 1000, executionTime: 100)
+        result.baseline("1.2").results << operation(heapUsed: 1000, executionTime: 100)
 
         and:
         result.current << operation(heapUsed: 1100, executionTime: 110)
@@ -194,7 +186,7 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "fails when a previous operation fails"() {
         given:
-        result.baselineVersions["1.0"].results << operation(failure: new RuntimeException())
+        result.baseline("1.0").results << operation(failure: new RuntimeException())
         result.current.add(operation())
 
         when:
@@ -207,7 +199,7 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "fails when a current operation fails"() {
         given:
-        result.baselineVersions["1.0"].results << operation()
+        result.baseline("1.0").results << operation()
         result.current.add(operation(failure: new RuntimeException()))
 
         when:
@@ -221,9 +213,8 @@ class PerformanceResultsTest extends ResultSpecification {
     def "fails when an operation fails"() {
         given:
         result.current.add(operation())
-        result.baselineVersions["oldVersion"] = baseline('oldVersion')
-        result.baselineVersions["1.0"].results << operation()
-        result.baselineVersions["oldVersion"].results << operation(failure: new RuntimeException())
+        result.baseline("1.0").results << operation()
+        result.baseline("oldVersion").results << operation(failure: new RuntimeException())
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -236,12 +227,11 @@ class PerformanceResultsTest extends ResultSpecification {
     def "fails if one of the baseline version is faster and the other needs less memory"() {
         given:
         result.displayName = '<test>'
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1200, executionTime: 100)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1200, executionTime: 100)
+        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 100)
+        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 100)
 
-        result.baselineVersions["1.2"] = baseline("1.2") //needs less memory
-        result.baselineVersions["1.2"].results << operation(heapUsed: 1000, executionTime: 150)
-        result.baselineVersions["1.2"].results << operation(heapUsed: 1000, executionTime: 150)
+        result.baseline("1.2").results << operation(heapUsed: 1000, executionTime: 150)
+        result.baseline("1.2").results << operation(heapUsed: 1000, executionTime: 150)
 
         and:
         result.current << operation(heapUsed: 1100, executionTime: 125)
@@ -262,12 +252,11 @@ class PerformanceResultsTest extends ResultSpecification {
     def "fails if all of the baseline versions are better in every respect"() {
         given:
         result.displayName = '<test>'
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1200, executionTime: 120)
-        result.baselineVersions["1.0"].results << operation(heapUsed: 1200, executionTime: 120)
+        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 120)
+        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 120)
 
-        result.baselineVersions["1.2"] = baseline("1.2") //needs less memory
-        result.baselineVersions["1.2"].results << operation(heapUsed: 1100, executionTime: 150)
-        result.baselineVersions["1.2"].results << operation(heapUsed: 1100, executionTime: 150)
+        result.baseline("1.2").results << operation(heapUsed: 1100, executionTime: 150)
+        result.baseline("1.2").results << operation(heapUsed: 1100, executionTime: 150)
 
         and:
         result.current << operation(heapUsed: 1300, executionTime: 200)

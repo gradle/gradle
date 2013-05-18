@@ -36,15 +36,19 @@ class PerformanceTestRunnerTest extends ResultSpecification {
         runner.tasksToRun = ['build']
         runner.warmUpRuns = 1
         runner.runs = 4
+        runner.maxExecutionTimeRegression = Duration.millis(100)
+        runner.maxMemoryRegression = DataAmount.bytes(10)
 
         when:
         def results = runner.run()
         results.current.size() == 4
         results.current.avgTime() == Duration.seconds(10)
         results.current.avgMemory() == DataAmount.kbytes(10)
-        results.baselineVersions.keySet() == ['1.0', '1.1'] as Set
-        results.baselineVersions['1.0'].results.size() == 4
-        results.baselineVersions['1.1'].results.size() == 4
+        results.baselineVersions*.version == ['1.0', '1.1']
+        results.baseline('1.0').results.size() == 4
+        results.baseline('1.1').results.size() == 4
+        results.baselineVersions.every { it.maxExecutionTimeRegression == runner.maxExecutionTimeRegression }
+        results.baselineVersions.every { it.maxMemoryRegression == runner.maxMemoryRegression }
 
         then:
         // warmup runs are discarded

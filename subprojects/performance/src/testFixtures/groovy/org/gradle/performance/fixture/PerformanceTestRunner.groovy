@@ -52,22 +52,19 @@ public class PerformanceTestRunner {
     PerformanceResults run() {
         assert !targetVersions.empty
 
-        def mostRecentFinalRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
-        def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()
-        def baselineVersions = [:]
-        allVersions.each { it ->
-            baselineVersions[it] = new BaselineVersion(version: it,
-                    maxExecutionTimeRegression: maxExecutionTimeRegression,
-                    maxMemoryRegression: maxMemoryRegression,
-                    results: new MeasuredOperationList(name: "Gradle $it")
-            )
-        }
-
         results = new PerformanceResults(
-                baselineVersions: baselineVersions,
                 versionUnderTest: GradleVersion.current().getVersion(),
                 testTime: System.currentTimeMillis(),
                 displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
+
+        def mostRecentFinalRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
+        def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()
+        allVersions.each { it ->
+            def baselineVersion = results.baseline(it)
+            baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
+            baselineVersion.maxMemoryRegression = maxMemoryRegression
+            baselineVersion.results = new MeasuredOperationList(name: "Gradle $it")
+        }
 
         println "Running performance tests for test project '$testProject', no. of runs: $runs"
         warmUpRuns.times {
@@ -85,7 +82,7 @@ public class PerformanceTestRunner {
 
     void runOnce() {
         File projectDir = testProjectLocator.findProjectDir(testProject)
-        results.baselineVersions.values().each {
+        results.baselineVersions.each {
             println "Gradle ${it.version}..."
             runOnce(buildContext.distribution(it.version), projectDir, it.results)
         }

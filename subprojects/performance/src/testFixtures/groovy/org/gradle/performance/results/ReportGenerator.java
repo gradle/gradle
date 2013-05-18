@@ -87,8 +87,8 @@ public class ReportGenerator {
                                         tr();
                                             td().text(format.format(new Date(performanceResults.getTestTime()))).end();
                                             for (String version : testHistory.getBaselineVersions()) {
-                                                BaselineVersion baselineVersion = performanceResults.getBaselineVersions().get(version);
-                                                if (baselineVersion == null) {
+                                                BaselineVersion baselineVersion = performanceResults.baseline(version);
+                                                if (baselineVersion.getResults().isEmpty()) {
                                                     td().text("").end();
                                                 } else {
                                                     td().text(baselineVersion.getResults().avgTime().format()).end();
@@ -96,8 +96,8 @@ public class ReportGenerator {
                                             }
                                             td().text(performanceResults.getCurrent().avgTime().format()).end();
                                             for (String version : testHistory.getBaselineVersions()) {
-                                                BaselineVersion baselineVersion = performanceResults.getBaselineVersions().get(version);
-                                                if (baselineVersion == null) {
+                                                BaselineVersion baselineVersion = performanceResults.baseline(version);
+                                                if (baselineVersion.getResults().isEmpty()) {
                                                     td().text("").end();
                                                 } else {
                                                     td().text(baselineVersion.getResults().avgMemory().format()).end();

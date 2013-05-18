@@ -21,7 +21,7 @@ import org.gradle.api.logging.Logging
 public class PerformanceResults {
     private final static LOGGER = Logging.getLogger(PerformanceResults.class)
 
-    Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()
+    private final Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()
     String displayName
     long testTime
     String versionUnderTest
@@ -36,6 +36,22 @@ public class PerformanceResults {
     @Override
     String toString() {
         return displayName
+    }
+
+    Collection<BaselineVersion> getBaselineVersions() {
+        return baselineVersions.values()
+    }
+
+    /**
+     * Locates the given baseline version, adding it if not present.
+     */
+    BaselineVersion baseline(String version) {
+        def baselineVersion = baselineVersions[version]
+        if (baselineVersion == null) {
+            baselineVersion = new BaselineVersion(version: version, results: new MeasuredOperationList(name: "Gradle $version"))
+            baselineVersions[version] = baselineVersion
+        }
+        return baselineVersion
     }
 
     void assertEveryBuildSucceeds() {
