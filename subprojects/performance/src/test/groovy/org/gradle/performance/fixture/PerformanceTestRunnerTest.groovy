@@ -42,9 +42,9 @@ class PerformanceTestRunnerTest extends ResultSpecification {
         results.current.size() == 4
         results.current.avgTime() == Duration.seconds(10)
         results.current.avgMemory() == DataAmount.kbytes(10)
-        results.baselineVersions*.version == ['1.0', '1.1']
-        results.baselineVersions[0].results.size() == 4
-        results.baselineVersions[1].results.size() == 4
+        results.baselineVersions.keySet() == ['1.0', '1.1'] as Set
+        results.baselineVersions['1.0'].results.size() == 4
+        results.baselineVersions['1.1'].results.size() == 4
 
         then:
         // warmup runs are discarded

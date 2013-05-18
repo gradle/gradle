@@ -19,10 +19,9 @@ package org.gradle.performance.fixture
 import org.gradle.api.logging.Logging
 
 public class PerformanceResults {
-
     private final static LOGGER = Logging.getLogger(PerformanceResults.class)
 
-    List<BaselineVersion> baselineVersions = []
+    Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()
     String displayName
     long testTime
     String versionUnderTest
@@ -30,7 +29,7 @@ public class PerformanceResults {
     final MeasuredOperationList current = new MeasuredOperationList(name:  "Current G.")
 
     def clear() {
-        baselineVersions.each { it.clearResults() }
+        baselineVersions.values()each { it.clearResults() }
         current.clear()
     }
 
@@ -42,7 +41,7 @@ public class PerformanceResults {
     void assertEveryBuildSucceeds() {
         LOGGER.info("Asserting all builds have succeeded...");
         def failures = []
-        baselineVersions.each {
+        baselineVersions.values().each {
             failures.addAll it.results.findAll { it.exception }
         }
         failures.addAll current.findAll { it.exception }
@@ -68,7 +67,7 @@ public class PerformanceResults {
     private String checkBaselineVersion(Closure fails, Closure provideMessage) {
         def failed = false
         def failure = new StringBuilder()
-        baselineVersions.each {
+        baselineVersions.values().each {
             String message = provideMessage(it)
             if (fails(it)) {
                 failed = true

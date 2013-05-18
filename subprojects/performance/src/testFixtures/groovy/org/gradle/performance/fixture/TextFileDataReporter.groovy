@@ -25,10 +25,10 @@ class TextFileDataReporter implements DataReporter {
 
     void report(PerformanceResults results) {
         outputFile.parentFile.mkdirs()
-        results.baselineVersions.each {
+        results.baselineVersions.values().each {
             outputFile << it.getSpeedStatsAgainst(results.displayName, results.current)
         }
-        results.baselineVersions.each {
+        results.baselineVersions.values().each {
             outputFile << it.getMemoryStatsAgainst(results.displayName, results.current)
         }
     }

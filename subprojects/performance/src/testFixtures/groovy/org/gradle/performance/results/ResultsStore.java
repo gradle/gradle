@@ -24,10 +24,7 @@ import org.gradle.performance.measure.MeasuredOperation;
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * A {@link DataReporter} implementation that stores results in an H2 relational database.
@@ -57,10 +54,10 @@ public class ResultsStore implements DataReporter {
                     } finally {
                         statement.close();
                     }
-                    statement = connection.prepareStatement("insert into results(testExecution, version, executionTimeMs, heapUsageBytes) values (?, ?, ?, ?)");
+                    statement = connection.prepareStatement("insert into testOperation(testExecution, version, executionTimeMs, heapUsageBytes) values (?, ?, ?, ?)");
                     try {
-                        addOperations(statement, testId, results.getVersionUnderTest(), results.getCurrent());
-                        for (BaselineVersion baselineVersion : results.getBaselineVersions()) {
+                        addOperations(statement, testId, null, results.getCurrent());
+                        for (BaselineVersion baselineVersion : results.getBaselineVersions().values()) {
                             addOperations(statement, testId, baselineVersion.getVersion(), baselineVersion.getResults());
                         }
                     } finally {
@@ -101,13 +98,14 @@ public class ResultsStore implements DataReporter {
         }
     }
 
-    public List<PerformanceResults> getTestResults(final String testName) {
+    public TestExecutionHistory getTestResults(final String testName) {
         try {
-            return withConnection(new ConnectionAction<List<PerformanceResults>>() {
-                public List<PerformanceResults> execute(Connection connection) throws Exception {
-                    List<PerformanceResults> result = new ArrayList<PerformanceResults>();
-                    PreparedStatement buildsForTest = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes from results where testExecution = ?");
-                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, targetVersion from testExecution where testName = ? order by executionTime");
+            return withConnection(new ConnectionAction<TestExecutionHistory>() {
+                public TestExecutionHistory execute(Connection connection) throws Exception {
+                    List<PerformanceResults> results = new ArrayList<PerformanceResults>();
+                    Set<String> allVersions = new TreeSet<String>();
+                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, targetVersion from testExecution where testName = ? order by executionTime desc");
+                    PreparedStatement buildsForTest = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes from testOperation where testExecution = ?");
                     executionsForName.setString(1, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
                     while (testExecutions.next()) {
@@ -118,7 +116,7 @@ public class ResultsStore implements DataReporter {
                         performanceResults.setTestTime(executionTime.getTime());
                         performanceResults.setDisplayName(testName);
                         performanceResults.setVersionUnderTest(versionUnderTest);
-                        result.add(performanceResults);
+                        results.add(performanceResults);
                         buildsForTest.setLong(1, id);
                         Map<String, BaselineVersion> versions = new TreeMap<String, BaselineVersion>();
                         ResultSet builds = buildsForTest.executeQuery();
@@ -130,7 +128,7 @@ public class ResultsStore implements DataReporter {
                             operation.setExecutionTime(Duration.millis(executionTimeMs));
                             operation.setTotalMemoryUsed(DataAmount.bytes(heapUsageBytes));
 
-                            if (version.equals(versionUnderTest)) {
+                            if (version == null) {
                                 performanceResults.getCurrent().add(operation);
                             } else {
                                 BaselineVersion baselineVersion = versions.get(version);
@@ -142,12 +140,14 @@ public class ResultsStore implements DataReporter {
                                 baselineVersion.getResults().add(operation);
                             }
                         }
-                        performanceResults.setBaselineVersions(new ArrayList<BaselineVersion>(versions.values()));
+                        performanceResults.setBaselineVersions(versions);
+                        allVersions.addAll(versions.keySet());
                     }
                     testExecutions.close();
                     buildsForTest.close();
                     executionsForName.close();
-                    return result;
+
+                    return new TestExecutionHistory(new ArrayList<String>(allVersions), results);
                 }
             });
         } catch (Exception e) {
@@ -176,7 +176,7 @@ public class ResultsStore implements DataReporter {
         try {
             Statement statement = connection.createStatement();
             statement.execute("create table if not exists testExecution (id bigint identity not null, executionTime timestamp not null, testName varchar not null, targetVersion varchar not null)");
-            statement.execute("create table if not exists results (testExecution bigint not null, version varchar not null, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
+            statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
             statement.close();
         } catch (Exception e) {
             connection.close();

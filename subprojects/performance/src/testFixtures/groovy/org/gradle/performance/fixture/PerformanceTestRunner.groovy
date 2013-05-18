@@ -54,9 +54,9 @@ public class PerformanceTestRunner {
 
         def mostRecentFinalRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
         def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()
-        def baselineVersions = []
+        def baselineVersions = [:]
         allVersions.each { it ->
-            baselineVersions << new BaselineVersion(version: it,
+            baselineVersions[it] = new BaselineVersion(version: it,
                     maxExecutionTimeRegression: maxExecutionTimeRegression,
                     maxMemoryRegression: maxMemoryRegression,
                     results: new MeasuredOperationList(name: "Gradle $it")
@@ -85,7 +85,7 @@ public class PerformanceTestRunner {
 
     void runOnce() {
         File projectDir = testProjectLocator.findProjectDir(testProject)
-        results.baselineVersions.reverse().each {
+        results.baselineVersions.values().each {
             println "Gradle ${it.version}..."
             runOnce(buildContext.distribution(it.version), projectDir, it.results)
         }
