@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.executer
+package org.gradle.api.tasks.testing;
 
-import static org.hamcrest.Matchers.startsWith
+import org.gradle.api.reporting.ConfigureableReport;
+import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.api.reporting.ReportContainer;
 
 /**
- * by Szczepan Faber, created at: 11/26/12
+ * The reports produced by the {@link Test} task.
  */
-class DetailedExecutionFailure {
-    ExecutionFailure failure
+public interface TestReports extends ReportContainer<ConfigureableReport> {
 
-    public DetailedExecutionFailure(ExecutionFailure failure) {
-        this.failure = failure;
-    }
+    DirectoryReport getHtml();
 
-    public assertTestsFailed() {
-        failure
-            .assertHasDescription("Execution failed for task ':test'.")
-            .assertThatCause(startsWith("There were failing tests"));
-    }
+    DirectoryReport getJunitXml();
+
 }

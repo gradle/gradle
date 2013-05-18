@@ -51,7 +51,7 @@ public class TestNGTestFramework implements TestFramework {
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         options.setTestResources(testTask.getTestSrcDirs());
         List<File> suiteFiles = options.getSuites(testTask.getTemporaryDir());
-        return new TestClassProcessorFactoryImpl(testTask.getTestReportDir(), new TestNGSpec(options), suiteFiles);
+        return new TestClassProcessorFactoryImpl(testTask.getReports().getHtml().getDestination(), new TestNGSpec(options), suiteFiles);
     }
 
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
