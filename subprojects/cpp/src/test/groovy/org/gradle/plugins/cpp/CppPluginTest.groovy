@@ -131,7 +131,7 @@ class CppPluginTest extends Specification {
         then:
         def executable = project.executables.test
         executable.spec instanceof GppCompileSpec
-        executable.spec.outputFile == project.file("build/binaries/test")
+        executable.outputFile == project.file("build/binaries/test")
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -147,7 +147,7 @@ class CppPluginTest extends Specification {
         then:
         def executable = project.executables.test
         executable.spec instanceof GppCompileSpec
-        executable.spec.outputFile == project.file("build/binaries/test.exe")
+        executable.outputFile == project.file("build/binaries/test.exe")
     }
 
     def "creates tasks for each executable"() {
@@ -183,7 +183,7 @@ class CppPluginTest extends Specification {
         then:
         def lib = project.libraries.test
         lib.spec instanceof GppLibraryCompileSpec
-        lib.spec.outputFile == project.file("build/binaries/libtest.dylib")
+        lib.outputFile == project.file("build/binaries/libtest.dylib")
     }
 
     @Requires(TestPrecondition.LINUX)
@@ -199,7 +199,7 @@ class CppPluginTest extends Specification {
         then:
         def lib = project.libraries.test
         lib.spec instanceof GppLibraryCompileSpec
-        lib.spec.outputFile == project.file("build/binaries/libtest.so")
+        lib.outputFile == project.file("build/binaries/libtest.so")
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -215,7 +215,7 @@ class CppPluginTest extends Specification {
         then:
         def lib = project.libraries.test
         lib.spec instanceof GppLibraryCompileSpec
-        lib.spec.outputFile == project.file("build/binaries/test.dll")
+        lib.outputFile == project.file("build/binaries/test.dll")
     }
 
     def "creates tasks for each library"() {

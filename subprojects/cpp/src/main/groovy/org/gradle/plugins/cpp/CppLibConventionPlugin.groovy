@@ -36,8 +36,8 @@ class CppLibConventionPlugin implements Plugin<Project> {
             }
             libraries {
                 main {
+                    baseName = project.name
                     sourceSets << project.cpp.sourceSets.main
-                    spec.baseName = project.name
                 }
             }
 
@@ -49,7 +49,7 @@ class CppLibConventionPlugin implements Plugin<Project> {
                 null, // date
 
                 // needs to be more general and not peer into the spec
-                libraries.main.spec.outputFile,
+                libraries.main.outputFile,
                 libraries.main
             )
 

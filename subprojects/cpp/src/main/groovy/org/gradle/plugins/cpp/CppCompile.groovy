@@ -18,6 +18,7 @@ package org.gradle.plugins.cpp
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.binaries.model.CompileSpec
 
@@ -25,8 +26,16 @@ class CppCompile extends DefaultTask {
     CompileSpec spec
     Compiler compiler
 
+    def outputFile
+
+    @OutputFile
+    public File getOutputFile() {
+        return getProject().file(outputFile);
+    }
+
     @TaskAction
     void compile() {
+        spec.outputFile = getOutputFile()
         def result = compiler.execute(spec)
         didWork = result.didWork
     }

@@ -55,29 +55,29 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     def configureExecutable(ProjectInternal project, ExecutableBinary executable) {
-        def executableTask = configureBinary(project, executable)
+        def compileTask = configureBinary(project, executable)
 
         def baseName = GUtil.toCamelCase(executable.name).capitalize()
         project.task("install${baseName}", type: Sync) {
             description = "Installs a development image of $executable"
             into { project.file("${project.buildDir}/install/$executable.name") }
-            dependsOn executableTask
+            dependsOn compileTask
             if (OperatingSystem.current().windows) {
-                from { executable.spec.outputFile }
-                from { executable.sourceSets*.libs*.spec*.outputFile }
+                from { executable.component.outputFile }
+                from { executable.sourceSets*.libs*.outputFile }
             } else {
                 into("lib") {
-                    from { executable.spec.outputFile }
-                    from { executable.sourceSets*.libs*.spec*.outputFile }
+                    from { executable.component.outputFile }
+                    from { executable.sourceSets*.libs*.outputFile }
                 }
                 doLast {
-                    def script = new File(destinationDir, executable.spec.outputFile.name)
+                    def script = new File(destinationDir, executable.component.outputFile.name)
                     script.text = """
 #/bin/sh
 APP_BASE_NAME=`dirname "\$0"`
 export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
 export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
-exec "\$APP_BASE_NAME/lib/${executable.spec.outputFile.name}" \"\$@\"
+exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
                     """
                     ant.chmod(perm: 'u+x', file: script)
                 }
@@ -86,10 +86,11 @@ exec "\$APP_BASE_NAME/lib/${executable.spec.outputFile.name}" \"\$@\"
     }
 
     def configureBinary(ProjectInternal project, NativeBinary binary) {
-        def task = project.task(binary.name, type: CppCompile) {
+        CppCompile task = project.task(binary.name, type: CppCompile) {
             description = "Compiles and links $binary"
             group = BasePlugin.BUILD_GROUP
         }
+        task.outputFile = { binary.component.outputFile }
         binary.spec.configure(task)
         return task
     }

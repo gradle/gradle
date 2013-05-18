@@ -21,7 +21,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.binaries.model.CompileSpec
 import org.gradle.plugins.binaries.model.Library
 import org.gradle.plugins.binaries.model.NativeComponent
@@ -31,22 +30,20 @@ import org.gradle.plugins.cpp.CppSourceSet
 import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
 import org.gradle.plugins.cpp.internal.CppCompileSpec
 
-class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
-    NativeComponent binary
+class GppCompileSpec extends DefaultCppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
+    NativeComponent nativeComponent
 
     private CppCompile task
     List<Closure> settings = []
 
-    String outputFileName
-    String baseName
     private final Compiler<? super GppCompileSpec> compiler
     private final ProjectInternal project
     private final ConfigurableFileCollection libs
     private final ConfigurableFileCollection includes
     private final ConfigurableFileCollection source
 
-    GppCompileSpec(NativeComponent binary, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
-        this.binary = binary
+    GppCompileSpec(NativeComponent nativeComponent, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
+        this.nativeComponent = nativeComponent
         this.compiler = compiler
         this.project = project
         libs = project.files()
@@ -60,14 +57,13 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
         task.compiler = compiler
 
         task.onlyIf { !task.inputs.files.empty }
-        task.outputs.file { getOutputFile() }
 
         // problem: will break if a source set is removed
-        binary.sourceSets.withType(CppSourceSet).all { from(it) }
+        nativeComponent.sourceSets.withType(CppSourceSet).all { from(it) }
     }
 
     String getName() {
-        binary.name
+        nativeComponent.name
     }
 
     TaskDependency getBuildDependencies() {
@@ -88,27 +84,6 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
 
     Iterable<File> getSource() {
         return source
-    }
-
-    File getOutputFile() {
-        project.file "$project.buildDir/binaries/${getOutputFileName()}"
-    }
-
-    String getOutputFileName() {
-        if (outputFileName) {
-            return outputFileName
-        } else {
-            return getDefaultOutputFileName()
-        }
-    }
-
-    protected String getDefaultOutputFileName() {
-        return OperatingSystem.current().getExecutableName(getBaseName())
-    }
-
-    // TODO:DAZ Remove this
-    String getBaseName() {
-        baseName ?: name
     }
 
     void setting(Closure closure) {
@@ -157,7 +132,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
 
     void libs(Iterable<Library> libs) {
         task.dependsOn libs
-        this.libs.from({ libs*.spec*.outputFile })
+        this.libs.from({ libs*.outputFile })
         includes(project.files { libs*.headers*.srcDirs })
     }
 

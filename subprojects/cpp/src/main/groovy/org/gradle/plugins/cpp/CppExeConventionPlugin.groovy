@@ -34,7 +34,7 @@ class CppExeConventionPlugin implements Plugin<Project> {
             }
             executables {
                 main {
-                    spec.baseName = project.name
+                    baseName = project.name
                     sourceSets << project.cpp.sourceSets.main
                 }
             }
@@ -47,7 +47,7 @@ class CppExeConventionPlugin implements Plugin<Project> {
                 null, // date
 
                 // needs to be more general and not peer into the spec
-                executables.main.spec.outputFile,
+                executables.main.outputFile,
                 executables.main
             )
 

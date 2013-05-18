@@ -18,16 +18,17 @@ package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.plugins.binaries.model.Library;
-import org.gradle.plugins.binaries.model.LibraryCompileSpec;
-import org.gradle.plugins.binaries.model.SharedLibraryBinary;
-import org.gradle.plugins.binaries.model.SourceSet;
+import org.gradle.plugins.binaries.model.*;
 
 public class DefaultSharedLibraryBinary implements SharedLibraryBinary {
     private final Library library;
 
     public DefaultSharedLibraryBinary(Library library) {
         this.library = library;
+    }
+
+    public NativeComponent getComponent() {
+        return library;
     }
 
     public SourceDirectorySet getHeaders() {

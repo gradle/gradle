@@ -19,6 +19,8 @@ import org.gradle.api.Buildable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Named;
 
+import java.io.File;
+
 /**
  * Something to be created.
  */
@@ -27,4 +29,10 @@ public interface NativeComponent extends Named, Buildable {
     CompileSpec getSpec();
 
     DomainObjectSet<SourceSet> getSourceSets();
+
+    String getBaseName();
+
+    String getOutputFileName();
+
+    File getOutputFile();
 }

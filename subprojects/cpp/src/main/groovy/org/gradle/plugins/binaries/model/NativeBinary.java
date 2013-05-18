@@ -24,6 +24,8 @@ import org.gradle.language.base.Binary;
  */
 public interface NativeBinary extends Binary {
 
+    NativeComponent getComponent();
+
     CompileSpec getSpec();
 
     DomainObjectSet<SourceSet> getSourceSets();

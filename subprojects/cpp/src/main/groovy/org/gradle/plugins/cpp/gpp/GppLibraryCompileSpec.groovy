@@ -15,12 +15,10 @@
  */
 
 package org.gradle.plugins.cpp.gpp
-
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.plugins.binaries.model.LibraryCompileSpec
 import org.gradle.plugins.binaries.model.NativeComponent
-import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.api.internal.project.ProjectInternal
 
 class GppLibraryCompileSpec extends GppCompileSpec implements LibraryCompileSpec {
     String installName
@@ -29,12 +27,7 @@ class GppLibraryCompileSpec extends GppCompileSpec implements LibraryCompileSpec
         super(binary, compiler, project)
     }
 
-    @Override
-    protected String getDefaultOutputFileName() {
-        return OperatingSystem.current().getSharedLibraryName(getBaseName())
-    }
-
     String getInstallName() {
-        return installName ?: getOutputFileName()
+        return installName ?: nativeComponent.outputFileName
     }
 }

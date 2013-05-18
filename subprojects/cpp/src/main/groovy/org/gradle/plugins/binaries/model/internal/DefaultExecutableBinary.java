@@ -17,16 +17,17 @@
 package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.plugins.binaries.model.CompileSpec;
-import org.gradle.plugins.binaries.model.Executable;
-import org.gradle.plugins.binaries.model.ExecutableBinary;
-import org.gradle.plugins.binaries.model.SourceSet;
+import org.gradle.plugins.binaries.model.*;
 
 public class DefaultExecutableBinary implements ExecutableBinary {
     private final Executable executable;
 
     public DefaultExecutableBinary(Executable executable) {
         this.executable = executable;
+    }
+
+    public NativeComponent getComponent() {
+        return executable;
     }
 
     public DomainObjectSet<SourceSet> getSourceSets() {

@@ -48,7 +48,7 @@ class CprojectSettings {
 
         binary.sourceSets.withType(CppSourceSet).all { sourceSet ->
             sourceSet.libs.all { lib ->
-                this.libs.from(lib.spec.outputFile)
+                this.libs.from(lib.outputFile)
                 this.libs.builtBy(lib.spec.task)
                 this.includeRoots.from(lib.headers.srcDirs)
             }

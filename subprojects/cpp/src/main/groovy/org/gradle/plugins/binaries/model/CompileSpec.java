@@ -29,4 +29,6 @@ public interface CompileSpec extends Named {
      */
     File getOutputFile();
 
+    void setOutputFile(File outputFile);
+
 }

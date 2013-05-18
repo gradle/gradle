@@ -33,7 +33,7 @@ class CppLibConventionPluginTest extends Specification {
         expect:
         def library = project.libraries.main
         def sourceSet = project.cpp.sourceSets.main
-        library.spec.baseName == project.name
+        library.baseName == project.name
         library.sourceSets as List == [sourceSet]
     }
 }
