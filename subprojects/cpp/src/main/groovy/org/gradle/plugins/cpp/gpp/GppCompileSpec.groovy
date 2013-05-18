@@ -14,23 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.plugins.cpp.gpp
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.plugins.binaries.model.CompileSpec
-import org.gradle.plugins.binaries.model.Library
 import org.gradle.plugins.binaries.model.NativeComponent
 import org.gradle.plugins.binaries.model.internal.CompileTaskAware
 import org.gradle.plugins.cpp.CppCompile
-import org.gradle.plugins.cpp.CppSourceSet
-import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
-import org.gradle.plugins.cpp.internal.CppCompileSpec
 
-class GppCompileSpec extends DefaultCppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
+class GppCompileSpec extends DefaultCppCompileSpec implements CompileTaskAware {
     NativeComponent nativeComponent
 
     private CppCompile task
@@ -38,28 +30,18 @@ class GppCompileSpec extends DefaultCppCompileSpec implements CompileSpec, Stand
 
     private final Compiler<? super GppCompileSpec> compiler
     private final ProjectInternal project
-    private final ConfigurableFileCollection libs
-    private final ConfigurableFileCollection includes
-    private final ConfigurableFileCollection source
 
     GppCompileSpec(NativeComponent nativeComponent, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
         this.nativeComponent = nativeComponent
         this.compiler = compiler
         this.project = project
-        libs = project.files()
-        includes = project.files()
-        source = project.files()
     }
 
+    // TODO:DAZ Remove this
     void configure(CppCompile task) {
         this.task = task
         task.spec = this
         task.compiler = compiler
-
-        task.onlyIf { !task.inputs.files.empty }
-
-        // problem: will break if a source set is removed
-        nativeComponent.sourceSets.withType(CppSourceSet).all { from(it) }
     }
 
     String getName() {
@@ -74,66 +56,8 @@ class GppCompileSpec extends DefaultCppCompileSpec implements CompileSpec, Stand
         project.file "$project.buildDir/compileWork/$name"
     }
 
-    Iterable<File> getLibs() {
-        return libs
-    }
-
-    Iterable<File> getIncludeRoots() {
-        return includes
-    }
-
-    Iterable<File> getSource() {
-        return source
-    }
-
     void setting(Closure closure) {
         settings << closure
-    }
-
-    void from(CppSourceSet sourceSet) {
-        includes sourceSet.exportedHeaders
-        source sourceSet.source
-        libs sourceSet.libs
-
-        sourceSet.nativeDependencySets.all { deps ->
-            includes deps.includeRoots
-            source deps.files
-        }
-    }
-
-    void includes(SourceDirectorySet dirs) {
-        task.inputs.files dirs
-        includes.from({dirs.srcDirs})
-    }
-
-    // special filecollection version because filecollection may be buildable
-    void includes(FileCollection includeRoots) {
-        task.inputs.files includeRoots
-        includes.from(includeRoots)
-    }
-
-    void includes(Iterable<File> includeRoots) {
-        for (File includeRoot in includeRoots) {
-            task.inputs.dir(includeRoot)
-        }
-        includes.from(includeRoots)
-    }
-
-    void source(Iterable<File> files) {
-        task.inputs.files files
-        source.from files
-    }
-
-    // special filecollection version because filecollection may be buildable
-    void source(FileCollection files) {
-        task.inputs.source files
-        source.from files
-    }
-
-    void libs(Iterable<Library> libs) {
-        task.dependsOn libs
-        this.libs.from({ libs*.outputFile })
-        includes(project.files { libs*.headers*.srcDirs })
     }
 
     void args(Object... args) {

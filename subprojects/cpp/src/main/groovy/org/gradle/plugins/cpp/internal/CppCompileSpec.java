@@ -17,17 +17,29 @@
 package org.gradle.plugins.cpp.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.file.FileCollection;
 import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
-import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler;
 
 import java.io.File;
 import java.util.List;
 
-public interface CppCompileSpec extends StandardCppCompiler, BinaryCompileSpec {
-
-    File getWorkDir();
+public interface CppCompileSpec extends BinaryCompileSpec {
 
     // This needs to go
     List<Closure> getSettings();
+
+    FileCollection getIncludeRoots();
+
+    void setIncludeRoots(FileCollection includeRoots);
+
+    FileCollection getLibs();
+
+    void setLibs(FileCollection libs);
+
+    FileCollection getSource();
+
+    void setSource(FileCollection source);
+
+    File getWorkDir();
 
 }

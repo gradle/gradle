@@ -17,16 +17,39 @@
 package org.gradle.plugins.cpp
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.plugins.binaries.model.CompileSpec
+import org.gradle.plugins.binaries.model.Library
+import org.gradle.plugins.cpp.internal.CppCompileSpec
+
+import javax.inject.Inject
 
 class CppCompile extends DefaultTask {
-    CompileSpec spec
+    CppCompileSpec spec
     Compiler compiler
 
     def outputFile
+
+    @InputFiles
+    ConfigurableFileCollection libs
+
+    @InputFiles
+    ConfigurableFileCollection includes
+
+    @InputFiles
+    ConfigurableFileCollection source
+
+    @Inject
+    CppCompile() {
+        libs = project.files()
+        includes = project.files()
+        source = project.files()
+    }
 
     @OutputFile
     public File getOutputFile() {
@@ -36,7 +59,48 @@ class CppCompile extends DefaultTask {
     @TaskAction
     void compile() {
         spec.outputFile = getOutputFile()
+        spec.includeRoots = includes
+        spec.libs = libs
+        spec.source = source
+
         def result = compiler.execute(spec)
         didWork = result.didWork
+    }
+
+    void from(CppSourceSet sourceSet) {
+        includes sourceSet.exportedHeaders
+        source sourceSet.source
+        libs sourceSet.libs
+
+        sourceSet.nativeDependencySets.all { deps ->
+            includes deps.includeRoots
+            source deps.files
+        }
+    }
+
+    void includes(SourceDirectorySet dirs) {
+        includes.from({dirs.srcDirs})
+    }
+
+    void includes(FileCollection includeRoots) {
+        includes.from(includeRoots)
+    }
+
+    void includes(Iterable<File> includeRoots) {
+        includes.from(includeRoots)
+    }
+
+    void source(Iterable<File> files) {
+        source.from files
+    }
+
+    void source(FileCollection files) {
+        source.from files
+    }
+
+    void libs(Iterable<Library> libs) {
+        dependsOn libs
+        this.libs.from({ libs*.outputFile })
+        includes(project.files { libs*.headers*.srcDirs })
     }
 }

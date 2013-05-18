@@ -90,7 +90,13 @@ exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
             description = "Compiles and links $binary"
             group = BasePlugin.BUILD_GROUP
         }
+        task.onlyIf {
+            !task.source.files.empty
+        }
+
         task.outputFile = { binary.component.outputFile }
+        binary.component.sourceSets.withType(CppSourceSet).all { task.from(it) }
+
         binary.spec.configure(task)
         return task
     }
