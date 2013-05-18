@@ -28,6 +28,9 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class DefaultNativeComponent implements NativeComponent {
     private final String name;
@@ -35,6 +38,7 @@ public class DefaultNativeComponent implements NativeComponent {
     private final DomainObjectSet<SourceSet> sourceSets;
     private final Project project;
     private String baseName;
+    private List<Object> compilerArgs = new ArrayList<Object>();
 
     public DefaultNativeComponent(String name, CompileSpecFactory specFactory, Project project) {
         this.name = name;
@@ -73,6 +77,14 @@ public class DefaultNativeComponent implements NativeComponent {
 
     public void setBaseName(String baseName) {
         this.baseName = baseName;
+    }
+
+    public List<Object> getCompilerArgs() {
+        return compilerArgs;
+    }
+
+    public void compilerArgs(Object... args) {
+        Collections.addAll(this.compilerArgs, args);
     }
 
     public CompileSpec spec(Closure closure) {

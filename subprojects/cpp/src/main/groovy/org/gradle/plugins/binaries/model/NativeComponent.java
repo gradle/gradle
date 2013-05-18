@@ -20,6 +20,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Named;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Something to be created.
@@ -35,4 +36,10 @@ public interface NativeComponent extends Named, Buildable {
     String getOutputFileName();
 
     File getOutputFile();
+
+    void setBaseName(String baseName);
+
+    List<Object> getCompilerArgs();
+
+    void compilerArgs(Object... args);
 }

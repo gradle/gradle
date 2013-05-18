@@ -16,8 +16,9 @@
 
 package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.language.base.Binary;
+
+import java.util.List;
 
 /**
  * A native binary.
@@ -28,6 +29,5 @@ public interface NativeBinary extends Binary {
 
     CompileSpec getSpec();
 
-    DomainObjectSet<SourceSet> getSourceSets();
-
+    List<Object> getCompilerArgs();
 }

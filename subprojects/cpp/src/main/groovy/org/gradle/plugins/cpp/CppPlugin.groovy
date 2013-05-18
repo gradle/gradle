@@ -64,11 +64,11 @@ class CppPlugin implements Plugin<ProjectInternal> {
             dependsOn compileTask
             if (OperatingSystem.current().windows) {
                 from { executable.component.outputFile }
-                from { executable.sourceSets*.libs*.outputFile }
+                from { executable.component.sourceSets*.libs*.outputFile }
             } else {
                 into("lib") {
                     from { executable.component.outputFile }
-                    from { executable.sourceSets*.libs*.outputFile }
+                    from { executable.component.sourceSets*.libs*.outputFile }
                 }
                 doLast {
                     def script = new File(destinationDir, executable.component.outputFile.name)
@@ -96,6 +96,7 @@ exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
 
         task.outputFile = { binary.component.outputFile }
         binary.component.sourceSets.withType(CppSourceSet).all { task.from(it) }
+        task.compilerArgs = binary.compilerArgs
 
         binary.spec.configure(task)
         return task

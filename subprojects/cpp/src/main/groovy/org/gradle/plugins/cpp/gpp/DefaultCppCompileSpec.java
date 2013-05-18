@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.plugins.cpp.internal.CppCompileSpec;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Stuff extracted out of GppCompileSpec that performs as a regular compile spec value object.
@@ -32,6 +33,7 @@ public abstract class DefaultCppCompileSpec implements CppCompileSpec {
     private FileCollection source;
     private File outputFile;
     private File workDir;
+    private Iterable<Object> args = new ArrayList<Object>();
 
     public FileCollection getIncludeRoots() {
         return includeRoots;
@@ -71,5 +73,13 @@ public abstract class DefaultCppCompileSpec implements CppCompileSpec {
 
     public void setWorkDir(File workDir) {
         this.workDir = workDir;
+    }
+
+    public void setArgs(Iterable<Object> args) {
+        this.args = args;
+    }
+
+    public Iterable<Object> getArgs() {
+        return args;
     }
 }

@@ -26,7 +26,6 @@ class GppCompileSpec extends DefaultCppCompileSpec implements CompileTaskAware {
     NativeComponent nativeComponent
 
     private CppCompile task
-    List<Closure> settings = []
 
     private final Compiler<? super GppCompileSpec> compiler
     private final ProjectInternal project
@@ -50,15 +49,5 @@ class GppCompileSpec extends DefaultCppCompileSpec implements CompileTaskAware {
 
     TaskDependency getBuildDependencies() {
         return new DefaultTaskDependency().add(task)
-    }
-
-    void setting(Closure closure) {
-        settings << closure
-    }
-
-    void args(Object... args) {
-        setting {
-            it.args args
-        }
     }
 }

@@ -16,23 +16,24 @@
 
 package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.plugins.binaries.model.CompileSpec;
-import org.gradle.plugins.binaries.model.Executable;
-import org.gradle.plugins.binaries.model.ExecutableBinary;
+import org.gradle.plugins.binaries.model.*;
 
-public class DefaultExecutableBinary extends DefaultNativeBinary implements ExecutableBinary {
-    private final Executable executable;
+import java.util.List;
 
-    public DefaultExecutableBinary(Executable executable) {
-        super(executable);
-        this.executable = executable;
+public abstract class DefaultNativeBinary implements NativeBinary {
+    private final NativeComponent component;
+
+    public DefaultNativeBinary(NativeComponent component) {
+        this.component = component;
     }
 
-    public CompileSpec getSpec() {
-        return executable.getSpec();
+    public NativeComponent getComponent() {
+        return component;
     }
 
-    public String getName() {
-        return executable.getName() + "Executable";
+    // TODO:DAZ Allow args to be overridden on a per-binary basis
+    // Note that the args collection is not copied, but is wired directly into the compile task (not good)
+    public List<Object> getCompilerArgs() {
+        return component.getCompilerArgs();
     }
 }

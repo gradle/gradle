@@ -79,4 +79,11 @@ public class ArgWriter implements ArgCollector {
         writer.println();
         return this;
     }
+
+    public ArgCollector args(Iterable<?> args) {
+        for (Object arg : args) {
+            args(arg);
+        }
+        return this;
+    }
 }

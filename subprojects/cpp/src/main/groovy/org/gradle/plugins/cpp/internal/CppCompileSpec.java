@@ -16,17 +16,12 @@
 
 package org.gradle.plugins.cpp.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
 
 import java.io.File;
-import java.util.List;
 
 public interface CppCompileSpec extends BinaryCompileSpec {
-
-    // This needs to go
-    List<Closure> getSettings();
 
     FileCollection getIncludeRoots();
 
@@ -43,4 +38,8 @@ public interface CppCompileSpec extends BinaryCompileSpec {
     File getWorkDir();
 
     void setWorkDir(File workDir);
+
+    Iterable<Object> getArgs();
+
+    void setArgs(Iterable<Object> args);
 }

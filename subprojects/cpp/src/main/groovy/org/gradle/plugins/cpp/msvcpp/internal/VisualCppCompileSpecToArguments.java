@@ -26,6 +26,7 @@ import java.io.File;
 public class VisualCppCompileSpecToArguments implements CompileSpecToArguments<GppCompileSpec> {
 
     public void collectArguments(GppCompileSpec spec, ArgCollector collector) {
+        collector.args(spec.getArgs());
         collector.args("/nologo");
         collector.args("/EHsc");
         collector.args("/Fe" + spec.getOutputFile().getAbsolutePath());

@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.cpp.compiler.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.ExecSpecBackedArgCollector;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
@@ -49,11 +48,6 @@ public class CommandLineCppCompiler<T extends CppCompileSpec> implements CppComp
         compiler.workingDir(workDir);
 
         toArguments.collectArguments(spec, new ExecSpecBackedArgCollector(compiler));
-
-        // Apply all of the settings
-        for (Closure closure : spec.getSettings()) {
-            closure.call(compiler);
-        }
 
         compiler.execute();
         return new SimpleWorkResult(true);

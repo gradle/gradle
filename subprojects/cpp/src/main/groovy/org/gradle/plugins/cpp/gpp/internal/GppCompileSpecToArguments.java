@@ -27,6 +27,7 @@ import java.io.File;
 public class GppCompileSpecToArguments implements CompileSpecToArguments<GppCompileSpec> {
 
     public void collectArguments(GppCompileSpec spec, ArgCollector collector) {
+        collector.args(spec.getArgs());
         collector.args("-o", spec.getOutputFile().getAbsolutePath());
         if (spec instanceof LibraryCompileSpec) {
             LibraryCompileSpec librarySpec = (LibraryCompileSpec) spec;

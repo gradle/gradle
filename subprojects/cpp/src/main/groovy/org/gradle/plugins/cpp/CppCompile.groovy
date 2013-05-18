@@ -15,12 +15,12 @@
  */
 
 package org.gradle.plugins.cpp
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -44,6 +44,9 @@ class CppCompile extends DefaultTask {
     @InputFiles
     ConfigurableFileCollection source
 
+    @Input
+    List<Object> compilerArgs;
+
     @Inject
     CppCompile() {
         libs = project.files()
@@ -62,6 +65,7 @@ class CppCompile extends DefaultTask {
         spec.libs = libs
         spec.source = source
         spec.outputFile = getOutputFile()
+        spec.args = compilerArgs
         spec.workDir = project.file("${project.buildDir}/tmp/cppCompile/${name}")
 
         def result = compiler.execute(spec)

@@ -126,9 +126,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
                 }
                 french {
                     sourceSets << project.cpp.sourceSets.main
-                    spec {
-                        args "-DFRENCH"
-                    }
+                    compilerArgs "-DFRENCH"
                 }
             }
         """
