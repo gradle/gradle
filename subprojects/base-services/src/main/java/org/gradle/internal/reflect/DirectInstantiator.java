@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DirectInstantiator implements Instantiator {
-    public <T> T newInstance(Class<T> type, Object... params) {
+    public <T> T newInstance(Class<? extends T> type, Object... params) {
         try {
             List<Constructor<?>> matches = new ArrayList<Constructor<?>>();
             for (Constructor<?> constructor : type.getConstructors()) {

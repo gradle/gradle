@@ -52,7 +52,7 @@ public class DependencyInjectingInstantiator implements Instantiator {
         this.onDeprecationWarning = onDeprecationWarning;
     }
 
-    public <T> T newInstance(Class<T> type, Object... parameters) {
+    public <T> T newInstance(Class<? extends T> type, Object... parameters) {
         try {
             validateType(type);
             Constructor<?> constructor = selectConstructor(type, parameters);
