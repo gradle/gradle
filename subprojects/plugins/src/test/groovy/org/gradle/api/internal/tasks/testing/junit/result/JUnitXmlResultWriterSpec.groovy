@@ -19,13 +19,14 @@ package org.gradle.api.internal.tasks.testing.junit.result
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
+import org.gradle.integtests.fixtures.TestResultOutputAssociation
 import org.gradle.internal.SystemProperties
 import spock.lang.Specification
 
+import static TestOutputAssociation.WITH_SUITE
+import static TestOutputAssociation.WITH_TESTCASE
 import static java.util.Arrays.asList
 import static java.util.Collections.emptyList
-import static org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultWriter.OutputAssociation.WITH_SUITE
-import static org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultWriter.OutputAssociation.WITH_TESTCASE
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.*
@@ -59,7 +60,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         def xml = getXml(result)
 
         then:
-        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest")
+        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
                 .assertTestCount(4, 1, 0)
                 .assertTestFailed("some failing test", equalTo('java.lang.RuntimeException: Boo!'))
                 .assertTestsSkipped("some skipped test")

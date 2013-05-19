@@ -90,9 +90,17 @@ class DefaultTestExecutionResult implements TestExecutionResult {
             this
         }
 
+        TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
+            testClassResults*.assertTestCaseStdout(testCaseName, matcher)
+        }
+
         TestClassExecutionResult assertStderr(Matcher<? super String> matcher) {
             testClassResults*.assertStderr(matcher)
             this
+        }
+
+        TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
+            testClassResults*.assertTestCaseStderr(testCaseName, matcher)
         }
     }
 }

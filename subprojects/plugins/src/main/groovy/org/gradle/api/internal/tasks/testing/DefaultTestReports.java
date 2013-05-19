@@ -21,6 +21,7 @@ import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestReports;
 
 public class DefaultTestReports extends TaskReportContainer<ConfigurableReport> implements TestReports {
@@ -28,7 +29,7 @@ public class DefaultTestReports extends TaskReportContainer<ConfigurableReport> 
     public DefaultTestReports(Task task) {
         super(ConfigurableReport.class, task);
 
-        add(TaskGeneratedSingleDirectoryReport.class, "junitXml", task, null);
+        add(DefaultJUnitXmlReport.class, "junitXml", task);
         add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");
     }
 
@@ -36,8 +37,9 @@ public class DefaultTestReports extends TaskReportContainer<ConfigurableReport> 
         return (DirectoryReport) getByName("html");
     }
 
-    public DirectoryReport getJunitXml() {
-        return (DirectoryReport) getByName("junitXml");
+    @Nested
+    public DefaultJUnitXmlReport getJunitXml() {
+        return (DefaultJUnitXmlReport) getByName("junitXml");
     }
 
 }

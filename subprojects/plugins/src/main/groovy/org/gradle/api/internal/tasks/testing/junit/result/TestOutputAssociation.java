@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.gradle.api.reporting.ConfigurableReport;
-import org.gradle.api.reporting.DirectoryReport;
-import org.gradle.api.reporting.ReportContainer;
-
-/**
- * The reports produced by the {@link Test} task.
- */
-public interface TestReports extends ReportContainer<ConfigurableReport> {
-
-    DirectoryReport getHtml();
-
-    JUnitXmlReport getJunitXml();
-
+public enum TestOutputAssociation {
+    WITH_SUITE,
+    WITH_TESTCASE
 }

@@ -16,17 +16,21 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.DirectoryReport;
-import org.gradle.api.reporting.ReportContainer;
 
 /**
- * The reports produced by the {@link Test} task.
+ * The JUnit XML file, commonly used to communicate results to CI servers.
  */
-public interface TestReports extends ReportContainer<ConfigurableReport> {
+public interface JUnitXmlReport extends DirectoryReport {
 
-    DirectoryReport getHtml();
+    /**
+     * Should the output be associated with individual test cases instead of at the suite level.
+     */
+    boolean isOutputPerTestCase();
 
-    JUnitXmlReport getJunitXml();
+    /**
+     * Should the output be associated with individual test cases instead of at the suite level.
+     */
+    void setOutputPerTestCase(boolean outputPerTestCase);
 
 }

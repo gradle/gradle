@@ -37,10 +37,10 @@ public class Binary2JUnitXmlReportGenerator {
     JUnitXmlResultWriter saxWriter;
     private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
-    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider) {
+    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, TestOutputAssociation outputAssociation) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
-        this.saxWriter = new JUnitXmlResultWriter(getHostname(), testResultsProvider);
+        this.saxWriter = new JUnitXmlResultWriter(getHostname(), testResultsProvider, outputAssociation);
     }
 
     public void generate() {

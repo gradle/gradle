@@ -33,20 +33,15 @@ import java.io.StringWriter;
  */
 public class JUnitXmlResultWriter {
 
-    public static enum OutputAssociation {
-        WITH_SUITE,
-        WITH_TESTCASE
-    }
-
     private final String hostName;
     private final TestResultsProvider testResultsProvider;
-    private final OutputAssociation outputAssociation;
+    private final TestOutputAssociation outputAssociation;
 
     public JUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider) {
-        this(hostName, testResultsProvider, OutputAssociation.WITH_SUITE);
+        this(hostName, testResultsProvider, TestOutputAssociation.WITH_SUITE);
     }
 
-    public JUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider, OutputAssociation outputAssociation) {
+    public JUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider, TestOutputAssociation outputAssociation) {
         this.hostName = hostName;
         this.testResultsProvider = testResultsProvider;
         this.outputAssociation = outputAssociation;
@@ -70,7 +65,7 @@ public class JUnitXmlResultWriter {
 
             writeTests(writer, result.getResults(), className);
 
-            if (outputAssociation.equals(OutputAssociation.WITH_SUITE)) {
+            if (outputAssociation.equals(TestOutputAssociation.WITH_SUITE)) {
                 writer.startElement("system-out");
                 writeOutputs(writer, className, TestOutputEvent.Destination.StdOut);
                 writer.endElement();
@@ -115,7 +110,7 @@ public class JUnitXmlResultWriter {
                 writer.endElement();
             }
 
-            if (outputAssociation.equals(OutputAssociation.WITH_TESTCASE)) {
+            if (outputAssociation.equals(TestOutputAssociation.WITH_TESTCASE)) {
                 writer.startElement("system-out");
                 writeOutputs(writer, className, methodResult.getName(), TestOutputEvent.Destination.StdOut);
                 writer.endElement();

@@ -58,5 +58,9 @@ public interface TestClassExecutionResult {
 
     TestClassExecutionResult assertStdout(Matcher<? super String> matcher);
 
+    TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher);
+
     TestClassExecutionResult assertStderr(Matcher<? super String> matcher);
+
+    TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher);
 }

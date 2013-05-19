@@ -139,7 +139,15 @@ private class TestNgTestClassExecutionResult implements TestClassExecutionResult
         throw new UnsupportedOperationException();
     }
 
+    TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
+        throw new UnsupportedOperationException();
+    }
+
     TestClassExecutionResult assertStderr(Matcher<? super String> matcher) {
+        throw new UnsupportedOperationException();
+    }
+
+    TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
         throw new UnsupportedOperationException();
     }
 
