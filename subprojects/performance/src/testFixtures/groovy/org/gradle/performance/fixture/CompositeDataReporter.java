@@ -16,16 +16,22 @@
 
 package org.gradle.performance.fixture;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CompositeDataReporter implements DataReporter {
-    private List<DataReporter> reporters;
+    private final List<DataReporter> reporters;
+    private final Set<String> testIds = new HashSet<String>();
 
     public CompositeDataReporter(List<DataReporter> reporters) {
         this.reporters = reporters;
     }
 
     public void report(PerformanceResults results) {
+        if (!testIds.add(results.getTestId())) {
+            throw new IllegalArgumentException(String.format("Multiple performance test executions with id '%s' found.", results.getTestId()));
+        }
         for (DataReporter reporter : reporters) {
             reporter.report(results);
         }

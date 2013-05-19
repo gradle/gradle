@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class AbstractPerformanceTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    static def resultStore = new ResultsStore(new File("build/performance-tests/results"))
+    static def resultStore = new ResultsStore(new File(System.getProperty("user.home"), ".gradle-performance-test-data/results"))
     static def textReporter = new TextFileDataReporter(new File("build/performance-tests/results.txt"))
 
     final def runner = new PerformanceTestRunner(
@@ -40,8 +40,11 @@ class AbstractPerformanceTest extends Specification {
         runner.reporter = new CompositeDataReporter([textReporter, resultStore])
     }
 
-    def cleanupSpec() {
-        resultStore.close()
-        new ReportGenerator().generate(resultStore, new File("build/performance-tests/report"))
+    static {
+        // TODO - find a better way to generate the report (eg move to a finalizer task)
+        System.addShutdownHook {
+            resultStore.close()
+            new ReportGenerator().generate(resultStore, new File("build/performance-tests/report"))
+        }
     }
 }
