@@ -47,7 +47,7 @@ public class ReportGenerator {
                     html();
                         head();
                             meta().httpEquiv("Content-Type").content("text/html; charset=utf-8");
-                            style().text("body { font-family: sans-serif; margin: 3em; } h2 { font-size: 14pt; margin-top: 2em; } table { width: 100%; font-size: 10pt; } th { text-align: left; } #footer { margin-top: 4em; font-size: 8pt; } .test-execution { font-size: 14pt; padding-top: 1em; }").end();
+                            style().text("body { font-family: sans-serif; margin: 3em; } h2 { font-size: 14pt; margin-top: 2em; } table { width: 100%; font-size: 10pt; } th { text-align: left; } td { white-space: nowrap } #footer { margin-top: 4em; font-size: 8pt; } .test-execution { font-size: 14pt; padding-top: 1em; }").end();
                             title().text("Profile report").end();
                         end();
                         body();
