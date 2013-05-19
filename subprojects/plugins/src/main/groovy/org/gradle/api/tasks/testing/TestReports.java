@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting;
+package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.reporting.ConfigurableReport;
+import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.api.reporting.ReportContainer;
 
 /**
- * A file based report to be created with
- * a configurable destination.
+ * The reports produced by the {@link Test} task.
  */
-@Incubating
-public interface ConfigureableReport extends Report {
-    /**
-     * Sets the destination for the report.
-     *
-     * The file parameter is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     *
-     * @param file The destination for the report.
-     */
-    void setDestination(Object file);
+public interface TestReports extends ReportContainer<ConfigurableReport> {
+
+    DirectoryReport getHtml();
+
+    DirectoryReport getJunitXml();
+
 }

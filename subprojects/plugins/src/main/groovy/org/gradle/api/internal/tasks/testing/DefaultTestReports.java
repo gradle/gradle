@@ -14,36 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.jacoco;
+package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Task;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.DirectoryReport;
-import org.gradle.api.reporting.Report;
-import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport;
-import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
-import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
+import org.gradle.api.tasks.testing.TestReports;
 
-public class JacocoReportsContainerImpl extends TaskReportContainer<Report> implements JacocoReportsContainer {
+public class DefaultTestReports extends TaskReportContainer<ConfigurableReport> implements TestReports {
 
-    public JacocoReportsContainerImpl(Task task) {
+    public DefaultTestReports(Task task) {
         super(ConfigurableReport.class, task);
+
+        add(TaskGeneratedSingleDirectoryReport.class, "junitXml", task, null);
         add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");
-        add(TaskGeneratedSingleFileReport.class, "xml", task);
-        add(TaskGeneratedSingleFileReport.class, "csv", task);
     }
 
     public DirectoryReport getHtml() {
-        return (DirectoryReport)getByName("html");
+        return (DirectoryReport) getByName("html");
     }
 
-    public SingleFileReport getXml() {
-        return (SingleFileReport)getByName("xml");
+    public DirectoryReport getJunitXml() {
+        return (DirectoryReport) getByName("junitXml");
     }
 
-    public SingleFileReport getCsv() {
-        return (SingleFileReport)getByName("csv");
-    }
 }

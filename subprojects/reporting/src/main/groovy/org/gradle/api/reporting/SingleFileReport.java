@@ -19,7 +19,7 @@ package org.gradle.api.reporting;
 /**
  * A report that is a single file.
  */
-public interface SingleFileReport extends ConfigureableReport {
+public interface SingleFileReport extends ConfigurableReport {
     /**
      * Always returns {@link Report.OutputType#FILE}
      *

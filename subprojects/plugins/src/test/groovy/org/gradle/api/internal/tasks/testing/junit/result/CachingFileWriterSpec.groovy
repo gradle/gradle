@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
+import com.esotericsoftware.kryo.io.Output
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,19 +35,19 @@ class CachingFileWriterSpec extends Specification {
 
     def "keeps n files open"() {
         when:
-        writer.write(temp.file("1.txt"), "1")
+        writer.write(temp.file("1.txt"), "1", "1")
 
         then:
         writer.openFiles.keySet()*.name == ["1.txt"]
 
         when:
-        writer.write(temp.file("2.txt"), "2")
+        writer.write(temp.file("2.txt"), "2", "2")
 
         then:
         writer.openFiles.keySet()*.name == ["1.txt", "2.txt"]
 
         when:
-        writer.write(temp.file("3.txt"), "3")
+        writer.write(temp.file("3.txt"), "3", "3")
 
         then:
         writer.openFiles.keySet()*.name == ["2.txt", "3.txt"]
@@ -60,13 +61,13 @@ class CachingFileWriterSpec extends Specification {
 
     def "writes to files"() {
         when:
-        writer.write(temp.file("1.txt"), "1")
-        writer.write(temp.file("2.txt"), "2")
-        writer.write(temp.file("3.txt"), "3")
-        writer.write(temp.file("4.txt"), "4")
-        writer.write(temp.file("1.txt"), "a")
-        writer.write(temp.file("2.txt"), "b")
-        writer.write(temp.file("3.txt"), "c")
+        writer.write(temp.file("1.txt"), "1", "1")
+        writer.write(temp.file("2.txt"), "2", "2")
+        writer.write(temp.file("3.txt"), "3", "3")
+        writer.write(temp.file("4.txt"), "4", "4")
+        writer.write(temp.file("1.txt"), "a", "a")
+        writer.write(temp.file("2.txt"), "b", "b")
+        writer.write(temp.file("3.txt"), "c", "c")
 
         and:
         writer.closeAll()
@@ -75,9 +76,17 @@ class CachingFileWriterSpec extends Specification {
         writer.openFiles.isEmpty()
 
         and:
-        temp.file("1.txt").text == '1a'
-        temp.file("2.txt").text == '2b'
-        temp.file("3.txt").text == '3c'
-        temp.file("4.txt").text == '4'
+        temp.file("1.txt").bytes == serialize('1', '1', 'a', 'a')
+        temp.file("2.txt").bytes == serialize('2', '2', 'b', 'b')
+        temp.file("3.txt").bytes == serialize('3', '3', 'c', 'c')
+        temp.file("4.txt").bytes == serialize('4', '4')
+    }
+
+    byte[] serialize(String... strings) {
+        def baos = new ByteArrayOutputStream()
+        def output = new Output(baos)
+        strings.each { output.writeString(it) }
+        output.close()
+        baos.toByteArray()
     }
 }
