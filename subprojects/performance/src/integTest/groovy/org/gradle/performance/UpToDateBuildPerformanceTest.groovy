@@ -29,6 +29,7 @@ class UpToDateBuildPerformanceTest extends AbstractPerformanceTest {
     @Unroll("Project '#testProject' up-to-date build")
     def "build"() {
         given:
+        runner.testId = "up-to-date build $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression

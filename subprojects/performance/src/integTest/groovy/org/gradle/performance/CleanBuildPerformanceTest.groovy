@@ -29,6 +29,7 @@ class CleanBuildPerformanceTest extends AbstractPerformanceTest {
     @Unroll("Project '#testProject' clean build")
     def "clean build"() {
         given:
+        runner.testId = "clean build $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['clean', 'build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression

@@ -37,6 +37,7 @@ public class PerformanceTestRunner {
     OperationTimer timer = new OperationTimer()
     TestProjectLocator testProjectLocator = new TestProjectLocator()
 
+    String testId
     String testProject
     int runs
     int warmUpRuns
@@ -53,17 +54,17 @@ public class PerformanceTestRunner {
 
     PerformanceResults run() {
         assert !targetVersions.empty
+        assert testId
 
         results = new PerformanceResults(
-                testId: "${testProject}-${args}-${tasksToRun}",
+                testId: testId,
                 testProject: testProject,
                 tasks: tasksToRun,
                 args: args,
                 jvm: Jvm.current().toString(),
                 operatingSystem: OperatingSystem.current().toString(),
                 versionUnderTest: GradleVersion.current().getVersion(),
-                testTime: System.currentTimeMillis(),
-                displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
+                testTime: System.currentTimeMillis())
 
         def mostRecentFinalRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
         def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()

@@ -29,6 +29,7 @@ class DependencyReportPerformanceTest extends AbstractPerformanceTest {
     @Unroll("Project '#testProject' dependency report")
     def "dependency report"() {
         given:
+        runner.testId = "dependencyReport $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['dependencyReport']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression

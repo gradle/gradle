@@ -47,7 +47,7 @@ public class ReportGenerator {
                     html();
                         head();
                             meta().httpEquiv("Content-Type").content("text/html; charset=utf-8");
-                            style().text("body { font-family: sans-serif; margin: 3em; } h2 { font-size: 14pt; margin-top: 2em; } table { width: 100%; } th { text-align: left; } #footer { margin-top: 4em; font-size: 8pt; }").end();
+                            style().text("body { font-family: sans-serif; margin: 3em; } h2 { font-size: 14pt; margin-top: 2em; } table { width: 100%; font-size: 10pt; } th { text-align: left; } #footer { margin-top: 4em; font-size: 8pt; } .test-execution { font-size: 14pt; padding-top: 1em; }").end();
                             title().text("Profile report").end();
                         end();
                         body();
@@ -61,66 +61,70 @@ public class ReportGenerator {
                                     end();
                                 }
                             end();
+                            table();
                             for (String testName : testNames) {
                                 TestExecutionHistory testHistory = store.getTestResults(testName);
-                                h2();
-                                    a().name(testName).end();
-                                    text(testName);
+                                tr();
+                                    th().colspan("6").classAttr("test-execution");
+                                        a().name(testName).end();
+                                        text(testName);
+                                    end();
                                 end();
-                                table();
-                                    tr();
-                                        th().colspan("5").end();
-                                        th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average execution time").end();
-                                        th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average heap usage").end();
-                                    end();
-                                    tr();
-                                        th().text("Date").end();
-                                        th().text("Test project").end();
-                                        th().text("Tasks").end();
-                                        th().text("Operating System").end();
-                                        th().text("JVM").end();
-                                        for (String version : testHistory.getBaselineVersions()) {
-                                            th().text(version).end();
-                                        }
-                                        th().text("Current").end();
-                                        for (String version : testHistory.getBaselineVersions()) {
-                                            th().text(version).end();
-                                        }
-                                        th().text("Current").end();
-                                    end();
-                                    for (PerformanceResults performanceResults : testHistory.getResults()) {
-                                        tr();
-                                            td().text(format.format(new Date(performanceResults.getTestTime()))).end();
-                                            td().text(performanceResults.getTestProject()).end();
-                                            td();
-                                                text(Joiner.on(", ").join(performanceResults.getArgs()));
-                                                text(" ");
-                                                text(Joiner.on(", ").join(performanceResults.getTasks()));
-                                            end();
-                                            td().text(performanceResults.getOperatingSystem()).end();
-                                            td().text(performanceResults.getJvm()).end();
-                                            for (String version : testHistory.getBaselineVersions()) {
-                                                BaselineVersion baselineVersion = performanceResults.baseline(version);
-                                                if (baselineVersion.getResults().isEmpty()) {
-                                                    td().text("").end();
-                                                } else {
-                                                    td().text(baselineVersion.getResults().avgTime().format()).end();
-                                                }
-                                            }
-                                            td().text(performanceResults.getCurrent().avgTime().format()).end();
-                                            for (String version : testHistory.getBaselineVersions()) {
-                                                BaselineVersion baselineVersion = performanceResults.baseline(version);
-                                                if (baselineVersion.getResults().isEmpty()) {
-                                                    td().text("").end();
-                                                } else {
-                                                    td().text(baselineVersion.getResults().avgMemory().format()).end();
-                                                }
-                                            }
-                                            td().text(performanceResults.getCurrent().avgMemory().format()).end();
-                                        end();
+                                tr();
+                                    th().colspan("6").end();
+                                    th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average execution time").end();
+                                    th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average heap usage").end();
+                                end();
+                                tr();
+                                    th().text("Date").end();
+                                    th().text("Test project").end();
+                                    th().text("Tasks").end();
+                                    th().text("Test version").end();
+                                    th().text("Operating System").end();
+                                    th().text("JVM").end();
+                                    for (String version : testHistory.getBaselineVersions()) {
+                                        th().text(version).end();
                                     }
+                                    th().text("Current").end();
+                                    for (String version : testHistory.getBaselineVersions()) {
+                                        th().text(version).end();
+                                    }
+                                    th().text("Current").end();
                                 end();
+                                for (PerformanceResults performanceResults : testHistory.getResults()) {
+                                    tr();
+                                        td().text(format.format(new Date(performanceResults.getTestTime()))).end();
+                                        td().text(performanceResults.getTestProject()).end();
+                                        td();
+                                            text(Joiner.on(", ").join(performanceResults.getArgs()));
+                                            text(" ");
+                                            text(Joiner.on(", ").join(performanceResults.getTasks()));
+                                        end();
+                                        td().text(performanceResults.getVersionUnderTest()).end();
+                                        td().text(performanceResults.getOperatingSystem()).end();
+                                        td().text(performanceResults.getJvm()).end();
+                                        for (String version : testHistory.getBaselineVersions()) {
+                                            BaselineVersion baselineVersion = performanceResults.baseline(version);
+                                            if (baselineVersion.getResults().isEmpty()) {
+                                                td().text("").end();
+                                            } else {
+                                                td().text(baselineVersion.getResults().avgTime().format()).end();
+                                            }
+                                        }
+                                        td().text(performanceResults.getCurrent().avgTime().format()).end();
+                                        for (String version : testHistory.getBaselineVersions()) {
+                                            BaselineVersion baselineVersion = performanceResults.baseline(version);
+                                            if (baselineVersion.getResults().isEmpty()) {
+                                                td().text("").end();
+                                            } else {
+                                                td().text(baselineVersion.getResults().avgMemory().format()).end();
+                                            }
+                                        }
+                                        td().text(performanceResults.getCurrent().avgMemory().format()).end();
+                                    end();
+                                }
                             }
+                            end();
                         end();
                         div().id("footer").text(String.format("Generated at %s by %s", format.format(new Date()), GradleVersion.current()));
                         end();

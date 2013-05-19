@@ -25,7 +25,6 @@ public class PerformanceResults {
     String testProject
     String[] args
     String[] tasks
-    String displayName
     String jvm
     String operatingSystem
     long testTime
@@ -42,6 +41,10 @@ public class PerformanceResults {
     @Override
     String toString() {
         return displayName
+    }
+
+    String getDisplayName() {
+        return "Results for test project '$testProject' with tasks ${tasks.join(', ')}"
     }
 
     Collection<BaselineVersion> getBaselineVersions() {

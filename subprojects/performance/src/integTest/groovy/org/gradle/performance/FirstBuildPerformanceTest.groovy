@@ -27,6 +27,7 @@ class FirstBuildPerformanceTest extends AbstractPerformanceTest {
     def "build"() {
         // This is just an approximation of first use. We simply recompile the scripts
         given:
+        runner.testId = "first use $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.args = ['--recompile-scripts']

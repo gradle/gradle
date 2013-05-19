@@ -29,6 +29,7 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
     @Unroll("Project '#testProject' eclipse")
     def "eclipse"() {
         given:
+        runner.testId = "eclipse $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
@@ -50,6 +51,7 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
     @Unroll("Project '#testProject' idea")
     def "idea"() {
         given:
+        runner.testId = "idea $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['idea']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression

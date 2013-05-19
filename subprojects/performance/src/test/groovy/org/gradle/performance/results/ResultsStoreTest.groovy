@@ -28,8 +28,7 @@ class ResultsStoreTest extends ResultSpecification {
     final dbFile = tmpDir.file("results")
 
     def "persists results"() {
-        def result1 = results(displayName: "Results for test1",
-                testId: "test1",
+        def result1 = results(testId: "test1",
                 testProject: "test-project",
                 tasks: ["clean", "build"],
                 args: ["--arg1"],
@@ -77,7 +76,7 @@ class ResultsStoreTest extends ResultSpecification {
         def results = history.results
         results.size() == 1
         results[0].testId == "test1"
-        results[0].displayName == "Results for test1"
+        results[0].displayName == "Results for test project 'test-project' with tasks clean, build"
         results[0].testProject == "test-project"
         results[0].tasks == ["clean", "build"]
         results[0].args == ["--arg1"]

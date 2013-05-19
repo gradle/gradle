@@ -27,7 +27,6 @@ class ResultSpecification extends Specification {
     PerformanceResults results(Map<String, ?> options = [:]) {
         def results = new PerformanceResults()
         results.testId = "test-id"
-        results.displayName = "some test"
         results.testProject = "test-project"
         results.tasks = ["clean", "build"]
         results.args = []

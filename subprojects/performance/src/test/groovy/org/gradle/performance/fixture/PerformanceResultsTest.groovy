@@ -21,7 +21,7 @@ import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 
 class PerformanceResultsTest extends ResultSpecification {
-    def PerformanceResults result = new PerformanceResults()
+    def PerformanceResults result = new PerformanceResults(testProject: "some-project", tasks: [])
 
     def "passes when average execution time for current release is smaller than average execution time for previous releases"() {
         given:
@@ -60,8 +60,6 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "fails when average execution time for current release is larger than average execution time for previous releases"() {
         given:
-        result.displayName = '<test>'
-
         result.baseline("1.0").maxExecutionTimeRegression = Duration.millis(10)
         result.baseline("1.0").results << operation(executionTime: 100)
         result.baseline("1.0").results << operation(executionTime: 100)
@@ -82,7 +80,7 @@ class PerformanceResultsTest extends ResultSpecification {
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith("Speed <test>: we're slower than 1.0.")
+        e.message.startsWith("Speed ${result.displayName}: we're slower than 1.0.")
         e.message.contains('Difference: 10.333 ms slower (10.333 ms), 10.33%')
         !e.message.contains('1.3')
     }
@@ -129,8 +127,6 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "fails when average heap usage for current release is larger than average heap usage for previous releases"() {
         given:
-        result.displayName = '<test>'
-
         result.baseline("1.0").maxMemoryRegression = DataAmount.bytes(100)
         result.baseline("1.0").results << operation(heapUsed: 1001)
         result.baseline("1.0").results << operation(heapUsed: 1001)
@@ -151,14 +147,13 @@ class PerformanceResultsTest extends ResultSpecification {
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith('Memory <test>: we need more memory than 1.2.')
+        e.message.startsWith("Memory ${result.displayName}: we need more memory than 1.2.")
         e.message.contains('Difference: 100.333 B more (100.333 B), 10.03%')
         !e.message.contains('than 1.0')
     }
 
     def "fails when both heap usage and execution time have regressed"() {
         given:
-        result.displayName = '<test>'
         result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 150)
         result.baseline("1.0").results << operation(heapUsed: 1000, executionTime: 100)
         result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 150)
@@ -177,9 +172,9 @@ class PerformanceResultsTest extends ResultSpecification {
 
         then:
         AssertionError e = thrown()
-        e.message.contains("Speed <test>: we're slower than 1.2.")
+        e.message.contains("Speed ${result.displayName}: we're slower than 1.2.")
         e.message.contains('Difference: 10.333 ms slower (10.333 ms)')
-        e.message.contains('Memory <test>: we need more memory than 1.2.')
+        e.message.contains("Memory ${result.displayName}: we need more memory than 1.2.")
         e.message.contains('Difference: 100.333 B more (100.333 B)')
         !e.message.contains('than 1.0')
     }
@@ -226,7 +221,6 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "fails if one of the baseline version is faster and the other needs less memory"() {
         given:
-        result.displayName = '<test>'
         result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 100)
         result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 100)
 
@@ -242,16 +236,15 @@ class PerformanceResultsTest extends ResultSpecification {
 
         then:
         AssertionError e = thrown()
-        e.message.contains("Speed <test>: we're slower than 1.0.")
+        e.message.contains("Speed ${result.displayName}: we're slower than 1.0.")
         e.message.contains('Difference: 25 ms slower')
-        e.message.contains('Memory <test>: we need more memory than 1.2.')
+        e.message.contains("Memory ${result.displayName}: we need more memory than 1.2.")
         e.message.contains('Difference: 100 B more')
-        e.message.count('<test>') == 2
+        e.message.count(result.displayName) == 2
     }
 
     def "fails if all of the baseline versions are better in every respect"() {
         given:
-        result.displayName = '<test>'
         result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 120)
         result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 120)
 
@@ -267,9 +260,9 @@ class PerformanceResultsTest extends ResultSpecification {
 
         then:
         AssertionError e = thrown()
-        e.message.contains("Speed <test>: we're slower than 1.0.")
-        e.message.contains("Speed <test>: we're slower than 1.2.")
-        e.message.contains('Memory <test>: we need more memory than 1.0.')
-        e.message.contains('Memory <test>: we need more memory than 1.2.')
+        e.message.contains("Speed ${result.displayName}: we're slower than 1.0.")
+        e.message.contains("Speed ${result.displayName}: we're slower than 1.2.")
+        e.message.contains("Memory ${result.displayName}: we need more memory than 1.0.")
+        e.message.contains("Memory ${result.displayName}: we need more memory than 1.2.")
     }
 }

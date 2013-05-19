@@ -31,6 +31,7 @@ class PerformanceTestRunnerTest extends ResultSpecification {
 
     def "runs test and builds results"() {
         given:
+        runner.testId = 'some-test'
         runner.testProject = 'test1'
         runner.targetVersions = ['1.0', '1.1']
         runner.tasksToRun = ['clean', 'build']
@@ -44,10 +45,10 @@ class PerformanceTestRunnerTest extends ResultSpecification {
         def results = runner.run()
 
         then:
+        results.testId == 'some-test'
         results.testProject == 'test1'
         results.tasks == ['clean', 'build']
         results.args == ['--arg1', '--arg2']
-        results.testId == "test1-[--arg1, --arg2]-[clean, build]"
         results.versionUnderTest
         results.jvm
         results.operatingSystem

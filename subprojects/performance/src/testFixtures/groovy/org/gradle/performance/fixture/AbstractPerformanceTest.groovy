@@ -45,6 +45,7 @@ class AbstractPerformanceTest extends Specification {
         System.addShutdownHook {
             resultStore.close()
             new ReportGenerator().generate(resultStore, new File("build/performance-tests/report"))
+            resultStore.close()
         }
     }
 }
