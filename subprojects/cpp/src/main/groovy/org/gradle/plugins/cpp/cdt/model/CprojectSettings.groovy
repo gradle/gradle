@@ -49,7 +49,7 @@ class CprojectSettings {
         binary.sourceSets.withType(CppSourceSet).all { sourceSet ->
             sourceSet.libs.all { lib ->
                 this.libs.from(lib.outputFile)
-                this.libs.builtBy(lib.spec.task)
+                this.libs.builtBy(lib.buildDependencies)
                 this.includeRoots.from(lib.headers.srcDirs)
             }
         }
@@ -80,7 +80,7 @@ class CprojectSettings {
             }
         }
 
-        def extension = binary.spec.extension ?: ""
+        def extension = ""
         def type 
         if (binary instanceof Library) {
             type = "org.eclipse.cdt.build.core.buildArtefactType.sharedLib"

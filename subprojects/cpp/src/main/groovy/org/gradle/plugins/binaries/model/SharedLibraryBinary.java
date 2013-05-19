@@ -21,7 +21,5 @@ import org.gradle.api.file.SourceDirectorySet;
  * A library
  */
 public interface SharedLibraryBinary extends NativeBinary {
-    LibraryCompileSpec getSpec();
-
     SourceDirectorySet getHeaders();
 }

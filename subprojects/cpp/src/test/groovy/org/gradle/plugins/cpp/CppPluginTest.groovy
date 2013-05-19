@@ -15,16 +15,13 @@
  */
 
 package org.gradle.plugins.cpp
-
-import spock.lang.Specification
-import org.gradle.util.HelperUtil
-import org.gradle.plugins.cpp.gpp.GppCompileSpec
-import org.gradle.plugins.cpp.gpp.GppLibraryCompileSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.tasks.Sync
+import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Specification
 
 class CppPluginTest extends Specification {
     final def project = HelperUtil.createRootProject()
@@ -130,8 +127,11 @@ class CppPluginTest extends Specification {
 
         then:
         def executable = project.executables.test
-        executable.spec instanceof GppCompileSpec
         executable.outputFile == project.file("build/binaries/test")
+
+        and:
+        def executableBinary = project.binaries.testExecutable
+        executableBinary.component == executable
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -146,8 +146,11 @@ class CppPluginTest extends Specification {
 
         then:
         def executable = project.executables.test
-        executable.spec instanceof GppCompileSpec
         executable.outputFile == project.file("build/binaries/test.exe")
+
+        and:
+        def executableBinary = project.binaries.testExecutable
+        executableBinary.component == executable
     }
 
     def "creates tasks for each executable"() {
@@ -156,18 +159,26 @@ class CppPluginTest extends Specification {
 
         when:
         project.executables {
-            test
+            test {
+                compilerArgs "ARG1", "ARG2"
+            }
         }
 
         then:
         def compile = project.tasks['testExecutable']
         compile instanceof CppCompile
-        compile.spec == project.executables.test.spec
+        compile.outputFile == project.executables.test.outputFile
+        compile.compilerArgs == ["ARG1", "ARG2"]
+        compile.outputType == CppCompile.OutputType.EXECUTABLE
 
+        and:
         def install = project.tasks['installTestExecutable']
         install instanceof Sync
         install.destinationDir == project.file('build/install/testExecutable')
         install Matchers.dependsOn("testExecutable")
+
+        and:
+        project.executables.test.buildDependencies.getDependencies(null) == [compile] as Set
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
@@ -181,9 +192,12 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        def lib = project.libraries.test
-        lib.spec instanceof GppLibraryCompileSpec
-        lib.outputFile == project.file("build/binaries/libtest.dylib")
+        def library = project.libraries.test
+        library.outputFile == project.file("build/binaries/libtest.dylib")
+
+        and:
+        def sharedLibraryBinary = project.binaries.testSharedLibrary
+        sharedLibraryBinary.component == library
     }
 
     @Requires(TestPrecondition.LINUX)
@@ -197,9 +211,12 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        def lib = project.libraries.test
-        lib.spec instanceof GppLibraryCompileSpec
-        lib.outputFile == project.file("build/binaries/libtest.so")
+        def library = project.libraries.test
+        library.outputFile == project.file("build/binaries/libtest.so")
+
+        and:
+        def sharedLibraryBinary = project.binaries.testSharedLibrary
+        sharedLibraryBinary.component == library
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -213,9 +230,12 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        def lib = project.libraries.test
-        lib.spec instanceof GppLibraryCompileSpec
-        lib.outputFile == project.file("build/binaries/test.dll")
+        def library = project.libraries.test
+        library.outputFile == project.file("build/binaries/test.dll")
+
+        and:
+        def sharedLibraryBinary = project.binaries.testSharedLibrary
+        sharedLibraryBinary.component == library
     }
 
     def "creates tasks for each library"() {
@@ -224,12 +244,19 @@ class CppPluginTest extends Specification {
 
         when:
         project.libraries {
-            test
+            test {
+                compilerArgs "ARG1", "ARG2"
+            }
         }
 
         then:
         def compile = project.tasks['testSharedLibrary']
         compile instanceof CppCompile
-        compile.spec == project.libraries.test.spec
+        compile.outputFile == project.libraries.test.outputFile
+        compile.compilerArgs == ["ARG1", "ARG2"]
+        compile.outputType == CppCompile.OutputType.SHARED_LIBRARY
+
+        and:
+        project.libraries.test.buildDependencies.getDependencies(null) == [compile] as Set
     }
 }

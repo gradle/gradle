@@ -19,7 +19,6 @@ package org.gradle.plugins.cpp.msvcpp.internal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.binaries.model.NativeComponent;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerAdapter;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 import org.gradle.process.internal.ExecAction;
@@ -45,7 +44,7 @@ public class VisualCppCompilerAdapter extends CommandLineCppCompilerAdapter<GppC
         return getOperatingSystem().isWindows() && super.isAvailable();
     }
 
-    public Compiler<GppCompileSpec> createCompiler(NativeComponent binary) {
+    public Compiler<GppCompileSpec> createCompiler() {
         return new VisualCppCompiler(getExecutable(), getExecActionFactory());
     }
 }

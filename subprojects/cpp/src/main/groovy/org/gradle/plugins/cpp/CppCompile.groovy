@@ -25,15 +25,21 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.binaries.model.Library
-import org.gradle.plugins.cpp.internal.CppCompileSpec
+import org.gradle.plugins.binaries.model.LibraryCompileSpec
+import org.gradle.plugins.cpp.gpp.GppCompileSpec
+import org.gradle.plugins.cpp.gpp.GppLibraryCompileSpec
 
 import javax.inject.Inject
 
 class CppCompile extends DefaultTask {
-    CppCompileSpec spec
+    enum OutputType { EXECUTABLE, SHARED_LIBRARY }
+
     Compiler compiler
 
     def outputFile
+
+    @Input
+    OutputType outputType
 
     @InputFiles
     ConfigurableFileCollection libs
@@ -45,7 +51,7 @@ class CppCompile extends DefaultTask {
     ConfigurableFileCollection source
 
     @Input
-    List<Object> compilerArgs;
+    List<Object> compilerArgs
 
     @Inject
     CppCompile() {
@@ -61,12 +67,17 @@ class CppCompile extends DefaultTask {
 
     @TaskAction
     void compile() {
+        def spec = outputType == OutputType.EXECUTABLE ? new GppCompileSpec() : new GppLibraryCompileSpec()
+
         spec.includeRoots = includes
         spec.libs = libs
         spec.source = source
         spec.outputFile = getOutputFile()
         spec.args = compilerArgs
         spec.workDir = project.file("${project.buildDir}/tmp/cppCompile/${name}")
+        if (spec instanceof LibraryCompileSpec) {
+            spec.installName = spec.outputFile.name
+        }
 
         def result = compiler.execute(spec)
         didWork = result.didWork

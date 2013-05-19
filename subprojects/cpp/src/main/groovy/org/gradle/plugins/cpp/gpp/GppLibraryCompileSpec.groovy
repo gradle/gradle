@@ -15,19 +15,8 @@
  */
 
 package org.gradle.plugins.cpp.gpp
-
-import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.plugins.binaries.model.LibraryCompileSpec
-import org.gradle.plugins.binaries.model.NativeComponent
 
 class GppLibraryCompileSpec extends GppCompileSpec implements LibraryCompileSpec {
     String installName
-
-    GppLibraryCompileSpec(NativeComponent binary, Compiler<? super GppCompileSpec> compiler) {
-        super(binary, compiler)
-    }
-
-    String getInstallName() {
-        return installName ?: nativeComponent.outputFileName
-    }
 }

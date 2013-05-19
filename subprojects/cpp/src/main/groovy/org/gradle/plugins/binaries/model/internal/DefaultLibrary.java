@@ -24,7 +24,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.HeaderExportingSourceSet;
 import org.gradle.plugins.binaries.model.Library;
-import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +31,8 @@ import java.util.List;
 public class DefaultLibrary extends DefaultNativeComponent implements Library {
     private final DefaultSourceDirectorySet headers;
 
-    public DefaultLibrary(String name, CompileSpecFactory specFactory, ProjectInternal project) {
-        super(name, specFactory, project);
+    public DefaultLibrary(String name, ProjectInternal project) {
+        super(name, project);
         this.headers = new DefaultSourceDirectorySet("headers", String.format("Exported headers for native library '%s'", name), project.getFileResolver());
 
         initExportedHeaderTracking();
@@ -46,10 +45,6 @@ public class DefaultLibrary extends DefaultNativeComponent implements Library {
 
     public String getOutputFileName() {
         return OperatingSystem.current().getSharedLibraryName(getBaseName());
-    }
-
-    public LibraryCompileSpec getSpec() {
-        return (LibraryCompileSpec) super.getSpec();
     }
 
     public SourceDirectorySet getHeaders() {

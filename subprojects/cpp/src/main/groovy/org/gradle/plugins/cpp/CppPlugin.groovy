@@ -20,12 +20,11 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.Sync
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.binaries.BinariesPlugin
+import org.gradle.plugins.binaries.model.CompilerRegistry
 import org.gradle.plugins.binaries.model.ExecutableBinary
 import org.gradle.plugins.binaries.model.NativeBinary
 import org.gradle.plugins.binaries.model.SharedLibraryBinary
-import org.gradle.plugins.binaries.model.internal.DefaultCompilerRegistry
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
-import org.gradle.plugins.cpp.gpp.internal.GppCompileSpecFactory
 import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
 import org.gradle.util.GUtil
 
@@ -36,8 +35,6 @@ class CppPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(MicrosoftVisualCppPlugin)
         project.plugins.apply(GppCompilerPlugin)
         project.extensions.create("cpp", CppExtension, project)
-
-        project.extensions.getByType(DefaultCompilerRegistry).specFactory = new GppCompileSpecFactory()
 
         // Defaults for all cpp source sets
         project.cpp.sourceSets.all { sourceSet ->
@@ -94,15 +91,26 @@ exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
             !task.source.files.empty
         }
 
-        task.outputFile = { binary.component.outputFile }
         binary.component.sourceSets.withType(CppSourceSet).all { task.from(it) }
+
+        task.outputFile = { binary.component.outputFile }
+
+        task.compiler = project.extensions.getByType(CompilerRegistry).defaultCompiler
         task.compilerArgs = binary.compilerArgs
+        task.outputType = getOutputType(binary)
 
         binary.component.builtBy(task)
 
-        task.compiler = binary.spec.compiler
-        task.spec = binary.spec
-
         return task
+    }
+
+    def getOutputType(NativeBinary binary) {
+        if (binary instanceof SharedLibraryBinary) {
+            return CppCompile.OutputType.SHARED_LIBRARY
+        }
+        if (binary instanceof ExecutableBinary) {
+            return CppCompile.OutputType.EXECUTABLE
+        }
+        throw new IllegalArgumentException("Unknown binary type: " + binary.class)
     }
 }

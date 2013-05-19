@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.gpp
+package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.plugins.binaries.model.NativeComponent
+import org.gradle.api.Named;
 
-class GppCompileSpec extends DefaultCppCompileSpec {
-    NativeComponent nativeComponent
-
-    final Compiler<? super GppCompileSpec> compiler
-
-    GppCompileSpec(NativeComponent nativeComponent, Compiler<? super GppCompileSpec> compiler) {
-        this.nativeComponent = nativeComponent
-        this.compiler = compiler
-    }
-
-    String getName() {
-        nativeComponent.name
-    }
+/**
+ * A kind of compiler
+ */
+public interface BinaryCompiler extends Named {
 }

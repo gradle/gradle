@@ -15,20 +15,14 @@
  */
 package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.Named;
-
 import java.io.File;
 
 /**
  * A high level interface to the compiler, specifying what is to be compiled and how.
  */
-public interface CompileSpec extends Named {
+public interface CompileSpec {
 
-    /**
-     * The ultimate output of the compilation.
-     */
     File getOutputFile();
 
     void setOutputFile(File outputFile);
-
 }

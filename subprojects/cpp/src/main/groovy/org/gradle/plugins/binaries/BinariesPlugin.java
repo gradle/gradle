@@ -51,14 +51,12 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
                 DefaultCompilerRegistry.class,
                 instantiator
         );
-        DefaultCompilerRegistry registry = project.getExtensions().getByType(DefaultCompilerRegistry.class);
-
         NamedDomainObjectSet<Executable> executables = project.getExtensions().create(
                 "executables",
                 FactoryNamedDomainObjectContainer.class,
                 Executable.class,
                 instantiator,
-                new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class, registry, project)
+                new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class, project)
         );
 
         executables.all(new Action<Executable>() {
@@ -72,7 +70,7 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
                 FactoryNamedDomainObjectContainer.class,
                 Library.class,
                 instantiator,
-                new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, registry, project)
+                new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project)
         );
 
         libraries.all(new Action<Library>() {

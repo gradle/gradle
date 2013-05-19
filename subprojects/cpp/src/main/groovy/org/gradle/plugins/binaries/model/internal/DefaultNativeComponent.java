@@ -15,17 +15,14 @@
  */
 package org.gradle.plugins.binaries.model.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.binaries.model.CompileSpec;
 import org.gradle.plugins.binaries.model.NativeComponent;
 import org.gradle.plugins.binaries.model.SourceSet;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -35,17 +32,15 @@ import java.util.List;
 
 public class DefaultNativeComponent implements NativeComponent {
     private final String name;
-    private final BinaryCompileSpec spec;
     private final DomainObjectSet<SourceSet> sourceSets;
     private final Project project;
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private String baseName;
     private List<Object> compilerArgs = new ArrayList<Object>();
 
-    public DefaultNativeComponent(String name, CompileSpecFactory specFactory, Project project) {
+    public DefaultNativeComponent(String name, Project project) {
         this.name = name;
         this.sourceSets = new DefaultDomainObjectSet<SourceSet>(SourceSet.class);
-        this.spec = specFactory.create(this);
         this.project = project;
     }
 
@@ -59,10 +54,6 @@ public class DefaultNativeComponent implements NativeComponent {
 
     public TaskDependency getBuildDependencies() {
         return buildDependencies;
-    }
-
-    public CompileSpec getSpec() {
-        return spec;
     }
 
     public DomainObjectSet<SourceSet> getSourceSets() {
@@ -91,9 +82,5 @@ public class DefaultNativeComponent implements NativeComponent {
 
     public void compilerArgs(Object... args) {
         Collections.addAll(this.compilerArgs, args);
-    }
-
-    public CompileSpec spec(Closure closure) {
-        return ConfigureUtil.configure(closure, spec);
     }
 }

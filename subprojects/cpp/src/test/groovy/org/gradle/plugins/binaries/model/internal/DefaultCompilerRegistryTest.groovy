@@ -15,24 +15,17 @@
  */
 
 package org.gradle.plugins.binaries.model.internal
-
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.plugins.binaries.model.NativeComponent
+import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
 class DefaultCompilerRegistryTest extends Specification {
-    final BinaryCompileSpecFactory specFactory = Mock()
     final DefaultCompilerRegistry registry = new DefaultCompilerRegistry(new DirectInstantiator())
 
-    def setup() {
-        registry.specFactory = specFactory
-    }
-
     def "search order defaults to the order that adapters are added"() {
-        CompilerAdapter<BinaryCompileSpec> compiler1 = compiler("z")
-        CompilerAdapter<BinaryCompileSpec> compiler2 = compiler("b")
-        CompilerAdapter<BinaryCompileSpec> compiler3 = compiler("a")
+        CompilerAdapter<BinaryCompileSpec> compiler1 = compilerAdapter("z")
+        CompilerAdapter<BinaryCompileSpec> compiler2 = compilerAdapter("b")
+        CompilerAdapter<BinaryCompileSpec> compiler3 = compilerAdapter("a")
 
         expect:
         registry.searchOrder == []
@@ -53,13 +46,11 @@ class DefaultCompilerRegistryTest extends Specification {
     }
 
     def "compilation searches adapters in the order added and uses the first available"() {
-        NativeComponent binary = Mock()
         BinaryCompileSpec compileSpec = Mock()
-        CompilerAdapter<BinaryCompileSpec> compiler1 = compiler("z")
-        CompilerAdapter<BinaryCompileSpec> compiler2 = compiler("b")
-        CompilerAdapter<BinaryCompileSpec> compiler3 = compiler("a")
-        Compiler<BinaryCompileSpec> compiler = Mock()
-        Compiler<BinaryCompileSpec> lazyCompiler
+        CompilerAdapter<BinaryCompileSpec> compiler1 = compilerAdapter("z")
+        CompilerAdapter<BinaryCompileSpec> compiler2 = compilerAdapter("b")
+        CompilerAdapter<BinaryCompileSpec> compiler3 = compilerAdapter("a")
+        Compiler<BinaryCompileSpec> realCompiler2 = Mock()
 
         given:
         registry.add(compiler1)
@@ -70,26 +61,19 @@ class DefaultCompilerRegistryTest extends Specification {
         compiler2.available >> true
 
         when:
-        registry.create(binary)
+        def defaultCompiler = registry.getDefaultCompiler()
+        defaultCompiler.execute(compileSpec)
 
         then:
-        1 * specFactory.create(binary, !null) >> { lazyCompiler = it[1]; return compileSpec }
-        
-        when:
-        lazyCompiler.execute(compileSpec)
-
-        then:
-        1 * compiler2.createCompiler(binary) >> compiler
-        1 * compiler.execute(compileSpec)
+        1 * compiler2.createCompiler() >> realCompiler2
+        1 * realCompiler2.execute(compileSpec)
     }
 
     def "compilation fails when no adapter is available"() {
-        NativeComponent binary = Mock()
         BinaryCompileSpec compileSpec = Mock()
-        CompilerAdapter<BinaryCompileSpec> compiler1 = compiler("z")
-        CompilerAdapter<BinaryCompileSpec> compiler2 = compiler("b")
-        CompilerAdapter<BinaryCompileSpec> compiler3 = compiler("a")
-        Compiler<BinaryCompileSpec> lazyCompiler
+        CompilerAdapter<BinaryCompileSpec> compiler1 = compilerAdapter("z")
+        CompilerAdapter<BinaryCompileSpec> compiler2 = compilerAdapter("b")
+        CompilerAdapter<BinaryCompileSpec> compiler3 = compilerAdapter("a")
 
         given:
         registry.add(compiler1)
@@ -97,32 +81,15 @@ class DefaultCompilerRegistryTest extends Specification {
         registry.add(compiler3)
 
         when:
-        registry.create(binary)
-
-        then:
-        1 * specFactory.create(binary, !null) >> { lazyCompiler = it[1]; return compileSpec }
-        
-        when:
-        lazyCompiler.execute(compileSpec)
+        def defaultCompiler = registry.getDefaultCompiler()
+        defaultCompiler.execute(compileSpec)
 
         then:
         IllegalStateException e = thrown()
-        e.message == "No compiler is available to compile $binary. Searched for $compiler1, $compiler2, $compiler3."
+        e.message == "No compiler is available. Searched for $compiler1, $compiler2, $compiler3."
     }
 
-    def "there is no default compiler when no adapters are available"() {
-        CompilerAdapter<BinaryCompileSpec> compiler1 = compiler("c1")
-        CompilerAdapter<BinaryCompileSpec> compiler2 = compiler("c2")
-
-        given:
-        registry.add(compiler1)
-        registry.add(compiler2)
-
-        expect:
-        registry.defaultCompiler == null
-    }
-
-    def compiler(String name) {
+    def compilerAdapter(String name) {
         CompilerAdapter<BinaryCompileSpec> compiler = Mock()
         _ * compiler.name >> name
         return compiler

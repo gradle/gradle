@@ -18,7 +18,6 @@ package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.plugins.binaries.model.Library;
-import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 import org.gradle.plugins.binaries.model.SharedLibraryBinary;
 
 public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements SharedLibraryBinary {
@@ -31,10 +30,6 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
 
     public SourceDirectorySet getHeaders() {
         return library.getHeaders();
-    }
-
-    public LibraryCompileSpec getSpec() {
-        return library.getSpec();
     }
 
     public String getName() {

@@ -16,16 +16,13 @@
 package org.gradle.plugins.binaries.model;
 
 import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
+import org.gradle.api.internal.tasks.compile.Compiler;
 
 /**
  * A container for compiler adapters
  */
-public interface CompilerRegistry extends NamedDomainObjectSet<Compiler> {
+public interface CompilerRegistry extends NamedDomainObjectSet<BinaryCompiler> {
 
-    /**
-     * Somehow picks what the default compiler to use is.
-     *
-     * @return null when there is no default compiler available.
-     */
-    Compiler getDefaultCompiler();
+    Compiler<BinaryCompileSpec> getDefaultCompiler();
 }

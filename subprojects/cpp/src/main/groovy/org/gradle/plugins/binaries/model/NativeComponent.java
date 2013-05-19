@@ -27,8 +27,6 @@ import java.util.List;
  */
 public interface NativeComponent extends Named, Buildable {
 
-    CompileSpec getSpec();
-
     DomainObjectSet<SourceSet> getSourceSets();
 
     String getBaseName();

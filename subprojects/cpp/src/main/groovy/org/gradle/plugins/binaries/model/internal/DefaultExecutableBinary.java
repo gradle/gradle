@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.plugins.binaries.model.CompileSpec;
 import org.gradle.plugins.binaries.model.Executable;
 import org.gradle.plugins.binaries.model.ExecutableBinary;
 
@@ -26,10 +25,6 @@ public class DefaultExecutableBinary extends DefaultNativeBinary implements Exec
     public DefaultExecutableBinary(Executable executable) {
         super(executable);
         this.executable = executable;
-    }
-
-    public CompileSpec getSpec() {
-        return executable.getSpec();
     }
 
     public String getName() {

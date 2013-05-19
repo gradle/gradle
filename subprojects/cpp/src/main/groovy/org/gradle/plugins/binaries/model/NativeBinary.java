@@ -27,7 +27,5 @@ public interface NativeBinary extends Binary {
 
     NativeComponent getComponent();
 
-    CompileSpec getSpec();
-
     List<Object> getCompilerArgs();
 }
