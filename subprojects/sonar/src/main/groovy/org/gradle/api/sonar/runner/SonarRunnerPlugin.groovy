@@ -179,7 +179,7 @@ class SonarRunnerPlugin implements Plugin<Project> {
             properties["sonar.tests"] = test.allSource.srcDirs.findAll { it.exists() } ?: null
             properties["sonar.binaries"] = main.runtimeClasspath.findAll { it.directory } ?: null
             properties["sonar.libraries"] = getLibraries(main)
-            File testResultsDir = project.test.reports.html.destination
+            File testResultsDir = project.test.reports.junitXml.destination
             properties["sonar.surefire.reportsPath"] = testResultsDir.exists() ? testResultsDir : null
 
             project.plugins.withType(JacocoPlugin) {

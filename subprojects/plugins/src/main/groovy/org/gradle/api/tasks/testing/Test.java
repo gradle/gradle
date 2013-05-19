@@ -136,7 +136,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private TestReporter testReporter;
 
     @Nested
-    private final TestReports reports;
+    private final DefaultTestReports reports;
 
     @Inject
     public Test(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory, FileResolver fileResolver,
