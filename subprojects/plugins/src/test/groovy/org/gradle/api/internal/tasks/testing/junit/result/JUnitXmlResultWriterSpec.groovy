@@ -16,17 +16,20 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
+import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
+import org.gradle.internal.SystemProperties
 import spock.lang.Specification
 
 import static java.util.Arrays.asList
 import static java.util.Collections.emptyList
+import static org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultWriter.OutputAssociation.WITH_SUITE
+import static org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultWriter.OutputAssociation.WITH_TESTCASE
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.*
 import static org.hamcrest.Matchers.equalTo
-import org.gradle.internal.SystemProperties
 
 /**
  * by Szczepan Faber, created at: 11/16/12
@@ -34,7 +37,11 @@ import org.gradle.internal.SystemProperties
 class JUnitXmlResultWriterSpec extends Specification {
 
     private provider = Mock(TestResultsProvider)
-    private generator = new JUnitXmlResultWriter("localhost", provider)
+    private mode = WITH_SUITE
+
+    protected JUnitXmlResultWriter getGenerator() {
+        new JUnitXmlResultWriter("localhost", provider, mode)
+    }
 
     private startTime = 1353344968049
 
@@ -53,14 +60,14 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest")
-            .assertTestCount(4, 1, 0)
-            .assertTestFailed("some failing test", equalTo('java.lang.RuntimeException: Boo!'))
-            .assertTestsSkipped("some skipped test")
-            .assertTestsExecuted("some test", "some test two", "some failing test")
-            .assertStdout(equalTo("""1st output message
+                .assertTestCount(4, 1, 0)
+                .assertTestFailed("some failing test", equalTo('java.lang.RuntimeException: Boo!'))
+                .assertTestsSkipped("some skipped test")
+                .assertTestsExecuted("some test", "some test two", "some failing test")
+                .assertStdout(equalTo("""1st output message
 2nd output message
 """))
-            .assertStderr(equalTo("err"))
+                .assertStderr(equalTo("err"))
 
         and:
         xml.startsWith """<?xml version="1.1" encoding="UTF-8"?>
@@ -130,6 +137,44 @@ class JUnitXmlResultWriterSpec extends Specification {
   <properties/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
+</testsuite>
+"""
+    }
+
+    def "can generate with output per test"() {
+        given:
+        mode = WITH_TESTCASE
+        provider = new BuildableTestResultsProvider()
+        def testClass = provider.testClassResult("com.Foo")
+
+        when:
+        testClass.with {
+            testcase("m1").with {
+                stderr " m1-err-1"
+                stdout " m1-out-1"
+                stdout " m1-out-2"
+                stderr " m1-err-2"
+            }
+            testcase("m2").with {
+                stderr " m2-err-1"
+                stdout " m2-out-1"
+                stdout " m2-out-2"
+                stderr " m2-err-2"
+            }
+        }
+
+        then:
+        getXml(testClass) == """<?xml version="1.1" encoding="UTF-8"?>
+<testsuite name="com.Foo" tests="2" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+  <properties/>
+  <testcase name="m1" classname="com.Foo" time="0.1">
+    <system-out><![CDATA[ m1-out-1 m1-out-2]]></system-out>
+    <system-err><![CDATA[ m1-err-1 m1-err-2]]></system-err>
+  </testcase>
+  <testcase name="m2" classname="com.Foo" time="0.1">
+    <system-out><![CDATA[ m2-out-1 m2-out-2]]></system-out>
+    <system-err><![CDATA[ m2-err-1 m2-err-2]]></system-err>
+  </testcase>
 </testsuite>
 """
     }

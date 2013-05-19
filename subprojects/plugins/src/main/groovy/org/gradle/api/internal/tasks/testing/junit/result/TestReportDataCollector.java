@@ -103,4 +103,8 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
         outputSerializer.writeOutputs(className, destination, writer);
     }
+
+    public void writeOutputs(String className, String testCaseName, TestOutputEvent.Destination destination, Writer writer) {
+        outputSerializer.writeOutputs(className, testCaseName, destination, writer);
+    }
 }

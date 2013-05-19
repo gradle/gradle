@@ -56,11 +56,19 @@ public class TestOutputSerializer {
         return new File(resultsDir, className + ".stdout.bin");
     }
 
-    public boolean hasOutput(String className, TestOutputEvent.Destination destination){
+    public boolean hasOutput(String className, TestOutputEvent.Destination destination) {
         return outputsFile(className, destination).exists();
     }
 
     public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
+        doWriteOutputs(className, null, destination, writer);
+    }
+
+    public void writeOutputs(String className, String testCaseName, TestOutputEvent.Destination destination, Writer writer) {
+        doWriteOutputs(className, testCaseName, destination, writer);
+    }
+
+    protected void doWriteOutputs(String className, String targetTestCaseName, TestOutputEvent.Destination destination, Writer writer) {
         final File file = outputsFile(className, destination);
         if (!file.exists()) {
             return;
@@ -69,9 +77,12 @@ public class TestOutputSerializer {
             Input input = new Input(new FileInputStream(file));
             try {
                 while (input.canReadInt()) { // using this to see if we are EOF yet
-                    input.readString(); // test name
+                    String messageTestCaseName = input.readString();
                     String message = input.readString();
-                    writer.write(message);
+
+                    if (targetTestCaseName == null || targetTestCaseName.equals(messageTestCaseName)) {
+                        writer.write(message);
+                    }
                 }
             } finally {
                 input.close();

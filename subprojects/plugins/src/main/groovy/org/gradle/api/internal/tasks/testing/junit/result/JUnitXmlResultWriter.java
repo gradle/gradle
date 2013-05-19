@@ -33,12 +33,23 @@ import java.io.StringWriter;
  */
 public class JUnitXmlResultWriter {
 
+    public static enum OutputAssociation {
+        WITH_SUITE,
+        WITH_TESTCASE
+    }
+
     private final String hostName;
     private final TestResultsProvider testResultsProvider;
+    private final OutputAssociation outputAssociation;
 
     public JUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider) {
+        this(hostName, testResultsProvider, OutputAssociation.WITH_SUITE);
+    }
+
+    public JUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider, OutputAssociation outputAssociation) {
         this.hostName = hostName;
         this.testResultsProvider = testResultsProvider;
+        this.outputAssociation = outputAssociation;
     }
 
     public void write(TestClassResult result, OutputStream output) {
@@ -59,12 +70,15 @@ public class JUnitXmlResultWriter {
 
             writeTests(writer, result.getResults(), className);
 
-            writer.startElement("system-out");
-            writeOutputs(writer, className, TestOutputEvent.Destination.StdOut);
-            writer.endElement();
-            writer.startElement("system-err");
-            writeOutputs(writer, className, TestOutputEvent.Destination.StdErr);
-            writer.endElement();
+            if (outputAssociation.equals(OutputAssociation.WITH_SUITE)) {
+                writer.startElement("system-out");
+                writeOutputs(writer, className, TestOutputEvent.Destination.StdOut);
+                writer.endElement();
+                writer.startElement("system-err");
+                writeOutputs(writer, className, TestOutputEvent.Destination.StdErr);
+                writer.endElement();
+            }
+
             writer.endElement();
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -74,6 +88,12 @@ public class JUnitXmlResultWriter {
     private void writeOutputs(SimpleXmlWriter writer, String className, TestOutputEvent.Destination destination) throws IOException {
         writer.startCDATA();
         testResultsProvider.writeOutputs(className, destination, writer);
+        writer.endCDATA();
+    }
+
+    private void writeOutputs(SimpleXmlWriter writer, String className, String methodName, TestOutputEvent.Destination destination) throws IOException {
+        writer.startCDATA();
+        testResultsProvider.writeOutputs(className, methodName, destination, writer);
         writer.endCDATA();
     }
 
@@ -94,6 +114,16 @@ public class JUnitXmlResultWriter {
 
                 writer.endElement();
             }
+
+            if (outputAssociation.equals(OutputAssociation.WITH_TESTCASE)) {
+                writer.startElement("system-out");
+                writeOutputs(writer, className, methodResult.getName(), TestOutputEvent.Destination.StdOut);
+                writer.endElement();
+                writer.startElement("system-err");
+                writeOutputs(writer, className, methodResult.getName(), TestOutputEvent.Destination.StdErr);
+                writer.endElement();
+            }
+
             writer.endElement();
         }
     }

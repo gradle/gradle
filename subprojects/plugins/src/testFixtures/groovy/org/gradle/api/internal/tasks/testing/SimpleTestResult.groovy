@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.logging
+package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.tasks.testing.TestResult
 
