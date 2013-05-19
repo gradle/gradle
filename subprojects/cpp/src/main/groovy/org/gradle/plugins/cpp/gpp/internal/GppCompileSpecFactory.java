@@ -16,27 +16,21 @@
 
 package org.gradle.plugins.cpp.gpp.internal;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.plugins.binaries.model.NativeComponent;
 import org.gradle.plugins.binaries.model.Library;
+import org.gradle.plugins.binaries.model.NativeComponent;
 import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
 import org.gradle.plugins.binaries.model.internal.BinaryCompileSpecFactory;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 import org.gradle.plugins.cpp.gpp.GppLibraryCompileSpec;
 
 public class GppCompileSpecFactory implements BinaryCompileSpecFactory {
-    private ProjectInternal project;
-
-    public GppCompileSpecFactory(ProjectInternal project) {
-        this.project = project;
-    }
 
     public BinaryCompileSpec create(NativeComponent binary, org.gradle.api.internal.tasks.compile.Compiler<?> compiler) {
         Compiler<? super GppCompileSpec> typed = (Compiler<? super GppCompileSpec>) compiler;
         if (binary instanceof Library) {
-            return new GppLibraryCompileSpec(binary, typed, project);
+            return new GppLibraryCompileSpec(binary, typed);
         }
-        return new GppCompileSpec(binary, typed, project);
+        return new GppCompileSpec(binary, typed);
     }
 }

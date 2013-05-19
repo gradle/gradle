@@ -16,8 +16,7 @@
 
 package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 
-public interface BinaryCompileSpec extends org.gradle.plugins.binaries.model.CompileSpec, CompileSpec, Buildable {
+public interface BinaryCompileSpec extends org.gradle.plugins.binaries.model.CompileSpec, CompileSpec {
 }

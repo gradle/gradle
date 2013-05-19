@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.CompileSpec;
@@ -37,6 +38,7 @@ public class DefaultNativeComponent implements NativeComponent {
     private final BinaryCompileSpec spec;
     private final DomainObjectSet<SourceSet> sourceSets;
     private final Project project;
+    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private String baseName;
     private List<Object> compilerArgs = new ArrayList<Object>();
 
@@ -51,8 +53,12 @@ public class DefaultNativeComponent implements NativeComponent {
         return name;
     }
 
+    public void builtBy(Object... tasks) {
+        buildDependencies.add(tasks);
+    }
+
     public TaskDependency getBuildDependencies() {
-        return spec.getBuildDependencies();
+        return buildDependencies;
     }
 
     public CompileSpec getSpec() {

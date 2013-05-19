@@ -37,7 +37,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(GppCompilerPlugin)
         project.extensions.create("cpp", CppExtension, project)
 
-        project.extensions.getByType(DefaultCompilerRegistry).specFactory = new GppCompileSpecFactory(project)
+        project.extensions.getByType(DefaultCompilerRegistry).specFactory = new GppCompileSpecFactory()
 
         // Defaults for all cpp source sets
         project.cpp.sourceSets.all { sourceSet ->
@@ -98,7 +98,11 @@ exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
         binary.component.sourceSets.withType(CppSourceSet).all { task.from(it) }
         task.compilerArgs = binary.compilerArgs
 
-        binary.spec.configure(task)
+        binary.component.builtBy(task)
+
+        task.compiler = binary.spec.compiler
+        task.spec = binary.spec
+
         return task
     }
 }

@@ -14,40 +14,21 @@
  * limitations under the License.
  */
 package org.gradle.plugins.cpp.gpp
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.DefaultTaskDependency
-import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.api.tasks.TaskDependency
-import org.gradle.plugins.binaries.model.NativeComponent
-import org.gradle.plugins.binaries.model.internal.CompileTaskAware
-import org.gradle.plugins.cpp.CppCompile
 
-class GppCompileSpec extends DefaultCppCompileSpec implements CompileTaskAware {
+import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.plugins.binaries.model.NativeComponent
+
+class GppCompileSpec extends DefaultCppCompileSpec {
     NativeComponent nativeComponent
 
-    private CppCompile task
+    final Compiler<? super GppCompileSpec> compiler
 
-    private final Compiler<? super GppCompileSpec> compiler
-    private final ProjectInternal project
-
-    GppCompileSpec(NativeComponent nativeComponent, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
+    GppCompileSpec(NativeComponent nativeComponent, Compiler<? super GppCompileSpec> compiler) {
         this.nativeComponent = nativeComponent
         this.compiler = compiler
-        this.project = project
-    }
-
-    // TODO:DAZ Remove this
-    void configure(CppCompile task) {
-        this.task = task
-        task.spec = this
-        task.compiler = compiler
     }
 
     String getName() {
         nativeComponent.name
-    }
-
-    TaskDependency getBuildDependencies() {
-        return new DefaultTaskDependency().add(task)
     }
 }
