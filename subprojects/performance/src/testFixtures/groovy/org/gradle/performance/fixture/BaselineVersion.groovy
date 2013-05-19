@@ -26,10 +26,15 @@ import static org.gradle.performance.fixture.PrettyCalculator.*
  * by Szczepan Faber, created at: 11/20/12
  */
 class BaselineVersion {
-    String version
+    final String version
+    final MeasuredOperationList results = new MeasuredOperationList()
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
-    MeasuredOperationList results = new MeasuredOperationList()
+
+    BaselineVersion(String version) {
+        this.version = version
+        results.name = "Gradle $version"
+    }
 
     void clearResults() {
         results.clear()

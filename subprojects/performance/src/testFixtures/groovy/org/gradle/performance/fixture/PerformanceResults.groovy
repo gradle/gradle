@@ -21,12 +21,18 @@ import org.gradle.api.logging.Logging
 public class PerformanceResults {
     private final static LOGGER = Logging.getLogger(PerformanceResults.class)
 
-    private final Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()
+    String testId
+    String testProject
+    String[] args
+    String[] tasks
     String displayName
+    String jvm
+    String operatingSystem
     long testTime
     String versionUnderTest
 
-    final MeasuredOperationList current = new MeasuredOperationList(name:  "Current G.")
+    private final Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()
+    final MeasuredOperationList current = new MeasuredOperationList(name:  "Current Gradle")
 
     def clear() {
         baselineVersions.values()each { it.clearResults() }
@@ -48,7 +54,7 @@ public class PerformanceResults {
     BaselineVersion baseline(String version) {
         def baselineVersion = baselineVersions[version]
         if (baselineVersion == null) {
-            baselineVersion = new BaselineVersion(version: version, results: new MeasuredOperationList(name: "Gradle $version"))
+            baselineVersion = new BaselineVersion(version)
             baselineVersions[version] = baselineVersion
         }
         return baselineVersion

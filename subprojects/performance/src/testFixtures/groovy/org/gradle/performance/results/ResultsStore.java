@@ -42,11 +42,17 @@ public class ResultsStore implements DataReporter {
             withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws Exception {
                     long testId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(executionTime, testName, targetVersion) values (?, ?, ?)");
+                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, displayName, targetVersion, testProject, tasks, args, operatingSystem, jvm) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
-                        statement.setTimestamp(1, new Timestamp(results.getTestTime()));
-                        statement.setString(2, results.getDisplayName());
-                        statement.setString(3, results.getVersionUnderTest());
+                        statement.setString(1, results.getTestId());
+                        statement.setTimestamp(2, new Timestamp(results.getTestTime()));
+                        statement.setString(3, results.getDisplayName());
+                        statement.setString(4, results.getVersionUnderTest());
+                        statement.setString(5, results.getTestProject());
+                        statement.setObject(6, results.getTasks());
+                        statement.setObject(7, results.getArgs());
+                        statement.setString(8, results.getOperatingSystem());
+                        statement.setString(9, results.getJvm());
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -86,7 +92,7 @@ public class ResultsStore implements DataReporter {
             return withConnection(new ConnectionAction<List<String>>() {
                 public List<String> execute(Connection connection) throws Exception {
                     List<String> testNames = new ArrayList<String>();
-                    ResultSet testExecutions = connection.createStatement().executeQuery("select distinct testName from testExecution order by testName");
+                    ResultSet testExecutions = connection.createStatement().executeQuery("select distinct testId from testExecution order by testId");
                     while (testExecutions.next()) {
                         testNames.add(testExecutions.getString(1));
                     }
@@ -104,18 +110,22 @@ public class ResultsStore implements DataReporter {
                 public TestExecutionHistory execute(Connection connection) throws Exception {
                     List<PerformanceResults> results = new ArrayList<PerformanceResults>();
                     Set<String> allVersions = new TreeSet<String>();
-                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, targetVersion from testExecution where testName = ? order by executionTime desc");
+                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, targetVersion, displayName, testProject, tasks, args, operatingSystem, jvm from testExecution where testId = ? order by executionTime desc");
                     PreparedStatement buildsForTest = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes from testOperation where testExecution = ?");
                     executionsForName.setString(1, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);
-                        Timestamp executionTime = testExecutions.getTimestamp(2);
-                        String versionUnderTest = testExecutions.getString(3);
                         PerformanceResults performanceResults = new PerformanceResults();
-                        performanceResults.setTestTime(executionTime.getTime());
-                        performanceResults.setDisplayName(testName);
-                        performanceResults.setVersionUnderTest(versionUnderTest);
+                        performanceResults.setTestId(testName);
+                        performanceResults.setTestTime(testExecutions.getTimestamp(2).getTime());
+                        performanceResults.setVersionUnderTest(testExecutions.getString(3));
+                        performanceResults.setDisplayName(testExecutions.getString(4));
+                        performanceResults.setTestProject(testExecutions.getString(5));
+                        performanceResults.setTasks(toArray(testExecutions.getObject(6)));
+                        performanceResults.setArgs(toArray(testExecutions.getObject(7)));
+                        performanceResults.setOperatingSystem(testExecutions.getString(8));
+                        performanceResults.setJvm(testExecutions.getString(9));
                         results.add(performanceResults);
                         buildsForTest.setLong(1, id);
                         ResultSet builds = buildsForTest.executeQuery();
@@ -148,6 +158,15 @@ public class ResultsStore implements DataReporter {
         }
     }
 
+    private String[] toArray(Object object) {
+        Object[] value = (Object[]) object;
+        String[] result = new String[value.length];
+        for (int i = 0; i < value.length; i++) {
+            result[i] = value[i].toString();
+        }
+        return result;
+    }
+
     public void close() {
         if (connection != null) {
             try {
@@ -168,7 +187,7 @@ public class ResultsStore implements DataReporter {
         }
         try {
             Statement statement = connection.createStatement();
-            statement.execute("create table if not exists testExecution (id bigint identity not null, executionTime timestamp not null, testName varchar not null, targetVersion varchar not null)");
+            statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, displayName varchar not null, targetVersion varchar not null, testProject varchar not null, tasks array not null, args array not null, operatingSystem varchar not null, jvm varchar not null)");
             statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
             statement.close();
         } catch (Exception e) {

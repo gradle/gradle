@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
@@ -53,6 +55,12 @@ public class PerformanceTestRunner {
         assert !targetVersions.empty
 
         results = new PerformanceResults(
+                testId: "${testProject}-${args}-${tasksToRun}",
+                testProject: testProject,
+                tasks: tasksToRun,
+                args: args,
+                jvm: Jvm.current().toString(),
+                operatingSystem: OperatingSystem.current().toString(),
                 versionUnderTest: GradleVersion.current().getVersion(),
                 testTime: System.currentTimeMillis(),
                 displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
@@ -63,7 +71,6 @@ public class PerformanceTestRunner {
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
             baselineVersion.maxMemoryRegression = maxMemoryRegression
-            baselineVersion.results = new MeasuredOperationList(name: "Gradle $it")
         }
 
         println "Running performance tests for test project '$testProject', no. of runs: $runs"

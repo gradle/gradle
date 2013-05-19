@@ -33,7 +33,8 @@ class PerformanceTestRunnerTest extends ResultSpecification {
         given:
         runner.testProject = 'test1'
         runner.targetVersions = ['1.0', '1.1']
-        runner.tasksToRun = ['build']
+        runner.tasksToRun = ['clean', 'build']
+        runner.args = ['--arg1', '--arg2']
         runner.warmUpRuns = 1
         runner.runs = 4
         runner.maxExecutionTimeRegression = Duration.millis(100)
@@ -41,6 +42,15 @@ class PerformanceTestRunnerTest extends ResultSpecification {
 
         when:
         def results = runner.run()
+
+        then:
+        results.testProject == 'test1'
+        results.tasks == ['clean', 'build']
+        results.args == ['--arg1', '--arg2']
+        results.testId == "test1-[--arg1, --arg2]-[clean, build]"
+        results.versionUnderTest
+        results.jvm
+        results.operatingSystem
         results.current.size() == 4
         results.current.avgTime() == Duration.seconds(10)
         results.current.avgMemory() == DataAmount.kbytes(10)
@@ -50,7 +60,7 @@ class PerformanceTestRunnerTest extends ResultSpecification {
         results.baselineVersions.every { it.maxExecutionTimeRegression == runner.maxExecutionTimeRegression }
         results.baselineVersions.every { it.maxMemoryRegression == runner.maxMemoryRegression }
 
-        then:
+        and:
         // warmup runs are discarded
         3 * timer.measure(_) >> operation(executionTime: Duration.seconds(100), heapUsed: DataAmount.kbytes(100))
         12 * timer.measure(_) >> operation(executionTime: Duration.seconds(10), heapUsed: DataAmount.kbytes(10))

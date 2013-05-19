@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.base.Joiner;
 import com.googlecode.jatl.Html;
 import org.gradle.performance.fixture.BaselineVersion;
 import org.gradle.performance.fixture.PerformanceResults;
@@ -68,12 +69,16 @@ public class ReportGenerator {
                                 end();
                                 table();
                                     tr();
-                                        th().end();
+                                        th().colspan("5").end();
                                         th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average execution time").end();
                                         th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average heap usage").end();
                                     end();
                                     tr();
                                         th().text("Date").end();
+                                        th().text("Test project").end();
+                                        th().text("Tasks").end();
+                                        th().text("Operating System").end();
+                                        th().text("JVM").end();
                                         for (String version : testHistory.getBaselineVersions()) {
                                             th().text(version).end();
                                         }
@@ -86,6 +91,14 @@ public class ReportGenerator {
                                     for (PerformanceResults performanceResults : testHistory.getResults()) {
                                         tr();
                                             td().text(format.format(new Date(performanceResults.getTestTime()))).end();
+                                            td().text(performanceResults.getTestProject()).end();
+                                            td();
+                                                text(Joiner.on(", ").join(performanceResults.getArgs()));
+                                                text(" ");
+                                                text(Joiner.on(", ").join(performanceResults.getTasks()));
+                                            end();
+                                            td().text(performanceResults.getOperatingSystem()).end();
+                                            td().text(performanceResults.getJvm()).end();
                                             for (String version : testHistory.getBaselineVersions()) {
                                                 BaselineVersion baselineVersion = performanceResults.baseline(version);
                                                 if (baselineVersion.getResults().isEmpty()) {

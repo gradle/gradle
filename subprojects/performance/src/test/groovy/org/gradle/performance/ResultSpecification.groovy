@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.fixture.PerformanceResults
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
@@ -23,6 +24,20 @@ import org.gradle.performance.measure.MeasuredOperation
 import spock.lang.Specification
 
 class ResultSpecification extends Specification {
+    PerformanceResults results(Map<String, ?> options = [:]) {
+        def results = new PerformanceResults()
+        results.testId = "test-id"
+        results.displayName = "some test"
+        results.testProject = "test-project"
+        results.tasks = ["clean", "build"]
+        results.args = []
+        results.operatingSystem = "some os"
+        results.jvm = "java 6"
+        results.versionUnderTest = "1.7-rc-1"
+        options.each { key, value -> results."$key" = value }
+        return results
+    }
+
     MeasuredOperation operation(Map<String, Object> args = [:]) {
         def operation = new MeasuredOperation()
         operation.executionTime = args.executionTime instanceof Amount ? args.executionTime : Duration.millis(args?.executionTime ?: 120)

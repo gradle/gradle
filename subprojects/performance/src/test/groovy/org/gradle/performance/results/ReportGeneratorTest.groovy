@@ -17,7 +17,6 @@
 package org.gradle.performance.results
 
 import org.gradle.performance.ResultSpecification
-import org.gradle.performance.fixture.PerformanceResults
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
@@ -30,7 +29,7 @@ class ReportGeneratorTest extends ResultSpecification {
     def "generates report"() {
         setup:
         def store = new ResultsStore(dbFile)
-        def result2 = new PerformanceResults(displayName: "test1", testTime: 20000, versionUnderTest: "1.7-rc-2")
+        def result2 = results()
         result2.current << operation()
         result2.current << operation()
         store.report(result2)

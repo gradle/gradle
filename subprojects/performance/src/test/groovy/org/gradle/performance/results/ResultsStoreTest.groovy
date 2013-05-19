@@ -17,7 +17,6 @@
 package org.gradle.performance.results
 
 import org.gradle.performance.ResultSpecification
-import org.gradle.performance.fixture.PerformanceResults
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
@@ -29,7 +28,15 @@ class ResultsStoreTest extends ResultSpecification {
     final dbFile = tmpDir.file("results")
 
     def "persists results"() {
-        def result1 = new PerformanceResults(displayName: "test1", testTime: 10000, versionUnderTest: "1.7-rc-1")
+        def result1 = results(displayName: "Results for test1",
+                testId: "test1",
+                testProject: "test-project",
+                tasks: ["clean", "build"],
+                args: ["--arg1"],
+                operatingSystem: "some-os",
+                jvm: "java 6",
+                testTime: 10000,
+                versionUnderTest: "1.7-rc-1")
         def baseline1 = result1.baseline("1.0")
         def baseline2 = result1.baseline("1.5")
         result1.current << operation(executionTime: minutes(12), heapUsed: kbytes(12.33))
@@ -38,7 +45,7 @@ class ResultsStoreTest extends ResultSpecification {
         baseline2.results << operation()
         baseline2.results << operation()
 
-        def result2 = new PerformanceResults(displayName: "test2", testTime: 20000, versionUnderTest: "1.7-rc-2")
+        def result2 = results(testId: "test2", testTime: 20000, versionUnderTest: "1.7-rc-2")
         result2.current << operation()
         result2.current << operation()
         def baseline3 = result2.baseline("1.0")
@@ -69,7 +76,13 @@ class ResultsStoreTest extends ResultSpecification {
         and:
         def results = history.results
         results.size() == 1
-        results[0].displayName == "test1"
+        results[0].testId == "test1"
+        results[0].displayName == "Results for test1"
+        results[0].testProject == "test-project"
+        results[0].tasks == ["clean", "build"]
+        results[0].args == ["--arg1"]
+        results[0].operatingSystem == "some-os"
+        results[0].jvm == "java 6"
         results[0].testTime == 10000
         results[0].versionUnderTest == '1.7-rc-1'
         results[0].current.size() == 1
@@ -89,7 +102,7 @@ class ResultsStoreTest extends ResultSpecification {
 
         and:
         results.size() == 1
-        results[0].displayName == "test2"
+        results[0].testId == "test2"
         results[0].testTime == 20000
         results[0].versionUnderTest == '1.7-rc-2'
         results[0].current.size() == 2
@@ -102,9 +115,9 @@ class ResultsStoreTest extends ResultSpecification {
     }
 
     def "returns test names in ascending order"() {
-        def result1 = new PerformanceResults(displayName: "test1", testTime: 30000, versionUnderTest: "1.7-rc-1")
-        def result2 = new PerformanceResults(displayName: "test2", testTime: 20000, versionUnderTest: "1.7-rc-2")
-        def result3 = new PerformanceResults(displayName: "test3", testTime: 10000, versionUnderTest: "1.7-rc-3")
+        def result1 = results(testId: "test1", testTime: 30000, versionUnderTest: "1.7-rc-1")
+        def result2 = results(testId: "test2", testTime: 20000, versionUnderTest: "1.7-rc-2")
+        def result3 = results(testId: "test3", testTime: 10000, versionUnderTest: "1.7-rc-3")
 
         given:
         def writeStore = new ResultsStore(dbFile)
@@ -126,9 +139,9 @@ class ResultsStoreTest extends ResultSpecification {
     }
 
     def "returns test executions in descending date order"() {
-        def result1 = new PerformanceResults(displayName: "some test", testTime: 10000, versionUnderTest: "1.7-rc-1")
-        def result2 = new PerformanceResults(displayName: "some test", testTime: 20000, versionUnderTest: "1.7-rc-2")
-        def result3 = new PerformanceResults(displayName: "some test", testTime: 30000, versionUnderTest: "1.7-rc-3")
+        def result1 = results(testId: "some test", testTime: 10000, versionUnderTest: "1.7-rc-1")
+        def result2 = results(testId: "some test", testTime: 20000, versionUnderTest: "1.7-rc-2")
+        def result3 = results(testId: "some test", testTime: 30000, versionUnderTest: "1.7-rc-3")
 
         given:
         def writeStore = new ResultsStore(dbFile)
@@ -148,5 +161,17 @@ class ResultsStoreTest extends ResultSpecification {
         cleanup:
         writeStore?.close()
         readStore?.close()
+    }
+
+    def "returns empty results for unknown id"() {
+        given:
+        def store = new ResultsStore(dbFile)
+
+        expect:
+        store.getTestResults("unknown").baselineVersions.empty
+        store.getTestResults("unknown").results.empty
+
+        cleanup:
+        store?.close()
     }
 }
