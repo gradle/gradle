@@ -67,7 +67,9 @@ public class PerformanceTestRunner {
                 testTime: System.currentTimeMillis())
 
         def mostRecentFinalRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
+        def currentBaseVersion = GradleVersion.current().versionBase
         def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()
+        allVersions.remove(currentBaseVersion)
         allVersions.each { it ->
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
