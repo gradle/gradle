@@ -16,8 +16,6 @@
 
 package org.gradle.internal.reflect;
 
-import org.gradle.internal.UncheckedException;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -115,7 +113,7 @@ public class JavaReflectionUtil {
     }
 
     public static Object invokeMethod(Object target, String name, Class<?>[] argTypes, Object... args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Method method = target.getClass().getDeclaredMethod(name, argTypes);
+        Method method = target.getClass().getMethod(name, argTypes);
         method.setAccessible(true);
         return method.invoke(target, args);
     }
