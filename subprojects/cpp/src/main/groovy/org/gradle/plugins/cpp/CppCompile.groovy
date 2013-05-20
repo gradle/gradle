@@ -26,8 +26,8 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.binaries.model.Library
 import org.gradle.plugins.binaries.model.LibraryCompileSpec
-import org.gradle.plugins.cpp.gpp.GppCompileSpec
-import org.gradle.plugins.cpp.gpp.GppLibraryCompileSpec
+import org.gradle.plugins.cpp.gpp.DefaultCppCompileSpec
+import org.gradle.plugins.cpp.gpp.DefaultCppLibraryCompileSpec
 
 import javax.inject.Inject
 
@@ -67,7 +67,7 @@ class CppCompile extends DefaultTask {
 
     @TaskAction
     void compile() {
-        def spec = outputType == OutputType.EXECUTABLE ? new GppCompileSpec() : new GppLibraryCompileSpec()
+        def spec = outputType == OutputType.EXECUTABLE ? new DefaultCppCompileSpec() : new DefaultCppLibraryCompileSpec()
 
         spec.includeRoots = includes
         spec.libs = libs

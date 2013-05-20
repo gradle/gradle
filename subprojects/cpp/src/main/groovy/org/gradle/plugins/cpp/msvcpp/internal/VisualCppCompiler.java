@@ -16,19 +16,19 @@
 
 package org.gradle.plugins.cpp.msvcpp.internal;
 
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
+import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
-import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.plugins.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-class VisualCppCompiler extends CommandLineCppCompiler<GppCompileSpec> {
+class VisualCppCompiler extends CommandLineCppCompiler<CppCompileSpec> {
 
     VisualCppCompiler(File executable, Factory<ExecAction> execActionFactory) {
-        super(executable, execActionFactory, new CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec>(
+        super(executable, execActionFactory, new CommandLineCppCompilerArgumentsToOptionFile<CppCompileSpec>(
                 ArgWriter.windowsStyleFactory(), new VisualCppCompileSpecToArguments()
         ));
     }

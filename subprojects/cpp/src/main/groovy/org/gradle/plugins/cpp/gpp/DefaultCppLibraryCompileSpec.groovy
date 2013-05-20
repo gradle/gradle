@@ -17,6 +17,6 @@
 package org.gradle.plugins.cpp.gpp
 import org.gradle.plugins.binaries.model.LibraryCompileSpec
 
-class GppLibraryCompileSpec extends GppCompileSpec implements LibraryCompileSpec {
+class DefaultCppLibraryCompileSpec extends DefaultCppCompileSpec implements LibraryCompileSpec {
     String installName
 }

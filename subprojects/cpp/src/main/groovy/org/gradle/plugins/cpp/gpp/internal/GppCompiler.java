@@ -16,16 +16,16 @@
 
 package org.gradle.plugins.cpp.gpp.internal;
 
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
+import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
-import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.plugins.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-public class GppCompiler extends CommandLineCppCompiler<GppCompileSpec> {
+public class GppCompiler extends CommandLineCppCompiler<CppCompileSpec> {
 
     public GppCompiler(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
         super(executable, execActionFactory, useCommandFile ? viaCommandFile() : withoutCommandFile());
@@ -35,8 +35,8 @@ public class GppCompiler extends CommandLineCppCompiler<GppCompileSpec> {
         return new GppCompileSpecToArguments();
     }
 
-    private static CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec> viaCommandFile() {
-        return new CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec>(
+    private static CommandLineCppCompilerArgumentsToOptionFile<CppCompileSpec> viaCommandFile() {
+        return new CommandLineCppCompilerArgumentsToOptionFile<CppCompileSpec>(
             ArgWriter.unixStyleFactory(), new GppCompileSpecToArguments()
         );
     }

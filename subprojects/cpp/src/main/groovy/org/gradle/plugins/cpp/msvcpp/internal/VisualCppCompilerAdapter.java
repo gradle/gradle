@@ -20,10 +20,10 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerAdapter;
-import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.plugins.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
-public class VisualCppCompilerAdapter extends CommandLineCppCompilerAdapter<GppCompileSpec> {
+public class VisualCppCompilerAdapter extends CommandLineCppCompilerAdapter<CppCompileSpec> {
 
     static final String EXECUTABLE = "cl.exe";
 
@@ -44,7 +44,7 @@ public class VisualCppCompilerAdapter extends CommandLineCppCompilerAdapter<GppC
         return getOperatingSystem().isWindows() && super.isAvailable();
     }
 
-    public Compiler<GppCompileSpec> createCompiler() {
+    public Compiler<CppCompileSpec> createCompiler() {
         return new VisualCppCompiler(getExecutable(), getExecActionFactory());
     }
 }

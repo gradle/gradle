@@ -26,7 +26,7 @@ import java.util.ArrayList;
  * Stuff extracted out of GppCompileSpec that performs as a regular compile spec value object.
  * Values in here are set by the CompileTask: eventually everything should be in here.
  */
-public class GppCompileSpec implements CppCompileSpec {
+public class DefaultCppCompileSpec implements CppCompileSpec {
 
     private FileCollection libs;
     private FileCollection includeRoots;

@@ -20,8 +20,8 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerAdapter;
-import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 import org.gradle.plugins.cpp.gpp.internal.version.GppVersionDeterminer;
+import org.gradle.plugins.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ import java.io.File;
 /**
  * Compiler adapter for g++
  */
-public class GppCompilerAdapter extends CommandLineCppCompilerAdapter<GppCompileSpec> {
+public class GppCompilerAdapter extends CommandLineCppCompilerAdapter<CppCompileSpec> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GppCompilerAdapter.class);
 
@@ -67,7 +67,7 @@ public class GppCompilerAdapter extends CommandLineCppCompilerAdapter<GppCompile
         return version != null;
     }
 
-    public Compiler<GppCompileSpec> createCompiler() {
+    public Compiler<CppCompileSpec> createCompiler() {
         String version = getVersion();
         if (version == null) {
             throw new IllegalStateException("Cannot create gpp compiler when it is not available");

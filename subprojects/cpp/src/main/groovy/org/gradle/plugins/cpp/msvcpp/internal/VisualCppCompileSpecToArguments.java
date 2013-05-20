@@ -16,16 +16,16 @@
 
 package org.gradle.plugins.cpp.msvcpp.internal;
 
-import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
-import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.plugins.binaries.model.LibraryCompileSpec;
+import org.gradle.plugins.cpp.internal.CppCompileSpec;
 
 import java.io.File;
 
-public class VisualCppCompileSpecToArguments implements CompileSpecToArguments<GppCompileSpec> {
+public class VisualCppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
 
-    public void collectArguments(GppCompileSpec spec, ArgCollector collector) {
+    public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
         collector.args(spec.getArgs());
         collector.args("/nologo");
         collector.args("/EHsc");

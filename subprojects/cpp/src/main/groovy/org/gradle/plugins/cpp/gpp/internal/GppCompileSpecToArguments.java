@@ -16,17 +16,17 @@
 
 package org.gradle.plugins.cpp.gpp.internal;
 
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
-import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.plugins.binaries.model.LibraryCompileSpec;
+import org.gradle.plugins.cpp.internal.CppCompileSpec;
 
 import java.io.File;
 
-public class GppCompileSpecToArguments implements CompileSpecToArguments<GppCompileSpec> {
+public class GppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
 
-    public void collectArguments(GppCompileSpec spec, ArgCollector collector) {
+    public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
         collector.args(spec.getArgs());
         collector.args("-o", spec.getOutputFile().getAbsolutePath());
         if (spec instanceof LibraryCompileSpec) {
