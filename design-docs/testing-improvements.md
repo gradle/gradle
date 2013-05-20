@@ -279,7 +279,7 @@ As tests may spawn their own threads, an inheritable thread local strategy will 
 
 ### User visible changes
 
-None.
+Test output is associated with the correct test when test cases are run concurrently in the same VM.
 
 ### Test coverage
 
@@ -288,15 +288,6 @@ None.
   - Output during preflight/postflight methods (e.g. @Before, @BeforeClass etc.)
 - Test cases spawn threads that produce output
 - When generating JUnit XML report with output per test case, output is correctly associated to test cases
-
-## Story: HTML test report shows runtime grouping of tests into suites
-
-- Add the tree of test execution to the test report
-
-## Story: Aggregate HTML test report can be generated
-
-- Change test task to persist test results in internal format.
-- Add test report task.
 
 ## Story: HTML test report shows output per test
 
@@ -308,6 +299,15 @@ None.
 
 -depending how the story is implemented, we might drop support for separate err and std output.
 It's a breaking change in a way but I don't find the separate err/std output useful.
+
+## Story: HTML test report shows runtime grouping of tests into suites
+
+- Add the tree of test execution to the test report
+
+## Story: Aggregate HTML test report can be generated
+
+- Change test task to persist test results in internal format.
+- Add test report task.
 
 ## Story: HTML report contains the output from TestNG Reporter
 
