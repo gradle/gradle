@@ -115,7 +115,27 @@ public class JavaReflectionUtil {
     }
 
     public static Object invokeMethod(Object target, String name, Class<?>[] argTypes, Object... args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        return target.getClass().getMethod(name, argTypes).invoke(target, args);
+        Method method = target.getClass().getDeclaredMethod(name, argTypes);
+        method.setAccessible(true);
+        return method.invoke(target, args);
+    }
+
+    public static Object invokeDeclaredMethodWrapException(Object target, Class<?> declaringClass, String name, Class<?>[] argTypes, Object... args) {
+        try {
+            return invokeDeclaredMethod(target, declaringClass, name, argTypes, args);
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public static Object invokeDeclaredMethod(Object target, Class<?> declaringClass, String name, Class<?>[] argTypes, Object... args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        Method method = declaringClass.getDeclaredMethod(name, argTypes);
+        method.setAccessible(true);
+        return method.invoke(target, args);
     }
 
 }

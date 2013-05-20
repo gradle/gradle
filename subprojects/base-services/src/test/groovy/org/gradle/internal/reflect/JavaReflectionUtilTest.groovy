@@ -21,11 +21,10 @@ import spock.lang.Specification
 
 import java.lang.reflect.InvocationTargetException
 
-import static org.gradle.internal.reflect.JavaReflectionUtil.invokeMethod
-import static org.gradle.internal.reflect.JavaReflectionUtil.invokeMethodWrapException
+import static org.gradle.internal.reflect.JavaReflectionUtil.*
 
 class JavaReflectionUtilTest extends Specification {
-    def myProperties = new TestSubject()
+    JavaTestSubject myProperties = new JavaTestSubject()
 
     def "read property"() {
         expect:
@@ -95,19 +94,17 @@ class JavaReflectionUtilTest extends Specification {
         e2.cause.cause instanceof IllegalStateException
     }
 
-    static class TestSubject {
-        private String myProp = "myValue"
-        private boolean myBooleanProp = true
+    def "call declared method that may not be public"() {
+        when:
+        invokeMethod(new JavaTestSubjectSubclass(), "protectedMethod")
 
-        String getMyProperty() {  myProp }
-        void setMyProperty(String value) { myProp = value }
+        then:
+        thrown NoSuchMethodException
 
-        boolean isMyBooleanProperty() { myBooleanProp }
-        void setMyBooleanProperty(boolean value) { myBooleanProp = value }
-
-        void throwsException() {
-            throw new IllegalStateException()
-        }
+        then:
+        expect:
+        invokeDeclaredMethod(new JavaTestSubjectSubclass(), JavaTestSubject, "protectedMethod", [] as Class[]) == "parent"
+        invokeDeclaredMethod(new JavaTestSubjectSubclass(), JavaTestSubject, "overridden", [] as Class[]) == "subclass"
     }
 
 }
