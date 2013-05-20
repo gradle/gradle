@@ -16,12 +16,13 @@
 
 package org.gradle.internal.reflect;
 
+import org.gradle.internal.UncheckedException;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Simple implementations of some reflection capabilities. In contrast to org.gradle.util.ReflectionUtil,
- * this class doesn't make use of Groovy.
+ * Simple implementations of some reflection capabilities. In contrast to org.gradle.util.ReflectionUtil, this class doesn't make use of Groovy.
  */
 public class JavaReflectionUtil {
     public static Object readProperty(Object target, String property) {
@@ -45,9 +46,13 @@ public class JavaReflectionUtil {
     public static void writeProperty(Object target, String property, Object value) {
         try {
             String setterName = toMethodName("set", property);
-            for (Method method: target.getClass().getMethods()) {
-                if (!method.getName().equals(setterName)) { continue; }
-                if (method.getParameterTypes().length != 1) { continue; }
+            for (Method method : target.getClass().getMethods()) {
+                if (!method.getName().equals(setterName)) {
+                    continue;
+                }
+                if (method.getParameterTypes().length != 1) {
+                    continue;
+                }
                 method.invoke(target, value);
                 return;
             }
@@ -103,6 +108,7 @@ public class JavaReflectionUtil {
     public static Object invokeMethod(Object target, String name) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         return invokeMethod(target, name, new Object[0]);
     }
+
     public static Object invokeMethod(Object target, String name, Object... args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         Class<?>[] argTypes = new Class[args.length];
         for (int i = 0; i < args.length; i++) {
