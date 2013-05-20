@@ -17,6 +17,8 @@
 package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.ReportGenerator
 import org.gradle.performance.results.ResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,7 +35,9 @@ class AbstractPerformanceTest extends Specification {
             current: new UnderDevelopmentGradleDistribution(),
             runs: 5,
             warmUpRuns: 1,
-            targetVersions: ['1.0', '1.4', 'last']
+            targetVersions: ['1.0', '1.4', '1.7', 'last'],
+            maxExecutionTimeRegression: Duration.millis(500),
+            maxMemoryRegression: DataAmount.mbytes(3)
     )
 
     def setup() {

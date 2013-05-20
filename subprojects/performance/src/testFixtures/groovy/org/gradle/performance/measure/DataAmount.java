@@ -34,4 +34,8 @@ public class DataAmount {
     public static Amount<DataAmount> kbytes(BigDecimal value) {
         return Amount.valueOf(value, KILO_BYTES);
     }
+
+    public static Amount<DataAmount> mbytes(BigDecimal value) {
+        return Amount.valueOf(value, MEGA_BYTES);
+    }
 }

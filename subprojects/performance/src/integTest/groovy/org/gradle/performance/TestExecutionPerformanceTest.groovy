@@ -19,7 +19,6 @@ package org.gradle.performance
 import org.gradle.performance.fixture.AbstractPerformanceTest
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.millis
 
 /**
@@ -34,7 +33,6 @@ class TestExecutionPerformanceTest extends AbstractPerformanceTest {
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.maxMemoryRegression = kbytes(3000)
 
         when:
         def result = runner.run()

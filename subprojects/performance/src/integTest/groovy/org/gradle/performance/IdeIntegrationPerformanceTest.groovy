@@ -19,7 +19,6 @@ package org.gradle.performance
 import org.gradle.performance.fixture.AbstractPerformanceTest
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.millis
 
 /**
@@ -33,7 +32,6 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.maxMemoryRegression = kbytes(3000)
 
         when:
         def result = runner.run()
@@ -55,7 +53,6 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['idea']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.maxMemoryRegression = kbytes(3000)
 
         when:
         def result = runner.run()
