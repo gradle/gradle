@@ -22,10 +22,10 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.ReflectionUtil;
 import org.testng.ITestListener;
 import org.testng.TestNG;
 
@@ -79,7 +79,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         try {
             final Method setAnnotations = TestNG.class.getMethod("setAnnotations");
             setAnnotations.invoke(testNg, options.getAnnotations());
-            ReflectionUtil.invoke(testNg, "setAnnotations", options.getAnnotations());
+            JavaReflectionUtil.invokeMethodWrapException(testNg, "setAnnotations", options.getAnnotations());
         } catch (NoSuchMethodException e) {
             /* do nothing; method has been removed in TestNG 6.3 */
         } catch (Exception e) {

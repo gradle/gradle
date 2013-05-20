@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect;
+package org.gradle.internal.reflect
 
-import spock.lang.Specification
 import org.gradle.internal.UncheckedException
+import spock.lang.Specification
+
+import java.lang.reflect.InvocationTargetException
+
+import static org.gradle.internal.reflect.JavaReflectionUtil.invokeMethod
+import static org.gradle.internal.reflect.JavaReflectionUtil.invokeMethodWrapException
 
 class JavaReflectionUtilTest extends Specification {
-    def myProperties = new MyProperties()
+    def myProperties = new TestSubject()
 
     def "read property"() {
         expect:
@@ -66,7 +71,31 @@ class JavaReflectionUtilTest extends Specification {
         e.cause instanceof NoSuchMethodException
     }
 
-    static class MyProperties {
+    def "call methods successfully reflectively"() {
+        expect:
+        invokeMethod(myProperties, "getMyProperty") == myProperties.myProp
+        invokeMethod(myProperties, "setMyProperty", "foo") == null
+        invokeMethod(myProperties, "getMyProperty") == "foo"
+    }
+
+    def "call failing methods reflectively"() {
+        when:
+        invokeMethod(myProperties, "throwsException")
+
+        then:
+        def e = thrown InvocationTargetException
+        e.cause instanceof IllegalStateException
+
+        when:
+        invokeMethodWrapException(myProperties, "throwsException")
+
+        then:
+        def e2 = thrown RuntimeException
+        e2.cause instanceof InvocationTargetException
+        e2.cause.cause instanceof IllegalStateException
+    }
+
+    static class TestSubject {
         private String myProp = "myValue"
         private boolean myBooleanProp = true
 
@@ -75,6 +104,11 @@ class JavaReflectionUtilTest extends Specification {
 
         boolean isMyBooleanProperty() { myBooleanProp }
         void setMyBooleanProperty(boolean value) { myBooleanProp = value }
+
+        void throwsException() {
+            throw new IllegalStateException()
+        }
     }
+
 }
 
