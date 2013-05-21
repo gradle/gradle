@@ -2,7 +2,20 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Faster Gradle builds due to in-memory caching of dependency metadata.
+### Faster Gradle builds
+
+Gradle 1.7 is the fastest version of Gradle yet. Here are the highlights:
+
+- Dependency resolution is now faster. This affects many aspects of a build. For example, incremental build up-to-date checks usually require dependencies
+  to be resolved. As does importing your build into an IDE. Or using the dependency reports.
+- Test execution is now faster. In some cases, up to 50% faster for those tests that generate a lot of logging output.
+- Build script compilation is much faster. This affects, for example, first time users of a build, build authors, and those upgrading a build to a new Gradle version.
+  In Gradle 1.6 there was a serious regression in build script compilation time. This has been fixed in Gradle 1.7, with an added bonus. Script compilation is now
+  75% faster than Gradle 1.6 and 50% faster than Gradle 1.0.
+
+As always, the performance improvements that you actually see for your build depends on many factors.
+
+#### Faster dependency resolution due to in-memory caching of dependency metadata.
 
 With this change, the dependency resolution is much faster. Typically, the larger the project is the more configurations and dependencies are being resolved during the build.
 By caching the dependency metadata in memory we avoid hitting the repository and parsing the descriptor when the same dependency is requested in a different resolution.
@@ -26,6 +39,14 @@ You can also turn off the in-memory dependency metadata cache via a system prope
     systemProp.org.gradle.resolution.memorycache=false
 
 To avoid increased heap consumption, the in-memory dependency metadata cache may clear the cached data if the system is running out of heap space.
+
+#### Faster build script compilation
+
+TODO
+
+#### ClassLoader caching
+
+TODO
 
 ### TestNG parameters included in test reports (i)
 
@@ -143,8 +164,7 @@ The (incubating) class `org.gradle.api.reporting.ConfigureableReport` was rename
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Dan Stine](https://github.com/dstine) - Added maxPriorityViolations settings to the CodeNarc plugin (GRADLE-1742).
-
-* [Olaf Klischat](https://github.com/multi-io) - Added defaultJvmOpts property Application plugin (GRADLE-1456). 
+* [Olaf Klischat](https://github.com/multi-io) - Added defaultJvmOpts property Application plugin (GRADLE-1456).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
