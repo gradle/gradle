@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.buildsetup.plugins
 
 import org.gradle.buildsetup.plugins.fixtures.WrapperTestFixture
@@ -175,7 +177,7 @@ include 'child'
         fails('setupBuild', '--type', 'some-unknown-library')
 
         then:
-        errorOutput.contains("Declared setup-type 'some-unknown-library' is not supported.")
+        failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")
     }
 
     private TestFile pom() {

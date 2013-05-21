@@ -52,7 +52,7 @@ class SetupBuildSpec extends Specification {
         setupBuild.setupProjectLayout()
         then:
         def e = thrown(GradleException)
-        e.message == "Declared setup-type 'aType' is not supported. Supported types: 'supported-type', 'another-supported-type'."
+        e.message == "The requested build setup type 'aType' is not supported. Supported types: 'supported-type', 'another-supported-type'."
 
     }
 
