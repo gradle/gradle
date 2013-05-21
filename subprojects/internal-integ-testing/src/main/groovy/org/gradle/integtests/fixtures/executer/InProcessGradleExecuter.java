@@ -46,6 +46,7 @@ import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.DeprecationLogger;
@@ -148,6 +149,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         StartParameter parameter = new StartParameter();
         parameter.setCurrentDir(getWorkingDir());
+        parameter.setShowStacktrace(ShowStacktrace.ALWAYS);
 
         CommandLineParser parser = new CommandLineParser();
         DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
