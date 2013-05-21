@@ -18,7 +18,7 @@ class FileSnapshotSerializer extends DataStreamBackedSerializer<FileCollectionSn
             DefaultFileSnapshotterSerializer serializer = new DefaultFileSnapshotterSerializer();
             return serializer.read(dataInput);
         } else if (kind == 2) {
-            OutputFilesSnapshotter.Serializer serializer = new OutputFilesSnapshotter.Serializer();
+            OutputFilesSnapshotSerializer serializer = new OutputFilesSnapshotSerializer();
             return serializer.read(dataInput);
         } else {
             throw new RuntimeException("Unable to rad from file snapshot cache. Unexpected value read.");
@@ -35,7 +35,7 @@ class FileSnapshotSerializer extends DataStreamBackedSerializer<FileCollectionSn
         } else if (value instanceof OutputFilesSnapshotter.OutputFilesSnapshot) {
             dataOutput.writeInt(2);
             OutputFilesSnapshotter.OutputFilesSnapshot cached = (OutputFilesSnapshotter.OutputFilesSnapshot) value;
-            OutputFilesSnapshotter.Serializer serializer = new OutputFilesSnapshotter.Serializer();
+            OutputFilesSnapshotSerializer serializer = new OutputFilesSnapshotSerializer();
             serializer.write(dataOutput, cached);
         } else {
             throw new RuntimeException("Unable to write to file snapshot cache. Unexpected type to write: " + value);

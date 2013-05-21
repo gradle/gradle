@@ -19,13 +19,12 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
 import org.gradle.messaging.serialize.LongSerializer;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 import org.gradle.util.NoOpChangeListener;
 
-import java.io.*;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -153,44 +152,6 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
                     return false;
                 }
             };
-        }
-    }
-
-    static class Serializer extends DataStreamBackedSerializer<FileCollectionSnapshot> {
-        @Override
-        public FileCollectionSnapshot read(DataInput dataInput) throws Exception {
-            Map<String, Long> rootFileIds = new HashMap<String, Long>();
-            int rootFileIdsCount = dataInput.readInt();
-            for (int i = 0; i < rootFileIdsCount; i++) {
-                String key = dataInput.readUTF();
-                boolean notNull = dataInput.readBoolean();
-                Long value = notNull? dataInput.readLong() : null;
-                rootFileIds.put(key, value);
-            }
-            FileSnapshotSerializer serializer = new FileSnapshotSerializer();
-            FileCollectionSnapshot snapshot = serializer.read(dataInput);
-
-            return new OutputFilesSnapshot(rootFileIds, snapshot);
-        }
-
-        @Override
-        public void write(DataOutput dataOutput, FileCollectionSnapshot currentValue) throws IOException {
-            OutputFilesSnapshot value = (OutputFilesSnapshot) currentValue;
-            int rootFileIds = value.rootFileIds.size();
-            dataOutput.writeInt(rootFileIds);
-            for (String key : value.rootFileIds.keySet()) {
-                Long id = value.rootFileIds.get(key);
-                dataOutput.writeUTF(key);
-                if (id == null) {
-                    dataOutput.writeBoolean(false);
-                } else {
-                    dataOutput.writeBoolean(true);
-                    dataOutput.writeLong(id);
-                }
-            }
-
-            FileSnapshotSerializer serializer = new FileSnapshotSerializer();
-            serializer.write(dataOutput, value.filesSnapshot);
         }
     }
 
