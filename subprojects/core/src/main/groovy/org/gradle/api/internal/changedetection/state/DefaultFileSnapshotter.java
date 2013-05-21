@@ -18,11 +18,10 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.NoOpChangeListener;
 
-import java.io.*;
+import java.io.File;
 import java.math.BigInteger;
 import java.util.*;
 

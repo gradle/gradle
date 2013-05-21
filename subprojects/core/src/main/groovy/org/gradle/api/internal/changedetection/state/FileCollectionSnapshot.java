@@ -19,8 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.util.ChangeListener;
 
-import java.io.Serializable;
-
 /**
  * An immutable snapshot of the contents of a collection of files.
  */
