@@ -1,6 +1,4 @@
-package org.gradle.api.internal.changedetection.state;
-
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
+package org.gradle.messaging.serialize;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -9,7 +7,8 @@ import java.io.IOException;
 /**
 * By Szczepan Faber on 5/21/13
 */
-class LongSerializer extends DataStreamBackedSerializer<Long> {
+public class LongSerializer extends DataStreamBackedSerializer<Long> {
+
     @Override
     public Long read(DataInput dataInput) throws Exception {
         return dataInput.readLong();

@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.messaging.serialize.DataStreamBackedSerializer;
+import org.gradle.messaging.serialize.LongSerializer;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 import org.gradle.util.NoOpChangeListener;
