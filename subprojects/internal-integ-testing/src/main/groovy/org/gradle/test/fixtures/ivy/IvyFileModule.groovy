@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.hash.HashUtil
 
 class IvyFileModule extends AbstractIvyModule {
     final String ivyPattern
@@ -109,10 +108,6 @@ class IvyFileModule extends AbstractIvyModule {
         return moduleDir.file(path)
     }
 
-    TestFile sha1File(File file) {
-        return moduleDir.file("${file.name}.sha1")
-    }
-
     TestFile artifactFile(String name) {
         return file(artifacts.find { it.name == name })
     }
@@ -134,7 +129,7 @@ class IvyFileModule extends AbstractIvyModule {
         artifacts.each { artifact ->
             def artifactFile = file(artifact)
             publish(artifactFile) {
-                artifactFile.text = "${artifactFile.name} : $publishCount"
+                artifactFile.text = "${artifactFile.name} : $artifactContent"
             }
         }
         if (noMetaData) {
@@ -146,7 +141,7 @@ class IvyFileModule extends AbstractIvyModule {
                 void execute(Writer ivyFileWriter) {
                     ivyFileWriter << """<?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven">
-    <!-- ${publishCount} -->
+    <!-- ${getArtifactContent()} -->
 	<info organisation="${organisation}"
 		module="${module}"
 		revision="${revision}"
@@ -194,13 +189,14 @@ class IvyFileModule extends AbstractIvyModule {
         return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.type}")
     }
 
-    private publish(File file, Closure cl) {
-        def lastModifiedTime = file.exists() ? file.lastModified() : null
+    private void publish(File file, Closure cl) {
         cl.call(file)
-        if (lastModifiedTime != null) {
-            file.setLastModified(lastModifiedTime + 2000)
-        }
-        sha1File(file).text = getHash(file, "SHA1")
+        sha1File(file)
+    }
+
+    private String getArtifactContent() {
+        // Some content to include in each artifact, so that its size and content varies on each publish
+        return (0..publishCount).join("-")
     }
 
     /**
@@ -220,11 +216,7 @@ class IvyFileModule extends AbstractIvyModule {
     void assertChecksumPublishedFor(TestFile testFile) {
         def sha1File = sha1File(testFile)
         sha1File.assertIsFile()
-        new BigInteger(sha1File.text, 16) == new BigInteger(getHash(testFile, "SHA1"), 16)
-    }
-
-    String getHash(File file, String algorithm) {
-        return HashUtil.createHash(file, algorithm).asHexString()
+        assert new BigInteger(sha1File.text, 16) == getHash(testFile, "SHA1")
     }
 
     void assertNotPublished() {

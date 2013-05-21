@@ -519,10 +519,9 @@ project('second') {
         module.pom.expectHead()
         module.pom.sha1.expectGet()
         module.pom.expectGet()
-        def artifact = module.artifact
-        artifact.expectHead()
-        artifact.sha1.expectGet()
-        artifact.expectGet()
+        module.artifact.expectHead()
+        module.artifact.sha1.expectGet()
+        module.artifact.expectGet()
     }
 
     private expectChangedArtifactServed(MavenHttpModule module) {

@@ -16,7 +16,9 @@
 
 package org.gradle.test.fixtures.ivy
 
-abstract class AbstractIvyModule implements IvyModule {
+import org.gradle.test.fixtures.AbstractModule
+
+abstract class AbstractIvyModule extends AbstractModule implements IvyModule {
 
     IvyDescriptor getIvy() {
         return new IvyDescriptor(ivyFile)
