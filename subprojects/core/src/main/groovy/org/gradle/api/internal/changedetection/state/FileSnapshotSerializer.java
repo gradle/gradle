@@ -15,7 +15,7 @@ class FileSnapshotSerializer extends DataStreamBackedSerializer<FileCollectionSn
     public FileCollectionSnapshot read(DataInput dataInput) throws Exception {
         int kind = dataInput.readInt();
         if (kind == 1) {
-            DefaultFileSnapshotter.Serializer serializer = new DefaultFileSnapshotter.Serializer();
+            DefaultFileSnapshotterSerializer serializer = new DefaultFileSnapshotterSerializer();
             return serializer.read(dataInput);
         } else if (kind == 2) {
             OutputFilesSnapshotter.Serializer serializer = new OutputFilesSnapshotter.Serializer();
@@ -30,7 +30,7 @@ class FileSnapshotSerializer extends DataStreamBackedSerializer<FileCollectionSn
         if (value instanceof DefaultFileSnapshotter.FileCollectionSnapshotImpl) {
             dataOutput.writeInt(1);
             DefaultFileSnapshotter.FileCollectionSnapshotImpl cached = (DefaultFileSnapshotter.FileCollectionSnapshotImpl) value;
-            DefaultFileSnapshotter.Serializer serializer = new DefaultFileSnapshotter.Serializer();
+            DefaultFileSnapshotterSerializer serializer = new DefaultFileSnapshotterSerializer();
             serializer.write(dataOutput, cached);
         } else if (value instanceof OutputFilesSnapshotter.OutputFilesSnapshot) {
             dataOutput.writeInt(2);

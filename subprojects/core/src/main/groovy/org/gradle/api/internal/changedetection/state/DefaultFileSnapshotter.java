@@ -51,12 +51,12 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
         return new FileCollectionSnapshotImpl(snapshots);
     }
 
-    private interface FileSnapshot {
+    static interface FileSnapshot {
         boolean isUpToDate(FileSnapshot snapshot);
     }
 
-    private static class FileHashSnapshot implements FileSnapshot {
-        private final byte[] hash;
+    static class FileHashSnapshot implements FileSnapshot {
+        final byte[] hash;
 
         public FileHashSnapshot(byte[] hash) {
             this.hash = hash;
@@ -77,62 +77,15 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
         }
     }
 
-    private static class DirSnapshot implements FileSnapshot {
+    static class DirSnapshot implements FileSnapshot {
         public boolean isUpToDate(FileSnapshot snapshot) {
             return snapshot instanceof DirSnapshot;
         }
     }
 
-    private static class MissingFileSnapshot implements FileSnapshot {
+    static class MissingFileSnapshot implements FileSnapshot {
         public boolean isUpToDate(FileSnapshot snapshot) {
             return snapshot instanceof MissingFileSnapshot;
-        }
-    }
-
-    static class Serializer extends DataStreamBackedSerializer<FileCollectionSnapshot> {
-
-        @Override
-        public FileCollectionSnapshot read(DataInput dataInput) throws Exception {
-            Map<String, DefaultFileSnapshotter.FileSnapshot> snapshots = new HashMap<String, DefaultFileSnapshotter.FileSnapshot>();
-            DefaultFileSnapshotter.FileCollectionSnapshotImpl snapshot = new DefaultFileSnapshotter.FileCollectionSnapshotImpl(snapshots);
-            int snapshotsCount = dataInput.readInt();
-            for (int i = 0; i < snapshotsCount; i++) {
-                String key = dataInput.readUTF();
-                int fileSnapshotKind = dataInput.readInt();
-                if (fileSnapshotKind == 1) {
-                    snapshots.put(key, new DefaultFileSnapshotter.DirSnapshot());
-                } else if (fileSnapshotKind == 2) {
-                    snapshots.put(key, new DefaultFileSnapshotter.MissingFileSnapshot());
-                } else if (fileSnapshotKind == 3) {
-                    int hashSize = dataInput.readInt();
-                    byte[] hash = new byte[hashSize];
-                    dataInput.readFully(hash);
-                    snapshots.put(key, new DefaultFileSnapshotter.FileHashSnapshot(hash));
-                } else {
-                    assert false;
-                }
-            }
-            return snapshot;
-        }
-
-        @Override
-        public void write(DataOutput dataOutput, FileCollectionSnapshot value) throws IOException {
-            DefaultFileSnapshotter.FileCollectionSnapshotImpl cached = (DefaultFileSnapshotter.FileCollectionSnapshotImpl) value;
-            dataOutput.writeInt(cached.snapshots.size());
-            for (String key : cached.snapshots.keySet()) {
-                dataOutput.writeUTF(key);
-                DefaultFileSnapshotter.FileSnapshot fileSnapshot = cached.snapshots.get(key);
-                if (fileSnapshot instanceof DefaultFileSnapshotter.DirSnapshot) {
-                    dataOutput.writeInt(1);
-                } else if (fileSnapshot instanceof DefaultFileSnapshotter.MissingFileSnapshot) {
-                    dataOutput.writeInt(2);
-                } else if (fileSnapshot instanceof DefaultFileSnapshotter.FileHashSnapshot) {
-                    dataOutput.writeInt(3);
-                    byte[] hash = ((DefaultFileSnapshotter.FileHashSnapshot) fileSnapshot).hash;
-                    dataOutput.writeInt(hash.length);
-                    dataOutput.write(hash);
-                }
-            }
         }
     }
 
