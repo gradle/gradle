@@ -24,7 +24,7 @@ import java.io.Serializable;
 /**
  * An immutable snapshot of the contents of a collection of files.
  */
-public interface FileCollectionSnapshot extends Serializable {
+public interface FileCollectionSnapshot {
 
     ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot);
 

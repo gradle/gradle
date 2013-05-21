@@ -64,7 +64,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository)
         FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher())
         FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess)
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess))
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, new RandomLongIdGenerator()))
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, new DirectInstantiator(), outputFilesSnapshotter, inputFilesSnapshotter)
     }
 

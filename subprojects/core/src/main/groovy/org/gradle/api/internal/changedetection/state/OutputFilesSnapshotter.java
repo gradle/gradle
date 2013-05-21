@@ -19,11 +19,12 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.messaging.serialize.DataStreamBackedSerializer;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 import org.gradle.util.NoOpChangeListener;
 
-import java.io.File;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -46,14 +47,14 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
                                   TaskArtifactStateCacheAccess cacheAccess) {
         this.snapshotter = snapshotter;
         this.idGenerator = idGenerator;
-        dirIdentiferCache = cacheAccess.createCache("outputFileStates", String.class, Long.class);
+        dirIdentiferCache = cacheAccess.createCache("outputFileStates", String.class, Long.class, new LongSerializer());
     }
 
     public FileCollectionSnapshot emptySnapshot() {
         return new OutputFilesSnapshot(new HashMap<String, Long>(), snapshotter.emptySnapshot());
     }
 
-    public FileCollectionSnapshot snapshot(FileCollection files) {
+    public OutputFilesSnapshot snapshot(FileCollection files) {
         Map<String, Long> snapshotDirIds = new HashMap<String, Long>();
         for (File file : files) {
             Long dirId;
@@ -72,9 +73,9 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
         return new OutputFilesSnapshot(snapshotDirIds, snapshotter.snapshot(files));
     }
 
-    private static class OutputFilesSnapshot implements FileCollectionSnapshot {
-        private final Map<String, Long> rootFileIds;
-        private final FileCollectionSnapshot filesSnapshot;
+    static class OutputFilesSnapshot implements FileCollectionSnapshot {
+        final Map<String, Long> rootFileIds;
+        final FileCollectionSnapshot filesSnapshot;
 
         public OutputFilesSnapshot(Map<String, Long> rootFileIds, FileCollectionSnapshot filesSnapshot) {
             this.rootFileIds = rootFileIds;
@@ -154,6 +155,44 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
         }
     }
 
+    static class Serializer extends DataStreamBackedSerializer<FileCollectionSnapshot> {
+        @Override
+        public FileCollectionSnapshot read(DataInput dataInput) throws Exception {
+            Map<String, Long> rootFileIds = new HashMap<String, Long>();
+            int rootFileIdsCount = dataInput.readInt();
+            for (int i = 0; i < rootFileIdsCount; i++) {
+                String key = dataInput.readUTF();
+                boolean notNull = dataInput.readBoolean();
+                Long value = notNull? dataInput.readLong() : null;
+                rootFileIds.put(key, value);
+            }
+            FileSnapshotSerializer serializer = new FileSnapshotSerializer();
+            FileCollectionSnapshot snapshot = serializer.read(dataInput);
+
+            return new OutputFilesSnapshot(rootFileIds, snapshot);
+        }
+
+        @Override
+        public void write(DataOutput dataOutput, FileCollectionSnapshot currentValue) throws IOException {
+            OutputFilesSnapshot value = (OutputFilesSnapshot) currentValue;
+            int rootFileIds = value.rootFileIds.size();
+            dataOutput.writeInt(rootFileIds);
+            for (String key : value.rootFileIds.keySet()) {
+                Long id = value.rootFileIds.get(key);
+                dataOutput.writeUTF(key);
+                if (id == null) {
+                    dataOutput.writeBoolean(false);
+                } else {
+                    dataOutput.writeBoolean(true);
+                    dataOutput.writeLong(id);
+                }
+            }
+
+            FileSnapshotSerializer serializer = new FileSnapshotSerializer();
+            serializer.write(dataOutput, value.filesSnapshot);
+        }
+    }
+
     /**
      * A flyweight wrapper that is used to ignore any added files called.
      */
@@ -205,4 +244,5 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
             return applyTo(snapshot, new NoOpChangeListener<FileCollectionSnapshot.Merge>());
         }
     }
+
 }

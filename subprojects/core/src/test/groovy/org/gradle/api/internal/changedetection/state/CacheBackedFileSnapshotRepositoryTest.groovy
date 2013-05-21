@@ -16,16 +16,18 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.internal.id.IdGenerator
 import spock.lang.Specification
 
 class CacheBackedFileSnapshotRepositoryTest extends Specification {
     final TaskArtifactStateCacheAccess cacheAccess = Mock()
     final PersistentIndexedCache<Object, Object> indexedCache = Mock()
+    final IdGenerator<Long> idGenerator = Mock()
     FileSnapshotRepository repository
 
     def setup() {
-        1 * cacheAccess.createCache("fileSnapshots", Object, Object) >> indexedCache
-        repository = new CacheBackedFileSnapshotRepository(cacheAccess)
+        1 * cacheAccess.createCache("fileSnapshots", _, _, _) >> indexedCache
+        repository = new CacheBackedFileSnapshotRepository(cacheAccess, idGenerator)
     }
 
     def "assigns an id when a snapshot is added"() {
@@ -35,10 +37,9 @@ class CacheBackedFileSnapshotRepositoryTest extends Specification {
         def id = repository.add(snapshot)
 
         then:
-        id == 4
-        1 * indexedCache.get("nextId") >> (4 as Long)
-        1 * indexedCache.put("nextId", 5)
-        1 * indexedCache.put(4, snapshot)
+        id == 15
+        1 * idGenerator.generateId() >> 15L
+        1 * indexedCache.put(15, snapshot)
         0 * _._
     }
 

@@ -20,6 +20,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.messaging.serialize.DefaultSerializer
 import spock.lang.Specification
 
 class DefaultTaskArtifactStateCacheAccessTest extends Specification {
@@ -32,8 +33,9 @@ class DefaultTaskArtifactStateCacheAccessTest extends Specification {
         PersistentCache backingCache = Mock()
         PersistentIndexedCache<String, Integer> backingIndexedCache = Mock()
 
+        def serializer = new DefaultSerializer<Integer>()
         when:
-        def indexedCache = cacheAccess.createCache("some-cache", String, Integer)
+        def indexedCache = cacheAccess.createCache("some-cache", String, Integer, serializer)
 
         then:
         0 * _._
@@ -46,7 +48,7 @@ class DefaultTaskArtifactStateCacheAccessTest extends Specification {
         1 * cacheBuilder.open() >> backingCache
         _ * cacheBuilder._ >> cacheBuilder
         _ * backingCache.baseDir >> new File("baseDir")
-        1 * backingCache.createCache(new File("baseDir/some-cache.bin"), String, Integer) >> backingIndexedCache
+        1 * backingCache.createCache(new File("baseDir/some-cache.bin"), String, serializer) >> backingIndexedCache
         1 * backingIndexedCache.get("key")
         0 * _._
     }

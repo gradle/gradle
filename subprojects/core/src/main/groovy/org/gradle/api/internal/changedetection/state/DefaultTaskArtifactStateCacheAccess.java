@@ -48,15 +48,6 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
         return cache;
     }
 
-    public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Class<V> valueType) {
-        Factory<PersistentIndexedCache> factory = new Factory<PersistentIndexedCache>() {
-            public PersistentIndexedCache create() {
-                return getCache().createCache(cacheFile(cacheName), keyType, valueType);
-            }
-        };
-        return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class, factory).getSource();
-    }
-
     public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Class<V> valueType, final Serializer<V> valueSerializer) {
         Factory<PersistentIndexedCache> factory = new Factory<PersistentIndexedCache>() {
             public PersistentIndexedCache create() {

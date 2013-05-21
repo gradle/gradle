@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * The persistent state for a single task execution.
  */
-public abstract class TaskExecution implements Serializable {
+public abstract class TaskExecution {
     private String taskClass;
     private Map<String, Object> inputProperties;
     private Set<String> outputFiles;

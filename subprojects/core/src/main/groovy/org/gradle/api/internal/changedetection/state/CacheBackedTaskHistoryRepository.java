@@ -17,21 +17,18 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.Factory;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.messaging.serialize.DataStreamBackedSerializer;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 
 public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private final TaskArtifactStateCacheAccess cacheAccess;
     private final FileSnapshotRepository snapshotRepository;
     private final PersistentIndexedCache<String, TaskHistory> taskHistoryCache;
-    private final DefaultSerializer<TaskHistory> serializer = new DefaultSerializer<TaskHistory>();
+    private final TaskHistorySerializer serializer = new TaskHistorySerializer();
 
     public CacheBackedTaskHistoryRepository(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotRepository snapshotRepository) {
         this.cacheAccess = cacheAccess;
@@ -126,7 +123,42 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return bestMatch;
     }
 
-    private static class TaskHistory implements Serializable {
+    private static class TaskHistorySerializer extends DataStreamBackedSerializer<TaskHistory> {
+
+        private ClassLoader classLoader;
+
+        @Override
+        public TaskHistory read(DataInput dataInput) throws Exception {
+            int executions = dataInput.readInt();
+            TaskHistory history = new TaskHistory();
+            LazyTaskExecution.Serializer executionSerializer = new LazyTaskExecution.Serializer(classLoader);
+            for (int i = 0; i < executions; i++) {
+                LazyTaskExecution exec = executionSerializer.read(dataInput);
+                history.configurations.add(exec);
+            }
+            return history;
+        }
+
+        @Override
+        public void write(DataOutput dataOutput, TaskHistory value) throws IOException {
+            int size = value.configurations.size();
+            dataOutput.writeInt(size);
+            LazyTaskExecution.Serializer executionSerializer = new LazyTaskExecution.Serializer(classLoader);
+            for (LazyTaskExecution execution : value.configurations) {
+                executionSerializer.write(dataOutput, execution);
+            }
+        }
+
+        public ClassLoader getClassLoader() {
+            return classLoader;
+        }
+
+        public void setClassLoader(ClassLoader classLoader) {
+            this.classLoader = classLoader;
+        }
+    }
+
+    private static class TaskHistory {
         private static final int MAX_HISTORY_ENTRIES = 3;
         private final List<LazyTaskExecution> configurations = new ArrayList<LazyTaskExecution>();
     }
@@ -169,6 +201,61 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public void setOutputFilesSnapshot(FileCollectionSnapshot outputFilesSnapshot) {
             this.outputFilesSnapshot = outputFilesSnapshot;
             outputFilesSnapshotId = null;
+        }
+
+        static class Serializer extends DataStreamBackedSerializer<LazyTaskExecution> {
+            private ClassLoader classLoader;
+
+            public Serializer(ClassLoader classLoader) {
+                this.classLoader = classLoader;
+            }
+
+            @Override
+            public LazyTaskExecution read(DataInput dataInput) throws Exception {
+                LazyTaskExecution execution = new LazyTaskExecution();
+                execution.inputFilesSnapshotId = dataInput.readLong();
+                execution.outputFilesSnapshotId = dataInput.readLong();
+                execution.setTaskClass(dataInput.readUTF());
+                int outputFiles = dataInput.readInt();
+                Set<String> files = new HashSet<String>();
+                for (int j = 0; j < outputFiles; j++) {
+                    files.add(dataInput.readUTF());
+                }
+                execution.setOutputFiles(files);
+
+                int inputProperties = dataInput.readInt();
+                if (inputProperties > 0) {
+                    byte[] serializedMap = new byte[inputProperties];
+                    dataInput.readFully(serializedMap);
+                    DefaultSerializer<Map> defaultSerializer = new DefaultSerializer<Map>(classLoader);
+                    Map map = defaultSerializer.read(new ByteArrayInputStream(serializedMap));
+                    execution.setInputProperties(map);
+                } else {
+                    execution.setInputProperties(new HashMap());
+                }
+                return execution;
+            }
+
+            @Override
+            public void write(DataOutput dataOutput, LazyTaskExecution execution) throws IOException {
+                dataOutput.writeLong(execution.inputFilesSnapshotId);
+                dataOutput.writeLong(execution.outputFilesSnapshotId);
+                dataOutput.writeUTF(execution.getTaskClass());
+                dataOutput.writeInt(execution.getOutputFiles().size());
+                for (String outputFile : execution.getOutputFiles()) {
+                    dataOutput.writeUTF(outputFile);
+                }
+                if (execution.getInputProperties() == null) {
+                    dataOutput.writeInt(0);
+                } else {
+                    DefaultSerializer<Map> defaultSerializer = new DefaultSerializer<Map>(classLoader);
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    defaultSerializer.write(outputStream, execution.getInputProperties());
+                    byte[] serializedMap = outputStream.toByteArray();
+                    dataOutput.writeInt(serializedMap.length);
+                    dataOutput.write(serializedMap);
+                }
+            }
         }
     }
 }

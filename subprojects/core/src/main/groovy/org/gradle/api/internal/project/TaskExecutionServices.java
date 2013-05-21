@@ -71,7 +71,7 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
 
         FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheAccess);
 
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess));
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, new RandomLongIdGenerator()));
 
         Instantiator instantiator = get(Instantiator.class);
         return new ShortCircuitTaskArtifactStateRepository(
