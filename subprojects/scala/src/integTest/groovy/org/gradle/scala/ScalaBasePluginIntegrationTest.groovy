@@ -135,7 +135,7 @@ task verify << {
         fails "compileScala"
 
         then:
-        errorOutput.contains "Cannot infer Scala class path because no Scala library Jar was found on class path: configuration ':compile'"
+        failure.assertHasDescription "Cannot infer Scala class path because no Scala library Jar was found on class path: configuration ':compile'"
     }
 
 }

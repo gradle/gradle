@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -68,7 +70,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
             """
         then:
         fails('tasks')
-        errorOutput.contains("Cannot convert relative path somePath${File.separator}anInit.gradle to an absolute file")
+        failure.assertHasCause("Cannot convert relative path somePath${File.separator}anInit.gradle to an absolute file")
     }
 
     def "path to script is interpreted relative to the applying script"() {
