@@ -19,6 +19,7 @@ package org.gradle.buildsetup.plugins.internal
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.buildsetup.plugins.internal.maven.Maven2Gradle
+import org.gradle.buildsetup.plugins.internal.maven.MavenConversionException
 import org.gradle.buildsetup.plugins.internal.maven.MavenProjectsCreator
 import org.gradle.util.SingleMessageLogger
 
@@ -38,8 +39,12 @@ class PomProjectSetupDescriptor implements ProjectSetupDescriptor {
 
     void generateProject() {
         SingleMessageLogger.informAboutIncubating("Maven to Gradle conversion")
-        def settings = settingsProvider.buildSettings()
-        def mavenProjects = new MavenProjectsCreator().create(settings, fileResolver.resolve("pom.xml"))
-        new Maven2Gradle(mavenProjects).convert()
+        try {
+            def settings = settingsProvider.buildSettings()
+            def mavenProjects = new MavenProjectsCreator().create(settings, fileResolver.resolve("pom.xml"))
+            new Maven2Gradle(mavenProjects).convert()
+        } catch (Exception exception){
+            throw new MavenConversionException("Failed to convert Maven project.", exception)
+        }
     }
 }

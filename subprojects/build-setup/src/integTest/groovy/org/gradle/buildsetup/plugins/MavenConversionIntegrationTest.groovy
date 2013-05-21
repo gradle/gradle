@@ -157,20 +157,31 @@ it.exclude group: '*', module: 'badArtifact'
     }
 
     def "providedNotWar"() {
-      when:
-      run 'setupBuild'
+        when:
+        run 'setupBuild'
 
-      then:
-      settingsFile.exists()
-      buildFile.exists()
-      wrapperFilesGenerated()
+        then:
+        settingsFile.exists()
+        buildFile.exists()
+        wrapperFilesGenerated()
 
-      when:
-      run 'clean', 'build'
+        when:
+        run 'clean', 'build'
 
-      then:
-      file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
+        then:
+        file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
     }
+
+    def "provides decent error message"() {
+        setup:
+        file("pom.xml") << "<project>someInvalid pom content</project>"
+        when:
+        fails 'setupBuild'
+
+        then:
+        errorOutput.contains("Failed to convert Maven project.")
+    }
+
 
     void wrapperFilesGenerated(TestFile parentFolder = file(".")) {
         new WrapperTestFixture(parentFolder).generated()
