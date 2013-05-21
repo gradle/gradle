@@ -23,8 +23,8 @@ import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.plugins.binaries.BinariesPlugin
-import org.gradle.plugins.binaries.model.CompilerRegistry
-import org.gradle.plugins.cpp.msvcpp.internal.VisualCppCompilerAdapter
+import org.gradle.plugins.binaries.model.ToolChainRegistry
+import org.gradle.plugins.cpp.msvcpp.internal.VisualCppToolChainAdapter
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.DefaultExecAction
 import org.gradle.internal.os.OperatingSystem
@@ -49,7 +49,7 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
             return
         }
 
-        project.extensions.getByType(CompilerRegistry).add(new VisualCppCompilerAdapter(
+        project.extensions.getByType(ToolChainRegistry).add(new VisualCppToolChainAdapter(
                 OperatingSystem.current(),
                 new Factory<ExecAction>() {
                     ExecAction create() {

@@ -48,7 +48,7 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
         final BinariesContainer binaries = project.getExtensions().getByType(BinariesContainer.class);
 
         project.getExtensions().create("compilers",
-                DefaultCompilerRegistry.class,
+                DefaultToolChainRegistry.class,
                 instantiator
         );
         NamedDomainObjectSet<Executable> executables = project.getExtensions().create(

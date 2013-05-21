@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model.internal;
+package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.internal.tasks.compile.CompileSpec;
+import org.gradle.api.Named;
+import org.gradle.internal.Factory;
 
-public interface BinaryCompileSpec extends org.gradle.plugins.binaries.model.CompileSpec, CompileSpec {
+public interface ToolChainAdapter extends Factory<ToolChain>, Named {
+    /**
+     * Returns true if this compiler is available.
+     */
+    boolean isAvailable();
 }

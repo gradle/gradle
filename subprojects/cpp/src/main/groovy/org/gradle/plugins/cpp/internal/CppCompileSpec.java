@@ -17,9 +17,7 @@
 package org.gradle.plugins.cpp.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
-
-import java.io.File;
+import org.gradle.plugins.binaries.model.BinaryCompileSpec;
 
 public interface CppCompileSpec extends BinaryCompileSpec {
 
@@ -34,10 +32,6 @@ public interface CppCompileSpec extends BinaryCompileSpec {
     FileCollection getSource();
 
     void setSource(FileCollection source);
-
-    File getWorkDir();
-
-    void setWorkDir(File workDir);
 
     Iterable<Object> getArgs();
 

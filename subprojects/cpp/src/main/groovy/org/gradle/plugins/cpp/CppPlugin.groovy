@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 package org.gradle.plugins.cpp
+
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.Sync
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.binaries.BinariesPlugin
-import org.gradle.plugins.binaries.model.CompilerRegistry
 import org.gradle.plugins.binaries.model.ExecutableBinary
 import org.gradle.plugins.binaries.model.NativeBinary
 import org.gradle.plugins.binaries.model.SharedLibraryBinary
+import org.gradle.plugins.binaries.model.ToolChainRegistry
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
+import org.gradle.plugins.cpp.internal.CppCompileSpec
 import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
 import org.gradle.util.GUtil
 
@@ -95,7 +97,7 @@ exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
 
         task.outputFile = { binary.component.outputFile }
 
-        task.compiler = project.extensions.getByType(CompilerRegistry).defaultCompiler
+        task.compiler = project.extensions.getByType(ToolChainRegistry).defaultToolChain.createCompiler(CppCompileSpec)
         task.compilerArgs = binary.compilerArgs
         task.outputType = getOutputType(binary)
 

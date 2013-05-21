@@ -15,14 +15,12 @@
  */
 package org.gradle.plugins.binaries.model;
 
-import java.io.File;
+import org.gradle.api.NamedDomainObjectSet;
 
 /**
- * A high level interface to the compiler, specifying what is to be compiled and how.
+ * A container for compiler adapters
  */
-public interface CompileSpec {
+public interface ToolChainRegistry extends NamedDomainObjectSet<ToolChainAdapter> {
 
-    File getOutputFile();
-
-    void setOutputFile(File outputFile);
+    ToolChain getDefaultToolChain();
 }
