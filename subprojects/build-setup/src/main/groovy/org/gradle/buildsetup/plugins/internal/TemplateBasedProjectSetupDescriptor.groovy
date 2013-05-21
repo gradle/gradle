@@ -18,7 +18,7 @@ package org.gradle.buildsetup.plugins.internal
 
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
-import org.gradle.api.Project
+import org.apache.commons.lang.StringEscapeUtils
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.GradleVersion
@@ -63,8 +63,13 @@ abstract class TemplateBasedProjectSetupDescriptor implements ProjectSetupDescri
         def bindings = [genDate: new Date(), genUser: System.getProperty("user.name"), genGradleVersion: GradleVersion.current().toString()]
         bindings += additionalBindings
         Template template = templateEngine.createTemplate(templateURL.text)
-        targetFile.withWriter {writer ->
-            template.make(bindings).writeTo(writer)
+        Map escapedBindings = bindings.collectEntries{key, value -> [key, escape(value.toString())]}
+        targetFile.withWriter("utf-8") { writer ->
+            template.make(escapedBindings).writeTo(writer)
         }
+    }
+
+    String escape(def stringToEscape) {
+        StringEscapeUtils.escapeJavaScript(stringToEscape)
     }
 }
