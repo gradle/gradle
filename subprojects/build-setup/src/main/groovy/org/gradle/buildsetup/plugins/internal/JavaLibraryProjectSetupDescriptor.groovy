@@ -19,15 +19,16 @@ package org.gradle.buildsetup.plugins.internal
 import groovy.text.SimpleTemplateEngine
 import org.gradle.api.Project
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.GradleVersion
 
 class JavaLibraryProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
 
-    Project project
+    private final FileResolver fileResolver
 
-    public JavaLibraryProjectSetupDescriptor(Project project, DocumentationRegistry documentationRegistry) {
-        super(project, documentationRegistry);
-        this.project = project;
+    public JavaLibraryProjectSetupDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+        super(fileResolver, documentationRegistry);
+        this.fileResolver = fileResolver;
     }
 
     String getId() {
@@ -43,15 +44,15 @@ class JavaLibraryProjectSetupDescriptor extends TemplateBasedProjectSetupDescrip
     }
 
     void generateProjectSources() {
-        if (project.fileTree("src/main/java").files.empty ||
-                project.fileTree("src/test/java").files.empty) {
+        if (fileResolver.resolveFilesAsTree("src/main/java").files.empty ||
+                fileResolver.resolveFilesAsTree("src/test/java").files.empty) {
             generateClass("src/main/java", "Library.java")
             generateClass("src/test/java", "LibraryTest.java")
         }
     }
 
     def generateClass(String sourceRoot, String clazzFileName) {
-        File sourceRootFolder = project.file(sourceRoot)
+        File sourceRootFolder = fileResolver.resolve(sourceRoot)
         sourceRootFolder.mkdirs()
         File clazzFile = new File(sourceRootFolder, clazzFileName)
         URL productionClazzFileTemplate = JavaLibraryProjectSetupDescriptor.class.getResource("/org/gradle/buildsetup/tasks/templates/${clazzFileName}.template");

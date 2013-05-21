@@ -29,6 +29,7 @@ import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
 @Incubating
 class SetupBuild extends DefaultTask {
     private String type
+
     ProjectLayoutSetupRegistry projectLayoutRegistry
 
     /**

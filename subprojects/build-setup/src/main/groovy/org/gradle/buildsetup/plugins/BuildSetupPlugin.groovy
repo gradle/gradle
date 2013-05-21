@@ -20,26 +20,41 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.artifacts.DependencyManagementServices
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistryFactory
 import org.gradle.buildsetup.tasks.SetupBuild
+
+import javax.inject.Inject
 
 @Incubating
 class BuildSetupPlugin implements Plugin<Project> {
     public static final String SETUP_BUILD_TASK_NAME = "setupBuild"
     public static final String GROUP = 'Build Setup'
-    private Project project
+
+    private final DependencyManagementServices dependencyManagementServices
+    private final DocumentationRegistry documentationRegistry
+    private final FileResolver fileResolver
+
+    @Inject
+    BuildSetupPlugin(DependencyManagementServices dependencyManagementServices, DocumentationRegistry documentationRegistry, FileResolver fileResolver) {
+        this.fileResolver = fileResolver
+        this.documentationRegistry = documentationRegistry
+        this.dependencyManagementServices = dependencyManagementServices
+    }
 
     void apply(Project project) {
-        this.project = project
-        ProjectLayoutSetupRegistryFactory projectLayoutRegistryFactory = new ProjectLayoutSetupRegistryFactory((ProjectInternal) project);
-        ProjectLayoutSetupRegistry projectLayoutRegistry = projectLayoutRegistryFactory.createProjectLayoutSetupRegistry()
+        ProjectLayoutSetupRegistryFactory projectLayoutRegistryFactory = new ProjectLayoutSetupRegistryFactory(dependencyManagementServices,
+                documentationRegistry,
+                fileResolver);
 
         Task setupBuild = project.getTasks().create(SETUP_BUILD_TASK_NAME, SetupBuild);
+        ProjectLayoutSetupRegistry projectLayoutRegistry = projectLayoutRegistryFactory.createProjectLayoutSetupRegistry()
+        setupBuild.projectLayoutRegistry = projectLayoutRegistry
         setupBuild.group = GROUP
         setupBuild.description = "Initializes a new Gradle build. [incubating]"
-        setupBuild.projectLayoutRegistry = projectLayoutRegistry
         Closure setupCanBeSkipped = {
             if (project.file("build.gradle").exists()) {
                 return ("The build file 'build.gradle' already exists. Skipping build initialization.")
@@ -57,7 +72,7 @@ class BuildSetupPlugin implements Plugin<Project> {
         }
         setupBuild.onlyIf {
             def skippedMsg = setupCanBeSkipped()
-            if(skippedMsg){
+            if (skippedMsg) {
                 project.logger.warn skippedMsg
                 return false
             }
@@ -68,6 +83,4 @@ class BuildSetupPlugin implements Plugin<Project> {
             setupBuild.dependsOn("wrapper")
         }
     }
-
-
 }

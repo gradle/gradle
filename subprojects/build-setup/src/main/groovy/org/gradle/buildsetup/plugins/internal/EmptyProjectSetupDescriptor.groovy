@@ -16,13 +16,13 @@
 
 package org.gradle.buildsetup.plugins.internal
 
-import org.gradle.api.Project
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.file.FileResolver
 
 class EmptyProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
 
-    public EmptyProjectSetupDescriptor(Project project,  DocumentationRegistry documentationRegistry) {
-        super(project, documentationRegistry)
+    public EmptyProjectSetupDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+        super(fileResolver, documentationRegistry)
     }
 
     String getId() {

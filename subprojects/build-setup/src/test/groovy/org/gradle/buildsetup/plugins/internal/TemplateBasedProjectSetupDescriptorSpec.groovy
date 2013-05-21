@@ -18,6 +18,7 @@ package org.gradle.buildsetup.plugins.internal
 
 import org.gradle.api.Project
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -27,7 +28,7 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
 
     private TestTemplateBasedProjectSetupDescriptor descriptor
     private DocumentationRegistry documentationRegistry
-    private Project project
+    private FileResolver fileResolver
     private URL buildFileTemplateURL
     private URL settingsTemplateURL
 
@@ -46,13 +47,12 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
 
         documentationRegistry = Mock(DocumentationRegistry)
 
-        project = Mock(Project)
-        _ * project.name >> "someTestRootProject"
-        _ * project.file(_) >> {
-            temporaryFolder.createFile(it[0])
+        fileResolver = Mock(FileResolver)
+        _ * fileResolver.resolve(_) >> {
+            temporaryFolder.file(it[0])
         }
 
-        descriptor = new TestTemplateBasedProjectSetupDescriptor(project, documentationRegistry)
+        descriptor = new TestTemplateBasedProjectSetupDescriptor(fileResolver, documentationRegistry)
     }
 
     def "can generate build and settings file via templates"() {
@@ -65,8 +65,8 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
 
     class TestTemplateBasedProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
 
-        public TestTemplateBasedProjectSetupDescriptor(Project project, DocumentationRegistry documentationRegistry) {
-            super(project, documentationRegistry)
+        public TestTemplateBasedProjectSetupDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+            super(fileResolver, documentationRegistry)
         }
 
         @Override
