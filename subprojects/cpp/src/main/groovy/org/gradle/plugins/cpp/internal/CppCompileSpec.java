@@ -25,13 +25,13 @@ public interface CppCompileSpec extends BinaryCompileSpec {
 
     void setIncludeRoots(FileCollection includeRoots);
 
-    FileCollection getLibs();
-
-    void setLibs(FileCollection libs);
-
     FileCollection getSource();
 
     void setSource(FileCollection source);
+
+    boolean isForDynamicLinking();
+
+    void setForDynamicLinking(boolean flag);
 
     Iterable<Object> getArgs();
 

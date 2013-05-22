@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,25 +19,31 @@ package org.gradle.plugins.cpp.gpp.internal;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.cpp.internal.CppCompileSpec;
+import org.gradle.plugins.binaries.model.LibraryLinkerSpec;
+import org.gradle.plugins.cpp.internal.LinkerSpec;
 
 import java.io.File;
 
-public class GppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
+public class GppLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
 
-    public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
-        collector.args("-c");
+    public void collectArguments(LinkerSpec spec, ArgCollector collector) {
         collector.args(spec.getArgs());
-        if (spec.isForDynamicLinking()) {
+        collector.args("-o", spec.getOutputFile().getAbsolutePath());
+        if (spec instanceof LibraryLinkerSpec) {
+            LibraryLinkerSpec librarySpec = (LibraryLinkerSpec) spec;
+            collector.args("-shared");
             if (!OperatingSystem.current().isWindows()) {
-                collector.args("-fPIC");
+                if (OperatingSystem.current().isMacOsX()) {
+                    collector.args("-Wl,-install_name," + librarySpec.getInstallName());
+                } else {
+                    collector.args("-Wl,-soname," + librarySpec.getInstallName());
+                }
             }
         }
-        for (File file : spec.getIncludeRoots()) {
-            collector.args("-I");
+        for (File file : spec.getObjectFiles()) {
             collector.args(file.getAbsolutePath());
         }
-        for (File file : spec.getSource()) {
+        for (File file : spec.getLibs()) {
             collector.args(file.getAbsolutePath());
         }
     }

@@ -20,29 +20,21 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.plugins.binaries.model.Library
-import org.gradle.plugins.binaries.model.LibraryCompileSpec
 import org.gradle.plugins.cpp.gpp.DefaultCppCompileSpec
-import org.gradle.plugins.cpp.gpp.DefaultCppLibraryCompileSpec
 
 import javax.inject.Inject
 
 class CppCompile extends DefaultTask {
-    enum OutputType { EXECUTABLE, SHARED_LIBRARY }
 
     Compiler compiler
 
-    def outputFile
-
     @Input
-    OutputType outputType
+    boolean sharedLibrary
 
-    @InputFiles
-    ConfigurableFileCollection libs
+    @OutputDirectory
+    File outputDirectory
 
     @InputFiles
     ConfigurableFileCollection includes
@@ -55,28 +47,22 @@ class CppCompile extends DefaultTask {
 
     @Inject
     CppCompile() {
-        libs = project.files()
         includes = project.files()
         source = project.files()
     }
 
-    @OutputFile
-    public File getOutputFile() {
-        return project.file(outputFile)
-    }
-
     @TaskAction
     void compile() {
-        def spec = outputType == OutputType.EXECUTABLE ? new DefaultCppCompileSpec() : new DefaultCppLibraryCompileSpec()
+        def spec = new DefaultCppCompileSpec()
+
+        spec.workDir = getOutputDirectory() // project.file("${project.buildDir}/tmp/cppCompile/${name}")
+        spec.outputFile = getOutputDirectory() // TODO:DAZ This shouldn't be required
 
         spec.includeRoots = includes
-        spec.libs = libs
         spec.source = source
-        spec.outputFile = getOutputFile()
         spec.args = compilerArgs
-        spec.workDir = project.file("${project.buildDir}/tmp/cppCompile/${name}")
-        if (spec instanceof LibraryCompileSpec) {
-            spec.installName = spec.outputFile.name
+        if (isSharedLibrary()) {
+            spec.forDynamicLinking = true
         }
 
         def result = compiler.execute(spec)
@@ -115,8 +101,6 @@ class CppCompile extends DefaultTask {
     }
 
     void libs(Iterable<Library> libs) {
-        dependsOn libs
-        this.libs.from({ libs*.outputFile })
         includes(project.files { libs*.headers*.srcDirs })
     }
 }

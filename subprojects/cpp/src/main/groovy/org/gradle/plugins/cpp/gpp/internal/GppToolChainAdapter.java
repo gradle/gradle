@@ -87,6 +87,10 @@ public class GppToolChainAdapter implements ToolChainAdapter {
 
                 return (Compiler<T>) new GppCompiler(executable, execActionFactory, canUseCommandFile(version));
             }
+
+            public <T extends BinaryCompileSpec> Compiler<T> createLinker() {
+                return (Compiler<T>) new GppLinker(executable, execActionFactory, canUseCommandFile(version));
+            }
         };
     }
 

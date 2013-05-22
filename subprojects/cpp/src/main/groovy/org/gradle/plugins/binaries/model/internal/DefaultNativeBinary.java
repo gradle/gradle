@@ -31,9 +31,12 @@ public abstract class DefaultNativeBinary implements NativeBinary {
         return component;
     }
 
-    // TODO:DAZ Allow args to be overridden on a per-binary basis
-    // Note that the args collection is not copied, but is wired directly into the compile task (not good)
+    // TODO:DAZ Allow compiler and linker args to be overridden on a per-binary basis
     public List<Object> getCompilerArgs() {
         return component.getCompilerArgs();
+    }
+
+    public List<Object> getLinkerArgs() {
+        return component.getLinkerArgs();
     }
 }

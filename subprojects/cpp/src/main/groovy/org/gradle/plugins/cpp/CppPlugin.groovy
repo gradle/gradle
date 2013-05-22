@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.plugins.cpp
-
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
@@ -24,6 +23,7 @@ import org.gradle.plugins.binaries.BinariesPlugin
 import org.gradle.plugins.binaries.model.ExecutableBinary
 import org.gradle.plugins.binaries.model.NativeBinary
 import org.gradle.plugins.binaries.model.SharedLibraryBinary
+import org.gradle.plugins.binaries.model.ToolChain
 import org.gradle.plugins.binaries.model.ToolChainRegistry
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
 import org.gradle.plugins.cpp.internal.CppCompileSpec
@@ -85,34 +85,63 @@ exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
     }
 
     def configureBinary(ProjectInternal project, NativeBinary binary) {
-        CppCompile task = project.task(binary.name, type: CppCompile) {
-            description = "Compiles and links $binary"
-            group = BasePlugin.BUILD_GROUP
-        }
-        task.onlyIf {
-            !task.source.files.empty
-        }
-
-        binary.component.sourceSets.withType(CppSourceSet).all { task.from(it) }
-
-        task.outputFile = { binary.component.outputFile }
-
-        task.compiler = project.extensions.getByType(ToolChainRegistry).defaultToolChain.createCompiler(CppCompileSpec)
-        task.compilerArgs = binary.compilerArgs
-        task.outputType = getOutputType(binary)
-
-        binary.component.builtBy(task)
-
-        return task
+        final toolChain = project.extensions.getByType(ToolChainRegistry).defaultToolChain
+        CppCompile compileTask = createCompileTask(project, binary, toolChain)
+        AbstractLinkTask linkTask = createLinkTask(project, binary, toolChain, compileTask)
+        return linkTask
     }
 
-    def getOutputType(NativeBinary binary) {
+    private CppCompile createCompileTask(ProjectInternal project, NativeBinary binary, ToolChain toolChain) {
+        CppCompile compileTask = project.task("${binary.name}Compile", type: CppCompile) {
+            description = "Compiles $binary"
+            group = BasePlugin.BUILD_GROUP
+        }
+        // TODO:DAZ Make this work with @SkipWhenEmpty
+        compileTask.onlyIf {
+            !compileTask.source.files.empty
+        }
+
+        binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet -> compileTask.from(sourceSet) }
+
+        compileTask.outputDirectory = project.file("${project.buildDir}/cppCompile/${binary.name}")
+
+        compileTask.compiler = toolChain.createCompiler(CppCompileSpec)
+        compileTask.compilerArgs = binary.compilerArgs
+        compileTask.sharedLibrary = binary instanceof SharedLibraryBinary
+        compileTask
+    }
+
+    private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinary binary, ToolChain toolChain, CppCompile compileTask) {
+        AbstractLinkTask linkTask = createLinkTask(project, binary)
+        binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet -> linkTask.libs(sourceSet.libs) }
+
+        // TODO:DAZ Make this work with @SkipWhenEmpty
+        linkTask.onlyIf {
+            !linkTask.objectFiles.files.empty
+        }
+        linkTask.objectFiles project.fileTree(compileTask.outputDirectory) {
+            include '*.o'
+        }
+        linkTask.dependsOn compileTask // TODO:DAZ Avoid this explicit dependency by wiring inputs/outputs better
+
+        linkTask.outputFile = { binary.component.outputFile }
+        linkTask.linker = toolChain.createLinker()
+        linkTask.linkerArgs = binary.linkerArgs
+        binary.component.builtBy(linkTask)
+        linkTask
+    }
+
+    private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinary binary) {
+        project.task(binary.name, type: linkTaskType(binary)) {
+             description = "Links $binary"
+             group = BasePlugin.BUILD_GROUP
+         }
+    }
+
+    private static Class<? extends AbstractLinkTask> linkTaskType(NativeBinary binary) {
         if (binary instanceof SharedLibraryBinary) {
-            return CppCompile.OutputType.SHARED_LIBRARY
+            return LinkSharedLibrary
         }
-        if (binary instanceof ExecutableBinary) {
-            return CppCompile.OutputType.EXECUTABLE
-        }
-        throw new IllegalArgumentException("Unknown binary type: " + binary.class)
+        return LinkExecutable
     }
 }

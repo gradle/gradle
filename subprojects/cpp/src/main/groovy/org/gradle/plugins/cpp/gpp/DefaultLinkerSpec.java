@@ -17,34 +17,33 @@
 package org.gradle.plugins.cpp.gpp;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.plugins.cpp.internal.CppCompileSpec;
+import org.gradle.plugins.cpp.internal.LinkerSpec;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public class DefaultCppCompileSpec implements CppCompileSpec {
+public class DefaultLinkerSpec implements LinkerSpec {
 
-    private FileCollection includeRoots;
-    private FileCollection source;
+    private FileCollection libs;
+    private FileCollection objectFiles;
     private File outputFile;
     private File workDir;
-    private boolean forDynamicLinking;
     private Iterable<Object> args = new ArrayList<Object>();
 
-    public FileCollection getIncludeRoots() {
-        return includeRoots;
+    public FileCollection getObjectFiles() {
+        return objectFiles;
     }
 
-    public void setIncludeRoots(FileCollection includeRoots) {
-        this.includeRoots = includeRoots;
+    public void setObjectFiles(FileCollection objectFiles) {
+        this.objectFiles = objectFiles;
     }
 
-    public FileCollection getSource() {
-        return source;
+    public FileCollection getLibs() {
+        return libs;
     }
 
-    public void setSource(FileCollection source) {
-        this.source = source;
+    public void setLibs(FileCollection libs) {
+        this.libs = libs;
     }
 
     public File getOutputFile() {
@@ -69,13 +68,5 @@ public class DefaultCppCompileSpec implements CppCompileSpec {
 
     public Iterable<Object> getArgs() {
         return args;
-    }
-
-    public boolean isForDynamicLinking() {
-        return forDynamicLinking;
-    }
-
-    public void setForDynamicLinking(boolean forDynamicLinking) {
-        this.forDynamicLinking = forDynamicLinking;
     }
 }

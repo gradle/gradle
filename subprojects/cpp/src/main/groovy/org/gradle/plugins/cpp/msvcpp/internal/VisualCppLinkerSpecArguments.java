@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,25 @@ package org.gradle.plugins.cpp.msvcpp.internal;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
-import org.gradle.plugins.cpp.internal.CppCompileSpec;
+import org.gradle.plugins.binaries.model.LibraryLinkerSpec;
+import org.gradle.plugins.cpp.internal.LinkerSpec;
 
 import java.io.File;
 
-public class VisualCppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
+public class VisualCppLinkerSpecArguments implements CompileSpecToArguments<LinkerSpec> {
 
-    public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
-        collector.args("/c");
+    public void collectArguments(LinkerSpec spec, ArgCollector collector) {
         collector.args(spec.getArgs());
-        collector.args("/nologo");
-        collector.args("/EHsc");
-        if (spec.isForDynamicLinking()) {
-            collector.args("/LD"); // TODO:DAZ Not sure if this has any effect at compile time
+        collector.args("/OUT:" + spec.getOutputFile().getAbsolutePath());
+        collector.args("/NOLOGO");
+        if (spec instanceof LibraryLinkerSpec) {
+            collector.args("/DLL");
         }
-        for (File file : spec.getIncludeRoots()) {
-            collector.args("/I", file.getAbsolutePath());
+        for (File file : spec.getObjectFiles()) {
+            collector.args(file.getAbsolutePath());
         }
-        for (File file : spec.getSource()) {
-            collector.args(file);
+        for (File file : spec.getLibs()) {
+            collector.args(file.getAbsolutePath().replaceFirst("\\.dll$", ".lib"));
         }
     }
 }

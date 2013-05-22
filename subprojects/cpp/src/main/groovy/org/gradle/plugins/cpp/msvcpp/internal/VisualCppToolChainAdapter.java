@@ -30,18 +30,21 @@ import java.io.File;
 public class VisualCppToolChainAdapter implements ToolChainAdapter {
 
     public static final String NAME = "visualCpp";
-    static final String EXECUTABLE = "cl.exe";
+    static final String COMPILER_EXE = "cl.exe";
+    static final String LINKER_EXE = "link.exe";
 
-    private final File executable;
+    private final File compilerExe;
+    private final File linkerExe;
     private final Factory<ExecAction> execActionFactory;
     private final OperatingSystem operatingSystem;
 
     public VisualCppToolChainAdapter(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        this(operatingSystem.findInPath(EXECUTABLE), operatingSystem, execActionFactory);
+        this(operatingSystem.findInPath(COMPILER_EXE), operatingSystem.findInPath(LINKER_EXE), operatingSystem, execActionFactory);
     }
 
-    protected VisualCppToolChainAdapter(File executable, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        this.executable = executable;
+    protected VisualCppToolChainAdapter(File compilerExe, File linkerExe, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
+        this.compilerExe = compilerExe;
+        this.linkerExe = linkerExe;
         this.operatingSystem = operatingSystem;
         this.execActionFactory = execActionFactory;
     }
@@ -52,11 +55,11 @@ public class VisualCppToolChainAdapter implements ToolChainAdapter {
 
     @Override
     public String toString() {
-        return String.format("Visual C++ (%s)", operatingSystem.getExecutableName(EXECUTABLE));
+        return String.format("Visual C++ (%s)", operatingSystem.getExecutableName(COMPILER_EXE));
     }
 
     public boolean isAvailable() {
-        return operatingSystem.isWindows() && executable != null && executable.exists();
+        return operatingSystem.isWindows() && compilerExe != null && compilerExe.exists();
     }
 
     public ToolChain create() {
@@ -66,7 +69,11 @@ public class VisualCppToolChainAdapter implements ToolChainAdapter {
                     // TODO:DAZ Should introduce language instead of relying on spec here
                     throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
                 }
-                return (Compiler<T>) new VisualCppCompiler(executable, execActionFactory);
+                return (Compiler<T>) new VisualCppCompiler(compilerExe, execActionFactory);
+            }
+
+            public <T extends BinaryCompileSpec> Compiler<T> createLinker() {
+                return (Compiler<T>) new VisualCppLinker(linkerExe, execActionFactory);
             }
         };
     }

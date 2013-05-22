@@ -83,6 +83,18 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
             };
         }
 
+        public <T extends BinaryCompileSpec> Compiler<T> createLinker() {
+            return createLazyLinker();
+        }
+
+        private <T extends BinaryCompileSpec> Compiler<T> createLazyLinker() {
+            return new Compiler<T>() {
+                public WorkResult execute(T spec) {
+                    return getToolChain().createLinker().execute(spec);
+                }
+            };
+        }
+
         private ToolChain getToolChain() {
             if (toolChain == null) {
                 toolChain = findAdapter().create();

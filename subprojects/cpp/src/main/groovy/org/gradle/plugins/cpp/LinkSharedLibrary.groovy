@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model;
+package org.gradle.plugins.cpp
 
-import org.gradle.language.base.Binary;
+import org.gradle.plugins.cpp.gpp.DefaultLibraryLinkerSpec
+import org.gradle.plugins.cpp.internal.LinkerSpec
 
-import java.util.List;
-
-/**
- * A native binary.
- */
-public interface NativeBinary extends Binary {
-
-    NativeComponent getComponent();
-
-    List<Object> getCompilerArgs();
-
-    List<Object> getLinkerArgs();
+class LinkSharedLibrary extends AbstractLinkTask {
+    @Override
+    protected LinkerSpec createLinkerSpec() {
+        new DefaultLibraryLinkerSpec()
+    }
 }

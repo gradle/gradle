@@ -23,4 +23,6 @@ public interface ToolChain {
      * Creates a compiler which can compile the given binary.
      */
     <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType);
+
+    <T extends BinaryCompileSpec> Compiler<T> createLinker();
 }

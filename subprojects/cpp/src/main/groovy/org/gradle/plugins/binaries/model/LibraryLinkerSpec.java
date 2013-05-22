@@ -19,7 +19,7 @@ package org.gradle.plugins.binaries.model;
 /**
  * A high level interface to the compiler, specifying what is to be compiled and how.
  */
-public interface LibraryCompileSpec extends BinaryCompileSpec {
+public interface LibraryLinkerSpec extends BinaryCompileSpec {
     /**
      * <p>Returns the <i>install name</i> for the library. This is the location where this library will be installed on the target
      * system, and where clients of this library should look for the library.

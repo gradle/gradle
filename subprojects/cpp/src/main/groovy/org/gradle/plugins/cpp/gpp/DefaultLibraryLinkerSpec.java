@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.compiler.internal;
+package org.gradle.plugins.cpp.gpp;
 
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.plugins.cpp.internal.CppCompileSpec;
+import org.gradle.plugins.binaries.model.LibraryLinkerSpec;
 
-public interface CppCompiler<T extends CppCompileSpec> extends Compiler<T> {
+public class DefaultLibraryLinkerSpec extends DefaultLinkerSpec implements LibraryLinkerSpec {
+    private String installName;
 
+    public String getInstallName() {
+        return installName == null ? getOutputFile().getName() : installName;
+    }
+
+    public void setInstallName(String installName) {
+        this.installName = installName;
+    }
 }

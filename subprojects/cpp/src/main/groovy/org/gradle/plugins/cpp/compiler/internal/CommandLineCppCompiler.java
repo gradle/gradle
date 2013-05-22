@@ -16,18 +16,19 @@
 
 package org.gradle.plugins.cpp.compiler.internal;
 
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.ExecSpecBackedArgCollector;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
-import org.gradle.plugins.cpp.internal.CppCompileSpec;
+import org.gradle.plugins.binaries.model.BinaryCompileSpec;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
-public class CommandLineCppCompiler<T extends CppCompileSpec> implements CppCompiler<T> {
+public class CommandLineCppCompiler<T extends BinaryCompileSpec> implements Compiler<T> {
     private final File executable;
     private final Factory<ExecAction> execActionFactory;
     private final CompileSpecToArguments<T> toArguments;

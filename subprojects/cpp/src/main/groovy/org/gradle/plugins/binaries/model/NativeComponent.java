@@ -41,6 +41,10 @@ public interface NativeComponent extends Named, Buildable {
 
     void compilerArgs(Object... args);
 
+    List<Object> getLinkerArgs();
+
+    void linkerArgs(Object... args);
+
     // TODO:DAZ This should be on NativeBinary together with Buildable (if required at all)
     void builtBy(Object... tasks);
 }
