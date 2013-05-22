@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.binaries.model.internal;
 
+import org.gradle.api.Nullable;
+import org.gradle.language.base.internal.TaskNamerForBinaries;
 import org.gradle.plugins.binaries.model.*;
 
 import java.util.List;
@@ -38,5 +40,9 @@ public abstract class DefaultNativeBinary implements NativeBinary {
 
     public List<Object> getLinkerArgs() {
         return component.getLinkerArgs();
+    }
+
+    public String getTaskName(@Nullable String verb) {
+        return new TaskNamerForBinaries(getName()).getTaskName(verb, null);
     }
 }

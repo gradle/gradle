@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Nullable;
 import org.gradle.language.base.Binary;
 
 import java.util.List;
@@ -30,4 +31,6 @@ public interface NativeBinary extends Binary {
     List<Object> getCompilerArgs();
 
     List<Object> getLinkerArgs();
+
+    String getTaskName(@Nullable String verb);
 }

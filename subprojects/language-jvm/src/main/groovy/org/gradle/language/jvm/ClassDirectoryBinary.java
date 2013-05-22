@@ -42,5 +42,4 @@ public interface ClassDirectoryBinary extends Binary, Buildable {
     Task getClassesTask();
     void setClassesTask(Task task);
     String getTaskName(String verb, String target);
-    String getTaskBaseName();
 }

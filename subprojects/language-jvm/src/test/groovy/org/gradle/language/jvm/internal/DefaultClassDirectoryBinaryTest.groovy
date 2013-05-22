@@ -25,7 +25,6 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
 
         then:
         binary.name == 'mainClasses'
-        binary.taskBaseName == ''
 
         and:
         binary.getTaskName(null, null) == 'main'
@@ -40,7 +39,6 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
 
         then:
         binary.name == 'otherClasses'
-        binary.taskBaseName == 'other'
 
         and:
         binary.getTaskName(null, null) == 'other'
@@ -55,7 +53,6 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
 
         then:
         binary.name == 'otherBinary'
-        binary.taskBaseName == 'otherBinary'
 
         and:
         binary.getTaskName(null, null) == 'otherBinary'

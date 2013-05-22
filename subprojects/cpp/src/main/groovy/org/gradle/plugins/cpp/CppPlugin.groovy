@@ -20,11 +20,7 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.Sync
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.binaries.BinariesPlugin
-import org.gradle.plugins.binaries.model.ExecutableBinary
-import org.gradle.plugins.binaries.model.NativeBinary
-import org.gradle.plugins.binaries.model.SharedLibraryBinary
-import org.gradle.plugins.binaries.model.ToolChain
-import org.gradle.plugins.binaries.model.ToolChainRegistry
+import org.gradle.plugins.binaries.model.*
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
 import org.gradle.plugins.cpp.internal.CppCompileSpec
 import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
@@ -56,8 +52,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     def configureExecutable(ProjectInternal project, ExecutableBinary executable) {
         def compileTask = configureBinary(project, executable)
 
-        def baseName = GUtil.toCamelCase(executable.name).capitalize()
-        project.task("install${baseName}", type: Sync) {
+        project.task(executable.getTaskName("install"), type: Sync) {
             description = "Installs a development image of $executable"
             into { project.file("${project.buildDir}/install/$executable.name") }
             dependsOn compileTask
@@ -92,7 +87,7 @@ exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
     }
 
     private CppCompile createCompileTask(ProjectInternal project, NativeBinary binary, ToolChain toolChain) {
-        CppCompile compileTask = project.task("${binary.name}Compile", type: CppCompile) {
+        CppCompile compileTask = project.task(binary.getTaskName("compile"), type: CppCompile) {
             description = "Compiles $binary"
             group = BasePlugin.BUILD_GROUP
         }
@@ -112,7 +107,10 @@ exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
     }
 
     private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinary binary, ToolChain toolChain, CppCompile compileTask) {
-        AbstractLinkTask linkTask = createLinkTask(project, binary)
+        AbstractLinkTask linkTask = project.task(binary.getTaskName(null), type: linkTaskType(binary)) {
+             description = "Links ${binary}"
+             group = BasePlugin.BUILD_GROUP
+         }
         binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet -> linkTask.libs(sourceSet.libs) }
 
         // TODO:DAZ Make this work with @SkipWhenEmpty
@@ -131,12 +129,6 @@ exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
         linkTask
     }
 
-    private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinary binary) {
-        project.task(binary.name, type: linkTaskType(binary)) {
-             description = "Links $binary"
-             group = BasePlugin.BUILD_GROUP
-         }
-    }
 
     private static Class<? extends AbstractLinkTask> linkTaskType(NativeBinary binary) {
         if (binary instanceof SharedLibraryBinary) {
