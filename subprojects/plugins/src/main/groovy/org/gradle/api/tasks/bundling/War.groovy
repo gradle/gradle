@@ -32,6 +32,10 @@ import org.gradle.api.internal.file.copy.CopySpecImpl
 class War extends Jar {
     public static final String WAR_EXTENSION = 'war'
 
+    private static final WEB_INF_DUPLICATES_PRIORITY = 100
+    private static final CLASSPATH_DUPLICATES_PRIORITY = 200
+    private static final WEB_XML_DUPLICATES_PRIORITY = 300
+
     private File webXml
 
     private FileCollection classpath
@@ -41,19 +45,19 @@ class War extends Jar {
         extension = WAR_EXTENSION
         // Add these as separate specs, so they are not affected by the changes to the main spec
         webInf = copyAction.rootSpec.addChild().into('WEB-INF')
-        webInf.into('classes') {
+        def classesSpec = webInf.into('classes') {
             from {
                 def classpath = getClasspath()
                 classpath ? classpath.filter {File file -> file.isDirectory()} : []
             }
         }
-        webInf.into('lib') {
+        def libSpec = webInf.into('lib') {
             from {
                 def classpath = getClasspath()
                 classpath ? classpath.filter {File file -> file.isFile()} : []
             }
         }
-        webInf.into('') {
+        def webXmlSpec = webInf.into('') {
             from {
                 getWebXml()
             }
@@ -61,6 +65,10 @@ class War extends Jar {
                 'web.xml'
             }
         }
+        webInf.duplicatesPriority = WEB_INF_DUPLICATES_PRIORITY
+        classesSpec.duplicatesPriority = CLASSPATH_DUPLICATES_PRIORITY
+        libSpec.duplicatesPriority = CLASSPATH_DUPLICATES_PRIORITY
+        webXmlSpec.duplicatesPriority = WEB_XML_DUPLICATES_PRIORITY
     }
 
     CopySpec getWebInf() {

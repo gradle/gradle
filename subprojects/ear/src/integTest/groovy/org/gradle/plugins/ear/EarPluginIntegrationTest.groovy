@@ -19,6 +19,11 @@ package org.gradle.plugins.ear
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.junit.Before
 import org.junit.Test
+import org.testng.Assert
+
+import static org.testng.Assert.assertEquals
+import static org.testng.Assert.assertFalse
+import static org.testng.Assert.assertTrue
 
 /**
  * @author: Szczepan Faber, created at: 6/3/11
@@ -140,4 +145,56 @@ ear {
         assert file("unzipped/META-INF/stuff/yetAnotherFile.txt").assertExists()
         assert file("unzipped/META-INF/application.xml").text == applicationXml
     }
+
+    @Test
+    void "exclude duplicates: deploymentDescriptor has priority over metaInf"() {
+        file('bad-meta-inf/application.xml').createFile().write('bad descriptor')
+        file('build.gradle').write('''
+        apply plugin: 'ear'
+        ear {
+           duplicatesStrategy = 'exclude'
+           metaInf {
+               from 'bad-meta-inf'
+           }
+           deploymentDescriptor {
+               applicationName = 'good'
+           }
+        }''')
+
+        // when
+        executer.withTasks('assemble').run();
+        file('build/libs/root.ear').unzipTo(file('unzipped'))
+
+        // then
+        assertFalse(
+                file('unzipped/META-INF/application.xml').text.contains('bad descriptor'))
+
+    }
+
+    @Test
+    void "exclude duplicates: lib has priority over other files"() {
+        file('bad-lib/file.txt').createFile().write('bad')
+        file('good-lib/file.txt').createFile().write('good')
+
+        file('build.gradle').write('''
+        apply plugin: 'ear'
+        ear {
+           duplicatesStrategy = 'exclude'
+           into('lib') {
+               from 'bad-lib'
+           }
+           lib {
+               from 'good-lib'
+           }
+        }''')
+
+        // when
+        executer.withTasks('assemble').run();
+        file('build/libs/root.ear').unzipTo(file('unzipped'))
+
+        // then
+        assertEquals('good', file('unzipped/lib/file.txt').text)
+
+    }
+
 }

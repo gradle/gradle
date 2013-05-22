@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RelativePath;
@@ -38,4 +39,9 @@ public interface ReadableCopySpec {
     Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
 
     boolean getIncludeEmptyDirs();
+
+    DuplicatesStrategy getDuplicatesStrategy();
+
+    Integer getDuplicatesPriority();
+
 }

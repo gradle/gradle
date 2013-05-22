@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.copy
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.Action
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.FileResolver
@@ -346,5 +347,54 @@ public class CopySpecImplTest {
         spec.from('source') {}
         assertTrue(spec.hasSource())
     }
+
+    @Test public void testGetSetDuplicatesStrategy() {
+        assertEquals(DuplicatesStrategy.INHERIT, spec.duplicatesStrategy)
+        spec.duplicatesStrategy = 'include'
+        assertEquals(DuplicatesStrategy.INCLUDE, spec.duplicatesStrategy)
+        spec.duplicatesStrategy = 'exclude'
+        assertEquals(DuplicatesStrategy.EXCLUDE, spec.duplicatesStrategy)
+        spec.duplicatesStrategy = null
+        assertEquals(DuplicatesStrategy.INHERIT, spec.duplicatesStrategy)
+        spec.duplicatesStrategy = 'inherit'
+        assertEquals(DuplicatesStrategy.INHERIT, spec.duplicatesStrategy)
+    }
+
+
+    @Test public void testDuplicatesStrategyInherited() {
+        spec.duplicatesStrategy = 'exclude'
+        spec.with new CopySpecImpl(fileResolver, spec)
+        assertEquals(DuplicatesStrategy.EXCLUDE, spec.childSpecs[0].duplicatesStrategy)
+    }
+
+    @Test public void testMatchingCreatesAppropriateAction() {
+        spec.matching("root/**/a*") {
+        }
+        assertEquals(1, spec.allCopyActions.size())
+        assertThat(spec.allCopyActions[0], instanceOf(MatchingCopyAction))
+
+        Spec<RelativePath> matchSpec = spec.allCopyActions[0].matchSpec
+        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/folder/abc')))
+        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/abc')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/notRoot/abc')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/bbc')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/notRoot/bbc')))
+    }
+
+    @Test public void testNotMatchingCreatesAppropriateAction() {
+        // no path component starting with an a
+        spec.notMatching("**/a*/**") {
+        }
+        assertEquals(1, spec.allCopyActions.size())
+        assertThat(spec.allCopyActions[0], instanceOf(MatchingCopyAction))
+
+        Spec<RelativePath> matchSpec = spec.allCopyActions[0].matchSpec
+        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder1/folder2')))
+        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'modules/project1')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'archives/folder/file')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/archives/file')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder/abc')))
+    }
+
 }
 

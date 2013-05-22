@@ -84,5 +84,9 @@ public class Tar extends AbstractArchiveTask {
                 default:    return new SimpleCompressor();
             }
         }
+
+        public boolean isWarnOnIncludeDuplicates() {
+            return false;
+        }
     }
 }

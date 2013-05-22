@@ -37,6 +37,9 @@ import org.gradle.util.ConfigureUtil
 class Ear extends Jar {
     public static final String EAR_EXTENSION = 'ear'
 
+    private static final DEPLOYMENT_DESC_DUPLICATES_PRIORITY = 200 // same as manifest
+    private static final EAR_LIB_DUPLICATES_PRIORITY = 100 // same as metaInf
+
     /**
      * The name of the library directory in the EAR file. Default is "lib".
      */
@@ -75,7 +78,7 @@ class Ear extends Jar {
         // create our own metaInf which runs after mainSpec's files
         // this allows us to generate the deployment descriptor after recording all modules it contains
         def metaInf = copyAction.mainSpec.addChild().into('META-INF')
-        metaInf.addChild().from {
+        def descriptorSpec = metaInf.addChild().from {
             MapFileTree descriptorSource = new MapFileTree(temporaryDirFactory)
             final DeploymentDescriptor descriptor = deploymentDescriptor
             if (descriptor) {
@@ -89,6 +92,8 @@ class Ear extends Jar {
             }
             return null
         }
+        lib.duplicatesPriority = EAR_LIB_DUPLICATES_PRIORITY
+        descriptorSpec.duplicatesPriority = DEPLOYMENT_DESC_DUPLICATES_PRIORITY
     }
 
     /**

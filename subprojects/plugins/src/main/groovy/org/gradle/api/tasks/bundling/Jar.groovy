@@ -33,6 +33,10 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter
 public class Jar extends Zip {
     public static final String DEFAULT_EXTENSION = 'jar'
 
+    private static final META_INF_DUPLICATES_PRIORITY = 100
+    private static final MANIFEST_DUPLICATES_PRIORITY = 200
+
+
     private Manifest manifest
     private final CopySpecImpl metaInf
 
@@ -41,7 +45,7 @@ public class Jar extends Zip {
         manifest = new DefaultManifest(project.fileResolver)
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = copyAction.rootSpec.addFirst().into('META-INF')
-        metaInf.addChild().from {
+        def manifestSpec = metaInf.addChild().from {
             MapFileTree manifestSource = new MapFileTree(temporaryDirFactory)
             manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
                 Manifest manifest = getManifest() ?: new DefaultManifest(null)
@@ -49,11 +53,15 @@ public class Jar extends Zip {
             }
             return new FileTreeAdapter(manifestSource)
         }
+
         copyAction.mainSpec.eachFile { FileCopyDetails details ->
             if (details.path.equalsIgnoreCase('META-INF/MANIFEST.MF')) {
                 details.exclude()
             }
         }
+
+        metaInf.duplicatesPriority = META_INF_DUPLICATES_PRIORITY
+        manifestSpec.duplicatesPriority = MANIFEST_DUPLICATES_PRIORITY
     }
 
     /**

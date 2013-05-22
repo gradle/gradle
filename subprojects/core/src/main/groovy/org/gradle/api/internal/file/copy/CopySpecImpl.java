@@ -21,6 +21,8 @@ import org.gradle.api.file.*;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
+import org.gradle.api.specs.NotSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
@@ -46,6 +48,10 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
     private PathNotationParser<String> pathNotationParser;
+    private DuplicatesStrategy duplicatesStrategy;
+    // Higher priority means files from this spec are more likely to be included
+    // vs. duplicates from a spec with lower (or null) priority
+    private Integer duplicatesPriority;
 
     private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec) {
         this.parentSpec = parentSpec;
@@ -54,6 +60,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<ReadableCopySpec>();
         patternSet = new PatternSet();
+        duplicatesStrategy = DuplicatesStrategy.INHERIT;
     }
 
     public CopySpecImpl(FileResolver resolver) {
@@ -202,6 +209,40 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
 
     public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
         this.includeEmptyDirs = includeEmptyDirs;
+    }
+
+    public DuplicatesStrategy getDuplicatesStrategy() {
+        if (parentSpec != null && duplicatesStrategy == DuplicatesStrategy.INHERIT) {
+            return parentSpec.getDuplicatesStrategy();
+        }
+        return duplicatesStrategy;
+    }
+
+    public void setDuplicatesStrategy(String strategy) {
+        this.duplicatesStrategy = DuplicatesStrategy.fromString(strategy);
+    }
+
+    public Integer getDuplicatesPriority() {
+        if (parentSpec != null && duplicatesPriority == null) {
+            return parentSpec.getDuplicatesPriority();
+        }
+        return duplicatesPriority;
+    }
+
+    public void setDuplicatesPriority(Integer priority) {
+        this.duplicatesPriority = priority;
+    }
+
+    public CopySpec matching(String pattern, Closure closure) {
+        Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
+        return eachFile(
+                new MatchingCopyAction(matcher, closure));
+    }
+
+    public CopySpec notMatching(String pattern, Closure closure) {
+        Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
+        return eachFile(
+                new MatchingCopyAction(new NotSpec<RelativePath>(matcher), closure));
     }
 
     public CopySpec include(String... includes) {
@@ -456,6 +497,14 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
 
         public boolean getIncludeEmptyDirs() {
             return spec.getIncludeEmptyDirs();
+        }
+
+        public DuplicatesStrategy getDuplicatesStrategy() {
+            return spec.getDuplicatesStrategy();
+        }
+
+        public Integer getDuplicatesPriority() {
+            return spec.getDuplicatesPriority();
         }
     }
 }

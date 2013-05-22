@@ -96,6 +96,31 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     void setIncludeEmptyDirs(boolean includeEmptyDirs);
 
     /**
+     * Sets the default strategy for handling files with duplicate path names. This strategy can be overridden for individual files
+     * by configuring FileCopyDetails.
+     * @param duplicatesStrategy the strategy for handling. Can be 'inherit' (default), 'include', or 'exclude'
+     */
+    void setDuplicatesStrategy(String duplicatesStrategy);
+
+    /**
+     * Configure the FileCopyDetails for each file whose path matches the specified Ant-style pattern. This is equivalent to using
+     * eachFile() and selectively applying a configuration based on the file's path.
+     * @param pattern Ant-style pattern used to match against files' relative paths
+     * @param closure Configuration applied to the FileCopyDetails of each file matching pattern
+     * @return this
+     */
+    CopySpec matching(String pattern, Closure closure);
+
+    /**
+     * Configure the FileCopyDetails for each file whose path does not match the specified Ant-style pattern. This is equivalent to using
+     * eachFile() and selectively applying a configuration based on the file's path.
+     * @param pattern Ant-style pattern used to match against files' relative paths
+     * @param closure Configuration applied to the FileCopyDetails of each file that does not match pattern
+     * @return this
+     */
+    CopySpec notMatching(String pattern, Closure closure);
+
+    /**
      * Adds the given specs as a child of this spec.
      * @param sourceSpecs The specs to add
      * @return this
