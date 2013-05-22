@@ -88,5 +88,9 @@ public class Zip extends AbstractArchiveTask {
                     throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
             }
         }
+
+        public boolean isWarnOnIncludeDuplicates() {
+            return false;
+        }
     }
 }

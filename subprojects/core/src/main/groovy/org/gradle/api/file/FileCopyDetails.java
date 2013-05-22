@@ -55,4 +55,22 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      * @param mode the Unix permissions, e.g. {@code 0644}.
      */
     void setMode(int mode);
+
+    /**
+     * Sets the strategy for handling duplicates.
+     *
+     * @param strategy the strategy used when a duplicate file is encountered.
+     *  Either 'include' or 'exclude'
+     */
+    void setDuplicatesStrategy(String strategy);
+    
+    /**
+     * Get the strategy for handling duplicates, either
+     * DuplicatesStrategy.INCLUDE if duplicate files of this type
+     * should be retained or DuplicatesStrategy.EXCLUDE otherwise.
+     *
+     * @return the duplicates strategy for this file
+     */
+    DuplicatesStrategy getDuplicatesStrategy();
+
 }

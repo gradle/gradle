@@ -46,6 +46,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
     private PathNotationParser<String> pathNotationParser;
+    private boolean warnOnIncludeDuplicate;
 
     private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec) {
         this.parentSpec = parentSpec;
