@@ -27,7 +27,6 @@ public class GppCompileSpecToArguments implements CompileSpecToArguments<CppComp
 
     public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
         collector.args("-c");
-        collector.args(spec.getArgs());
         if (spec.isForDynamicLinking()) {
             if (!OperatingSystem.current().isWindows()) {
                 collector.args("-fPIC");
@@ -40,6 +39,7 @@ public class GppCompileSpecToArguments implements CompileSpecToArguments<CppComp
         for (File file : spec.getSource()) {
             collector.args(file.getAbsolutePath());
         }
+        collector.args(spec.getArgs());
     }
 
 }

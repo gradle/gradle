@@ -26,7 +26,6 @@ public class VisualCppCompileSpecToArguments implements CompileSpecToArguments<C
 
     public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
         collector.args("/c");
-        collector.args(spec.getArgs());
         collector.args("/nologo");
         collector.args("/EHsc");
         if (spec.isForDynamicLinking()) {
@@ -38,5 +37,6 @@ public class VisualCppCompileSpecToArguments implements CompileSpecToArguments<C
         for (File file : spec.getSource()) {
             collector.args(file);
         }
+        collector.args(spec.getArgs());
     }
 }

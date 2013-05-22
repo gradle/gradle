@@ -27,7 +27,6 @@ import java.io.File;
 public class GppLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
 
     public void collectArguments(LinkerSpec spec, ArgCollector collector) {
-        collector.args(spec.getArgs());
         collector.args("-o", spec.getOutputFile().getAbsolutePath());
         if (spec instanceof LibraryLinkerSpec) {
             LibraryLinkerSpec librarySpec = (LibraryLinkerSpec) spec;
@@ -46,6 +45,8 @@ public class GppLinkerSpecToArguments implements CompileSpecToArguments<LinkerSp
         for (File file : spec.getLibs()) {
             collector.args(file.getAbsolutePath());
         }
+        // Last arg wins in case of duplicates
+        collector.args(spec.getArgs());
     }
 
 }

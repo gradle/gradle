@@ -61,6 +61,7 @@ abstract class AbstractLinkTask extends DefaultTask {
         spec.workDir = project.file("${project.buildDir}/tmp/cppCompile/${name}")
         spec.objectFiles = getObjectFiles()
         spec.libs = libs
+        spec.args = linkerArgs
 
         def result = linker.execute(spec)
         didWork = result.didWork

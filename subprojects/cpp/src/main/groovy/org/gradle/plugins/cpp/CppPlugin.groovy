@@ -24,7 +24,6 @@ import org.gradle.plugins.binaries.model.*
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
 import org.gradle.plugins.cpp.internal.CppCompileSpec
 import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
-import org.gradle.util.GUtil
 
 class CppPlugin implements Plugin<ProjectInternal> {
 

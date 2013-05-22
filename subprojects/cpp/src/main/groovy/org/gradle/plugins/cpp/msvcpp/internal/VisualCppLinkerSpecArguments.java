@@ -26,7 +26,6 @@ import java.io.File;
 public class VisualCppLinkerSpecArguments implements CompileSpecToArguments<LinkerSpec> {
 
     public void collectArguments(LinkerSpec spec, ArgCollector collector) {
-        collector.args(spec.getArgs());
         collector.args("/OUT:" + spec.getOutputFile().getAbsolutePath());
         collector.args("/NOLOGO");
         if (spec instanceof LibraryLinkerSpec) {
@@ -38,5 +37,7 @@ public class VisualCppLinkerSpecArguments implements CompileSpecToArguments<Link
         for (File file : spec.getLibs()) {
             collector.args(file.getAbsolutePath().replaceFirst("\\.dll$", ".lib"));
         }
+        // Last arg wins in case of duplicates
+        collector.args(spec.getArgs());
     }
 }
