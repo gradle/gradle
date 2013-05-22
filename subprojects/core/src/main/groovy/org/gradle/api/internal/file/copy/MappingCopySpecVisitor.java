@@ -18,10 +18,7 @@ package org.gradle.api.internal.file.copy;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.file.ContentFilterable;
-import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.*;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
@@ -65,11 +62,13 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
         private RelativePath relativePath;
         private boolean excluded;
         private Integer mode;
+        private DuplicatesStrategy duplicatesStrategy;
 
         public FileVisitDetailsImpl(FileVisitDetails fileDetails, ReadableCopySpec spec, FileSystem fileSystem) {
             this.fileDetails = fileDetails;
             this.spec = spec;
             this.fileSystem = fileSystem;
+            this.duplicatesStrategy = DuplicatesStrategy.INCLUDE;
         }
 
         public String getDisplayName() {
@@ -206,6 +205,14 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
         public ContentFilterable expand(Map<String, ?> properties) {
             filterChain.expand(properties);
             return this;
+        }
+
+        public void setDuplicatesStrategy(String strategy) {
+            this.duplicatesStrategy = DuplicatesStrategy.fromString(strategy);
+        }
+
+        public DuplicatesStrategy getDuplicatesStrategy() {
+            return this.duplicatesStrategy;
         }
     }
 
