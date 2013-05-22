@@ -17,7 +17,12 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import java.util.jar.JarFile
+
 import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
 
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
@@ -159,5 +164,73 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         def expandDir = file('expected')
         jar.unzipTo(expandDir)
         expandDir.assertHasDescendants('dir1/file1.txt', 'dir2/file2.txt', 'META-INF/MANIFEST.MF')
+    }
+
+    def duplicateServicesIncludedOthersExcluded() {
+        createDir('dir1') {
+            'META-INF' {
+                services {
+                    file('org.gradle.Service')
+                }
+            }
+            path {
+                file 'test.txt'
+            }
+        }
+        createDir('dir2') {
+            'META-INF' {
+                services {
+                    file('org.gradle.Service')
+                }
+            }
+            file {
+                file 'test.txt'
+            }
+        }
+
+        file('dir1/META-INF/services/org.gradle.Service').write('org.gradle.DefaultServiceImpl')
+        file('dir2/META-INF/services/org.gradle.Service').write('org.gradle.BetterServiceImpl')
+        file('dir1/test.txt').write('Content of first file')
+        file('dir2/test.txt').write('Content of second file')
+
+
+        given:
+        buildFile << '''
+        task jar(type: Jar) {
+            archiveName = 'test.jar'
+            from 'dir1'
+            from 'dir2'
+            eachFile {
+                it.duplicatesStrategy = it.relativePath.toString().startsWith('META-INF/services/') ? 'include' : 'exclude'
+            }
+        }
+
+        '''
+        when:
+        run 'jar'
+        then:
+
+        def files = []
+        def services = []
+        def other = []
+
+        def jarfile = new JarFile(file('test.jar'))
+        def entries = jarfile.entries()
+        while (entries.hasMoreElements()) {
+            def entry = entries.nextElement()
+            files += entry.name
+            def lines = jarfile.getInputStream(entry).readLines()
+            if (entry.name.endsWith('org.gradle.Service')) {
+                services.addAll(lines)
+            } else {
+                other.addAll(lines)
+            }
+        }
+        jarfile.close();
+
+        assertEquals('Services listed across both files', ['org.gradle.BetterServiceImpl', 'org.gradle.DefaultServiceImpl'], services.sort())
+        assertEquals('Duplicate service files preserved', 2, files.findAll({ it == 'META-INF/services/org.gradle.Service'}).size())
+        assertEquals('Duplicate text files eliminated', 1, files.findAll({it == 'path/test.txt'}).size())
+        assertTrue('Only first duplicate file added', other.contains('Content of first file') && !other.contains('Content of second file'))
     }
 }
