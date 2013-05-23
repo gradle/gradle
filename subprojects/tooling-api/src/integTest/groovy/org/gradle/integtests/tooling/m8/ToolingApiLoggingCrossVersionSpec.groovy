@@ -35,7 +35,7 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
         new ConnectorServices().reset()
     }
 
-    def "logs necessary information when verbose"() {
+    def "client receives same stdout and stderr when verbose as if running from the command-line in debug mode"() {
         toolingApi.verboseLogging = true
 
         file("build.gradle") << """
@@ -73,7 +73,7 @@ project.logger.debug("debug logging yyy");
         shouldNotContainProviderLogging(err)
     }
 
-    def "logs necessary information"() {
+    def "client receives same stdout and stderr as if running from the command-line"() {
         toolingApi.verboseLogging = false
 
         file("build.gradle") << """
@@ -89,10 +89,18 @@ project.logger.info ("info logging yyy");
 project.logger.debug("debug logging yyy");
 """
         when:
+        def commandLineResult = targetDist.executer(temporaryFolder).run();
+
+        and:
         def op = withBuild()
 
         then:
         def out = op.standardOutput
+        def err = op.standardError
+        normaliseOutput(out) == normaliseOutput(commandLineResult.output)
+        err == commandLineResult.error
+
+        and:
         out.count("debug logging yyy") == 0
         out.count("info logging yyy") == 0
         out.count("quiet logging yyy") == 1
@@ -101,18 +109,18 @@ project.logger.debug("debug logging yyy");
         out.count("println logging yyy") == 1
         out.count("error logging xxx") == 0
 
-        shouldNotContainProviderLogging(out)
-
-        def err = op.standardError
+        and:
         err.count("error logging") == 1
         err.count("sys err") == 1
         err.count("logging yyy") == 0
-
-        shouldNotContainProviderLogging(err)
     }
 
     void shouldNotContainProviderLogging(String output) {
         assert !output.contains("Provider implementation created.")
         assert !output.contains("Tooling API uses target gradle version:")
+    }
+
+    String normaliseOutput(String output) {
+        return output.replaceFirst("Total time: .+ secs", "Total time: 0 secs")
     }
 }
