@@ -19,6 +19,9 @@ package org.gradle.plugins.binaries.model;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.plugins.cpp.internal.LinkerSpec;
 
+/**
+ * A set of compilers and linkers that are used together to construct a native binary.
+ */
 public interface ToolChain {
     /**
      * Creates a compiler which can compile the given binary.

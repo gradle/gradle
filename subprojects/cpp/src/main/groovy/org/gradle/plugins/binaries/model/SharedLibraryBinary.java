@@ -15,5 +15,8 @@
  */
 package org.gradle.plugins.binaries.model;
 
+/**
+ * A shared library binary
+ */
 public interface SharedLibraryBinary extends NativeBinary {
 }

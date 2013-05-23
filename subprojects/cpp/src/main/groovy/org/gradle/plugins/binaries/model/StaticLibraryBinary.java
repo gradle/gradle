@@ -16,5 +16,8 @@
 
 package org.gradle.plugins.binaries.model;
 
+/**
+ * A static library binary
+ */
 public interface StaticLibraryBinary extends NativeBinary {
 }

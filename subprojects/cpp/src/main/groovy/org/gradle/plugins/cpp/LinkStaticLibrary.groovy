@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.cpp
 
-import org.gradle.plugins.cpp.gpp.DefaultLinkerSpec
+import org.gradle.plugins.cpp.internal.DefaultLinkerSpec
 import org.gradle.plugins.cpp.internal.LinkerSpec
 
 class LinkStaticLibrary extends AbstractLinkTask {

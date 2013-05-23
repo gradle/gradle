@@ -19,6 +19,9 @@ package org.gradle.plugins.binaries.model;
 import org.gradle.api.Named;
 import org.gradle.internal.Factory;
 
+/**
+ * A wrapper around an actual ToolChain, that takes care of determining if the actual ToolChain is available.
+ */
 public interface ToolChainAdapter extends Factory<ToolChain>, Named {
     /**
      * Returns true if this compiler is available.

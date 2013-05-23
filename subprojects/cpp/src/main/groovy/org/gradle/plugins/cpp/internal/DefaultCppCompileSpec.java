@@ -14,22 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.gpp;
+package org.gradle.plugins.cpp.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.plugins.cpp.internal.LinkerSpec;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public class DefaultLinkerSpec implements LinkerSpec {
+public class DefaultCppCompileSpec implements CppCompileSpec {
 
-    private FileCollection libs;
+    private FileCollection includeRoots;
     private FileCollection source;
     private File outputFile;
-    private String installName;
     private File workDir;
+    private boolean forDynamicLinking;
     private Iterable<Object> args = new ArrayList<Object>();
+
+    public FileCollection getIncludeRoots() {
+        return includeRoots;
+    }
+
+    public void setIncludeRoots(FileCollection includeRoots) {
+        this.includeRoots = includeRoots;
+    }
 
     public FileCollection getSource() {
         return source;
@@ -37,14 +44,6 @@ public class DefaultLinkerSpec implements LinkerSpec {
 
     public void setSource(FileCollection source) {
         this.source = source;
-    }
-
-    public FileCollection getLibs() {
-        return libs;
-    }
-
-    public void setLibs(FileCollection libs) {
-        this.libs = libs;
     }
 
     public File getOutputFile() {
@@ -71,11 +70,11 @@ public class DefaultLinkerSpec implements LinkerSpec {
         return args;
     }
 
-    public String getInstallName() {
-        return installName == null ? getOutputFile().getName() : installName;
+    public boolean isForDynamicLinking() {
+        return forDynamicLinking;
     }
 
-    public void setInstallName(String installName) {
-        this.installName = installName;
+    public void setForDynamicLinking(boolean forDynamicLinking) {
+        this.forDynamicLinking = forDynamicLinking;
     }
 }

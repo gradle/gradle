@@ -18,7 +18,7 @@ package org.gradle.plugins.binaries.model;
 import org.gradle.api.NamedDomainObjectSet;
 
 /**
- * A container for compiler adapters
+ * A container for {@link ToolChainAdapter}s
  */
 public interface ToolChainRegistry extends NamedDomainObjectSet<ToolChainAdapter> {
 

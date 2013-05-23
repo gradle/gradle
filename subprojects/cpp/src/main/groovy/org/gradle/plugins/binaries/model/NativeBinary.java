@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.List;
 
 /**
- * A native binary.
+ * Represents a particular binary artifact that is the result of building a native component.
  */
 public interface NativeBinary extends Binary {
 

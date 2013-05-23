@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Something to be created.
+ * Represents a logical software component, which may be built in a number of variant binaries.
  */
 public interface NativeComponent extends Named, Buildable {
 

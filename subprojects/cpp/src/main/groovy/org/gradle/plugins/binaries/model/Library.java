@@ -18,7 +18,7 @@ package org.gradle.plugins.binaries.model;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
- * A library
+ * A library component
  */
 public interface Library extends NativeComponent {
     SourceDirectorySet getHeaders();

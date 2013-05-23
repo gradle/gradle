@@ -20,6 +20,9 @@ import org.gradle.api.internal.tasks.compile.CompileSpec;
 
 import java.io.File;
 
+/**
+ * A compile spec that will be used to produce a native artifact.
+ */
 public interface BinaryCompileSpec extends CompileSpec {
     File getOutputFile();
 

@@ -22,7 +22,7 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.*
 import org.gradle.plugins.binaries.model.Library
-import org.gradle.plugins.cpp.gpp.DefaultCppCompileSpec
+import org.gradle.plugins.cpp.internal.DefaultCppCompileSpec
 
 import javax.inject.Inject
 
