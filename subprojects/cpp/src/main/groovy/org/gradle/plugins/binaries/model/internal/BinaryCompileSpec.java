@@ -18,5 +18,10 @@ package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 
-public interface BinaryCompileSpec extends org.gradle.plugins.binaries.model.CompileSpec, CompileSpec {
+import java.io.File;
+
+public interface BinaryCompileSpec extends CompileSpec {
+    File getOutputFile();
+
+    void setOutputFile(File outputFile);
 }
