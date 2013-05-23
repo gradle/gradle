@@ -30,4 +30,8 @@ abstract class AbstractBinariesIntegrationSpec extends AbstractIntegrationSpec {
     def TestFile sharedLibrary(Object path) {
         return file(OperatingSystem.current().getSharedLibraryName(path.toString()))
     }
+
+    def TestFile staticLibrary(Object path) {
+        return file(OperatingSystem.current().getStaticLibraryName(path.toString()))
+    }
 }

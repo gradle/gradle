@@ -161,15 +161,20 @@ class CppPluginTest extends Specification {
         project.executables {
             test {
                 compilerArgs "ARG1", "ARG2"
+                linkerArgs "LINK1", "LINK2"
             }
         }
 
         then:
-        def compile = project.tasks['testExecutable']
+        def compile = project.tasks['compileTestExecutable']
         compile instanceof CppCompile
-        compile.outputFile == project.executables.test.outputFile
         compile.compilerArgs == ["ARG1", "ARG2"]
-        compile.outputType == CppCompile.OutputType.EXECUTABLE
+
+        and:
+        def link = project.tasks['testExecutable']
+        link instanceof LinkExecutable
+        link.linkerArgs == ["LINK1", "LINK2"]
+        link.outputFile == project.executables.test.outputFile
 
         and:
         def install = project.tasks['installTestExecutable']
@@ -178,7 +183,7 @@ class CppPluginTest extends Specification {
         install Matchers.dependsOn("testExecutable")
 
         and:
-        project.executables.test.buildDependencies.getDependencies(null) == [compile] as Set
+        project.executables.test.buildDependencies.getDependencies(null) == [link] as Set
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
@@ -246,17 +251,28 @@ class CppPluginTest extends Specification {
         project.libraries {
             test {
                 compilerArgs "ARG1", "ARG2"
+                linkerArgs "LINK1", "LINK2"
             }
         }
 
         then:
-        def compile = project.tasks['testSharedLibrary']
+        def compile = project.tasks['compileTestSharedLibrary']
         compile instanceof CppCompile
-        compile.outputFile == project.libraries.test.outputFile
         compile.compilerArgs == ["ARG1", "ARG2"]
-        compile.outputType == CppCompile.OutputType.SHARED_LIBRARY
 
         and:
-        project.libraries.test.buildDependencies.getDependencies(null) == [compile] as Set
+        def link = project.tasks['testSharedLibrary']
+        link instanceof LinkSharedLibrary
+        link.linkerArgs == ["LINK1", "LINK2"]
+        link.outputFile == project.libraries.test.outputFile
+
+        and:
+        def staticLink = project.tasks['testStaticLibrary']
+        staticLink instanceof LinkStaticLibrary
+        staticLink.linkerArgs == ["LINK1", "LINK2"]
+        staticLink.outputFile == project.binaries.testStaticLibrary.outputFile
+
+        and:
+        project.libraries.test.buildDependencies.getDependencies(null) == [link, staticLink] as Set
     }
 }

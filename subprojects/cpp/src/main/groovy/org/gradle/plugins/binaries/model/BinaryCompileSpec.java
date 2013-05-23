@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.CompileSpec;
+
+import java.io.File;
 
 /**
- * A container for compiler adapters
+ * A compile spec that will be used to produce a native artifact.
  */
-public interface CompilerRegistry extends NamedDomainObjectSet<BinaryCompiler> {
+public interface BinaryCompileSpec extends CompileSpec {
+    File getOutputFile();
 
-    Compiler<BinaryCompileSpec> getDefaultCompiler();
+    void setOutputFile(File outputFile);
+
+    File getWorkDir();
+
+    void setWorkDir(File workDir);
 }

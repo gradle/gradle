@@ -15,11 +15,8 @@
  */
 package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.file.SourceDirectorySet;
-
 /**
- * A library
+ * A shared library binary
  */
 public interface SharedLibraryBinary extends NativeBinary {
-    SourceDirectorySet getHeaders();
 }

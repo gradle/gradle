@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.plugins.binaries.model;
 
-/**
- * A high level interface to the compiler, specifying what is to be compiled and how.
- */
-public interface LibraryCompileSpec {
-    /**
-     * <p>Returns the <i>install name</i> for the library. This is the location where this library will be installed on the target
-     * system, and where clients of this library should look for the library.
-     *
-     * <p>On Linux systems, this corresponds to the <i>soname</i> for the library.</p>
-     */
-    String getInstallName();
+import org.gradle.api.NamedDomainObjectSet;
 
-    void setInstallName(String path);
+/**
+ * A container for {@link ToolChainAdapter}s
+ */
+public interface ToolChainRegistry extends NamedDomainObjectSet<ToolChainAdapter> {
+
+    ToolChain getDefaultToolChain();
 }

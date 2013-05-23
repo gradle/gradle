@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.gpp
-import org.gradle.plugins.binaries.model.LibraryCompileSpec
+package org.gradle.plugins.cpp.msvcpp.internal;
 
-class GppLibraryCompileSpec extends GppCompileSpec implements LibraryCompileSpec {
-    String installName
+import org.gradle.internal.Factory;
+import org.gradle.process.internal.ExecAction;
+
+import java.io.File;
+
+public class VisualCppExecutableLinker extends LinkExeLinker {
+    protected VisualCppExecutableLinker(File executable, Factory<ExecAction> execActionFactory) {
+        super(executable, execActionFactory, false);
+    }
 }

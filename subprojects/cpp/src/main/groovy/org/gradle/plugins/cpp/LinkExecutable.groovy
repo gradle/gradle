@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model.internal;
+package org.gradle.plugins.cpp
 
-import org.gradle.plugins.binaries.model.BinaryCompiler;
+import org.gradle.plugins.cpp.internal.DefaultLinkerSpec
+import org.gradle.plugins.cpp.internal.LinkerSpec
 
-public interface CompilerAdapter<T extends BinaryCompileSpec> extends BinaryCompiler {
-    /**
-     * Creates a compiler which can compile the given binary. Should only be called if {@link #isAvailable()} has returned true.
-     */
-    org.gradle.api.internal.tasks.compile.Compiler<T> createCompiler();
-
-    /**
-     * Returns true if this compiler is available.
-     */
-    boolean isAvailable();
+class LinkExecutable extends AbstractLinkTask {
+    @Override
+    protected LinkerSpec createLinkerSpec() {
+        new DefaultLinkerSpec()
+    }
 }

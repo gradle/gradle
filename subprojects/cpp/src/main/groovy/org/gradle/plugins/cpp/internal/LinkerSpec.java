@@ -14,26 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model;
+package org.gradle.plugins.cpp.internal;
 
-import org.gradle.api.Nullable;
-import org.gradle.language.base.Binary;
-
-import java.io.File;
-import java.util.List;
+import org.gradle.api.file.FileCollection;
+import org.gradle.plugins.binaries.model.BinaryCompileSpec;
 
 /**
- * Represents a particular binary artifact that is the result of building a native component.
+ * A high level interface to the compiler, specifying what is to be compiled and how.
  */
-public interface NativeBinary extends Binary {
+public interface LinkerSpec extends BinaryCompileSpec {
 
-    File getOutputFile();
+    FileCollection getSource();
 
-    NativeComponent getComponent();
+    void setSource(FileCollection source);
 
-    List<Object> getCompilerArgs();
+    FileCollection getLibs();
 
-    List<Object> getLinkerArgs();
+    void setLibs(FileCollection libs);
 
-    String getTaskName(@Nullable String verb);
+    Iterable<Object> getArgs();
+
+    void setArgs(Iterable<Object> args);
+
+    String getInstallName();
+
+    void setInstallName(String path);
+
 }

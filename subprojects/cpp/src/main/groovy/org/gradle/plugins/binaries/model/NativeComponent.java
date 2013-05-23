@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Something to be created.
+ * Represents a logical software component, which may be built in a number of variant binaries.
  */
 public interface NativeComponent extends Named, Buildable {
 
@@ -40,6 +40,10 @@ public interface NativeComponent extends Named, Buildable {
     List<Object> getCompilerArgs();
 
     void compilerArgs(Object... args);
+
+    List<Object> getLinkerArgs();
+
+    void linkerArgs(Object... args);
 
     // TODO:DAZ This should be on NativeBinary together with Buildable (if required at all)
     void builtBy(Object... tasks);

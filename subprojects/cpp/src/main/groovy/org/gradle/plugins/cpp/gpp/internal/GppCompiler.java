@@ -16,16 +16,19 @@
 
 package org.gradle.plugins.cpp.gpp.internal;
 
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
+import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
+import org.gradle.internal.Factory;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
-import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.plugins.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-public class GppCompiler extends CommandLineCppCompiler<GppCompileSpec> {
+public class GppCompiler extends CommandLineCppCompiler<CppCompileSpec> {
 
     public GppCompiler(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
         super(executable, execActionFactory, useCommandFile ? viaCommandFile() : withoutCommandFile());
@@ -35,10 +38,28 @@ public class GppCompiler extends CommandLineCppCompiler<GppCompileSpec> {
         return new GppCompileSpecToArguments();
     }
 
-    private static CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec> viaCommandFile() {
-        return new CommandLineCppCompilerArgumentsToOptionFile<GppCompileSpec>(
+    private static CommandLineCppCompilerArgumentsToOptionFile<CppCompileSpec> viaCommandFile() {
+        return new CommandLineCppCompilerArgumentsToOptionFile<CppCompileSpec>(
             ArgWriter.unixStyleFactory(), new GppCompileSpecToArguments()
         );
     }
 
+    private static class GppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
+        public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
+            collector.args("-c");
+            if (spec.isForDynamicLinking()) {
+                if (!OperatingSystem.current().isWindows()) {
+                    collector.args("-fPIC");
+                }
+            }
+            for (File file : spec.getIncludeRoots()) {
+                collector.args("-I");
+                collector.args(file.getAbsolutePath());
+            }
+            for (File file : spec.getSource()) {
+                collector.args(file.getAbsolutePath());
+            }
+            collector.args(spec.getArgs());
+        }
+    }
 }

@@ -16,24 +16,8 @@
 
 package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.Nullable;
-import org.gradle.language.base.Binary;
-
-import java.io.File;
-import java.util.List;
-
 /**
- * Represents a particular binary artifact that is the result of building a native component.
+ * A static library binary
  */
-public interface NativeBinary extends Binary {
-
-    File getOutputFile();
-
-    NativeComponent getComponent();
-
-    List<Object> getCompilerArgs();
-
-    List<Object> getLinkerArgs();
-
-    String getTaskName(@Nullable String verb);
+public interface StaticLibraryBinary extends NativeBinary {
 }

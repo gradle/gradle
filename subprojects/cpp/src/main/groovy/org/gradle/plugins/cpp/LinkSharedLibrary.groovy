@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model;
+package org.gradle.plugins.cpp
 
-import org.gradle.api.Nullable;
-import org.gradle.language.base.Binary;
+import org.gradle.plugins.cpp.internal.DefaultLinkerSpec
+import org.gradle.plugins.cpp.internal.LinkerSpec
 
-import java.io.File;
-import java.util.List;
-
-/**
- * Represents a particular binary artifact that is the result of building a native component.
- */
-public interface NativeBinary extends Binary {
-
-    File getOutputFile();
-
-    NativeComponent getComponent();
-
-    List<Object> getCompilerArgs();
-
-    List<Object> getLinkerArgs();
-
-    String getTaskName(@Nullable String verb);
+class LinkSharedLibrary extends AbstractLinkTask {
+    @Override
+    protected LinkerSpec createLinkerSpec() {
+        new DefaultLinkerSpec()
+    }
 }

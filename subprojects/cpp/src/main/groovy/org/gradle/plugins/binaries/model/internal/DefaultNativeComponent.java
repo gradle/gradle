@@ -37,6 +37,7 @@ public class DefaultNativeComponent implements NativeComponent {
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private String baseName;
     private List<Object> compilerArgs = new ArrayList<Object>();
+    private List<Object> linkerArgs = new ArrayList<Object>();
 
     public DefaultNativeComponent(String name, Project project) {
         this.name = name;
@@ -82,5 +83,13 @@ public class DefaultNativeComponent implements NativeComponent {
 
     public void compilerArgs(Object... args) {
         Collections.addAll(this.compilerArgs, args);
+    }
+
+    public List<Object> getLinkerArgs() {
+        return linkerArgs;
+    }
+
+    public void linkerArgs(Object... args) {
+        Collections.addAll(this.linkerArgs, args);
     }
 }

@@ -17,9 +17,7 @@
 package org.gradle.plugins.cpp.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
-
-import java.io.File;
+import org.gradle.plugins.binaries.model.BinaryCompileSpec;
 
 public interface CppCompileSpec extends BinaryCompileSpec {
 
@@ -27,17 +25,13 @@ public interface CppCompileSpec extends BinaryCompileSpec {
 
     void setIncludeRoots(FileCollection includeRoots);
 
-    FileCollection getLibs();
-
-    void setLibs(FileCollection libs);
-
     FileCollection getSource();
 
     void setSource(FileCollection source);
 
-    File getWorkDir();
+    boolean isForDynamicLinking();
 
-    void setWorkDir(File workDir);
+    void setForDynamicLinking(boolean flag);
 
     Iterable<Object> getArgs();
 

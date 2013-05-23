@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model;
+package org.gradle.plugins.cpp.gpp.internal;
 
-import org.gradle.api.Nullable;
-import org.gradle.language.base.Binary;
+import org.gradle.internal.Factory;
+import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
-import java.util.List;
 
-/**
- * Represents a particular binary artifact that is the result of building a native component.
- */
-public interface NativeBinary extends Binary {
-
-    File getOutputFile();
-
-    NativeComponent getComponent();
-
-    List<Object> getCompilerArgs();
-
-    List<Object> getLinkerArgs();
-
-    String getTaskName(@Nullable String verb);
+public class GppExecutableLinker extends GppLinker {
+    public GppExecutableLinker(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
+        super(executable, execActionFactory, useCommandFile, false);
+    }
 }

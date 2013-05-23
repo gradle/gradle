@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.Named;
+package org.gradle.plugins.cpp.msvcpp.internal;
 
-/**
- * A kind of compiler
- */
-public interface BinaryCompiler extends Named {
+import org.gradle.internal.Factory;
+import org.gradle.process.internal.ExecAction;
+
+import java.io.File;
+
+public class VisualCppDynamicLibraryLinker extends LinkExeLinker {
+    protected VisualCppDynamicLibraryLinker(File executable, Factory<ExecAction> execActionFactory) {
+        super(executable, execActionFactory, true);
+    }
 }

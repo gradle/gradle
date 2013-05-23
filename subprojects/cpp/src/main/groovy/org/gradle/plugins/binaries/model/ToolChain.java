@@ -16,24 +16,17 @@
 
 package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.Nullable;
-import org.gradle.language.base.Binary;
-
-import java.io.File;
-import java.util.List;
+import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.plugins.cpp.internal.LinkerSpec;
 
 /**
- * Represents a particular binary artifact that is the result of building a native component.
+ * A set of compilers and linkers that are used together to construct a native binary.
  */
-public interface NativeBinary extends Binary {
+public interface ToolChain {
+    /**
+     * Creates a compiler which can compile the given binary.
+     */
+    <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType);
 
-    File getOutputFile();
-
-    NativeComponent getComponent();
-
-    List<Object> getCompilerArgs();
-
-    List<Object> getLinkerArgs();
-
-    String getTaskName(@Nullable String verb);
+    Compiler<? super LinkerSpec> createLinker(NativeBinary forOutput);
 }

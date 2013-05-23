@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,15 @@
 
 package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.Nullable;
-import org.gradle.language.base.Binary;
-
-import java.io.File;
-import java.util.List;
+import org.gradle.api.Named;
+import org.gradle.internal.Factory;
 
 /**
- * Represents a particular binary artifact that is the result of building a native component.
+ * A wrapper around an actual ToolChain, that takes care of determining if the actual ToolChain is available.
  */
-public interface NativeBinary extends Binary {
-
-    File getOutputFile();
-
-    NativeComponent getComponent();
-
-    List<Object> getCompilerArgs();
-
-    List<Object> getLinkerArgs();
-
-    String getTaskName(@Nullable String verb);
+public interface ToolChainAdapter extends Factory<ToolChain>, Named {
+    /**
+     * Returns true if this compiler is available.
+     */
+    boolean isAvailable();
 }

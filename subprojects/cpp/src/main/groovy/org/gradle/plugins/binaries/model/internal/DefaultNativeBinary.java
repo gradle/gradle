@@ -16,8 +16,11 @@
 
 package org.gradle.plugins.binaries.model.internal;
 
+import org.gradle.api.Nullable;
+import org.gradle.language.base.internal.TaskNamerForBinaries;
 import org.gradle.plugins.binaries.model.*;
 
+import java.io.File;
 import java.util.List;
 
 public abstract class DefaultNativeBinary implements NativeBinary {
@@ -27,13 +30,26 @@ public abstract class DefaultNativeBinary implements NativeBinary {
         this.component = component;
     }
 
+    // TODO:DAZ output file should not be on NativeComponent at all, should only be on NativeBinary
+    // Will need a way to choose the correct library binary to link into an executable binary
+    public File getOutputFile() {
+        return component.getOutputFile();
+    }
+
     public NativeComponent getComponent() {
         return component;
     }
 
-    // TODO:DAZ Allow args to be overridden on a per-binary basis
-    // Note that the args collection is not copied, but is wired directly into the compile task (not good)
+    // TODO:DAZ Allow compiler and linker args to be overridden on a per-binary basis
     public List<Object> getCompilerArgs() {
         return component.getCompilerArgs();
+    }
+
+    public List<Object> getLinkerArgs() {
+        return component.getLinkerArgs();
+    }
+
+    public String getTaskName(@Nullable String verb) {
+        return new TaskNamerForBinaries(getName()).getTaskName(verb, null);
     }
 }

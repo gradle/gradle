@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.gpp;
+package org.gradle.plugins.cpp.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.plugins.cpp.internal.CppCompileSpec;
 
 import java.io.File;
 import java.util.ArrayList;
 
-/**
- * Stuff extracted out of GppCompileSpec that performs as a regular compile spec value object.
- * Values in here are set by the CompileTask: eventually everything should be in here.
- */
-public class GppCompileSpec implements CppCompileSpec {
+public class DefaultCppCompileSpec implements CppCompileSpec {
 
-    private FileCollection libs;
     private FileCollection includeRoots;
     private FileCollection source;
     private File outputFile;
     private File workDir;
+    private boolean forDynamicLinking;
     private Iterable<Object> args = new ArrayList<Object>();
 
     public FileCollection getIncludeRoots() {
@@ -41,14 +36,6 @@ public class GppCompileSpec implements CppCompileSpec {
 
     public void setIncludeRoots(FileCollection includeRoots) {
         this.includeRoots = includeRoots;
-    }
-
-    public FileCollection getLibs() {
-        return libs;
-    }
-
-    public void setLibs(FileCollection libs) {
-        this.libs = libs;
     }
 
     public FileCollection getSource() {
@@ -81,5 +68,13 @@ public class GppCompileSpec implements CppCompileSpec {
 
     public Iterable<Object> getArgs() {
         return args;
+    }
+
+    public boolean isForDynamicLinking() {
+        return forDynamicLinking;
+    }
+
+    public void setForDynamicLinking(boolean forDynamicLinking) {
+        this.forDynamicLinking = forDynamicLinking;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model.internal;
+package org.gradle.plugins.cpp
 
-import org.gradle.api.internal.tasks.compile.CompileSpec;
+import org.gradle.plugins.cpp.internal.DefaultLinkerSpec
+import org.gradle.plugins.cpp.internal.LinkerSpec
 
-import java.io.File;
-
-public interface BinaryCompileSpec extends CompileSpec {
-    File getOutputFile();
-
-    void setOutputFile(File outputFile);
+class LinkStaticLibrary extends AbstractLinkTask {
+    @Override
+    protected LinkerSpec createLinkerSpec() {
+        new DefaultLinkerSpec()
+    }
 }
