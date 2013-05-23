@@ -25,7 +25,6 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
 
         then:
         binary.name == 'mainClasses'
-        binary.taskBaseName == ''
 
         and:
         binary.getTaskName(null, null) == 'main'
@@ -40,7 +39,6 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
 
         then:
         binary.name == 'otherClasses'
-        binary.taskBaseName == 'other'
 
         and:
         binary.getTaskName(null, null) == 'other'
@@ -55,12 +53,23 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
 
         then:
         binary.name == 'otherBinary'
-        binary.taskBaseName == 'otherBinary'
 
         and:
         binary.getTaskName(null, null) == 'otherBinary'
         binary.getTaskName("compile", null) == 'compileOtherBinary'
         binary.getTaskName(null, "groovy") == 'otherBinaryGroovy'
         binary.getTaskName("compile", "groovy") == 'compileOtherBinaryGroovy'
+    }
+
+    def "has a useful toString() representation"() {
+        expect:
+        def binary = new DefaultClassDirectoryBinary(name)
+        binary.toString() == displayName
+
+        where:
+        name           | displayName
+        'mainClasses'  | 'classes \'main\''
+        'otherClasses' | 'classes \'other\''
+        'custom'       | 'classes \'custom\''
     }
 }

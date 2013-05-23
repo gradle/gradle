@@ -52,7 +52,7 @@ class JvmLanguagePluginTest extends Specification {
         binary.classesDir == new File("$project.buildDir/classes/prod")
         def task = project.tasks.findByName("prodClasses")
         task != null
-        task.description == "Assembles binary 'prod'."
+        task.description == "Assembles classes 'prod'."
     }
 
     def "adds a 'processResources' task for every ResourceSet added to a ClassDirectoryBinary"() {
@@ -79,7 +79,7 @@ class JvmLanguagePluginTest extends Specification {
         binary.classesDir == new File("$project.buildDir/classes/foo")
         def task = project.tasks.findByName("fooClasses")
         task != null
-        task.description == "Assembles binary 'fooClasses'."
+        task.description == "Assembles classes 'foo'."
 
         and:
         def resourcesTask = project.tasks.findByName("processFooResources")

@@ -87,7 +87,7 @@ class JavaBasePluginTest extends Specification {
         sources sameCollection(project.sourceSets.custom.java)
 
         def classes = project.tasks['customClasses']
-        classes.description == "Assembles binary 'customClasses'."
+        classes.description == "Assembles classes 'custom'."
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
         classes.dependsOn.contains project.sourceSets.custom.output.dirs
