@@ -21,6 +21,7 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.internal.reflect.Instantiator;
@@ -28,9 +29,12 @@ import org.gradle.language.base.BinariesContainer;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.plugins.binaries.model.Executable;
 import org.gradle.plugins.binaries.model.Library;
+import org.gradle.plugins.binaries.model.NativeBinary;
 import org.gradle.plugins.binaries.model.internal.*;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * temp plugin, not sure what will provide the binaries container and model elements
@@ -63,7 +67,7 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
 
         executables.all(new Action<Executable>() {
             public void execute(Executable executable) {
-                binaries.add(instantiator.newInstance(DefaultExecutableBinary.class, executable));
+                binaries.add(setupDefaults(project, instantiator.newInstance(DefaultExecutableBinary.class, executable)));
             }
         });
 
@@ -76,10 +80,19 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
 
         libraries.all(new Action<Library>() {
             public void execute(Library library) {
-                binaries.add(instantiator.newInstance(DefaultSharedLibraryBinary.class, library));
-                binaries.add(instantiator.newInstance(DefaultStaticLibraryBinary.class, library));
+                binaries.add(setupDefaults(project, instantiator.newInstance(DefaultSharedLibraryBinary.class, library)));
+                binaries.add(setupDefaults(project, instantiator.newInstance(DefaultStaticLibraryBinary.class, library)));
             }
         });
+    }
+
+    private NativeBinary setupDefaults(final ProjectInternal project, final NativeBinary nativeBinary) {
+        new DslObject(nativeBinary).getConventionMapping().map("outputFile", new Callable<File>() {
+            public File call() throws Exception {
+                return new File(project.getBuildDir(), "binaries/" + nativeBinary.getOutputFileName());
+            }
+        });
+        return nativeBinary;
     }
 
 }

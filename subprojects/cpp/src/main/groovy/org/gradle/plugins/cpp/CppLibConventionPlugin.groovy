@@ -51,8 +51,8 @@ class CppLibConventionPlugin implements Plugin<Project> {
                 null, // date
 
                 // needs to be more general and not peer into the spec
-                libraries.main.outputFile,
-                libraries.main
+                binaries.mainSharedLibrary.outputFile,
+                binaries.mainSharedLibrary
             )
 
             task("assembleHeaders", type: Zip) {

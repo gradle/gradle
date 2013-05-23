@@ -16,16 +16,11 @@
 package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Project;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.NativeComponent;
 import org.gradle.plugins.binaries.model.SourceSet;
 import org.gradle.util.GUtil;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,28 +28,17 @@ import java.util.List;
 public class DefaultNativeComponent implements NativeComponent {
     private final String name;
     private final DomainObjectSet<SourceSet> sourceSets;
-    private final Project project;
-    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private String baseName;
     private List<Object> compilerArgs = new ArrayList<Object>();
     private List<Object> linkerArgs = new ArrayList<Object>();
 
-    public DefaultNativeComponent(String name, Project project) {
+    public DefaultNativeComponent(String name) {
         this.name = name;
         this.sourceSets = new DefaultDomainObjectSet<SourceSet>(SourceSet.class);
-        this.project = project;
     }
 
     public String getName() {
         return name;
-    }
-
-    public void builtBy(Object... tasks) {
-        buildDependencies.add(tasks);
-    }
-
-    public TaskDependency getBuildDependencies() {
-        return buildDependencies;
     }
 
     public DomainObjectSet<SourceSet> getSourceSets() {
@@ -63,14 +47,6 @@ public class DefaultNativeComponent implements NativeComponent {
 
     public String getBaseName() {
         return GUtil.elvis(baseName, name);
-    }
-
-    public String getOutputFileName() {
-        return OperatingSystem.current().getExecutableName(getBaseName());
-    }
-
-    public File getOutputFile() {
-        return new File(project.getBuildDir(), "binaries/" + getOutputFileName());
     }
 
     public void setBaseName(String baseName) {

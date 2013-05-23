@@ -93,11 +93,13 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         linkTask.source project.fileTree(compileTask.objectFileDir)
 
+        binary.libs.all { LibraryBinary lib ->
+            linkTask.dependsOn lib
+            linkTask.lib lib.outputFile
+        }
+
         // TODO:DAZ Move this logic into NativeBinary
         binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
-            linkTask.lib project.files({sourceSet.libs*.outputFile})
-            linkTask.dependsOn sourceSet.libs
-
             sourceSet.nativeDependencySets.all { NativeDependencySet nativeDependencySet ->
                 linkTask.lib nativeDependencySet.files
             }
@@ -106,7 +108,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         linkTask.conventionMapping.outputFile = { binary.outputFile }
         linkTask.conventionMapping.linkerArgs = { binary.linkerArgs }
 
-        binary.component.builtBy(linkTask)
+        binary.builtBy(linkTask)
         linkTask
     }
 
@@ -126,21 +128,21 @@ class CppPlugin implements Plugin<ProjectInternal> {
             into { project.file("${project.buildDir}/install/$executable.name") }
             dependsOn linkTask
             if (OperatingSystem.current().windows) {
-                from { executable.component.outputFile }
-                from { executable.component.sourceSets*.libs*.outputFile }
+                from { executable.outputFile }
+                from { executable.libs*.outputFile }
             } else {
                 into("lib") {
-                    from { executable.component.outputFile }
-                    from { executable.component.sourceSets*.libs*.outputFile }
+                    from { executable.outputFile }
+                    from { executable.libs*.outputFile }
                 }
                 doLast {
-                    def script = new File(destinationDir, executable.component.outputFile.name)
+                    def script = new File(destinationDir, executable.outputFile.name)
                     script.text = """
 #/bin/sh
 APP_BASE_NAME=`dirname "\$0"`
 export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
 export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
-exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
+exec "\$APP_BASE_NAME/lib/${executable.outputFile.name}" \"\$@\"
                     """
                     ant.chmod(perm: 'u+x', file: script)
                 }

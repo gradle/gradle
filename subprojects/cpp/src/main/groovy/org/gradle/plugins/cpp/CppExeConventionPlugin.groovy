@@ -49,8 +49,8 @@ class CppExeConventionPlugin implements Plugin<Project> {
                 null, // date
 
                 // needs to be more general and not peer into the spec
-                executables.main.outputFile,
-                executables.main
+                binaries.mainExecutable.outputFile,
+                binaries.mainExecutable
             )
 
             extensions.getByType(DefaultArtifactPublicationSet).addCandidate(exeArtifact)

@@ -16,40 +16,53 @@
 
 package org.gradle.plugins.binaries.model.internal;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.internal.TaskNamerForBinaries;
-import org.gradle.plugins.binaries.model.*;
+import org.gradle.plugins.binaries.model.LibraryBinary;
+import org.gradle.plugins.binaries.model.NativeBinary;
 
 import java.io.File;
 import java.util.List;
 
 public abstract class DefaultNativeBinary implements NativeBinary {
-    private final NativeComponent component;
+    private final DomainObjectSet<LibraryBinary> libs = new DefaultDomainObjectSet<LibraryBinary>(LibraryBinary.class);
+    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+    private File outputFile;
 
-    public DefaultNativeBinary(NativeComponent component) {
-        this.component = component;
-    }
-
-    // TODO:DAZ output file should not be on NativeComponent at all, should only be on NativeBinary
-    // Will need a way to choose the correct library binary to link into an executable binary
     public File getOutputFile() {
-        return component.getOutputFile();
+        return outputFile;
     }
 
-    public NativeComponent getComponent() {
-        return component;
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
     }
 
     // TODO:DAZ Allow compiler and linker args to be overridden on a per-binary basis
     public List<Object> getCompilerArgs() {
-        return component.getCompilerArgs();
+        return getComponent().getCompilerArgs();
     }
 
     public List<Object> getLinkerArgs() {
-        return component.getLinkerArgs();
+        return getComponent().getLinkerArgs();
     }
 
     public String getTaskName(@Nullable String verb) {
         return new TaskNamerForBinaries(getName()).getTaskName(verb, null);
+    }
+
+    public DomainObjectSet<LibraryBinary> getLibs() {
+        return libs;
+    }
+
+    public void builtBy(Object... tasks) {
+        buildDependencies.add(tasks);
+    }
+
+    public TaskDependency getBuildDependencies() {
+        return buildDependencies;
     }
 }

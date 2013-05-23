@@ -22,5 +22,5 @@ import org.gradle.api.Incubating;
  * A static library binary
  */
 @Incubating
-public interface StaticLibraryBinary extends NativeBinary {
+public interface StaticLibraryBinary extends LibraryBinary {
 }

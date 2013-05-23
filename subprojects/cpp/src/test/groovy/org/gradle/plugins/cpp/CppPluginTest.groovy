@@ -17,6 +17,7 @@
 package org.gradle.plugins.cpp
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.tasks.Sync
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import org.gradle.util.Requires
@@ -115,42 +116,26 @@ class CppPluginTest extends Specification {
         ss2.exportedHeaders.srcDirs*.name == ["headers", "h3"]
     }
 
-    @Requires(TestPrecondition.UNIX)
-    def "creates domain objects for executable on unix"() {
+    def "creates domain objects for executable"() {
         given:
         project.plugins.apply(CppPlugin)
 
         when:
         project.executables {
-            test
+            test {
+                compilerArgs "ARG1", "ARG2"
+                linkerArgs "LINK1", "LINK2"
+            }
         }
 
         then:
         def executable = project.executables.test
-        executable.outputFile == project.file("build/binaries/test")
+        executable.compilerArgs == ["ARG1", "ARG2"]
 
         and:
         def executableBinary = project.binaries.testExecutable
         executableBinary.component == executable
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "creates domain objects for executable on windows"() {
-        given:
-        project.plugins.apply(CppPlugin)
-
-        when:
-        project.executables {
-            test
-        }
-
-        then:
-        def executable = project.executables.test
-        executable.outputFile == project.file("build/binaries/test.exe")
-
-        and:
-        def executableBinary = project.binaries.testExecutable
-        executableBinary.component == executable
+        executableBinary.outputFile == project.file("build/binaries/${OperatingSystem.current().getExecutableName('test')}")
     }
 
     def "creates tasks for each executable"() {
@@ -174,7 +159,7 @@ class CppPluginTest extends Specification {
         def link = project.tasks['testExecutable']
         link instanceof LinkExecutable
         link.linkerArgs == ["LINK1", "LINK2"]
-        link.outputFile == project.executables.test.outputFile
+        link.outputFile == project.binaries.testExecutable.outputFile
 
         and:
         def install = project.tasks['installTestExecutable']
@@ -183,11 +168,10 @@ class CppPluginTest extends Specification {
         install Matchers.dependsOn("testExecutable")
 
         and:
-        project.executables.test.buildDependencies.getDependencies(null) == [link] as Set
+        project.binaries.testExecutable.buildDependencies.getDependencies(null) == [link] as Set
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
-    def "creates domain objects for library on os x"() {
+    def "creates domain objects for library"() {
         given:
         project.plugins.apply(CppPlugin)
 
@@ -197,50 +181,17 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        def library = project.libraries.test
-        library.outputFile == project.file("build/binaries/libtest.dylib")
+        final sharedLibName = OperatingSystem.current().getSharedLibraryName("test")
+        final staticLibName = OperatingSystem.current().getStaticLibraryName("test")
+
+        def sharedLibraryBinary = project.binaries.testSharedLibrary
+        sharedLibraryBinary.outputFile == project.file("build/binaries/$sharedLibName")
+        sharedLibraryBinary.component == project.libraries.test
 
         and:
-        def sharedLibraryBinary = project.binaries.testSharedLibrary
-        sharedLibraryBinary.component == library
-    }
-
-    @Requires(TestPrecondition.LINUX)
-    def "creates domain objects for library on linux"() {
-        given:
-        project.plugins.apply(CppPlugin)
-
-        when:
-        project.libraries {
-            test
-        }
-
-        then:
-        def library = project.libraries.test
-        library.outputFile == project.file("build/binaries/libtest.so")
-
-        and:
-        def sharedLibraryBinary = project.binaries.testSharedLibrary
-        sharedLibraryBinary.component == library
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "creates domain objects for library on windows"() {
-        given:
-        project.plugins.apply(CppPlugin)
-
-        when:
-        project.libraries {
-            test
-        }
-
-        then:
-        def library = project.libraries.test
-        library.outputFile == project.file("build/binaries/test.dll")
-
-        and:
-        def sharedLibraryBinary = project.binaries.testSharedLibrary
-        sharedLibraryBinary.component == library
+        def staticLibraryBinary = project.binaries.testStaticLibrary
+        staticLibraryBinary.outputFile == project.file("build/binaries/$staticLibName")
+        staticLibraryBinary.component == project.libraries.test
     }
 
     def "creates tasks for each library"() {
@@ -264,7 +215,7 @@ class CppPluginTest extends Specification {
         def link = project.tasks['testSharedLibrary']
         link instanceof LinkSharedLibrary
         link.linkerArgs == ["LINK1", "LINK2"]
-        link.outputFile == project.libraries.test.outputFile
+        link.outputFile == project.binaries.testSharedLibrary.outputFile
 
         and:
         def staticLink = project.tasks['testStaticLibrary']
@@ -273,6 +224,7 @@ class CppPluginTest extends Specification {
         staticLink.outputFile == project.binaries.testStaticLibrary.outputFile
 
         and:
-        project.libraries.test.buildDependencies.getDependencies(null) == [link, staticLink] as Set
+        project.binaries.testSharedLibrary.buildDependencies.getDependencies(null) == [link] as Set
+        project.binaries.testStaticLibrary.buildDependencies.getDependencies(null) == [staticLink] as Set
     }
 }

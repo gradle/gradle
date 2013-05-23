@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.api.Project;
-import org.gradle.plugins.binaries.model.Executable;
+package org.gradle.plugins.binaries.model;
 
-public class DefaultExecutable extends DefaultNativeComponent implements Executable {
-    public DefaultExecutable(String name, Project project) {
-        super(name);
-    }
+import org.gradle.api.Incubating;
 
-    @Override
-    public String toString() {
-        return String.format("executable '%s'", getName());
-    }
+/**
+ * A Native Binary that is a physical representation of a Library component.
+ */
+@Incubating
+public interface LibraryBinary extends NativeBinary {
+    Library getComponent();
 }

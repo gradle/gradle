@@ -25,6 +25,7 @@ import org.gradle.plugins.binaries.model.*
  * Exposes a more logical view of the actual .cproject descriptor file
  */
 @Incubating
+// TODO:DAZ I'm sure this is now broken
 class CprojectSettings {
 
     NativeComponent binary

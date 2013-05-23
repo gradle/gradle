@@ -5,13 +5,9 @@ project(":lib") {
 
 project(":exe") {
     apply plugin: "cpp-exe"
-    cpp {
-        sourceSets {
-            main {
-                libs << project(":lib").libraries.main
-            }
-        }
-    }
+
+    cpp.sourceSets.main.libs << project(":lib").libraries.main
+    binaries.mainExecutable.libs << project(":lib").binaries.mainSharedLibrary
 }
 // END SNIPPET project-dependencies
 

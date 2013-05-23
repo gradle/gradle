@@ -22,5 +22,5 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ExecutableBinary extends NativeBinary {
-    
+    Executable getComponent();
 }

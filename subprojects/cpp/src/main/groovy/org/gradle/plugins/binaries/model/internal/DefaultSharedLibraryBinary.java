@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.binaries.model.internal;
 
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.Library;
 import org.gradle.plugins.binaries.model.SharedLibraryBinary;
 
@@ -23,11 +24,18 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
     private final Library library;
 
     public DefaultSharedLibraryBinary(Library library) {
-        super(library);
         this.library = library;
+    }
+
+    public Library getComponent() {
+        return library;
     }
 
     public String getName() {
         return library.getName() + "SharedLibrary";
+    }
+
+    public String getOutputFileName() {
+        return OperatingSystem.current().getSharedLibraryName(getComponent().getBaseName());
     }
 }

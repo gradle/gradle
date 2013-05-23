@@ -20,24 +20,22 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.Library;
 import org.gradle.plugins.binaries.model.StaticLibraryBinary;
 
-import java.io.File;
-
 public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements StaticLibraryBinary {
     private final Library library;
 
     public DefaultStaticLibraryBinary(Library library) {
-        super(library);
         this.library = library;
+    }
+
+    public Library getComponent() {
+        return library;
     }
 
     public String getName() {
         return library.getName() + "StaticLibrary";
     }
 
-    @Override
-    public File getOutputFile() {
-        File baseDir = super.getOutputFile().getParentFile();
-        String fileName = OperatingSystem.current().getStaticLibraryName(getComponent().getBaseName());
-        return new File(baseDir, fileName);
+    public String getOutputFileName() {
+        return OperatingSystem.current().getStaticLibraryName(getComponent().getBaseName());
     }
 }

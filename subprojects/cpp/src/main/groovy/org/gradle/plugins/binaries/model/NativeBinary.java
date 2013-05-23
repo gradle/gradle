@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Buildable;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.language.base.Binary;
@@ -27,7 +29,10 @@ import java.util.List;
  * Represents a particular binary artifact that is the result of building a native component.
  */
 @Incubating
-public interface NativeBinary extends Binary {
+public interface NativeBinary extends Binary, Buildable {
+
+    // TODO:DAZ Remove this?
+    String getOutputFileName();
 
     File getOutputFile();
 
@@ -38,4 +43,8 @@ public interface NativeBinary extends Binary {
     List<Object> getLinkerArgs();
 
     String getTaskName(@Nullable String verb);
+
+    DomainObjectSet<LibraryBinary> getLibs();
+
+    void builtBy(Object... tasks);
 }

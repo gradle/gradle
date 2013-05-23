@@ -220,6 +220,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
                 }
             }
             cpp.sourceSets.main.libs << libraries.hello
+            binaries.mainExecutable.libs << binaries.helloSharedLibrary
         """
         settingsFile << "rootProject.name = 'test'"
 
@@ -261,6 +262,72 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
 
         then:
         sharedLibrary("build/binaries/hello").isFile()
+        executable("build/binaries/test").isFile()
+
+        executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD
+        executable("build/install/mainExecutable/test").exec("a", "1 2 3").out.contains("[a][1 2 3]")
+
+        // Ensure installed binary is not dependent on the libraries in their original locations
+        when:
+        file("build/binaries").deleteDir()
+
+        then:
+        executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD
+    }
+
+    def "build, install and execute program with static library"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp-exe"
+
+            cpp {
+                sourceSets {
+                    hello {}
+                }
+            }
+            libraries {
+                hello {
+                    sourceSets << cpp.sourceSets.hello
+                }
+            }
+            cpp.sourceSets.main.libs << libraries.hello
+            binaries.mainExecutable.libs << binaries.helloStaticLibrary
+        """
+        settingsFile << "rootProject.name = 'test'"
+
+        and:
+        file("src/hello/cpp/hello.cpp") << """
+            #include <iostream>
+
+            void hello(const char* str) {
+              std::cout << str;
+            }
+        """
+
+        and:
+        file("src/hello/headers/hello.h") << """
+            void hello(const char* str);
+        """
+
+        and:
+        file("src/main/cpp/main.cpp") << """
+            #include <iostream>
+            #include "hello.h"
+
+            int main (int argc, char** argv) {
+              hello("${escapeString(HELLO_WORLD)}");
+              for ( int i = 1; i < argc; i++ ) {
+                std::cout << "[" << argv[i] << "]";
+              }
+              return 0;
+            }
+        """
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        staticLibrary("build/binaries/hello").isFile()
         executable("build/binaries/test").isFile()
 
         executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD

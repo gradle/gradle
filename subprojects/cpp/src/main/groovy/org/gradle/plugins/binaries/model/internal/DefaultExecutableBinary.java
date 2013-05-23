@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.binaries.model.internal;
 
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.Executable;
 import org.gradle.plugins.binaries.model.ExecutableBinary;
 
@@ -23,11 +24,18 @@ public class DefaultExecutableBinary extends DefaultNativeBinary implements Exec
     private final Executable executable;
 
     public DefaultExecutableBinary(Executable executable) {
-        super(executable);
         this.executable = executable;
+    }
+
+    public Executable getComponent() {
+        return executable;
     }
 
     public String getName() {
         return executable.getName() + "Executable";
+    }
+
+    public String getOutputFileName() {
+        return OperatingSystem.current().getExecutableName(getComponent().getBaseName());
     }
 }
