@@ -15,9 +15,12 @@
  */
 package org.gradle.plugins.cpp
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.escapeString
 
+@Requires(TestPrecondition.NOT_WINDOWS)
 class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
@@ -85,6 +88,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
             }
 """
 
+        executer.withArgument("--info")
         run "mainExecutable"
 
         then:
@@ -126,7 +130,6 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         sourceFile << """
             // Only a comment change, nothing more
 """
-        executer.withArgument("--info")
         run "mainExecutable"
 
         then:

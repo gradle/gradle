@@ -15,8 +15,12 @@
  */
 package org.gradle.plugins.cpp
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+
 import static org.gradle.util.TextUtil.escapeString
 
+@Requires(TestPrecondition.NOT_WINDOWS)
 class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
