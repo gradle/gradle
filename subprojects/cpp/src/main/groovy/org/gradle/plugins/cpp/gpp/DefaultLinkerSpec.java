@@ -27,6 +27,7 @@ public class DefaultLinkerSpec implements LinkerSpec {
     private FileCollection libs;
     private FileCollection objectFiles;
     private File outputFile;
+    private String installName;
     private File workDir;
     private Iterable<Object> args = new ArrayList<Object>();
 
@@ -68,5 +69,13 @@ public class DefaultLinkerSpec implements LinkerSpec {
 
     public Iterable<Object> getArgs() {
         return args;
+    }
+
+    public String getInstallName() {
+        return installName == null ? getOutputFile().getName() : installName;
+    }
+
+    public void setInstallName(String installName) {
+        this.installName = installName;
     }
 }

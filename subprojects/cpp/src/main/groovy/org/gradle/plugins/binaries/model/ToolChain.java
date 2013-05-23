@@ -17,6 +17,7 @@
 package org.gradle.plugins.binaries.model;
 
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.plugins.cpp.internal.LinkerSpec;
 
 public interface ToolChain {
     /**
@@ -24,5 +25,5 @@ public interface ToolChain {
      */
     <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType);
 
-    <T extends BinaryCompileSpec> Compiler<T> createLinker();
+    Compiler<? super LinkerSpec> createLinker(NativeBinary forOutput);
 }

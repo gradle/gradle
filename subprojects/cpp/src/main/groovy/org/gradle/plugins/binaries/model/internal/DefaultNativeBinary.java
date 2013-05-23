@@ -20,6 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.language.base.internal.TaskNamerForBinaries;
 import org.gradle.plugins.binaries.model.*;
 
+import java.io.File;
 import java.util.List;
 
 public abstract class DefaultNativeBinary implements NativeBinary {
@@ -27,6 +28,12 @@ public abstract class DefaultNativeBinary implements NativeBinary {
 
     public DefaultNativeBinary(NativeComponent component) {
         this.component = component;
+    }
+
+    // TODO:DAZ output file should not be on NativeComponent at all, should only be on NativeBinary
+    // Will need a way to choose the correct library binary to link into an executable binary
+    public File getOutputFile() {
+        return component.getOutputFile();
     }
 
     public NativeComponent getComponent() {

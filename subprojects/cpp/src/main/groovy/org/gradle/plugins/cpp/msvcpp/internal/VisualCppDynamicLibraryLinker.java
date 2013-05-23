@@ -16,21 +16,13 @@
 
 package org.gradle.plugins.cpp.msvcpp.internal;
 
-import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.internal.Factory;
-import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
-import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
-import org.gradle.plugins.cpp.internal.LinkerSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-class VisualCppLinker extends CommandLineCppCompiler<LinkerSpec> {
-
-    VisualCppLinker(File executable, Factory<ExecAction> execActionFactory) {
-        super(executable, execActionFactory, new CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec>(
-                ArgWriter.windowsStyleFactory(), new VisualCppLinkerSpecArguments()
-        ));
+public class VisualCppDynamicLibraryLinker extends LinkExeLinker {
+    protected VisualCppDynamicLibraryLinker(File executable, Factory<ExecAction> execActionFactory) {
+        super(executable, execActionFactory, true);
     }
-
 }

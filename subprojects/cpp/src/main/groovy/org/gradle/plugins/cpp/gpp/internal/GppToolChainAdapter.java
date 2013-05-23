@@ -19,11 +19,10 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.binaries.model.BinaryCompileSpec;
-import org.gradle.plugins.binaries.model.ToolChain;
-import org.gradle.plugins.binaries.model.ToolChainAdapter;
+import org.gradle.plugins.binaries.model.*;
 import org.gradle.plugins.cpp.gpp.internal.version.GppVersionDeterminer;
 import org.gradle.plugins.cpp.internal.CppCompileSpec;
+import org.gradle.plugins.cpp.internal.LinkerSpec;
 import org.gradle.process.internal.ExecAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,10 +36,12 @@ public class GppToolChainAdapter implements ToolChainAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GppToolChainAdapter.class);
 
-    static final String EXECUTABLE = "g++";
     public static final String NAME = "gpp";
+    private static final String GPP = "g++";
+    private static final String AR = "ar";
 
-    private final File executable;
+    private final File gppExecutable;
+    private final File arExecutable;
     private final OperatingSystem operatingSystem;
     private final Factory<ExecAction> execActionFactory;
     private final Transformer<String, File> versionDeterminer;
@@ -49,11 +50,12 @@ public class GppToolChainAdapter implements ToolChainAdapter {
     private String version;
 
     public GppToolChainAdapter(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        this(operatingSystem.findInPath(EXECUTABLE), operatingSystem, execActionFactory, new GppVersionDeterminer());
+        this(operatingSystem.findInPath(GPP), operatingSystem.findInPath(AR), operatingSystem, execActionFactory, new GppVersionDeterminer());
     }
 
-    protected GppToolChainAdapter(File executable, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory, Transformer<String, File> versionDeterminer) {
-        this.executable = executable;
+    protected GppToolChainAdapter(File gppExecutable, File arExecutable, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory, Transformer<String, File> versionDeterminer) {
+        this.gppExecutable = gppExecutable;
+        this.arExecutable = arExecutable;
         this.operatingSystem = operatingSystem;
         this.execActionFactory = execActionFactory;
         this.versionDeterminer = versionDeterminer;
@@ -65,7 +67,7 @@ public class GppToolChainAdapter implements ToolChainAdapter {
 
     @Override
     public String toString() {
-        return String.format("GNU G++ (%s)", operatingSystem.getExecutableName(EXECUTABLE));
+        return String.format("GNU G++ (%s)", operatingSystem.getExecutableName(GPP));
     }
 
     public boolean isAvailable() {
@@ -80,16 +82,23 @@ public class GppToolChainAdapter implements ToolChainAdapter {
                     // TODO:DAZ Should introduce language instead of relying on spec here
                     throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
                 }
+                // TODO:DAZ Move this prior to ToolChain creation, and extract GppToolChain (given executables)
                 determineVersion();
                 if (version == null) {
                     throw new IllegalStateException("Cannot create gpp compiler when it is not available");
                 }
 
-                return (Compiler<T>) new GppCompiler(executable, execActionFactory, canUseCommandFile(version));
+                return (Compiler<T>) new GppCompiler(gppExecutable, execActionFactory, canUseCommandFile(version));
             }
 
-            public <T extends BinaryCompileSpec> Compiler<T> createLinker() {
-                return (Compiler<T>) new GppLinker(executable, execActionFactory, canUseCommandFile(version));
+            public Compiler<? super LinkerSpec> createLinker(NativeBinary output) {
+                if (output instanceof StaticLibraryBinary) {
+                    return new ArStaticLibraryLinker(arExecutable, execActionFactory);
+                }
+                if (output instanceof SharedLibraryBinary) {
+                    return new GppSharedLibraryLinker(gppExecutable, execActionFactory, canUseCommandFile(version));
+                }
+                return new GppExecutableLinker(gppExecutable, execActionFactory, canUseCommandFile(version));
             }
         };
     }
@@ -97,11 +106,11 @@ public class GppToolChainAdapter implements ToolChainAdapter {
     private void determineVersion() {
         if (!determinedVersion) {
             determinedVersion = true;
-            version = determineVersion(executable);
+            version = determineVersion(gppExecutable);
             if (version == null) {
-                LOGGER.info("Did not find {} on system", EXECUTABLE);
+                LOGGER.info("Did not find {} on system", GPP);
             } else {
-                LOGGER.info("Found {} with version {}", EXECUTABLE, version);
+                LOGGER.info("Found {} with version {}", GPP, version);
             }
         }
     }

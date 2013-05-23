@@ -267,6 +267,12 @@ class CppPluginTest extends Specification {
         link.outputFile == project.libraries.test.outputFile
 
         and:
-        project.libraries.test.buildDependencies.getDependencies(null) == [link] as Set
+        def staticLink = project.tasks['testStaticLibrary']
+        staticLink instanceof LinkStaticLibrary
+        staticLink.linkerArgs == ["LINK1", "LINK2"]
+        staticLink.outputFile == project.binaries.testStaticLibrary.outputFile
+
+        and:
+        project.libraries.test.buildDependencies.getDependencies(null) == [link, staticLink] as Set
     }
 }

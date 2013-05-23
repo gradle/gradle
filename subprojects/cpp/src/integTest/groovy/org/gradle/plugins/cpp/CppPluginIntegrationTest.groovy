@@ -75,6 +75,12 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
 
         then:
         sharedLibrary("build/binaries/test").isFile()
+
+        when:
+        run "mainStaticLibrary"
+
+        then:
+        staticLibrary("build/binaries/test").isFile()
     }
 
     def "build fails when compilation fails"() {

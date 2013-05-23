@@ -32,4 +32,9 @@ public interface LinkerSpec extends BinaryCompileSpec {
     Iterable<Object> getArgs();
 
     void setArgs(Iterable<Object> args);
+
+    String getInstallName();
+
+    void setInstallName(String path);
+
 }

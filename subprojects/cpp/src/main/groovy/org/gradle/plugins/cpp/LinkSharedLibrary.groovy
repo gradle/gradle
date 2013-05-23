@@ -16,12 +16,12 @@
 
 package org.gradle.plugins.cpp
 
-import org.gradle.plugins.cpp.gpp.DefaultLibraryLinkerSpec
+import org.gradle.plugins.cpp.gpp.DefaultLinkerSpec
 import org.gradle.plugins.cpp.internal.LinkerSpec
 
 class LinkSharedLibrary extends AbstractLinkTask {
     @Override
     protected LinkerSpec createLinkerSpec() {
-        new DefaultLibraryLinkerSpec()
+        new DefaultLinkerSpec()
     }
 }

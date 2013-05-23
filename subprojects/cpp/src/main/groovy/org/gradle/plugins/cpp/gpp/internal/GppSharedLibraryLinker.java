@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.gpp;
+package org.gradle.plugins.cpp.gpp.internal;
 
-import org.gradle.plugins.binaries.model.LibraryLinkerSpec;
+import org.gradle.internal.Factory;
+import org.gradle.process.internal.ExecAction;
 
-public class DefaultLibraryLinkerSpec extends DefaultLinkerSpec implements LibraryLinkerSpec {
-    private String installName;
+import java.io.File;
 
-    public String getInstallName() {
-        return installName == null ? getOutputFile().getName() : installName;
-    }
+public class GppSharedLibraryLinker extends GppLinker {
 
-    public void setInstallName(String installName) {
-        this.installName = installName;
+    public GppSharedLibraryLinker(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
+        super(executable, execActionFactory, useCommandFile, true);
     }
 }

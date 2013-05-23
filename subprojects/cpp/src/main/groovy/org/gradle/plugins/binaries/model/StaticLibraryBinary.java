@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,5 @@
 
 package org.gradle.plugins.binaries.model;
 
-/**
- * A high level interface to the compiler, specifying what is to be compiled and how.
- */
-public interface LibraryLinkerSpec extends BinaryCompileSpec {
-    /**
-     * <p>Returns the <i>install name</i> for the library. This is the location where this library will be installed on the target
-     * system, and where clients of this library should look for the library.
-     *
-     * <p>On Linux systems, this corresponds to the <i>soname</i> for the library.</p>
-     */
-    String getInstallName();
-
-    void setInstallName(String path);
+public interface StaticLibraryBinary extends NativeBinary {
 }

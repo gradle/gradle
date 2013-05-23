@@ -21,10 +21,8 @@ import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugins.binaries.model.BinaryCompileSpec;
-import org.gradle.plugins.binaries.model.ToolChain;
-import org.gradle.plugins.binaries.model.ToolChainAdapter;
-import org.gradle.plugins.binaries.model.ToolChainRegistry;
+import org.gradle.plugins.binaries.model.*;
+import org.gradle.plugins.cpp.internal.LinkerSpec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,14 +81,14 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
             };
         }
 
-        public <T extends BinaryCompileSpec> Compiler<T> createLinker() {
-            return createLazyLinker();
+        public Compiler<? super LinkerSpec> createLinker(NativeBinary forOutput) {
+            return createLazyLinker(forOutput);
         }
 
-        private <T extends BinaryCompileSpec> Compiler<T> createLazyLinker() {
-            return new Compiler<T>() {
-                public WorkResult execute(T spec) {
-                    return getToolChain().createLinker().execute(spec);
+        private Compiler<? super LinkerSpec> createLazyLinker(final NativeBinary output) {
+            return new Compiler<LinkerSpec>() {
+                public WorkResult execute(LinkerSpec spec) {
+                    return getToolChain().createLinker(output).execute(spec);
                 }
             };
         }

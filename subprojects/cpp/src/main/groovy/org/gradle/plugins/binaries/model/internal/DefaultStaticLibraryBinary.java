@@ -16,18 +16,28 @@
 
 package org.gradle.plugins.binaries.model.internal;
 
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.Library;
-import org.gradle.plugins.binaries.model.SharedLibraryBinary;
+import org.gradle.plugins.binaries.model.StaticLibraryBinary;
 
-public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements SharedLibraryBinary {
+import java.io.File;
+
+public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements StaticLibraryBinary {
     private final Library library;
 
-    public DefaultSharedLibraryBinary(Library library) {
+    public DefaultStaticLibraryBinary(Library library) {
         super(library);
         this.library = library;
     }
 
     public String getName() {
-        return library.getName() + "SharedLibrary";
+        return library.getName() + "StaticLibrary";
+    }
+
+    @Override
+    public File getOutputFile() {
+        File baseDir = super.getOutputFile().getParentFile();
+        String fileName = OperatingSystem.current().getStaticLibraryName(getComponent().getBaseName());
+        return new File(baseDir, fileName);
     }
 }

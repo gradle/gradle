@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.plugins.cpp
+
 import org.gradle.api.Plugin
+import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.Sync
@@ -39,50 +41,18 @@ class CppPlugin implements Plugin<ProjectInternal> {
             sourceSet.exportedHeaders.srcDir "src/${sourceSet.name}/headers"
         }
 
-        project.binaries.withType(ExecutableBinary) { executable ->
-            configureExecutable(project, executable)
-        }
-
-        project.binaries.withType(SharedLibraryBinary) { library ->
-            configureBinary(project, library)
+        project.binaries.withType(NativeBinary) { binary ->
+            createTasks(project, binary)
         }
     }
 
-    def configureExecutable(ProjectInternal project, ExecutableBinary executable) {
-        def compileTask = configureBinary(project, executable)
-
-        project.task(executable.getTaskName("install"), type: Sync) {
-            description = "Installs a development image of $executable"
-            into { project.file("${project.buildDir}/install/$executable.name") }
-            dependsOn compileTask
-            if (OperatingSystem.current().windows) {
-                from { executable.component.outputFile }
-                from { executable.component.sourceSets*.libs*.outputFile }
-            } else {
-                into("lib") {
-                    from { executable.component.outputFile }
-                    from { executable.component.sourceSets*.libs*.outputFile }
-                }
-                doLast {
-                    def script = new File(destinationDir, executable.component.outputFile.name)
-                    script.text = """
-#/bin/sh
-APP_BASE_NAME=`dirname "\$0"`
-export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
-export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
-exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
-                    """
-                    ant.chmod(perm: 'u+x', file: script)
-                }
-            }
-        }
-    }
-
-    def configureBinary(ProjectInternal project, NativeBinary binary) {
+    def createTasks(ProjectInternal project, NativeBinary binary) {
         final toolChain = project.extensions.getByType(ToolChainRegistry).defaultToolChain
         CppCompile compileTask = createCompileTask(project, binary, toolChain)
         AbstractLinkTask linkTask = createLinkTask(project, binary, toolChain, compileTask)
-        return linkTask
+        if (binary instanceof ExecutableBinary) {
+            createInstallTask(project, binary, linkTask)
+        }
     }
 
     private CppCompile createCompileTask(ProjectInternal project, NativeBinary binary, ToolChain toolChain) {
@@ -121,8 +91,8 @@ exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
         }
         linkTask.dependsOn compileTask // TODO:DAZ Avoid this explicit dependency by wiring inputs/outputs better
 
-        linkTask.outputFile = { binary.component.outputFile }
-        linkTask.linker = toolChain.createLinker()
+        linkTask.outputFile = { binary.outputFile }
+        linkTask.linker = toolChain.createLinker(binary)
         linkTask.linkerArgs = binary.linkerArgs
         binary.component.builtBy(linkTask)
         linkTask
@@ -133,6 +103,37 @@ exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
         if (binary instanceof SharedLibraryBinary) {
             return LinkSharedLibrary
         }
+        if (binary instanceof StaticLibraryBinary) {
+            return LinkStaticLibrary
+        }
         return LinkExecutable
+    }
+
+    def createInstallTask(ProjectInternal project, ExecutableBinary executable, Task linkTask) {
+        project.task(executable.getTaskName("install"), type: Sync) {
+            description = "Installs a development image of $executable"
+            into { project.file("${project.buildDir}/install/$executable.name") }
+            dependsOn linkTask
+            if (OperatingSystem.current().windows) {
+                from { executable.component.outputFile }
+                from { executable.component.sourceSets*.libs*.outputFile }
+            } else {
+                into("lib") {
+                    from { executable.component.outputFile }
+                    from { executable.component.sourceSets*.libs*.outputFile }
+                }
+                doLast {
+                    def script = new File(destinationDir, executable.component.outputFile.name)
+                    script.text = """
+#/bin/sh
+APP_BASE_NAME=`dirname "\$0"`
+export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
+export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
+exec "\$APP_BASE_NAME/lib/${executable.component.outputFile.name}" \"\$@\"
+                    """
+                    ant.chmod(perm: 'u+x', file: script)
+                }
+            }
+        }
     }
 }

@@ -19,10 +19,9 @@ package org.gradle.plugins.cpp.msvcpp.internal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.binaries.model.BinaryCompileSpec;
-import org.gradle.plugins.binaries.model.ToolChain;
-import org.gradle.plugins.binaries.model.ToolChainAdapter;
+import org.gradle.plugins.binaries.model.*;
 import org.gradle.plugins.cpp.internal.CppCompileSpec;
+import org.gradle.plugins.cpp.internal.LinkerSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
@@ -32,19 +31,22 @@ public class VisualCppToolChainAdapter implements ToolChainAdapter {
     public static final String NAME = "visualCpp";
     static final String COMPILER_EXE = "cl.exe";
     static final String LINKER_EXE = "link.exe";
+    static final String STATIC_LINKER_EXE = "lib.exe";
 
     private final File compilerExe;
     private final File linkerExe;
+    private final File staticLinkerExe;
     private final Factory<ExecAction> execActionFactory;
     private final OperatingSystem operatingSystem;
 
     public VisualCppToolChainAdapter(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        this(operatingSystem.findInPath(COMPILER_EXE), operatingSystem.findInPath(LINKER_EXE), operatingSystem, execActionFactory);
+        this(operatingSystem.findInPath(COMPILER_EXE), operatingSystem.findInPath(LINKER_EXE), operatingSystem.findInPath(STATIC_LINKER_EXE), operatingSystem, execActionFactory);
     }
 
-    protected VisualCppToolChainAdapter(File compilerExe, File linkerExe, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
+    protected VisualCppToolChainAdapter(File compilerExe, File linkerExe, File staticLinkerExe, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
         this.compilerExe = compilerExe;
         this.linkerExe = linkerExe;
+        this.staticLinkerExe = staticLinkerExe;
         this.operatingSystem = operatingSystem;
         this.execActionFactory = execActionFactory;
     }
@@ -72,8 +74,14 @@ public class VisualCppToolChainAdapter implements ToolChainAdapter {
                 return (Compiler<T>) new VisualCppCompiler(compilerExe, execActionFactory);
             }
 
-            public <T extends BinaryCompileSpec> Compiler<T> createLinker() {
-                return (Compiler<T>) new VisualCppLinker(linkerExe, execActionFactory);
+            public Compiler<? super LinkerSpec> createLinker(NativeBinary output) {
+                if (output instanceof StaticLibraryBinary) {
+                    return new VisualCppStaticLibraryLinker(staticLinkerExe, execActionFactory);
+                }
+                if (output instanceof SharedLibraryBinary) {
+                    return new VisualCppDynamicLibraryLinker(linkerExe, execActionFactory);
+                }
+                return new VisualCppExecutableLinker(linkerExe, execActionFactory);
             }
         };
     }

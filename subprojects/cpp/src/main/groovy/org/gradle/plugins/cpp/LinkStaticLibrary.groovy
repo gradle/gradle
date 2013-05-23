@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model.internal;
+package org.gradle.plugins.cpp
 
-import org.gradle.plugins.binaries.model.Library;
-import org.gradle.plugins.binaries.model.SharedLibraryBinary;
+import org.gradle.plugins.cpp.gpp.DefaultLinkerSpec
+import org.gradle.plugins.cpp.internal.LinkerSpec
 
-public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements SharedLibraryBinary {
-    private final Library library;
-
-    public DefaultSharedLibraryBinary(Library library) {
-        super(library);
-        this.library = library;
-    }
-
-    public String getName() {
-        return library.getName() + "SharedLibrary";
+class LinkStaticLibrary extends AbstractLinkTask {
+    @Override
+    protected LinkerSpec createLinkerSpec() {
+        new DefaultLinkerSpec()
     }
 }

@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model.internal;
+package org.gradle.plugins.cpp.gpp.internal;
 
-import org.gradle.plugins.binaries.model.Library;
-import org.gradle.plugins.binaries.model.SharedLibraryBinary;
+import org.gradle.internal.Factory;
+import org.gradle.process.internal.ExecAction;
 
-public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements SharedLibraryBinary {
-    private final Library library;
+import java.io.File;
 
-    public DefaultSharedLibraryBinary(Library library) {
-        super(library);
-        this.library = library;
-    }
-
-    public String getName() {
-        return library.getName() + "SharedLibrary";
+public class GppExecutableLinker extends GppLinker {
+    public GppExecutableLinker(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
+        super(executable, execActionFactory, useCommandFile, false);
     }
 }

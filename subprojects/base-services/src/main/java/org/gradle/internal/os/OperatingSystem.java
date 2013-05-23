@@ -82,6 +82,8 @@ public abstract class OperatingSystem {
 
     public abstract String getSharedLibraryName(String libraryName);
 
+    public abstract String getStaticLibraryName(String libraryName);
+
     /**
      * Locates the given executable in the system path. Returns null if not found.
      */
@@ -154,6 +156,11 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getStaticLibraryName(String libraryName) {
+            return withSuffix(libraryName, ".a");
+        }
+
+        @Override
         public String getNativePrefix() {
             String arch = System.getProperty("os.arch");
             if ("i386".equals(arch)) {
@@ -197,6 +204,11 @@ public abstract class OperatingSystem {
 
         protected String getSharedLibSuffix() {
             return ".so";
+        }
+
+        @Override
+        public String getStaticLibraryName(String libraryName) {
+            return libraryName.endsWith(".a") ? libraryName : libraryName + ".a";
         }
 
         @Override

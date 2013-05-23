@@ -16,8 +16,11 @@
 
 package org.gradle.plugins.cpp.gpp.internal;
 
+import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
+import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.internal.Factory;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
 import org.gradle.plugins.cpp.internal.LinkerSpec;
@@ -25,20 +28,48 @@ import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-public class GppLinker extends CommandLineCppCompiler<LinkerSpec> {
+class GppLinker extends CommandLineCppCompiler<LinkerSpec> {
 
-    public GppLinker(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
-        super(executable, execActionFactory, useCommandFile ? viaCommandFile() : withoutCommandFile());
+    protected GppLinker(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile, boolean createSharedLibrary) {
+        super(executable, execActionFactory, useCommandFile ? viaCommandFile(createSharedLibrary) : withoutCommandFile(createSharedLibrary));
     }
 
-    private static GppLinkerSpecToArguments withoutCommandFile() {
-        return new GppLinkerSpecToArguments();
+    private static GppLinkerSpecToArguments withoutCommandFile(boolean createSharedLibrary) {
+        return new GppLinkerSpecToArguments(createSharedLibrary);
     }
 
-    private static CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec> viaCommandFile() {
+    private static CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec> viaCommandFile(boolean createSharedLibrary) {
         return new CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec>(
-            ArgWriter.unixStyleFactory(), new GppLinkerSpecToArguments()
+            ArgWriter.unixStyleFactory(), new GppLinkerSpecToArguments(createSharedLibrary)
         );
     }
 
+    private static class GppLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
+        private final boolean createSharedLibrary;
+
+        public GppLinkerSpecToArguments(boolean createSharedLibrary) {
+            this.createSharedLibrary = createSharedLibrary;
+        }
+
+        public void collectArguments(LinkerSpec spec, ArgCollector collector) {
+            collector.args("-o", spec.getOutputFile().getAbsolutePath());
+            if (createSharedLibrary) {
+                collector.args("-shared");
+                if (!OperatingSystem.current().isWindows()) {
+                    if (OperatingSystem.current().isMacOsX()) {
+                        collector.args("-Wl,-install_name," + spec.getInstallName());
+                    } else {
+                        collector.args("-Wl,-soname," + spec.getInstallName());
+                    }
+                }
+            }
+            for (File file : spec.getObjectFiles()) {
+                collector.args(file.getAbsolutePath());
+            }
+            for (File file : spec.getLibs()) {
+                collector.args(file.getAbsolutePath());
+            }
+            collector.args(spec.getArgs());
+        }
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,33 +22,30 @@ import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
-import org.gradle.plugins.cpp.internal.CppCompileSpec;
+import org.gradle.plugins.cpp.internal.LinkerSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-class VisualCppCompiler extends CommandLineCppCompiler<CppCompileSpec> {
+class VisualCppStaticLibraryLinker extends CommandLineCppCompiler<LinkerSpec> {
 
-    VisualCppCompiler(File executable, Factory<ExecAction> execActionFactory) {
-        super(executable, execActionFactory, new CommandLineCppCompilerArgumentsToOptionFile<CppCompileSpec>(
-                ArgWriter.windowsStyleFactory(), new VisualCppCompileSpecToArguments()
+    VisualCppStaticLibraryLinker(File executable, Factory<ExecAction> execActionFactory) {
+        super(executable, execActionFactory, new CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec>(
+                ArgWriter.windowsStyleFactory(), new VisualCppLinkerSpecArguments()
         ));
     }
 
-    private static class VisualCppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
-        public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
-            collector.args("/c");
-            collector.args("/nologo");
-            collector.args("/EHsc");
-            if (spec.isForDynamicLinking()) {
-                collector.args("/LD"); // TODO:DAZ Not sure if this has any effect at compile time
+    private static class VisualCppLinkerSpecArguments implements CompileSpecToArguments<LinkerSpec> {
+        public void collectArguments(LinkerSpec spec, ArgCollector collector) {
+            collector.args("/OUT:" + spec.getOutputFile().getAbsolutePath());
+            collector.args("/NOLOGO");
+            for (File file : spec.getObjectFiles()) {
+                collector.args(file.getAbsolutePath());
             }
-            for (File file : spec.getIncludeRoots()) {
-                collector.args("/I", file.getAbsolutePath());
+            for (File file : spec.getLibs()) {
+                collector.args(file.getAbsolutePath().replaceFirst("\\.dll$", ".lib"));
             }
-            for (File file : spec.getSource()) {
-                collector.args(file);
-            }
+            // Last arg wins in case of duplicates
             collector.args(spec.getArgs());
         }
     }

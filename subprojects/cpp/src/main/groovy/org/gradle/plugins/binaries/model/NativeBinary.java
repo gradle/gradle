@@ -19,12 +19,15 @@ package org.gradle.plugins.binaries.model;
 import org.gradle.api.Nullable;
 import org.gradle.language.base.Binary;
 
+import java.io.File;
 import java.util.List;
 
 /**
  * A native binary.
  */
 public interface NativeBinary extends Binary {
+
+    File getOutputFile();
 
     NativeComponent getComponent();
 
