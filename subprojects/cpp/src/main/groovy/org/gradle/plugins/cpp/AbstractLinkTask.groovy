@@ -37,7 +37,7 @@ abstract class AbstractLinkTask extends DefaultTask {
     List<Object> linkerArgs
 
     @InputFiles
-    ConfigurableFileCollection objectFiles
+    ConfigurableFileCollection source
 
     @InputFiles
     ConfigurableFileCollection libs
@@ -45,7 +45,7 @@ abstract class AbstractLinkTask extends DefaultTask {
     @Inject
     AbstractLinkTask() {
         libs = project.files()
-        objectFiles = project.files()
+        source = project.files()
     }
 
     @OutputFile
@@ -59,7 +59,7 @@ abstract class AbstractLinkTask extends DefaultTask {
 
         spec.outputFile = getOutputFile()
         spec.workDir = project.file("${project.buildDir}/tmp/cppCompile/${name}")
-        spec.objectFiles = getObjectFiles()
+        spec.source = getSource()
         spec.libs = libs
         spec.args = linkerArgs
 
@@ -69,8 +69,8 @@ abstract class AbstractLinkTask extends DefaultTask {
 
     protected abstract LinkerSpec createLinkerSpec();
 
-    void objectFiles(FileCollection inputs) {
-        objectFiles.from(inputs)
+    void source(FileCollection inputs) {
+        source.from(inputs)
     }
 
     void libs(Iterable<Library> libs) {

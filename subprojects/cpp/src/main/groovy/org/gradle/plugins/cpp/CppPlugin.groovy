@@ -80,16 +80,22 @@ class CppPlugin implements Plugin<ProjectInternal> {
              description = "Links ${binary}"
              group = BasePlugin.BUILD_GROUP
          }
-        binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet -> linkTask.libs(sourceSet.libs) }
-
         // TODO:DAZ Make this work with @SkipWhenEmpty
         linkTask.onlyIf {
-            !linkTask.objectFiles.files.empty
-        }
-        linkTask.objectFiles project.fileTree(compileTask.outputDirectory) {
-            include '*.o'
+            !linkTask.source.files.empty
         }
         linkTask.dependsOn compileTask // TODO:DAZ Avoid this explicit dependency by wiring inputs/outputs better
+
+        linkTask.source project.fileTree(compileTask.outputDirectory) {
+            include '*.o'
+        }
+        binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
+            linkTask.libs(sourceSet.libs)
+
+            sourceSet.nativeDependencySets.all { NativeDependencySet nativeDependencySet ->
+                linkTask.source nativeDependencySet.files
+            }
+        }
 
         linkTask.outputFile = { binary.outputFile }
         linkTask.linker = toolChain.createLinker(binary)

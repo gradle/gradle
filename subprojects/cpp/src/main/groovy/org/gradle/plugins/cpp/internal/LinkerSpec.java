@@ -21,9 +21,9 @@ import org.gradle.plugins.binaries.model.BinaryCompileSpec;
 
 public interface LinkerSpec extends BinaryCompileSpec {
 
-    FileCollection getObjectFiles();
+    FileCollection getSource();
 
-    void setObjectFiles(FileCollection objectFiles);
+    void setSource(FileCollection source);
 
     FileCollection getLibs();
 

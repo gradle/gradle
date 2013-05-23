@@ -76,7 +76,6 @@ class CppCompile extends DefaultTask {
 
         sourceSet.nativeDependencySets.all { deps ->
             includes deps.includeRoots
-            source deps.files
         }
     }
 

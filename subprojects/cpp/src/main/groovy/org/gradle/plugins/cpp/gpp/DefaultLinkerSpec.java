@@ -25,18 +25,18 @@ import java.util.ArrayList;
 public class DefaultLinkerSpec implements LinkerSpec {
 
     private FileCollection libs;
-    private FileCollection objectFiles;
+    private FileCollection source;
     private File outputFile;
     private String installName;
     private File workDir;
     private Iterable<Object> args = new ArrayList<Object>();
 
-    public FileCollection getObjectFiles() {
-        return objectFiles;
+    public FileCollection getSource() {
+        return source;
     }
 
-    public void setObjectFiles(FileCollection objectFiles) {
-        this.objectFiles = objectFiles;
+    public void setSource(FileCollection source) {
+        this.source = source;
     }
 
     public FileCollection getLibs() {

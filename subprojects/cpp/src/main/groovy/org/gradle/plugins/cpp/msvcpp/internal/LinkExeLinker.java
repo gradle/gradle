@@ -48,7 +48,7 @@ class LinkExeLinker extends CommandLineCppCompiler<LinkerSpec> {
             if (createLibrary) {
                 collector.args("/DLL");
             }
-            for (File file : spec.getObjectFiles()) {
+            for (File file : spec.getSource()) {
                 collector.args(file.getAbsolutePath());
             }
             for (File file : spec.getLibs()) {
