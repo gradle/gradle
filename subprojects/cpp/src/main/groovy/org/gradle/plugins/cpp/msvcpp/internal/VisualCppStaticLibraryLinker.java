@@ -37,16 +37,12 @@ class VisualCppStaticLibraryLinker extends CommandLineCppCompiler<LinkerSpec> {
 
     private static class VisualCppLinkerSpecArguments implements CompileSpecToArguments<LinkerSpec> {
         public void collectArguments(LinkerSpec spec, ArgCollector collector) {
+            collector.args(spec.getArgs());
             collector.args("/OUT:" + spec.getOutputFile().getAbsolutePath());
             collector.args("/NOLOGO");
             for (File file : spec.getSource()) {
                 collector.args(file.getAbsolutePath());
             }
-            for (File file : spec.getLibs()) {
-                collector.args(file.getAbsolutePath().replaceFirst("\\.dll$", ".lib"));
-            }
-            // Last arg wins in case of duplicates
-            collector.args(spec.getArgs());
         }
     }
 }
