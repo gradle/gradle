@@ -139,10 +139,7 @@ public abstract class OperatingSystem {
 
         @Override
         public String getScriptName(String scriptPath) {
-            if (scriptPath.toLowerCase().endsWith(".bat")) {
-                return scriptPath;
-            }
-            return scriptPath + ".bat";
+            return withSuffix(scriptPath, ".bat");
         }
 
         @Override
