@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.plugins.binaries.model.BinaryCompileSpec;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +39,8 @@ public class CommandLineCppCompilerArgumentsToOptionFile<T extends BinaryCompile
     }
 
     public void collectArguments(T spec, ArgCollector collector) {
-        File optionsFile = new File(spec.getWorkDir(), "compiler-options.txt");
+        GFileUtils.mkdirs(spec.getTempDir());
+        File optionsFile = new File(spec.getTempDir(), "compiler-options.txt");
         try {
             PrintWriter writer = new PrintWriter(optionsFile);
             ArgWriter argWriter = argWriterFactory.transform(writer);

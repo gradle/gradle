@@ -25,8 +25,8 @@ public class DefaultCppCompileSpec implements CppCompileSpec {
 
     private FileCollection includeRoots;
     private FileCollection source;
-    private File outputFile;
     private File workDir;
+    private File tempDir;
     private boolean forDynamicLinking;
     private Iterable<Object> args = new ArrayList<Object>();
 
@@ -46,20 +46,20 @@ public class DefaultCppCompileSpec implements CppCompileSpec {
         this.source = source;
     }
 
-    public File getOutputFile() {
-        return outputFile;
-    }
-
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
-    }
-
     public File getWorkDir() {
         return workDir;
     }
 
     public void setWorkDir(File workDir) {
         this.workDir = workDir;
+    }
+
+    public File getTempDir() {
+        return tempDir;
+    }
+
+    public void setTempDir(File tempDir) {
+        this.tempDir = tempDir;
     }
 
     public void setArgs(Iterable<Object> args) {

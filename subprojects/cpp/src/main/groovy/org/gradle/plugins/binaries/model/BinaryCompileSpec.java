@@ -24,11 +24,11 @@ import java.io.File;
  * A compile spec that will be used to produce a native artifact.
  */
 public interface BinaryCompileSpec extends CompileSpec {
-    File getOutputFile();
-
-    void setOutputFile(File outputFile);
-
     File getWorkDir();
 
     void setWorkDir(File workDir);
+
+    File getTempDir();
+
+    void setTempDir(File tempDir);
 }

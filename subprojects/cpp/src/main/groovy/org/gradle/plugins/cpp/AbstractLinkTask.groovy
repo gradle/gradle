@@ -56,6 +56,7 @@ abstract class AbstractLinkTask extends DefaultTask {
     @TaskAction
     void link() {
         def spec = createLinkerSpec()
+        spec.tempDir = getTemporaryDir()
 
         spec.outputFile = getOutputFile()
         spec.workDir = project.file("${project.buildDir}/tmp/cppCompile/${name}")

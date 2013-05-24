@@ -28,6 +28,7 @@ public class DefaultLinkerSpec implements LinkerSpec {
     private File outputFile;
     private String installName;
     private File workDir;
+    private File tempDir;
     private Iterable<Object> args = new ArrayList<Object>();
 
     public FileCollection getSource() {
@@ -60,6 +61,14 @@ public class DefaultLinkerSpec implements LinkerSpec {
 
     public void setWorkDir(File workDir) {
         this.workDir = workDir;
+    }
+
+    public File getTempDir() {
+        return tempDir;
+    }
+
+    public void setTempDir(File tempDir) {
+        this.tempDir = tempDir;
     }
 
     public void setArgs(Iterable<Object> args) {

@@ -54,9 +54,9 @@ class CppCompile extends DefaultTask {
     @TaskAction
     void compile() {
         def spec = new DefaultCppCompileSpec()
+        spec.tempDir = getTemporaryDir()
 
-        spec.workDir = getOutputDirectory() // project.file("${project.buildDir}/tmp/cppCompile/${name}")
-        spec.outputFile = getOutputDirectory() // TODO:DAZ This shouldn't be required
+        spec.workDir = getOutputDirectory()
 
         spec.includeRoots = includes
         spec.source = source

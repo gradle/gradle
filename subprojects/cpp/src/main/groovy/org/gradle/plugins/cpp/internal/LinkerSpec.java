@@ -19,6 +19,8 @@ package org.gradle.plugins.cpp.internal;
 import org.gradle.api.file.FileCollection;
 import org.gradle.plugins.binaries.model.BinaryCompileSpec;
 
+import java.io.File;
+
 /**
  * A high level interface to the compiler, specifying what is to be compiled and how.
  */
@@ -35,6 +37,10 @@ public interface LinkerSpec extends BinaryCompileSpec {
     Iterable<Object> getArgs();
 
     void setArgs(Iterable<Object> args);
+
+    File getOutputFile();
+
+    void setOutputFile(File outputFile);
 
     String getInstallName();
 

@@ -41,8 +41,7 @@ public class CommandLineCppCompiler<T extends BinaryCompileSpec> implements Comp
 
     public WorkResult execute(T spec) {
         File workDir = spec.getWorkDir();
-
-        ensureDirsExist(workDir, spec.getOutputFile().getParentFile());
+        ensureDirsExist(workDir);
 
         ExecAction compiler = execActionFactory.create();
         compiler.executable(executable);

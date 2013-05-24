@@ -67,7 +67,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet -> compileTask.from(sourceSet) }
 
-        compileTask.outputDirectory = project.file("${project.buildDir}/cppCompile/${binary.name}")
+        compileTask.outputDirectory = project.file("${project.buildDir}/objectFiles/${binary.name}")
 
         compileTask.compiler = toolChain.createCompiler(CppCompileSpec)
         compileTask.compilerArgs = binary.compilerArgs
@@ -86,9 +86,8 @@ class CppPlugin implements Plugin<ProjectInternal> {
         }
         linkTask.dependsOn compileTask // TODO:DAZ Avoid this explicit dependency by wiring inputs/outputs better
 
-        linkTask.source project.fileTree(compileTask.outputDirectory) {
-            include '*.o'
-        }
+        linkTask.source project.fileTree(compileTask.outputDirectory)
+
         binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
             linkTask.libs(sourceSet.libs)
 
