@@ -40,7 +40,7 @@ public interface LongRunningOperation {
      * Sets the {@link java.io.OutputStream} which should receive standard output logging generated while running the operation.
      * The default is to discard the output.
      *
-     * @param outputStream The output stream.
+     * @param outputStream The output stream. The system default character encoding will be used to encode characters written to this stream.
      * @return this
      * @since 1.0-milestone-7
      */
@@ -50,7 +50,7 @@ public interface LongRunningOperation {
      * Sets the {@link OutputStream} which should receive standard error logging generated while running the operation.
      * The default is to discard the output.
      *
-     * @param outputStream The output stream.
+     * @param outputStream The output stream. The system default character encoding will be used to encode characters written to this stream.
      * @return this
      * @since 1.0-milestone-7
      */
@@ -68,7 +68,7 @@ public interface LongRunningOperation {
      *
      * @param inputStream The input stream
      * @return this
-     * @since 1.0-milestone-7
+     * @since 1.0-milestone-8
      */
     LongRunningOperation setStandardInput(InputStream inputStream);
 
