@@ -22,7 +22,6 @@ import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-@Requires(TestPrecondition.NOT_WINDOWS)
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     @Rule public final Sample exewithlib = new Sample(temporaryFolder, 'cpp/exewithlib')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'cpp/dependencies')
