@@ -13,7 +13,7 @@ duplicates. A concrete example where duplicate (resource) paths may be desirable
 
 # Implementation plan
 
-## Story: User declares strategy for dealing with duplicates
+## Story: User declares strategy for dealing with duplicates in archives and copy output
 
 This story introduces the concept of a strategy for duplicate files.
 

@@ -45,7 +45,7 @@ to use this same mechanism is one step in this direction.
 
 ## Story: Expose the publications of a project
 
-1. Add a `getPublications()` method to `GradleProject` that should return a `DomainObjectSet<GradleModuleVersion>`. Include an @since javadoc tag and
+1. Add a `getPublications()` method to `GradleProject` that should return a `DomainObjectSet<GradleModuleVersion>`. Include an `@since` javadoc tag and
    an `@Incubating` annotation on this method.
 2. Change `GradleProjectBuilder` to:
     1. When the `PublishingPlugin` is applied to the project, then add a value for each publication defined in the `publishing.publications`
