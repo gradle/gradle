@@ -73,20 +73,20 @@ project.logger.debug("debug logging yyy");
         shouldNotContainProviderLogging(err)
     }
 
-    def "client receives same stdout and stderr as if running from the command-line"() {
+    def "client receives same standard output and standard error as if running from the command-line"() {
         toolingApi.verboseLogging = false
 
         file("build.gradle") << """
-System.err.println "sys err logging xxx"
+System.err.println "System.err \u03b1\u03b2"
 
-println "println logging yyy"
+println "System.out \u03b1\u03b2"
 
-project.logger.error("error logging xxx");
-project.logger.warn("warn logging yyy");
-project.logger.lifecycle("lifecycle logging yyy");
-project.logger.quiet("quiet logging yyy");
-project.logger.info ("info logging yyy");
-project.logger.debug("debug logging yyy");
+project.logger.error("error logging \u03b1\u03b2");
+project.logger.warn("warn logging");
+project.logger.lifecycle("lifecycle logging \u03b1\u03b2");
+project.logger.quiet("quiet logging");
+project.logger.info ("info logging");
+project.logger.debug("debug logging");
 """
         when:
         def commandLineResult = targetDist.executer(temporaryFolder).run();
@@ -101,18 +101,15 @@ project.logger.debug("debug logging yyy");
         err == commandLineResult.error
 
         and:
-        out.count("debug logging yyy") == 0
-        out.count("info logging yyy") == 0
-        out.count("quiet logging yyy") == 1
-        out.count("lifecycle logging yyy") == 1
-        out.count("warn logging yyy") == 1
-        out.count("println logging yyy") == 1
-        out.count("error logging xxx") == 0
+        err.count("System.err \u03b1\u03b2") == 1
+        err.count("error logging \u03b1\u03b2") == 1
 
         and:
-        err.count("error logging") == 1
-        err.count("sys err") == 1
-        err.count("logging yyy") == 0
+        out.count("lifecycle logging \u03b1\u03b2") == 1
+        out.count("warn logging") == 1
+        out.count("quiet logging") == 1
+        out.count("info") == 0
+        out.count("debug") == 0
     }
 
     void shouldNotContainProviderLogging(String output) {
