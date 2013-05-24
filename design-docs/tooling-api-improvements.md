@@ -43,6 +43,28 @@ to use this same mechanism is one step in this direction.
 
 # Implementation plan
 
+## Story: Expose the publications of a project
+
+1. Add a `getPublications()` method to `GradleProject` that should return a `DomainObjectSet<GradleModuleVersion>`. Include an @since javadoc tag and
+   an `@Incubating` annotation on this method.
+2. Change `GradleProjectBuilder` to:
+    1. When the `PublishingPlugin` is applied to the project, then add a value for each publication defined in the `publishing.publications`
+       container. For an instance of type `IvyPublicationInternal`, use the publication's `identity` property to determine the values to use.
+       For an instance of type `MavenPublicationInternal`, use the publication's `mavenProjectIdentity` property.
+    2. Add a value for each `MavenResolver` defined for the `uploadArchives` task. Use the resolver's `pom` property to determine the values to use.
+       Will need to remove duplicate values.
+    3. When the `uploadArchives` task has any other type of repository defined, then use the `uploadArchives.configuration.module` property
+       to determine the values to use.
+
+### Test coverage.
+
+- Add a new `ToolingApiSpecification` integration test class that covers:
+    - For a project that does not configure `uploadArchives` or use the publishing plugins, verify that the tooling model does not include any publications.
+    - A project that uses the `ivy-publish` plugin and defines a single Ivy publication.
+    - A project that uses the `maven-publish` plugin and defines a single Maven publication.
+    - A project that uses the `maven` plugin and defines a single remote `mavenDeployer` repository on the `uploadArchives` task.
+    - A project that defines a single Ivy repository on the `uploadArchives` task.
+
 ## Story: Built-in Gradle plugin can register a tooling model
 
 This story adds a public mechanism that allows a plugin to register a tooling model to make available to tooling API
