@@ -60,7 +60,7 @@
         <para>
             The build scripts DSLs, model elements and tasks used to manage C++ projects are added by the <literal>cpp</literal> plugin. However, it is typically
             more convenient to use either the <literal>cpp-lib</literal> or <literal>cpp-exe</literal> plugins that sit on top of the <literal>cpp</literal>
-            plugin to preconfigure the project to build either a shared library or executable binary respectively.
+            plugin to pre-configure the project to build either a native library or executable respectively.
         </para>
         <sample id="useCppExePlugin" dir="cpp/dependencies" title="Using the 'cpp-exe' plugin">
             <sourcefile file="build.gradle" snippet="use-plugin-exe"/>
@@ -83,7 +83,7 @@
             such header files should always be referenced in a manner relative to the file including them).
         </para>
         <para>
-            The <literal>cpp</literal> plugin is also very flexible in where it looks for source and header files, aand you can configure the above conventions to look however you
+            The <literal>cpp</literal> plugin is also very flexible in where it looks for source and header files, and you can configure the above conventions to look however you
             like.
         </para>
     </section>
