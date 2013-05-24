@@ -15,9 +15,12 @@
  */
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Incubating;
+
 /**
  * An executable component
  */
+@Incubating
 public interface Executable extends NativeComponent {
     
 }

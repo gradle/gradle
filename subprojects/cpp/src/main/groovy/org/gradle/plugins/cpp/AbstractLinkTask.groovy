@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.cpp
 import org.gradle.api.DefaultTask
+import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.tasks.compile.Compiler
@@ -28,6 +29,7 @@ import org.gradle.plugins.cpp.internal.LinkerSpec
 
 import javax.inject.Inject
 
+@Incubating
 abstract class AbstractLinkTask extends DefaultTask {
     Compiler linker
 

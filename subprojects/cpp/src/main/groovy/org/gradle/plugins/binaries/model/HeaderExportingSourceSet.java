@@ -15,11 +15,13 @@
  */
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
  * A source set that exposes headers
  */
+@Incubating
 public interface HeaderExportingSourceSet extends SourceSet {
 
     SourceDirectorySet getExportedHeaders();

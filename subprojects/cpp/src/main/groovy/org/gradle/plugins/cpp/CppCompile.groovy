@@ -15,17 +15,23 @@
  */
 
 package org.gradle.plugins.cpp
+
 import org.gradle.api.DefaultTask
+import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.binaries.model.Library
 import org.gradle.plugins.cpp.internal.DefaultCppCompileSpec
 
 import javax.inject.Inject
 
+@Incubating
 class CppCompile extends DefaultTask {
 
     Compiler compiler

@@ -16,10 +16,12 @@
 package org.gradle.plugins.binaries.model;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
 
 /**
  * Source set capability
  */
+@Incubating
 public interface NativeDependencyCapableSourceSet extends SourceSet {
     DomainObjectSet<NativeDependencySet> getNativeDependencySets();
 }

@@ -16,6 +16,7 @@
 package org.gradle.plugins.cpp;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -26,6 +27,7 @@ import org.gradle.plugins.cpp.internal.DefaultCppSourceSet;
 /**
  * Adds a source set container.
  */
+@Incubating
 public class CppExtension {
 
     final private NamedDomainObjectContainer<CppSourceSet> sourceSets;

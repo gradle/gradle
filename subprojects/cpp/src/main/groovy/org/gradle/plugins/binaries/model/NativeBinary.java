@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.language.base.Binary;
 
@@ -25,6 +26,7 @@ import java.util.List;
 /**
  * Represents a particular binary artifact that is the result of building a native component.
  */
+@Incubating
 public interface NativeBinary extends Binary {
 
     File getOutputFile();

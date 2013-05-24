@@ -16,9 +16,11 @@
 
 package org.gradle.plugins.cpp
 
+import org.gradle.api.Incubating
 import org.gradle.plugins.cpp.internal.DefaultLinkerSpec
 import org.gradle.plugins.cpp.internal.LinkerSpec
 
+@Incubating
 class LinkStaticLibrary extends AbstractLinkTask {
     @Override
     protected LinkerSpec createLinkerSpec() {

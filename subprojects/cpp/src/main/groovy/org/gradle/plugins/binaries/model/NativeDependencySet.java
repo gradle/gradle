@@ -15,11 +15,13 @@
  */
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
 /**
  * Models a collection of native type dependencies.
  */
+@Incubating
 public interface NativeDependencySet {
 
     FileCollection getIncludeRoots();

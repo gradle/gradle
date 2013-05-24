@@ -15,9 +15,12 @@
  */
 package org.gradle.plugins.cpp.cdt.model
 
+import org.gradle.api.Incubating
+
 /**
  * Gradle model element, the configurable parts of the .project file.
  */
+@Incubating
 class ProjectSettings {
     String name
 

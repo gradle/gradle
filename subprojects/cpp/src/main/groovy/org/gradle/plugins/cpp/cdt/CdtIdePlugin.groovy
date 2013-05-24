@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.cpp.cdt
 
+import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 import org.gradle.api.InvalidUserDataException
@@ -27,6 +28,7 @@ import org.gradle.plugins.cpp.cdt.model.CprojectDescriptor
 
 import org.gradle.plugins.cpp.cdt.tasks.GenerateMetadataFileTask
 
+@Incubating
 class CdtIdePlugin implements Plugin<Project> {
 
     void apply(Project project) {

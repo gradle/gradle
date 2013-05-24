@@ -152,7 +152,7 @@ which has now the type`SetupBuild` task.
 ### Major changes to C++ support
 
 The incubating C++ support in Gradle is undergoing a major update, in order to add support for Static Libraries, variants and other good features. As such,
-the tasks, API and DSL is being given an overhaul. While some features may remain the same, it's likely that any existing C++ builds will need to be updated
+the tasks, API and DSL are being given an overhaul. While some features may remain the same, it's likely that any existing C++ builds will need to be updated
 for the changes. You can read about the plan for proposed changes at https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md.
 
 ### `ConfigureableReport` renamed to `ConfigurableReport`

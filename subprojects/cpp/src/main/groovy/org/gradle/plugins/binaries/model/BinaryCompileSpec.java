@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 
 import java.io.File;
@@ -23,6 +24,7 @@ import java.io.File;
 /**
  * A compile spec that will be used to produce a native artifact.
  */
+@Incubating
 public interface BinaryCompileSpec extends CompileSpec {
     File getWorkDir();
 

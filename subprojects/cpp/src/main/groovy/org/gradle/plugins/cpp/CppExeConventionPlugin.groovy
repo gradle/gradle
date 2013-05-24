@@ -15,12 +15,14 @@
  */
 package org.gradle.plugins.cpp
 
+import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 
+@Incubating
 class CppExeConventionPlugin implements Plugin<Project> {
 
     void apply(Project project) {

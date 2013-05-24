@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.cpp;
 
+import org.gradle.api.Incubating;
 import org.gradle.plugins.binaries.model.Library;
 import org.gradle.plugins.binaries.model.HeaderExportingSourceSet;
 import org.gradle.plugins.binaries.model.NativeDependencyCapableSourceSet;
@@ -30,6 +31,7 @@ import java.util.Map;
 /**
  * A representation of a unit of cpp source
  */
+@Incubating
 public interface CppSourceSet extends HeaderExportingSourceSet, NativeDependencyCapableSourceSet, Named {
 
     /**

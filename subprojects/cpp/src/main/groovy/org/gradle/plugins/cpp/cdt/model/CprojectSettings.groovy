@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.cpp.cdt.model
 
+import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.cpp.CppSourceSet
@@ -23,6 +24,7 @@ import org.gradle.plugins.binaries.model.*
 /**
  * Exposes a more logical view of the actual .cproject descriptor file
  */
+@Incubating
 class CprojectSettings {
 
     NativeComponent binary

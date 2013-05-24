@@ -16,8 +16,11 @@
 
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Incubating;
+
 /**
  * A static library binary
  */
+@Incubating
 public interface StaticLibraryBinary extends NativeBinary {
 }

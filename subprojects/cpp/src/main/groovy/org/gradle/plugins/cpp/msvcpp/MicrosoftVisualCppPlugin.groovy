@@ -18,6 +18,7 @@
 
 package org.gradle.plugins.cpp.msvcpp
 
+import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
@@ -34,6 +35,7 @@ import javax.inject.Inject
 /**
  * A {@link Plugin} which makes the Microsoft Visual C++ compiler available to compile C/C++ code.
  */
+@Incubating
 class MicrosoftVisualCppPlugin implements Plugin<Project> {
     private final FileResolver fileResolver;
 

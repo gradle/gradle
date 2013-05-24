@@ -16,6 +16,7 @@
 package org.gradle.plugins.binaries;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
@@ -34,6 +35,7 @@ import javax.inject.Inject;
 /**
  * temp plugin, not sure what will provide the binaries container and model elements
  */
+@Incubating
 public class BinariesPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
 

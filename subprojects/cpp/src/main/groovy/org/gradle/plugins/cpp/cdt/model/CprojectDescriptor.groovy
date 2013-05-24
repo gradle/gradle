@@ -15,12 +15,14 @@
  */
 package org.gradle.plugins.cpp.cdt.model
 
+import org.gradle.api.Incubating
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 /**
  * The actual .cproject descriptor file.
  */
+@Incubating
 class CprojectDescriptor extends XmlPersistableConfigurationObject {
 
     private static final boolean LINUX_NOT_MACOS = true

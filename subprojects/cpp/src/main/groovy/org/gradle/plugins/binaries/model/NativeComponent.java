@@ -17,6 +17,7 @@ package org.gradle.plugins.binaries.model;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 import java.io.File;
@@ -25,6 +26,7 @@ import java.util.List;
 /**
  * Represents a logical software component, which may be built in a number of variant binaries.
  */
+@Incubating
 public interface NativeComponent extends Named, Buildable {
 
     DomainObjectSet<SourceSet> getSourceSets();

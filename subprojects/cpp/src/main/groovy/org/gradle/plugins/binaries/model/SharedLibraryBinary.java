@@ -15,8 +15,11 @@
  */
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Incubating;
+
 /**
  * A shared library binary
  */
+@Incubating
 public interface SharedLibraryBinary extends NativeBinary {
 }

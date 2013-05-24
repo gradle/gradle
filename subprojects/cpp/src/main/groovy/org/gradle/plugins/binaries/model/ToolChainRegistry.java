@@ -15,11 +15,13 @@
  */
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 
 /**
  * A container for {@link ToolChainAdapter}s
  */
+@Incubating
 public interface ToolChainRegistry extends NamedDomainObjectSet<ToolChainAdapter> {
 
     ToolChain getDefaultToolChain();

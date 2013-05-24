@@ -15,11 +15,13 @@
  */
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
  * A generic model of a collection of source
  */
+@Incubating
 public interface SourceSet extends Named {
     
 }

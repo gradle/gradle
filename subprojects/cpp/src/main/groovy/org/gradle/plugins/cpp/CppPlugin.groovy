@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.cpp
 
+import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
@@ -27,6 +28,7 @@ import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
 import org.gradle.plugins.cpp.internal.CppCompileSpec
 import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
 
+@Incubating
 class CppPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {

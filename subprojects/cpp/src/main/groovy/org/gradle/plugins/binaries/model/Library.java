@@ -15,11 +15,14 @@
  */
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
  * A library component
  */
+@Incubating
+// TODO:DAZ Come up with a better name for this
 public interface Library extends NativeComponent {
     SourceDirectorySet getHeaders();
 }

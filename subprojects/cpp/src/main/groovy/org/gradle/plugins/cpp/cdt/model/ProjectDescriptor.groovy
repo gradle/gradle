@@ -15,12 +15,14 @@
  */
 package org.gradle.plugins.cpp.cdt.model
 
+import org.gradle.api.Incubating
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 /**
  * The actual .project descriptor file.
  */
+@Incubating
 class ProjectDescriptor extends XmlPersistableConfigurationObject {
 
     ProjectDescriptor() {

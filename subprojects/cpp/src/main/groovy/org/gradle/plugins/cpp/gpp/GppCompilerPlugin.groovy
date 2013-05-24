@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.cpp.gpp
 
+import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
@@ -31,6 +32,7 @@ import javax.inject.Inject
 /**
  * A {@link Plugin} which makes the <a href="http://gcc.gnu.org/">GNU G++ compiler</a> available for compiling C/C++ code.
  */
+@Incubating
 class GppCompilerPlugin implements Plugin<Project> {
     private final FileResolver fileResolver
 
