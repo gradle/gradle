@@ -19,7 +19,25 @@ package org.gradle.test.fixtures
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.hash.HashUtil
 
-class AbstractModule {
+abstract class AbstractModule {
+    protected void publish(TestFile file, Closure cl) {
+        def timestamp = file.exists() ? file.lastModified() : null
+        def hashBefore = file.exists() ? getHash(file, "sha1") : null
+
+        cl.call(file)
+
+        def hashAfter = getHash(file, "sha1")
+        if (hashAfter == hashBefore) {
+            // Already published
+            file.lastModified = timestamp
+            return
+        }
+
+        onPublish(file)
+    }
+
+    protected abstract onPublish(TestFile file)
+
     TestFile getSha1File(TestFile file) {
         getHashFile(file, "sha1")
     }

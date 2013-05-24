@@ -332,9 +332,10 @@ class MavenFileModule extends AbstractModule implements MavenModule {
         return artifactFile
     }
 
-    private void publish(File file, Closure cl) {
-        cl.call(file)
-        createHashFiles(file)
+    @Override
+    protected onPublish(TestFile file) {
+        sha1File(file)
+        md5File(file)
     }
 
     private String getArtifactContent() {
@@ -348,10 +349,4 @@ class MavenFileModule extends AbstractModule implements MavenModule {
         assert options.isEmpty(): "Unknown options : ${options.keySet()}"
         return artifact
     }
-
-    private void createHashFiles(TestFile file) {
-        sha1File(file)
-        md5File(file)
-    }
-
 }

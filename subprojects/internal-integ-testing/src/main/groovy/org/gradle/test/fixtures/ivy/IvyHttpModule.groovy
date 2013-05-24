@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.mortbay.jetty.HttpStatus
 
-class IvyHttpModule extends AbstractIvyModule {
+class IvyHttpModule implements IvyModule {
     private final IvyFileModule backingModule
     private final HttpServer server
     private final String prefix
@@ -29,6 +29,10 @@ class IvyHttpModule extends AbstractIvyModule {
         this.prefix = prefix
         this.server = server
         this.backingModule = backingModule
+    }
+
+    IvyDescriptor getIvy() {
+        return backingModule.ivy
     }
 
     IvyHttpModule publish() {

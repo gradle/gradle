@@ -22,7 +22,8 @@ import org.gradle.test.fixtures.file.TestFile
 
 interface MavenModule {
     /**
-     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module.
+     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module. Publishes only those artifacts whose content has
+     * changed since the last call to {@code #publish()}.
      */
     MavenModule publish()
 

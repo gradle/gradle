@@ -19,9 +19,10 @@ import org.apache.ivy.core.IvyPatternHelper
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.file.TestFile
 
-class IvyFileModule extends AbstractIvyModule {
+class IvyFileModule extends AbstractModule implements IvyModule {
     final String ivyPattern
     final String artifactPattern
     final TestFile moduleDir
@@ -46,6 +47,10 @@ class IvyFileModule extends AbstractIvyModule {
         artifact([:])
         configurations['runtime'] = [extendsFrom: [], transitive: true]
         configurations['default'] = [extendsFrom: ['runtime'], transitive: true]
+    }
+
+    IvyDescriptor getIvy() {
+        return new IvyDescriptor(ivyFile)
     }
 
     IvyFileModule configuration(String name, List extendsFrom = []) {
@@ -189,8 +194,8 @@ class IvyFileModule extends AbstractIvyModule {
         return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.type}")
     }
 
-    private void publish(File file, Closure cl) {
-        cl.call(file)
+    @Override
+    protected onPublish(TestFile file) {
         sha1File(file)
     }
 
