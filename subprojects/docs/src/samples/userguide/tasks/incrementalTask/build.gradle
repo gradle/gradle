@@ -47,21 +47,19 @@ class IncrementalReverseTask extends DefaultTask {
     void execute(IncrementalTaskInputs inputs) {
         println inputs.incremental ? "CHANGED inputs considered out of date" : "ALL inputs considered out of date"
         // START SNIPPET out-of-date-inputs
-        inputs.outOfDate({ change ->
+        inputs.outOfDate { change ->
             println "out of date: ${change.file.name}"
             def targetFile = new File(outputDir, change.file.name)
             targetFile.text = change.file.text.reverse()
-        } as Action)
+        }
         // END SNIPPET out-of-date-inputs
 
         // START SNIPPET removed-inputs
-        inputs.removed({ change ->
+        inputs.removed { change ->
             println "removed: ${change.file.name}"
             def targetFile = new File(outputDir, change.file.name)
-            if (targetFile.exists()) {
-                targetFile.delete()
-            }
-        } as Action)
+            targetFile.delete()
+        }
         // END SNIPPET removed-inputs
     }
 }
