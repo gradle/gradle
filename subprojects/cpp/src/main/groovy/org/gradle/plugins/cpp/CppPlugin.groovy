@@ -99,7 +99,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
             linkTask.dependsOn sourceSet.libs
 
             sourceSet.nativeDependencySets.all { NativeDependencySet nativeDependencySet ->
-                linkTask.source nativeDependencySet.files
+                linkTask.lib nativeDependencySet.files
             }
         }
 
