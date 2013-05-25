@@ -37,7 +37,8 @@ abstract class AbstractModule {
             return
         }
 
-        tmpFile.renameTo(file)
+        assert file.delete()
+        assert tmpFile.renameTo(file)
         onPublish(file)
     }
 
