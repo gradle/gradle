@@ -37,7 +37,7 @@ abstract class AbstractModule {
             return
         }
 
-        assert file.delete()
+        assert !file.exists() || file.delete()
         assert tmpFile.renameTo(file)
         onPublish(file)
     }
