@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.msvcpp.internal;
+package org.gradle.plugins.cpp.internal;
 
-import org.gradle.internal.Factory;
-import org.gradle.process.internal.ExecAction;
+public interface SharedLibraryLinkerSpec extends LinkerSpec {
+    String getInstallName();
 
-import java.io.File;
-
-public class VisualCppDynamicLibraryLinker extends LinkExeLinker {
-    protected VisualCppDynamicLibraryLinker(File executable, Factory<ExecAction> execActionFactory) {
-        super(executable, execActionFactory, true);
-    }
+    void setInstallName(String path);
 }

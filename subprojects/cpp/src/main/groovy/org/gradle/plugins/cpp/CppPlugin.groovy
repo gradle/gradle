@@ -99,7 +99,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         }
 
         linkTask.outputFile = { binary.outputFile }
-        linkTask.linker = toolChain.createLinker(binary)
+        linkTask.linker = toolChain.createLinker(linkTask.specType)
         linkTask.conventionMapping.linkerArgs = { binary.linkerArgs }
         binary.component.builtBy(linkTask)
         linkTask

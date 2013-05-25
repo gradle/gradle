@@ -27,9 +27,8 @@ import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-class VisualCppStaticLibraryLinker extends CommandLineCppCompiler<LinkerSpec> {
-
-    VisualCppStaticLibraryLinker(File executable, Factory<ExecAction> execActionFactory) {
+class LibExeLinker extends CommandLineCppCompiler<LinkerSpec> {
+    LibExeLinker(File executable, Factory<ExecAction> execActionFactory) {
         super(executable, execActionFactory, new CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec>(
                 ArgWriter.windowsStyleFactory(), new VisualCppLinkerSpecArguments()
         ));

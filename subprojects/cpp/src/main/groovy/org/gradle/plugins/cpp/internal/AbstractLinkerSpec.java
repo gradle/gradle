@@ -19,12 +19,11 @@ package org.gradle.plugins.cpp.internal;
 import java.io.File;
 import java.util.ArrayList;
 
-public class DefaultLinkerSpec implements LinkerSpec {
+public abstract class AbstractLinkerSpec implements LinkerSpec {
 
     private Iterable<File> libs;
     private Iterable<File> source;
     private File outputFile;
-    private String installName;
     private File workDir;
     private File tempDir;
     private Iterable<String> args = new ArrayList<String>();
@@ -75,13 +74,5 @@ public class DefaultLinkerSpec implements LinkerSpec {
 
     public Iterable<String> getArgs() {
         return args;
-    }
-
-    public String getInstallName() {
-        return installName == null ? getOutputFile().getName() : installName;
-    }
-
-    public void setInstallName(String installName) {
-        this.installName = installName;
     }
 }

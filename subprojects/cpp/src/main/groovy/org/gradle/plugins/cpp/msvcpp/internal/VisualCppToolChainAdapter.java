@@ -19,9 +19,10 @@ package org.gradle.plugins.cpp.msvcpp.internal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.binaries.model.*;
-import org.gradle.plugins.cpp.internal.CppCompileSpec;
-import org.gradle.plugins.cpp.internal.LinkerSpec;
+import org.gradle.plugins.binaries.model.BinaryCompileSpec;
+import org.gradle.plugins.binaries.model.ToolChain;
+import org.gradle.plugins.binaries.model.ToolChainAdapter;
+import org.gradle.plugins.cpp.internal.*;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
@@ -67,21 +68,20 @@ public class VisualCppToolChainAdapter implements ToolChainAdapter {
     public ToolChain create() {
         return new ToolChain() {
             public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
-                if (!specType.isAssignableFrom(CppCompileSpec.class)) {
-                    // TODO:DAZ Should introduce language instead of relying on spec here
-                    throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
+                if (CppCompileSpec.class.isAssignableFrom(specType)) {
+                    return (Compiler<T>) new VisualCppCompiler(compilerExe, execActionFactory);
                 }
-                return (Compiler<T>) new VisualCppCompiler(compilerExe, execActionFactory);
+                throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
             }
 
-            public Compiler<? super LinkerSpec> createLinker(NativeBinary output) {
-                if (output instanceof StaticLibraryBinary) {
-                    return new VisualCppStaticLibraryLinker(staticLinkerExe, execActionFactory);
+            public <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType) {
+                if (ExecutableLinkerSpec.class.isAssignableFrom(specType) || SharedLibraryLinkerSpec.class.isAssignableFrom(specType)) {
+                    return (Compiler<T>) new LinkExeLinker(linkerExe, execActionFactory);
                 }
-                if (output instanceof SharedLibraryBinary) {
-                    return new VisualCppDynamicLibraryLinker(linkerExe, execActionFactory);
+                if (StaticLibraryLinkerSpec.class.isAssignableFrom(specType)) {
+                    return (Compiler<T>) new LibExeLinker(staticLinkerExe, execActionFactory);
                 }
-                return new VisualCppExecutableLinker(linkerExe, execActionFactory);
+                throw new IllegalArgumentException(String.format("No suitable linker available for %s.", specType));
             }
         };
     }

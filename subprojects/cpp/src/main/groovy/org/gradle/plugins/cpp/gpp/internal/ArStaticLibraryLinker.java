@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
-import org.gradle.plugins.cpp.internal.LinkerSpec;
+import org.gradle.plugins.cpp.internal.StaticLibraryLinkerSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
@@ -28,14 +28,14 @@ import java.io.File;
 /**
  * A static library linker based on the GNU 'ar' utility
  */
-public class ArStaticLibraryLinker extends CommandLineCppCompiler<LinkerSpec> {
+public class ArStaticLibraryLinker extends CommandLineCppCompiler<StaticLibraryLinkerSpec> {
 
     public ArStaticLibraryLinker(File executable, Factory<ExecAction> execActionFactory) {
         super(executable, execActionFactory, new LinkerSpecToArguments());
     }
 
-    private static class LinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
-        public void collectArguments(LinkerSpec spec, ArgCollector collector) {
+    private static class LinkerSpecToArguments implements CompileSpecToArguments<StaticLibraryLinkerSpec> {
+        public void collectArguments(StaticLibraryLinkerSpec spec, ArgCollector collector) {
             collector.args("-rc", spec.getOutputFile().getAbsolutePath());
             for (File file : spec.getSource()) {
                 collector.args(file.getAbsolutePath());

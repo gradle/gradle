@@ -15,15 +15,24 @@
  */
 
 package org.gradle.plugins.cpp
-
 import org.gradle.api.Incubating
-import org.gradle.plugins.cpp.internal.DefaultLinkerSpec
+import org.gradle.plugins.cpp.internal.AbstractLinkerSpec
+import org.gradle.plugins.cpp.internal.ExecutableLinkerSpec
 import org.gradle.plugins.cpp.internal.LinkerSpec
 
 @Incubating
 class LinkExecutable extends AbstractLinkTask {
+
     @Override
     protected LinkerSpec createLinkerSpec() {
-        new DefaultLinkerSpec()
+        return new Spec()
+    }
+
+    @Override
+    Class<? extends LinkerSpec> getSpecType() {
+        ExecutableLinkerSpec
+    }
+
+    public static class Spec extends AbstractLinkerSpec implements ExecutableLinkerSpec {
     }
 }

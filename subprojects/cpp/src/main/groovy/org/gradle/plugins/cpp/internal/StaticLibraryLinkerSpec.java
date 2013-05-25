@@ -14,16 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.gpp.internal;
+package org.gradle.plugins.cpp.internal;
 
-import org.gradle.internal.Factory;
-import org.gradle.process.internal.ExecAction;
-
-import java.io.File;
-
-public class GppSharedLibraryLinker extends GppLinker {
-
-    public GppSharedLibraryLinker(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
-        super(executable, execActionFactory, useCommandFile, true);
-    }
+public interface StaticLibraryLinkerSpec extends LinkerSpec {
 }

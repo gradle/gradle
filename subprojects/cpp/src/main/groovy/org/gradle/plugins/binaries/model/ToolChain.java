@@ -30,5 +30,5 @@ public interface ToolChain {
      */
     <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType);
 
-    Compiler<? super LinkerSpec> createLinker(NativeBinary forOutput);
+    <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType);
 }

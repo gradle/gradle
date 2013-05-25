@@ -23,29 +23,25 @@ import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
 import org.gradle.plugins.cpp.internal.LinkerSpec;
+import org.gradle.plugins.cpp.internal.SharedLibraryLinkerSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
 class LinkExeLinker extends CommandLineCppCompiler<LinkerSpec> {
 
-    protected LinkExeLinker(File executable, Factory<ExecAction> execActionFactory, boolean createLibrary) {
+    protected LinkExeLinker(File executable, Factory<ExecAction> execActionFactory) {
         super(executable, execActionFactory, new CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec>(
-                ArgWriter.windowsStyleFactory(), new VisualCppLinkerSpecArguments(createLibrary)
+                ArgWriter.windowsStyleFactory(), new VisualCppLinkerSpecArguments()
         ));
     }
 
     private static class VisualCppLinkerSpecArguments implements CompileSpecToArguments<LinkerSpec> {
-        private final boolean createLibrary;
-
-        public VisualCppLinkerSpecArguments(boolean createLibrary) {
-            this.createLibrary = createLibrary;
-        }
 
         public void collectArguments(LinkerSpec spec, ArgCollector collector) {
             collector.args("/OUT:" + spec.getOutputFile().getAbsolutePath());
             collector.args("/NOLOGO");
-            if (createLibrary) {
+            if (spec instanceof SharedLibraryLinkerSpec) {
                 collector.args("/DLL");
             }
             for (File file : spec.getSource()) {

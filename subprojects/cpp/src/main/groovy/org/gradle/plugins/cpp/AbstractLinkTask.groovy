@@ -19,13 +19,13 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.binaries.model.Library
 import org.gradle.plugins.cpp.internal.LinkerSpec
+import org.gradle.api.internal.tasks.compile.Compiler
 
 import javax.inject.Inject
 
@@ -43,6 +43,7 @@ abstract class AbstractLinkTask extends DefaultTask {
 
     @InputFiles
     ConfigurableFileCollection libs
+
 
     @Inject
     AbstractLinkTask() {
@@ -69,6 +70,8 @@ abstract class AbstractLinkTask extends DefaultTask {
         def result = linker.execute(spec)
         didWork = result.didWork
     }
+
+    abstract Class<? extends LinkerSpec> getSpecType();
 
     protected abstract LinkerSpec createLinkerSpec();
 

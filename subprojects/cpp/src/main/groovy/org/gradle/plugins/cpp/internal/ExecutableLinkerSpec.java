@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.msvcpp.internal;
+package org.gradle.plugins.cpp.internal;
 
-import org.gradle.internal.Factory;
-import org.gradle.process.internal.ExecAction;
-
-import java.io.File;
-
-public class VisualCppExecutableLinker extends LinkExeLinker {
-    protected VisualCppExecutableLinker(File executable, Factory<ExecAction> execActionFactory) {
-        super(executable, execActionFactory, false);
-    }
+public interface ExecutableLinkerSpec extends LinkerSpec {
 }

@@ -41,8 +41,4 @@ public interface LinkerSpec extends BinaryCompileSpec {
 
     void setOutputFile(File outputFile);
 
-    String getInstallName();
-
-    void setInstallName(String path);
-
 }

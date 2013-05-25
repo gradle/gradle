@@ -81,14 +81,14 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
             };
         }
 
-        public Compiler<? super LinkerSpec> createLinker(NativeBinary forOutput) {
-            return createLazyLinker(forOutput);
+        public <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType) {
+            return createLazyLinker(specType);
         }
 
-        private Compiler<? super LinkerSpec> createLazyLinker(final NativeBinary output) {
-            return new Compiler<LinkerSpec>() {
-                public WorkResult execute(LinkerSpec spec) {
-                    return getToolChain().createLinker(output).execute(spec);
+        private <T extends LinkerSpec> Compiler<T> createLazyLinker(final Class<T> specType) {
+            return new Compiler<T>() {
+                public WorkResult execute(T spec) {
+                    return getToolChain().createLinker(specType).execute(spec);
                 }
             };
         }
