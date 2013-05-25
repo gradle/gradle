@@ -97,10 +97,8 @@ task log << {
         }
 
         then:
-        output.toString().startsWith """:log
-waiting
-finished
-"""
+        output.toString().contains("waiting")
+        output.toString().contains("finished")
     }
 
     String normaliseOutput(String output) {
