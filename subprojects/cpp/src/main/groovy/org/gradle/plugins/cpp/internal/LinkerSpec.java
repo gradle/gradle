@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.cpp.internal;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.plugins.binaries.model.BinaryCompileSpec;
 
 import java.io.File;
@@ -26,17 +25,17 @@ import java.io.File;
  */
 public interface LinkerSpec extends BinaryCompileSpec {
 
-    FileCollection getSource();
+    Iterable<File> getSource();
 
-    void setSource(FileCollection source);
+    void setSource(Iterable<File> source);
 
-    FileCollection getLibs();
+    Iterable<File> getLibs();
 
-    void setLibs(FileCollection libs);
+    void setLibs(Iterable<File> libs);
 
-    Iterable<Object> getArgs();
+    Iterable<String> getArgs();
 
-    void setArgs(Iterable<Object> args);
+    void setArgs(Iterable<String> args);
 
     File getOutputFile();
 

@@ -16,34 +16,32 @@
 
 package org.gradle.plugins.cpp.internal;
 
-import org.gradle.api.file.FileCollection;
-
 import java.io.File;
 import java.util.ArrayList;
 
 public class DefaultLinkerSpec implements LinkerSpec {
 
-    private FileCollection libs;
-    private FileCollection source;
+    private Iterable<File> libs;
+    private Iterable<File> source;
     private File outputFile;
     private String installName;
     private File workDir;
     private File tempDir;
-    private Iterable<Object> args = new ArrayList<Object>();
+    private Iterable<String> args = new ArrayList<String>();
 
-    public FileCollection getSource() {
+    public Iterable<File> getSource() {
         return source;
     }
 
-    public void setSource(FileCollection source) {
+    public void setSource(Iterable<File> source) {
         this.source = source;
     }
 
-    public FileCollection getLibs() {
+    public Iterable<File> getLibs() {
         return libs;
     }
 
-    public void setLibs(FileCollection libs) {
+    public void setLibs(Iterable<File> libs) {
         this.libs = libs;
     }
 
@@ -71,11 +69,11 @@ public class DefaultLinkerSpec implements LinkerSpec {
         this.tempDir = tempDir;
     }
 
-    public void setArgs(Iterable<Object> args) {
+    public void setArgs(Iterable<String> args) {
         this.args = args;
     }
 
-    public Iterable<Object> getArgs() {
+    public Iterable<String> getArgs() {
         return args;
     }
 

@@ -49,7 +49,7 @@ class CppCompile extends DefaultTask {
     ConfigurableFileCollection source
 
     @Input
-    List<Object> compilerArgs
+    List<String> compilerArgs
 
     @Inject
     CppCompile() {
@@ -64,9 +64,9 @@ class CppCompile extends DefaultTask {
 
         spec.workDir = getOutputDirectory()
 
-        spec.includeRoots = includes
-        spec.source = source
-        spec.args = compilerArgs
+        spec.includeRoots = getIncludes()
+        spec.source = getSource()
+        spec.args = getCompilerArgs()
         if (isSharedLibrary()) {
             spec.forDynamicLinking = true
         }

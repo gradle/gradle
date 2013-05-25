@@ -36,7 +36,7 @@ abstract class AbstractLinkTask extends DefaultTask {
     def outputFile
 
     @Input
-    List<Object> linkerArgs
+    List<String> linkerArgs
 
     @InputFiles
     ConfigurableFileCollection source
@@ -63,8 +63,8 @@ abstract class AbstractLinkTask extends DefaultTask {
         spec.outputFile = getOutputFile()
         spec.workDir = project.file("${project.buildDir}/tmp/cppCompile/${name}")
         spec.source = getSource()
-        spec.libs = libs
-        spec.args = linkerArgs
+        spec.libs = getLibs()
+        spec.args = getLinkerArgs()
 
         def result = linker.execute(spec)
         didWork = result.didWork

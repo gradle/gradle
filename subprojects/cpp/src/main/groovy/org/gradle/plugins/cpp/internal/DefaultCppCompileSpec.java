@@ -16,33 +16,31 @@
 
 package org.gradle.plugins.cpp.internal;
 
-import org.gradle.api.file.FileCollection;
-
 import java.io.File;
 import java.util.ArrayList;
 
 public class DefaultCppCompileSpec implements CppCompileSpec {
 
-    private FileCollection includeRoots;
-    private FileCollection source;
+    private Iterable<File> includeRoots;
+    private Iterable<File> source;
+    private Iterable<String> args = new ArrayList<String>();
     private File workDir;
     private File tempDir;
     private boolean forDynamicLinking;
-    private Iterable<Object> args = new ArrayList<Object>();
 
-    public FileCollection getIncludeRoots() {
+    public Iterable<File> getIncludeRoots() {
         return includeRoots;
     }
 
-    public void setIncludeRoots(FileCollection includeRoots) {
+    public void setIncludeRoots(Iterable<File> includeRoots) {
         this.includeRoots = includeRoots;
     }
 
-    public FileCollection getSource() {
+    public Iterable<File> getSource() {
         return source;
     }
 
-    public void setSource(FileCollection source) {
+    public void setSource(Iterable<File> source) {
         this.source = source;
     }
 
@@ -62,11 +60,11 @@ public class DefaultCppCompileSpec implements CppCompileSpec {
         this.tempDir = tempDir;
     }
 
-    public void setArgs(Iterable<Object> args) {
+    public void setArgs(Iterable<String> args) {
         this.args = args;
     }
 
-    public Iterable<Object> getArgs() {
+    public Iterable<String> getArgs() {
         return args;
     }
 

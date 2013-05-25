@@ -72,8 +72,8 @@ class CppPlugin implements Plugin<ProjectInternal> {
         compileTask.outputDirectory = project.file("${project.buildDir}/objectFiles/${binary.name}")
 
         compileTask.compiler = toolChain.createCompiler(CppCompileSpec)
-        compileTask.compilerArgs = binary.compilerArgs
         compileTask.sharedLibrary = binary instanceof SharedLibraryBinary
+        compileTask.conventionMapping.compilerArgs = { binary.compilerArgs }
         compileTask
     }
 
@@ -100,7 +100,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         linkTask.outputFile = { binary.outputFile }
         linkTask.linker = toolChain.createLinker(binary)
-        linkTask.linkerArgs = binary.linkerArgs
+        linkTask.conventionMapping.linkerArgs = { binary.linkerArgs }
         binary.component.builtBy(linkTask)
         linkTask
     }
