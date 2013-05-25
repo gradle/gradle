@@ -21,19 +21,18 @@ import org.gradle.util.GFileUtils
 import org.gradle.util.hash.HashUtil
 import org.hamcrest.Matcher
 import org.junit.rules.ExternalResource
+import org.mortbay.jetty.*
 import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
+import org.mortbay.jetty.security.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import java.security.Principal
-import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-
-import org.mortbay.jetty.*
-import org.mortbay.jetty.security.*
+import java.security.Principal
+import java.util.zip.GZIPOutputStream
 
 class HttpServer extends ExternalResource {
 
@@ -401,13 +400,15 @@ class HttpServer extends ExternalResource {
         if (sendLastModified) {
             response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified ?: file.lastModified())
         }
-        response.setContentLength((contentLength ?: file.length()) as int)
+        def content = file.bytes
+        response.setContentLength((contentLength ?: content.length) as int)
         response.setContentType(new MimeTypes().getMimeByExtension(file.name).toString())
         if (sendSha1Header) {
-            response.addHeader("X-Checksum-Sha1", HashUtil.sha1(file).asHexString())
+            response.addHeader("X-Checksum-Sha1", HashUtil.sha1(content).asHexString())
         }
-        addEtag(response, file.bytes, etags)
-        response.outputStream << new FileInputStream(file)
+
+        addEtag(response, content, etags)
+        response.outputStream << content
     }
 
     private addEtag(HttpServletResponse response, byte[] bytes, etagStrategy) {
