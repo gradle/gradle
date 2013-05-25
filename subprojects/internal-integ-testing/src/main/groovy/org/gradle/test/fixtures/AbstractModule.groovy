@@ -20,19 +20,24 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.hash.HashUtil
 
 abstract class AbstractModule {
+    /**
+     * @param cl A closure that is passed a writer to use to generate the content.
+     */
     protected void publish(TestFile file, Closure cl) {
-        def timestamp = file.exists() ? file.lastModified() : null
         def hashBefore = file.exists() ? getHash(file, "sha1") : null
+        def tmpFile = file.parentFile.file("${file.name}.tmp")
 
-        cl.call(file)
+        tmpFile.withWriter("utf-8") {
+            cl.call(it)
+        }
 
-        def hashAfter = getHash(file, "sha1")
+        def hashAfter = getHash(tmpFile, "sha1")
         if (hashAfter == hashBefore) {
             // Already published
-            file.lastModified = timestamp
             return
         }
 
+        tmpFile.renameTo(file)
         onPublish(file)
     }
 

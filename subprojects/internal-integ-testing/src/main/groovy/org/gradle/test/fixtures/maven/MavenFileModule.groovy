@@ -225,8 +225,8 @@ class MavenFileModule extends AbstractModule implements MavenModule {
 
         updateRootMavenMetaData(rootMavenMetaData)
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
-            publish(metaDataFile) {
-                metaDataFile.text = """
+            publish(metaDataFile) { Writer writer ->
+                writer << """
 <metadata>
   <!-- ${getArtifactContent()} -->
   <groupId>$groupId</groupId>
@@ -244,10 +244,9 @@ class MavenFileModule extends AbstractModule implements MavenModule {
             }
         }
 
-        publish(pomFile) {
+        publish(pomFile) { Writer writer ->
             def pomPackaging = packaging ?: type;
-            pomFile.text = ""
-            pomFile << """
+            writer << """
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <!-- ${getArtifactContent()} -->
   <modelVersion>4.0.0</modelVersion>
@@ -258,17 +257,17 @@ class MavenFileModule extends AbstractModule implements MavenModule {
   <description>Published on $publishTimestamp</description>"""
 
             if (parentPomSection) {
-                pomFile << "\n$parentPomSection\n"
+                writer << "\n$parentPomSection\n"
             }
 
             if (!dependencies.empty) {
-                pomFile << """
+                writer << """
   <dependencies>"""
             }
 
             dependencies.each { dependency ->
                 def typeAttribute = dependency['type'] == null ? "" : "<type>$dependency.type</type>"
-                pomFile << """
+                writer << """
     <dependency>
       <groupId>$dependency.groupId</groupId>
       <artifactId>$dependency.artifactId</artifactId>
@@ -278,11 +277,11 @@ class MavenFileModule extends AbstractModule implements MavenModule {
             }
 
             if (!dependencies.empty) {
-                pomFile << """
+                writer << """
   </dependencies>"""
             }
 
-            pomFile << "\n</project>"
+            writer << "\n</project>"
         }
 
         artifacts.each { artifact ->
@@ -295,25 +294,23 @@ class MavenFileModule extends AbstractModule implements MavenModule {
     private void updateRootMavenMetaData(TestFile rootMavenMetaData) {
         def allVersions = rootMavenMetaData.exists() ? new XmlParser().parseText(rootMavenMetaData.text).versioning.versions.version*.value().flatten() : []
         allVersions << version;
-        publish(rootMavenMetaData) {
-            rootMavenMetaData.withWriter {writer ->
-                def builder = new MarkupBuilder(writer)
-                builder.metadata {
-                    groupId(groupId)
-                    artifactId(artifactId)
-                    version(allVersions.max())
-                    versioning {
-                        if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
-                            snapshot {
-                                timestamp(timestampFormat.format(publishTimestamp))
-                                buildNumber(publishCount)
-                                lastUpdated(updateFormat.format(publishTimestamp))
-                            }
-                        } else {
-                            versions {
-                                allVersions.each {currVersion ->
-                                    version(currVersion)
-                                }
+        publish(rootMavenMetaData) { Writer writer ->
+            def builder = new MarkupBuilder(writer)
+            builder.metadata {
+                groupId(groupId)
+                artifactId(artifactId)
+                version(allVersions.max())
+                versioning {
+                    if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
+                        snapshot {
+                            timestamp(timestampFormat.format(publishTimestamp))
+                            buildNumber(publishCount)
+                            lastUpdated(updateFormat.format(publishTimestamp))
+                        }
+                    } else {
+                        versions {
+                            allVersions.each {currVersion ->
+                                version(currVersion)
                             }
                         }
                     }
@@ -324,10 +321,11 @@ class MavenFileModule extends AbstractModule implements MavenModule {
 
     private File publishArtifact(Map<String, ?> artifact) {
         def artifactFile = artifactFile(artifact)
-        publish(artifactFile) {
-            if (type != 'pom') {
-                artifactFile.text = "${artifactFile.name} : $artifactContent"
-            }
+        if (type == 'pom') {
+            return artifactFile
+        }
+        publish(artifactFile) { Writer writer ->
+            writer << "${artifactFile.name} : $artifactContent"
         }
         return artifactFile
     }

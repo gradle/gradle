@@ -133,16 +133,16 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
         artifacts.each { artifact ->
             def artifactFile = file(artifact)
-            publish(artifactFile) {
-                artifactFile.text = "${artifactFile.name} : $artifactContent"
+            publish(artifactFile) { Writer writer ->
+                writer << "${artifactFile.name} : $artifactContent"
             }
         }
         if (noMetaData) {
             return this
         }
 
-        publish(ivyFile) {
-            transformer.transform(ivyFile, new Action<Writer>() {
+        publish(ivyFile) { Writer writer ->
+            transformer.transform(writer, new Action<Writer>() {
                 void execute(Writer ivyFileWriter) {
                     ivyFileWriter << """<?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven">
