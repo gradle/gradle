@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.plugins.cpp
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Task
@@ -60,20 +59,26 @@ class CppPlugin implements Plugin<ProjectInternal> {
     private CppCompile createCompileTask(ProjectInternal project, NativeBinary binary, ToolChain toolChain) {
         CppCompile compileTask = project.task(binary.getTaskName("compile"), type: CppCompile) {
             description = "Compiles $binary"
-            group = BasePlugin.BUILD_GROUP
         }
-        // TODO:DAZ Make this work with @SkipWhenEmpty
-        compileTask.onlyIf {
-            !compileTask.source.files.empty
-        }
-
-        binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet -> compileTask.from(sourceSet) }
-
-        compileTask.outputDirectory = project.file("${project.buildDir}/objectFiles/${binary.name}")
 
         compileTask.compiler = toolChain.createCompiler(CppCompileSpec)
-        compileTask.sharedLibrary = binary instanceof SharedLibraryBinary
+        compileTask.forDynamicLinking = binary instanceof SharedLibraryBinary
+
+        // TODO:DAZ Move some of this logic into NativeBinary
+        binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
+            compileTask.includes sourceSet.exportedHeaders
+            compileTask.includes project.files({ sourceSet.libs*.headers*.srcDirs })
+
+            compileTask.source sourceSet.source
+
+            sourceSet.nativeDependencySets.all { NativeDependencySet deps ->
+                compileTask.includes deps.includeRoots
+            }
+        }
+
+        compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.name}") }
         compileTask.conventionMapping.compilerArgs = { binary.compilerArgs }
+
         compileTask
     }
 
@@ -82,29 +87,28 @@ class CppPlugin implements Plugin<ProjectInternal> {
              description = "Links ${binary}"
              group = BasePlugin.BUILD_GROUP
          }
-        // TODO:DAZ Make this work with @SkipWhenEmpty
-        linkTask.onlyIf {
-            !linkTask.source.files.empty
-        }
+
         linkTask.dependsOn compileTask // TODO:DAZ Avoid this explicit dependency by wiring inputs/outputs better
+        linkTask.linker = toolChain.createLinker(linkTask.specType)
 
-        linkTask.source project.fileTree(compileTask.outputDirectory)
+        linkTask.source project.fileTree(compileTask.objectFileDir)
 
+        // TODO:DAZ Move this logic into NativeBinary
         binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
-            linkTask.libs(sourceSet.libs)
+            linkTask.lib project.files({sourceSet.libs*.outputFile})
+            linkTask.dependsOn sourceSet.libs
 
             sourceSet.nativeDependencySets.all { NativeDependencySet nativeDependencySet ->
                 linkTask.source nativeDependencySet.files
             }
         }
 
-        linkTask.outputFile = { binary.outputFile }
-        linkTask.linker = toolChain.createLinker(linkTask.specType)
+        linkTask.conventionMapping.outputFile = { binary.outputFile }
         linkTask.conventionMapping.linkerArgs = { binary.linkerArgs }
+
         binary.component.builtBy(linkTask)
         linkTask
     }
-
 
     private static Class<? extends AbstractLinkTask> linkTaskType(NativeBinary binary) {
         if (binary instanceof SharedLibraryBinary) {

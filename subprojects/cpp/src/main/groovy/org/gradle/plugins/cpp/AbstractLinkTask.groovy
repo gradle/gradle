@@ -15,17 +15,13 @@
  */
 
 package org.gradle.plugins.cpp
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
-import org.gradle.plugins.binaries.model.Library
-import org.gradle.plugins.cpp.internal.LinkerSpec
 import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.api.tasks.*
+import org.gradle.plugins.cpp.internal.LinkerSpec
 
 import javax.inject.Inject
 
@@ -33,17 +29,22 @@ import javax.inject.Inject
 abstract class AbstractLinkTask extends DefaultTask {
     Compiler linker
 
-    def outputFile
+    @OutputFile
+    File outputFile
 
     @Input
     List<String> linkerArgs
 
     @InputFiles
-    ConfigurableFileCollection source
+    FileCollection source
+
+    @SkipWhenEmpty // Workaround for GRADLE-2026
+    FileCollection getSource() {
+        source
+    }
 
     @InputFiles
-    ConfigurableFileCollection libs
-
+    FileCollection libs
 
     @Inject
     AbstractLinkTask() {
@@ -51,18 +52,13 @@ abstract class AbstractLinkTask extends DefaultTask {
         source = project.files()
     }
 
-    @OutputFile
-    public File getOutputFile() {
-        return project.file(outputFile)
-    }
-
     @TaskAction
     void link() {
         def spec = createLinkerSpec()
-        spec.tempDir = getTemporaryDir()
+        spec.workDir = getTemporaryDir()
+        spec.tempDir = spec.workDir
 
         spec.outputFile = getOutputFile()
-        spec.workDir = project.file("${project.buildDir}/tmp/cppCompile/${name}")
         spec.source = getSource()
         spec.libs = getLibs()
         spec.args = getLinkerArgs()
@@ -75,12 +71,11 @@ abstract class AbstractLinkTask extends DefaultTask {
 
     protected abstract LinkerSpec createLinkerSpec();
 
-    void source(FileCollection inputs) {
-        source.from(inputs)
+    void source(Object inputs) {
+        source.from inputs
     }
 
-    void libs(Iterable<Library> libs) {
-        dependsOn libs
-        this.libs.from({ libs*.outputFile })
+    void lib(Object libs) {
+        this.libs.from libs
     }
 }

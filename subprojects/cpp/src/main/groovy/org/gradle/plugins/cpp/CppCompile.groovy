@@ -18,35 +18,33 @@ package org.gradle.plugins.cpp
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.TaskAction
-import org.gradle.plugins.binaries.model.Library
+import org.gradle.api.tasks.*
 import org.gradle.plugins.cpp.internal.DefaultCppCompileSpec
 
 import javax.inject.Inject
 
 @Incubating
 class CppCompile extends DefaultTask {
+    private FileCollection source
 
     Compiler compiler
 
     @Input
-    boolean sharedLibrary
+    boolean forDynamicLinking
 
     @OutputDirectory
-    File outputDirectory
+    File objectFileDir
 
     @InputFiles
-    ConfigurableFileCollection includes
+    FileCollection includes
 
-    @InputFiles
-    ConfigurableFileCollection source
+    @InputFiles @SkipWhenEmpty // Workaround for GRADLE-2026
+    FileCollection getSource() {
+        source
+    }
 
     @Input
     List<String> compilerArgs
@@ -62,27 +60,17 @@ class CppCompile extends DefaultTask {
         def spec = new DefaultCppCompileSpec()
         spec.tempDir = getTemporaryDir()
 
-        spec.workDir = getOutputDirectory()
+        spec.workDir = getObjectFileDir()
 
         spec.includeRoots = getIncludes()
         spec.source = getSource()
         spec.args = getCompilerArgs()
-        if (isSharedLibrary()) {
+        if (isForDynamicLinking()) {
             spec.forDynamicLinking = true
         }
 
         def result = compiler.execute(spec)
         didWork = result.didWork
-    }
-
-    void from(CppSourceSet sourceSet) {
-        includes sourceSet.exportedHeaders
-        source sourceSet.source
-        libs sourceSet.libs
-
-        sourceSet.nativeDependencySets.all { deps ->
-            includes deps.includeRoots
-        }
     }
 
     void includes(SourceDirectorySet dirs) {
@@ -93,19 +81,7 @@ class CppCompile extends DefaultTask {
         includes.from(includeRoots)
     }
 
-    void includes(Iterable<File> includeRoots) {
-        includes.from(includeRoots)
-    }
-
-    void source(Iterable<File> files) {
-        source.from files
-    }
-
-    void source(FileCollection files) {
-        source.from files
-    }
-
-    void libs(Iterable<Library> libs) {
-        includes(project.files { libs*.headers*.srcDirs })
+    void source(Object sourceFiles) {
+        source.from sourceFiles
     }
 }

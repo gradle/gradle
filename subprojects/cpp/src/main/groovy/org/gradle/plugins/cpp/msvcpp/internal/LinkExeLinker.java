@@ -47,6 +47,7 @@ class LinkExeLinker extends CommandLineCppCompiler<LinkerSpec> {
             for (File file : spec.getSource()) {
                 collector.args(file.getAbsolutePath());
             }
+            // TODO:DAZ There must be a better place for this
             for (File file : spec.getLibs()) {
                 collector.args(file.getAbsolutePath().replaceFirst("\\.dll$", ".lib"));
             }
