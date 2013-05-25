@@ -35,7 +35,7 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
         new ConnectorServices().reset()
     }
 
-    def "client receives same stdout and stderr when verbose as if running from the command-line in debug mode"() {
+    def "client receives same stdout and stderr when in verbose mode as if running from the command-line in debug mode"() {
         toolingApi.verboseLogging = true
 
         file("build.gradle") << """
@@ -73,51 +73,8 @@ project.logger.debug("debug logging yyy");
         shouldNotContainProviderLogging(err)
     }
 
-    def "client receives same standard output and standard error as if running from the command-line"() {
-        toolingApi.verboseLogging = false
-
-        file("build.gradle") << """
-System.err.println "System.err \u03b1\u03b2"
-
-println "System.out \u03b1\u03b2"
-
-project.logger.error("error logging \u03b1\u03b2");
-project.logger.warn("warn logging");
-project.logger.lifecycle("lifecycle logging \u03b1\u03b2");
-project.logger.quiet("quiet logging");
-project.logger.info ("info logging");
-project.logger.debug("debug logging");
-"""
-        when:
-        def commandLineResult = targetDist.executer(temporaryFolder).run();
-
-        and:
-        def op = withBuild()
-
-        then:
-        def out = op.standardOutput
-        def err = op.standardError
-        normaliseOutput(out) == normaliseOutput(commandLineResult.output)
-        err == commandLineResult.error
-
-        and:
-        err.count("System.err \u03b1\u03b2") == 1
-        err.count("error logging \u03b1\u03b2") == 1
-
-        and:
-        out.count("lifecycle logging \u03b1\u03b2") == 1
-        out.count("warn logging") == 1
-        out.count("quiet logging") == 1
-        out.count("info") == 0
-        out.count("debug") == 0
-    }
-
     void shouldNotContainProviderLogging(String output) {
         assert !output.contains("Provider implementation created.")
         assert !output.contains("Tooling API uses target gradle version:")
-    }
-
-    String normaliseOutput(String output) {
-        return output.replaceFirst("Total time: .+ secs", "Total time: 0 secs")
     }
 }
