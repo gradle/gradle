@@ -16,10 +16,16 @@
 
 package org.gradle.api.internal.file.copy;
 
-import java.util.*;
-
-import org.gradle.api.file.*;
+import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RelativePath;
 import org.gradle.util.DeprecationLogger;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Maintains a set of relative paths that has been seen and optionally

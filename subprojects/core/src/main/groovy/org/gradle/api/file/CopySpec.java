@@ -96,15 +96,32 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     void setIncludeEmptyDirs(boolean includeEmptyDirs);
 
     /**
-     * Sets the default strategy for handling files with duplicate path names. This strategy can be overridden for individual files
-     * by configuring FileCopyDetails.
-     * @param duplicatesStrategy the strategy for handling. Can be 'inherit' (default), 'include', or 'exclude'
+     * The strategy for handling more than one file with the same path name. The EXCLUDE strategy will
+     * skip subsequent files with a path that has already been encountered. This is set to INHERIT by default,
+     * which will use the behavior of the parent spec. If no parent spec is explicitly set, then INHERIT will
+     * act as INCLUDE. Also accepts strings in the form 'include', 'exclude', or 'inherit'.
+     *
+     * @return the strategy for handling duplicate file paths
      */
-    void setDuplicatesStrategy(String duplicatesStrategy);
+    DuplicatesStrategy getDuplicatesStrategy();
 
     /**
-     * Configure the FileCopyDetails for each file whose path matches the specified Ant-style pattern. This is equivalent to using
-     * eachFile() and selectively applying a configuration based on the file's path.
+     * Sets the default strategy for handling files with duplicate path names. This strategy can be overridden for
+     * individual files by configuring FileCopyDetails.
+     * @param strategy Can be DuplicatesStrategy.INHERIT (default), INCLUDE, or EXCLUDE
+     */
+    void setDuplicatesStrategy(DuplicatesStrategy strategy);
+
+    /**
+     * Sets the default strategy for handling files with duplicate path names. This strategy can be overridden for individual files
+     * by configuring FileCopyDetails.
+     * @param strategy Can be 'inherit' (default), 'include', or 'exclude'
+     */
+    void setDuplicatesStrategy(String strategy);
+
+    /**
+     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches the specified Ant-style pattern.
+     * This is equivalent to using eachFile() and selectively applying a configuration based on the file's path.
      * @param pattern Ant-style pattern used to match against files' relative paths
      * @param closure Configuration applied to the FileCopyDetails of each file matching pattern
      * @return this
@@ -112,8 +129,9 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     CopySpec matching(String pattern, Closure closure);
 
     /**
-     * Configure the FileCopyDetails for each file whose path does not match the specified Ant-style pattern. This is equivalent to using
-     * eachFile() and selectively applying a configuration based on the file's path.
+     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match the specified
+     * Ant-style pattern. This is equivalent to using eachFile() and selectively applying a configuration based on the
+     * file's path.
      * @param pattern Ant-style pattern used to match against files' relative paths
      * @param closure Configuration applied to the FileCopyDetails of each file that does not match pattern
      * @return this

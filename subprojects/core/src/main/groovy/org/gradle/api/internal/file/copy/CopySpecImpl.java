@@ -219,7 +219,11 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     }
 
     public void setDuplicatesStrategy(String strategy) {
-        this.duplicatesStrategy = DuplicatesStrategy.fromString(strategy);
+        setDuplicatesStrategy(DuplicatesStrategy.fromString(strategy));
+    }
+
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+        this.duplicatesStrategy = strategy;
     }
 
     public Integer getDuplicatesPriority() {

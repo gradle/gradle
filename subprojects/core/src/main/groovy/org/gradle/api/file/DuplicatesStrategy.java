@@ -25,10 +25,9 @@ package org.gradle.api.file;
 public enum DuplicatesStrategy {
 
     /**
-     * The default strategy. With this setting, FileCopyDetails will use
-     * the strategy of its CopySpec, and CopySpec will use the strategy
-     * of its parent. If no DuplicatesStrategy is explicitly defined, this
-     * will act as 'include'.
+     * FileCopyDetails should use the strategy of its CopySpec, and CopySpec
+     * should use the strategy of its parent. If no DuplicatesStrategy is
+     * explicitly defined for any parent, this will act as 'include'.
      */
     INHERIT,
 
