@@ -20,7 +20,6 @@ import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.escapeString
 
-@Requires(TestPrecondition.NOT_WINDOWS)
 class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
@@ -34,6 +33,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         """
         settingsFile << "rootProject.name = 'test'"
         sourceFile = file("src", "main", "cpp", "helloworld.cpp") << """
+            // Simple hello world app
             #include <iostream>
 
             int main () {
@@ -103,12 +103,13 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
     // TODO:DAZ This won't work with gcc on windows
     def "relinks binary but does not recompile when linker option changed"() {
         def executable = executable("build/testExe")
-        def linkerArgs = OperatingSystem.current().isWindows() ? /"\OUT:${executable.absolutePath}"/ : /"-o", "${executable.absolutePath}"/
+        def linkerArgs = OperatingSystem.current().isWindows() ? "'/OUT:${executable.absolutePath}'" : "'-o', '${executable.absolutePath}'"
+        linkerArgs = escapeString(linkerArgs)
         when:
         buildFile << """
             executables {
                 main {
-                    linkerArgs $linkerArgs
+                    linkerArgs ${escapeString(linkerArgs)}
                 }
             }
 """
@@ -125,17 +126,16 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
     }
 
 
+    // TODO:DAZ Narrow the precondition to exclude Visual C++ rather than all windows
+    @Requires(TestPrecondition.NOT_WINDOWS) // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
     def "recompiles source but does not relink binary with source comment change"() {
         when:
-        sourceFile << """
-            // Only a comment change, nothing more
-"""
+        sourceFile.text = sourceFile.text.replaceFirst("// Simple hello world app", "// Comment is changed")
         run "mainExecutable"
 
         then:
         executedAndNotSkipped ":compileMainExecutable"
         ":mainExecutable" in skippedTasks
-
     }
 
 }
