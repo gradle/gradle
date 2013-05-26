@@ -87,14 +87,6 @@ Running `gradle mainExecutable` will build the main executable binary.
 
 - Can apply the `java`, `cpp-exe` and `cpp-lib` plugins together, as shown in the example above.
 
-## Open issues
-
-- Change the native model to use deferred configuration.
-- Add output file to binaries. Remove output file from the component.
-- Add a convention to give each binary a separate output directory.
-- Add windows and linux specific output files (eg .lib file for a shared library on windows).
-- Allow `ExecutableBinary` and `SharedLibraryBinary` instances to be added manually.
-
 # Story: Separate C++ compilation and linking of binaries
 
 This story separates C++ compilation and linking of binaries into separate tasks, so that 1) object files built from other languages can be linked into a binary, and
@@ -111,20 +103,8 @@ This story separates C++ compilation and linking of binaries into separate tasks
 - Change the visual C++ toolchain to:
     - Use `link.exe` to link the executable and shared libraries.
 - Change the link task types to declare their input and output files as properties with the appropriate annotations.
+- Introduce a `Toolchain` concept, so that the compiler and linker from the same toolchain are always used together.
 - Add these task types to the DSL reference and mark as incubating.
-
-## Open issues
-
-- Naming scheme for tasks and binaries.
-- Introduce a toolchain concept, so that the compiler and linker from the same toolchain are always used together.
-- Add compiler and linker options to the binaries.
-- Separate out compiler and linker options on the component.
-- Add object file directory property to the binaries.
-- Add a convention to give each binary a separate object file directory.
-- Add link dependencies to binaries. This is resolved to determine which dependencies to link against.
-- Add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
-- Add an `InstallExecutable` task type and use this to install an executable.
-- Allow the C++ compiler and linker executables for a toolchain to be specified.
 
 ## Test cases
 
@@ -135,7 +115,7 @@ This story separates C++ compilation and linking of binaries into separate tasks
 
 # Story: Build a static library binary
 
-This story introduces the concept of a static library binary that can be build for a C++ library.
+This story introduces the concept of a static library binary that can be built for a C++ library.
 
 - Add `StaticLibraryBinary` type.
 - Add `LinkStaticLibrary` task type.
@@ -149,6 +129,7 @@ This story introduces the concept of a static library binary that can be build f
 - Change the GCC toolchain to:
     - Don't use any shared library flags (`-shared`, `-fPIC`) when compiling source files for a static library.
     - Use `ar` to assemble the static library.
+- Update the user guide to reflect the fact that static libraries can be built.
 
 ## User visible changes
 
@@ -161,11 +142,49 @@ Running `gradle mainStaticLibrary` will build the main static library.
 ## Open issues
 
 - Add output file and object file properties to static binaries.
+- Use a separate output directory for each binary.
 - Allow `StaticLibraryBinary` instances to be added manually.
 - Need to consume locally and between projects and between builds.
 - Need separate compiler and linker options for building shared and static library.
 - Need shared compiler and linker options for building shared and static library.
 - Can in theory share the compile task between a static library and an executable built from the same source.
+- Need to be able to use a static library binary as input to another binary.
+
+# Allow customisation of binaries
+
+This story introduces a lifecycle task for each binary, to allow tasks to be wired into the graph for a given binary.
+
+- Change `Binary` to extend `Buildable`.
+- Change `NativeComponent` so that it no longer extends `Buildable`.
+- Change the binaries plugin to add a lifecycle task called `${binary.name}`
+- Change the cpp plugin to rename the link tasks for a binary to `link${binary.name}`.
+- Change `DefaultClassDirectoryBinary` to implement `getBuildDependencies()` (it has an empty implementation).
+- Change `CppPlugin` so that the install task uses the executable binary as input, rather than depend on the link task.
+
+Note: There is a breaking change here, as the link task for a given binary has been renamed.
+
+## Open issues
+
+- Allow customisation of binary output file
+- Allow customisation of binary object file directory
+- Allow customisation of binary compiler args and linker args
+- Allow customisation of component compiler args and linker args
+- Separate out the args passed to the linker and to the static library bundler.
+- Allow navigation from a `Binary` to the tasks associated with the binary.
+- Add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
+- Add an `InstallExecutable` task type and use this to install an executable.
+
+# Allow binaries to be used as input to other binaries
+
+- Add link dependencies to binaries. This is resolved to determine which dependencies to link against.
+- Infer incoming libraries from component dependencies.
+- Add a sample that demonstrates how to link a static library into an executable.
+- Use `.lib` as input for shared and static libs on windows + visual c++
+- Use `.so`/`.dll` and `.a` as input for shared and static libs for gcc
+- Use `.dll` or `.so` to install an executable, but not `.a`. Need transitive runtime dependencies of libs.
+- Remove wiring of link dependencies from CppPlugin.
+- Allow a `Binary` to be attached to a publication.
+- Move Component and Binary interfaces to new packages.
 
 # Compile C source files using the C compiler
 
@@ -233,6 +252,17 @@ This story adds support for using assembler source files as inputs to a native b
 - mixed C/C++/ASM binary.
 - each kind of binary.
 
+# Allow all binaries to be built
+
+- Change the native model to use deferred configuration.
+- Allow navigation from a `NativeComponent` to the binaries associated with the component.
+- Add an `assemble` lifecycle task for each component.
+
+# Allow a binary to be defined that is not part of a component
+
+- Allow native binary instances to be added manually.
+- Change `NativeBinary` so that not every binary has an associated component.
+
 # Build different variants of a native component
 
 This story adds support for building multiple variants of a native component. For each variant of a component, a binary of the
@@ -240,6 +270,9 @@ appropriate type is defined.
 
 ## Open issues
 
+- Formalise the concept of a naming scheme for binary names, tasks and file paths.
+- Add a convention to give each binary a separate output directory (as the name of each variant binary can be the same).
+- Add a convention to give each binary a separate object file directory.
 - Need to be able to build a single variant or all variants.
 - Need separate compiler, linker and assembler options for each variant.
 - Need shared compiler, linker and assembler options for all variants.
@@ -252,6 +285,7 @@ This story adds support for building a native component using multiple tool chai
 
 ## Open issues
 
+- Allow the C++ compiler and linker executables for a toolchain to be specified.
 - Need to be able to build for a single toolchain or all available toolchains.
 - Need separate compiler, linker and assembler options for each toolchain.
 - Need shared compiler, linker and assembler options for all toolchains.
