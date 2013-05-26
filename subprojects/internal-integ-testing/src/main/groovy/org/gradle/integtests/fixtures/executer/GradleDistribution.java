@@ -68,6 +68,11 @@ public interface GradleDistribution {
     boolean isToolingApiSupported();
 
     /**
+     * Returns true if the tooling API provider of this distribution correctly handles non-ASCII characters in logging output.
+     */
+    boolean isToolingApiNonAsciiOutputSupported();
+
+    /**
      * Returns the version of the artifact cache layout
      */
     int getArtifactCacheLayoutVersion();
