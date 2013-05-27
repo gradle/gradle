@@ -100,10 +100,13 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
     }
 
     def "relinks binary but does not recompile when linker option changed"() {
-        def executable = executable("build/testExe")
-        def linkerArgs = toolChain.isVisualCpp() ? "'/OUT:${executable.absolutePath}'" : "'-o', '${executable.absolutePath}'"
-        linkerArgs = escapeString(linkerArgs)
         when:
+        def executable = executable("build/binaries/test")
+        def snapshot = executable.snapshot()
+
+        and:
+        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG" : "'-Wl,-pie'"
+        linkerArgs = escapeString(linkerArgs)
         buildFile << """
             executables {
                 main {
@@ -120,6 +123,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         and:
         executable.isFile()
+        executable.assertHasChangedSince(snapshot)
         executable.exec().out == HELLO_WORLD
     }
 
