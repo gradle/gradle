@@ -46,6 +46,7 @@ public class GppCompiler extends CommandLineCppCompiler<CppCompileSpec> {
 
     private static class GppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
         public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
+            collector.args(spec.getArgs());
             collector.args("-c");
             if (spec.isForDynamicLinking()) {
                 if (!OperatingSystem.current().isWindows()) {
@@ -59,7 +60,6 @@ public class GppCompiler extends CommandLineCppCompiler<CppCompileSpec> {
             for (File file : spec.getSource()) {
                 collector.args(file.getAbsolutePath());
             }
-            collector.args(spec.getArgs());
         }
     }
 }

@@ -48,7 +48,7 @@ public class GppLinker extends CommandLineCppCompiler<LinkerSpec> {
     private static class GppLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
 
         public void collectArguments(LinkerSpec spec, ArgCollector collector) {
-            collector.args("-o", spec.getOutputFile().getAbsolutePath());
+            collector.args(spec.getArgs());
             if (spec instanceof SharedLibraryLinkerSpec) {
                 collector.args("-shared");
                 if (!OperatingSystem.current().isWindows()) {
@@ -60,13 +60,13 @@ public class GppLinker extends CommandLineCppCompiler<LinkerSpec> {
                     }
                 }
             }
+            collector.args("-o", spec.getOutputFile().getAbsolutePath());
             for (File file : spec.getSource()) {
                 collector.args(file.getAbsolutePath());
             }
             for (File file : spec.getLibs()) {
                 collector.args(file.getAbsolutePath());
             }
-            collector.args(spec.getArgs());
         }
     }
 }

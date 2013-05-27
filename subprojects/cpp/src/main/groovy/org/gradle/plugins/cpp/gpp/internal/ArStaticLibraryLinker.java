@@ -36,11 +36,11 @@ public class ArStaticLibraryLinker extends CommandLineCppCompiler<StaticLibraryL
 
     private static class LinkerSpecToArguments implements CompileSpecToArguments<StaticLibraryLinkerSpec> {
         public void collectArguments(StaticLibraryLinkerSpec spec, ArgCollector collector) {
+            collector.args(spec.getArgs());
             collector.args("-rc", spec.getOutputFile().getAbsolutePath());
             for (File file : spec.getSource()) {
                 collector.args(file.getAbsolutePath());
             }
-            collector.args(spec.getArgs());
         }
     }
 }

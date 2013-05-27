@@ -37,6 +37,7 @@ class VisualCppCompiler extends CommandLineCppCompiler<CppCompileSpec> {
 
     private static class VisualCppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
         public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
+            collector.args(spec.getArgs());
             collector.args("/c");
             collector.args("/nologo");
             collector.args("/EHsc");
@@ -49,7 +50,6 @@ class VisualCppCompiler extends CommandLineCppCompiler<CppCompileSpec> {
             for (File file : spec.getSource()) {
                 collector.args(file);
             }
-            collector.args(spec.getArgs());
         }
     }
 }
