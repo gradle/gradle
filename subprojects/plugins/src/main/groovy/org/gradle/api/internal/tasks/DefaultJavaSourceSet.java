@@ -46,10 +46,6 @@ public class DefaultJavaSourceSet implements JavaSourceSet {
         return source;
     }
 
-    public FunctionalSourceSet getParent() {
-        return parent;
-    }
-
     public TaskDependency getBuildDependencies() {
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {

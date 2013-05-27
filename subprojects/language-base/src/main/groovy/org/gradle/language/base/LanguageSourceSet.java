@@ -29,5 +29,4 @@ public interface LanguageSourceSet extends Named, Buildable {
     // would feel more natural if dirs could be added directly to LanguageSourceSet
     // could also think about extending SourceDirectorySet
     SourceDirectorySet getSource();
-    FunctionalSourceSet getParent();
 }
