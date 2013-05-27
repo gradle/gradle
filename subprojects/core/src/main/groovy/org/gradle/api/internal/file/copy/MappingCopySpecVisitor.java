@@ -62,13 +62,12 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
         private RelativePath relativePath;
         private boolean excluded;
         private Integer mode;
-        private DuplicatesStrategy duplicatesStrategy;
+        private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INCLUDE;
 
         public FileVisitDetailsImpl(FileVisitDetails fileDetails, ReadableCopySpec spec, FileSystem fileSystem) {
             this.fileDetails = fileDetails;
             this.spec = spec;
             this.fileSystem = fileSystem;
-            this.duplicatesStrategy = DuplicatesStrategy.INCLUDE;
         }
 
         public String getDisplayName() {

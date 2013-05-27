@@ -33,24 +33,11 @@ import org.gradle.util.DeprecationLogger;
 public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor {
 
     private final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
-    private ReadableCopySpec spec;
     private boolean warnOnIncludeDuplicate;
 
-    public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor) {
+    public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor, boolean warnOnIncludeDuplicates) {
         super(visitor);
-        this.warnOnIncludeDuplicate = false;
-    }
-
-    public void startVisit(CopyAction action) {
-        CopyActionImpl actionImpl = (CopyActionImpl) action;
-        warnOnIncludeDuplicate = actionImpl.isWarnOnIncludeDuplicates();
-        super.startVisit(action);
-    }
-
-
-    public void visitSpec(ReadableCopySpec spec) {
-        this.spec = spec;
-        super.visitSpec(spec);
+        this.warnOnIncludeDuplicate = warnOnIncludeDuplicates;
     }
 
     public void visitFile(FileVisitDetails fileDetails) {

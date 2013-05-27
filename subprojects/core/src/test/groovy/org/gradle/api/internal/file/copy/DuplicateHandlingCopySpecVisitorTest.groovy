@@ -30,7 +30,7 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
     MyCopySpec copySpec = Mock()
     FileTree fileTree = Mock()
     def visitor = new MappingCopySpecVisitor(
-            new DuplicateHandlingCopySpecVisitor(delegate), fileSystem)
+            new DuplicateHandlingCopySpecVisitor(delegate, false), fileSystem)
 
     
     def duplicatesIncludedByDefault() {
