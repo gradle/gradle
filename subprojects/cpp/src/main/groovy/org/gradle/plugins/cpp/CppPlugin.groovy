@@ -65,7 +65,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         compileTask.forDynamicLinking = binary instanceof SharedLibraryBinary
 
         // TODO:DAZ Move some of this logic into NativeBinary
-        binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
+        binary.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
             compileTask.includes sourceSet.exportedHeaders
             compileTask.includes project.files({ sourceSet.libs*.headers*.srcDirs })
 
@@ -99,7 +99,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         }
 
         // TODO:DAZ Move this logic into NativeBinary
-        binary.component.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
+        binary.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
             sourceSet.nativeDependencySets.all { NativeDependencySet nativeDependencySet ->
                 linkTask.lib nativeDependencySet.files
             }

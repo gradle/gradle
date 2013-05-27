@@ -36,6 +36,8 @@ public interface NativeBinary extends Binary, Buildable {
 
     File getOutputFile();
 
+    DomainObjectSet<SourceSet> getSourceSets();
+
     NativeComponent getComponent();
 
     List<Object> getCompilerArgs();

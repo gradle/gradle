@@ -24,6 +24,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.internal.TaskNamerForBinaries;
 import org.gradle.plugins.binaries.model.LibraryBinary;
 import org.gradle.plugins.binaries.model.NativeBinary;
+import org.gradle.plugins.binaries.model.SourceSet;
 
 import java.io.File;
 import java.util.List;
@@ -39,6 +40,11 @@ public abstract class DefaultNativeBinary implements NativeBinary {
 
     public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;
+    }
+
+    // TODO:DAZ This should allow source sets to be extended on a per-binary basis
+    public DomainObjectSet<SourceSet> getSourceSets() {
+        return getComponent().getSourceSets();
     }
 
     // TODO:DAZ Allow compiler and linker args to be overridden on a per-binary basis
