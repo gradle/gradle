@@ -16,14 +16,14 @@
 
 package org.gradle.plugins.cpp.internal;
 
-import org.gradle.plugins.binaries.model.BinaryCompileSpec;
+import org.gradle.plugins.binaries.model.internal.BinaryToolSpec;
 
 import java.io.File;
 
 /**
  * A high level interface to the compiler, specifying what is to be compiled and how.
  */
-public interface LinkerSpec extends BinaryCompileSpec {
+public interface LinkerSpec extends BinaryToolSpec {
 
     // TODO:DAZ There's no real difference between source and libs when linking
     Iterable<File> getSource();

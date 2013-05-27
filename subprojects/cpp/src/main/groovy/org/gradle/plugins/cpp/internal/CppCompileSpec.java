@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.cpp.internal;
 
-import org.gradle.plugins.binaries.model.BinaryCompileSpec;
+import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
 
 import java.io.File;
 

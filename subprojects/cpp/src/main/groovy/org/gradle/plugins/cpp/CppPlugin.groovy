@@ -24,7 +24,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.binaries.BinariesPlugin
 import org.gradle.plugins.binaries.model.*
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
-import org.gradle.plugins.cpp.internal.CppCompileSpec
 import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
 
 @Incubating
@@ -61,7 +60,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
             description = "Compiles $binary"
         }
 
-        compileTask.compiler = toolChain.createCompiler(CppCompileSpec)
+        compileTask.toolChain = toolChain
         compileTask.forDynamicLinking = binary instanceof SharedLibraryBinary
 
         // TODO:DAZ Move some of this logic into NativeBinary
@@ -89,7 +88,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
          }
 
         linkTask.dependsOn compileTask // TODO:DAZ Avoid this explicit dependency by wiring inputs/outputs better
-        linkTask.linker = toolChain.createLinker(linkTask.specType)
+        linkTask.toolChain = toolChain
 
         linkTask.source project.fileTree(compileTask.objectFileDir)
 

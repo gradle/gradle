@@ -29,10 +29,10 @@ class LinkExecutable extends AbstractLinkTask {
     }
 
     @Override
-    Class<? extends LinkerSpec> getSpecType() {
+    protected Class<? extends LinkerSpec> getSpecType() {
         ExecutableLinkerSpec
     }
 
-    public static class Spec extends AbstractLinkerSpec implements ExecutableLinkerSpec {
+    private static class Spec extends AbstractLinkerSpec implements ExecutableLinkerSpec {
     }
 }

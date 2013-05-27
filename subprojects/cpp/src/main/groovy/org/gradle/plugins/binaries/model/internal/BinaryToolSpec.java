@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model;
+package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.tasks.compile.CompileSpec;
 
-/**
- * A wrapper around an actual ToolChain, that takes care of determining if the actual ToolChain is available.
- */
-@Incubating
-public interface ToolChainAdapter extends Factory<ToolChain>, Named {
-    /**
-     * Returns true if this compiler is available.
-     */
-    boolean isAvailable();
+import java.io.File;
+
+public interface BinaryToolSpec extends CompileSpec {
+    File getTempDir();
+
+    void setTempDir(File tempDir);
 }

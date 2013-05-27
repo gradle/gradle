@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,47 +16,49 @@
 
 package org.gradle.plugins.cpp.compiler.internal;
 
-import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.ExecSpecBackedArgCollector;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
-import org.gradle.plugins.binaries.model.BinaryCompileSpec;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
-public class CommandLineCppCompiler<T extends BinaryCompileSpec> implements Compiler<T> {
+public class CommandLineTool<T extends CompileSpec> {
     private final File executable;
     private final Factory<ExecAction> execActionFactory;
-    private final CompileSpecToArguments<T> toArguments;
+    private CompileSpecToArguments<T> toArguments;
+    private File workDir;
 
-    public CommandLineCppCompiler(File executable, Factory<ExecAction> execActionFactory, CompileSpecToArguments<T> toArguments) {
+    public CommandLineTool(File executable, Factory<ExecAction> execActionFactory) {
         this.executable = executable;
         this.execActionFactory = execActionFactory;
-        this.toArguments = toArguments;
+    }
+
+    public CommandLineTool<T> inWorkDirectory(File workDir) {
+        GFileUtils.mkdirs(workDir);
+        this.workDir = workDir;
+        return this;
+    }
+
+    public CommandLineTool<T> withArguments(CompileSpecToArguments<T> arguments) {
+        this.toArguments = arguments;
+        return this;
     }
 
     public WorkResult execute(T spec) {
-        File workDir = spec.getWorkDir();
-        ensureDirsExist(workDir);
-
         ExecAction compiler = execActionFactory.create();
         compiler.executable(executable);
-        compiler.workingDir(workDir);
+        if (workDir != null) {
+            compiler.workingDir(workDir);
+        }
 
         toArguments.collectArguments(spec, new ExecSpecBackedArgCollector(compiler));
 
         compiler.execute();
         return new SimpleWorkResult(true);
     }
-
-    private void ensureDirsExist(File... dirs) {
-        for (File dir : dirs) {
-            GFileUtils.mkdirs(dir);
-        }
-    }
-
 }

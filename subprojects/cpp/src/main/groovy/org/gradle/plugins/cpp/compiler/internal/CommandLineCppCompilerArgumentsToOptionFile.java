@@ -21,14 +21,14 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
-import org.gradle.plugins.binaries.model.BinaryCompileSpec;
+import org.gradle.plugins.binaries.model.internal.BinaryToolSpec;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public class CommandLineCppCompilerArgumentsToOptionFile<T extends BinaryCompileSpec> implements CompileSpecToArguments<T> {
+public class CommandLineCppCompilerArgumentsToOptionFile<T extends BinaryToolSpec> implements CompileSpecToArguments<T> {
 
     private final Transformer<ArgWriter, PrintWriter> argWriterFactory;
     private final CompileSpecToArguments<T> toArguments;

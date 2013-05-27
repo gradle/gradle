@@ -15,13 +15,12 @@
  */
 
 package org.gradle.plugins.cpp
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.*
+import org.gradle.plugins.cpp.internal.CppCompileSpec
 import org.gradle.plugins.cpp.internal.DefaultCppCompileSpec
 
 import javax.inject.Inject
@@ -30,7 +29,7 @@ import javax.inject.Inject
 class CppCompile extends DefaultTask {
     private FileCollection source
 
-    Compiler compiler
+    def toolChain
 
     @Input
     boolean forDynamicLinking
@@ -60,8 +59,7 @@ class CppCompile extends DefaultTask {
         def spec = new DefaultCppCompileSpec()
         spec.tempDir = getTemporaryDir()
 
-        spec.workDir = getObjectFileDir()
-
+        spec.objectFileDir = getObjectFileDir()
         spec.includeRoots = getIncludes()
         spec.source = getSource()
         spec.args = getCompilerArgs()
@@ -69,7 +67,7 @@ class CppCompile extends DefaultTask {
             spec.forDynamicLinking = true
         }
 
-        def result = compiler.execute(spec)
+        def result = toolChain.createCompiler(CppCompileSpec).execute(spec)
         didWork = result.didWork
     }
 

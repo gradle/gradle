@@ -17,18 +17,15 @@
 package org.gradle.plugins.binaries.model.internal
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.plugins.binaries.model.BinaryCompileSpec
-import org.gradle.plugins.binaries.model.ToolChain
-import org.gradle.plugins.binaries.model.ToolChainAdapter
 import spock.lang.Specification
 
 class DefaultToolChainRegistryTest extends Specification {
     final DefaultToolChainRegistry registry = new DefaultToolChainRegistry(new DirectInstantiator())
 
     def "search order defaults to the order that adapters are added"() {
-        ToolChainAdapter compiler1 = toolChainAdapter("z")
-        ToolChainAdapter compiler2 = toolChainAdapter("b")
-        ToolChainAdapter compiler3 = toolChainAdapter("a")
+        ToolChainInternal compiler1 = toolChainInternal("z")
+        ToolChainInternal compiler2 = toolChainInternal("b")
+        ToolChainInternal compiler3 = toolChainInternal("a")
 
         expect:
         registry.searchOrder == []
@@ -50,40 +47,38 @@ class DefaultToolChainRegistryTest extends Specification {
 
     def "compilation searches adapters in the order added and uses the first available"() {
         BinaryCompileSpec compileSpec = Mock()
-        ToolChainAdapter toolChainAdapter1 = toolChainAdapter("z")
-        ToolChainAdapter toolChainAdapter2 = toolChainAdapter("b")
-        ToolChainAdapter toolChainAdapter3 = toolChainAdapter("a")
-        ToolChain realToolChain = Mock()
+        ToolChainInternal toolChainInternal1 = toolChainInternal("z")
+        ToolChainInternal toolChainInternal2 = toolChainInternal("b")
+        ToolChainInternal toolChainInternal3 = toolChainInternal("a")
         Compiler<BinaryCompileSpec> realCompiler = Mock()
 
         given:
-        registry.add(toolChainAdapter1)
-        registry.add(toolChainAdapter2)
-        registry.add(toolChainAdapter3)
+        registry.add(toolChainInternal1)
+        registry.add(toolChainInternal2)
+        registry.add(toolChainInternal3)
 
         and:
-        toolChainAdapter2.available >> true
+        toolChainInternal2.available >> true
 
         when:
         def defaultToolChain = registry.getDefaultToolChain()
         defaultToolChain.createCompiler(BinaryCompileSpec).execute(compileSpec)
 
         then:
-        1 * toolChainAdapter2.create() >> realToolChain
-        1 * realToolChain.createCompiler(BinaryCompileSpec) >> realCompiler
+        1 * toolChainInternal2.createCompiler(BinaryCompileSpec) >> realCompiler
         1 * realCompiler.execute(compileSpec)
     }
 
     def "compilation fails when no adapter is available"() {
         BinaryCompileSpec compileSpec = Mock()
-        ToolChainAdapter toolChainAdapter1 = toolChainAdapter("z")
-        ToolChainAdapter toolChainAdapter2 = toolChainAdapter("b")
-        ToolChainAdapter toolChainAdapter3 = toolChainAdapter("a")
+        ToolChainInternal toolChainInternal1 = toolChainInternal("z")
+        ToolChainInternal toolChainInternal2 = toolChainInternal("b")
+        ToolChainInternal toolChainInternal3 = toolChainInternal("a")
 
         given:
-        registry.add(toolChainAdapter1)
-        registry.add(toolChainAdapter2)
-        registry.add(toolChainAdapter3)
+        registry.add(toolChainInternal1)
+        registry.add(toolChainInternal2)
+        registry.add(toolChainInternal3)
 
         when:
         def defaultToolChain = registry.getDefaultToolChain()
@@ -91,12 +86,12 @@ class DefaultToolChainRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "No tool chain is available. Searched for $toolChainAdapter1, $toolChainAdapter2, $toolChainAdapter3."
+        e.message == "No tool chain is available. Searched for $toolChainInternal1, $toolChainInternal2, $toolChainInternal3."
     }
 
-    def toolChainAdapter(String name) {
-        ToolChainAdapter toolChainAdapter = Mock()
-        _ * toolChainAdapter.name >> name
-        return toolChainAdapter
+    def toolChainInternal(String name) {
+        ToolChainInternal toolChainInternal = Mock()
+        _ * toolChainInternal.name >> name
+        return toolChainInternal
     }
 }

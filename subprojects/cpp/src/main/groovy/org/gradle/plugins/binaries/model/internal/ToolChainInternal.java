@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp
-import org.gradle.api.Incubating
-import org.gradle.plugins.cpp.internal.AbstractLinkerSpec
-import org.gradle.plugins.cpp.internal.LinkerSpec
-import org.gradle.plugins.cpp.internal.StaticLibraryLinkerSpec
+package org.gradle.plugins.binaries.model.internal;
 
-@Incubating
-class LinkStaticLibrary extends AbstractLinkTask {
-    @Override
-    protected LinkerSpec createLinkerSpec() {
-        return new Spec()
-    }
+import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.plugins.binaries.model.ToolChain;
+import org.gradle.plugins.cpp.internal.LinkerSpec;
 
-    @Override
-    protected Class<? extends LinkerSpec> getSpecType() {
-        StaticLibraryLinkerSpec
-    }
+public interface ToolChainInternal extends ToolChain {
+    boolean isAvailable();
 
-    private static class Spec extends AbstractLinkerSpec implements StaticLibraryLinkerSpec {
-    }
+    <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType);
+
+    <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType);
 }

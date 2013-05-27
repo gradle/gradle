@@ -19,15 +19,14 @@ package org.gradle.plugins.cpp.msvcpp.internal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.binaries.model.BinaryCompileSpec;
-import org.gradle.plugins.binaries.model.ToolChain;
-import org.gradle.plugins.binaries.model.ToolChainAdapter;
+import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
+import org.gradle.plugins.binaries.model.internal.ToolChainInternal;
 import org.gradle.plugins.cpp.internal.*;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-public class VisualCppToolChainAdapter implements ToolChainAdapter {
+public class VisualCppToolChainAdapter implements ToolChainInternal {
 
     public static final String NAME = "visualCpp";
     static final String COMPILER_EXE = "cl.exe";
@@ -65,24 +64,28 @@ public class VisualCppToolChainAdapter implements ToolChainAdapter {
         return operatingSystem.isWindows() && compilerExe != null && compilerExe.exists();
     }
 
-    public ToolChain create() {
-        return new ToolChain() {
-            public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
-                if (CppCompileSpec.class.isAssignableFrom(specType)) {
-                    return (Compiler<T>) new VisualCppCompiler(compilerExe, execActionFactory);
-                }
-                throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
-            }
+    public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
+        checkAvailable();
+        if (CppCompileSpec.class.isAssignableFrom(specType)) {
+            return (Compiler<T>) new VisualCppCompiler(compilerExe, execActionFactory);
+        }
+        throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
+    }
 
-            public <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType) {
-                if (ExecutableLinkerSpec.class.isAssignableFrom(specType) || SharedLibraryLinkerSpec.class.isAssignableFrom(specType)) {
-                    return (Compiler<T>) new LinkExeLinker(linkerExe, execActionFactory);
-                }
-                if (StaticLibraryLinkerSpec.class.isAssignableFrom(specType)) {
-                    return (Compiler<T>) new LibExeLinker(staticLinkerExe, execActionFactory);
-                }
-                throw new IllegalArgumentException(String.format("No suitable linker available for %s.", specType));
-            }
-        };
+    public <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType) {
+        checkAvailable();
+        if (ExecutableLinkerSpec.class.isAssignableFrom(specType) || SharedLibraryLinkerSpec.class.isAssignableFrom(specType)) {
+            return (Compiler<T>) new LinkExeLinker(linkerExe, execActionFactory);
+        }
+        if (StaticLibraryLinkerSpec.class.isAssignableFrom(specType)) {
+            return (Compiler<T>) new LibExeLinker(staticLinkerExe, execActionFactory);
+        }
+        throw new IllegalArgumentException(String.format("No suitable linker available for %s.", specType));
+    }
+
+    private void checkAvailable() {
+        if (!isAvailable()) {
+            throw new IllegalStateException(String.format("Tool chain %s is not available", getName()));
+        }
     }
 }

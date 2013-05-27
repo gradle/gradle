@@ -24,7 +24,6 @@ public abstract class AbstractLinkerSpec implements LinkerSpec {
     private Iterable<File> libs;
     private Iterable<File> source;
     private File outputFile;
-    private File workDir;
     private File tempDir;
     private Iterable<String> args = new ArrayList<String>();
 
@@ -50,14 +49,6 @@ public abstract class AbstractLinkerSpec implements LinkerSpec {
 
     public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;
-    }
-
-    public File getWorkDir() {
-        return workDir;
-    }
-
-    public void setWorkDir(File workDir) {
-        this.workDir = workDir;
     }
 
     public File getTempDir() {

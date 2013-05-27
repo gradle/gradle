@@ -28,11 +28,11 @@ class LinkSharedLibrary extends AbstractLinkTask {
     }
 
     @Override
-    Class<? extends LinkerSpec> getSpecType() {
+    protected Class<? extends LinkerSpec> getSpecType() {
         SharedLibraryLinkerSpec
     }
 
-    public static class Spec extends AbstractLinkerSpec implements SharedLibraryLinkerSpec {
+    private static class Spec extends AbstractLinkerSpec implements SharedLibraryLinkerSpec {
         private String installName;
 
         public String getInstallName() {

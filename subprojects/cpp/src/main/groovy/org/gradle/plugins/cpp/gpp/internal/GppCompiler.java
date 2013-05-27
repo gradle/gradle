@@ -19,19 +19,23 @@ package org.gradle.plugins.cpp.gpp.internal;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
+import org.gradle.plugins.cpp.compiler.internal.CommandLineTool;
 import org.gradle.plugins.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-public class GppCompiler extends CommandLineCppCompiler<CppCompileSpec> {
+class GppCompiler implements org.gradle.api.internal.tasks.compile.Compiler<CppCompileSpec> {
+
+    private final CommandLineTool<CppCompileSpec> commandLineTool;
 
     public GppCompiler(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
-        super(executable, execActionFactory, useCommandFile ? viaCommandFile() : withoutCommandFile());
+        this.commandLineTool = new CommandLineTool<CppCompileSpec>(executable, execActionFactory)
+                .withArguments(useCommandFile ? viaCommandFile() : withoutCommandFile());
     }
 
     private static GppCompileSpecToArguments withoutCommandFile() {
@@ -42,6 +46,10 @@ public class GppCompiler extends CommandLineCppCompiler<CppCompileSpec> {
         return new CommandLineCppCompilerArgumentsToOptionFile<CppCompileSpec>(
             ArgWriter.unixStyleFactory(), new GppCompileSpecToArguments()
         );
+    }
+
+    public WorkResult execute(CppCompileSpec spec) {
+        return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
     private static class GppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {

@@ -27,47 +27,47 @@ import org.gradle.plugins.cpp.internal.LinkerSpec;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolChainAdapter> implements ToolChainRegistry {
-    private final List<ToolChainAdapter> searchOrder = new ArrayList<ToolChainAdapter>();
+public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolChain> implements ToolChainRegistry {
+    private final List<ToolChainInternal> searchOrder = new ArrayList<ToolChainInternal>();
 
     public DefaultToolChainRegistry(Instantiator instantiator) {
-        super(ToolChainAdapter.class, instantiator);
-        whenObjectAdded(new Action<ToolChainAdapter>() {
-            public void execute(ToolChainAdapter binaryCompiler) {
-                searchOrder.add(binaryCompiler);
+        super(ToolChain.class, instantiator);
+        whenObjectAdded(new Action<ToolChain>() {
+            public void execute(ToolChain toolChain) {
+                searchOrder.add((ToolChainInternal) toolChain);
             }
         });
-        whenObjectRemoved(new Action<ToolChainAdapter>() {
-            public void execute(ToolChainAdapter binaryCompiler) {
-                searchOrder.remove(binaryCompiler);
+        whenObjectRemoved(new Action<ToolChain>() {
+            public void execute(ToolChain toolChain) {
+                searchOrder.remove(toolChain);
             }
         });
     }
 
-    public List<ToolChainAdapter> getSearchOrder() {
+    public List<ToolChainInternal> getSearchOrder() {
         return searchOrder;
     }
 
-    public ToolChain getDefaultToolChain() {
+    public ToolChainInternal getDefaultToolChain() {
         return new LazyToolChain() {
             @Override
-            protected ToolChainAdapter findAdapter() {
-                return findDefaultCompilerAdapter();
+            protected ToolChainInternal findFirstAvailableToolChain() {
+                for (ToolChainInternal adapter : searchOrder) {
+                    if (adapter.isAvailable()) {
+                        return adapter;
+                    }
+                }
+                throw new IllegalStateException(String.format("No tool chain is available. Searched for %s.", Joiner.on(", ").join(searchOrder)));
             }
         };
     }
 
-    private ToolChainAdapter findDefaultCompilerAdapter() {
-        for (ToolChainAdapter adapter : searchOrder) {
-            if (adapter.isAvailable()) {
-                return adapter;
-            }
-        }
-        throw new IllegalStateException(String.format("No tool chain is available. Searched for %s.", Joiner.on(", ").join(searchOrder)));
-    }
+    private abstract class LazyToolChain implements ToolChainInternal {
+        private ToolChainInternal toolChain;
 
-    private abstract class LazyToolChain implements ToolChain {
-        private ToolChain toolChain;
+        public String getName() {
+            return getToolChain().getName();
+        }
 
         public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
             return createLazyCompiler(specType);
@@ -93,13 +93,17 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
             };
         }
 
-        private ToolChain getToolChain() {
+        public boolean isAvailable() {
+            return true;
+        }
+
+        private ToolChainInternal getToolChain() {
             if (toolChain == null) {
-                toolChain = findAdapter().create();
+                toolChain = findFirstAvailableToolChain();
             }
             return toolChain;
         }
 
-        protected abstract ToolChainAdapter findAdapter();
+        protected abstract ToolChainInternal findFirstAvailableToolChain();
     }
 }

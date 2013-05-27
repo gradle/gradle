@@ -18,8 +18,9 @@ package org.gradle.plugins.cpp.gpp.internal;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
-import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
+import org.gradle.plugins.cpp.compiler.internal.CommandLineTool;
 import org.gradle.plugins.cpp.internal.StaticLibraryLinkerSpec;
 import org.gradle.process.internal.ExecAction;
 
@@ -28,10 +29,16 @@ import java.io.File;
 /**
  * A static library linker based on the GNU 'ar' utility
  */
-public class ArStaticLibraryLinker extends CommandLineCppCompiler<StaticLibraryLinkerSpec> {
+class ArStaticLibraryLinker implements org.gradle.api.internal.tasks.compile.Compiler<StaticLibraryLinkerSpec> {
+    private final CommandLineTool<StaticLibraryLinkerSpec> commandLineTool;
 
     public ArStaticLibraryLinker(File executable, Factory<ExecAction> execActionFactory) {
-        super(executable, execActionFactory, new LinkerSpecToArguments());
+        this.commandLineTool = new CommandLineTool<StaticLibraryLinkerSpec>(executable, execActionFactory)
+                .withArguments(new LinkerSpecToArguments());
+    }
+
+    public WorkResult execute(StaticLibraryLinkerSpec spec) {
+        return commandLineTool.execute(spec);
     }
 
     private static class LinkerSpecToArguments implements CompileSpecToArguments<StaticLibraryLinkerSpec> {

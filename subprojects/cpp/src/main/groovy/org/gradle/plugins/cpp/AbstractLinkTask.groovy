@@ -15,11 +15,9 @@
  */
 
 package org.gradle.plugins.cpp
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.*
 import org.gradle.plugins.cpp.internal.LinkerSpec
 
@@ -27,7 +25,7 @@ import javax.inject.Inject
 
 @Incubating
 abstract class AbstractLinkTask extends DefaultTask {
-    Compiler linker
+    def toolChain
 
     @OutputFile
     File outputFile
@@ -55,19 +53,18 @@ abstract class AbstractLinkTask extends DefaultTask {
     @TaskAction
     void link() {
         def spec = createLinkerSpec()
-        spec.workDir = getTemporaryDir()
-        spec.tempDir = spec.workDir
+        spec.tempDir = getTemporaryDir()
 
         spec.outputFile = getOutputFile()
         spec.source = getSource()
         spec.libs = getLibs()
         spec.args = getLinkerArgs()
 
-        def result = linker.execute(spec)
+        def result = toolChain.createLinker(specType).execute(spec)
         didWork = result.didWork
     }
 
-    abstract Class<? extends LinkerSpec> getSpecType();
+    protected abstract Class<? extends LinkerSpec> getSpecType();
 
     protected abstract LinkerSpec createLinkerSpec();
 

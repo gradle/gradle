@@ -19,21 +19,29 @@ package org.gradle.plugins.cpp.msvcpp.internal;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
-import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
+import org.gradle.plugins.cpp.compiler.internal.CommandLineTool;
 import org.gradle.plugins.cpp.internal.LinkerSpec;
 import org.gradle.plugins.cpp.internal.SharedLibraryLinkerSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-class LinkExeLinker extends CommandLineCppCompiler<LinkerSpec> {
+class LinkExeLinker implements org.gradle.api.internal.tasks.compile.Compiler<LinkerSpec> {
 
-    protected LinkExeLinker(File executable, Factory<ExecAction> execActionFactory) {
-        super(executable, execActionFactory, new CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec>(
+    private final CommandLineTool<LinkerSpec> commandLineTool;
+
+    public LinkExeLinker(File executable, Factory<ExecAction> execActionFactory) {
+        this.commandLineTool = new CommandLineTool<LinkerSpec>(executable, execActionFactory)
+                .withArguments(new CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec>(
                 ArgWriter.windowsStyleFactory(), new VisualCppLinkerSpecArguments()
         ));
+    }
+
+    public WorkResult execute(LinkerSpec spec) {
+        return commandLineTool.execute(spec);
     }
 
     private static class VisualCppLinkerSpecArguments implements CompileSpecToArguments<LinkerSpec> {

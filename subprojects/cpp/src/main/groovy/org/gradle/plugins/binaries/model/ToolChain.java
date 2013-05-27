@@ -17,18 +17,12 @@
 package org.gradle.plugins.binaries.model;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.plugins.cpp.internal.LinkerSpec;
+import org.gradle.api.Named;
+import org.gradle.api.internal.HasInternalProtocol;
 
 /**
  * A set of compilers and linkers that are used together to construct a native binary.
  */
-@Incubating
-public interface ToolChain {
-    /**
-     * Creates a compiler which can compile the given binary.
-     */
-    <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType);
-
-    <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType);
+@Incubating @HasInternalProtocol
+public interface ToolChain extends Named {
 }

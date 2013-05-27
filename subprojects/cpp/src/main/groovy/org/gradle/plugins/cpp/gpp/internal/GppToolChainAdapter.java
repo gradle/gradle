@@ -19,9 +19,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.binaries.model.BinaryCompileSpec;
-import org.gradle.plugins.binaries.model.ToolChain;
-import org.gradle.plugins.binaries.model.ToolChainAdapter;
+import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
+import org.gradle.plugins.binaries.model.internal.ToolChainInternal;
 import org.gradle.plugins.cpp.gpp.internal.version.GppVersionDeterminer;
 import org.gradle.plugins.cpp.internal.*;
 import org.gradle.process.internal.ExecAction;
@@ -33,7 +32,7 @@ import java.io.File;
 /**
  * Compiler adapter for g++
  */
-public class GppToolChainAdapter implements ToolChainAdapter {
+public class GppToolChainAdapter implements ToolChainInternal {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GppToolChainAdapter.class);
 
@@ -76,25 +75,29 @@ public class GppToolChainAdapter implements ToolChainAdapter {
         return version != null;
     }
 
-    public ToolChain create() {
-        return new ToolChain() {
-            public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
-                if (CppCompileSpec.class.isAssignableFrom(specType)) {
-                    return (Compiler<T>) new GppCompiler(gppExecutable, execActionFactory, canUseCommandFile(version));
-                }
-                throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
-            }
+    public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
+        checkAvailable();
+        if (CppCompileSpec.class.isAssignableFrom(specType)) {
+            return (Compiler<T>) new GppCompiler(gppExecutable, execActionFactory, canUseCommandFile(version));
+        }
+        throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
+    }
 
-            public <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType) {
-                if (ExecutableLinkerSpec.class.isAssignableFrom(specType) || SharedLibraryLinkerSpec.class.isAssignableFrom(specType)) {
-                    return (Compiler<T>) new GppLinker(gppExecutable, execActionFactory, canUseCommandFile(version));
-                }
-                if (StaticLibraryLinkerSpec.class.isAssignableFrom(specType)) {
-                    return (Compiler<T>) new ArStaticLibraryLinker(arExecutable, execActionFactory);
-                }
-                throw new IllegalArgumentException(String.format("No suitable linker available for %s.", specType));
-            }
-        };
+    public <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType) {
+        checkAvailable();
+        if (ExecutableLinkerSpec.class.isAssignableFrom(specType) || SharedLibraryLinkerSpec.class.isAssignableFrom(specType)) {
+            return (Compiler<T>) new GppLinker(gppExecutable, execActionFactory, canUseCommandFile(version));
+        }
+        if (StaticLibraryLinkerSpec.class.isAssignableFrom(specType)) {
+            return (Compiler<T>) new ArStaticLibraryLinker(arExecutable, execActionFactory);
+        }
+        throw new IllegalArgumentException(String.format("No suitable linker available for %s.", specType));
+    }
+
+    private void checkAvailable() {
+        if (version == null) {
+            throw new IllegalStateException(String.format("Tool chain %s is not available", getName()));
+        }
     }
 
     private void determineVersion() {

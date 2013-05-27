@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model;
+package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.compile.CompileSpec;
 
 import java.io.File;
 
@@ -25,12 +24,8 @@ import java.io.File;
  * A compile spec that will be used to produce a native artifact.
  */
 @Incubating
-public interface BinaryCompileSpec extends CompileSpec {
-    File getWorkDir();
+public interface BinaryCompileSpec extends BinaryToolSpec {
+    File getObjectFileDir();
 
-    void setWorkDir(File workDir);
-
-    File getTempDir();
-
-    void setTempDir(File tempDir);
+    void setObjectFileDir(File objectFileDir);
 }

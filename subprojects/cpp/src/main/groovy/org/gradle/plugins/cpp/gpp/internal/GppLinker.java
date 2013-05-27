@@ -19,20 +19,24 @@ package org.gradle.plugins.cpp.gpp.internal;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompiler;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
+import org.gradle.plugins.cpp.compiler.internal.CommandLineTool;
 import org.gradle.plugins.cpp.internal.LinkerSpec;
 import org.gradle.plugins.cpp.internal.SharedLibraryLinkerSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-public class GppLinker extends CommandLineCppCompiler<LinkerSpec> {
+class GppLinker implements org.gradle.api.internal.tasks.compile.Compiler<LinkerSpec> {
 
-    protected GppLinker(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
-        super(executable, execActionFactory, useCommandFile ? viaCommandFile() : withoutCommandFile());
+    private final CommandLineTool<LinkerSpec> commandLineTool;
+
+    public GppLinker(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
+        this.commandLineTool = new CommandLineTool<LinkerSpec>(executable, execActionFactory)
+                .withArguments(useCommandFile ? viaCommandFile() : withoutCommandFile());
     }
 
     private static GppLinkerSpecToArguments withoutCommandFile() {
@@ -43,6 +47,10 @@ public class GppLinker extends CommandLineCppCompiler<LinkerSpec> {
         return new CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec>(
             ArgWriter.unixStyleFactory(), new GppLinkerSpecToArguments()
         );
+    }
+
+    public WorkResult execute(LinkerSpec spec) {
+        return commandLineTool.execute(spec);
     }
 
     private static class GppLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
