@@ -16,10 +16,13 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.language.jvm.JvmLanguageSourceSet;
+import org.gradle.language.base.Classpath;
+import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * A set of sources passed to the Java compiler.
  */
 @Incubating
-public interface JavaSourceSet extends JvmLanguageSourceSet {}
+public interface JavaSourceSet extends LanguageSourceSet {
+    Classpath getCompileClasspath();
+}
