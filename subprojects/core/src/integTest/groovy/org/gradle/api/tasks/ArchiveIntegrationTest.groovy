@@ -20,13 +20,19 @@
 package org.gradle.api.tasks
 
 import org.apache.commons.lang.RandomStringUtils
-import org.apache.commons.lang.StringUtils
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.FileResource
+import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
+import java.util.zip.ZipFile
+
 import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertEquals
 
 public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
@@ -604,4 +610,125 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         tarRoot.create(cl)
         tarRoot.tarTo(tar)
     }
+
+
+    private def createFilesStructureForDupeTests() {
+        createDir('dir1', {
+            file 'file1.txt'
+        })
+        createDir('dir2', {
+            file 'file2.txt'
+        })
+        createDir('dir3', {
+            file 'file1.txt'
+        })
+    }
+
+    def ensureDuplicatesIncludedInZipByDefault() {
+        given:
+        createFilesStructureForDupeTests();
+        buildFile << '''
+            task zip(type: Zip) {
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.zip'
+            }
+            '''
+        when:
+        run 'zip'
+
+        then:
+        assertZipContainsOnly('build/test.zip', [ 'file1.txt', 'file1.txt', 'file2.txt' ])
+    }
+
+    def ensureDuplicatesCanBeExcludedFromZip() {
+        given:
+        createFilesStructureForDupeTests()
+        buildFile << '''
+            task zip(type: Zip) {
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.zip'
+                eachFile { it.duplicatesStrategy = 'exclude' }
+            }
+            '''
+        when:
+        run 'zip'
+
+        then:
+        assertZipContainsOnly('build/test.zip', [ 'file1.txt', 'file2.txt' ])
+    }
+
+    def assertZipContainsOnly(zipfile, files) {
+        def entries = new ZipFile(file(zipfile)).entries();
+        def list = []
+        while (entries.hasMoreElements()) {
+            def entry = entries.nextElement()
+            list += entry.getName();
+        }
+        assertEquals(files.sort(), list.sort())
+        return this
+    }
+
+
+    def ensureDuplicatesIncludedInTarByDefault() {
+        given:
+        createFilesStructureForDupeTests();
+        buildFile << '''
+            task tar(type: Tar) {
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.tar'
+            }
+            '''
+        when:
+        run 'tar'
+
+        then:
+        assertTarContainsOnly('build/test.tar', [ 'file1.txt', 'file1.txt', 'file2.txt' ])
+    }
+
+    def ensureDuplicatesCanBeExcludedFromTar() {
+        given:
+        createFilesStructureForDupeTests()
+        buildFile << '''
+            task tar(type: Tar) {
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.tar'
+                eachFile { it.duplicatesStrategy = 'exclude' }
+            }
+            '''
+        when:
+        run 'tar'
+
+        then:
+        assertTarContainsOnly('build/test.tar', [ 'file1.txt', 'file2.txt' ])
+    }
+
+    def assertTarContainsOnly(tarfile, files) {
+        def list = []
+
+        def readableFile = new FileResource(file(tarfile))
+        def temporaryDir = file('tmp')
+        new TarFileTree(readableFile, temporaryDir).visit(new FileVisitor() {
+            void visitDir(FileVisitDetails dirDetails) { }
+            void visitFile(FileVisitDetails fileDetails) {
+                list += fileDetails.relativePath.toString()
+            }
+        })
+
+
+        assertEquals(files.sort(), list.sort())
+        return this
+    }
+
 }
