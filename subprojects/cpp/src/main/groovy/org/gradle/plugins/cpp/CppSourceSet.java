@@ -29,7 +29,7 @@ import groovy.lang.Closure;
 import java.util.Map;
 
 /**
- * A representation of a unit of cpp source
+ * A representation of a unit of C++ source.
  */
 @Incubating
 public interface CppSourceSet extends HeaderExportingSourceSet, NativeDependencyCapableSourceSet, Named {
