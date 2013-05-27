@@ -48,11 +48,14 @@ A native component that represents an application.
 
 A native component that represents a library to be used in other native components.
 
-# Story: Introduce native binaries
+# Milestone 1
+
+## Story: Introduce native binaries
 
 This story introduces domain objects to represent each native binary that is built, sharing the concepts introduced in the new JVM language DSL.
+
 This separates the physical binary from the logical component that it is built for. This will be used in later stories to handle building multiple
-binaries for a native application or library.
+binaries for a particular native application or library.
 
 - Add `ExecutableBinary` and `SharedLibraryBinary` types, as analogs to `ClassDirectoryBinary` from the JVM domain.
 - Extract a `Binary` supertype out of the above types and change the `BinariesContainer` so that it is a container of `Binary` instances.
@@ -69,7 +72,7 @@ binaries for a native application or library.
 
 *Note*: there's a breaking change here, as the name of the compile task added by the C++ plugins will have changed.
 
-## User visible changes
+### User visible changes
 
 For this story, a read-only view of the binaries is available:
 
@@ -83,7 +86,7 @@ For this story, a read-only view of the binaries is available:
 
 Running `gradle mainExecutable` will build the main executable binary.
 
-## Test cases
+### Test cases
 
 - Can apply the `java`, `cpp-exe` and `cpp-lib` plugins together, as shown in the example above.
 - For a build that uses the `cpp-exe` plugin:
@@ -92,10 +95,12 @@ Running `gradle mainExecutable` will build the main executable binary.
 - For a build that uses the `cpp-lib` plugin:
     - Can run `gradle mainSharedLibrary` to build the main shared library.
 
-# Story: Separate C++ compilation and linking of binaries
+## Story: Separate C++ compilation and linking of binaries
 
-This story separates C++ compilation and linking of binaries into separate tasks, so that 1) object files built from other languages can be linked into a binary, and
-2) so that the object files can be consumed in different ways, such as assembling into a static library.
+This story separates C++ compilation and linking of binaries into separate tasks, so that:
+
+1. Object files built from other languages can be linked into a binary.
+2. Object files can be consumed in different ways, such as assembling into a static library or linking into a shared library.
 
 - Split `LinkExecutable` and `LinkSharedLibrary` task types out of `CppCompile` task type.
 - Change the `cpp` plugin to add a `CppCompile` and `LinkExecutable` task for each `ExecutableBinary`.
@@ -111,16 +116,16 @@ This story separates C++ compilation and linking of binaries into separate tasks
 - Introduce a `Toolchain` concept, so that the compiler and linker from the same toolchain are always used together.
 - Add these task types to the DSL reference and mark as incubating.
 
-## Test cases
+### Test cases
 
 - Incremental build:
     - Changing a compile option causes source files to be compiled and binary to be linked.
     - Changing a link option causes the binary to be linked but does not recompile source files.
     - Changing a comment in a source file causes the source file to be compiled by the but does not relink the binary.
 
-# Story: Build a static library binary
+## Story: Build a static library binary
 
-This story introduces the concept of a static library binary that can be built for a C++ library.
+This story introduces the concept of a static library binary that can be built for a C++ library. This will allow both shared and static variants of a particular library to be built.
 
 - Add `StaticLibraryBinary` type.
 - Add `LinkStaticLibrary` task type.
@@ -137,7 +142,7 @@ This story introduces the concept of a static library binary that can be built f
 - Update the user guide to reflect the fact that static libraries can be built. Include a stand-alone sample that
   demonstrates how to build a library.
 
-## User visible changes
+### User visible changes
 
 Given:
 
@@ -161,17 +166,17 @@ Given:
         }
     }
 
-Running `gradle customStaticLibrary customSharedLibrary` will build the static and shared libraries.
+Running `gradle customStaticLibrary customSharedLibrary` will build the static and shared binaries.
 
-## Test cases
+### Test cases
 
 - For a build that uses the `cpp-lib` plugin, `gradle mainStaticLibrary` will produce the static library.
 - For a build that uses the `cpp` plugin and defines multiple libraries, each library can be built as both a static and shared library binary.
 - Can link a static library into an executable and install and run the resulting executable.
 
-# Allow customisation of binaries before and after linking
+## Allow customisation of binaries before and after linking
 
-This story introduces a lifecycle task for each binary, to allow tasks to be wired into the graph for a given binary.
+This story introduces a lifecycle task for each binary, to allow tasks to be wired into the task graph for a given binary. These tasks will be able to modify the object files or binary files before they are consumed.
 
 - Change `Binary` to extend `Buildable`.
 - Change `NativeComponent` so that it no longer extends `Buildable`.
@@ -182,9 +187,9 @@ This story introduces a lifecycle task for each binary, to allow tasks to be wir
 - Add an `InstallExecutable` task type and use this to install an executable.
 - Change `CppPlugin` so that the install task for an executable uses the executable binary as input, rather than depend on the link task.
 
-Note: There is a breaking change here, as the link task for a given binary has been renamed.
+*Note*: There is a breaking change here, as the link task for a given binary has been renamed.
 
-## User visible changes
+### User visible changes
 
     apply plugin: 'cpp-exe'
     
@@ -197,11 +202,17 @@ Note: There is a breaking change here, as the link task for a given binary has b
     
     mainExecutable.dependsOn tweakExecutable
 
-## Open issues
+### Open issues
 
 - Some convenience to wire this in?
 
-# Allow customisation of binary compilation and linking
+## Allow customisation of binary compilation and linking
+
+This story allows some configuration of the settings used to compile and link a given binary.
+
+Some initial support for settings that will be shared by all binaries of a component will also be added.
+
+Later stories will add more flexible and convenient support for customisation of the settings for a binary.
 
 - Add the following mutable properties to `NativeBinary`:
     - `outputFile`
@@ -216,7 +227,7 @@ Note: There is a breaking change here, as the link task for a given binary has b
 - Change the c++ plugin so that a static library's `archiverArgs`, rather than `linkerArgs` are used when assembling the static library binary.
 - Rename `LinkStaticLibrary` task type to `AssembleStaticLibrary`.
 
-## User visible changes
+### User visible changes
 
     apply plugin: 'cpp-lib'
     
@@ -241,7 +252,7 @@ Note: There is a breaking change here, as the link task for a given binary has b
         objectFileDirectory = file("$buildDir/${name}/obj")
     }
 
-## Open issues
+### Open issues
 
 - Need to configure components before configuring binaries, so that the component's compiler/linker/archiver args can be used as defaults.
 - Allow navigation from a `Binary` to the tasks associated with the binary.
@@ -251,7 +262,13 @@ Note: There is a breaking change here, as the link task for a given binary has b
 - Add set methods for each of these properties.
 - Some convenience to configure binaries for a given component.
 
-# Allow binaries to be used as input to other binaries
+## Allow library binaries to be used as input to other binaries
+
+This story adds support for using another library component or binary as input to compile and/or link a given binary. Adding a library component or binary as input  makes the header files of that library available at compilation time, and the appropriate binaries available at link and runtime.
+
+Some support will be added for expressing shared dependencies at the component level as well at the binary level.
+
+Later stories will build on this to unify the library dependency DSL, so that a consistent approach is used to consume libraries built by the same project, or another project in the same build, or from a binary repository.
 
 - Rename `NativeDependencySet.files` to `runtimeFiles`.
 - Add `NativeDependencySet.linkFiles`. Default implementation should return the runtime files. This will be improved in later stories.
@@ -280,7 +297,7 @@ Note: There is a breaking change here, as the link task for a given binary has b
     - A `NativeDependencySet` can be used as is.
     - Add `Library.getDefaultBinary()` which returns the shared library binary for the library, and convert a `Library` using its `getDefaultBinary().getAsNativeDependencySet()` method.
 
-## User visible changes
+### User visible changes
 
     binaries {
         mainExecutable {
@@ -291,14 +308,14 @@ Note: There is a breaking change here, as the link task for a given binary has b
         }
     }
 
-## Test cases
+### Test cases
 
 - Install and run an executable that:
     - Uses a mix of static and shared libraries.
     - Uses a mix of libraries from the same project, same build and from different builds.
     - Use a (static, shared) library that depends on another (static, shared) library.
 
-## Open issues
+### Open issues
 
 - Need a new name for `NativeDependencySet`.
 - Improve consumption of libraries from other projects.
@@ -313,52 +330,112 @@ Note: There is a breaking change here, as the link task for a given binary has b
 - Allow a `Binary` to be attached to a publication.
 - Update publication so that a binary's include, link and runtime files are published.
 
-# Compile C source files using the C compiler
+## Introduce native functional source sets
+
+This story reworks the existing C++ source set concepts to reuse the concept of a *functional* source set from the new JVM language DSL. This will allow a binary to be built from more than one language, and later stories will build on this to add support for specific languages.
+
+- Change `CppSourceSet` to extend `LanguageSourceSet`.
+- Add a mutable `NativeBinary.source` property of type `DomainObjectCollection<LanguageSourceSet>`.
+- Change the C++ plugin to add a component's source sets to each of the component's binaries.
+- Change the C++ plugin to add a `CppCompile` instance for each `CppSourceSet` added to a native binary.
+- Change the `cpp-exe` and `cpp-lib` plugins to:
+    - Add a `sources.main` functional source set
+    - Add a `sources.main.cpp` C++ source set.
+    - Wire the `sources.main.cpp` source set into the `main` executable/library.
+- Remove `CppExtension` and `org.gradle.plugins.binaries.model.SourceSet`.
+
+### User visible changes
+
+To adjust the by-convention layout:
+
+    apply plugin: 'cpp-lib'
+    
+    source {
+        main {
+            cpp { 
+                source.srcDirs = 'src'
+            }
+        }
+    }
+
+To define custom source sets and components:
+
+    apply plugin: `cpp`
+    
+    source {
+        util {
+        }
+        app {
+            cpp.libs << libraries.util
+        }
+        windows {
+        }
+    }
+    
+    libraries {
+        util {
+            source source.util
+        }
+        app {
+            source source.app
+        }
+    }
+
+### Open issues
+
+- Use rules to imply the type of each child of a functional source set.
+- Define a functional source set for each component.
+- Separate C++ header file source set type.
+
+## Compile C source files using the C compiler
 
 This story adds support for C source files as inputs to native binaries.
 
-- Add `c` and `c++` source set types and allow these to be attached as inputs to a native binary.
+- Add a `CSourceSet` interface.
 - Add a `CCompile` task type.
-- Change the `cpp` plugin to add a `CppCompile` instance for each C++ source set added to a native binary.
-- Change the `cpp` plugin to add a `CCompile` instance for each C source set added to a native binary.
+- Change the `cpp` plugin to add a `CCompile` instance for each `CSourceSet` added to a native binary.
 - Change the visual C++ toolchain to:
-    - Use `/TC` to force source language to C for all source files in a `c` source set.
-    - Don't use C++ options when compiling C source files.
-    - Use `/TP` to force source language to C++ for all source files in a `c++` source set.
+    - Not use `/EHsc` when compiling any source.
+    - Use `/TC` to force source language to C for all files in a C source set.
+    - Use `/TP` to force source language to C++ for all files in a C++ source set.
 - Change the GCC toolchain to:
-    - Use `gcc` to compile all source files in a `c` source set. Should also use `-x c` to force source language to C.
-    - Use `g++` to compile all source files in a `c++` source set. Should also use `-x c++` to force source language to C++.
-- Invoke the C compiler for all source files in a `c` source set type, and the C++ compiler for all source files in a `cpp` source set type.
+    - Use `gcc` to compile all source files in a C source set. Should also use `-x c` to force source language to C.
+    - Use `g++` to compile all source files in a C++ source set. Should also use `-x c++` to force source language to C++.
 
-## Open issues
+### Open issues
 
 - Need a 'cross-platform' and 'platform-specific' source set.
-- Add input source sets to binaries.
-- Move source sets from `cpp.sourceSets` container to `source` container.
 - Add a convention for C and C++ source directories.
 - Add compile dependencies to each source set.
 - Add link dependencies to each source set, use these to infer the link dependencies of the binary.
 - Should probably not use `g++` to link when there is no C++ source included in a binary.
-- Must use the C compiler and C++ compiler from the same toolchain for a given binary.
 - Need separate compiler options for C and C++.
 - Need shared compiler options for C and C++.
 - Need to manually define C++ and C source sets.
 - Need to compose assembler/C/C++ source sets.
-- Allow the C compiler executable for a toolchain to be specified.
+- The "by-convention" plugins need to add "main" C and headers source sets.
+- Change `NativeDependencySet` to handle separate C and C++ headers.
+- Rework the plugins so that there is something like:
+    - A `cpp-lang` plugin, which adds support for C++ source sets and compiling them to object files.
+    - A `c-lang` plugin, which adds support for C source sets and compiling them to object files
+    - An `assembler-lang` plugin, which adds support for assembler source sets and compiling them to object files.
+    - A `native-binaries` plugin, which adds the base support for native binaries and components.
+    - A `native-library` and `native-application` plugin, which adds by-convention support for a main library or main application.
 
-## Test cases
+### Test cases
 
 - Build breaks when C++ source file cannot be compiled.
 - Build breaks when C source file cannot be compiled.
 - Build breaks when a binary cannot be linked, for each type of binary.
 - C compilation is incremental wrt C source files, header files and compiler settings.
 - Mixed C/C++ binary, for each type of binary.
+- Project has mixed C and C++ header files.
 
-# Build a binary from assembler source files
+## Build a binary from assembler source files
 
 This story adds support for using assembler source files as inputs to a native binary.
 
-- Add an `assembler` source set type and allow these to be added to a native binary.
+- Add an `AssemblerSourceSet` type and allow these to be added to a native binary.
 - Add an `Assemble` task type.
 - Change the `cpp` plugin to add an `Assemble` instance for each assembler source set added to a native binary.
 - Change the visual C++ toolchain to:
@@ -366,44 +443,55 @@ This story adds support for using assembler source files as inputs to a native b
 - Change the GCC toolchain to:
     - Use `as` to assemble a source file to an object file.
 
-## Open issues
+### Open issues
 
 - Different source files by platform
 - Extract an assembler and a binaries plugin
 - Add a convention for assembler source directories.
 - Should possibly use `ld` instead of `gcc` or `g++` to link the binaries.
 - Must use the assembler, C and C++ compiler from the same toolchain for a given binary.
-- Need assembler options.
+- Need assembler options on binary.
 - Need to manually define assembler source sets.
-- Allow the assembler executable for a toolchain to be specified.
 
-## Test cases
+### Test cases
 
-- mixed C/C++/ASM binary.
-- each kind of binary.
+- Build breaks when source file cannot be assembled.
+- Mixed C/C++/ASM binary, for each kind of binary.
+- A project can have all C, C++ source and header files and assembly source files in the same source directory.
 
-# Allow all binaries to be built
+## Allow all binaries to be built
 
 - Change the native model to use deferred configuration.
 - Allow navigation from a `NativeComponent` to the binaries associated with the component.
 - Add an `assemble` lifecycle task for each component.
 
-# Allow a binary to be defined that is not part of a component
+## Build different variants of a native component
 
-- Allow native binary instances to be added manually.
-- Change `NativeBinary` so that not every binary has an associated component.
+This story adds initial support for building multiple variants of a native component. For each variant of a component, a binary of the appropriate type is defined.
 
-## Test cases
+### User visible changes
 
-- Can define a standalone executable, shared library or static library binary, and the appropriate tasks are created and configured appropriately.
-- Can define and configure standalone compile and link tasks.
+    libraries {
+        main {
+            compilerArgs = ["-DSOME_DEFINE"]
+            flavors {
+                main {
+                    compilerArgs << ["-DDISABLE_FEATURE"]
+                }
+                withOptionalFeature {
+                }
+            }
+        }
+    }
 
-# Build different variants of a native component
+This will define 4 binaries:
 
-This story adds support for building multiple variants of a native component. For each variant of a component, a binary of the
-appropriate type is defined.
+- library: 'main', flavor: 'main', packaging: 'static'
+- library: 'main', flavor: 'main', packaging: 'shared'
+- library: 'main', flavor: 'withOptionalFeature', packaging: 'static'
+- library: 'main', flavor: 'withOptionalFeature', packaging: 'shared'
 
-## Open issues
+### Open issues
 
 - Formalise the concept of a naming scheme for binary names, tasks and file paths.
 - Add a convention to give each binary a separate output directory (as the name of each variant binary can be the same).
@@ -414,30 +502,45 @@ appropriate type is defined.
 - Need to consume locally and between projects and between builds.
 - Need to infer the default variant.
 
-# Build a native component using multiple tool chains
+# Milestone 2
+
+## Allow a binary to be defined that is not part of a component
+
+- Allow native binary instances to be added manually.
+- Change `NativeBinary` so that not every binary has an associated component.
+
+### Test cases
+
+- Can define a standalone executable, shared library or static library binary, and the appropriate tasks are created and configured appropriately.
+- Can define and configure standalone compile and link tasks.
+
+## Build a native component using multiple tool chains
 
 This story adds support for building a native component using multiple tool chains. Each variant may have a tool chain associated with it.
 
-## Open issues
+### Open issues
 
 - Reasonable behaviour when no tool chains are available on the current machine.
-- Allow the C++ compiler and linker executables for a toolchain to be specified.
+- Allow the C++ compiler executable for a toolchain to be specified.
+- Allow the C compiler executable for a toolchain to be specified.
+- Allow the linker and library archiver for a toolchain to be specified.
+- Allow the assembler for a toolchain to be specified.
 - Need to be able to build for a single toolchain or all available toolchains.
 - Need separate compiler, linker and assembler options for each toolchain.
 - Need shared compiler, linker and assembler options for all toolchains.
 - Need to consume locally and between projects and between builds.
 - Need to discover the available tool chains.
 
-## Tests
+### Tests
 
 - Build on windows using visual c++ and gcc.
 
-# Build a native component for multiple architectures
+## Build a native component for multiple architectures
 
 This story adds support for building a component for multiple architectures. Introduce the concept of a platform, and each variant may have a platform associated
 with it.
 
-## Open issues
+### Open issues
 
 - Need to be able to build for a single architecture or all available architectures.
 - Need to discover which architectures a tool chain can build for.
@@ -445,15 +548,15 @@ with it.
 - Infer the default platform and architecture.
 - Define some conventions for architecture names.
 
-## Tests
+### Tests
 
 - Cross compile a 32-bit binary on a 64-bit linux machine.
 
-# Cross-compile for multiple operating systems
+## Cross-compile for multiple operating systems
 
 This story adds support for cross-compilation. Add the concept of an operating system to the platform.
 
-## Open issues
+### Open issues
 
 - Different source files by platform
 - Need to be able to build for a single platform or all available platforms.
@@ -462,9 +565,77 @@ This story adds support for cross-compilation. Add the concept of an operating s
 - Define some conventions for operating system names.
 - Add some opt-in way to define variants using a matrix of (flavour, tool chain, architecture, operating system).
 
-# Publishing and resolving shared libraries
+# Milestone 3
 
-## Use cases
+## Story: Running tests
+
+### Use cases
+
+### Implementation
+
+Generally, C++ test frameworks compile and link a test launcher executable, which is then run to execute the tests.
+
+To implement this:
+* Define a test source set and associated tasks to compile, link and run the test executable.
+* It should be possible to run the tests for all architectures supported by the current machine.
+* Generate the test launcher source and compile it into the executable.
+* It would be nice to generate a test launcher that is integrated with Gradle's test eventing.
+* It would be nice to generate a test launcher that runs test cases detected from the test source (as we do for JUnit and TestNG tests).
+
+## Story: Incremental compilation for C and C++
+
+### Implementation
+
+There are two approaches to extracting the dependency information from source files: parse the source files looking for `#include` directives, or
+use the toolchain's preprocessor.
+
+For Visual studio, can run with `/P` and parse the resulting `.i` file to extract `#line nnn "filename"` directives. In practise, this is pretty slow.
+For example, a simple source file that includes `Windows.h` generates 2.7Mb in text output.
+
+For GCC, can run with `-M` or `-MM` and parse the resulting make file to extract the header dependencies.
+
+The implementation will also remove stale object files.
+
+## Story: Expose only public header files for a library
+
+TBD
+
+## Story: Include Windows resource files in binaries
+
+Resource files can be linked into a binary.
+
+### Implementation
+
+* Resource files are compiled using `rc` to a `.res` file, which can then be linked into the binary.
+* Add a `resource` source set type and allow these to be attached to a binary.
+* Add the appropriate tasks to compile resource scripts.
+
+## Story: Use Windows linker def files
+
+### Implementation
+
+* A `.def` file lists `__stdcall` functions to export from a DLL. Can also use `__declspec(dllexport)` in source to export a function.
+* Functions are imported from a DLL using `__declspec(dllimport)`.
+
+## Story: Use Windows IDL files
+
+### Implementation
+
+* Use `midl` to generate server, client and header source files.
+
+## Story: Visual studio integration
+
+### Implementation
+
+* Allow the visual studio project file to be generated.
+* Merge with existing project file, as for IDEA and Eclipse.
+* Add hooks for customising the generated XML.
+
+# Milestone 4
+
+## Story: Publish and resolve shared libraries
+
+### Use cases
 
 A producer project produces a single shared library, for a single platform. The library depends on zero or more other dynamic libraries.
 The library is published to a repository.
@@ -474,7 +645,7 @@ machine, and the remaining libraries are available in a repository.
 
 Out of scope is the publishing of the resulting executable (this is a later story, below).
 
-## Implementation
+### Implementation
 
 On some platforms, such as UNIX platforms, linking is done against the shared library binary. On Windows, linking is done
 against the library's export file (`.lib`), which is created when the library is linked.
@@ -497,9 +668,9 @@ To implement this story:
 * Consumer determine which libraries are already installed on the machine, and uses these from their installed location at link time.
 * Define some standard artifact types for shared libraries, header archives and export files.
 
-# Publishing and resolving executables
+## Story: Publish and resolve executables
 
-## Use cases
+### Use cases
 
 A producer project produces a single executable, for a single platform. The executable depends on zero or more shared libraries.
 The executable is published to a repository.
@@ -507,7 +678,7 @@ The executable is published to a repository.
 A consumer project resolves the executable from the repository, and executes it. Some libraries may be installed on the consumer machine, and the
 remaining libraries are available in a repository.
 
-## Implementation
+### Implementation
 
 On most platforms, executables must follow a certain plaform-specific convention. On UNIX platforms, for example, the executable must have the execute
 permission set. On Windows platforms, the executable should have a `.exe` extension.
@@ -521,9 +692,9 @@ To implement this:
 * Consumer project installs the executable and libraries into a location where they are executable.
 * Define some standard artifact types for executables.
 
-# Binaries built for multiple Intel x86 architectures
+## Story: Binaries built for multiple Intel x86 architectures
 
-## Use cases
+### Use cases
 
 A producer project compiles and links a shared library for multiple Intel x86 architectures, for a single operating system. The library has zero or
 more dependencies. The library is published to a repository.
@@ -532,7 +703,7 @@ A consumer project links and runs an executable against the appropriate variant 
 
 Out of scope for this work is support for other chipsets, or projects that build a library for multiple chipsets.
 
-## Implementation
+### Implementation
 
 There are 2 main parts to the architecture that we are interested in: The CPU instruction set that is being used, and the data model. Usually,
 but not always, a 32-bit processor instruction set is used with 32-bit data model, and a 64-bit processor instruction set is used with 64-bit
@@ -574,9 +745,9 @@ Native architecture names:
 
 * OS X: i386, x86_64, ppc, ppc64
 
-# Binaries built for multiple operating systems
+## Story: Binaries built for multiple operating systems
 
-## Use cases
+### Use cases
 
 A producer project compiles, links and publishes a shared library for multiple combinations of operating system and architecture. The library depends
 on zero or more shared libraries. The library is published to a repository.
@@ -585,7 +756,7 @@ A consumer project compiles, links and runs an executable against the libary.
 
 Out of scope is cross compilation for other platforms, or building binaries for multiple versions of the same operating system.
 
-## Implementation
+### Implementation
 
 Generally, a given machine will not be able to build the binaries for all target operating systems. This means that multiple coordinated builds will
 be involved.
@@ -615,29 +786,29 @@ To implement this:
 * Allow resolved binaries to have the same file name across operating system.
 * Define some standard operating system names.
 
-# Header-only libraries
+## Story: Header-only libraries
 
-## Use case
+### Use case
 
 Producer project publishes a library consisting of header files only (e.g. a library of C++ template classes).
 
 Consumer project compiles an executable against this library.
 
-## Implementation
+### Implementation
 
 To implement this:
 
 * Allow zero or more binaries for a given library at link and runtime. Also allow for zero or more header files.
 
-# Debug and release binaries
+## Story: Debug and release binaries
 
-## Use case
+### Use case
 
 Producer project publishes a shared library with both debug and release variants.
 
 Consumer project compiles, links and debugs an executable against this library.
 
-## Implementation
+### Implementation
 
 Implementation-wise, this problem is similar in some respects to handling multiple architectures.
 
@@ -671,15 +842,15 @@ To generate the debug binaries (default):
 * Compile with -g or /Zi
 * Link with /DEBUG
 
-# Publishing and resolving static libraries
+## Story: Publish and resolve static libraries
 
-## Use cases
+### Use cases
 
 Publisher project publishes a shared library.
 
 Consumer project compiles, links and publishes a shared library that includes the shared library.
 
-## Implementation
+### Implementation
 
 To implement this:
 
@@ -688,77 +859,13 @@ To implement this:
 * Consumer project selects either the static or dynamic binaries for a given dependency at link time. A dependency that is statically linked
   into a binary has no files that are required at runtime, but may have files that are required at debug time.
 
-# Running tests
-
-## Use cases
-
-## Implementation
-
-Generally, C++ test frameworks compile and link a test launcher executable, which is then run to execute the tests.
-
-To implement this:
-* Define a test source set and associated tasks to compile, link and run the test executable.
-* It should be possible to run the tests for all architectures supported by the current machine.
-* Generate the test launcher source and compile it into the executable.
-* It would be nice to generate a test launcher that is integrated with Gradle's test eventing.
-* It would be nice to generate a test launcher that runs test cases detected from the test source (as we do for JUnit and TestNG tests).
-
-# Publishing multiple binaries from a project
+## Story: Publish multiple binaries from a project
 
 TBD
 
-# Building binaries for all operating systems in a single build
+## Story: Build binaries for all operating systems in a single build
 
 TBD
-
-# Incremental compilation for C and C++
-
-## Implementation
-
-There are two approaches to extracting the dependency information from source files: parse the source files looking for `#include` directives, or
-use the toolchain's preprocessor.
-
-For Visual studio, can run with `/P` and parse the resulting `.i` file to extract `#line nnn "filename"` directives. In practise, this is pretty slow.
-For example, a simple source file that includes `Windows.h` generates 2.7Mb in text output.
-
-For GCC, can run with `-M` or `-MM` and parse the resulting make file to extract the header dependencies.
-
-The implementation will also remove stale object files.
-
-# Expose only public header files for a library
-
-TBD
-
-# Including Windows resource files in binaries
-
-Resource files can be linked into a binary.
-
-## Implementation
-
-* Resource files are compiled using `rc` to a `.res` file, which can then be linked into the binary.
-* Add a `resource` source set type and allow these to be attached to a binary.
-* Add the appropriate tasks to compile resource scripts.
-
-# Using Windows linker def files
-
-## Implementation
-
-* A `.def` file lists `__stdcall` functions to export from a DLL. Can also use `__declspec(dllexport)` in source to export a function.
-* Functions are imported from a DLL using `__declspec(dllimport)`.
-
-# Using Windows IDL files
-
-## Implementation
-
-* Use `midl` to generate server, client and header source files.
-
-# Visual studio integration
-
-## Implementation
-
-* Allow the visual studio project file to be generated.
-* Merge with existing project file, as for IDEA and Eclipse.
-* Add hooks for customising the generated XML.
 
 # Open issues
 
