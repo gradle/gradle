@@ -342,21 +342,4 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         then:
         executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD
     }
-
-    def "can combine java, cpp-exe and cpp-lib plugins in a single project"() {
-        settingsFile << "rootProject.name = 'test'"
-        buildFile << """
-            apply plugin: "java"
-            apply plugin: "cpp-exe"
-            apply plugin: "cpp-lib"
-
-            task checkBinaries << {
-                assert binaries.mainClasses instanceof org.gradle.language.jvm.ClassDirectoryBinary
-                assert binaries.mainExecutable instanceof org.gradle.plugins.binaries.model.ExecutableBinary
-                assert binaries.mainSharedLibrary instanceof org.gradle.plugins.binaries.model.SharedLibraryBinary
-            }
-"""
-        expect:
-        succeeds "checkBinaries"
-    }
 }
