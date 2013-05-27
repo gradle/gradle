@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.cpp
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.cpp.fixtures.AbstractBinariesIntegrationSpec
 
 import static org.gradle.util.TextUtil.escapeString
@@ -79,10 +80,15 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
     def "rebuilds binary with compiler option change"() {
         when:
+        def executable = executable("build/binaries/test")
+        def snapshot = executable.snapshot()
+
+        and:
+        def extraCompilerArg = toolChain.isVisualCpp() ? "'/O1'" : "'-pic'"
         buildFile << """
             executables {
                 main {
-                    compilerArgs "-DFRENCH"
+                    compilerArgs '-DFRENCH', ${extraCompilerArg}
                 }
             }
 """
@@ -94,8 +100,8 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         executedAndNotSkipped ":compileMainExecutable", ":mainExecutable"
 
         and:
-        def executable = executable("build/binaries/test")
         executable.isFile()
+        executable.assertHasChangedSince(snapshot)
         executable.exec().out == HELLO_WORLD_FRENCH
     }
 
@@ -105,7 +111,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         def snapshot = executable.snapshot()
 
         and:
-        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG" : "'-Wl,-pie'"
+        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Wl,-pie'" : "'-Wl,--strip-debug'"
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
             executables {
