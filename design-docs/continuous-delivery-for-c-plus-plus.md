@@ -174,7 +174,7 @@ Running `gradle customStaticLibrary customSharedLibrary` will build the static a
 - For a build that uses the `cpp` plugin and defines multiple libraries, each library can be built as both a static and shared library binary.
 - Can link a static library into an executable and install and run the resulting executable.
 
-## Allow customisation of binaries before and after linking
+## Story: Allow customisation of binaries before and after linking
 
 This story introduces a lifecycle task for each binary, to allow tasks to be wired into the task graph for a given binary. These tasks will be able to modify the object files or binary files before they are consumed.
 
@@ -206,7 +206,7 @@ This story introduces a lifecycle task for each binary, to allow tasks to be wir
 
 - Some convenience to wire this in?
 
-## Allow customisation of binary compilation and linking
+## Story: Allow customisation of binary compilation and linking
 
 This story allows some configuration of the settings used to compile and link a given binary.
 
@@ -262,7 +262,7 @@ Later stories will add more flexible and convenient support for customisation of
 - Add set methods for each of these properties.
 - Some convenience to configure binaries for a given component.
 
-## Allow library binaries to be used as input to other binaries
+## Story: Allow library binaries to be used as input to other binaries
 
 This story adds support for using another library component or binary as input to compile and/or link a given binary. Adding a library component or binary as input  makes the header files of that library available at compilation time, and the appropriate binaries available at link and runtime.
 
@@ -330,7 +330,7 @@ Later stories will build on this to unify the library dependency DSL, so that a 
 - Allow a `Binary` to be attached to a publication.
 - Update publication so that a binary's include, link and runtime files are published.
 
-## Introduce native functional source sets
+## Story: Introduce native functional source sets
 
 This story reworks the existing C++ source set concepts to reuse the concept of a *functional* source set from the new JVM language DSL. This will allow a binary to be built from more than one language, and later stories will build on this to add support for specific languages.
 
@@ -386,8 +386,9 @@ To define custom source sets and components:
 - Use rules to imply the type of each child of a functional source set.
 - Define a functional source set for each component.
 - Separate C++ header file source set type.
+- Need to configure each component and source set lazily.
 
-## Compile C source files using the C compiler
+## Story: Compile C source files using the C compiler
 
 This story adds support for C source files as inputs to native binaries.
 
@@ -431,7 +432,7 @@ This story adds support for C source files as inputs to native binaries.
 - Mixed C/C++ binary, for each type of binary.
 - Project has mixed C and C++ header files.
 
-## Build a binary from assembler source files
+## Story: Build a binary from assembler source files
 
 This story adds support for using assembler source files as inputs to a native binary.
 
@@ -459,13 +460,21 @@ This story adds support for using assembler source files as inputs to a native b
 - Mixed C/C++/ASM binary, for each kind of binary.
 - A project can have all C, C++ source and header files and assembly source files in the same source directory.
 
-## Allow all binaries to be built
+## Story: Allow all binaries to be built
 
-- Change the native model to use deferred configuration.
+- Change the native model to use deferred configuration:
+    - Configure a source set completely before using it as input to a component or binary. 
+    - Configure a component completely before using it as a source set dependency or defining its binaries.
+    - Configure a binary completely before defining tasks for it.
+    - Configure a component completely before defining tasks for it.
 - Allow navigation from a `NativeComponent` to the binaries associated with the component.
 - Add an `assemble` lifecycle task for each component.
 
-## Build different variants of a native component
+### Open issues
+
+- Add a 'development' assemble task, which chooses a single binary for each component.
+
+## Story: Build different variants of a native component
 
 This story adds initial support for building multiple variants of a native component. For each variant of a component, a binary of the appropriate type is defined.
 
@@ -504,7 +513,31 @@ This will define 4 binaries:
 
 # Milestone 2
 
-## Allow a binary to be defined that is not part of a component
+## Story: Incremental compilation for C and C++
+
+### Implementation
+
+There are two approaches to extracting the dependency information from source files: parse the source files looking for `#include` directives, or
+use the toolchain's preprocessor.
+
+For Visual studio, can run with `/P` and parse the resulting `.i` file to extract `#line nnn "filename"` directives. In practise, this is pretty slow.
+For example, a simple source file that includes `Windows.h` generates 2.7Mb in text output.
+
+For GCC, can run with `-M` or `-MM` and parse the resulting make file to extract the header dependencies.
+
+The implementation will also remove stale object files.
+
+### Test cases
+
+- Change a header file that is included by one source file, only that source file is recompiled.
+- Change a header file that is not included by any source files, no compilation or linking should happen.
+- Change a header file that is included by another header file.
+- Change a compiler setting, all source files are recompiled.
+- Remove a source file, the corresponding object file is removed.
+- Rename a source file, the corresponding object file is removed.
+- Remove all source files, all object files and binary files are removed.
+
+## Story: Allow a binary to be defined that is not part of a component
 
 - Allow native binary instances to be added manually.
 - Change `NativeBinary` so that not every binary has an associated component.
@@ -514,7 +547,7 @@ This will define 4 binaries:
 - Can define a standalone executable, shared library or static library binary, and the appropriate tasks are created and configured appropriately.
 - Can define and configure standalone compile and link tasks.
 
-## Build a native component using multiple tool chains
+## Story: Build a native component using multiple tool chains
 
 This story adds support for building a native component using multiple tool chains. Each variant may have a tool chain associated with it.
 
@@ -535,7 +568,7 @@ This story adds support for building a native component using multiple tool chai
 
 - Build on windows using visual c++ and gcc.
 
-## Build a native component for multiple architectures
+## Story: Build a native component for multiple architectures
 
 This story adds support for building a component for multiple architectures. Introduce the concept of a platform, and each variant may have a platform associated
 with it.
@@ -552,7 +585,7 @@ with it.
 
 - Cross compile a 32-bit binary on a 64-bit linux machine.
 
-## Cross-compile for multiple operating systems
+## Story: Cross-compile for multiple operating systems
 
 This story adds support for cross-compilation. Add the concept of an operating system to the platform.
 
@@ -565,38 +598,7 @@ This story adds support for cross-compilation. Add the concept of an operating s
 - Define some conventions for operating system names.
 - Add some opt-in way to define variants using a matrix of (flavour, tool chain, architecture, operating system).
 
-# Milestone 3
-
-## Story: Running tests
-
-### Use cases
-
-### Implementation
-
-Generally, C++ test frameworks compile and link a test launcher executable, which is then run to execute the tests.
-
-To implement this:
-* Define a test source set and associated tasks to compile, link and run the test executable.
-* It should be possible to run the tests for all architectures supported by the current machine.
-* Generate the test launcher source and compile it into the executable.
-* It would be nice to generate a test launcher that is integrated with Gradle's test eventing.
-* It would be nice to generate a test launcher that runs test cases detected from the test source (as we do for JUnit and TestNG tests).
-
-## Story: Incremental compilation for C and C++
-
-### Implementation
-
-There are two approaches to extracting the dependency information from source files: parse the source files looking for `#include` directives, or
-use the toolchain's preprocessor.
-
-For Visual studio, can run with `/P` and parse the resulting `.i` file to extract `#line nnn "filename"` directives. In practise, this is pretty slow.
-For example, a simple source file that includes `Windows.h` generates 2.7Mb in text output.
-
-For GCC, can run with `-M` or `-MM` and parse the resulting make file to extract the header dependencies.
-
-The implementation will also remove stale object files.
-
-## Story: Expose only public header files for a library
+## Story: Build debug and release variants of a native component 
 
 TBD
 
@@ -622,6 +624,31 @@ Resource files can be linked into a binary.
 ### Implementation
 
 * Use `midl` to generate server, client and header source files.
+
+# Milestone 3
+
+## Story: Build binaries against a library in another project
+
+TBD
+
+## Story: Support CUnit test execution
+
+### Use cases
+
+### Implementation
+
+Generally, C++ test frameworks compile and link a test launcher executable, which is then run to execute the tests.
+
+To implement this:
+* Define a test source set and associated tasks to compile, link and run the test executable.
+* It should be possible to run the tests for all architectures supported by the current machine.
+* Generate the test launcher source and compile it into the executable.
+* It would be nice to generate a test launcher that is integrated with Gradle's test eventing.
+* It would be nice to generate a test launcher that runs test cases detected from the test source (as we do for JUnit and TestNG tests).
+
+## Story: Expose only public header files for a library
+
+TBD
 
 ## Story: Visual studio integration
 
