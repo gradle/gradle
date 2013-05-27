@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp
-
+package org.gradle.plugins.cpp.fixtures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
 
-@RunWith(CppIntegrationTestRunner)
+@RunWith(CppIntegrationTestRunner.class)
 abstract class AbstractBinariesIntegrationSpec extends AbstractIntegrationSpec {
+    static AvailableToolChains.ToolChainCandidate toolChain
+
     def TestFile executable(Object path) {
         return file(OperatingSystem.current().getExecutableName(path.toString()))
     }

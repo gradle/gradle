@@ -16,6 +16,7 @@
 package org.gradle.plugins.cpp
 
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.plugins.cpp.fixtures.AbstractBinariesIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule

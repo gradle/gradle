@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp;
+package org.gradle.plugins.cpp.fixtures;
 
 import com.google.common.base.Joiner;
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
-import org.gradle.internal.nativeplatform.*;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 
@@ -27,51 +27,50 @@ import java.util.List;
 import java.util.Map;
 
 public class CppIntegrationTestRunner extends AbstractMultiTestRunner {
-    public CppIntegrationTestRunner(Class<?> target) {
+    public CppIntegrationTestRunner(Class<? extends AbstractBinariesIntegrationSpec> target) {
         super(target);
     }
 
     @Override
     protected void createExecutions() {
-        List<AvailableCompilers.CompilerCandidate> compilers = AvailableCompilers.getCompilers();
-        for (AvailableCompilers.CompilerCandidate compiler : compilers) {
-            add(new CompilerExecution(compiler));
+        List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
+        for (AvailableToolChains.ToolChainCandidate compiler : toolChains) {
+            add(new ToolChainExecution(compiler));
         }
     }
 
-    private static class CompilerExecution extends Execution {
+    private static class ToolChainExecution extends Execution {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
-        private final AvailableCompilers.CompilerCandidate compiler;
+        private final AvailableToolChains.ToolChainCandidate toolChain;
         private String originalPath;
         private final String pathVarName;
 
-
-        public CompilerExecution(AvailableCompilers.CompilerCandidate compiler) {
-            this.compiler = compiler;
+        public ToolChainExecution(AvailableToolChains.ToolChainCandidate toolChain) {
+            this.toolChain = toolChain;
             this.pathVarName = !OperatingSystem.current().isWindows() ? "Path" : "PATH";
         }
 
         @Override
         protected boolean isEnabled() {
-            return compiler.isAvailable() && canDoNecessaryEnvironmentManipulation();
+            return toolChain.isAvailable() && canDoNecessaryEnvironmentManipulation();
         }
 
         private boolean canDoNecessaryEnvironmentManipulation() {
-            return (compiler.getEnvironmentVars().isEmpty() && compiler.getPathEntries().isEmpty())
+            return (toolChain.getEnvironmentVars().isEmpty() && toolChain.getPathEntries().isEmpty())
                     || PROCESS_ENVIRONMENT.maybeSetEnvironmentVariable(pathVarName, System.getenv(pathVarName));
         }
 
         @Override
         protected String getDisplayName() {
-            return compiler.getDisplayName();
+            return toolChain.getDisplayName();
         }
 
         @Override
         protected void before() {
-            System.out.println(String.format("Using compiler %s", compiler.getDisplayName()));
+            System.out.println(String.format("Using compiler %s", toolChain.getDisplayName()));
+            AbstractBinariesIntegrationSpec.setToolChain(toolChain);
 
-            String compilerPath = Joiner.on(File.pathSeparator).join(compiler.getPathEntries());
-
+            String compilerPath = Joiner.on(File.pathSeparator).join(toolChain.getPathEntries());
 
             if (compilerPath.length() > 0) {
                 originalPath = System.getenv(pathVarName);
@@ -80,7 +79,7 @@ public class CppIntegrationTestRunner extends AbstractMultiTestRunner {
                 PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, path);
             }
 
-            for (Map.Entry<String, String> entry : compiler.getEnvironmentVars().entrySet()) {
+            for (Map.Entry<String, String> entry : toolChain.getEnvironmentVars().entrySet()) {
                 System.out.println(String.format("Using environment var %s -> %s", entry.getKey(), entry.getValue()));
                 PROCESS_ENVIRONMENT.setEnvironmentVariable(entry.getKey(), entry.getValue());
             }

@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.cpp
 
+import org.gradle.plugins.cpp.fixtures.AbstractBinariesIntegrationSpec
+
 import static org.gradle.util.TextUtil.escapeString
 
 class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {

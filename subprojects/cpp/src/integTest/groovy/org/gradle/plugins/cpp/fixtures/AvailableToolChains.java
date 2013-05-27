@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp;
+package org.gradle.plugins.cpp.fixtures;
 
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.cpp.gpp.internal.version.GppVersionDeterminer;
@@ -22,9 +22,9 @@ import org.gradle.plugins.cpp.gpp.internal.version.GppVersionDeterminer;
 import java.io.File;
 import java.util.*;
 
-public class AvailableCompilers {
-    static List<CompilerCandidate> getCompilers() {
-        List<CompilerCandidate> compilers = new ArrayList<CompilerCandidate>();
+public class AvailableToolChains {
+    static List<ToolChainCandidate> getToolChains() {
+        List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
         if (OperatingSystem.current().isWindows()) {
             compilers.add(findVisualCpp());
             compilers.add(findMinGW());
@@ -35,11 +35,11 @@ public class AvailableCompilers {
         return compilers;
     }
 
-    static private CompilerCandidate findVisualCpp() {
+    static private ToolChainCandidate findVisualCpp() {
         // Search first in path, then in the standard installation locations
         File compilerExe = OperatingSystem.current().findInPath("cl.exe");
         if (compilerExe != null) {
-            return new InstalledCompiler("visual c++");
+            return new InstalledToolChain("visual c++");
         }
 
         compilerExe = new File("C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin/cl.exe");
@@ -48,7 +48,7 @@ public class AvailableCompilers {
             File vcDir = binDir.getParentFile();
             File baseDir = vcDir.getParentFile();
             File sdkDir = new File(baseDir.getParentFile(), "Microsoft SDKs/Windows/v7.0A");
-            return new InstalledCompiler("visual c++",
+            return new InstalledToolChain("visual c++",
                     new File(baseDir, "Common7/IDE"), 
                     binDir, 
                     new File(baseDir, "Common7/Tools"), 
@@ -58,39 +58,39 @@ public class AvailableCompilers {
                     .envVar("LIB", new File(vcDir, "lib").getAbsolutePath() + File.pathSeparator + new File(sdkDir, "lib").getAbsolutePath());
         }
         
-        return new UnavailableCompiler("visual c++");
+        return new UnavailableToolChain("visual c++");
     }
 
-    static private CompilerCandidate findMinGW() {
+    static private ToolChainCandidate findMinGW() {
         // Search in the standard installation locations (doesn't yet work with cygwin g++ in path)
         File compilerExe = new File("C:/MinGW/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledCompiler("mingw", compilerExe.getParentFile());
+            return new InstalledToolChain("mingw", compilerExe.getParentFile());
         }
 
-        return new UnavailableCompiler("mingw");
+        return new UnavailableToolChain("mingw");
     }
 
-    static private CompilerCandidate findGpp(String versionPrefix, String hardcodedFallback) {
+    static private ToolChainCandidate findGpp(String versionPrefix, String hardcodedFallback) {
         String name = String.format("g++ (%s)", versionPrefix);
         GppVersionDeterminer versionDeterminer = new GppVersionDeterminer();
         for (File candidate : OperatingSystem.current().findAllInPath("g++")) {
             if (versionDeterminer.transform(candidate).startsWith(versionPrefix)) {
-                return new InstalledCompiler(name, candidate.getParentFile());
+                return new InstalledToolChain(name, candidate.getParentFile());
             }
         }
 
         if (hardcodedFallback != null) {
             File fallback = new File(hardcodedFallback);
             if (fallback.isFile()) {
-                return new InstalledCompiler(name, fallback.getParentFile());
+                return new InstalledToolChain(name, fallback.getParentFile());
             }
         }
 
-        return new UnavailableCompiler(name);
+        return new UnavailableToolChain(name);
     }
 
-    public static abstract class CompilerCandidate {
+    public static abstract class ToolChainCandidate {
         @Override
         public String toString() {
             return getDisplayName();
@@ -103,19 +103,27 @@ public class AvailableCompilers {
         public abstract List<File> getPathEntries();
 
         public abstract Map<String, String> getEnvironmentVars();
+
+        public boolean isVisualCpp() {
+            return getDisplayName().equals("visual c++");
+        }
+
+        public boolean isGcc() {
+            return !isVisualCpp();
+        }
     }
     
-    public static class InstalledCompiler extends CompilerCandidate {
+    public static class InstalledToolChain extends ToolChainCandidate {
         private final List<File> pathEntries;
         private final Map<String, String> environmentVars = new HashMap<String, String>();
         private final String name;
 
-        public InstalledCompiler(String name, File... pathEntries) {
+        public InstalledToolChain(String name, File... pathEntries) {
             this.name = name;
             this.pathEntries = Arrays.asList(pathEntries);
         }
 
-        InstalledCompiler envVar(String key, String value) {
+        InstalledToolChain envVar(String key, String value) {
             environmentVars.put(key, value);
             return this;
         }
@@ -141,10 +149,10 @@ public class AvailableCompilers {
         }
     }
 
-    public static class UnavailableCompiler extends CompilerCandidate {
+    public static class UnavailableToolChain extends ToolChainCandidate {
         private final String name;
 
-        public UnavailableCompiler(String name) {
+        public UnavailableToolChain(String name) {
             this.name = name;
         }
 
