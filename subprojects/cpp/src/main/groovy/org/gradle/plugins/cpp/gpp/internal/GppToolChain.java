@@ -32,9 +32,9 @@ import java.io.File;
 /**
  * Compiler adapter for g++
  */
-public class GppToolChainAdapter implements ToolChainInternal {
+public class GppToolChain implements ToolChainInternal {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GppToolChainAdapter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GppToolChain.class);
 
     public static final String NAME = "gpp";
     private static final String GPP = "g++";
@@ -49,11 +49,11 @@ public class GppToolChainAdapter implements ToolChainInternal {
     private boolean determinedVersion;
     private String version;
 
-    public GppToolChainAdapter(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
+    public GppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
         this(operatingSystem.findInPath(GPP), operatingSystem.findInPath(AR), operatingSystem, execActionFactory, new GppVersionDeterminer());
     }
 
-    protected GppToolChainAdapter(File gppExecutable, File arExecutable, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory, Transformer<String, File> versionDeterminer) {
+    protected GppToolChain(File gppExecutable, File arExecutable, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory, Transformer<String, File> versionDeterminer) {
         this.gppExecutable = gppExecutable;
         this.arExecutable = arExecutable;
         this.operatingSystem = operatingSystem;

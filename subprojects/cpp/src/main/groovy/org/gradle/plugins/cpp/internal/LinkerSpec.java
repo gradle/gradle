@@ -25,7 +25,6 @@ import java.io.File;
  */
 public interface LinkerSpec extends BinaryToolSpec {
 
-    // TODO:DAZ There's no real difference between source and libs when linking
     Iterable<File> getSource();
 
     void setSource(Iterable<File> source);

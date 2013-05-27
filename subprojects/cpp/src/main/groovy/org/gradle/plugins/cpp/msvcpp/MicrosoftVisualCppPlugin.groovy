@@ -25,7 +25,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.plugins.binaries.BinariesPlugin
 import org.gradle.plugins.binaries.model.ToolChainRegistry
-import org.gradle.plugins.cpp.msvcpp.internal.VisualCppToolChainAdapter
+import org.gradle.plugins.cpp.msvcpp.internal.VisualCppToolChain
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.DefaultExecAction
 import org.gradle.internal.os.OperatingSystem
@@ -51,7 +51,7 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
             return
         }
 
-        project.extensions.getByType(ToolChainRegistry).add(new VisualCppToolChainAdapter(
+        project.extensions.getByType(ToolChainRegistry).add(new VisualCppToolChain(
                 OperatingSystem.current(),
                 new Factory<ExecAction>() {
                     ExecAction create() {

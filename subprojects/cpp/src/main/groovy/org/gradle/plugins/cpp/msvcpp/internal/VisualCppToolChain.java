@@ -26,7 +26,7 @@ import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-public class VisualCppToolChainAdapter implements ToolChainInternal {
+public class VisualCppToolChain implements ToolChainInternal {
 
     public static final String NAME = "visualCpp";
     static final String COMPILER_EXE = "cl.exe";
@@ -39,11 +39,11 @@ public class VisualCppToolChainAdapter implements ToolChainInternal {
     private final Factory<ExecAction> execActionFactory;
     private final OperatingSystem operatingSystem;
 
-    public VisualCppToolChainAdapter(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
+    public VisualCppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
         this(operatingSystem.findInPath(COMPILER_EXE), operatingSystem.findInPath(LINKER_EXE), operatingSystem.findInPath(STATIC_LINKER_EXE), operatingSystem, execActionFactory);
     }
 
-    protected VisualCppToolChainAdapter(File compilerExe, File linkerExe, File staticLinkerExe, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
+    protected VisualCppToolChain(File compilerExe, File linkerExe, File staticLinkerExe, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
         this.compilerExe = compilerExe;
         this.linkerExe = linkerExe;
         this.staticLinkerExe = staticLinkerExe;
