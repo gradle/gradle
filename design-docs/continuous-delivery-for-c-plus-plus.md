@@ -86,6 +86,11 @@ Running `gradle mainExecutable` will build the main executable binary.
 ## Test cases
 
 - Can apply the `java`, `cpp-exe` and `cpp-lib` plugins together, as shown in the example above.
+- For a build that uses the `cpp-exe` plugin:
+    - Can run `gradle mainExecutable` to build the main executable.
+    - Can run `gradle installMainExecutable` to build the main executable.
+- For a build that uses the `cpp-lib` plugin:
+    - Can run `gradle mainSharedLibrary` to build the main shared library.
 
 # Story: Separate C++ compilation and linking of binaries
 
@@ -129,7 +134,8 @@ This story introduces the concept of a static library binary that can be built f
 - Change the GCC toolchain to:
     - Don't use any shared library flags (`-shared`, `-fPIC`) when compiling source files for a static library.
     - Use `ar` to assemble the static library.
-- Update the user guide to reflect the fact that static libraries can be built.
+- Update the user guide to reflect the fact that static libraries can be built. Include a stand-alone sample that
+  demonstrates how to build a library.
 
 ## User visible changes
 
@@ -137,54 +143,175 @@ Given:
 
     apply plugin: `cpp-lib`
 
-Running `gradle mainStaticLibrary` will build the main static library.
+Running `gradle mainStaticLibrary` will build the main static library. Running `gradle mainSharedLibrary` will build the main shared library.
 
-## Open issues
+Given:
 
-- Add output file and object file properties to static binaries.
-- Use a separate output directory for each binary.
-- Allow `StaticLibraryBinary` instances to be added manually.
-- Need to consume locally and between projects and between builds.
-- Need separate compiler and linker options for building shared and static library.
-- Need shared compiler and linker options for building shared and static library.
-- Can in theory share the compile task between a static library and an executable built from the same source.
-- Need to be able to use a static library binary as input to another binary.
+    apply plugin: `cpp`
+    
+    cpp {
+        sourceSets {
+            main
+        }
+    }
+    
+    libraries {
+        custom {
+            sourceSets << cpp.sourceSets.main        
+        }
+    }
 
-# Allow customisation of binaries
+Running `gradle customStaticLibrary customSharedLibrary` will build the static and shared libraries.
+
+## Test cases
+
+- For a build that uses the `cpp-lib` plugin, `gradle mainStaticLibrary` will produce the static library.
+- For a build that uses the `cpp` plugin and defines multiple libraries, each library can be built as both a static and shared library binary.
+- Can link a static library into an executable and install and run the resulting executable.
+
+# Allow customisation of binaries before and after linking
 
 This story introduces a lifecycle task for each binary, to allow tasks to be wired into the graph for a given binary.
 
 - Change `Binary` to extend `Buildable`.
 - Change `NativeComponent` so that it no longer extends `Buildable`.
-- Change the binaries plugin to add a lifecycle task called `${binary.name}`
+- Change the binaries plugin to add a lifecycle task called `${binary.name}`.
 - Change the cpp plugin to rename the link tasks for a binary to `link${binary.name}`.
-- Change `DefaultClassDirectoryBinary` to implement `getBuildDependencies()` (it has an empty implementation).
-- Change `CppPlugin` so that the install task uses the executable binary as input, rather than depend on the link task.
+- Change `DefaultClassDirectoryBinary` to implement `getBuildDependencies()` (it currently has an empty implementation).
+- Change `CppPlugin` so that the link task for a binary uses the compile task's output as input, rather than depend on the compile task.
+- Add an `InstallExecutable` task type and use this to install an executable.
+- Change `CppPlugin` so that the install task for an executable uses the executable binary as input, rather than depend on the link task.
 
 Note: There is a breaking change here, as the link task for a given binary has been renamed.
 
+## User visible changes
+
+    apply plugin: 'cpp-exe'
+    
+    task tweakExecutable {
+        dependsOn linkMainExecutable
+        doFirst {
+            ["strip", linkMainExecutable.outputFile].execute()
+        }
+    }
+    
+    mainExecutable.dependsOn tweakExecutable
+
 ## Open issues
 
-- Allow customisation of binary output file
-- Allow customisation of binary object file directory
-- Allow customisation of binary compiler args and linker args
-- Allow customisation of component compiler args and linker args
-- Separate out the args passed to the linker and to the static library bundler.
+- Some convenience to wire this in?
+
+# Allow customisation of binary compilation and linking
+
+- Add the following mutable properties to `NativeBinary`:
+    - `outputFile`
+    - `objectFileDirectory`
+    - `compilerArgs`
+- Add the following mutable properties to `ExecutableBinary` and `SharedLibraryBinary`:
+    - `linkerArgs`
+- Add the following mutable properties to `StaticLibraryBinary`:
+    - `archiverArgs`
+- Add The following mutable properties to `Library`:
+    - `archiverArgs`
+- Change the c++ plugin so that a static library's `archiverArgs`, rather than `linkerArgs` are used when assembling the static library binary.
+- Rename `LinkStaticLibrary` task type to `AssembleStaticLibrary`.
+
+## User visible changes
+
+    apply plugin: 'cpp-lib'
+    
+    libraries {
+        main {
+            // Defaults for all binaries for this library
+            compileArgs = ['-DSOME_DEFINE']
+            linkArgs = ['-lsomelib']
+        }
+    }
+    
+    binaries {
+        mainSharedLibrary {
+            // Adjust the args for this binary
+            compileArgs << '-DSOME_OTHER_DEFINE'
+            linkerArgs << '-lotherlib
+        }
+    }
+    
+    binaries.withType(NativeBinary) {
+        outputFile = file("$buildDir/${name}/${outputFileName}")
+        objectFileDirectory = file("$buildDir/${name}/obj")
+    }
+
+## Open issues
+
+- Need to configure components before configuring binaries, so that the component's compiler/linker/archiver args can be used as defaults.
 - Allow navigation from a `Binary` to the tasks associated with the binary.
 - Add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
-- Add an `InstallExecutable` task type and use this to install an executable.
+- Add properties to set defines and include directories for a binary.
+- Add properties to set defines and include directories for a component.
+- Add set methods for each of these properties.
+- Some convenience to configure binaries for a given component.
 
 # Allow binaries to be used as input to other binaries
 
-- Add link dependencies to binaries. This is resolved to determine which dependencies to link against.
+- Rename `NativeDependencySet.files` to `runtimeFiles`.
+- Add `NativeDependencySet.linkFiles`. Default implementation should return the runtime files. This will be improved in later stories.
+- Change `DefaultStaticLibrary` so that the output file is called `lib${library.baseName}.a` when building with GCC on Windows.
+- Add `LibraryBinary.getAsNativeDependencySet()`. The implementation depends on toolchain and binary type:
+
+<table>
+    <tr>
+        <th>Binary type</th>
+        <th>Toolchain</th>
+        <th>linkFiles</th>
+        <th>runtimeFiles</th>
+    </tr>
+    <tr><td>Shared</td><td>Visual C++</td><td>the `.lib` file</td><td>the `.dll` file</td></tr>
+    <tr><td>Static</td><td>Visual C++</td><td>the `.lib` file</td><td>empty collection</td></tr>
+    <tr><td>Shared</td><td>GCC</td><td>the `.so` or `.dll` file</td><td>the `.so` or `.dll` file</td></tr>
+    <tr><td>Static</td><td>GCC</td><td>the `.a` file</td><td>empty collection</td></tr>
+</table>
+
+- The `includeRoots` property of the `NativeDependencySet` implementation for a binary should return the set of header directories exported by the library.
+- Add `NativeBinary.libraries` property of type `DomainObjectCollection<NativeDependencySet>`.
+- Change the C++ plugin to add the dependencies of each C++ source set to this collection.
+- Change the C++ plugin to wire the inputs of the binary's compile and link tasks based on the contents of the `NativeBinary.libraries` collection.
+- Add `NativeBinary.library(Object)` method which accepts anything that can be converted to a `NativeDependencySet`:
+    - A `NativeBinary` is converted by calling its `getAsNativeDependencySet()` method.
+    - A `NativeDependencySet` can be used as is.
+    - Add `Library.getDefaultBinary()` which returns the shared library binary for the library, and convert a `Library` using its `getDefaultBinary().getAsNativeDependencySet()` method.
+
+## User visible changes
+
+    binaries {
+        mainExecutable {
+            // Include the given static library in the executable
+            library binaries.customStaticLibrary
+            // Include the default variant of the given library in the executable
+            library libraries.utils
+        }
+    }
+
+## Test cases
+
+- Install and run an executable that:
+    - Uses a mix of static and shared libraries.
+    - Uses a mix of libraries from the same project, same build and from different builds.
+    - Use a (static, shared) library that depends on another (static, shared) library.
+
+## Open issues
+
+- Need a new name for `NativeDependencySet`.
+- Improve consumption of libraries from other projects.
+- Some mechanism to use the static binary as default for a library.
+- Some mechanism to select static or dynamic linkage for each dependency of a binary.
 - Infer incoming libraries from component dependencies.
-- Add a sample that demonstrates how to link a static library into an executable.
-- Use `.lib` as input for shared and static libs on windows + visual c++
-- Use `.so`/`.dll` and `.a` as input for shared and static libs for gcc
-- Use `.dll` or `.so` to install an executable, but not `.a`. Need transitive runtime dependencies of libs.
-- Remove wiring of link dependencies from CppPlugin.
-- Allow a `Binary` to be attached to a publication.
+- Samples that demonstrates how to link a static library into an executable.
 - Move Component and Binary interfaces to new packages.
+- Add some way to create ad hoc `NativeDependencySet` instances, for example, a library produced by another build tool.
+- Need to be able to fine-tune compile time, link time and runtime inputs.
+- Merge `CppSourceSet.libs` and `CppSourceSet.nativeDependencySets`.
+- Allow a `Binary` to be attached to a publication.
+- Update publication so that a binary's include, link and runtime files are published.
 
 # Compile C source files using the C compiler
 
@@ -221,8 +348,11 @@ This story adds support for C source files as inputs to native binaries.
 
 ## Test cases
 
-- mixed C/C++ binary.
-- each type of binary.
+- Build breaks when C++ source file cannot be compiled.
+- Build breaks when C source file cannot be compiled.
+- Build breaks when a binary cannot be linked, for each type of binary.
+- C compilation is incremental wrt C source files, header files and compiler settings.
+- Mixed C/C++ binary, for each type of binary.
 
 # Build a binary from assembler source files
 
@@ -263,6 +393,11 @@ This story adds support for using assembler source files as inputs to a native b
 - Allow native binary instances to be added manually.
 - Change `NativeBinary` so that not every binary has an associated component.
 
+## Test cases
+
+- Can define a standalone executable, shared library or static library binary, and the appropriate tasks are created and configured appropriately.
+- Can define and configure standalone compile and link tasks.
+
 # Build different variants of a native component
 
 This story adds support for building multiple variants of a native component. For each variant of a component, a binary of the
@@ -285,6 +420,7 @@ This story adds support for building a native component using multiple tool chai
 
 ## Open issues
 
+- Reasonable behaviour when no tool chains are available on the current machine.
 - Allow the C++ compiler and linker executables for a toolchain to be specified.
 - Need to be able to build for a single toolchain or all available toolchains.
 - Need separate compiler, linker and assembler options for each toolchain.
@@ -637,3 +773,4 @@ Resource files can be linked into a binary.
 * Cross compilation.
 * Custom variants.
 * Calling convention.
+* Can in theory share the compile task between a static library and an executable built from the same source.
