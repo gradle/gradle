@@ -35,6 +35,11 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
         return library.getName() + "SharedLibrary";
     }
 
+    @Override
+    public String toString() {
+        return String.format("shared library '%s'", library.getName());
+    }
+
     public String getOutputFileName() {
         return OperatingSystem.current().getSharedLibraryName(getComponent().getBaseName());
     }

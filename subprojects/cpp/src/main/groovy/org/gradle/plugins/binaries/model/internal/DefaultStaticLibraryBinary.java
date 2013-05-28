@@ -35,6 +35,11 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
         return library.getName() + "StaticLibrary";
     }
 
+    @Override
+    public String toString() {
+        return String.format("static library '%s'", library.getName());
+    }
+
     public String getOutputFileName() {
         return OperatingSystem.current().getStaticLibraryName(getComponent().getBaseName());
     }
