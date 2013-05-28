@@ -343,7 +343,7 @@ This story reworks the existing C++ source set concepts to reuse the concept of 
     - Add a `sources.main` functional source set
     - Add a `sources.main.cpp` C++ source set.
     - Wire the `sources.main.cpp` source set into the `main` executable/library.
-- Remove `CppExtension` and `org.gradle.plugins.binaries.model.SourceSet`.
+- Remove `CppExtension` and `org.gradle.language.nativecode.SourceSet`.
 
 ### User visible changes
 
