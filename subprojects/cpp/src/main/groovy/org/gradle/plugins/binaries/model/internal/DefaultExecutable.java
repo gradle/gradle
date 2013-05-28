@@ -15,11 +15,10 @@
  */
 package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.api.Project;
 import org.gradle.plugins.binaries.model.Executable;
 
 public class DefaultExecutable extends DefaultNativeComponent implements Executable {
-    public DefaultExecutable(String name, Project project) {
+    public DefaultExecutable(String name) {
         super(name);
     }
 

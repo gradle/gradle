@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.plugins.binaries.model.HeaderExportingSourceSet;
 import org.gradle.plugins.binaries.model.Library;
 
@@ -30,9 +30,9 @@ import java.util.List;
 public class DefaultLibrary extends DefaultNativeComponent implements Library {
     private final DefaultSourceDirectorySet headers;
 
-    public DefaultLibrary(String name, ProjectInternal project) {
+    public DefaultLibrary(String name, FileResolver fileResolver) {
         super(name);
-        this.headers = new DefaultSourceDirectorySet("headers", String.format("Exported headers for native library '%s'", name), project.getFileResolver());
+        this.headers = new DefaultSourceDirectorySet("headers", String.format("Exported headers for native library '%s'", name), fileResolver);
 
         initExportedHeaderTracking();
     }
