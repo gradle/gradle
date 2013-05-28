@@ -315,6 +315,9 @@ Later stories will build on this to unify the library dependency DSL, so that a 
     - Uses a mix of static and shared libraries.
     - Uses a mix of libraries from the same project, same build and from different builds.
     - Use a (static, shared) library that depends on another (static, shared) library.
+    - In each case, verify that only shared libraries are included in the install image.
+    - In each case, remove the original binaries before running the install image.
+- A dependency on a binary overrides a dependency on the library that produced the binary. 
 
 ### Open issues
 
@@ -630,7 +633,10 @@ Resource files can be linked into a binary.
 
 ## Story: Build binaries against a library in another project
 
-TBD
+### Open issues
+
+- When linking a native binary, link against exactly the same version of each library that we compiled against, plus any additional link-time dependencies (resources, for example).
+- When installing a native executable, also install exactly the same versions of each library that we linked against, plus any additional runtime dependencies.
 
 ## Story: Support CUnit test execution
 
@@ -708,7 +714,7 @@ remaining libraries are available in a repository.
 
 ### Implementation
 
-On most platforms, executables must follow a certain plaform-specific convention. On UNIX platforms, for example, the executable must have the execute
+On most platforms, executables must follow a certain platform-specific convention. On UNIX platforms, for example, the executable must have the execute
 permission set. On Windows platforms, the executable should have a `.exe` extension.
 
 To implement this:
