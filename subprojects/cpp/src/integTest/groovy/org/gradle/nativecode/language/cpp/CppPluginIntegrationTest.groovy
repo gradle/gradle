@@ -18,7 +18,7 @@ package org.gradle.nativecode.language.cpp
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
 
 import static org.gradle.util.TextUtil.escapeString
-
+// TODO:DAZ Verify that linkerArgs are set correctly: use '-L' to choose library to link
 class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
@@ -119,8 +119,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         fails "mainExecutable"
     }
 
-    // TODO:DAZ Verify that linkerArgs are set correctly: use '-L' to choose library to link
-    def "build and execute program with compiler and linker args"() {
+    def "build and execute program with compiler arg"() {
         given:
         buildFile << """
             apply plugin: "cpp"
@@ -136,7 +135,6 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
                 french {
                     sourceSets << project.cpp.sourceSets.main
                     compilerArgs "-DFRENCH"
-                    linkerArgs "-current_version", "10" // This will fail if passed directly to 'g++', but pass when escaped and passed to 'ld'
                 }
             }
         """
