@@ -37,10 +37,9 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
             #include <iostream>
 
             int main () {
-                #ifdef FRENCH
-                std::cout << "${escapeString(HELLO_WORLD_FRENCH)}";
-                #else
                 std::cout << "${escapeString(HELLO_WORLD)}";
+                #ifdef FRENCH
+                std::cout << " ${escapeString(HELLO_WORLD_FRENCH)}";
                 #endif
                 return 0;
             }
@@ -84,16 +83,14 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         def snapshot = executable.snapshot()
 
         and:
-        def extraCompilerArg = toolChain.isVisualCpp() ? "'/O1'" : "'-pic'"
         buildFile << """
             executables {
                 main {
-                    compilerArgs '-DFRENCH', ${extraCompilerArg}
+                    compilerArgs '-DFRENCH'
                 }
             }
 """
 
-        executer.withArgument("--info")
         run "mainExecutable"
 
         then:
@@ -102,7 +99,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         and:
         executable.isFile()
         executable.assertHasChangedSince(snapshot)
-        executable.exec().out == HELLO_WORLD_FRENCH
+        executable.exec().out == "$HELLO_WORLD $HELLO_WORLD_FRENCH"
     }
 
     def "relinks binary but does not recompile when linker option changed"() {
