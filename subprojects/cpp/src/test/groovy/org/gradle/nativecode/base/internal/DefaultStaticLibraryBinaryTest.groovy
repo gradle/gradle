@@ -29,4 +29,19 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         expect:
         binary.toString() == "static library 'main'"
     }
+
+    def "can convert binary to a native dependency"() {
+        def headers = Stub(SourceDirectorySet)
+        def library = Stub(Library) {
+            getHeaders() >> headers
+        }
+        def binary = new DefaultStaticLibraryBinary(library)
+        binary.builtBy(Stub(Task))
+
+        expect:
+        def nativeDependency = binary.asNativeDependencySet
+        nativeDependency.files.files == [binary.outputFile] as Set
+        nativeDependency.files.buildDependencies == binary.buildDependencies
+        nativeDependency.includeRoots == headers
+    }
 }

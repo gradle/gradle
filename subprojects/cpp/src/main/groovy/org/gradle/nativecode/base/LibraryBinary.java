@@ -24,4 +24,9 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface LibraryBinary extends NativeBinary {
     Library getComponent();
+
+    /**
+     * Converts this binary into a {@link NativeDependencySet}, for consumption in some other binary.
+     */
+    NativeDependencySet getAsNativeDependencySet();
 }

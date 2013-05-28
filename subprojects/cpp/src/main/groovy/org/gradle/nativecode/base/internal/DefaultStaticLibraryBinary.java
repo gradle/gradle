@@ -16,6 +16,9 @@
 
 package org.gradle.nativecode.base.internal;
 
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.base.Library;
 import org.gradle.nativecode.base.StaticLibraryBinary;
@@ -42,5 +45,22 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
 
     public String getOutputFileName() {
         return OperatingSystem.current().getStaticLibraryName(getComponent().getBaseName());
+    }
+
+    public NativeDependencySet getAsNativeDependencySet() {
+        return new NativeDependencySet() {
+            public FileCollection getIncludeRoots() {
+                return library.getHeaders();
+            }
+
+            public FileCollection getFiles() {
+                return new SimpleFileCollection(getOutputFile()) {
+                    @Override
+                    public TaskDependency getBuildDependencies() {
+                        return DefaultStaticLibraryBinary.this.getBuildDependencies();
+                    }
+                };
+            }
+        };
     }
 }
