@@ -15,7 +15,6 @@
  */
 package org.gradle.nativecode.language.cpp
 
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
 
 import static org.gradle.util.TextUtil.escapeString
@@ -108,7 +107,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         def snapshot = executable.snapshot()
 
         and:
-        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-pie'" : "'--strip-debug'"
+        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : "'-S'"
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
             executables {
