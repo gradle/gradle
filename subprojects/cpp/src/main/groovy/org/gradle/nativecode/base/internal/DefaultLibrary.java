@@ -27,8 +27,9 @@ import org.gradle.nativecode.base.Library;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultLibrary extends DefaultNativeComponent implements Library {
+public class DefaultLibrary extends DefaultNativeComponent implements LibraryInternal {
     private final DefaultSourceDirectorySet headers;
+    private LibraryBinary defaultBinary;
 
     public DefaultLibrary(String name, FileResolver fileResolver) {
         super(name);
@@ -44,6 +45,14 @@ public class DefaultLibrary extends DefaultNativeComponent implements Library {
 
     public SourceDirectorySet getHeaders() {
         return headers;
+    }
+
+    public LibraryBinary getDefaultBinary() {
+        return defaultBinary;
+    }
+
+    public void setDefaultBinary(LibraryBinary defaultBinary) {
+        this.defaultBinary = defaultBinary;
     }
 
     private void initExportedHeaderTracking() {

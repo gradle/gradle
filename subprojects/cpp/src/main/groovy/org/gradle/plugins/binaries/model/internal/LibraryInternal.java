@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.base;
+package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.plugins.binaries.model.Library;
+import org.gradle.plugins.binaries.model.LibraryBinary;
 
-/**
- * A Native Binary that is a physical representation of a Library component.
- */
-@Incubating
-public interface LibraryBinary extends NativeBinary {
-    Library getComponent();
+public interface LibraryInternal extends Library {
+    LibraryBinary getDefaultBinary();
 
-    /**
-     * Converts this binary into a {@link NativeDependencySet}, for consumption in another binary.
-     */
-    NativeDependencySet getAsNativeDependencySet();
+    void setDefaultBinary(LibraryBinary binary);
 }

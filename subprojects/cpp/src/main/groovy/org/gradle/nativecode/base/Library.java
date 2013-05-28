@@ -17,11 +17,12 @@ package org.gradle.nativecode.base;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.HasInternalProtocol;
 
 /**
  * A library component
  */
-@Incubating
+@Incubating @HasInternalProtocol
 // TODO:DAZ Come up with a better name for this
 public interface Library extends NativeComponent {
     SourceDirectorySet getHeaders();
