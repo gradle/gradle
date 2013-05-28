@@ -119,7 +119,8 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         fails "mainExecutable"
     }
 
-    def "build and execute program with compiler arg"() {
+    // TODO:DAZ Verify that linkerArgs are set correctly: use '-L' to choose library to link
+    def "build and execute program with compiler and linker args"() {
         given:
         buildFile << """
             apply plugin: "cpp"
@@ -135,6 +136,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
                 french {
                     sourceSets << project.cpp.sourceSets.main
                     compilerArgs "-DFRENCH"
+                    linkerArgs "-current_version", "10" // This will fail if passed directly to 'g++', but pass when escaped and passed to 'ld'
                 }
             }
         """

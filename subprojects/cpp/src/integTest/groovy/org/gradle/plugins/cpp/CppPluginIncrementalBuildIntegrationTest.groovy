@@ -108,7 +108,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         def snapshot = executable.snapshot()
 
         and:
-        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Wl,-pie'" : "'-Wl,--strip-debug'"
+        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-pie'" : "'--strip-debug'"
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
             executables {

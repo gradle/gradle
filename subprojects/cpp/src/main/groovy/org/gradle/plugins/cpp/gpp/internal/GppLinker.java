@@ -57,7 +57,9 @@ class GppLinker implements Compiler<LinkerSpec> {
     private static class GppLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
 
         public void collectArguments(LinkerSpec spec, ArgCollector collector) {
-            collector.args(spec.getArgs());
+            for (String rawArg : spec.getArgs()) {
+                collector.args("-Xlinker", rawArg);
+            }
             if (spec instanceof SharedLibraryLinkerSpec) {
                 collector.args("-shared");
                 if (!OperatingSystem.current().isWindows()) {
