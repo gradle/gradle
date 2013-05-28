@@ -19,12 +19,9 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativecode.base.internal.BinaryCompileSpec;
-import org.gradle.nativecode.base.internal.ToolChainInternal;
+import org.gradle.nativecode.base.internal.*;
 import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
 import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
-import org.gradle.nativecode.base.internal.LinkerSpec;
-import org.gradle.nativecode.base.internal.StaticLibraryArchiverSpec;
 import org.gradle.process.internal.ExecAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,9 +69,15 @@ public class GppToolChain implements ToolChainInternal {
         return String.format("GNU G++ (%s)", operatingSystem.getExecutableName(GPP));
     }
 
-    public boolean isAvailable() {
+    public ToolChainAvailability getAvailability() {
+        ToolChainAvailability availability = new ToolChainAvailability();
+        availability.mustExist(GPP, gppExecutable);
+        availability.mustExist(AR, arExecutable);
         determineVersion();
-        return version != null;
+        if (version == null) {
+            availability.unavailable("Could not determine GPP version");
+        }
+        return availability;
     }
 
     public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {

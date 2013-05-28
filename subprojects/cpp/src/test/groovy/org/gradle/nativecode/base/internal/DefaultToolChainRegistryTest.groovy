@@ -58,7 +58,8 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.add(toolChainInternal3)
 
         and:
-        toolChainInternal2.available >> true
+        toolChainInternal1.availability >> new ToolChainAvailability().unavailable("nope")
+        toolChainInternal2.availability >> new ToolChainAvailability()
 
         when:
         def defaultToolChain = registry.getDefaultToolChain()
@@ -80,13 +81,18 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.add(toolChainInternal2)
         registry.add(toolChainInternal3)
 
+        and:
+        toolChainInternal1.availability >> new ToolChainAvailability().unavailable("nope")
+        toolChainInternal2.availability >> new ToolChainAvailability().unavailable("not me")
+        toolChainInternal3.availability >> new ToolChainAvailability().unavailable("not me either")
+
         when:
         def defaultToolChain = registry.getDefaultToolChain()
         defaultToolChain.createCompiler(BinaryCompileSpec).execute(compileSpec)
 
         then:
         IllegalStateException e = thrown()
-        e.message == "No tool chain is available. Searched for $toolChainInternal1, $toolChainInternal2, $toolChainInternal3."
+        e.message == "No tool chain is available: [Could not load 'z': nope, Could not load 'b': not me, Could not load 'a': not me either]"
     }
 
     def toolChainInternal(String name) {

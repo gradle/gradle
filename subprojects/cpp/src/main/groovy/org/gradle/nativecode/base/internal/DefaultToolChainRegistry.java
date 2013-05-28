@@ -15,7 +15,6 @@
  */
 package org.gradle.nativecode.base.internal;
 
-import com.google.common.base.Joiner;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.tasks.compile.Compiler;
@@ -52,12 +51,15 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
         return new LazyToolChain() {
             @Override
             protected ToolChainInternal findFirstAvailableToolChain() {
+                List<String> messages = new ArrayList<String>();
                 for (ToolChainInternal adapter : searchOrder) {
-                    if (adapter.isAvailable()) {
+                    ToolChainAvailability availability = adapter.getAvailability();
+                    if (availability.isAvailable()) {
                         return adapter;
                     }
+                    messages.add(String.format("Could not load '%s': %s", adapter.getName(), availability.getUnavailableMessage()));
                 }
-                throw new IllegalStateException(String.format("No tool chain is available. Searched for %s.", Joiner.on(", ").join(searchOrder)));
+                throw new IllegalStateException(String.format("No tool chain is available: %s", messages));
             }
         };
     }
@@ -67,6 +69,10 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
 
         public String getName() {
             return getToolChain().getName();
+        }
+
+        public ToolChainAvailability getAvailability() {
+            return new ToolChainAvailability();
         }
 
         public <T extends BinaryCompileSpec> Compiler<T> createCompiler(final Class<T> specType) {
@@ -93,9 +99,6 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
             };
         }
 
-        public boolean isAvailable() {
-            return true;
-        }
 
         private ToolChainInternal getToolChain() {
             if (toolChain == null) {

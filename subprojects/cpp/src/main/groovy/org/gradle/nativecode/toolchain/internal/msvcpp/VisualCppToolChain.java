@@ -19,10 +19,7 @@ package org.gradle.nativecode.toolchain.internal.msvcpp;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativecode.base.internal.BinaryCompileSpec;
-import org.gradle.nativecode.base.internal.LinkerSpec;
-import org.gradle.nativecode.base.internal.StaticLibraryArchiverSpec;
-import org.gradle.nativecode.base.internal.ToolChainInternal;
+import org.gradle.nativecode.base.internal.*;
 import org.gradle.nativecode.language.cpp.internal.*;
 import org.gradle.process.internal.ExecAction;
 
@@ -60,6 +57,13 @@ public class VisualCppToolChain implements ToolChainInternal {
     @Override
     public String toString() {
         return String.format("Visual C++ (%s)", operatingSystem.getExecutableName(COMPILER_EXE));
+    }
+
+    public ToolChainAvailability getAvailability() {
+        ToolChainAvailability availability = new ToolChainAvailability();
+        availability.mustExist(COMPILER_EXE, compilerExe);
+        availability.mustExist(LINKER_EXE, linkerExe);
+        return availability;
     }
 
     public boolean isAvailable() {

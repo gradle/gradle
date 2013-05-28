@@ -20,11 +20,12 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.nativecode.base.ToolChain;
 
 public interface ToolChainInternal extends ToolChain {
-    boolean isAvailable();
+    ToolChainAvailability getAvailability();
 
     <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType);
 
     <T extends LinkerSpec> Compiler<T> createLinker();
 
     <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver();
+
 }
