@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries.model.internal;
+package org.gradle.nativecode.base.internal;
 
-import org.gradle.plugins.binaries.model.Library;
-import org.gradle.plugins.binaries.model.LibraryBinary;
+import org.gradle.nativecode.base.Library;
+import org.gradle.nativecode.base.LibraryBinary;
 
 public interface LibraryInternal extends Library {
     LibraryBinary getDefaultBinary();

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.binaries
+package org.gradle.nativecode.base.plugins
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.HelperUtil

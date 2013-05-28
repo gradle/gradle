@@ -22,7 +22,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.nativecode.base.HeaderExportingSourceSet;
-import org.gradle.nativecode.base.Library;
+import org.gradle.nativecode.base.LibraryBinary;
 
 import java.util.ArrayList;
 import java.util.List;

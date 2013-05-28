@@ -15,21 +15,18 @@
  */
 package org.gradle.nativecode.language.cpp.internal;
 
-import org.gradle.nativecode.language.cpp.CppSourceSet;
-
+import groovy.lang.Closure;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativecode.base.Library;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.internal.ConfigurationBasedNativeDependencySet;
-
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.file.SourceDirectorySet;
-
-import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.nativecode.language.cpp.CppSourceSet;
 import org.gradle.util.ConfigureUtil;
 
-import groovy.lang.Closure;
 import java.util.Map;
 
 public class DefaultCppSourceSet implements CppSourceSet {
@@ -56,6 +53,11 @@ public class DefaultCppSourceSet implements CppSourceSet {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("C++ source '%s'", name);
     }
 
     public SourceDirectorySet getExportedHeaders() {

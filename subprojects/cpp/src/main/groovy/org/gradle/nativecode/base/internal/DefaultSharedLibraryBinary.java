@@ -16,12 +16,19 @@
 
 package org.gradle.nativecode.base.internal;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.base.Library;
+import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.SharedLibraryBinary;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 
 public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements SharedLibraryBinary {
     private final Library library;
@@ -54,13 +61,22 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
             }
 
             public FileCollection getFiles() {
-                return new SimpleFileCollection(getOutputFile()) {
-                    @Override
-                    public TaskDependency getBuildDependencies() {
-                        return DefaultSharedLibraryBinary.this.getBuildDependencies();
-                    }
-                };
+                return new FileCollectionAdapter(new RuntimeFiles());
             }
         };
+    }
+
+    private class RuntimeFiles implements MinimalFileSet, Buildable {
+        public Set<File> getFiles() {
+            return Collections.singleton(getOutputFile());
+        }
+
+        public String getDisplayName() {
+            return DefaultSharedLibraryBinary.this.toString();
+        }
+
+        public TaskDependency getBuildDependencies() {
+            return DefaultSharedLibraryBinary.this.getBuildDependencies();
+        }
     }
 }

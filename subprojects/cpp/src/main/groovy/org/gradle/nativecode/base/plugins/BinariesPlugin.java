@@ -31,6 +31,7 @@ import org.gradle.nativecode.base.Executable;
 import org.gradle.nativecode.base.Library;
 import org.gradle.nativecode.base.NativeBinary;
 import org.gradle.nativecode.base.internal.*;
+import org.gradle.nativecode.base.internal.LibraryInternal;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -78,7 +79,7 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
                 new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project.getFileResolver())
         );
 
-        libraries.withType(LibraryInternal.class).all(new Action<LibraryInternal>() {
+        libraries.withType(LibraryInternal.class, new Action<LibraryInternal>() {
             public void execute(LibraryInternal library) {
                 DefaultSharedLibraryBinary sharedLibraryBinary = instantiator.newInstance(DefaultSharedLibraryBinary.class, library);
                 library.setDefaultBinary(sharedLibraryBinary);

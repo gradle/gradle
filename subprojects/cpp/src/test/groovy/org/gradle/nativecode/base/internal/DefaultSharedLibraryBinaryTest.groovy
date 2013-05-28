@@ -16,7 +16,9 @@
 
 package org.gradle.nativecode.base.internal
 
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.nativecode.base.Library
+import org.gradle.tooling.model.Task
 import spock.lang.Specification
 
 class DefaultSharedLibraryBinaryTest extends Specification {
@@ -34,6 +36,7 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         def headers = Stub(SourceDirectorySet)
         def library = Stub(Library) {
             getHeaders() >> headers
+            getName() >> "main"
         }
         def binary = new DefaultSharedLibraryBinary(library)
         binary.builtBy(Stub(Task))
@@ -42,6 +45,7 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         def nativeDependency = binary.asNativeDependencySet
         nativeDependency.files.files == [binary.outputFile] as Set
         nativeDependency.files.buildDependencies == binary.buildDependencies
+        nativeDependency.files.toString() == "shared library 'main'"
         nativeDependency.includeRoots == headers
     }
 }
