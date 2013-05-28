@@ -481,4 +481,26 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         assertTrue(file('dest/path/file.txt').exists())
         assertFalse(result.output.contains('deprecated'))
     }
+
+    @Test
+    public void renamedFileCanBeTreatedAsDuplicate() {
+        file('dir1', 'path', 'file.txt').createFile()
+        file('dir2', 'path', 'file2.txt').createFile()
+
+
+        def buildFile = testFile('build.gradle') <<
+                '''
+                task copy(type: Copy) {
+                    from 'dir1'
+                    from 'dir2'
+                    rename 'file2.txt', 'file.txt'
+                    into 'dest'
+
+                    eachFile { it.duplicatesStrategy = 'exclude' }
+                }
+            '''
+        def result = usingBuildFile(buildFile).withTasks("copy").run()
+        assertTrue(file('dest/path/file.txt').exists())
+        assertFalse(result.output.contains('deprecated'))
+    }
 }
