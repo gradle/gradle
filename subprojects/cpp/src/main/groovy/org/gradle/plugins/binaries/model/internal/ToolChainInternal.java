@@ -19,11 +19,14 @@ package org.gradle.plugins.binaries.model.internal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.plugins.binaries.model.ToolChain;
 import org.gradle.plugins.cpp.internal.LinkerSpec;
+import org.gradle.plugins.cpp.internal.StaticLibraryArchiverSpec;
 
 public interface ToolChainInternal extends ToolChain {
     boolean isAvailable();
 
     <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType);
 
-    <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType);
+    <T extends LinkerSpec> Compiler<T> createLinker();
+
+    <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver();
 }

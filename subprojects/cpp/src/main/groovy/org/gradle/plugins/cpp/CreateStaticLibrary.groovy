@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.plugins.cpp
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.*
-import org.gradle.plugins.cpp.internal.LinkerSpec
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.SkipWhenEmpty
+import org.gradle.api.tasks.TaskAction
+import org.gradle.plugins.cpp.internal.StaticLibraryArchiverSpec
 
 import javax.inject.Inject
 
 @Incubating
-abstract class AbstractLinkTask extends DefaultTask {
+class CreateStaticLibrary extends DefaultTask {
     def toolChain
 
     @OutputFile
     File outputFile
-
-    @Input
-    List<String> linkerArgs
 
     @InputFiles
     FileCollection source
@@ -41,30 +43,28 @@ abstract class AbstractLinkTask extends DefaultTask {
         source
     }
 
-    @InputFiles
-    FileCollection libs
-
     @Inject
-    AbstractLinkTask() {
-        libs = project.files()
+    CreateStaticLibrary() {
         source = project.files()
     }
 
     @TaskAction
     void link() {
-        def spec = createLinkerSpec()
+        def spec = new Spec()
         spec.tempDir = getTemporaryDir()
 
         spec.outputFile = getOutputFile()
         spec.source = getSource()
-        spec.libs = getLibs()
-        spec.args = getLinkerArgs()
 
-        def result = toolChain.createLinker().execute(spec)
+        def result = toolChain.createStaticLibraryArchiver().execute(spec)
         didWork = result.didWork
     }
 
-    protected abstract LinkerSpec createLinkerSpec();
+    private static class Spec implements StaticLibraryArchiverSpec {
+        Iterable<File> source;
+        File outputFile;
+        File tempDir;
+    }
 
     void source(Object inputs) {
         source.from inputs

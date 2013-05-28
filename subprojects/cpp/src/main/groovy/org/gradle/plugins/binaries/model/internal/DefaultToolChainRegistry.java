@@ -23,6 +23,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.binaries.model.*;
 import org.gradle.plugins.cpp.internal.LinkerSpec;
+import org.gradle.plugins.cpp.internal.StaticLibraryArchiverSpec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,11 +70,7 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
             return getToolChain().getName();
         }
 
-        public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
-            return createLazyCompiler(specType);
-        }
-
-        private <T extends BinaryCompileSpec> Compiler<T> createLazyCompiler(final Class<T> specType) {
+        public <T extends BinaryCompileSpec> Compiler<T> createCompiler(final Class<T> specType) {
             return new Compiler<T>() {
                 public WorkResult execute(T spec) {
                     return getToolChain().createCompiler(specType).execute(spec);
@@ -81,14 +78,18 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
             };
         }
 
-        public <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType) {
-            return createLazyLinker(specType);
+        public <T extends LinkerSpec> Compiler<T> createLinker() {
+            return new Compiler<T>() {
+                 public WorkResult execute(T spec) {
+                     return getToolChain().createLinker().execute(spec);
+                 }
+             };
         }
 
-        private <T extends LinkerSpec> Compiler<T> createLazyLinker(final Class<T> specType) {
+        public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
             return new Compiler<T>() {
                 public WorkResult execute(T spec) {
-                    return getToolChain().createLinker(specType).execute(spec);
+                    return getToolChain().createStaticLibraryArchiver().execute(spec);
                 }
             };
         }

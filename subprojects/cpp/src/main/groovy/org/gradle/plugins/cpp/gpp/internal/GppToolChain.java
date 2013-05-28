@@ -22,7 +22,9 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
 import org.gradle.plugins.binaries.model.internal.ToolChainInternal;
 import org.gradle.plugins.cpp.gpp.internal.version.GppVersionDeterminer;
-import org.gradle.plugins.cpp.internal.*;
+import org.gradle.plugins.cpp.internal.CppCompileSpec;
+import org.gradle.plugins.cpp.internal.LinkerSpec;
+import org.gradle.plugins.cpp.internal.StaticLibraryArchiverSpec;
 import org.gradle.process.internal.ExecAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,15 +85,14 @@ public class GppToolChain implements ToolChainInternal {
         throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
     }
 
-    public <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType) {
+    public <T extends LinkerSpec> Compiler<T> createLinker() {
         checkAvailable();
-        if (ExecutableLinkerSpec.class.isAssignableFrom(specType) || SharedLibraryLinkerSpec.class.isAssignableFrom(specType)) {
-            return (Compiler<T>) new GppLinker(gppExecutable, execActionFactory, canUseCommandFile(version));
-        }
-        if (StaticLibraryLinkerSpec.class.isAssignableFrom(specType)) {
-            return (Compiler<T>) new ArStaticLibraryLinker(arExecutable, execActionFactory);
-        }
-        throw new IllegalArgumentException(String.format("No suitable linker available for %s.", specType));
+        return (Compiler<T>) new GppLinker(gppExecutable, execActionFactory, canUseCommandFile(version));
+    }
+
+    public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
+        checkAvailable();
+        return (Compiler<T>) new ArStaticLibraryArchiver(arExecutable, execActionFactory);
     }
 
     private void checkAvailable() {

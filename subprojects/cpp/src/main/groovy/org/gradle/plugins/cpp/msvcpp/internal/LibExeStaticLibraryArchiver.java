@@ -24,27 +24,26 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineTool;
-import org.gradle.plugins.cpp.internal.LinkerSpec;
+import org.gradle.plugins.cpp.internal.StaticLibraryArchiverSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-class LibExeLinker implements Compiler<LinkerSpec> {
-    private final CommandLineTool<LinkerSpec> commandLineTool;
+class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
+    private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
 
-    LibExeLinker(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<LinkerSpec>(executable, execActionFactory)
-                .withArguments(new CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec>(ArgWriter.windowsStyleFactory(), new VisualCppLinkerSpecArguments()
+    public LibExeStaticLibraryArchiver(File executable, Factory<ExecAction> execActionFactory) {
+        this.commandLineTool = new CommandLineTool<StaticLibraryArchiverSpec>(executable, execActionFactory)
+                .withArguments(new CommandLineCppCompilerArgumentsToOptionFile<StaticLibraryArchiverSpec>(ArgWriter.windowsStyleFactory(), new LibExeSpecToArguments()
         ));
     }
 
-    public WorkResult execute(LinkerSpec spec) {
+    public WorkResult execute(StaticLibraryArchiverSpec spec) {
         return commandLineTool.execute(spec);
     }
 
-    private static class VisualCppLinkerSpecArguments implements CompileSpecToArguments<LinkerSpec> {
-        public void collectArguments(LinkerSpec spec, ArgCollector collector) {
-            collector.args(spec.getArgs());
+    private static class LibExeSpecToArguments implements CompileSpecToArguments<StaticLibraryArchiverSpec> {
+        public void collectArguments(StaticLibraryArchiverSpec spec, ArgCollector collector) {
             collector.args("/OUT:" + spec.getOutputFile().getAbsolutePath());
             collector.args("/NOLOGO");
             for (File file : spec.getSource()) {

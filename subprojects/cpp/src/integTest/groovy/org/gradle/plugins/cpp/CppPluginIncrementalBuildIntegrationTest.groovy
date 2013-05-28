@@ -130,6 +130,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         executable.exec().out == HELLO_WORLD
     }
 
+    // TODO:DAZ test incremental build with static library too
     def "recompiles source but does not relink binary with source comment change"() {
         // TODO:DAZ Better way to do this
         if (toolChain.isVisualCpp()) {

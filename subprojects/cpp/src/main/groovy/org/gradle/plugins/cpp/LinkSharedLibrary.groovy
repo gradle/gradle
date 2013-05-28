@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.cpp
 import org.gradle.api.Incubating
-import org.gradle.plugins.cpp.internal.AbstractLinkerSpec
 import org.gradle.plugins.cpp.internal.LinkerSpec
 import org.gradle.plugins.cpp.internal.SharedLibraryLinkerSpec
 
@@ -27,21 +26,16 @@ class LinkSharedLibrary extends AbstractLinkTask {
         return new Spec()
     }
 
-    @Override
-    protected Class<? extends LinkerSpec> getSpecType() {
-        SharedLibraryLinkerSpec
-    }
-
-    private static class Spec extends AbstractLinkerSpec implements SharedLibraryLinkerSpec {
-        private String installName;
+    private static class Spec implements SharedLibraryLinkerSpec {
+        Iterable<File> libs;
+        Iterable<File> source;
+        File outputFile;
+        File tempDir;
+        Iterable<String> args = new ArrayList<String>();
+        String installName;
 
         public String getInstallName() {
             return installName == null ? getOutputFile().getName() : installName;
         }
-
-        public void setInstallName(String installName) {
-            this.installName = installName;
-        }
-
     }
 }

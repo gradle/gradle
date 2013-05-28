@@ -49,9 +49,13 @@ class CppPlugin implements Plugin<ProjectInternal> {
     def createTasks(ProjectInternal project, NativeBinary binary) {
         final toolChain = project.extensions.getByType(ToolChainRegistry).defaultToolChain
         CppCompile compileTask = createCompileTask(project, binary, toolChain)
-        AbstractLinkTask linkTask = createLinkTask(project, binary, toolChain, compileTask)
-        if (binary instanceof ExecutableBinary) {
-            createInstallTask(project, binary, linkTask)
+        if (binary instanceof StaticLibraryBinary) {
+            createStaticLibraryTask(project, binary, toolChain, compileTask)
+        } else if (binary instanceof SharedLibraryBinary) {
+            createLinkTask(project, binary, toolChain, compileTask)
+        } else { // ExecutableBinary
+            AbstractLinkTask linkTask = createLinkTask(project, binary, toolChain, compileTask)
+            createInstallTask(project, (ExecutableBinary) binary, linkTask)
         }
     }
 
@@ -110,12 +114,25 @@ class CppPlugin implements Plugin<ProjectInternal> {
         linkTask
     }
 
+    private void createStaticLibraryTask(ProjectInternal project, NativeBinary binary, ToolChain toolChain, CppCompile compileTask) {
+        CreateStaticLibrary task = project.task(binary.getTaskName(null), type: CreateStaticLibrary) {
+             description = "Creates ${binary}"
+             group = BasePlugin.BUILD_GROUP
+         }
+
+        task.dependsOn compileTask // TODO:DAZ Avoid this explicit dependency by wiring inputs/outputs better
+        task.toolChain = toolChain
+
+        task.source project.fileTree(compileTask.objectFileDir)
+
+        task.conventionMapping.outputFile = { binary.outputFile }
+
+        binary.builtBy(task)
+    }
+
     private static Class<? extends AbstractLinkTask> linkTaskType(NativeBinary binary) {
         if (binary instanceof SharedLibraryBinary) {
             return LinkSharedLibrary
-        }
-        if (binary instanceof StaticLibraryBinary) {
-            return LinkStaticLibrary
         }
         return LinkExecutable
     }

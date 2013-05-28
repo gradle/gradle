@@ -72,15 +72,12 @@ public class VisualCppToolChain implements ToolChainInternal {
         throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
     }
 
-    public <T extends LinkerSpec> Compiler<T> createLinker(Class<T> specType) {
-        checkAvailable();
-        if (ExecutableLinkerSpec.class.isAssignableFrom(specType) || SharedLibraryLinkerSpec.class.isAssignableFrom(specType)) {
-            return (Compiler<T>) new LinkExeLinker(linkerExe, execActionFactory);
-        }
-        if (StaticLibraryLinkerSpec.class.isAssignableFrom(specType)) {
-            return (Compiler<T>) new LibExeLinker(staticLinkerExe, execActionFactory);
-        }
-        throw new IllegalArgumentException(String.format("No suitable linker available for %s.", specType));
+    public <T extends LinkerSpec> Compiler<T> createLinker() {
+        return (Compiler<T>) new LinkExeLinker(linkerExe, execActionFactory);
+    }
+
+    public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
+        return (Compiler<T>) new LibExeStaticLibraryArchiver(staticLinkerExe, execActionFactory);
     }
 
     private void checkAvailable() {

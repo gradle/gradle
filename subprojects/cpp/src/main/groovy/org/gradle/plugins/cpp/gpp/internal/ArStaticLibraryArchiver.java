@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineTool;
-import org.gradle.plugins.cpp.internal.StaticLibraryLinkerSpec;
+import org.gradle.plugins.cpp.internal.StaticLibraryArchiverSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
@@ -30,21 +30,21 @@ import java.io.File;
 /**
  * A static library linker based on the GNU 'ar' utility
  */
-class ArStaticLibraryLinker implements Compiler<StaticLibraryLinkerSpec> {
-    private final CommandLineTool<StaticLibraryLinkerSpec> commandLineTool;
 
-    public ArStaticLibraryLinker(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<StaticLibraryLinkerSpec>(executable, execActionFactory)
+class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
+    private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
+
+    public ArStaticLibraryArchiver(File executable, Factory<ExecAction> execActionFactory) {
+        this.commandLineTool = new CommandLineTool<StaticLibraryArchiverSpec>(executable, execActionFactory)
                 .withArguments(new LinkerSpecToArguments());
     }
 
-    public WorkResult execute(StaticLibraryLinkerSpec spec) {
+    public WorkResult execute(StaticLibraryArchiverSpec spec) {
         return commandLineTool.execute(spec);
     }
 
-    private static class LinkerSpecToArguments implements CompileSpecToArguments<StaticLibraryLinkerSpec> {
-        public void collectArguments(StaticLibraryLinkerSpec spec, ArgCollector collector) {
-            collector.args(spec.getArgs());
+    private static class LinkerSpecToArguments implements CompileSpecToArguments<StaticLibraryArchiverSpec> {
+        public void collectArguments(StaticLibraryArchiverSpec spec, ArgCollector collector) {
             collector.args("-rc", spec.getOutputFile().getAbsolutePath());
             for (File file : spec.getSource()) {
                 collector.args(file.getAbsolutePath());

@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.cpp
 import org.gradle.api.Incubating
-import org.gradle.plugins.cpp.internal.AbstractLinkerSpec
 import org.gradle.plugins.cpp.internal.ExecutableLinkerSpec
 import org.gradle.plugins.cpp.internal.LinkerSpec
 
@@ -28,11 +27,11 @@ class LinkExecutable extends AbstractLinkTask {
         return new Spec()
     }
 
-    @Override
-    protected Class<? extends LinkerSpec> getSpecType() {
-        ExecutableLinkerSpec
-    }
-
-    private static class Spec extends AbstractLinkerSpec implements ExecutableLinkerSpec {
+    private static class Spec implements ExecutableLinkerSpec {
+        Iterable<File> libs;
+        Iterable<File> source;
+        File outputFile;
+        File tempDir;
+        Iterable<String> args = new ArrayList<String>();
     }
 }
