@@ -137,7 +137,8 @@ This story introduces the concept of a static library binary that can be built f
 - Change visual C++ toolchain to:
      - Use `lib.exe` to assemble the static library.
 - Change the GCC toolchain to:
-    - Don't use any shared library flags (`-shared`, `-fPIC`) when compiling source files for a static library.
+    - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
+    - Don't use other shared library flags (`-shared`) when compiling source files for a static library.
     - Use `ar` to assemble the static library.
 - Update the user guide to reflect the fact that static libraries can be built. Include a stand-alone sample that
   demonstrates how to build a library.
