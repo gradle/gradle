@@ -87,10 +87,9 @@ class CppPlugin implements Plugin<ProjectInternal> {
              group = BasePlugin.BUILD_GROUP
          }
 
-        linkTask.dependsOn compileTask // TODO:DAZ Avoid this explicit dependency by wiring inputs/outputs better
         linkTask.toolChain = toolChain
 
-        linkTask.source project.fileTree(compileTask.objectFileDir)
+        linkTask.source compileTask.outputs.files.asFileTree
 
         binary.libs.all { LibraryBinary lib ->
             linkTask.dependsOn lib
