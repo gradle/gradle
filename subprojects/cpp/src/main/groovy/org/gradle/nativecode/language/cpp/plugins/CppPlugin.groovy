@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.cpp.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Task
@@ -21,15 +22,9 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.Sync
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativecode.base.ExecutableBinary
-import org.gradle.nativecode.base.LibraryBinary
-import org.gradle.nativecode.base.NativeBinary
-import org.gradle.nativecode.base.NativeDependencySet
-import org.gradle.nativecode.base.SharedLibraryBinary
-import org.gradle.nativecode.base.StaticLibraryBinary
-import org.gradle.nativecode.base.ToolChainRegistry
-import org.gradle.nativecode.base.plugins.BinariesPlugin
+import org.gradle.nativecode.base.*
 import org.gradle.nativecode.base.internal.ToolChainInternal
+import org.gradle.nativecode.base.plugins.BinariesPlugin
 import org.gradle.nativecode.base.tasks.AbstractLinkTask
 import org.gradle.nativecode.base.tasks.CreateStaticLibrary
 import org.gradle.nativecode.base.tasks.LinkExecutable
@@ -60,6 +55,16 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     def createTasks(ProjectInternal project, NativeBinary binary) {
+        // TODO:DAZ Move this logic into NativeBinary
+        binary.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
+            sourceSet.nativeDependencySets.all { NativeDependencySet nativeDependencySet ->
+                binary.lib nativeDependencySet
+            }
+            sourceSet.libs.all { Library lib ->
+                binary.lib lib
+            }
+        }
+
         ToolChainInternal toolChain = project.extensions.getByType(ToolChainRegistry).defaultToolChain
         CppCompile compileTask = createCompileTask(project, binary, toolChain)
         if (binary instanceof StaticLibraryBinary) {
@@ -83,11 +88,10 @@ class CppPlugin implements Plugin<ProjectInternal> {
         // TODO:DAZ Move some of this logic into NativeBinary
         binary.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
             compileTask.includes sourceSet.exportedHeaders
-            compileTask.includes project.files({ sourceSet.libs*.headers*.srcDirs })
 
             compileTask.source sourceSet.source
 
-            sourceSet.nativeDependencySets.all { NativeDependencySet deps ->
+            binary.libs.all { NativeDependencySet deps ->
                 compileTask.includes deps.includeRoots
             }
         }
@@ -108,16 +112,8 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         linkTask.source compileTask.outputs.files.asFileTree
 
-        binary.libs.all { LibraryBinary lib ->
-            linkTask.dependsOn lib
-            linkTask.lib lib.outputFile
-        }
-
-        // TODO:DAZ Move this logic into NativeBinary
-        binary.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
-            sourceSet.nativeDependencySets.all { NativeDependencySet nativeDependencySet ->
-                linkTask.lib nativeDependencySet.files
-            }
+        binary.libs.all { NativeDependencySet lib ->
+            linkTask.lib lib.files
         }
 
         linkTask.conventionMapping.outputFile = { binary.outputFile }
@@ -157,11 +153,11 @@ class CppPlugin implements Plugin<ProjectInternal> {
             dependsOn linkTask
             if (OperatingSystem.current().windows) {
                 from { executable.outputFile }
-                from { executable.libs*.outputFile }
+                from { executable.libs*.files }
             } else {
                 into("lib") {
                     from { executable.outputFile }
-                    from { executable.libs*.outputFile }
+                    from { executable.libs*.files }
                 }
                 doLast {
                     def script = new File(destinationDir, executable.outputFile.name)

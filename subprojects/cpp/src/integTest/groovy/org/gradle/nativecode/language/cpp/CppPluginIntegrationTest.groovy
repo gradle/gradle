@@ -222,7 +222,6 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
                 }
             }
             cpp.sourceSets.main.libs << libraries.hello
-            binaries.mainExecutable.libs << binaries.helloSharedLibrary
         """
         settingsFile << "rootProject.name = 'test'"
 
@@ -292,8 +291,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
                     sourceSets << cpp.sourceSets.hello
                 }
             }
-            cpp.sourceSets.main.libs << libraries.hello
-            binaries.mainExecutable.libs << binaries.helloStaticLibrary
+            binaries.mainExecutable.lib binaries.helloStaticLibrary
         """
         settingsFile << "rootProject.name = 'test'"
 

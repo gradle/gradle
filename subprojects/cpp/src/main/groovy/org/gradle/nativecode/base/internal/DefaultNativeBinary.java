@@ -17,20 +17,19 @@
 package org.gradle.nativecode.base.internal;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.internal.TaskNamerForBinaries;
-import org.gradle.nativecode.base.LibraryBinary;
-import org.gradle.nativecode.base.NativeBinary;
-import org.gradle.nativecode.base.SourceSet;
+import org.gradle.nativecode.base.*;
 
 import java.io.File;
 import java.util.List;
 
 public abstract class DefaultNativeBinary implements NativeBinary {
-    private final DomainObjectSet<LibraryBinary> libs = new DefaultDomainObjectSet<LibraryBinary>(LibraryBinary.class);
+    private final DomainObjectSet<NativeDependencySet> libs = new DefaultDomainObjectSet<NativeDependencySet>(NativeDependencySet.class);
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private File outputFile;
 
@@ -60,8 +59,22 @@ public abstract class DefaultNativeBinary implements NativeBinary {
         return new TaskNamerForBinaries(getName()).getTaskName(verb, null);
     }
 
-    public DomainObjectSet<LibraryBinary> getLibs() {
+    public DomainObjectSet<NativeDependencySet> getLibs() {
         return libs;
+    }
+
+    public void lib(Object notation) {
+        if (notation instanceof Library) {
+            LibraryInternal library = (LibraryInternal) notation;
+            libs.add(library.getDefaultBinary().getAsNativeDependencySet());
+        } else if (notation instanceof LibraryBinary) {
+            LibraryBinary libraryBinary = (LibraryBinary) notation;
+            libs.add(libraryBinary.getAsNativeDependencySet());
+        } else if (notation instanceof NativeDependencySet) {
+            libs.add((NativeDependencySet) notation);
+        } else {
+            throw new InvalidUserDataException(String.format("Cannot convert %s to a library dependency.", notation));
+        }
     }
 
     public void builtBy(Object... tasks) {

@@ -48,7 +48,18 @@ public interface NativeBinary extends Binary, Buildable {
 
     String getTaskName(@Nullable String verb);
 
-    DomainObjectSet<LibraryBinary> getLibs();
+    DomainObjectSet<NativeDependencySet> getLibs();
+
+    /**
+     * Adds a library as input to this binary. This method accepts the following types:
+     *
+     * <ul>
+     *     <li>A {@link Library}</li>
+     *     <li>A {@link LibraryBinary}</li>
+     *     <li>A {@link NativeDependencySet}</li>
+     * </ul>
+     */
+    void lib(Object library);
 
     void builtBy(Object... tasks);
 }
