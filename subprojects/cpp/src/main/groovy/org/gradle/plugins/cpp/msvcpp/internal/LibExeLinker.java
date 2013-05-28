@@ -19,6 +19,7 @@ package org.gradle.plugins.cpp.msvcpp.internal;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.cpp.compiler.internal.CommandLineCppCompilerArgumentsToOptionFile;
@@ -28,7 +29,7 @@ import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-class LibExeLinker implements org.gradle.api.internal.tasks.compile.Compiler<LinkerSpec> {
+class LibExeLinker implements Compiler<LinkerSpec> {
     private final CommandLineTool<LinkerSpec> commandLineTool;
 
     LibExeLinker(File executable, Factory<ExecAction> execActionFactory) {

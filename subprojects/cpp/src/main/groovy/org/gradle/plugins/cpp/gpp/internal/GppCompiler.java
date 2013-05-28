@@ -19,6 +19,7 @@ package org.gradle.plugins.cpp.gpp.internal;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
@@ -29,7 +30,7 @@ import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-class GppCompiler implements org.gradle.api.internal.tasks.compile.Compiler<CppCompileSpec> {
+class GppCompiler implements Compiler<CppCompileSpec> {
 
     private final CommandLineTool<CppCompileSpec> commandLineTool;
 
