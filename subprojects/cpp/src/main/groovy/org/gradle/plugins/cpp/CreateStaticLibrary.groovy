@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.plugins.cpp
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
@@ -24,13 +22,14 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
+import org.gradle.plugins.binaries.model.internal.ToolChainInternal
 import org.gradle.plugins.cpp.internal.StaticLibraryArchiverSpec
 
 import javax.inject.Inject
 
 @Incubating
 class CreateStaticLibrary extends DefaultTask {
-    def toolChain
+    ToolChainInternal toolChain
 
     @OutputFile
     File outputFile

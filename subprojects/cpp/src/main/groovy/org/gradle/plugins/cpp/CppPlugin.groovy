@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Sync
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.binaries.BinariesPlugin
 import org.gradle.plugins.binaries.model.*
+import org.gradle.plugins.binaries.model.internal.ToolChainInternal
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
 import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
 
@@ -47,7 +48,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     def createTasks(ProjectInternal project, NativeBinary binary) {
-        final toolChain = project.extensions.getByType(ToolChainRegistry).defaultToolChain
+        ToolChainInternal toolChain = project.extensions.getByType(ToolChainRegistry).defaultToolChain
         CppCompile compileTask = createCompileTask(project, binary, toolChain)
         if (binary instanceof StaticLibraryBinary) {
             createStaticLibraryTask(project, binary, toolChain, compileTask)
@@ -59,7 +60,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private CppCompile createCompileTask(ProjectInternal project, NativeBinary binary, ToolChain toolChain) {
+    private CppCompile createCompileTask(ProjectInternal project, NativeBinary binary, ToolChainInternal toolChain) {
         CppCompile compileTask = project.task(binary.getTaskName("compile"), type: CppCompile) {
             description = "Compiles $binary"
         }
@@ -85,7 +86,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         compileTask
     }
 
-    private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinary binary, ToolChain toolChain, CppCompile compileTask) {
+    private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinary binary, ToolChainInternal toolChain, CppCompile compileTask) {
         AbstractLinkTask linkTask = project.task(binary.getTaskName(null), type: linkTaskType(binary)) {
              description = "Links ${binary}"
              group = BasePlugin.BUILD_GROUP
@@ -114,7 +115,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         linkTask
     }
 
-    private void createStaticLibraryTask(ProjectInternal project, NativeBinary binary, ToolChain toolChain, CppCompile compileTask) {
+    private void createStaticLibraryTask(ProjectInternal project, NativeBinary binary, ToolChainInternal toolChain, CppCompile compileTask) {
         CreateStaticLibrary task = project.task(binary.getTaskName(null), type: CreateStaticLibrary) {
              description = "Creates ${binary}"
              group = BasePlugin.BUILD_GROUP

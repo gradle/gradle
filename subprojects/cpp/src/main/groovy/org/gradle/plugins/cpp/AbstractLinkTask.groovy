@@ -19,13 +19,14 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
+import org.gradle.plugins.binaries.model.internal.ToolChainInternal
 import org.gradle.plugins.cpp.internal.LinkerSpec
 
 import javax.inject.Inject
 
 @Incubating
 abstract class AbstractLinkTask extends DefaultTask {
-    def toolChain
+    ToolChainInternal toolChain
 
     @OutputFile
     File outputFile
