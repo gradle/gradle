@@ -44,8 +44,7 @@ class JavaLibraryProjectSetupDescriptor extends TemplateBasedProjectSetupDescrip
     }
 
     void generateProjectSources() {
-        if (fileResolver.resolveFilesAsTree("src/main/java").files.empty ||
-                fileResolver.resolveFilesAsTree("src/test/java").files.empty) {
+        if (fileResolver.resolveFilesAsTree("src/main/java").empty || fileResolver.resolveFilesAsTree("src/test/java").empty) {
             generateClass("src/main/java", "Library.java")
             generateClass("src/test/java", "LibraryTest.java")
         }
