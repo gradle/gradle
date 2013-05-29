@@ -61,12 +61,7 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
             final String taskPath = taskInfo.getTask().getPath();
             LOGGER.info(taskPath + " (" + Thread.currentThread() + " - start");
             final long start = System.currentTimeMillis();
-            stateCacheAccess.useCache("Executing " + taskPath, new Runnable() {
-                public void run() {
-                    waitedForCacheMs += System.currentTimeMillis() - start;
-                    processTask(taskInfo);
-                }
-            });
+            processTask(taskInfo);
             busyMs += System.currentTimeMillis() - start;
 
             LOGGER.info(taskPath + " (" + Thread.currentThread() + ") - complete");

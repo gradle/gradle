@@ -28,9 +28,8 @@ class DefaultTaskPlanExecutor extends AbstractTaskPlanExecutor {
     }
 
     public void process(final TaskExecutionPlan taskExecutionPlan, final TaskExecutionListener taskListener) {
-        // Wrap execution of tasks in a single cache lock call, to avoid the number of times the lock is acquired and released.
-        // This locking needs to be pushed down closer to the things that need the lock and removed from here.
-        stateCacheAccess.useCache("Execute tasks", new Runnable() {
+        //At the very beginning, we unlock the cache access. The synchronisation via 'useCache' is pushed down and ine grained.
+        stateCacheAccess.longRunningOperation("Execute tasks", new Runnable() {
             public void run() {
                 taskWorker(taskExecutionPlan, taskListener).run();
                 taskExecutionPlan.awaitCompletion();

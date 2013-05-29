@@ -50,11 +50,10 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
                                 new SkipEmptySourceFilesTaskExecuter(
                                         new ValidatingTaskExecuter(
                                                 new SkipUpToDateTaskExecuter(repository,
-                                                        new CacheLockReleasingTaskExecuter(cacheAccess,
-                                                                new PostExecutionAnalysisTaskExecuter(
-                                                                        new ExecuteActionsTaskExecuter(
-                                                                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class)
-                                                                        )))))))));
+                                                        new PostExecutionAnalysisTaskExecuter(
+                                                                new ExecuteActionsTaskExecuter(
+                                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class)
+                                                                ))))))));
     }
 
     protected TaskArtifactStateCacheAccess createCacheAccess() {
@@ -67,7 +66,7 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
         FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(
                 new CachingHasher(
                         new DefaultHasher(),
-                        cacheAccess));
+                        cacheAccess), cacheAccess);
 
         FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheAccess);
 

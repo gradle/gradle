@@ -77,7 +77,7 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
-            allowing(taskArtifactStateCacheAccess).useCache(with(notNullValue(String.class)), with(notNullValue(Runnable.class)));
+            allowing(taskArtifactStateCacheAccess).longRunningOperation(with(notNullValue(String.class)), with(notNullValue(Runnable.class)));
             will(new CustomAction("run action") {
                 public Object invoke(Invocation invocation) throws Throwable {
                     Runnable action = (Runnable) invocation.getParameter(1);
