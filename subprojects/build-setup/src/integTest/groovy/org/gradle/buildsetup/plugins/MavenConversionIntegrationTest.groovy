@@ -181,7 +181,7 @@ it.exclude group: '*', module: 'badArtifact'
         fails 'setupBuild'
 
         then:
-        failure.assertHasCause("Failed to convert Maven project.")
+        failure.assertHasCause("Could not convert Maven POM $pom to a Gradle build.")
     }
 
     void wrapperFilesGenerated(TestFile parentFolder = file(".")) {
