@@ -1,0 +1,31 @@
+apply plugin: 'cpp'
+
+cpp {
+    sourceSets {
+        exe {}
+        lib {}
+    }
+}
+executables {
+    english {
+        sourceSets << project.cpp.sourceSets.exe
+    }
+    french {
+        sourceSets << project.cpp.sourceSets.exe
+    }
+}
+libraries {
+    helloEnglish {
+        sourceSets << project.cpp.sourceSets.lib
+    }
+    helloFrench {
+        sourceSets << project.cpp.sourceSets.lib
+        compilerArgs "-DFRENCH"
+    }
+}
+
+// Wire the 'helloEnglish' shared library binary into the 'english' executable binary
+binaries.englishExecutable.lib binaries.helloEnglishSharedLibrary
+
+// Wire the 'helloFrench' static library binary into the 'french' executable binary
+binaries.frenchExecutable.lib binaries.helloFrenchStaticLibrary

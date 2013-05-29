@@ -27,6 +27,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     @Rule public final Sample exewithlib = new Sample(temporaryFolder, 'cpp/exewithlib')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'cpp/dependencies')
     @Rule public final Sample exe = new Sample(temporaryFolder, 'cpp/exe')
+    @Rule public final Sample library = new Sample(temporaryFolder, 'cpp/library')
 
     def "exe with lib"() {
         given:
@@ -81,6 +82,36 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         and:
         executable("cpp/exe/build/binaries/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
         executable("cpp/exe/build/install/mainExecutable/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
+    }
+
+    def "library"() {
+        when:
+        sample library
+        run "installEnglishExecutable"
+
+        then:
+        executedAndNotSkipped ":compileEnglishExecutable", ":englishExecutable", ":compileHelloEnglishSharedLibrary", ":helloEnglishSharedLibrary"
+
+        and:
+        executable("cpp/library/build/binaries/english").assertExists()
+        sharedLibrary("cpp/library/build/binaries/helloEnglish").assertExists()
+
+        and:
+        executable("cpp/library/build/install/englishExecutable/english").exec().out == toPlatformLineSeparators("Hello world!\n")
+
+        when:
+        sample library
+        run "installFrenchExecutable"
+
+        then:
+        executedAndNotSkipped ":compileFrenchExecutable", ":frenchExecutable", ":compileHelloFrenchStaticLibrary", ":helloFrenchStaticLibrary"
+
+        and:
+        executable("cpp/library/build/binaries/french").assertExists()
+        staticLibrary("cpp/library/build/binaries/helloFrench").assertExists()
+
+        and:
+        executable("cpp/library/build/install/frenchExecutable/french").exec().out == toPlatformLineSeparators("Bonjour monde!\n")
     }
     
 }
