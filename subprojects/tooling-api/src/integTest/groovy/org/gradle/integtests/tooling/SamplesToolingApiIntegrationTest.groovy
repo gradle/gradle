@@ -24,9 +24,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore
 class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
