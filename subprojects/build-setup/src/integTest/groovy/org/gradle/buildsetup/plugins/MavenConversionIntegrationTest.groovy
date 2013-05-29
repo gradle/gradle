@@ -172,16 +172,17 @@ it.exclude group: '*', module: 'badArtifact'
         file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
     }
 
-    def "provides decent error message"() {
+    def "provides decent error message when POM is invalid"() {
         setup:
-        file("pom.xml") << "<project>someInvalid pom content</project>"
+        def pom = file("pom.xml")
+        pom << "<project>someInvalid pom content</project>"
+
         when:
         fails 'setupBuild'
 
         then:
-        errorOutput.contains("Failed to convert Maven project.")
+        errorOutput.contains("Could not convert Maven POM $pom to a Gradle build.")
     }
-
 
     void wrapperFilesGenerated(TestFile parentFolder = file(".")) {
         new WrapperTestFixture(parentFolder).generated()

@@ -16,8 +16,14 @@
 
 package org.gradle.buildsetup.plugins.internal.maven
 
+import org.gradle.api.internal.Contextual
 
-class MavenConversionException extends RuntimeException{
+@Contextual
+class MavenConversionException extends RuntimeException {
+    MavenConversionException(String message) {
+        super(message)
+    }
+
     MavenConversionException(String message, Throwable cause) {
         super(message, cause)
     }
