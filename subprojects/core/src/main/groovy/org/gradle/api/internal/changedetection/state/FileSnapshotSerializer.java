@@ -29,7 +29,7 @@ class FileSnapshotSerializer extends DataStreamBackedSerializer<FileCollectionSn
 
     @Override
     public FileCollectionSnapshot read(DataInput dataInput) throws Exception {
-        int kind = dataInput.readInt();
+        byte kind = dataInput.readByte();
         if (kind == 1) {
             DefaultFileSnapshotterSerializer serializer = new DefaultFileSnapshotterSerializer();
             return serializer.read(dataInput);
@@ -37,19 +37,19 @@ class FileSnapshotSerializer extends DataStreamBackedSerializer<FileCollectionSn
             OutputFilesSnapshotSerializer serializer = new OutputFilesSnapshotSerializer();
             return serializer.read(dataInput);
         } else {
-            throw new RuntimeException("Unable to rad from file snapshot cache. Unexpected value read.");
+            throw new RuntimeException("Unable to read from file snapshot cache. Unexpected value found in the data stream.");
         }
     }
 
     @Override
     public void write(DataOutput dataOutput, FileCollectionSnapshot value) throws IOException {
         if (value instanceof DefaultFileSnapshotter.FileCollectionSnapshotImpl) {
-            dataOutput.writeInt(1);
+            dataOutput.writeByte(1);
             DefaultFileSnapshotter.FileCollectionSnapshotImpl cached = (DefaultFileSnapshotter.FileCollectionSnapshotImpl) value;
             DefaultFileSnapshotterSerializer serializer = new DefaultFileSnapshotterSerializer();
             serializer.write(dataOutput, cached);
         } else if (value instanceof OutputFilesSnapshotter.OutputFilesSnapshot) {
-            dataOutput.writeInt(2);
+            dataOutput.writeByte(2);
             OutputFilesSnapshotter.OutputFilesSnapshot cached = (OutputFilesSnapshotter.OutputFilesSnapshot) value;
             OutputFilesSnapshotSerializer serializer = new OutputFilesSnapshotSerializer();
             serializer.write(dataOutput, cached);
