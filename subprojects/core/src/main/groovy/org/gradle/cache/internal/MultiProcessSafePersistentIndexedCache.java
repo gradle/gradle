@@ -74,17 +74,7 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
     }
 
     public void close() {
-        if (cache != null) {
-            try {
-                fileAccess.writeFile(new Runnable() {
-                    public void run() {
-                        cache.close();
-                    }
-                });
-            } finally {
-                cache = null;
-            }
-        }
+        close(fileAccess);
     }
 
     private PersistentIndexedCache<K, V> getCache() {
@@ -98,5 +88,19 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
             });
         }
         return cache;
+    }
+
+    public void close(FileAccess access) {
+        if (cache != null) {
+            try {
+                access.writeFile(new Runnable() {
+                    public void run() {
+                        cache.close();
+                    }
+                });
+            } finally {
+                cache = null;
+            }
+        }
     }
 }

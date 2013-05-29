@@ -15,9 +15,12 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.api.internal.Actions;
 import org.gradle.internal.Factory;
 
 import java.io.File;
+
+import static org.gradle.api.internal.Actions.doNothing;
 
 public class OnDemandFileAccess extends AbstractFileAccess {
     private final String displayName;
@@ -31,7 +34,7 @@ public class OnDemandFileAccess extends AbstractFileAccess {
     }
 
     public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
-        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Shared, displayName);
+        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Shared, displayName, Actions.<File>doNothing());
         try {
             return lock.readFile(action);
         } finally {
@@ -40,7 +43,7 @@ public class OnDemandFileAccess extends AbstractFileAccess {
     }
 
     public void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
-        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName);
+        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName, Actions.<File>doNothing());
         try {
             lock.updateFile(action);
         } finally {
@@ -49,7 +52,7 @@ public class OnDemandFileAccess extends AbstractFileAccess {
     }
 
     public void writeFile(Runnable action) throws LockTimeoutException {
-        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName);
+        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName, Actions.<File>doNothing());
         try {
             lock.writeFile(action);
         } finally {

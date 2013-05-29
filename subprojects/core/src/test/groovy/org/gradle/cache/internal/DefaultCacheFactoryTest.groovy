@@ -18,6 +18,7 @@ package org.gradle.cache.internal
 import org.gradle.CacheUsage
 import org.gradle.api.Action
 import org.gradle.cache.CacheValidator
+import org.gradle.cache.internal.locklistener.NoOpFileLockListener
 import org.gradle.messaging.serialize.DefaultSerializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -29,7 +30,7 @@ class DefaultCacheFactoryTest extends Specification {
     final Action<?> opened = Mock()
     final Action<?> closed = Mock()
     final ProcessMetaDataProvider metaDataProvider = Mock()
-    private final DefaultCacheFactory factoryFactory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider)) {
+    private final DefaultCacheFactory factoryFactory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockListener())) {
         @Override
         void onOpen(Object cache) {
             opened.execute(cache)

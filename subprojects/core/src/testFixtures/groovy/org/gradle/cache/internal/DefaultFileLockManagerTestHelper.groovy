@@ -16,6 +16,9 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.api.Action
+import org.gradle.cache.internal.locklistener.NoOpFileLockListener
+
 abstract class DefaultFileLockManagerTestHelper {
 
     private static class AnException extends RuntimeException {}
@@ -51,13 +54,13 @@ abstract class DefaultFileLockManagerTestHelper {
             String getProcessDisplayName() {
                 return "process"
             }
-        })
+        }, new NoOpFileLockListener())
     }
     
     static FileLock createDefaultFileLock(File file, FileLockManager.LockMode mode = FileLockManager.LockMode.Exclusive, DefaultFileLockManager manager = createDefaultFileLockManager()) {
-        manager.lock(file, mode, "test lock")        
+        manager.lock(file, mode, "test lock", {} as Action)
     }
-    
+
     static File getLockFile(File target) {
         new File(target.absolutePath + ".lock")
     }
