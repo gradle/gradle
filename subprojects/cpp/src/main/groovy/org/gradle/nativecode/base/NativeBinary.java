@@ -25,6 +25,7 @@ import org.gradle.language.base.Binary;
 import java.io.File;
 import java.util.List;
 
+// TODO:DAZ These don't apply to all binary subtypes: look at splitting this up in to a number of smaller facets / functional interfaces
 /**
  * Represents a particular binary artifact that is the result of building a native component.
  */

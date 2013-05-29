@@ -25,25 +25,59 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
     static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
 
     def sourceFile
+    def headerFile
 
     def "setup"() {
         buildFile << """
-            apply plugin: "cpp-exe"
+            apply plugin: 'cpp'
+
+            cpp {
+                sourceSets {
+                    main {}
+                    hello {}
+                }
+            }
+            executables {
+                main {
+                    sourceSets << project.cpp.sourceSets.main
+                }
+            }
+            libraries {
+                hello {
+                    sourceSets << project.cpp.sourceSets.hello
+                }
+            }
+            binaries.mainExecutable.lib binaries.helloSharedLibrary
         """
         settingsFile << "rootProject.name = 'test'"
-        sourceFile = file("src", "main", "cpp", "helloworld.cpp") << """
+
+        sourceFile = file("src/main/cpp/helloworld.cpp") << """
             // Simple hello world app
             #include <iostream>
+            #include "hello.h"
 
             int main () {
-                std::cout << "${escapeString(HELLO_WORLD)}";
+                hello("${escapeString(HELLO_WORLD)}");
                 #ifdef FRENCH
-                std::cout << " ${escapeString(HELLO_WORLD_FRENCH)}";
+                hello(" ${escapeString(HELLO_WORLD_FRENCH)}");
                 #endif
                 return 0;
             }
         """
-        run "mainExecutable"
+
+        headerFile = file("src/hello/headers/hello.h") << """
+            void hello(const char* str);
+        """
+
+        file("src/hello/cpp/hello.cpp") << """
+            #include <iostream>
+
+            void hello(const char* str) {
+              std::cout << str;
+            }
+        """
+
+        run "installMainExecutable"
     }
 
     def "does not re-execute build with no change"() {
@@ -57,6 +91,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
     def "rebuilds binary with source file change"() {
         when:
+        def executable = executable("build/install/mainExecutable/main")
+        def snapshot = executable.snapshot()
+
+        and:
         sourceFile.text = """
             #include <iostream>
 
@@ -65,20 +103,32 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
               return 0;
             }
 """
-        run "mainExecutable"
+        run "installMainExecutable"
 
         then:
         executedAndNotSkipped ":compileMainExecutable", ":mainExecutable"
 
         and:
-        def executable = executable("build/binaries/test")
         executable.isFile()
+        executable.assertHasChangedSince(snapshot)
         executable.exec().out == "changed"
+    }
+
+    def "recompiles binary when header file changes"() {
+        when:
+        headerFile << """
+// Comment added to the end of the header file
+"""
+
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileMainExecutable"
     }
 
     def "rebuilds binary with compiler option change"() {
         when:
-        def executable = executable("build/binaries/test")
+        def executable = executable("build/install/mainExecutable/main")
         def snapshot = executable.snapshot()
 
         and:
@@ -90,7 +140,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
             }
 """
 
-        run "mainExecutable"
+        run "installMainExecutable"
 
         then:
         executedAndNotSkipped ":compileMainExecutable", ":mainExecutable"
@@ -101,9 +151,21 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         executable.exec().out == "$HELLO_WORLD $HELLO_WORLD_FRENCH"
     }
 
+    def "relinks binary when set of input libraries changes"() {
+        when:
+        buildFile << """
+            binaries.mainExecutable.lib binaries.helloStaticLibrary
+"""
+
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped ":mainExecutable"
+    }
+
     def "relinks binary but does not recompile when linker option changed"() {
         when:
-        def executable = executable("build/binaries/test")
+        def executable = executable("build/binaries/main")
         def snapshot = executable.snapshot()
 
         and:
@@ -126,10 +188,8 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         and:
         executable.isFile()
         executable.assertHasChangedSince(snapshot)
-        executable.exec().out == HELLO_WORLD
     }
 
-    // TODO:DAZ test incremental build with static library too
     def "recompiles source but does not relink binary with source comment change"() {
         // TODO:DAZ Better way to do this
         if (toolChain.isVisualCpp()) {
