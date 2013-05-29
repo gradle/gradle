@@ -24,13 +24,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>source</td>
-            </tr>
-            <tr>
-                <td>outputFile</td>
-            </tr>
-            <tr>
-                <td>toolChain</td>
+                <td>asNativeDependencySet</td>
             </tr>
         </table>
     </section>
@@ -42,9 +36,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>source</td>
-            </tr>
         </table>
     </section>
 </section>

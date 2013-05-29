@@ -32,22 +32,39 @@ import javax.inject.Inject
  */
 @Incubating
 class CreateStaticLibrary extends DefaultTask {
-    ToolChainInternal toolChain
-
-    @OutputFile
-    File outputFile
-
-    @InputFiles
-    FileCollection source
-
-    @SkipWhenEmpty // Workaround for GRADLE-2026
-    FileCollection getSource() {
-        source
-    }
+    private FileCollection source
 
     @Inject
     CreateStaticLibrary() {
         source = project.files()
+    }
+
+    /**
+     * The tool chain used for creating the static library.
+     */
+    ToolChainInternal toolChain
+
+    /**
+     * The file where the output binary will be located.
+     */
+    @OutputFile
+    File outputFile
+
+    /**
+     * The source object files to be passed to the archiver.
+     */
+    @InputFiles @SkipWhenEmpty // Can't use field due to GRADLE-2026
+    FileCollection getSource() {
+        source
+    }
+
+    /**
+     * Adds a set of object files to be linked.
+     * <p>
+     * The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     */
+    void source(Object source) {
+        this.source.from source
     }
 
     @TaskAction
@@ -66,13 +83,5 @@ class CreateStaticLibrary extends DefaultTask {
         Iterable<File> source;
         File outputFile;
         File tempDir;
-    }
-
-    void source(Object inputs) {
-        source.from inputs
-    }
-
-    void lib(Object libs) {
-        this.libs.from libs
     }
 }

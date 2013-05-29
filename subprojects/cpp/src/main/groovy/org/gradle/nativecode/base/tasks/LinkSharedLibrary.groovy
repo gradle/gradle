@@ -20,7 +20,7 @@ import org.gradle.nativecode.base.internal.LinkerSpec
 import org.gradle.nativecode.base.internal.SharedLibraryLinkerSpec
 
 /**
- * Links a binary shared library from object files and libraries.
+ * Links a binary shared library from object files and imported libraries.
  */
 @Incubating
 class LinkSharedLibrary extends AbstractLinkTask {

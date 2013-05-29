@@ -23,6 +23,7 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.Sync
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.base.*
+import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.base.internal.ToolChainInternal
 import org.gradle.nativecode.base.plugins.BinariesPlugin
 import org.gradle.nativecode.base.tasks.AbstractLinkTask
@@ -67,7 +68,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    def createTasks(ProjectInternal project, NativeBinary binary) {
+    def createTasks(ProjectInternal project, NativeBinaryInternal binary) {
         // TODO:DAZ Move this logic into NativeBinary
         binary.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
             sourceSet.nativeDependencySets.all { NativeDependencySet nativeDependencySet ->
@@ -86,11 +87,11 @@ class CppPlugin implements Plugin<ProjectInternal> {
             createLinkTask(project, binary, toolChain, compileTask)
         } else { // ExecutableBinary
             AbstractLinkTask linkTask = createLinkTask(project, binary, toolChain, compileTask)
-            createInstallTask(project, (ExecutableBinary) binary, linkTask)
+            createInstallTask(project, binary, linkTask)
         }
     }
 
-    private CppCompile createCompileTask(ProjectInternal project, NativeBinary binary, ToolChainInternal toolChain) {
+    private CppCompile createCompileTask(ProjectInternal project, NativeBinaryInternal binary, ToolChainInternal toolChain) {
         CppCompile compileTask = project.task(binary.getTaskName("compile"), type: CppCompile) {
             description = "Compiles $binary"
         }
@@ -115,7 +116,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         compileTask
     }
 
-    private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinary binary, ToolChainInternal toolChain, CppCompile compileTask) {
+    private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinaryInternal binary, ToolChainInternal toolChain, CppCompile compileTask) {
         AbstractLinkTask linkTask = project.task(binary.getTaskName(null), type: linkTaskType(binary)) {
              description = "Links ${binary}"
              group = BasePlugin.BUILD_GROUP
@@ -136,7 +137,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         linkTask
     }
 
-    private void createStaticLibraryTask(ProjectInternal project, NativeBinary binary, ToolChainInternal toolChain, CppCompile compileTask) {
+    private void createStaticLibraryTask(ProjectInternal project, NativeBinaryInternal binary, ToolChainInternal toolChain, CppCompile compileTask) {
         CreateStaticLibrary task = project.task(binary.getTaskName(null), type: CreateStaticLibrary) {
              description = "Creates ${binary}"
              group = BasePlugin.BUILD_GROUP
@@ -159,7 +160,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         return LinkExecutable
     }
 
-    def createInstallTask(ProjectInternal project, ExecutableBinary executable, Task linkTask) {
+    def createInstallTask(ProjectInternal project, NativeBinaryInternal executable, Task linkTask) {
         project.task(executable.getTaskName("install"), type: Sync) {
             description = "Installs a development image of $executable"
             into { project.file("${project.buildDir}/install/$executable.name") }

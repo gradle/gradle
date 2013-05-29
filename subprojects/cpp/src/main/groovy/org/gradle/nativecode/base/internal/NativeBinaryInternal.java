@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.base;
+package org.gradle.nativecode.base.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+import org.gradle.nativecode.base.NativeBinary;
 
-/**
- * A physical representation of a {@link Library} component.
- */
-@Incubating
-public interface LibraryBinary extends NativeBinary {
-    Library getComponent();
+public interface NativeBinaryInternal extends NativeBinary {
+    String getTaskName(@Nullable String verb);
 
-    /**
-     * Converts this binary into a {@link NativeDependencySet}, for consumption in another binary.
-     */
-    NativeDependencySet getAsNativeDependencySet();
+    void builtBy(Object... tasks);
 }

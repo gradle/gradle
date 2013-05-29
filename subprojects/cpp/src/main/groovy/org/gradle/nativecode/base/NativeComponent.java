@@ -27,17 +27,38 @@ import java.util.List;
 @Incubating
 public interface NativeComponent extends Named {
 
+    /**
+     * The source sets that are included in this component.
+     */
     DomainObjectSet<SourceSet> getSourceSets();
 
+    /**
+     * The name that is used to construct task names and output file names when building this component.
+     */
     String getBaseName();
 
+    /**
+     * Sets the name that is used to construct task names and output file names when building this component.
+     */
     void setBaseName(String baseName);
 
+    /**
+     * The arguments passed when compiling this component.
+     */
     List<Object> getCompilerArgs();
 
+    /**
+     * Adds a number of arguments to be passed to the compiler.
+     */
     void compilerArgs(Object... args);
 
+    /**
+     * The arguments passed when linking this component.
+     */
     List<Object> getLinkerArgs();
 
+    /**
+     * Adds a number of arguments to be passed to the linker.
+     */
     void linkerArgs(Object... args);
 }

@@ -18,7 +18,7 @@ package org.gradle.nativecode.base;
 import org.gradle.api.Incubating;
 
 /**
- * A shared library binary
+ * A {@link Library} that has been compiled and linked as a shared library.
  */
 @Incubating
 public interface SharedLibraryBinary extends LibraryBinary {

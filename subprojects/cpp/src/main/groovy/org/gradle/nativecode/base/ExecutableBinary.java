@@ -18,7 +18,7 @@ package org.gradle.nativecode.base;
 import org.gradle.api.Incubating;
 
 /**
- * An executable binary
+ * A binary artifact that is built from of a {@link Executable}, targeted at a particular platform with specific configuration.
  */
 @Incubating
 public interface ExecutableBinary extends NativeBinary {

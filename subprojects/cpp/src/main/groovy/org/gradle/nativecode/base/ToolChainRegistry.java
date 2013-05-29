@@ -19,9 +19,12 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 
 /**
- * A container for {@link ToolChain}s
+ * A container for {@link ToolChain}s.
  */
 @Incubating
 public interface ToolChainRegistry extends NamedDomainObjectSet<ToolChain> {
+    /**
+     * Returns the first registered {@link ToolChain} that is available.
+     */
     ToolChain getDefaultToolChain();
 }

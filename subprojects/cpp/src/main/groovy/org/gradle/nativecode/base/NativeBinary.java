@@ -19,7 +19,7 @@ package org.gradle.nativecode.base;
 import org.gradle.api.Buildable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
+import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.language.base.Binary;
 
 import java.io.File;
@@ -28,26 +28,26 @@ import java.util.List;
 /**
  * Represents a particular binary artifact that is the result of building a native component.
  */
-@Incubating
+@Incubating @HasInternalProtocol
 public interface NativeBinary extends Binary, Buildable {
-
-    // TODO:DAZ Remove this?
-    String getOutputFileName();
-
+    /**
+     * The file where this binary will be created.
+     */
     File getOutputFile();
 
+    /**
+     * Sets the file where this binary will be created.
+     */
     void setOutputFile(File outputFile);
 
+    /**
+     * The source sets used to create this binary.
+     */
     DomainObjectSet<SourceSet> getSourceSets();
 
-    NativeComponent getComponent();
-
-    List<Object> getCompilerArgs();
-
-    List<Object> getLinkerArgs();
-
-    String getTaskName(@Nullable String verb);
-
+    /**
+     * The libraries that should be linked into this binary.
+     */
     DomainObjectSet<NativeDependencySet> getLibs();
 
     /**
@@ -61,5 +61,13 @@ public interface NativeBinary extends Binary, Buildable {
      */
     void lib(Object library);
 
-    void builtBy(Object... tasks);
+    /**
+     * The arguments passed when compiling this binary.
+     */
+    List<Object> getCompilerArgs();
+
+    /**
+     * The arguments passed when linking this binary.
+     */
+    List<Object> getLinkerArgs();
 }

@@ -28,7 +28,7 @@ import org.gradle.nativecode.base.*;
 import java.io.File;
 import java.util.List;
 
-public abstract class DefaultNativeBinary implements NativeBinary {
+public abstract class DefaultNativeBinary implements NativeBinaryInternal {
     private final DomainObjectSet<NativeDependencySet> libs = new DefaultDomainObjectSet<NativeDependencySet>(NativeDependencySet.class);
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private File outputFile;
@@ -84,4 +84,9 @@ public abstract class DefaultNativeBinary implements NativeBinary {
     public TaskDependency getBuildDependencies() {
         return buildDependencies;
     }
+
+    public abstract String getOutputFileName();
+
+    protected abstract NativeComponent getComponent();
+
 }

@@ -31,7 +31,6 @@ import org.gradle.nativecode.base.Executable;
 import org.gradle.nativecode.base.Library;
 import org.gradle.nativecode.base.NativeBinary;
 import org.gradle.nativecode.base.internal.*;
-import org.gradle.nativecode.base.internal.LibraryInternal;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -89,7 +88,7 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private NativeBinary setupDefaults(final ProjectInternal project, final NativeBinary nativeBinary) {
+    private NativeBinary setupDefaults(final ProjectInternal project, final DefaultNativeBinary nativeBinary) {
         new DslObject(nativeBinary).getConventionMapping().map("outputFile", new Callable<File>() {
             public File call() throws Exception {
                 return new File(project.getBuildDir(), "binaries/" + nativeBinary.getOutputFileName());

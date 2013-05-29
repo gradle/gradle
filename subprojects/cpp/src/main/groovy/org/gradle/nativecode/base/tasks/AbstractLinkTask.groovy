@@ -19,36 +19,66 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
-import org.gradle.nativecode.base.internal.ToolChainInternal
 import org.gradle.nativecode.base.internal.LinkerSpec
+import org.gradle.nativecode.base.internal.ToolChainInternal
 
 import javax.inject.Inject
 
 @Incubating
 abstract class AbstractLinkTask extends DefaultTask {
-    ToolChainInternal toolChain
-
-    @OutputFile
-    File outputFile
-
-    @Input
-    List<String> linkerArgs
-
-    @InputFiles
-    FileCollection source
-
-    @SkipWhenEmpty // Workaround for GRADLE-2026
-    FileCollection getSource() {
-        source
-    }
-
-    @InputFiles
-    FileCollection libs
+    private FileCollection source
 
     @Inject
     AbstractLinkTask() {
         libs = project.files()
         source = project.files()
+    }
+
+    /**
+     * The tool chain used for linking.
+     */
+    ToolChainInternal toolChain
+
+    /**
+     * The file where the linked binary will be located.
+     */
+    @OutputFile
+    File outputFile
+
+    /**
+     * Additional arguments passed to the linker.
+     */
+    @Input
+    List<String> linkerArgs
+
+    /**
+     * The source object files to be passed to the linker.
+     */
+    @InputFiles @SkipWhenEmpty // Can't use field due to GRADLE-2026
+    FileCollection getSource() {
+        source
+    }
+
+    /**
+     * The library files to be passed to the linker.
+     */
+    @InputFiles
+    FileCollection libs
+
+    /**
+     * Adds a set of object files to be linked.
+     * The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     */
+    void source(Object source) {
+        this.source.from source
+    }
+
+    /**
+     * Adds a set of library files to be linked.
+     * The provided libs object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     */
+    void lib(Object libs) {
+        this.libs.from libs
     }
 
     @TaskAction
@@ -66,12 +96,4 @@ abstract class AbstractLinkTask extends DefaultTask {
     }
 
     protected abstract LinkerSpec createLinkerSpec();
-
-    void source(Object inputs) {
-        source.from inputs
-    }
-
-    void lib(Object libs) {
-        this.libs.from libs
-    }
 }

@@ -18,7 +18,7 @@ package org.gradle.nativecode.base;
 import org.gradle.api.Incubating;
 
 /**
- * An executable component
+ * The logical representation of an executable native component.
  */
 @Incubating
 public interface Executable extends NativeComponent {

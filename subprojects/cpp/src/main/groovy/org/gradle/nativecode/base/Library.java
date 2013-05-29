@@ -20,10 +20,12 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.HasInternalProtocol;
 
 /**
- * A library component
+ * The logical representation of an library native component.
  */
 @Incubating @HasInternalProtocol
-// TODO:DAZ Come up with a better name for this
 public interface Library extends NativeComponent {
+    /**
+     * The headers exported by this library.
+     */
     SourceDirectorySet getHeaders();
 }

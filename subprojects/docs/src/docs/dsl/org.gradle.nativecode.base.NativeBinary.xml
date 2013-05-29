@@ -23,6 +23,21 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>outputFile</td>
+            </tr>
+            <tr>
+                <td>sourceSets</td>
+            </tr>
+            <tr>
+                <td>libs</td>
+            </tr>
+            <tr>
+                <td>compilerArgs</td>
+            </tr>
+            <tr>
+                <td>linkerArgs</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -33,6 +48,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>lib</td>
+            </tr>
         </table>
     </section>
 </section>
