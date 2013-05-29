@@ -34,6 +34,19 @@ import org.gradle.nativecode.language.cpp.tasks.CppCompile
 import org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin
 import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin
 
+/**
+ * A plugin for projects wishing to build custom components from C++ sources.
+ * <p>Automatically includes {@link MicrosoftVisualCppPlugin} and {@link GppCompilerPlugin} for core toolchain support.</p>
+ *
+ * <p>
+ *     For each {@link NativeBinary} found, this plugin will:
+ *     <ul>
+ *         <li>Create a {@link CppCompile} task named "${binary-name}Compile" to compile the C++ sources.</li>
+ *         <li>Create a {@link LinkExecutable}, {@link LinkSharedLibrary} or {@link CreateStaticLibrary} task name "${binary-name}" to create the binary artifact.</li>
+ *         <li>Create an InstallTask named "install${Binary-name}" to install any {@link ExecutableBinary} artifact.
+ *     </ul>
+ * </p>
+ */
 @Incubating
 class CppPlugin implements Plugin<ProjectInternal> {
 

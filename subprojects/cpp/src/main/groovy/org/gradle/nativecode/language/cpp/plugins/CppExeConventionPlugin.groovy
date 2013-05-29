@@ -22,6 +22,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 
+/**
+ * A convention-based plugin that automatically adds a single C++ source set named "main" and wires it into a {@link org.gradle.nativecode.base.Executable} named "main".
+ */
 @Incubating
 class CppExeConventionPlugin implements Plugin<Project> {
 

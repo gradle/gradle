@@ -19,6 +19,9 @@ import org.gradle.api.Incubating
 import org.gradle.nativecode.base.internal.ExecutableLinkerSpec
 import org.gradle.nativecode.base.internal.LinkerSpec
 
+/**
+ * Links a binary executable from object files and libraries.
+ */
 @Incubating
 class LinkExecutable extends AbstractLinkTask {
 

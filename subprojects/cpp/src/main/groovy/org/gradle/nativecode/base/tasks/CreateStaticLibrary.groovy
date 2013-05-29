@@ -27,6 +27,9 @@ import org.gradle.nativecode.base.internal.StaticLibraryArchiverSpec
 
 import javax.inject.Inject
 
+/**
+ * Assembles a static library from object files.
+ */
 @Incubating
 class CreateStaticLibrary extends DefaultTask {
     ToolChainInternal toolChain

@@ -205,6 +205,38 @@
             <tr>
                 <td>org.gradle.api.publish.maven.MavenPom</td>
             </tr>
+<!--
+            <tr>
+                <td>org.gradle.nativecode.base.NativeComponent</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.Executable</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.Library</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.NativeBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.ExecutableBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.SharedLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.StaticLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.ToolChain</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.ToolChainRegistry</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.plugins.BinariesPlugin</td>
+            </tr>
+-->
         </table>
     </section>
 
@@ -469,4 +501,72 @@
         </table>
     </section>
 
+    <section>
+        <title>Native component core types</title>
+        <para>Used to configure components developed with native code.</para>
+        <table>
+            <title>Native component core types</title>
+            <tr>
+                <td>org.gradle.nativecode.base.NativeComponent</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.Executable</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.Library</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.NativeBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.ExecutableBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.SharedLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.StaticLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.ToolChain</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.ToolChainRegistry</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Native component task and plugin types</title>
+        <para>Tasks and plugins used to build native code components.</para>
+        <table>
+            <title>Native component task and plugin types</title>
+            <tr>
+                <td>org.gradle.nativecode.language.cpp.tasks.CppCompile</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.tasks.CreateStaticLibrary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.tasks.LinkExecutable</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.tasks.LinkSharedLibrary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.language.cpp.plugins.CppPlugin</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.language.cpp.plugins.CppExeConventionPlugin</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.language.cpp.plugins.CppLibConventionPlugin</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin</td>
+            </tr>
+        </table>
+    </section>
 </book>

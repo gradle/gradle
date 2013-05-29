@@ -16,14 +16,11 @@
 
 package org.gradle.nativecode.base.internal;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 
 /**
  * A compile spec that will be used to produce a native artifact.
  */
-@Incubating
 public interface BinaryCompileSpec extends BinaryToolSpec {
     File getObjectFileDir();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes that model aspects of native component projects.
+ * Tasks for building C++ projects.
  */
-package org.gradle.nativecode.base;
+package org.gradle.nativecode.language.cpp.tasks;

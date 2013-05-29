@@ -25,6 +25,9 @@ import org.gradle.nativecode.language.cpp.internal.DefaultCppCompileSpec
 
 import javax.inject.Inject
 
+/**
+ * Compiles C++ source files into object files.
+ */
 @Incubating
 class CppCompile extends DefaultTask {
     private FileCollection source

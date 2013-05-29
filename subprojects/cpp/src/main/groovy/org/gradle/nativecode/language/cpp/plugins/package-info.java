@@ -15,6 +15,6 @@
  */
 
 /**
- * A {@link org.gradle.api.Plugin} for building C++ projects with Gradle.
+ * Plugins for buildings C++ projects.
  */
 package org.gradle.nativecode.language.cpp.plugins;
