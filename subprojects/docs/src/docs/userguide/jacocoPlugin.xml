@@ -47,7 +47,7 @@
             The JaCoCo plugin adds a project extension named "<literal>jacoco</literal>" of type <apilink class="org.gradle.testing.jacoco.plugins.JacocoPluginExtension"/>,
             which allows configuring defaults for JaCoCo usage in your build.
         </para>
-        <sample id="configJacoco" dir="testing/jacoco/quickstart" title="Configuring jacoco plugin settings">
+        <sample id="configJacoco" dir="testing/jacoco/quickstart" title="Configuring JaCoCo plugin settings">
             <sourcefile file="build.gradle" snippet="jacoco-configuration"/>
         </sample>
         <table>
