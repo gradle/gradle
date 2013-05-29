@@ -117,7 +117,7 @@ using `FileCopyDetails`.
         eachFile { it.duplicatesStrategy = 'exclude' }
     }
 
-### Can build static libraries from C++ sources
+### Can build static libraries from C++ sources (i)
 
 For any library declared in your C++ build, it is now possible to either compile and link the object files into a shared library,
 or compile and archive the object files into a static library (or both). For any library 'lib' added to your project,
