@@ -44,7 +44,7 @@
     <section>
         <title>Configuring the JaCoCo Plugin</title>
         <para>
-            The JaCoCo plugin adds a project extension named "<literal>jacoco</literal>" of type <apilink class="org.gradle.testing.jacoco.plugins.JacocoPluginExtension"/>,
+            The JaCoCo plugin adds a project extension named <literal>jacoco</literal> of type <apilink class="org.gradle.testing.jacoco.plugins.JacocoPluginExtension"/>,
             which allows configuring defaults for JaCoCo usage in your build.
         </para>
         <sample id="configJacoco" dir="testing/jacoco/quickstart" title="Configuring JaCoCo plugin settings">
@@ -106,8 +106,7 @@
             </tr>
             <tr>
                 <td>destPath</td>
-                <td><replaceable>$buildDir</replaceable>/
-                    <replaceable>jacoco</replaceable>
+                <td><replaceable>$buildDir</replaceable>/jacoco
                 </td>
             </tr>
             <tr>
@@ -171,12 +170,12 @@
         </table>
         <para>While all tasks of type
             <apilink class="org.gradle.api.tasks.testing.Test"/>
-            are automatically enhanced to provide coverage information when the "<literal>java</literal>" plugin has been applied,
+            are automatically enhanced to provide coverage information when the <literal>java</literal> plugin has been applied,
             any task that implements <apilink class="org.gradle.process.JavaForkOptions"/> can be enhanced by the JaCoCo plugin.
             That is, any task that forks Java processes can be used to generate coverage information.
         </para>
         <para>
-            For example you can configure your build to generate code coverage using the <literal>application plugin</literal>.
+            For example you can configure your build to generate code coverage using the <literal>application</literal> plugin.
         </para>
         <sample id="jacoco-application-setup" dir="testing/jacoco/application" includeLocation="true" title="Using application plugin to generate code coverage data">
             <sourcefile file="build.gradle" snippet="application-configuration"/>
@@ -191,7 +190,7 @@
 
     <section>
         <title>Tasks</title>
-        <para>For projects that also use the Java Plugin, The JaCoCo plugin automatically adds the following tasks to project:</para>
+        <para>For projects that also apply the Java Plugin, The JaCoCo plugin automatically adds the following tasks:</para>
         <table>
             <title>JaCoCo plugin - tasks</title>
             <thead>
@@ -230,18 +229,18 @@
                 <td>
                     <filename>jacocoAnt</filename>
                 </td>
-                <td>The JaCoCo ant library used running the
+                <td>The JaCoCo Ant library used for running the
                     <literal>JacocoReport</literal>
                     and
                     <literal>JacocoMerge</literal>
-                    task
+                    tasks.
                 </td>
             </tr>
             <tr>
                 <td>
                     <filename>jacocoAgent</filename>
                 </td>
-                <td>The JaCoCo agent library used for instrumenting the code under test</td>
+                <td>The JaCoCo agent library used for instrumenting the code under test.</td>
             </tr>
         </table>
     </section>
