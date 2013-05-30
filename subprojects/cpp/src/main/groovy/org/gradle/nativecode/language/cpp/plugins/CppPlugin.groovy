@@ -163,6 +163,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     def createInstallTask(ProjectInternal project, NativeBinaryInternal executable, Task linkTask) {
         project.task(executable.getTaskName("install"), type: Sync) {
             description = "Installs a development image of $executable"
+            group = BasePlugin.BUILD_GROUP
             into { project.file("${project.buildDir}/install/$executable.name") }
             dependsOn linkTask
             if (OperatingSystem.current().windows) {
