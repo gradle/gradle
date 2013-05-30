@@ -20,8 +20,6 @@ import org.gradle.internal.Factory;
 
 import java.io.File;
 
-import static org.gradle.api.internal.Actions.doNothing;
-
 public class OnDemandFileAccess extends AbstractFileAccess {
     private final String displayName;
     private final FileLockManager manager;
