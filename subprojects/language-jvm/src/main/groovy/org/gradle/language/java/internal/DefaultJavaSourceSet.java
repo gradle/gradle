@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
+package org.gradle.language.java.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.language.base.Classpath;
+import org.gradle.language.jvm.Classpath;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.api.tasks.JavaSourceSet;
+import org.gradle.language.java.JavaSourceSet;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.util.HashSet;

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.language.java;
 
 import org.gradle.api.Incubating;
-import org.gradle.language.base.Classpath;
+import org.gradle.language.jvm.Classpath;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
