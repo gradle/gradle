@@ -337,21 +337,31 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, final long timeout) throws IOException, InterruptedException {
-            return lockRegion(lockMode, timeout, STATE_REGION_POS, STATE_REGION_SIZE, new Runnable() {
-                public void run() {
-                    try {
-                        OwnerInfo ownerInfo = readInformationRegion(timeout);
-                        if (ownerInfo.port != -1) {
-                            LOGGER.info("The file lock is held by a different Gradle process. Will attempt to ping owner at port {}", ownerInfo.port);
-                            FileLockCommunicator.pingOwner(ownerInfo.port, target);
-                        } else {
-                            LOGGER.info("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
+            Runnable whenFailed;
+            if (port == -1) {
+                //we assume that the lock operates in on-demand mode so we don't want to ping owner for cache access
+                //if we believe it is a good idea, we should model it better than with -1 port value
+                whenFailed = new Runnable() {
+                    public void run() {} //no op
+                };
+            } else {
+                whenFailed = new Runnable() {
+                    public void run() {
+                        try {
+                            OwnerInfo ownerInfo = readInformationRegion(timeout);
+                            if (ownerInfo.port != -1) {
+                                LOGGER.info("The file lock is held by a different Gradle process. Will attempt to ping owner at port {}", ownerInfo.port);
+                                FileLockCommunicator.pingOwner(ownerInfo.port, target);
+                            } else {
+                                LOGGER.info("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
+                            }
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
                         }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
                     }
-                }
-            });
+                };
+            }
+            return lockRegion(lockMode, timeout, STATE_REGION_POS, STATE_REGION_SIZE, whenFailed);
         }
 
         private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, long timeout) throws IOException, InterruptedException {
