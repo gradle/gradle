@@ -28,9 +28,14 @@ import java.util.List;
 public interface NativeComponent extends Named {
 
     /**
-     * The source sets that are included in this component.
+     * The source sets that are used to build this component.
      */
     DomainObjectSet<SourceSet> getSourceSets();
+
+    /**
+     * The binaries that are built for this component.
+     */
+    DomainObjectSet<NativeBinary> getBinaries();
 
     /**
      * The name that is used to construct task names and output file names when building this component.

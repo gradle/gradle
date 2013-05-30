@@ -22,21 +22,20 @@ import org.gradle.nativecode.base.NativeDependencySet
 import spock.lang.Specification
 
 class DefaultNativeBinaryTest extends Specification {
-    def binary = new DefaultNativeBinary() {
-        String getOutputFileName() {
-            return "someBinary.bin"
-        }
+    def component = new DefaultNativeComponent("name")
 
-        NativeComponent getComponent() {
-            throw new UnsupportedOperationException()
-        }
+    def "binary attaches itself to its owner component"() {
+        def binary
 
-        String getName() {
-            return "someBinary"
-        }
+        when:
+        binary = new TestBinary(component)
+
+        then:
+        component.binaries.contains(binary)
     }
 
     def "can add a library as a dependency of the binary"() {
+        def binary = new TestBinary(component)
         def dependency = Stub(NativeDependencySet)
         def libraryBinary = Mock(LibraryBinary)
         def library = Mock(LibraryInternal)
@@ -54,6 +53,7 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     def "can add a library binary as a dependency of the binary"() {
+        def binary = new TestBinary(component)
         def dependency = Stub(NativeDependencySet)
         def library = Mock(LibraryBinary)
 
@@ -69,6 +69,7 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     def "can add a native dependency as a dependency of the binary"() {
+        def binary = new TestBinary(component)
         def dependency = Stub(NativeDependencySet)
 
         when:
@@ -77,5 +78,25 @@ class DefaultNativeBinaryTest extends Specification {
         then:
         binary.libs.size() == 1
         binary.libs.contains(dependency)
+    }
+
+    class TestBinary extends DefaultNativeBinary {
+        TestBinary(NativeComponent owner) {
+            super(owner)
+        }
+
+        @Override
+        protected NativeComponent getComponent() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        String getOutputFileName() {
+            throw new UnsupportedOperationException()
+        }
+
+        String getName() {
+            throw new UnsupportedOperationException()
+        }
     }
 }

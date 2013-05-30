@@ -24,6 +24,7 @@ public class DefaultExecutableBinary extends DefaultNativeBinary implements Exec
     private final Executable executable;
 
     public DefaultExecutableBinary(Executable executable) {
+        super(executable);
         this.executable = executable;
     }
 

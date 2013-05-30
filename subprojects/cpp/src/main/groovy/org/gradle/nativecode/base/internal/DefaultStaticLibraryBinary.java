@@ -34,6 +34,7 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
     private final Library library;
 
     public DefaultStaticLibraryBinary(Library library) {
+        super(library);
         this.library = library;
     }
 

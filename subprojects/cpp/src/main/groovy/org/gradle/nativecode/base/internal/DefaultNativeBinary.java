@@ -33,6 +33,10 @@ public abstract class DefaultNativeBinary implements NativeBinaryInternal {
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private File outputFile;
 
+    protected DefaultNativeBinary(NativeComponent owner) {
+        owner.getBinaries().add(this);
+    }
+
     public File getOutputFile() {
         return outputFile;
     }

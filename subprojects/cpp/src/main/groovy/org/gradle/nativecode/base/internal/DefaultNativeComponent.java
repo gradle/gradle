@@ -17,6 +17,7 @@ package org.gradle.nativecode.base.internal;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.nativecode.base.NativeBinary;
 import org.gradle.nativecode.base.NativeComponent;
 import org.gradle.nativecode.base.SourceSet;
 import org.gradle.util.GUtil;
@@ -28,13 +29,15 @@ import java.util.List;
 public class DefaultNativeComponent implements NativeComponent {
     private final String name;
     private final DomainObjectSet<SourceSet> sourceSets;
+    private final DefaultDomainObjectSet<NativeBinary> binaries;
+    private final List<Object> compilerArgs = new ArrayList<Object>();
+    private final List<Object> linkerArgs = new ArrayList<Object>();
     private String baseName;
-    private List<Object> compilerArgs = new ArrayList<Object>();
-    private List<Object> linkerArgs = new ArrayList<Object>();
 
     public DefaultNativeComponent(String name) {
         this.name = name;
         this.sourceSets = new DefaultDomainObjectSet<SourceSet>(SourceSet.class);
+        binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);
     }
 
     public String getName() {
@@ -43,6 +46,10 @@ public class DefaultNativeComponent implements NativeComponent {
 
     public DomainObjectSet<SourceSet> getSourceSets() {
         return sourceSets;
+    }
+
+    public DomainObjectSet<NativeBinary> getBinaries() {
+        return binaries;
     }
 
     public String getBaseName() {
