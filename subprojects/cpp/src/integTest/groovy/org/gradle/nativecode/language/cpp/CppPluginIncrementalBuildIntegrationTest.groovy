@@ -110,8 +110,8 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         and:
         executable.isFile()
-        executable.assertHasChangedSince(snapshot)
         executable.exec().out == "changed"
+        executable.assertHasChangedSince(snapshot)
     }
 
     def "recompiles binary when header file changes"() {
@@ -147,8 +147,8 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         and:
         executable.isFile()
-        executable.assertHasChangedSince(snapshot)
         executable.exec().out == "$HELLO_WORLD $HELLO_WORLD_FRENCH"
+        executable.assertHasChangedSince(snapshot)
     }
 
     def "relinks binary when set of input libraries changes"() {
