@@ -221,12 +221,8 @@ Later stories will add more flexible and convenient support for customisation of
     - `compilerArgs`
 - Add the following mutable properties to `ExecutableBinary` and `SharedLibraryBinary`:
     - `linkerArgs`
-- Add the following mutable properties to `StaticLibraryBinary`:
-    - `archiverArgs`
-- Add The following mutable properties to `Library`:
-    - `archiverArgs`
-- Change the c++ plugin so that a static library's `archiverArgs`, rather than `linkerArgs` are used when assembling the static library binary.
-- Rename `LinkStaticLibrary` task type to `AssembleStaticLibrary`.
+- Add a `binaries` property to `NativeComponent`. This is a `DomainObjectCollection` of all binaries for the component.
+- Remove `NativeComponent.compilerArgs` and `linkerArgs` properties. Instead, configuration injection via the `binaries` container can be used to define shared settings for the binaries of a component.
 
 ### User visible changes
 
@@ -235,8 +231,14 @@ Later stories will add more flexible and convenient support for customisation of
     libraries {
         main {
             // Defaults for all binaries for this library
-            compileArgs = ['-DSOME_DEFINE']
-            linkArgs = ['-lsomelib']
+            binaries.all {
+                compilerArgs = ['-DSOME_DEFINE']
+                linkerArgs = ['-lsomelib']
+            }
+            // Defaults for all shared library binaries for this library
+            binaries.withType(SharedLibraryBinary) {
+                compilerArgs << '/DDLL_EXPORT'
+            }
         }
     }
     
@@ -255,13 +257,110 @@ Later stories will add more flexible and convenient support for customisation of
 
 ### Open issues
 
-- Need to configure components before configuring binaries, so that the component's compiler/linker/archiver args can be used as defaults.
 - Allow navigation from a `Binary` to the tasks associated with the binary.
 - Add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
 - Add properties to set defines and include directories for a binary.
-- Add properties to set defines and include directories for a component.
 - Add set methods for each of these properties.
-- Some convenience to configure binaries for a given component.
+
+## Story: Defer creation of binaries
+
+This story defers creation of the binaries for a native component until after the component has been fully configured. This will be used in later stories to allow different variants to be defined for a component.
+
+- Add some project level callback that is called just before `afterEvaluated { }`.
+- Change the handling of `@DeferredConfigurable` to use this callback.
+- Change the C++ plugin to use this callback to create the binaries of each component.
+- Add a `DomainObjectCollection` sub-interface with method `all(map, action)`. This method is equivalent to calling `matching(predicate, action)`, where `predicate` is a spec that selects all objects whose property values equal those specified in the map. This method can be used to do delayed configuration of the elements of the collection.
+- Change `NativeComponent.binaries` and `BinariesContainer` to provide implementations of this interface.
+
+### User visible changes
+
+    apply plugin: 'cpp-lib'
+    
+    libraries {
+        main {
+            // Defaults for all binaries for this library
+            binaries.all {
+                …
+            }
+            // Defaults for all shared library binaries for this library
+            binaries.all(type: SharedLibraryBinary) {
+                …
+            }
+            // Note: These will not work as expected
+            binaries.each { … }
+            binaries.size()
+        }
+    }
+    
+    binaries.all(name: 'mainSharedLibrary') {
+        … 
+    }
+    
+    binaries.all(type: NativeBinary) {
+        …
+    }
+    
+    // Note: this will not work as expected
+    binaries { mainSharedLibrary { … } }
+
+
+### Open issues
+
+- Need a `NamedDomainObjectCollection` that uses delayed configuration of its elements.
+- Roll out the predicate methods to other containers.
+
+## Story: Defer configuration of native components
+
+TBD
+
+## Story: Defer creation of tasks for binaries
+
+This story defers creation of the tasks for a binary until after the binary has been fully configured.
+
+- Change the C++ plugin to use the configuration callback to create the tasks for each native binary.
+- Change the publication plugins to use the configuration callback to create tasks for each publication.
+- Remove the convention mappings from the C++ plugin.
+
+### Open issues
+
+- Some way to configure the tasks for a binary and publication.
+
+## Story: Build different variants of a native component
+
+This story adds initial support for building multiple variants of a native component. For each variant of a component, a binary of the appropriate type is defined.
+
+### User visible changes
+
+    libraries {
+        main {
+            flavors {
+                main
+                withOptionalFeature
+            }
+            binaries.all(flavor: flavours.main) {
+                compilerArgs << '-DSOME_FEATURE
+            }
+        }
+    }
+
+This will define 4 binaries:
+
+- library: 'main', flavor: 'main', packaging: 'static'
+- library: 'main', flavor: 'main', packaging: 'shared'
+- library: 'main', flavor: 'withOptionalFeature', packaging: 'static'
+- library: 'main', flavor: 'withOptionalFeature', packaging: 'shared'
+
+### Open issues
+
+- Formalise the concept of a naming scheme for binary names, tasks and file paths.
+- Add a convention to give each binary a separate output directory (as the name of each variant binary can be the same).
+- Add a convention to give each binary a separate object file directory.
+- Need to be able to build a single variant or all variants.
+- Need separate compiler, linker and assembler options for each variant.
+- Need shared compiler, linker and assembler options for all variants.
+- Need to consume locally and between projects and between builds.
+- Need to infer the default variant.
+
 
 ## Story: Allow library binaries to be used as input to other binaries
 
@@ -477,43 +576,7 @@ This story adds support for using assembler source files as inputs to a native b
 ### Open issues
 
 - Add a 'development' assemble task, which chooses a single binary for each component.
-
-## Story: Build different variants of a native component
-
-This story adds initial support for building multiple variants of a native component. For each variant of a component, a binary of the appropriate type is defined.
-
-### User visible changes
-
-    libraries {
-        main {
-            compilerArgs = ["-DSOME_DEFINE"]
-            flavors {
-                main {
-                    compilerArgs << ["-DDISABLE_FEATURE"]
-                }
-                withOptionalFeature {
-                }
-            }
-        }
-    }
-
-This will define 4 binaries:
-
-- library: 'main', flavor: 'main', packaging: 'static'
-- library: 'main', flavor: 'main', packaging: 'shared'
-- library: 'main', flavor: 'withOptionalFeature', packaging: 'static'
-- library: 'main', flavor: 'withOptionalFeature', packaging: 'shared'
-
-### Open issues
-
-- Formalise the concept of a naming scheme for binary names, tasks and file paths.
-- Add a convention to give each binary a separate output directory (as the name of each variant binary can be the same).
-- Add a convention to give each binary a separate object file directory.
-- Need to be able to build a single variant or all variants.
-- Need separate compiler, linker and assembler options for each variant.
-- Need shared compiler, linker and assembler options for all variants.
-- Need to consume locally and between projects and between builds.
-- Need to infer the default variant.
+- Need to make standard 'build', 'check' lifecycle tasks available too.
 
 # Milestone 2
 
