@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.DataStreamBackedSerializer;
 import org.gradle.messaging.serialize.DefaultSerializer;
-import org.gradle.cache.PersistentIndexedCache;
 
 import java.io.*;
 import java.util.*;
@@ -59,35 +59,43 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             public void update() {
-                if (currentExecution.inputFilesSnapshotId == null && currentExecution.inputFilesSnapshot != null) {
-                    currentExecution.inputFilesSnapshotId = snapshotRepository.add(currentExecution.inputFilesSnapshot);
-                }
-                if (currentExecution.outputFilesSnapshotId == null && currentExecution.outputFilesSnapshot != null) {
-                    currentExecution.outputFilesSnapshotId = snapshotRepository.add(currentExecution.outputFilesSnapshot);
-                }
-                while (history.configurations.size() > TaskHistory.MAX_HISTORY_ENTRIES) {
-                    LazyTaskExecution execution = history.configurations.remove(history.configurations.size() - 1);
-                    if (execution.inputFilesSnapshotId != null) {
-                        snapshotRepository.remove(execution.inputFilesSnapshotId);
+                cacheAccess.useCache("Update history", new Runnable() {
+                    public void run() {
+                        if (currentExecution.inputFilesSnapshotId == null && currentExecution.inputFilesSnapshot != null) {
+                            currentExecution.inputFilesSnapshotId = snapshotRepository.add(currentExecution.inputFilesSnapshot);
+                        }
+                        if (currentExecution.outputFilesSnapshotId == null && currentExecution.outputFilesSnapshot != null) {
+                            currentExecution.outputFilesSnapshotId = snapshotRepository.add(currentExecution.outputFilesSnapshot);
+                        }
+                        while (history.configurations.size() > TaskHistory.MAX_HISTORY_ENTRIES) {
+                            LazyTaskExecution execution = history.configurations.remove(history.configurations.size() - 1);
+                            if (execution.inputFilesSnapshotId != null) {
+                                snapshotRepository.remove(execution.inputFilesSnapshotId);
+                            }
+                            if (execution.outputFilesSnapshotId != null) {
+                                snapshotRepository.remove(execution.outputFilesSnapshotId);
+                            }
+                        }
+                        taskHistoryCache.put(task.getPath(), history);
                     }
-                    if (execution.outputFilesSnapshotId != null) {
-                        snapshotRepository.remove(execution.outputFilesSnapshotId);
-                    }
-                }
-                taskHistoryCache.put(task.getPath(), history);
+                });
             }
         };
     }
 
-    private TaskHistory loadHistory(TaskInternal task) {
-        ClassLoader original = serializer.getClassLoader();
-        serializer.setClassLoader(task.getClass().getClassLoader());
-        try {
-            TaskHistory history = taskHistoryCache.get(task.getPath());
-            return history == null ? new TaskHistory() : history;
-        } finally {
-            serializer.setClassLoader(original);
-        }
+    private TaskHistory loadHistory(final TaskInternal task) {
+        return cacheAccess.useCache("Load history", new Factory<TaskHistory>() {
+            public TaskHistory create() {
+                ClassLoader original = serializer.getClassLoader();
+                serializer.setClassLoader(task.getClass().getClassLoader());
+                try {
+                    TaskHistory history = taskHistoryCache.get(task.getPath());
+                    return history == null ? new TaskHistory() : history;
+                } finally {
+                    serializer.setClassLoader(original);
+                }
+            }
+        });
     }
 
     private static Set<String> outputFiles(TaskInternal task) {
@@ -129,7 +137,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
         @Override
         public TaskHistory read(DataInput dataInput) throws Exception {
-            int executions = dataInput.readInt();
+            byte executions = dataInput.readByte();
             TaskHistory history = new TaskHistory();
             LazyTaskExecution.Serializer executionSerializer = new LazyTaskExecution.Serializer(classLoader);
             for (int i = 0; i < executions; i++) {
@@ -142,7 +150,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         @Override
         public void write(DataOutput dataOutput, TaskHistory value) throws IOException {
             int size = value.configurations.size();
-            dataOutput.writeInt(size);
+            dataOutput.writeByte(size);
             LazyTaskExecution.Serializer executionSerializer = new LazyTaskExecution.Serializer(classLoader);
             for (LazyTaskExecution execution : value.configurations) {
                 executionSerializer.write(dataOutput, execution);
@@ -163,6 +171,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         private final List<LazyTaskExecution> configurations = new ArrayList<LazyTaskExecution>();
     }
 
+    //TODO SF extract & unit test
     private static class LazyTaskExecution extends TaskExecution {
         private Long inputFilesSnapshotId;
         private Long outputFilesSnapshotId;
@@ -174,7 +183,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         @Override
         public FileCollectionSnapshot getInputFilesSnapshot() {
             if (inputFilesSnapshot == null) {
-                inputFilesSnapshot = snapshotRepository.get(inputFilesSnapshotId);
+                inputFilesSnapshot = cacheAccess.useCache("fetch file snapshots", new Factory<FileCollectionSnapshot>() {
+                    public FileCollectionSnapshot create() {
+                        return snapshotRepository.get(inputFilesSnapshotId);
+                    }
+                });
             }
             return inputFilesSnapshot;
         }

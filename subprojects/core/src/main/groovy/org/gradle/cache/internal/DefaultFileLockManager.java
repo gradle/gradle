@@ -15,11 +15,13 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.cache.internal.locklistener.FileLockListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.EOFException;
 import java.io.File;
@@ -35,33 +37,35 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * name.</li> </ul>
  */
 public class DefaultFileLockManager implements FileLockManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
+    private static final Logger LOGGER = Logging.getLogger(DefaultFileLockManager.class);
     private static final int DEFAULT_LOCK_TIMEOUT = 60000;
     private static final byte STATE_REGION_PROTOCOL = 1;
     private static final int STATE_REGION_SIZE = 2;
     private static final int STATE_REGION_POS = 0;
-    private static final byte INFORMATION_REGION_PROTOCOL = 2;
+    private static final byte INFORMATION_REGION_PROTOCOL = 3;
     private static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
-    public static final int INFORMATION_REGION_SIZE = 2048;
+    public static final int INFORMATION_REGION_SIZE = 2052;
     public static final int INFORMATION_REGION_DESCR_CHUNK_LIMIT = 340;
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
     private final ProcessMetaDataProvider metaDataProvider;
     private final int lockTimeoutMs;
+    private FileLockListener fileLockListener;
 
-    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider) {
-        this(metaDataProvider, DEFAULT_LOCK_TIMEOUT);
+    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockListener fileLockListener) {
+        this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockListener);
     }
 
-    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs) {
+    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockListener fileLockListener) {
         this.metaDataProvider = metaDataProvider;
         this.lockTimeoutMs = lockTimeoutMs;
+        this.fileLockListener = fileLockListener;
     }
 
-    public FileLock lock(File target, LockMode mode, String targetDisplayName) throws LockTimeoutException {
-        return lock(target, mode, targetDisplayName, "");
+    public FileLock lock(File target, LockMode mode, String targetDisplayName, Action<File> whenContended) throws LockTimeoutException {
+        return lock(target, mode, targetDisplayName, "", whenContended);
     }
 
-    public FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName) {
+    public FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName, Action<File> whenContended) {
         if (mode == LockMode.None) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", mode));
         }
@@ -70,11 +74,20 @@ public class DefaultFileLockManager implements FileLockManager {
             throw new IllegalStateException(String.format("Cannot lock %s as it has already been locked by this process.", targetDisplayName));
         }
         try {
-            return new DefaultFileLock(canonicalTarget, mode, targetDisplayName, operationDisplayName);
+            int port = fileLockListener.reservePort();
+            DefaultFileLock newLock = new DefaultFileLock(canonicalTarget, mode, targetDisplayName, operationDisplayName, port);
+            fileLockListener.lockCreated(canonicalTarget, whenContended);
+            return newLock;
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
             throw UncheckedException.throwAsUncheckedException(t);
         }
+    }
+
+    private class OwnerInfo {
+        int port;
+        String pid;
+        String operation;
     }
 
     private class DefaultFileLock extends AbstractFileAccess implements FileLock {
@@ -86,8 +99,12 @@ public class DefaultFileLockManager implements FileLockManager {
         private java.nio.channels.FileLock lock;
         private RandomAccessFile lockFileAccess;
         private boolean integrityViolated;
+        private boolean contended;
+        private boolean busy = true;
+        private int port;
 
-        public DefaultFileLock(File target, LockMode mode, String displayName, String operationDisplayName) throws Throwable {
+        public DefaultFileLock(File target, LockMode mode, String displayName, String operationDisplayName, int port) throws Throwable {
+            this.port = port;
             if (mode == LockMode.None) {
                 throw new UnsupportedOperationException("Locking mode None is not supported.");
             }
@@ -218,6 +235,7 @@ public class DefaultFileLockManager implements FileLockManager {
             } finally {
                 lock = null;
                 lockFileAccess = null;
+                fileLockListener.lockClosed(target);
             }
         }
 
@@ -232,31 +250,9 @@ public class DefaultFileLockManager implements FileLockManager {
             // Lock the state region, with the requested mode
             java.nio.channels.FileLock stateRegionLock = lockStateRegion(lockMode, timeout);
             if (stateRegionLock == null) {
-                // Can't acquire lock, get details of owner to include in the error message
-                String ownerPid = "unknown";
-                String ownerOperation = "unknown";
-                java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared, timeout);
-                if (informationRegionLock == null) {
-                    LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
-                } else {
-                    try {
-                        if (lockFileAccess.length() <= INFORMATION_REGION_POS) {
-                            LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.", displayName);
-                        } else {
-                            lockFileAccess.seek(INFORMATION_REGION_POS);
-                            if (lockFileAccess.readByte() != INFORMATION_REGION_PROTOCOL) {
-                                throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
-                            }
-                            ownerPid = lockFileAccess.readUTF();
-                            ownerOperation = lockFileAccess.readUTF();
-                        }
-                    } finally {
-                        informationRegionLock.release();
-                    }
-                }
-
+                OwnerInfo ownerInfo = readInformationRegion(timeout);
                 throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",
-                        displayName, ownerPid, metaDataProvider.getProcessIdentifier(), ownerOperation, operationDisplayName, lockFile));
+                        displayName, ownerInfo.pid, metaDataProvider.getProcessIdentifier(), ownerInfo.operation, operationDisplayName, lockFile));
             }
 
             try {
@@ -285,6 +281,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     try {
                         lockFileAccess.seek(INFORMATION_REGION_POS);
                         lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
+                        lockFileAccess.writeInt(port);
                         lockFileAccess.writeUTF(trimIfNecessary(metaDataProvider.getProcessIdentifier()));
                         lockFileAccess.writeUTF(trimIfNecessary(operationDisplayName));
                         lockFileAccess.setLength(lockFileAccess.getFilePointer());
@@ -301,6 +298,36 @@ public class DefaultFileLockManager implements FileLockManager {
             return stateRegionLock;
         }
 
+        private OwnerInfo readInformationRegion(long timeout) throws IOException, InterruptedException {
+            // Can't acquire lock, get details of owner to include in the error message
+            OwnerInfo out = new OwnerInfo();
+            out.pid = "unknown";
+            out.operation = "unknown";
+            out.port = -1;
+            java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared, timeout);
+            if (informationRegionLock == null) {
+                LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
+            } else {
+                try {
+                    if (lockFileAccess.length() <= INFORMATION_REGION_POS) {
+                        LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.", displayName);
+                    } else {
+                        lockFileAccess.seek(INFORMATION_REGION_POS);
+                        if (lockFileAccess.readByte() != INFORMATION_REGION_PROTOCOL) {
+                            throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
+                        }
+                        out.port = lockFileAccess.readInt();
+                        out.pid = lockFileAccess.readUTF();
+                        out.operation = lockFileAccess.readUTF();
+                        LOGGER.debug("Read following information from the file lock info region. Port: {}, owner: {}, operation: {}", out.port, out.pid, out.operation);
+                    }
+                } finally {
+                    informationRegionLock.release();
+                }
+            }
+            return out;
+        }
+
         private String trimIfNecessary(String inputString) {
             if(inputString.length() > INFORMATION_REGION_DESCR_CHUNK_LIMIT){
                 return inputString.substring(0, INFORMATION_REGION_DESCR_CHUNK_LIMIT);
@@ -309,23 +336,59 @@ public class DefaultFileLockManager implements FileLockManager {
             }
         }
 
-        private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, long timeout) throws IOException, InterruptedException {
-            return lockRegion(lockMode, timeout, STATE_REGION_POS, STATE_REGION_SIZE);
+        private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, final long timeout) throws IOException, InterruptedException {
+            return lockRegion(lockMode, timeout, STATE_REGION_POS, STATE_REGION_SIZE, new Runnable() {
+                public void run() {
+                    try {
+                        OwnerInfo ownerInfo = readInformationRegion(timeout);
+                        if (ownerInfo.port != -1) {
+                            LOGGER.info("The file lock is held by a different Gradle process. Will attempt to ping owner at port {}", ownerInfo.port);
+                            FileLockCommunicator.pingOwner(ownerInfo.port, target);
+                        } else {
+                            LOGGER.info("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
         }
 
         private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, long timeout) throws IOException, InterruptedException {
-            return lockRegion(lockMode, timeout, INFORMATION_REGION_POS, INFORMATION_REGION_SIZE - INFORMATION_REGION_POS);
+            return lockRegion(lockMode, timeout, INFORMATION_REGION_POS, INFORMATION_REGION_SIZE - INFORMATION_REGION_POS, new Runnable() {
+                public void run() {
+                    //no op
+                }
+            });
         }
 
-        private java.nio.channels.FileLock lockRegion(FileLockManager.LockMode lockMode, long timeout, long start, long size) throws IOException, InterruptedException {
+        private java.nio.channels.FileLock lockRegion(FileLockManager.LockMode lockMode, long timeout,
+                    long start, long size, Runnable failAction) throws IOException, InterruptedException {
             do {
                 java.nio.channels.FileLock fileLock = lockFileAccess.getChannel().tryLock(start, size, lockMode == LockMode.Shared);
                 if (fileLock != null) {
                     return fileLock;
                 }
+                failAction.run();
                 Thread.sleep(200L);
             } while (System.currentTimeMillis() < timeout);
             return null;
+        }
+
+        public void setContended(boolean contended) {
+            this.contended = true;
+        }
+
+        public boolean isContended() {
+            return contended;
+        }
+
+        public void setBusy(boolean busy) {
+            this.busy = busy;
+        }
+
+        public boolean isBusy() {
+            return busy;
         }
     }
 }

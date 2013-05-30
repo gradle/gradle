@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.locklistener.NoOpFileLockListener;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
@@ -47,7 +48,7 @@ public class DefaultPersistentDirectoryCacheTest {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ProcessMetaDataProvider metaDataProvider = context.mock(ProcessMetaDataProvider.class);
-    private final FileLockManager lockManager = new DefaultFileLockManager(metaDataProvider);
+    private final FileLockManager lockManager = new DefaultFileLockManager(metaDataProvider, new NoOpFileLockListener());
     private final Action<PersistentCache> action = context.mock(Action.class);
     private final CacheValidator validator = context.mock(CacheValidator.class);
     private final Map<String, String> properties = GUtil.map("prop", "value", "prop2", "other-value");

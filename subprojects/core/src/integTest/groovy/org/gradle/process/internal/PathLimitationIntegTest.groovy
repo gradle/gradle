@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.*
+import org.gradle.cache.internal.locklistener.NoOpFileLockListener
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeplatform.services.NativeServices
@@ -42,10 +43,10 @@ import org.gradle.process.internal.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
-import spock.lang.Ignore
 
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
@@ -58,7 +59,7 @@ class PathLimitationIntegTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(NativeServices.getInstance().get(org.gradle.internal.nativeplatform.ProcessEnvironment.class));
-    private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider)).create();
+    private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockListener())).create();
     private final CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.getTestDirectory(), null, CacheUsage.ON, factory);
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));

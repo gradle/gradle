@@ -17,7 +17,9 @@
 package org.gradle.cache.internal
 
 import org.apache.commons.lang.RandomStringUtils
+import org.gradle.api.Action
 import org.gradle.cache.internal.FileLockManager.LockMode
+import org.gradle.cache.internal.locklistener.NoOpFileLockListener
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -36,7 +38,7 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 class DefaultFileLockManagerTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def metaDataProvider = Mock(ProcessMetaDataProvider)
-    FileLockManager manager = new DefaultFileLockManager(metaDataProvider)
+    FileLockManager manager = new DefaultFileLockManager(metaDataProvider, new NoOpFileLockListener())
 
     TestFile testFile
     TestFile testFileLock
@@ -396,11 +398,11 @@ class DefaultFileLockManagerTest extends Specification {
         def customMetaDataProvider = Mock(ProcessMetaDataProvider)
         def processIdentifier = RandomStringUtils.randomAlphanumeric(1000)
         1 * customMetaDataProvider.processIdentifier >> processIdentifier
-        def customManager = new DefaultFileLockManager(customMetaDataProvider)
+        def customManager = new DefaultFileLockManager(customMetaDataProvider, new NoOpFileLockListener())
         def operationalDisplayName = RandomStringUtils.randomAlphanumeric(1000)
 
         when:
-        customManager.lock(testFile, Exclusive, "targetDisplayName", operationalDisplayName)
+        customManager.lock(testFile, Exclusive, "targetDisplayName", operationalDisplayName, {} as Action)
 
         then:
         isVersion2LockFile(testFileLock, processIdentifier.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
@@ -453,7 +455,8 @@ class DefaultFileLockManagerTest extends Specification {
         lockFile.withDataInputStream { str ->
             assert str.readByte() == 1
             assert !str.readBoolean()
-            assert str.readByte() == 2
+            assert str.readByte() == 3
+            assert str.readInt() == -1
             assert str.readUTF() == processIdentifier
             assert str.readUTF() == operationalName
             assert str.read() < 0
@@ -465,7 +468,7 @@ class DefaultFileLockManagerTest extends Specification {
     }
 
     private FileLock createLock(LockMode lockMode = Shared, File file = testFile) {
-        manager.lock(file, lockMode, "foo", "operation")
+        manager.lock(file, lockMode, "foo", "operation", _ as Action)
     }
 
     private File unlockUncleanly(LockMode lockMode = Shared, File file = testFile) {
