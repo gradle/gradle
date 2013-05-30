@@ -15,11 +15,13 @@
  */
 
 package org.gradle.nativecode.language.cpp.tasks
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.*
+import org.gradle.nativecode.base.ToolChain
 import org.gradle.nativecode.language.cpp.internal.CppCompileSpec
 import org.gradle.nativecode.language.cpp.internal.DefaultCppCompileSpec
 
@@ -32,7 +34,7 @@ import javax.inject.Inject
 class CppCompile extends DefaultTask {
     private FileCollection source
 
-    def toolChain
+    ToolChain toolChain
 
     @Input
     boolean forDynamicLinking

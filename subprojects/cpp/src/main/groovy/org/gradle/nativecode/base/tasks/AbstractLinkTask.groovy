@@ -15,12 +15,13 @@
  */
 
 package org.gradle.nativecode.base.tasks
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
+import org.gradle.nativecode.base.ToolChain
 import org.gradle.nativecode.base.internal.LinkerSpec
-import org.gradle.nativecode.base.internal.ToolChainInternal
 
 import javax.inject.Inject
 
@@ -37,7 +38,7 @@ abstract class AbstractLinkTask extends DefaultTask {
     /**
      * The tool chain used for linking.
      */
-    ToolChainInternal toolChain
+    ToolChain toolChain
 
     /**
      * The file where the linked binary will be located.
