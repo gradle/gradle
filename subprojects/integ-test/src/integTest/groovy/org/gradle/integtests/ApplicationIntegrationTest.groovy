@@ -105,7 +105,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    def canUseBothDefaulJvmArgsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
+    def canUseBothDefaultJvmArgsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
