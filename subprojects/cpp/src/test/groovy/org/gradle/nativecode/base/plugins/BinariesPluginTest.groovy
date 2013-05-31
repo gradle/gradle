@@ -26,6 +26,7 @@ class BinariesPluginTest extends Specification {
     def "creates domain objects for library"() {
         given:
         project.plugins.apply(BinariesPlugin)
+        project.plugins.apply(TestCompilerPlugin)
 
         when:
         project.libraries {

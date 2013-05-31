@@ -17,8 +17,6 @@ package org.gradle.nativecode.base.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativecode.base.ToolChain;
 import org.gradle.nativecode.base.ToolChainRegistry;
@@ -48,65 +46,14 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
     }
 
     public ToolChainInternal getDefaultToolChain() {
-        return new LazyToolChain() {
-            @Override
-            protected ToolChainInternal findFirstAvailableToolChain() {
-                List<String> messages = new ArrayList<String>();
-                for (ToolChainInternal adapter : searchOrder) {
-                    ToolChainAvailability availability = adapter.getAvailability();
-                    if (availability.isAvailable()) {
-                        return adapter;
-                    }
-                    messages.add(String.format("Could not load '%s': %s", adapter.getName(), availability.getUnavailableMessage()));
-                }
-                throw new IllegalStateException(String.format("No tool chain is available: %s", messages));
+        List<String> messages = new ArrayList<String>();
+        for (ToolChainInternal adapter : searchOrder) {
+            ToolChainAvailability availability = adapter.getAvailability();
+            if (availability.isAvailable()) {
+                return adapter;
             }
-        };
-    }
-
-    private abstract class LazyToolChain implements ToolChainInternal {
-        private ToolChainInternal toolChain;
-
-        public String getName() {
-            return getToolChain().getName();
+            messages.add(String.format("Could not load '%s': %s", adapter.getName(), availability.getUnavailableMessage()));
         }
-
-        public ToolChainAvailability getAvailability() {
-            return new ToolChainAvailability();
-        }
-
-        public <T extends BinaryCompileSpec> Compiler<T> createCompiler(final Class<T> specType) {
-            return new Compiler<T>() {
-                public WorkResult execute(T spec) {
-                    return getToolChain().createCompiler(specType).execute(spec);
-                }
-            };
-        }
-
-        public <T extends LinkerSpec> Compiler<T> createLinker() {
-            return new Compiler<T>() {
-                 public WorkResult execute(T spec) {
-                     return getToolChain().createLinker().execute(spec);
-                 }
-             };
-        }
-
-        public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-            return new Compiler<T>() {
-                public WorkResult execute(T spec) {
-                    return getToolChain().createStaticLibraryArchiver().execute(spec);
-                }
-            };
-        }
-
-
-        private ToolChainInternal getToolChain() {
-            if (toolChain == null) {
-                toolChain = findFirstAvailableToolChain();
-            }
-            return toolChain;
-        }
-
-        protected abstract ToolChainInternal findFirstAvailableToolChain();
+        throw new IllegalStateException(String.format("No tool chain is available: %s", messages));
     }
 }

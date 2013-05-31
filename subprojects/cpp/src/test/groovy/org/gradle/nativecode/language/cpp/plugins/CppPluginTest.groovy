@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativecode.language.cpp.plugins
+
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.tasks.Sync
 import org.gradle.internal.os.OperatingSystem
@@ -25,8 +26,6 @@ import org.gradle.nativecode.language.cpp.CppSourceSet
 import org.gradle.nativecode.language.cpp.tasks.CppCompile
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
 class CppPluginTest extends Specification {
@@ -42,24 +41,13 @@ class CppPluginTest extends Specification {
         project.libraries instanceof NamedDomainObjectContainer
     }
 
-    @Requires(TestPrecondition.WINDOWS)
-    def "gcc and visual cpp adapters are available on windows"() {
+    def "gcc and visual cpp adapters are available"() {
         given:
         project.plugins.apply(CppPlugin)
 
         expect:
-        project.compilers.collect { it.name } == ['gpp', 'visualCpp']
-        project.compilers.searchOrder.collect { it.name } == ['visualCpp', 'gpp']
-    }
-
-    @Requires(TestPrecondition.UNIX)
-    def "gcc adapter is available on unix"() {
-        given:
-        project.plugins.apply(CppPlugin)
-
-        expect:
-        project.compilers.collect { it.name } == ['gpp']
-        project.compilers.searchOrder.collect { it.name } == ['gpp']
+        project.compilers*.name == ['gcc', 'visualCpp']
+        project.compilers.searchOrder*.name == ['visualCpp', 'gcc']
     }
 
     def "can create some cpp source sets"() {
@@ -141,6 +129,7 @@ class CppPluginTest extends Specification {
         and:
         def executableBinary = project.binaries.testExecutable
         executableBinary.component == executable
+        executableBinary.toolChain
         executableBinary.compilerArgs == ["ARG1", "ARG2"]
         executableBinary.linkerArgs == ["LINK1", "LINK2"]
         executableBinary.outputFile == project.file("build/binaries/${OperatingSystem.current().getExecutableName('test')}")
@@ -165,20 +154,24 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        def compile = project.tasks['compileTestExecutable']
+        def binary = project.binaries.testExecutable
+
+        def compile = project.tasks.compileTestExecutable
         compile instanceof CppCompile
+        compile.toolChain == binary.toolChain
         compile.macros == ["NDEBUG"]
         compile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
-        def link = project.tasks['testExecutable']
+        def link = project.tasks.testExecutable
         link instanceof LinkExecutable
+        link.toolChain == binary.toolChain
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == project.binaries.testExecutable.outputFile
         link Matchers.dependsOn("compileTestExecutable")
 
         and:
-        def install = project.tasks['installTestExecutable']
+        def install = project.tasks.installTestExecutable
         install instanceof Sync
         install.destinationDir == project.file('build/install/testExecutable')
         install Matchers.dependsOn("testExecutable")
@@ -203,11 +196,13 @@ class CppPluginTest extends Specification {
 
         and:
         def sharedLibraryBinary = project.binaries.testSharedLibrary
+        sharedLibraryBinary.toolChain
         sharedLibraryBinary.outputFile == project.file("build/binaries/$sharedLibName")
         sharedLibraryBinary.component == project.libraries.test
 
         and:
         def staticLibraryBinary = project.binaries.testStaticLibrary
+        staticLibraryBinary.toolChain
         staticLibraryBinary.outputFile == project.file("build/binaries/$staticLibName")
         staticLibraryBinary.component == project.libraries.test
 
@@ -232,32 +227,39 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        def sharedCompile = project.tasks['compileTestSharedLibrary']
+        def sharedLib = project.binaries.testSharedLibrary
+        def staticLib = project.binaries.testStaticLibrary
+
+        def sharedCompile = project.tasks.compileTestSharedLibrary
         sharedCompile instanceof CppCompile
+        sharedCompile.toolChain == sharedLib.toolChain
         sharedCompile.macros == ["NDEBUG"]
         sharedCompile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
-        def link = project.tasks['testSharedLibrary']
+        def link = project.tasks.testSharedLibrary
         link instanceof LinkSharedLibrary
+        link.toolChain == sharedLib.toolChain
         link.linkerArgs == ["LINK1", "LINK2"]
-        link.outputFile == project.binaries.testSharedLibrary.outputFile
+        link.outputFile == sharedLib.outputFile
         link Matchers.dependsOn("compileTestSharedLibrary")
 
         and:
-        def staticCompile = project.tasks['compileTestStaticLibrary']
+        def staticCompile = project.tasks.compileTestStaticLibrary
         staticCompile instanceof CppCompile
+        staticCompile.toolChain == staticLib.toolChain
         staticCompile.macros == ["NDEBUG"]
         staticCompile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
-        def staticLink = project.tasks['testStaticLibrary']
+        def staticLink = project.tasks.testStaticLibrary
         staticLink instanceof CreateStaticLibrary
-        staticLink.outputFile == project.binaries.testStaticLibrary.outputFile
+        staticLink.toolChain == staticLib.toolChain
+        staticLink.outputFile == staticLib.outputFile
         staticLink Matchers.dependsOn("compileTestStaticLibrary")
 
         and:
-        project.binaries.testSharedLibrary.buildDependencies.getDependencies(null) == [link] as Set
-        project.binaries.testStaticLibrary.buildDependencies.getDependencies(null) == [staticLink] as Set
+        sharedLib.buildDependencies.getDependencies(null) == [link] as Set
+        staticLib.buildDependencies.getDependencies(null) == [staticLink] as Set
     }
 }
