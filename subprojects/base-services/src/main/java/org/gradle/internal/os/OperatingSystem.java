@@ -154,7 +154,7 @@ public abstract class OperatingSystem {
 
         @Override
         public String getStaticLibraryName(String libraryName) {
-            return withSuffix(libraryName, ".a");
+            return withSuffix(libraryName, ".lib");
         }
 
         @Override
