@@ -1,14 +1,10 @@
 #include <iostream>
-#ifdef _WIN32
-#define LIB_FUNC __declspec(dllexport)
-#else
-#define LIB_FUNC
-#endif
+#include "hello.h"
 
 void LIB_FUNC hello () {
   #ifdef FRENCH
-  std::cout << "Bonjour monde!\n";
+  std::cout << "Bonjour monde!" << std::endl;
   #else
-  std::cout << "Hello world!\n";
+  std::cout << "Hello world!" << std::endl;
   #endif
 }

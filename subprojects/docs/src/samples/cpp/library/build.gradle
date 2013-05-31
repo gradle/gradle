@@ -6,15 +6,14 @@ cpp {
         lib {}
     }
 }
-executables {
-    english {
-        sourceSets << project.cpp.sourceSets.exe
-    }
-    french {
-        sourceSets << project.cpp.sourceSets.exe
-    }
-}
+
 libraries {
+    // Define some common settings for all shared library binaries
+    all {
+        binaries.withType(SharedLibraryBinary) {
+            define "DLL_EXPORT"
+        }
+    }
     helloEnglish {
         sourceSets << project.cpp.sourceSets.lib
     }
@@ -26,8 +25,19 @@ libraries {
     }
 }
 
-// Wire the 'helloEnglish' shared library binary into the 'english' executable binary
-binaries.englishExecutable.lib binaries.helloEnglishSharedLibrary
-
-// Wire the 'helloFrench' static library binary into the 'french' executable binary
-binaries.frenchExecutable.lib binaries.helloFrenchStaticLibrary
+executables {
+    english {
+        sourceSets << project.cpp.sourceSets.exe
+        binaries.all {
+            // Wire the 'helloEnglish' shared library binary into the 'english' executable binary
+            lib project.binaries.helloEnglishSharedLibrary
+        }
+    }
+    french {
+        sourceSets << project.cpp.sourceSets.exe
+        binaries.all {
+            // Wire the 'helloFrench' static library binary into the 'french' executable binary
+            lib project.binaries.helloFrenchStaticLibrary
+        }
+    }
+}

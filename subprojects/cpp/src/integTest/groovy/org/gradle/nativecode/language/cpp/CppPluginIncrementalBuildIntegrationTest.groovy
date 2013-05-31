@@ -45,6 +45,9 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
             libraries {
                 hello {
                     sourceSets << project.cpp.sourceSets.hello
+                    binaries.withType(SharedLibraryBinary) {
+                        define "DLL_EXPORT"
+                    }
                 }
             }
             binaries.mainExecutable.lib binaries.helloSharedLibrary
@@ -66,11 +69,21 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         """
 
         headerFile = file("src/hello/headers/hello.h") << """
-            void hello(const char* str);
+            #ifdef _WIN32
+            #ifdef DLL_EXPORT
+            #define LIB_FUNC __declspec(dllexport)
+            #endif
+            #endif
+            #ifndef LIB_FUNC
+            #define LIB_FUNC
+            #endif
+
+            void LIB_FUNC hello(const char* str);
         """
 
         file("src/hello/cpp/hello.cpp") << """
             #include <iostream>
+            #include "hello.h"
 
             void hello(const char* str) {
               std::cout << str;
