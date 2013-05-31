@@ -21,7 +21,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     @Rule public final Sample exewithlib = new Sample(temporaryFolder, 'cpp/exewithlib')
@@ -42,7 +42,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         and:
         sharedLibrary("cpp/exewithlib/lib/build/binaries/lib").isFile()
         executable("cpp/exewithlib/exe/build/binaries/exe").isFile()
-        executable("cpp/exewithlib/exe/build/install/mainExecutable/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
+        normaliseLineSeparators(executable("cpp/exewithlib/exe/build/install/mainExecutable/exe").exec().out) == "Hello, World!\n"
     }
 
     // Does not work on windows, due to GRADLE-2118
@@ -80,8 +80,8 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         ":mainExecutable" in nonSkippedTasks
         
         and:
-        executable("cpp/exe/build/binaries/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
-        executable("cpp/exe/build/install/mainExecutable/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
+        normaliseLineSeparators(executable("cpp/exe/build/binaries/exe").exec().out) == "Hello, World!\n"
+        normaliseLineSeparators(executable("cpp/exe/build/install/mainExecutable/exe").exec().out) == "Hello, World!\n"
     }
 
     def "library"() {
@@ -97,7 +97,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         sharedLibrary("cpp/library/build/binaries/helloEnglish").assertExists()
 
         and:
-        executable("cpp/library/build/install/englishExecutable/english").exec().out == toPlatformLineSeparators("Hello world!\n")
+        normaliseLineSeparators(executable("cpp/library/build/install/englishExecutable/english").exec().out) == "Hello world!\n"
 
         when:
         sample library
@@ -111,7 +111,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         staticLibrary("cpp/library/build/binaries/helloFrench").assertExists()
 
         and:
-        executable("cpp/library/build/install/frenchExecutable/french").exec().out == toPlatformLineSeparators("Bonjour monde!\n")
+        normaliseLineSeparators(executable("cpp/library/build/install/frenchExecutable/french").exec().out) == "Bonjour monde!\n"
     }
     
 }

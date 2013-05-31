@@ -29,6 +29,8 @@ class TextUtilTest extends Specification {
 
         where:
         original                          | converted
+        ""                                | ""
+        "none"                            | "none"
         "one\rtwo\nthree\r\nfour\n\rfive" | "one${sep}two${sep}three${sep}four${sep}${sep}five"
     }
 
@@ -38,8 +40,22 @@ class TextUtilTest extends Specification {
 
         where:
         original                          | converted
+        ""                                | ""
+        "none"                            | "none"
         "one\rtwo\nthree\r\nfour\n\rfive" | "one${platformSep}two${platformSep}three${platformSep}four${platformSep}${platformSep}five"
         "\n\n"                            | "${platformSep}${platformSep}"
+    }
+
+    def normaliseLineSeparators() {
+        expect:
+        TextUtil.normaliseLineSeparators(original) == converted
+
+        where:
+        original                          | converted
+        ""                                | ""
+        "none"                            | "none"
+        "one\rtwo\nthree\r\nfour\n\rfive" | "one\ntwo\nthree\nfour\n\nfive"
+        "\r\n\n\r"                        | "\n\n\n"
     }
 
     def containsWhitespace() {
@@ -62,11 +78,11 @@ class TextUtilTest extends Specification {
         TextUtil.indent(text, indent) == result
 
         where:
-        text            | indent | result
-        ""              | ""     | ""
-        "abc"           | "  "   | "  abc"
-        "abc"           | "def"  | "defabc"
-        "abc\ndef\nghi" | " "    | " abc\n def\n ghi"
+        text                | indent | result
+        ""                  | ""     | ""
+        "abc"               | "  "   | "  abc"
+        "abc"               | "def"  | "defabc"
+        "abc\ndef\nghi"     | " "    | " abc\n def\n ghi"
         "abc\n\t\n   \nghi" | "X"    | "Xabc\n\t\n   \nXghi"
     }
 }
