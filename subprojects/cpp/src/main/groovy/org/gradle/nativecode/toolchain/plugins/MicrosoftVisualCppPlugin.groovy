@@ -23,12 +23,13 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
-import org.gradle.nativecode.base.plugins.BinariesPlugin
-import org.gradle.nativecode.base.ToolChainRegistry
-import org.gradle.nativecode.toolchain.internal.msvcpp.VisualCppToolChain
-import org.gradle.process.internal.ExecAction
-import org.gradle.process.internal.DefaultExecAction
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativecode.base.ToolChainRegistry
+import org.gradle.nativecode.base.plugins.BinariesPlugin
+import org.gradle.nativecode.toolchain.internal.msvcpp.UnavailableToolChain
+import org.gradle.nativecode.toolchain.internal.msvcpp.VisualCppToolChain
+import org.gradle.process.internal.DefaultExecAction
+import org.gradle.process.internal.ExecAction
 
 import javax.inject.Inject
 
@@ -47,11 +48,13 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(BinariesPlugin)
 
+        def registry = project.extensions.getByType(ToolChainRegistry)
+
         if (!OperatingSystem.current().windows) {
-            return
+            registry.add(new UnavailableToolChain())
         }
 
-        project.extensions.getByType(ToolChainRegistry).add(new VisualCppToolChain(
+        registry.add(new VisualCppToolChain(
                 OperatingSystem.current(),
                 new Factory<ExecAction>() {
                     ExecAction create() {

@@ -56,7 +56,7 @@ public class VisualCppToolChain implements ToolChainInternal {
 
     @Override
     public String toString() {
-        return String.format("Visual C++ (%s)", operatingSystem.getExecutableName(COMPILER_EXE));
+        return "Visual C++";
     }
 
     public ToolChainAvailability getAvailability() {

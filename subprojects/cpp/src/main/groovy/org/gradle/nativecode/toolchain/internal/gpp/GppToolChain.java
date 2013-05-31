@@ -20,8 +20,8 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.base.internal.*;
-import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
 import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
 import org.gradle.process.internal.ExecAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +35,12 @@ public class GppToolChain implements ToolChainInternal {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GppToolChain.class);
 
-    public static final String NAME = "gpp";
+    public static final String NAME = "gcc";
     private static final String GPP = "g++";
     private static final String AR = "ar";
 
     private final File gppExecutable;
     private final File arExecutable;
-    private final OperatingSystem operatingSystem;
     private final Factory<ExecAction> execActionFactory;
     private final Transformer<String, File> versionDeterminer;
 
@@ -49,13 +48,12 @@ public class GppToolChain implements ToolChainInternal {
     private String version;
 
     public GppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        this(operatingSystem.findInPath(GPP), operatingSystem.findInPath(AR), operatingSystem, execActionFactory, new GppVersionDeterminer());
+        this(operatingSystem.findInPath(GPP), operatingSystem.findInPath(AR), execActionFactory, new GppVersionDeterminer());
     }
 
-    protected GppToolChain(File gppExecutable, File arExecutable, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory, Transformer<String, File> versionDeterminer) {
+    protected GppToolChain(File gppExecutable, File arExecutable, Factory<ExecAction> execActionFactory, Transformer<String, File> versionDeterminer) {
         this.gppExecutable = gppExecutable;
         this.arExecutable = arExecutable;
-        this.operatingSystem = operatingSystem;
         this.execActionFactory = execActionFactory;
         this.versionDeterminer = versionDeterminer;
     }
@@ -66,7 +64,7 @@ public class GppToolChain implements ToolChainInternal {
 
     @Override
     public String toString() {
-        return String.format("GNU G++ (%s)", operatingSystem.getExecutableName(GPP));
+        return "GNU G++";
     }
 
     public ToolChainAvailability getAvailability() {
