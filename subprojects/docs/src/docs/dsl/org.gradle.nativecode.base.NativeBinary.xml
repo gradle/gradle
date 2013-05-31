@@ -51,6 +51,12 @@
             <tr>
                 <td>lib</td>
             </tr>
+            <tr>
+                <td>compilerArgs</td>
+            </tr>
+            <tr>
+                <td>linkerArgs</td>
+            </tr>
         </table>
     </section>
 </section>

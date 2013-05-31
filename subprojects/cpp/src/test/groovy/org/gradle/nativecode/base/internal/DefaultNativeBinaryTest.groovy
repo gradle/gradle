@@ -82,7 +82,7 @@ class DefaultNativeBinaryTest extends Specification {
 
     class TestBinary extends DefaultNativeBinary {
         TestBinary(NativeComponent owner) {
-            super(owner)
+            super(owner, "name")
         }
 
         @Override
@@ -92,10 +92,6 @@ class DefaultNativeBinaryTest extends Specification {
 
         @Override
         String getOutputFileName() {
-            throw new UnsupportedOperationException()
-        }
-
-        String getName() {
             throw new UnsupportedOperationException()
         }
     }

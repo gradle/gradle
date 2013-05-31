@@ -26,6 +26,7 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
             executables {
                 main {
                     binaries.all {
+                        outputFile = file('${executable("build/test").toURI()}')
                         compilerArgs << '-DENABLE_GREETING'
                     }
                 }
@@ -49,7 +50,7 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "mainExecutable"
 
         then:
-        def executable = executable("build/binaries/test")
+        def executable = executable("build/test")
         executable.exec().out == "Hello!"
     }
 
@@ -67,6 +68,7 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
                 hello {
                     sourceSets << cpp.sourceSets.hello
                     binaries.all {
+                        outputFile = file('${staticLibrary("build/hello").toURI()}')
                         compilerArgs << '-DENABLE_GREETING'
                     }
                 }
@@ -111,6 +113,7 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installMainExecutable"
 
         then:
+        staticLibrary("build/hello").file
         executable("build/install/mainExecutable/test").exec().out == "Hello!"
     }
 }

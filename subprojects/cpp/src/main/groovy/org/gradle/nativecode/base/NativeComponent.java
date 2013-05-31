@@ -19,8 +19,6 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
-import java.util.List;
-
 /**
  * Represents a logical software component, which may be built in a number of variant binaries.
  */
@@ -33,7 +31,7 @@ public interface NativeComponent extends Named {
     DomainObjectSet<SourceSet> getSourceSets();
 
     /**
-     * The binaries that are built for this component.
+     * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */
     DomainObjectSet<NativeBinary> getBinaries();
 
@@ -46,24 +44,4 @@ public interface NativeComponent extends Named {
      * Sets the name that is used to construct task names and output file names when building this component.
      */
     void setBaseName(String baseName);
-
-    /**
-     * The arguments passed when compiling this component.
-     */
-    List<Object> getCompilerArgs();
-
-    /**
-     * Adds a number of arguments to be passed to the compiler.
-     */
-    void compilerArgs(Object... args);
-
-    /**
-     * The arguments passed when linking this component.
-     */
-    List<Object> getLinkerArgs();
-
-    /**
-     * Adds a number of arguments to be passed to the linker.
-     */
-    void linkerArgs(Object... args);
 }

@@ -22,16 +22,10 @@ import org.gradle.nativecode.base.NativeComponent;
 import org.gradle.nativecode.base.SourceSet;
 import org.gradle.util.GUtil;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 public class DefaultNativeComponent implements NativeComponent {
     private final String name;
     private final DomainObjectSet<SourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;
-    private final List<Object> compilerArgs = new ArrayList<Object>();
-    private final List<Object> linkerArgs = new ArrayList<Object>();
     private String baseName;
 
     public DefaultNativeComponent(String name) {
@@ -58,21 +52,5 @@ public class DefaultNativeComponent implements NativeComponent {
 
     public void setBaseName(String baseName) {
         this.baseName = baseName;
-    }
-
-    public List<Object> getCompilerArgs() {
-        return compilerArgs;
-    }
-
-    public void compilerArgs(Object... args) {
-        Collections.addAll(this.compilerArgs, args);
-    }
-
-    public List<Object> getLinkerArgs() {
-        return linkerArgs;
-    }
-
-    public void linkerArgs(Object... args) {
-        Collections.addAll(this.linkerArgs, args);
     }
 }

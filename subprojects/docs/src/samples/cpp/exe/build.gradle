@@ -3,7 +3,9 @@ apply plugin: "cpp-exe"
 // START SNIPPET args
 executables {
     main {
-        compilerArgs "-fno-access-control", "-fconserve-space"
+        binaries.all {
+            compilerArgs "-fno-access-control", "-fconserve-space"
+        }
     }
 }
 // END SNIPPET args

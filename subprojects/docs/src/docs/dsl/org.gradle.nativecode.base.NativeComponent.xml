@@ -30,10 +30,7 @@
                 <td>sourceSets</td>
             </tr>
             <tr>
-                <td>compilerArgs</td>
-            </tr>
-            <tr>
-                <td>linkerArgs</td>
+                <td>binaries</td>
             </tr>
         </table>
     </section>
@@ -45,12 +42,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>compilerArgs</td>
-            </tr>
-            <tr>
-                <td>linkerArgs</td>
-            </tr>
         </table>
     </section>
 </section>

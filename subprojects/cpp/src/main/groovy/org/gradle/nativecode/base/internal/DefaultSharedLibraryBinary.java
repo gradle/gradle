@@ -34,16 +34,12 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
     private final Library library;
 
     public DefaultSharedLibraryBinary(Library library) {
-        super(library);
+        super(library, library.getName() + "SharedLibrary");
         this.library = library;
     }
 
     public Library getComponent() {
         return library;
-    }
-
-    public String getName() {
-        return library.getName() + "SharedLibrary";
     }
 
     @Override

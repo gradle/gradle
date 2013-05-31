@@ -26,15 +26,27 @@ import org.gradle.language.base.internal.TaskNamerForBinaries;
 import org.gradle.nativecode.base.*;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class DefaultNativeBinary implements NativeBinaryInternal {
     private final DomainObjectSet<NativeDependencySet> libs = new DefaultDomainObjectSet<NativeDependencySet>(NativeDependencySet.class);
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+    private final ArrayList<Object> compilerArgs = new ArrayList<Object>();
+    private final ArrayList<Object> linkerArgs = new ArrayList<Object>();
+    private final TaskNamerForBinaries namer;
+    private final String name;
     private File outputFile;
 
-    protected DefaultNativeBinary(NativeComponent owner) {
+    protected DefaultNativeBinary(NativeComponent owner, String name) {
+        this.name = name;
+        namer = new TaskNamerForBinaries(name);
         owner.getBinaries().add(this);
+    }
+
+    public String getName() {
+        return name;
     }
 
     public File getOutputFile() {
@@ -50,17 +62,24 @@ public abstract class DefaultNativeBinary implements NativeBinaryInternal {
         return getComponent().getSourceSets();
     }
 
-    // TODO:DAZ Allow compiler and linker args to be overridden on a per-binary basis
     public List<Object> getCompilerArgs() {
-        return getComponent().getCompilerArgs();
+        return compilerArgs;
+    }
+
+    public void compilerArgs(Object... args) {
+        Collections.addAll(compilerArgs, args);
     }
 
     public List<Object> getLinkerArgs() {
-        return getComponent().getLinkerArgs();
+        return linkerArgs;
+    }
+
+    public void linkerArgs(Object... args) {
+        Collections.addAll(linkerArgs, args);
     }
 
     public String getTaskName(@Nullable String verb) {
-        return new TaskNamerForBinaries(getName()).getTaskName(verb, null);
+        return namer.getTaskName(verb, null);
     }
 
     public DomainObjectSet<NativeDependencySet> getLibs() {

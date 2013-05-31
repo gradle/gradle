@@ -24,16 +24,12 @@ public class DefaultExecutableBinary extends DefaultNativeBinary implements Exec
     private final Executable executable;
 
     public DefaultExecutableBinary(Executable executable) {
-        super(executable);
+        super(executable, executable.getName() + "Executable");
         this.executable = executable;
     }
 
     public Executable getComponent() {
         return executable;
-    }
-
-    public String getName() {
-        return executable.getName() + "Executable";
     }
 
     @Override

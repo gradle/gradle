@@ -128,19 +128,25 @@ class CppPluginTest extends Specification {
         when:
         project.executables {
             test {
-                compilerArgs "ARG1", "ARG2"
-                linkerArgs "LINK1", "LINK2"
+                binaries.all {
+                    compilerArgs "ARG1", "ARG2"
+                    linkerArgs "LINK1", "LINK2"
+                }
             }
         }
 
         then:
         def executable = project.executables.test
-        executable.compilerArgs == ["ARG1", "ARG2"]
 
         and:
         def executableBinary = project.binaries.testExecutable
         executableBinary.component == executable
+        executableBinary.compilerArgs == ["ARG1", "ARG2"]
+        executableBinary.linkerArgs == ["LINK1", "LINK2"]
         executableBinary.outputFile == project.file("build/binaries/${OperatingSystem.current().getExecutableName('test')}")
+
+        and:
+        executable.binaries.contains executableBinary
     }
 
     def "creates tasks for each executable"() {
@@ -150,8 +156,10 @@ class CppPluginTest extends Specification {
         when:
         project.executables {
             test {
-                compilerArgs "ARG1", "ARG2"
-                linkerArgs "LINK1", "LINK2"
+                binaries.all {
+                    compilerArgs "ARG1", "ARG2"
+                    linkerArgs "LINK1", "LINK2"
+                }
             }
         }
 
@@ -165,6 +173,7 @@ class CppPluginTest extends Specification {
         link instanceof LinkExecutable
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == project.binaries.testExecutable.outputFile
+        link Matchers.dependsOn("compileTestExecutable")
 
         and:
         def install = project.tasks['installTestExecutable']
@@ -188,7 +197,9 @@ class CppPluginTest extends Specification {
         then:
         final sharedLibName = OperatingSystem.current().getSharedLibraryName("test")
         final staticLibName = OperatingSystem.current().getStaticLibraryName("test")
+        def library = project.libraries.test
 
+        and:
         def sharedLibraryBinary = project.binaries.testSharedLibrary
         sharedLibraryBinary.outputFile == project.file("build/binaries/$sharedLibName")
         sharedLibraryBinary.component == project.libraries.test
@@ -197,6 +208,10 @@ class CppPluginTest extends Specification {
         def staticLibraryBinary = project.binaries.testStaticLibrary
         staticLibraryBinary.outputFile == project.file("build/binaries/$staticLibName")
         staticLibraryBinary.component == project.libraries.test
+
+        and:
+        library.binaries.contains(sharedLibraryBinary)
+        library.binaries.contains(staticLibraryBinary)
     }
 
     def "creates tasks for each library"() {
@@ -206,26 +221,35 @@ class CppPluginTest extends Specification {
         when:
         project.libraries {
             test {
-                compilerArgs "ARG1", "ARG2"
-                linkerArgs "LINK1", "LINK2"
+                binaries.all {
+                    compilerArgs "ARG1", "ARG2"
+                    linkerArgs "LINK1", "LINK2"
+                }
             }
         }
 
         then:
-        def compile = project.tasks['compileTestSharedLibrary']
-        compile instanceof CppCompile
-        compile.compilerArgs == ["ARG1", "ARG2"]
+        def sharedCompile = project.tasks['compileTestSharedLibrary']
+        sharedCompile instanceof CppCompile
+        sharedCompile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
         def link = project.tasks['testSharedLibrary']
         link instanceof LinkSharedLibrary
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == project.binaries.testSharedLibrary.outputFile
+        link Matchers.dependsOn("compileTestSharedLibrary")
+
+        and:
+        def staticCompile = project.tasks['compileTestStaticLibrary']
+        staticCompile instanceof CppCompile
+        staticCompile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
         def staticLink = project.tasks['testStaticLibrary']
         staticLink instanceof CreateStaticLibrary
         staticLink.outputFile == project.binaries.testStaticLibrary.outputFile
+        staticLink Matchers.dependsOn("compileTestStaticLibrary")
 
         and:
         project.binaries.testSharedLibrary.buildDependencies.getDependencies(null) == [link] as Set

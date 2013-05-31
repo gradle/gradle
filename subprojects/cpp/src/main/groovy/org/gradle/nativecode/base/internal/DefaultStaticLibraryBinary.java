@@ -34,16 +34,12 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
     private final Library library;
 
     public DefaultStaticLibraryBinary(Library library) {
-        super(library);
+        super(library, library.getName() + "StaticLibrary");
         this.library = library;
     }
 
     public Library getComponent() {
         return library;
-    }
-
-    public String getName() {
-        return library.getName() + "StaticLibrary";
     }
 
     @Override

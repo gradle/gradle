@@ -20,7 +20,9 @@ libraries {
     }
     helloFrench {
         sourceSets << project.cpp.sourceSets.lib
-        compilerArgs "-DFRENCH"
+        binaries.all {
+            compilerArgs "-DFRENCH"
+        }
     }
 }
 

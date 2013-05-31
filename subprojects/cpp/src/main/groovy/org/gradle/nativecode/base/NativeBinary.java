@@ -68,7 +68,17 @@ public interface NativeBinary extends Binary, Buildable {
     List<Object> getCompilerArgs();
 
     /**
+     * Adds a number of arguments to be passed to the compiler.
+     */
+    void compilerArgs(Object... args);
+
+    /**
      * The arguments passed when linking this binary.
      */
     List<Object> getLinkerArgs();
+
+    /**
+     * Adds a number of arguments to be passed to the linker.
+     */
+    void linkerArgs(Object... args);
 }

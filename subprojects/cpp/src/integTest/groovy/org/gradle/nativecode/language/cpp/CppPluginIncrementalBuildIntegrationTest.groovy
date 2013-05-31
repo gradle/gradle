@@ -135,7 +135,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         buildFile << """
             executables {
                 main {
-                    compilerArgs '-DFRENCH'
+                    binaries.all { compilerArgs '-DFRENCH' }
                 }
             }
 """
@@ -174,7 +174,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         buildFile << """
             executables {
                 main {
-                    linkerArgs ${escapeString(linkerArgs)}
+                    binaries.all { linkerArgs ${escapeString(linkerArgs)} }
                 }
             }
 """
