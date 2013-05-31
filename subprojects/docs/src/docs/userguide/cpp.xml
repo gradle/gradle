@@ -37,16 +37,19 @@
             <tr><td>Operating System</td><td>Tool Chain</td><td>Notes</td></tr>
         </thread>
         <tr>
-            <td>Linux</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Tested with GCC 4.6.1 on Ubuntu 11.10</td>
+            <td>Linux</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td></td>
         </tr>
         <tr>
-            <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Tested with XCode 4.2.1 on OS X 10.7</td>
+            <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Using GCC distributed with XCode.</td>
         </tr>
         <tr>
-            <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Tested with Windows 7 and Visual C++ 2010</td>
+            <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Windows XP and later, using GCC distributed with Cygwin.</td>
         </tr>
         <tr>
-            <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Tested with Windows 7 and MinGW 4.6.2. Note: G++ support is currently broken under cygwin</td>
+            <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
+        </tr>
+        <tr>
+            <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later.</td>
         </tr>
     </table>
     <para>
