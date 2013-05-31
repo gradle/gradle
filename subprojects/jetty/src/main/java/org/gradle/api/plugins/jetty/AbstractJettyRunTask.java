@@ -74,15 +74,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      */
     private File overrideWebXml;
 
-    /**
-     * The interval in seconds to scan the webapp for changes and restart the context if necessary. Ignored if reload is enabled. Disabled by default.
-     */
     private int scanIntervalSeconds;
 
-    /**
-     * reload can be set to either 'automatic' or 'manual' <p/> if 'manual' then the context can be reloaded by a linefeed in the console if 'automatic' then traditional reloading on changed files is
-     * enabled.
-     */
     protected String reload;
 
     /**
@@ -413,10 +406,22 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.overrideWebXml = overrideWebXml;
     }
 
+    /**
+     * Returns the interval in seconds between scanning the web app for file changes.
+     * If file changes are detected, the web app is reloaded. Only relevant
+     * if {@code reload} is set to {@code "automatic"}. Defaults to {@code 0},
+     * which <em>disables</em> automatic reloading.
+     */
     public int getScanIntervalSeconds() {
         return scanIntervalSeconds;
     }
 
+    /**
+     * Sets the interval in seconds between scanning the web app for file changes.
+     * If file changes are detected, the web app is reloaded. Only relevant
+     * if {@code reload} is set to {@code "automatic"}. Defaults to {@code 0},
+     * which <em>disables</em> automatic reloading.
+     */
     public void setScanIntervalSeconds(int scanIntervalSeconds) {
         this.scanIntervalSeconds = scanIntervalSeconds;
     }
@@ -440,10 +445,30 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.webAppConfig = webAppConfig;
     }
 
+    /**
+     * Returns the reload mode, which is either {@code "automatic"} or {@code "manual"}.
+     *
+     * <p>In automatic mode, the web app is scanned for file changes every n seconds, where n is
+     * determined by the {@code scanIntervalSeconds} property. (Note that {@code scanIntervalSeconds}
+     * defaults to {@code 0}, which <em>disables</em> automatic reloading.) If files changes are
+     * detected, the web app is reloaded.
+     *
+     * <p>In manual mode, the web app is reloaded whenever the Enter key is pressed.
+     */
     public String getReload() {
         return reload;
     }
 
+    /**
+     * Sets the reload mode, which is either {@code "automatic"} or {@code "manual"}.
+     *
+     * <p>In automatic mode, the web app is scanned for file changes every n seconds, where n is
+     * determined by the {@code scanIntervalSeconds} property. (Note that {@code scanIntervalSeconds}
+     * defaults to {@code 0}, which <em>disables</em> automatic reloading.) If files changes are
+     * detected, the web app is reloaded.
+     *
+     * <p>In manual mode, the web app is reloaded whenever the Enter key is pressed.
+     */
     public void setReload(String reload) {
         this.reload = reload;
     }
