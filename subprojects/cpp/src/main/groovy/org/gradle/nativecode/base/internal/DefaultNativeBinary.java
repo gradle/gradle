@@ -38,16 +38,22 @@ public abstract class DefaultNativeBinary implements NativeBinaryInternal {
     private final ArrayList<Object> defines = new ArrayList<Object>();
     private final TaskNamerForBinaries namer;
     private final String name;
+    private final ToolChainInternal toolChain;
     private File outputFile;
 
-    protected DefaultNativeBinary(NativeComponent owner, String name) {
+    protected DefaultNativeBinary(NativeComponent owner, String name, ToolChainInternal toolChain) {
         this.name = name;
+        this.toolChain = toolChain;
         namer = new TaskNamerForBinaries(name);
         owner.getBinaries().add(this);
     }
 
     public String getName() {
         return name;
+    }
+
+    public ToolChain getToolChain() {
+        return toolChain;
     }
 
     public File getOutputFile() {

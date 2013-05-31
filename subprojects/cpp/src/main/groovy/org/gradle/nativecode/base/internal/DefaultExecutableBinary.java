@@ -23,8 +23,8 @@ import org.gradle.nativecode.base.ExecutableBinary;
 public class DefaultExecutableBinary extends DefaultNativeBinary implements ExecutableBinary {
     private final Executable executable;
 
-    public DefaultExecutableBinary(Executable executable) {
-        super(executable, executable.getName() + "Executable");
+    public DefaultExecutableBinary(Executable executable, ToolChainInternal toolChain) {
+        super(executable, executable.getName() + "Executable", toolChain);
         this.executable = executable;
     }
 

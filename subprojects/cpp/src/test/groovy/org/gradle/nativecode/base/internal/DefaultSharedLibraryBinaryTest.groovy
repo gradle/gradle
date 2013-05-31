@@ -22,23 +22,21 @@ import org.gradle.tooling.model.Task
 import spock.lang.Specification
 
 class DefaultSharedLibraryBinaryTest extends Specification {
-    def "has useful string representation"() {
-        def library = Stub(Library) {
-            getName() >> "main"
-        }
-        def binary = new DefaultSharedLibraryBinary(library)
+    final toolChain = Stub(ToolChainInternal)
+    def library = Stub(Library) {
+        getName() >> "main"
+    }
+    def binary = new DefaultSharedLibraryBinary(library, toolChain)
 
+    def "has useful string representation"() {
         expect:
         binary.toString() == "shared library 'main'"
     }
 
     def "can convert binary to a native dependency"() {
+        given:
         def headers = Stub(SourceDirectorySet)
-        def library = Stub(Library) {
-            getHeaders() >> headers
-            getName() >> "main"
-        }
-        def binary = new DefaultSharedLibraryBinary(library)
+        library.headers >> headers
         binary.builtBy(Stub(Task))
 
         expect:

@@ -24,7 +24,6 @@ import org.gradle.api.tasks.Sync
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.base.*
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
-import org.gradle.nativecode.base.internal.ToolChainInternal
 import org.gradle.nativecode.base.plugins.BinariesPlugin
 import org.gradle.nativecode.base.tasks.AbstractLinkTask
 import org.gradle.nativecode.base.tasks.CreateStaticLibrary
@@ -79,24 +78,23 @@ class CppPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        ToolChainInternal toolChain = project.extensions.getByType(ToolChainRegistry).defaultToolChain
-        CppCompile compileTask = createCompileTask(project, binary, toolChain)
+        CppCompile compileTask = createCompileTask(project, binary)
         if (binary instanceof StaticLibraryBinary) {
-            createStaticLibraryTask(project, binary, toolChain, compileTask)
+            createStaticLibraryTask(project, binary, compileTask)
         } else if (binary instanceof SharedLibraryBinary) {
-            createLinkTask(project, binary, toolChain, compileTask)
+            createLinkTask(project, binary, compileTask)
         } else { // ExecutableBinary
-            AbstractLinkTask linkTask = createLinkTask(project, binary, toolChain, compileTask)
+            AbstractLinkTask linkTask = createLinkTask(project, binary, compileTask)
             createInstallTask(project, binary, linkTask)
         }
     }
 
-    private CppCompile createCompileTask(ProjectInternal project, NativeBinaryInternal binary, ToolChainInternal toolChain) {
+    private CppCompile createCompileTask(ProjectInternal project, NativeBinaryInternal binary) {
         CppCompile compileTask = project.task(binary.getTaskName("compile"), type: CppCompile) {
             description = "Compiles $binary"
         }
 
-        compileTask.toolChain = toolChain
+        compileTask.toolChain = binary.toolChain
         compileTask.forDynamicLinking = binary instanceof SharedLibraryBinary
 
         // TODO:DAZ Move some of this logic into NativeBinary
@@ -117,13 +115,13 @@ class CppPlugin implements Plugin<ProjectInternal> {
         compileTask
     }
 
-    private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinaryInternal binary, ToolChainInternal toolChain, CppCompile compileTask) {
+    private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinaryInternal binary, CppCompile compileTask) {
         AbstractLinkTask linkTask = project.task(binary.getTaskName(null), type: linkTaskType(binary)) {
              description = "Links ${binary}"
              group = BasePlugin.BUILD_GROUP
          }
 
-        linkTask.toolChain = toolChain
+        linkTask.toolChain = binary.toolChain
 
         linkTask.source compileTask.outputs.files.asFileTree
 
@@ -138,14 +136,14 @@ class CppPlugin implements Plugin<ProjectInternal> {
         linkTask
     }
 
-    private void createStaticLibraryTask(ProjectInternal project, NativeBinaryInternal binary, ToolChainInternal toolChain, CppCompile compileTask) {
+    private void createStaticLibraryTask(ProjectInternal project, NativeBinaryInternal binary, CppCompile compileTask) {
         CreateStaticLibrary task = project.task(binary.getTaskName(null), type: CreateStaticLibrary) {
              description = "Creates ${binary}"
              group = BasePlugin.BUILD_GROUP
          }
 
         task.dependsOn compileTask // TODO:DAZ Avoid this explicit dependency by wiring inputs/outputs better
-        task.toolChain = toolChain
+        task.toolChain = binary.toolChain
 
         task.source project.fileTree(compileTask.objectFileDir)
 

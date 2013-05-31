@@ -82,7 +82,7 @@ class DefaultNativeBinaryTest extends Specification {
 
     class TestBinary extends DefaultNativeBinary {
         TestBinary(NativeComponent owner) {
-            super(owner, "name")
+            super(owner, "name", null)
         }
 
         @Override

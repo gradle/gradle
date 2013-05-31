@@ -33,8 +33,8 @@ import java.util.Set;
 public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements StaticLibraryBinary {
     private final Library library;
 
-    public DefaultStaticLibraryBinary(Library library) {
-        super(library, library.getName() + "StaticLibrary");
+    public DefaultStaticLibraryBinary(Library library, ToolChainInternal toolChain) {
+        super(library, library.getName() + "StaticLibrary", toolChain);
         this.library = library;
     }
 

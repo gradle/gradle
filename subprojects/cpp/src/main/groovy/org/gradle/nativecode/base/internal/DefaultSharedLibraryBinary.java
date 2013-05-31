@@ -33,8 +33,8 @@ import java.util.Set;
 public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements SharedLibraryBinary {
     private final Library library;
 
-    public DefaultSharedLibraryBinary(Library library) {
-        super(library, library.getName() + "SharedLibrary");
+    public DefaultSharedLibraryBinary(Library library, ToolChainInternal toolChain) {
+        super(library, library.getName() + "SharedLibrary", toolChain);
         this.library = library;
     }
 

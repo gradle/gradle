@@ -24,7 +24,7 @@ class DefaultExecutableBinaryTest extends Specification {
         def executable = Stub(Executable) {
             getName() >> "main"
         }
-        def binary = new DefaultExecutableBinary(executable)
+        def binary = new DefaultExecutableBinary(executable, Stub(ToolChainInternal))
 
         expect:
         binary.toString() == "executable 'main'"

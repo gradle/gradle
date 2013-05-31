@@ -30,6 +30,7 @@ import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.nativecode.base.Executable;
 import org.gradle.nativecode.base.Library;
 import org.gradle.nativecode.base.NativeBinary;
+import org.gradle.nativecode.base.ToolChainRegistry;
 import org.gradle.nativecode.base.internal.*;
 
 import javax.inject.Inject;
@@ -53,7 +54,7 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
         project.getPlugins().apply(LanguageBasePlugin.class);
         final BinariesContainer binaries = project.getExtensions().getByType(BinariesContainer.class);
 
-        project.getExtensions().create("compilers",
+        final ToolChainRegistry toolChains = project.getExtensions().create("compilers",
                 DefaultToolChainRegistry.class,
                 instantiator
         );
@@ -67,7 +68,7 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
 
         executables.all(new Action<Executable>() {
             public void execute(Executable executable) {
-                binaries.add(setupDefaults(project, instantiator.newInstance(DefaultExecutableBinary.class, executable)));
+                binaries.add(setupDefaults(project, instantiator.newInstance(DefaultExecutableBinary.class, executable, toolChains.getDefaultToolChain())));
             }
         });
 
@@ -80,10 +81,10 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
 
         libraries.withType(LibraryInternal.class, new Action<LibraryInternal>() {
             public void execute(LibraryInternal library) {
-                DefaultSharedLibraryBinary sharedLibraryBinary = instantiator.newInstance(DefaultSharedLibraryBinary.class, library);
+                DefaultSharedLibraryBinary sharedLibraryBinary = instantiator.newInstance(DefaultSharedLibraryBinary.class, library, toolChains.getDefaultToolChain());
                 library.setDefaultBinary(sharedLibraryBinary);
                 binaries.add(setupDefaults(project, sharedLibraryBinary));
-                binaries.add(setupDefaults(project, instantiator.newInstance(DefaultStaticLibraryBinary.class, library)));
+                binaries.add(setupDefaults(project, instantiator.newInstance(DefaultStaticLibraryBinary.class, library, toolChains.getDefaultToolChain())));
             }
         });
     }

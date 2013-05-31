@@ -16,7 +16,6 @@
 
 package org.gradle.nativecode.base;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.HasInternalProtocol;
@@ -30,7 +29,7 @@ import java.util.List;
  * Represents a particular binary artifact that is the result of building a native component.
  */
 @Incubating @HasInternalProtocol
-public interface NativeBinary extends Binary, Buildable {
+public interface NativeBinary extends Binary {
     /**
      * The file where this binary will be created.
      */
@@ -45,6 +44,11 @@ public interface NativeBinary extends Binary, Buildable {
      * The source sets used to create this binary.
      */
     DomainObjectSet<SourceSet> getSourceSets();
+
+    /**
+     * Returns the {@link ToolChain} that will be used to build this binary.
+     */
+    ToolChain getToolChain();
 
     /**
      * The libraries that should be linked into this binary.
