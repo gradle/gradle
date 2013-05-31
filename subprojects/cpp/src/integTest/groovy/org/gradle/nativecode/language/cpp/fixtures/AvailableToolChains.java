@@ -28,6 +28,7 @@ public class AvailableToolChains {
         if (OperatingSystem.current().isWindows()) {
             compilers.add(findVisualCpp());
             compilers.add(findMinGW());
+            compilers.add(findCygwin());
         } else {
             compilers.add(findGpp("3", "/opt/gcc/3.4.6/g++"));
             compilers.add(findGpp("4", null));
@@ -62,13 +63,23 @@ public class AvailableToolChains {
     }
 
     static private ToolChainCandidate findMinGW() {
-        // Search in the standard installation locations (doesn't yet work with cygwin g++ in path)
+        // Search in the standard installation locations
         File compilerExe = new File("C:/MinGW/bin/g++.exe");
         if (compilerExe.isFile()) {
             return new InstalledToolChain("mingw", compilerExe.getParentFile());
         }
 
         return new UnavailableToolChain("mingw");
+    }
+
+    static private ToolChainCandidate findCygwin() {
+        // Search in the standard installation locations
+        File compilerExe = new File("C:/cygwin/bin/g++.exe");
+        if (compilerExe.isFile()) {
+            return new InstalledToolChain("g++ (cygwin)", compilerExe.getParentFile());
+        }
+
+        return new UnavailableToolChain("g++ (cygwin)");
     }
 
     static private ToolChainCandidate findGpp(String versionPrefix, String hardcodedFallback) {
@@ -106,10 +117,6 @@ public class AvailableToolChains {
 
         public boolean isVisualCpp() {
             return getDisplayName().equals("visual c++");
-        }
-
-        public boolean isGcc() {
-            return !isVisualCpp();
         }
     }
     

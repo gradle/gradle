@@ -27,9 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Compiler adapter for g++
+ * Compiler adapter for GCC.
  */
 public class GppToolChain implements ToolChainInternal {
 
@@ -48,7 +50,7 @@ public class GppToolChain implements ToolChainInternal {
     private String version;
 
     public GppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        this(operatingSystem.findInPath(GPP), operatingSystem.findInPath(AR), execActionFactory, new GppVersionDeterminer());
+        this(findExecutable(operatingSystem), operatingSystem.findInPath(AR), execActionFactory, new GppVersionDeterminer());
     }
 
     protected GppToolChain(File gppExecutable, File arExecutable, Factory<ExecAction> execActionFactory, Transformer<String, File> versionDeterminer) {
@@ -56,6 +58,23 @@ public class GppToolChain implements ToolChainInternal {
         this.arExecutable = arExecutable;
         this.execActionFactory = execActionFactory;
         this.versionDeterminer = versionDeterminer;
+    }
+
+    private static File findExecutable(OperatingSystem operatingSystem) {
+        List<String> candidates;
+        if (operatingSystem.isWindows()) {
+            // Under Cygwin, g++ is a Cygwin symlink to either g++-3 or g++-4. We can't run g++ directly
+            candidates = Arrays.asList("g++-4", "g++-3", GPP);
+        } else {
+            candidates = Arrays.asList(GPP);
+        }
+        for (String candidate : candidates) {
+            File executable = operatingSystem.findInPath(candidate);
+            if (executable != null) {
+                return executable;
+            }
+        }
+        return null;
     }
 
     public String getName() {
@@ -73,7 +92,7 @@ public class GppToolChain implements ToolChainInternal {
         availability.mustExist(AR, arExecutable);
         determineVersion();
         if (version == null) {
-            availability.unavailable("Could not determine GPP version");
+            availability.unavailable("Could not determine G++ version");
         }
         return availability;
     }
