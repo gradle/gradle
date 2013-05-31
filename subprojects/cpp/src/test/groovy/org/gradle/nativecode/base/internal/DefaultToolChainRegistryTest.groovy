@@ -88,6 +88,11 @@ class DefaultToolChainRegistryTest extends Specification {
 
         when:
         def defaultToolChain = registry.getDefaultToolChain()
+
+        then:
+        noExceptionThrown()
+
+        when:
         defaultToolChain.createCompiler(BinaryCompileSpec).execute(compileSpec)
 
         then:
