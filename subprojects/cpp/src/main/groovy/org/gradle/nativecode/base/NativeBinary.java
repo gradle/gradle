@@ -63,6 +63,16 @@ public interface NativeBinary extends Binary, Buildable {
     void lib(Object library);
 
     /**
+     * The set of preprocessor macros to define when compiling this binary.
+     */
+    List<Object> getMacros();
+
+    /**
+     * Adds a number of preprocessor macros to define when compiling this binary.
+     */
+    void define(Object... defines);
+
+    /**
      * The arguments passed when compiling this binary.
      */
     List<Object> getCompilerArgs();

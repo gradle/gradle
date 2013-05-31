@@ -157,6 +157,7 @@ class CppPluginTest extends Specification {
         project.executables {
             test {
                 binaries.all {
+                    define "NDEBUG"
                     compilerArgs "ARG1", "ARG2"
                     linkerArgs "LINK1", "LINK2"
                 }
@@ -166,6 +167,7 @@ class CppPluginTest extends Specification {
         then:
         def compile = project.tasks['compileTestExecutable']
         compile instanceof CppCompile
+        compile.macros == ["NDEBUG"]
         compile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
@@ -222,6 +224,7 @@ class CppPluginTest extends Specification {
         project.libraries {
             test {
                 binaries.all {
+                    define "NDEBUG"
                     compilerArgs "ARG1", "ARG2"
                     linkerArgs "LINK1", "LINK2"
                 }
@@ -231,6 +234,7 @@ class CppPluginTest extends Specification {
         then:
         def sharedCompile = project.tasks['compileTestSharedLibrary']
         sharedCompile instanceof CppCompile
+        sharedCompile.macros == ["NDEBUG"]
         sharedCompile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
@@ -243,6 +247,7 @@ class CppPluginTest extends Specification {
         and:
         def staticCompile = project.tasks['compileTestStaticLibrary']
         staticCompile instanceof CppCompile
+        staticCompile.macros == ["NDEBUG"]
         staticCompile.compilerArgs == ["ARG1", "ARG2"]
 
         and:

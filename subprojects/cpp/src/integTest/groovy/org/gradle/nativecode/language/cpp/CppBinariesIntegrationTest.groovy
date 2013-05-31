@@ -26,8 +26,8 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
             executables {
                 main {
                     binaries.all {
-                        outputFile = file('${executable("build/test").toURI()}')
-                        compilerArgs << '-DENABLE_GREETING'
+                        outputFile file('${executable("build/test").toURI()}')
+                        define 'ENABLE_GREETING'
                     }
                 }
             }
@@ -68,8 +68,8 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
                 hello {
                     sourceSets << cpp.sourceSets.hello
                     binaries.all {
-                        outputFile = file('${staticLibrary("build/hello").toURI()}')
-                        compilerArgs << '-DENABLE_GREETING'
+                        outputFile file('${staticLibrary("build/hello").toURI()}')
+                        define 'ENABLE_GREETING'
                     }
                 }
             }

@@ -33,6 +33,9 @@
                 <td>libs</td>
             </tr>
             <tr>
+                <td>macros</td>
+            </tr>
+            <tr>
                 <td>compilerArgs</td>
             </tr>
             <tr>
@@ -50,6 +53,9 @@
             </thead>
             <tr>
                 <td>lib</td>
+            </tr>
+            <tr>
+                <td>define</td>
             </tr>
             <tr>
                 <td>compilerArgs</td>

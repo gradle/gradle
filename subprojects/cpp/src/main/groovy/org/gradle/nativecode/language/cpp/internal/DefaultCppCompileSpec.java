@@ -23,6 +23,7 @@ public class DefaultCppCompileSpec implements CppCompileSpec {
 
     private Iterable<File> includeRoots;
     private Iterable<File> source;
+    private Iterable<String> macros = new ArrayList<String>();
     private Iterable<String> args = new ArrayList<String>();
     private File objectFileDir;
     private File tempDir;
@@ -58,6 +59,14 @@ public class DefaultCppCompileSpec implements CppCompileSpec {
 
     public void setTempDir(File tempDir) {
         this.tempDir = tempDir;
+    }
+
+    public Iterable<String> getMacros() {
+        return macros;
+    }
+
+    public void setMacros(Iterable<String> macros) {
+        this.macros = macros;
     }
 
     public void setArgs(Iterable<String> args) {

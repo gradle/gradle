@@ -35,6 +35,7 @@ public abstract class DefaultNativeBinary implements NativeBinaryInternal {
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private final ArrayList<Object> compilerArgs = new ArrayList<Object>();
     private final ArrayList<Object> linkerArgs = new ArrayList<Object>();
+    private final ArrayList<Object> defines = new ArrayList<Object>();
     private final TaskNamerForBinaries namer;
     private final String name;
     private File outputFile;
@@ -60,6 +61,14 @@ public abstract class DefaultNativeBinary implements NativeBinaryInternal {
     // TODO:DAZ This should allow source sets to be extended on a per-binary basis
     public DomainObjectSet<SourceSet> getSourceSets() {
         return getComponent().getSourceSets();
+    }
+
+    public List<Object> getMacros() {
+        return defines;
+    }
+
+    public void define(Object... defines) {
+        Collections.addAll(this.defines, defines);
     }
 
     public List<Object> getCompilerArgs() {

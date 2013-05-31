@@ -111,6 +111,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         }
 
         compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.name}") }
+        compileTask.conventionMapping.macros = { binary.macros }
         compileTask.conventionMapping.compilerArgs = { binary.compilerArgs }
 
         compileTask

@@ -55,6 +55,9 @@ class GppCompiler implements Compiler<CppCompileSpec> {
 
     private static class GppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
         public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
+            for (String macro : spec.getMacros()) {
+                collector.args("-D" + macro);
+            }
             collector.args(spec.getArgs());
             collector.args("-c");
             if (spec.isForDynamicLinking()) {

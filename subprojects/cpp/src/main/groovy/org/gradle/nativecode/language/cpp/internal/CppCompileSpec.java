@@ -34,6 +34,10 @@ public interface CppCompileSpec extends BinaryCompileSpec {
 
     void setForDynamicLinking(boolean flag);
 
+    Iterable<String> getMacros();
+
+    void setMacros(Iterable<String> macros);
+
     Iterable<String> getArgs();
 
     void setArgs(Iterable<String> args);

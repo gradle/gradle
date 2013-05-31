@@ -46,9 +46,12 @@ class VisualCppCompiler implements Compiler<CppCompileSpec> {
 
     private static class VisualCppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
         public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
+            collector.args("/nologo");
+            for (String macro : spec.getMacros()) {
+                collector.args("/D" + macro);
+            }
             collector.args(spec.getArgs());
             collector.args("/c");
-            collector.args("/nologo");
             collector.args("/EHsc");
             if (spec.isForDynamicLinking()) {
                 collector.args("/LD"); // TODO:DAZ Not sure if this has any effect at compile time

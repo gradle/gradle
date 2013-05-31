@@ -51,6 +51,9 @@ class CppCompile extends DefaultTask {
     }
 
     @Input
+    List<String> macros
+
+    @Input
     List<String> compilerArgs
 
     @Inject
@@ -67,6 +70,7 @@ class CppCompile extends DefaultTask {
         spec.objectFileDir = getObjectFileDir()
         spec.includeRoots = getIncludes()
         spec.source = getSource()
+        spec.macros = getMacros()
         spec.args = getCompilerArgs()
         if (isForDynamicLinking()) {
             spec.forDynamicLinking = true
