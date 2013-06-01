@@ -29,7 +29,7 @@ abstract class AbstractBinariesIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def TestFile objectFile(Object path) {
-        if (OperatingSystem.current().windows) {
+        if (toolChain.visualCpp) {
             return file("${path}.obj")
         }
         return file("${path}.o")

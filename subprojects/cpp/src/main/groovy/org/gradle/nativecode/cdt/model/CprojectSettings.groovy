@@ -22,7 +22,7 @@ import org.gradle.nativecode.base.Executable
 import org.gradle.nativecode.base.HeaderExportingSourceSet
 import org.gradle.nativecode.base.Library
 import org.gradle.nativecode.base.NativeComponent
-import org.gradle.nativecode.base.NativeDependencyCapableSourceSet
+import org.gradle.nativecode.base.NativeDependencySet
 import org.gradle.nativecode.language.cpp.CppSourceSet
 
 /**
@@ -46,18 +46,10 @@ class CprojectSettings {
             includeRoots.from(it.exportedHeaders.srcDirs)
         }
 
-        binary.sourceSets.withType(NativeDependencyCapableSourceSet).all {
-            it.nativeDependencySets.all {
-                this.includeRoots.from(it.includeRoots)
-                this.libs.from(it.files)
-            }
-        }
-
         binary.sourceSets.withType(CppSourceSet).all { sourceSet ->
-            sourceSet.libs.all { lib ->
-                this.libs.from(lib.outputFile)
-                this.libs.builtBy(lib.buildDependencies)
-                this.includeRoots.from(lib.headers.srcDirs)
+            sourceSet.libs.all { NativeDependencySet lib ->
+                this.libs.from(lib.files)
+                this.includeRoots.from(lib.includeRoots)
             }
         }
     }

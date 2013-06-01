@@ -15,16 +15,13 @@
  */
 package org.gradle.nativecode.language.cpp;
 
-import org.gradle.api.Incubating;
-import org.gradle.nativecode.base.Library;
-import org.gradle.nativecode.base.HeaderExportingSourceSet;
-import org.gradle.nativecode.base.NativeDependencyCapableSourceSet;
-
-import org.gradle.api.Named;
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.file.SourceDirectorySet;
-
 import groovy.lang.Closure;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.nativecode.base.HeaderExportingSourceSet;
+import org.gradle.nativecode.base.NativeDependencySet;
 
 import java.util.Map;
 
@@ -32,8 +29,7 @@ import java.util.Map;
  * A representation of a unit of C++ source.
  */
 @Incubating
-public interface CppSourceSet extends HeaderExportingSourceSet, NativeDependencyCapableSourceSet, Named {
-
+public interface CppSourceSet extends HeaderExportingSourceSet, Named {
     /**
      * The headers.
      */
@@ -55,12 +51,23 @@ public interface CppSourceSet extends HeaderExportingSourceSet, NativeDependency
     CppSourceSet source(Closure closure);
 
     /**
-     * Libs this source set requires
+     * The libraries that this source set requires.
      */
-    DomainObjectSet<Library> getLibs();
+    DomainObjectSet<NativeDependencySet> getLibs();
     
     /**
-     * Add a dependency to this source set
+     * Adds a library that this source set requires. This method accepts the following types:
+     *
+     * <ul>
+     *     <li>A {@link org.gradle.nativecode.base.Library}</li>
+     *     <li>A {@link org.gradle.nativecode.base.LibraryBinary}</li>
+     *     <li>A {@link NativeDependencySet}</li>
+     * </ul>
+     */
+    void lib(Object library);
+
+    /**
+     * Add a dependency to this source set.
      */
     void dependency(Map<?, ?> dep);
 

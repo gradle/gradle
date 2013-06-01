@@ -70,10 +70,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     def createTasks(ProjectInternal project, NativeBinaryInternal binary) {
         // TODO:DAZ Move this logic into NativeBinary
         binary.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
-            sourceSet.nativeDependencySets.all { NativeDependencySet nativeDependencySet ->
-                binary.lib nativeDependencySet
-            }
-            sourceSet.libs.all { Library lib ->
+            sourceSet.libs.all { NativeDependencySet lib ->
                 binary.lib lib
             }
         }

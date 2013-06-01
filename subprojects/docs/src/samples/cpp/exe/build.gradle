@@ -7,7 +7,10 @@ executables {
             // Define a preprocessor macro
             define "NDEBUG"
             // Add some additional compiler arguments
-            compilerArgs "-fno-access-control", "-fconserve-space"
+            if (toolChain == compilers.gcc) {
+                compilerArgs "-fno-access-control", "-fconserve-space"
+                linkerArgs "-fatal_warnings"
+            }
         }
     }
 }

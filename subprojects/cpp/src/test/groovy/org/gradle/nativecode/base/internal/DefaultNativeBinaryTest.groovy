@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.base.internal
 
+import org.gradle.nativecode.base.Library
 import org.gradle.nativecode.base.LibraryBinary
 import org.gradle.nativecode.base.NativeComponent
 import org.gradle.nativecode.base.NativeDependencySet
@@ -44,12 +45,10 @@ class DefaultNativeBinaryTest extends Specification {
     def "can add a library as a dependency of the binary"() {
         def binary = new TestBinary(component)
         def dependency = Stub(NativeDependencySet)
-        def libraryBinary = Mock(LibraryBinary)
-        def library = Mock(LibraryInternal)
+        def library = Mock(Library)
 
         given:
-        library.defaultBinary >> libraryBinary
-        libraryBinary.asNativeDependencySet >> dependency
+        library.shared >> dependency
 
         when:
         binary.lib(library)

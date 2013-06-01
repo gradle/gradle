@@ -79,10 +79,9 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
                 new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project.getFileResolver())
         );
 
-        libraries.withType(LibraryInternal.class, new Action<LibraryInternal>() {
-            public void execute(LibraryInternal library) {
+        libraries.withType(Library.class, new Action<Library>() {
+            public void execute(Library library) {
                 DefaultSharedLibraryBinary sharedLibraryBinary = instantiator.newInstance(DefaultSharedLibraryBinary.class, library, toolChains.getDefaultToolChain());
-                library.setDefaultBinary(sharedLibraryBinary);
                 binaries.add(setupDefaults(project, sharedLibraryBinary));
                 binaries.add(setupDefaults(project, instantiator.newInstance(DefaultStaticLibraryBinary.class, library, toolChains.getDefaultToolChain())));
             }

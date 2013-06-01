@@ -17,13 +17,15 @@
 package org.gradle.nativecode.base.internal;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.TaskNamerForBinaries;
-import org.gradle.nativecode.base.*;
+import org.gradle.nativecode.base.NativeComponent;
+import org.gradle.nativecode.base.NativeDependencySet;
+import org.gradle.nativecode.base.SourceSet;
+import org.gradle.nativecode.base.ToolChain;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -102,17 +104,7 @@ public abstract class DefaultNativeBinary implements NativeBinaryInternal {
     }
 
     public void lib(Object notation) {
-        if (notation instanceof Library) {
-            LibraryInternal library = (LibraryInternal) notation;
-            libs.add(library.getDefaultBinary().getAsNativeDependencySet());
-        } else if (notation instanceof LibraryBinary) {
-            LibraryBinary libraryBinary = (LibraryBinary) notation;
-            libs.add(libraryBinary.getAsNativeDependencySet());
-        } else if (notation instanceof NativeDependencySet) {
-            libs.add((NativeDependencySet) notation);
-        } else {
-            throw new InvalidUserDataException(String.format("Cannot convert %s to a library dependency.", notation));
-        }
+        libs.add(NativeDependencyNotationParser.parser().parseNotation(notation));
     }
 
     public void builtBy(Object... tasks) {

@@ -30,14 +30,14 @@ executables {
         sourceSets << project.cpp.sourceSets.exe
         binaries.all {
             // Wire the 'helloEnglish' shared library binary into the 'english' executable binary
-            lib project.binaries.helloEnglishSharedLibrary
+            lib libraries.helloEnglish.shared
         }
     }
     french {
         sourceSets << project.cpp.sourceSets.exe
         binaries.all {
             // Wire the 'helloFrench' static library binary into the 'french' executable binary
-            lib project.binaries.helloFrenchStaticLibrary
+            lib libraries.helloFrench.static
         }
     }
 }

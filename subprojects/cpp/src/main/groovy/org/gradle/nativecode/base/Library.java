@@ -17,15 +17,24 @@ package org.gradle.nativecode.base;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.HasInternalProtocol;
 
 /**
  * The logical representation of an library native component.
  */
-@Incubating @HasInternalProtocol
+@Incubating
 public interface Library extends NativeComponent {
     /**
      * The headers exported by this library.
      */
     SourceDirectorySet getHeaders();
+
+    /**
+     * Converts this library to a native dependency that uses the shared library variant. This is the default.
+     */
+    NativeDependencySet getShared();
+
+    /**
+     * Converts this library to a native dependency that uses the static library variant.
+     */
+    NativeDependencySet getStatic();
 }

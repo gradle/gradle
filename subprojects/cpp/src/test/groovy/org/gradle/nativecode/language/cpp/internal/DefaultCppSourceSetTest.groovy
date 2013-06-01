@@ -16,14 +16,55 @@
 
 package org.gradle.nativecode.language.cpp.internal
 
+import org.gradle.nativecode.base.Library
+import org.gradle.nativecode.base.LibraryBinary
+import org.gradle.nativecode.base.NativeDependencySet
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class DefaultCppSourceSetTest extends Specification {
-    def "has useful string representation"() {
-        def sourceSet = new DefaultCppSourceSet("main", HelperUtil.createRootProject())
+    def sourceSet = new DefaultCppSourceSet("main", HelperUtil.createRootProject())
 
+    def "has useful string representation"() {
         expect:
         sourceSet.toString() == "C++ source 'main'"
+    }
+
+    def "can add a library as a dependency of the source set"() {
+        def dependency = Stub(NativeDependencySet)
+        def library = Mock(Library)
+
+        given:
+        library.shared >> dependency
+
+        when:
+        sourceSet.lib(library)
+
+        then:
+        sourceSet.libs.contains(dependency)
+    }
+
+    def "can add a library binary as a dependency of the binary"() {
+        def dependency = Stub(NativeDependencySet)
+        def library = Mock(LibraryBinary)
+
+        given:
+        library.asNativeDependencySet >> dependency
+
+        when:
+        sourceSet.lib(library)
+
+        then:
+        sourceSet.libs.contains(dependency)
+    }
+
+    def "can add a native dependency as a dependency of the binary"() {
+        def dependency = Stub(NativeDependencySet)
+
+        when:
+        sourceSet.lib(dependency)
+
+        then:
+        sourceSet.libs.contains(dependency)
     }
 }

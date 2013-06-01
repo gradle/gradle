@@ -45,8 +45,5 @@ class BinariesPluginTest extends Specification {
         def staticLibraryBinary = project.binaries.testStaticLibrary
         staticLibraryBinary.outputFile == project.file("build/binaries/testStaticLibrary/$staticLibName")
         staticLibraryBinary.component == project.libraries.test
-
-        and:
-        project.libraries.test.defaultBinary == sharedLibraryBinary
     }
 }

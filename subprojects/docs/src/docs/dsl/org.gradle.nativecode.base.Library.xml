@@ -26,6 +26,12 @@
             <tr>
                 <td>headers</td>
             </tr>
+            <tr>
+                <td>shared</td>
+            </tr>
+            <tr>
+                <td>static</td>
+            </tr>
         </table>
     </section>
     <section>

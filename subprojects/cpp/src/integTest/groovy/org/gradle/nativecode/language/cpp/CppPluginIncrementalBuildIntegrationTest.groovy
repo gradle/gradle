@@ -52,7 +52,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
                     }
                 }
             }
-            binaries.mainExecutable.lib binaries.helloSharedLibrary
+            cpp.sourceSets.main.lib libraries.hello
         """
         settingsFile << "rootProject.name = 'test'"
 
@@ -163,6 +163,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
     }
 
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
+        if (toolChain.visualCpp) {
+            return // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
+        }
+
         when:
         headerFile << """
 // Comment added to the end of the header file
@@ -295,7 +299,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         buildFile << "binaries.all { compilerArgs '/Zi'; linkerArgs '/DEBUG'; }"
         run "mainExecutable"
 
-        def debugFile = debugFile("build/binaries/main")
+        def debugFile = debugFile("build/binaries/mainExecutable/main")
         assert debugFile.file
 
         when:

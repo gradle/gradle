@@ -21,20 +21,17 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.nativecode.base.HeaderExportingSourceSet;
-import org.gradle.nativecode.base.LibraryBinary;
+import org.gradle.nativecode.base.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultLibrary extends DefaultNativeComponent implements LibraryInternal {
+public class DefaultLibrary extends DefaultNativeComponent implements Library {
     private final DefaultSourceDirectorySet headers;
-    private LibraryBinary defaultBinary;
 
     public DefaultLibrary(String name, FileResolver fileResolver) {
         super(name);
         this.headers = new DefaultSourceDirectorySet("headers", String.format("Exported headers for native library '%s'", name), fileResolver);
-
         initExportedHeaderTracking();
     }
 
@@ -47,12 +44,12 @@ public class DefaultLibrary extends DefaultNativeComponent implements LibraryInt
         return headers;
     }
 
-    public LibraryBinary getDefaultBinary() {
-        return defaultBinary;
+    public NativeDependencySet getShared() {
+        return getBinaries().withType(SharedLibraryBinary.class).iterator().next().getAsNativeDependencySet();
     }
 
-    public void setDefaultBinary(LibraryBinary defaultBinary) {
-        this.defaultBinary = defaultBinary;
+    public NativeDependencySet getStatic() {
+        return getBinaries().withType(StaticLibraryBinary.class).iterator().next().getAsNativeDependencySet();
     }
 
     private void initExportedHeaderTracking() {

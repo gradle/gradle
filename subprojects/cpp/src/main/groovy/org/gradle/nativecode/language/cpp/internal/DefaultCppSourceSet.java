@@ -21,9 +21,9 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.nativecode.base.Library;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.internal.ConfigurationBasedNativeDependencySet;
+import org.gradle.nativecode.base.internal.NativeDependencyNotationParser;
 import org.gradle.nativecode.language.cpp.CppSourceSet;
 import org.gradle.util.ConfigureUtil;
 
@@ -35,8 +35,7 @@ public class DefaultCppSourceSet implements CppSourceSet {
 
     private final DefaultSourceDirectorySet exportedHeaders;
     private final DefaultSourceDirectorySet source;
-    private final DefaultDomainObjectSet<Library> libs;
-    private final DefaultDomainObjectSet<NativeDependencySet> nativeDependencySets;
+    private final DefaultDomainObjectSet<NativeDependencySet> libs;
     private final ConfigurationBasedNativeDependencySet configurationDependencySet;
 
     public DefaultCppSourceSet(String name, ProjectInternal project) {
@@ -44,11 +43,10 @@ public class DefaultCppSourceSet implements CppSourceSet {
 
         this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", project.getFileResolver());
         this.source = new DefaultSourceDirectorySet("source", project.getFileResolver());
-        this.libs = new DefaultDomainObjectSet<Library>(Library.class);
-        this.nativeDependencySets = new DefaultDomainObjectSet<NativeDependencySet>(NativeDependencySet.class);
+        this.libs = new DefaultDomainObjectSet<NativeDependencySet>(NativeDependencySet.class);
         this.configurationDependencySet = new ConfigurationBasedNativeDependencySet(project, name);
         
-        nativeDependencySets.add(configurationDependencySet);
+        libs.add(configurationDependencySet);
     }
 
     public String getName() {
@@ -78,12 +76,12 @@ public class DefaultCppSourceSet implements CppSourceSet {
         return this;
     }
 
-    public DomainObjectSet<Library> getLibs() {
+    public DomainObjectSet<NativeDependencySet> getLibs() {
         return libs;
     }
 
-    public DomainObjectSet<NativeDependencySet> getNativeDependencySets() {
-        return nativeDependencySets;
+    public void lib(Object library) {
+        libs.add(NativeDependencyNotationParser.parser().parseNotation(library));
     }
 
     public void dependency(Map<?, ?> dep) {
