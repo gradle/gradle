@@ -62,7 +62,7 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
             executables {
                 main {
                     binaries.all {
-                        if (toolchain == compilers.visualCpp) {
+                        if (toolChain == compilers.visualCpp) {
                             compilerArgs '/Zi'
                             linkerArgs '/DEBUG'
                         } else {

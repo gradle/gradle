@@ -296,14 +296,18 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         }
 
         given:
-        buildFile << "binaries.all { compilerArgs '/Zi'; linkerArgs '/DEBUG'; }"
+        buildFile << """
+            binaries.all { compilerArgs '/Zi'; linkerArgs '/DEBUG'; }
+        """
         run "mainExecutable"
 
         def debugFile = debugFile("build/binaries/mainExecutable/main")
         assert debugFile.file
 
         when:
-        buildFile << "binaries.all { compilerArgs.clear(); linkerArgs.clear(); }"
+        buildFile << """
+            binaries.all { compilerArgs.clear(); linkerArgs.clear(); }
+        """
         run "mainExecutable"
 
         then:
