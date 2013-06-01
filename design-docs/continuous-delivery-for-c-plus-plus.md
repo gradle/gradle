@@ -259,8 +259,16 @@ Later stories will add more flexible and convenient support for customisation of
 
 - Allow navigation from a `Binary` to the tasks associated with the binary.
 - Add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
-- Add properties to set defines and include directories for a binary.
+- Preprocessor macros should be modelled as a map.
+- Add properties to set macros and include directories for a binary, allow these to be set as toolchain specific compiler args (ie -D and -I) as well.
+- Add properties to set system libs and lib directories for a binary, allow these to be set as toolchain specific linker args (ie -l and -L) as well.
 - Add set methods for each of these properties.
+- `NativeComponent.binaries` collides with `project.binaries`, for example, when defining binary libs.
+- `NativeComponent.binaries.all { }` is awkward for linker settings, as these aren't available for a shared lib binary.
+- Add back some conveniences for compiler and linker args for all binaries once delayed configuration is implemented.
+- Allow customisation of the source sets for a binary.
+- Split the compiler and linker settings out to separate types.
+- Strongly type the compiler and linker args as `String`.
 
 ## Story: Defer creation of binaries
 
@@ -338,7 +346,7 @@ This story adds initial support for building multiple variants of a native compo
                 withOptionalFeature
             }
             binaries.all(flavor: flavours.main) {
-                compilerArgs << '-DSOME_FEATURE
+                compilerArgs '-DSOME_FEATURE
             }
         }
     }
@@ -396,6 +404,7 @@ Later stories will build on this to unify the library dependency DSL, so that a 
     - A `NativeBinary` is converted by calling its `getAsNativeDependencySet()` method.
     - A `NativeDependencySet` can be used as is.
     - Add `Library.getDefaultBinary()` which returns the shared library binary for the library, and convert a `Library` using its `getDefaultBinary().getAsNativeDependencySet()` method.
+- Add `Library.getShared()` and `getStatic()` methods which return `NativeDependencySet` imlementations for the shared and static variants of the library.
 
 ### User visible changes
 
