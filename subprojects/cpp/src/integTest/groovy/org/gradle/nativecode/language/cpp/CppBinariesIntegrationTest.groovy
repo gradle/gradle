@@ -88,7 +88,7 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "mainExecutable"
 
         then:
-        def executable = executable("build/binaries/test")
+        def executable = executable("build/binaries/mainExecutable/test")
         executable.exec().out == "Hello!"
         !toolChain.visualCpp || debugFile("build/binaries/test").file
         // TODO - need to verify that the debug info ended up in the binary

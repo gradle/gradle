@@ -90,7 +90,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     private CppCompile createCompileTask(ProjectInternal project, NativeBinaryInternal binary) {
-        CppCompile compileTask = project.task(binary.getTaskName("compile"), type: CppCompile) {
+        CppCompile compileTask = project.task(binary.namingScheme.getTaskName("compile"), type: CppCompile) {
             description = "Compiles $binary"
         }
 
@@ -108,7 +108,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.name}") }
+        compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}") }
         compileTask.conventionMapping.macros = { binary.macros }
         compileTask.conventionMapping.compilerArgs = { binary.compilerArgs }
 
@@ -116,7 +116,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinaryInternal binary, CppCompile compileTask) {
-        AbstractLinkTask linkTask = project.task(binary.getTaskName(null), type: linkTaskType(binary)) {
+        AbstractLinkTask linkTask = project.task(binary.namingScheme.getTaskName(null), type: linkTaskType(binary)) {
              description = "Links ${binary}"
              group = BasePlugin.BUILD_GROUP
          }
@@ -137,7 +137,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     private void createStaticLibraryTask(ProjectInternal project, NativeBinaryInternal binary, CppCompile compileTask) {
-        CreateStaticLibrary task = project.task(binary.getTaskName(null), type: CreateStaticLibrary) {
+        CreateStaticLibrary task = project.task(binary.namingScheme.getTaskName(null), type: CreateStaticLibrary) {
              description = "Creates ${binary}"
              group = BasePlugin.BUILD_GROUP
          }
@@ -159,7 +159,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     def createInstallTask(ProjectInternal project, NativeBinaryInternal executable, Task linkTask) {
-        project.task(executable.getTaskName("install"), type: Sync) {
+        project.task(executable.namingScheme.getTaskName("install"), type: Sync) {
             description = "Installs a development image of $executable"
             group = BasePlugin.BUILD_GROUP
             into { project.file("${project.buildDir}/install/$executable.name") }

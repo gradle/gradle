@@ -92,7 +92,7 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
     private NativeBinary setupDefaults(final ProjectInternal project, final DefaultNativeBinary nativeBinary) {
         new DslObject(nativeBinary).getConventionMapping().map("outputFile", new Callable<File>() {
             public File call() throws Exception {
-                return new File(project.getBuildDir(), "binaries/" + nativeBinary.getOutputFileName());
+                return new File(project.getBuildDir(), "binaries/" + nativeBinary.getNamingScheme().getOutputDirectoryBase() + "/" + nativeBinary.getOutputFileName());
             }
         });
         return nativeBinary;

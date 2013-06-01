@@ -38,12 +38,12 @@ class BinariesPluginTest extends Specification {
 
         and:
         def sharedLibraryBinary = project.binaries.testSharedLibrary
-        sharedLibraryBinary.outputFile == project.file("build/binaries/$sharedLibName")
+        sharedLibraryBinary.outputFile == project.file("build/binaries/testSharedLibrary/$sharedLibName")
         sharedLibraryBinary.component == project.libraries.test
 
         and:
         def staticLibraryBinary = project.binaries.testStaticLibrary
-        staticLibraryBinary.outputFile == project.file("build/binaries/$staticLibName")
+        staticLibraryBinary.outputFile == project.file("build/binaries/testStaticLibrary/$staticLibName")
         staticLibraryBinary.component == project.libraries.test
 
         and:

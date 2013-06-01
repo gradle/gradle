@@ -45,7 +45,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "mainExecutable"
 
         then:
-        def executable = executable("build/binaries/test")
+        def executable = executable("build/binaries/mainExecutable/test")
         executable.isFile()
         executable.exec().out == HELLO_WORLD
     }
@@ -76,15 +76,15 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "mainSharedLibrary"
 
         then:
-        sharedLibrary("build/binaries/test").file
-        !toolChain.visualCpp || libraryLibFile("build/binaries/test").file
-        !toolChain.visualCpp || libraryExportFile("build/binaries/test").file
+        sharedLibrary("build/binaries/mainSharedLibrary/test").file
+        !toolChain.visualCpp || libraryLibFile("build/binaries/mainSharedLibrary/test").file
+        !toolChain.visualCpp || libraryExportFile("build/binaries/mainSharedLibrary/test").file
 
         when:
         run "mainStaticLibrary"
 
         then:
-        staticLibrary("build/binaries/test").file
+        staticLibrary("build/binaries/mainStaticLibrary/test").file
     }
 
     def "build fails when compilation fails"() {
@@ -162,12 +162,12 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "englishExecutable", "frenchExecutable"
 
         then:
-        def englishExecutable = executable("build/binaries/english")
+        def englishExecutable = executable("build/binaries/englishExecutable/english")
         englishExecutable.isFile()
         englishExecutable.exec().out == HELLO_WORLD
 
         and:
-        def frenchExecutable = executable("build/binaries/french")
+        def frenchExecutable = executable("build/binaries/frenchExecutable/french")
         frenchExecutable.isFile()
         frenchExecutable.exec().out == HELLO_WORLD_FRENCH
     }
@@ -207,7 +207,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "mainExecutable"
 
         then:
-        executable("build/binaries/test").exec().out == HELLO_WORLD
+        executable("build/binaries/mainExecutable/test").exec().out == HELLO_WORLD
     }
 
     def "build, install and execute program with shared library"() {
@@ -266,8 +266,8 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installMainExecutable"
 
         then:
-        sharedLibrary("build/binaries/hello").isFile()
-        executable("build/binaries/test").isFile()
+        sharedLibrary("build/binaries/helloSharedLibrary/hello").isFile()
+        executable("build/binaries/mainExecutable/test").isFile()
 
         executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD
         executable("build/install/mainExecutable/test").exec("a", "1 2 3").out.contains("[a][1 2 3]")
@@ -331,8 +331,8 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installMainExecutable"
 
         then:
-        staticLibrary("build/binaries/hello").isFile()
-        executable("build/binaries/test").isFile()
+        staticLibrary("build/binaries/helloStaticLibrary/hello").isFile()
+        executable("build/binaries/mainExecutable/test").isFile()
 
         executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD
         executable("build/install/mainExecutable/test").exec("a", "1 2 3").out.contains("[a][1 2 3]")

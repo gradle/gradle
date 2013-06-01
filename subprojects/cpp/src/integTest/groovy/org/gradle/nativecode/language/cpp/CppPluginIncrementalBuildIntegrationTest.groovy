@@ -222,7 +222,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
     def "relinks binary but does not recompile when linker option changed"() {
         when:
-        def executable = executable("build/binaries/main")
+        def executable = executable("build/binaries/mainExecutable/main")
         def snapshot = executable.snapshot()
 
         and:

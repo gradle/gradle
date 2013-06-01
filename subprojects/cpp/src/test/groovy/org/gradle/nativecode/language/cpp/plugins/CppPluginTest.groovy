@@ -132,7 +132,7 @@ class CppPluginTest extends Specification {
         executableBinary.toolChain
         executableBinary.compilerArgs == ["ARG1", "ARG2"]
         executableBinary.linkerArgs == ["LINK1", "LINK2"]
-        executableBinary.outputFile == project.file("build/binaries/${OperatingSystem.current().getExecutableName('test')}")
+        executableBinary.outputFile == project.file("build/binaries/testExecutable/${OperatingSystem.current().getExecutableName('test')}")
 
         and:
         executable.binaries.contains executableBinary
@@ -197,13 +197,13 @@ class CppPluginTest extends Specification {
         and:
         def sharedLibraryBinary = project.binaries.testSharedLibrary
         sharedLibraryBinary.toolChain
-        sharedLibraryBinary.outputFile == project.file("build/binaries/$sharedLibName")
+        sharedLibraryBinary.outputFile == project.file("build/binaries/testSharedLibrary/$sharedLibName")
         sharedLibraryBinary.component == project.libraries.test
 
         and:
         def staticLibraryBinary = project.binaries.testStaticLibrary
         staticLibraryBinary.toolChain
-        staticLibraryBinary.outputFile == project.file("build/binaries/$staticLibName")
+        staticLibraryBinary.outputFile == project.file("build/binaries/testStaticLibrary/$staticLibName")
         staticLibraryBinary.component == project.libraries.test
 
         and:

@@ -40,8 +40,8 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         ":exe:mainExecutable" in executedTasks
 
         and:
-        sharedLibrary("cpp/exewithlib/lib/build/binaries/lib").isFile()
-        executable("cpp/exewithlib/exe/build/binaries/exe").isFile()
+        sharedLibrary("cpp/exewithlib/lib/build/binaries/mainSharedLibrary/lib").isFile()
+        executable("cpp/exewithlib/exe/build/binaries/mainExecutable/exe").isFile()
         normaliseLineSeparators(executable("cpp/exewithlib/exe/build/install/mainExecutable/exe").exec().out) == "Hello, World!\n"
     }
 
@@ -53,7 +53,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run ":lib:uploadArchives"
 
         then:
-        sharedLibrary("cpp/dependencies/lib/build/binaries/lib").isFile()
+        sharedLibrary("cpp/dependencies/lib/build/binaries/mainSharedLibrary/lib").isFile()
         file("cpp/dependencies/lib/build/repo/some-org/some-lib/1.0/some-lib-1.0-so.so").isFile()
 
         when:
@@ -65,7 +65,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         ":exe:mainExecutable" in nonSkippedTasks
         
         and:
-        executable("cpp/dependencies/exe/build/binaries/exe").isFile()
+        executable("cpp/dependencies/exe/build/binaries/mainExecutable/exe").isFile()
         file("cpp/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
     }
     
@@ -80,7 +80,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         ":mainExecutable" in nonSkippedTasks
         
         and:
-        normaliseLineSeparators(executable("cpp/exe/build/binaries/exe").exec().out) == "Hello, World!\n"
+        normaliseLineSeparators(executable("cpp/exe/build/binaries/mainExecutable/exe").exec().out) == "Hello, World!\n"
         normaliseLineSeparators(executable("cpp/exe/build/install/mainExecutable/exe").exec().out) == "Hello, World!\n"
     }
 
@@ -93,8 +93,8 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         executedAndNotSkipped ":compileEnglishExecutable", ":englishExecutable", ":compileHelloEnglishSharedLibrary", ":helloEnglishSharedLibrary"
 
         and:
-        executable("cpp/library/build/binaries/english").assertExists()
-        sharedLibrary("cpp/library/build/binaries/helloEnglish").assertExists()
+        executable("cpp/library/build/binaries/englishExecutable/english").assertExists()
+        sharedLibrary("cpp/library/build/binaries/helloEnglishSharedLibrary/helloEnglish").assertExists()
 
         and:
         normaliseLineSeparators(executable("cpp/library/build/install/englishExecutable/english").exec().out) == "Hello world!\n"
@@ -107,8 +107,8 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         executedAndNotSkipped ":compileFrenchExecutable", ":frenchExecutable", ":compileHelloFrenchStaticLibrary", ":helloFrenchStaticLibrary"
 
         and:
-        executable("cpp/library/build/binaries/french").assertExists()
-        staticLibrary("cpp/library/build/binaries/helloFrench").assertExists()
+        executable("cpp/library/build/binaries/frenchExecutable/french").assertExists()
+        staticLibrary("cpp/library/build/binaries/helloFrenchStaticLibrary/helloFrench").assertExists()
 
         and:
         normaliseLineSeparators(executable("cpp/library/build/install/frenchExecutable/french").exec().out) == "Bonjour monde!\n"
