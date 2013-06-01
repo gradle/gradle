@@ -24,7 +24,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
     static final HELLO_WORLD = "Hello, World!"
     static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
 
-    def "build and execute simple cpp program"() {
+    def "build and execute simple c++ program"() {
         given:
         buildFile << """
             apply plugin: "cpp-exe"
@@ -50,7 +50,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         executable.exec().out == HELLO_WORLD
     }
 
-    def "build simple cpp library"() {
+    def "build simple c++ library"() {
         given:
         buildFile << """
             apply plugin: "cpp-lib"
@@ -76,13 +76,15 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "mainSharedLibrary"
 
         then:
-        sharedLibrary("build/binaries/test").isFile()
+        sharedLibrary("build/binaries/test").file
+        !toolChain.visualCpp || libraryLibFile("build/binaries/test").file
+        !toolChain.visualCpp || libraryExportFile("build/binaries/test").file
 
         when:
         run "mainStaticLibrary"
 
         then:
-        staticLibrary("build/binaries/test").isFile()
+        staticLibrary("build/binaries/test").file
     }
 
     def "build fails when compilation fails"() {

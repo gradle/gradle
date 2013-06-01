@@ -28,6 +28,25 @@ abstract class AbstractBinariesIntegrationSpec extends AbstractIntegrationSpec {
         return file(OperatingSystem.current().getExecutableName(path.toString()))
     }
 
+    def TestFile objectFile(Object path) {
+        if (OperatingSystem.current().windows) {
+            return file("${path}.obj")
+        }
+        return file("${path}.o")
+    }
+
+    def TestFile debugFile(Object path) {
+        return file("${path}.pdb")
+    }
+
+    def TestFile libraryLibFile(Object path) {
+        return file("${path}.lib")
+    }
+
+    def TestFile libraryExportFile(Object path) {
+        return file("${path}.exp")
+    }
+
     def TestFile sharedLibrary(Object path) {
         return file(OperatingSystem.current().getSharedLibraryName(path.toString()))
     }

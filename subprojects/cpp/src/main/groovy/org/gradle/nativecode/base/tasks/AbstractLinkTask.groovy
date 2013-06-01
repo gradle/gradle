@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
+import org.gradle.language.jvm.tasks.SimpleStaleClassCleaner
 import org.gradle.nativecode.base.ToolChain
 import org.gradle.nativecode.base.internal.LinkerSpec
 
@@ -39,6 +40,12 @@ abstract class AbstractLinkTask extends DefaultTask {
      * The tool chain used for linking.
      */
     ToolChain toolChain
+
+    // To pick up auxiliary files produced alongside the main output file
+    @OutputDirectory
+    File getDestinationDir() {
+        return getOutputFile().parentFile
+    }
 
     /**
      * The file where the linked binary will be located.
@@ -84,6 +91,10 @@ abstract class AbstractLinkTask extends DefaultTask {
 
     @TaskAction
     void link() {
+        def cleaner = new SimpleStaleClassCleaner(getOutputs())
+        cleaner.setDestinationDir(getDestinationDir())
+        cleaner.execute()
+
         def spec = createLinkerSpec()
         spec.tempDir = getTemporaryDir()
 

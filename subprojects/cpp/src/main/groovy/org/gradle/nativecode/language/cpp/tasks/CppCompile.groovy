@@ -21,6 +21,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.*
+import org.gradle.language.jvm.tasks.SimpleStaleClassCleaner
 import org.gradle.nativecode.base.ToolChain
 import org.gradle.nativecode.language.cpp.internal.CppCompileSpec
 import org.gradle.nativecode.language.cpp.internal.DefaultCppCompileSpec
@@ -64,6 +65,10 @@ class CppCompile extends DefaultTask {
 
     @TaskAction
     void compile() {
+        def cleaner = new SimpleStaleClassCleaner(getOutputs())
+        cleaner.setDestinationDir(getObjectFileDir())
+        cleaner.execute()
+
         def spec = new DefaultCppCompileSpec()
         spec.tempDir = getTemporaryDir()
 

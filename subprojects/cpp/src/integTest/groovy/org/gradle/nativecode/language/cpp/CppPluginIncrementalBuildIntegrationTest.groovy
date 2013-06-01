@@ -16,6 +16,7 @@
 package org.gradle.nativecode.language.cpp
 
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.util.TextUtil.escapeString
 
@@ -24,8 +25,9 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
     static final HELLO_WORLD = "Hello, World!"
     static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
 
-    def sourceFile
-    def headerFile
+    TestFile sourceFile
+    TestFile headerFile
+    TestFile librarySourceFile
 
     def "setup"() {
         buildFile << """
@@ -60,9 +62,9 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
             #include "hello.h"
 
             int main () {
-                hello("${escapeString(HELLO_WORLD)}");
+                hello("${HELLO_WORLD}");
                 #ifdef FRENCH
-                hello(" ${escapeString(HELLO_WORLD_FRENCH)}");
+                hello(" ${HELLO_WORLD_FRENCH}");
                 #endif
                 return 0;
             }
@@ -81,7 +83,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
             void LIB_FUNC hello(const char* str);
         """
 
-        file("src/hello/cpp/hello.cpp") << """
+        librarySourceFile = file("src/hello/cpp/hello.cpp") << """
             #include <iostream>
             #include "hello.h"
 
@@ -98,8 +100,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "mainExecutable"
 
         then:
-        ":mainExecutable" in skippedTasks
-        ":compileMainExecutable" in skippedTasks
+        skipped ":compileHelloSharedLibrary"
+        skipped ":helloSharedLibrary"
+        skipped ":compileMainExecutable"
+        skipped ":mainExecutable"
     }
 
     def "rebuilds binary with source file change"() {
@@ -119,7 +123,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileMainExecutable", ":mainExecutable"
+        skipped ":compileHelloSharedLibrary"
+        skipped ":helloSharedLibrary"
+        executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":mainExecutable"
 
         and:
         executable.isFile()
@@ -127,7 +134,35 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         executable.assertHasChangedSince(snapshot)
     }
 
-    def "recompiles binary when header file changes"() {
+    def "relinks binary with library source file change"() {
+        when:
+        def executable = executable("build/install/mainExecutable/main")
+        def snapshot = executable.snapshot()
+        librarySourceFile.text = """
+            #include <iostream>
+            #include "hello.h"
+
+            void hello(const char* str) {
+              std::cout << "[" << str << "]";
+            }
+"""
+
+        and:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileHelloSharedLibrary"
+        executedAndNotSkipped ":helloSharedLibrary"
+        skipped ":compileMainExecutable"
+        executedAndNotSkipped ":mainExecutable"
+
+        and:
+        executable.isFile()
+        executable.exec().out == "[${HELLO_WORLD}]"
+        executable.assertHasChangedSince(snapshot)
+    }
+
+    def "recompiles binary when header file changes in a way that does not affect the object files"() {
         when:
         headerFile << """
 // Comment added to the end of the header file
@@ -136,7 +171,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "mainExecutable"
 
         then:
+        executedAndNotSkipped ":compileHelloSharedLibrary"
+        skipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
+        skipped ":mainExecutable"
     }
 
     def "rebuilds binary with compiler option change"() {
@@ -156,7 +194,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileMainExecutable", ":mainExecutable"
+        skipped ":compileHelloSharedLibrary"
+        skipped ":helloSharedLibrary"
+        executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":mainExecutable"
 
         and:
         executable.isFile()
@@ -173,6 +214,9 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "mainExecutable"
 
         then:
+        skipped ":compileHelloSharedLibrary"
+        skipped ":helloSharedLibrary"
+        skipped ":compileMainExecutable"
         executedAndNotSkipped ":mainExecutable"
     }
 
@@ -195,7 +239,9 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "mainExecutable"
 
         then:
-        ":compileMainExecutable" in skippedTasks
+        skipped ":compileHelloSharedLibrary"
+        skipped ":helloSharedLibrary"
+        skipped ":compileMainExecutable"
         executedAndNotSkipped ":mainExecutable"
 
         and:
@@ -205,7 +251,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
     def "recompiles source but does not relink binary with source comment change"() {
         // TODO:DAZ Better way to do this
-        if (toolChain.isVisualCpp()) {
+        if (toolChain.visualCpp) {
             return // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
         }
         when:
@@ -213,8 +259,57 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "mainExecutable"
 
         then:
+        skipped ":compileHelloSharedLibrary"
+        skipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
-        ":mainExecutable" in skippedTasks
+        skipped ":mainExecutable"
+    }
+
+    def "cleans up stale object files when source file renamed"() {
+        def oldObjFile = objectFile("build/objectFiles/mainExecutable/helloworld")
+        def newObjFile = objectFile("build/objectFiles/mainExecutable/changed")
+        assert oldObjFile.file
+        assert !newObjFile.file
+
+        when:
+        sourceFile.renameTo(file("src/main/cpp/changed.cpp"))
+        run "mainExecutable"
+
+        then:
+        skipped ":compileHelloSharedLibrary"
+        skipped ":helloSharedLibrary"
+        executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":mainExecutable"
+
+        and:
+        !oldObjFile.file
+        newObjFile.file
+    }
+
+    def "cleans up stale debug files when changing from debug to non-debug"() {
+        if (!toolChain.visualCpp) {
+            return
+        }
+
+        given:
+        buildFile << "binaries.all { compilerArgs '/Zi'; linkerArgs '/DEBUG'; }"
+        run "mainExecutable"
+
+        def debugFile = debugFile("build/binaries/main")
+        assert debugFile.file
+
+        when:
+        buildFile << "binaries.all { compilerArgs.clear(); linkerArgs.clear(); }"
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileHelloSharedLibrary"
+        executedAndNotSkipped ":helloSharedLibrary"
+        executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":mainExecutable"
+
+        and:
+        !debugFile.file
     }
 
 }

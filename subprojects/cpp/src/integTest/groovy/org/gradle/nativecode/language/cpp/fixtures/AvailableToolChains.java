@@ -76,14 +76,14 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/cygwin/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledToolChain("g++ (cygwin)", compilerExe.getParentFile());
+            return new InstalledToolChain("g++ cygwin", compilerExe.getParentFile());
         }
 
-        return new UnavailableToolChain("g++ (cygwin)");
+        return new UnavailableToolChain("g++ cygwin");
     }
 
     static private ToolChainCandidate findGpp(String versionPrefix, String hardcodedFallback) {
-        String name = String.format("g++ (%s)", versionPrefix);
+        String name = String.format("g++ %s", versionPrefix);
         GppVersionDeterminer versionDeterminer = new GppVersionDeterminer();
         for (File candidate : OperatingSystem.current().findAllInPath("g++")) {
             if (versionDeterminer.transform(candidate).startsWith(versionPrefix)) {
