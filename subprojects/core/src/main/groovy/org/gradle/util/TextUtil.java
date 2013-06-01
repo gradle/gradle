@@ -64,7 +64,7 @@ public class TextUtil {
      * Converts all line separators in the specified string to a single new line character.
      */
     public static String normaliseLineSeparators(String str) {
-        return str == null ? null : convertLineSeparators(str, getPlatformLineSeparator());
+        return str == null ? null : convertLineSeparators(str, "\n");
     }
 
     /**
