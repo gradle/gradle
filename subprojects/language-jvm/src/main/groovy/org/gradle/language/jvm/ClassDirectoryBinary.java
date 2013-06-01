@@ -40,5 +40,4 @@ public interface ClassDirectoryBinary extends Binary {
     DomainObjectCollection<LanguageSourceSet> getSource();
     Task getClassesTask();
     void setClassesTask(Task task);
-    String getTaskName(String verb, String target);
 }

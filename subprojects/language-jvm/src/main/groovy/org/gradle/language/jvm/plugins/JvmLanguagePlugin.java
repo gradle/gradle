@@ -25,6 +25,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinariesContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.BinaryInternal;
+import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.jvm.ClassDirectoryBinary;
 import org.gradle.language.jvm.ResourceSet;
@@ -79,18 +81,19 @@ public class JvmLanguagePlugin implements Plugin<Project> {
         binariesContainer.withType(ClassDirectoryBinary.class).all(new Action<ClassDirectoryBinary>() {
             public void execute(final ClassDirectoryBinary binary) {
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
+                final BinaryNamingScheme namingScheme = ((BinaryInternal) binary).getNamingScheme();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {
-                        return new File(new File(target.getBuildDir(), "classes"), binary.getTaskName(null, null));
+                        return new File(new File(target.getBuildDir(), "classes"), namingScheme.getOutputDirectoryBase());
                     }
                 });
-                final Task classesTask = target.getTasks().create(binary.getTaskName(null, "classes"));
+                final Task classesTask = target.getTasks().create(namingScheme.getTaskName(null, "classes"));
                 classesTask.setDescription(String.format("Assembles %s.", binary));
                 binary.setClassesTask(classesTask);
                 binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
                     public void execute(ResourceSet resourceSet) {
                         // TODO: handle case where binary has multiple ResourceSet's
-                        Copy resourcesTask = target.getTasks().create(binary.getTaskName("process", "resources"), ProcessResources.class);
+                        Copy resourcesTask = target.getTasks().create(namingScheme.getTaskName("process", "resources"), ProcessResources.class);
                         resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
                         new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
                             public File call() throws Exception {

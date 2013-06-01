@@ -16,17 +16,18 @@
 package org.gradle.language.jvm.internal;
 
 import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.BinaryInternal;
+import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.TaskNamerForBinaries;
 import org.gradle.language.jvm.ClassDirectoryBinary;
 
 import java.io.File;
 
-public class DefaultClassDirectoryBinary implements ClassDirectoryBinary {
+public class DefaultClassDirectoryBinary implements ClassDirectoryBinary, BinaryInternal {
     private final String name;
     private final String baseName;
     private File classesDir;
@@ -44,6 +45,10 @@ public class DefaultClassDirectoryBinary implements ClassDirectoryBinary {
             return name.substring(0, name.length() - 7);
         }
         return name;
+    }
+
+    public BinaryNamingScheme getNamingScheme() {
+        return TaskNamerForBinaries.collapseMain(baseName);
     }
 
     public String getName() {
@@ -80,11 +85,6 @@ public class DefaultClassDirectoryBinary implements ClassDirectoryBinary {
 
     public void setClassesTask(Task classesTask) {
         this.classesTask = classesTask;
-    }
-
-    public String getTaskName(@Nullable String verb, @Nullable String target) {
-        String shortName = baseName.equals("main") ? "" : baseName;
-        return new TaskNamerForBinaries(baseName, shortName).getTaskName(verb, target);
     }
 
     public String toString() {
