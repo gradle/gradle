@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base;
+package org.gradle.language.base.internal;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.api.Nullable;
 
-/**
- * A physical binary artifact, which can run on a particular platform or runtime.
- */
-@Incubating @HasInternalProtocol
-public interface Binary extends Named, Buildable {
+public interface BinaryNamingScheme {
+    String getTaskName(@Nullable String verb);
+
+    String getTaskName(@Nullable String verb, @Nullable String target);
+
+    String getOutputDirectoryBase();
 }

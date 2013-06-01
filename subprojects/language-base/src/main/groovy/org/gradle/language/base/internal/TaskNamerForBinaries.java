@@ -19,17 +19,30 @@ package org.gradle.language.base.internal;
 import org.gradle.api.Nullable;
 import org.gradle.util.GUtil;
 
-public class TaskNamerForBinaries {
+public class TaskNamerForBinaries implements BinaryNamingScheme {
     private final String baseName;
     private final String shortName;
 
-    public TaskNamerForBinaries(String baseName, String shortName) {
+    private TaskNamerForBinaries(String baseName, String shortName) {
         this.baseName = baseName;
         this.shortName = shortName;
     }
 
     public TaskNamerForBinaries(String baseName) {
         this(baseName, baseName);
+    }
+
+    public static TaskNamerForBinaries collapseMain(String name) {
+        String shortName = name.equals("main") ? "" : name;
+        return new TaskNamerForBinaries(name, shortName);
+    }
+
+    public String getOutputDirectoryBase() {
+        return baseName;
+    }
+
+    public String getTaskName(@Nullable String verb) {
+        return getTaskName(verb, null);
     }
 
     public String getTaskName(@Nullable String verb, @Nullable String target) {
