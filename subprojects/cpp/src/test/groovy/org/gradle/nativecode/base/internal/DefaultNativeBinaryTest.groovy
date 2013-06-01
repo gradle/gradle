@@ -24,6 +24,13 @@ import spock.lang.Specification
 class DefaultNativeBinaryTest extends Specification {
     def component = new DefaultNativeComponent("name")
 
+    def "can generate names for binary"() {
+        expect:
+        def binary = new TestBinary(component, "binary")
+        binary.namingScheme.getTaskName("link") == 'linkBinary'
+        binary.namingScheme.getTaskName("compile", "cpp") == 'compileBinaryCpp'
+    }
+
     def "binary attaches itself to its owner component"() {
         def binary
 
@@ -81,8 +88,8 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     class TestBinary extends DefaultNativeBinary {
-        TestBinary(NativeComponent owner) {
-            super(owner, "name", null)
+        TestBinary(NativeComponent owner, String name = "name") {
+            super(owner, name, null)
         }
 
         @Override

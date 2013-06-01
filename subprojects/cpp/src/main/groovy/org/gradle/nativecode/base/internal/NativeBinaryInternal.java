@@ -16,11 +16,9 @@
 
 package org.gradle.nativecode.base.internal;
 
-import org.gradle.api.Nullable;
+import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.nativecode.base.NativeBinary;
 
-public interface NativeBinaryInternal extends NativeBinary {
-    String getTaskName(@Nullable String verb);
-
+public interface NativeBinaryInternal extends NativeBinary, BinaryInternal {
     void builtBy(Object... tasks);
 }

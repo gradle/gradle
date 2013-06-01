@@ -18,10 +18,10 @@ package org.gradle.nativecode.base.internal;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.TaskNamerForBinaries;
 import org.gradle.nativecode.base.*;
 
@@ -93,8 +93,8 @@ public abstract class DefaultNativeBinary implements NativeBinaryInternal {
         Collections.addAll(linkerArgs, args);
     }
 
-    public String getTaskName(@Nullable String verb) {
-        return namer.getTaskName(verb, null);
+    public BinaryNamingScheme getNamingScheme() {
+        return namer;
     }
 
     public DomainObjectSet<NativeDependencySet> getLibs() {
