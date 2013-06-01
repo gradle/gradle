@@ -15,7 +15,7 @@ Gradle 1.7 is the fastest version of Gradle yet. Here are the highlights:
 
 As always, the performance improvements that you actually see for your build depends on many factors.
 
-#### Faster dependency resolution due to in-memory caching of dependency metadata.
+#### Faster dependency resolution due to in-memory caching of dependency metadata
 
 With this change, the dependency resolution is much faster. Typically, the larger the project is the more configurations and dependencies are being resolved during the build.
 By caching the dependency metadata in memory we avoid hitting the repository and parsing the descriptor when the same dependency is requested in a different resolution.
@@ -39,6 +39,10 @@ You can also turn off the in-memory dependency metadata cache via a system prope
     systemProp.org.gradle.resolution.memorycache=false
 
 To avoid increased heap consumption, the in-memory dependency metadata cache may clear the cached data if the system is running out of heap space.
+
+#### Improved multiprocess locking
+
+TODO
 
 #### Faster build script compilation
 
@@ -125,6 +129,21 @@ Gradle will create a 'libSharedLibrary' task to link the shared library, as well
 
 Please refer to the [User Guide chapter](userguide/cpp.html) for more details.
 
+### C++ plugin supports Cygwin
+
+TODO
+
+### Improved incremental build for C++
+
+TODO - handles changes to compiler and linker args.
+TODO - does not recompile when linker args change.
+TODO - does not recompile when dependency changes, only when library header file changes.
+TODO - removes stale object and debug files.
+
+### Specify default JVM arguments for the Application plugin
+
+TODO
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -196,8 +215,8 @@ The (incubating) class `org.gradle.api.reporting.ConfigureableReport` was rename
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Dan Stine](https://github.com/dstine) - Added maxPriorityViolations settings to the CodeNarc plugin (GRADLE-1742).
-* [Olaf Klischat](https://github.com/multi-io) - Added defaultJvmOpts property Application plugin (GRADLE-1456).
+* [Dan Stine](https://github.com/dstine) - Added `maxPriorityViolations` setting to the CodeNarc plugin (GRADLE-1742).
+* [Olaf Klischat](https://github.com/multi-io) - Added support for specifying the default JVM arguments for the Application plugin (GRADLE-1456).
 * [Kyle Mahan](https://github.com/kylewm) - Introduce duplicateStrategy property to archive and copy operations (GRADLE-2171).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
