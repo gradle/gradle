@@ -9,7 +9,7 @@ executables {
             // Add some additional compiler arguments
             if (toolChain == compilers.gcc) {
                 compilerArgs "-fno-access-control", "-fconserve-space"
-                linkerArgs "-fatal_warnings"
+                linkerArgs "-lz"
             }
         }
     }
