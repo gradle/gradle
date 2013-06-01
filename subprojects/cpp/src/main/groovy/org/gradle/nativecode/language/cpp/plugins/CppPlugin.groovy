@@ -123,7 +123,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         linkTask.toolChain = binary.toolChain
 
-        linkTask.source compileTask.outputs.files.asFileTree
+        linkTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
 
         binary.libs.all { NativeDependencySet lib ->
             linkTask.lib lib.files
@@ -142,10 +142,9 @@ class CppPlugin implements Plugin<ProjectInternal> {
              group = BasePlugin.BUILD_GROUP
          }
 
-        task.dependsOn compileTask // TODO:DAZ Avoid this explicit dependency by wiring inputs/outputs better
         task.toolChain = binary.toolChain
 
-        task.source project.fileTree(compileTask.objectFileDir)
+        task.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
 
         task.conventionMapping.outputFile = { binary.outputFile }
 

@@ -54,6 +54,45 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
         executable.exec().out == "Hello!"
     }
 
+    def "can build debug binaries for a C++ executable"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp-exe"
+
+            executables {
+                main {
+                    binaries.all {
+                        if (toolchain == compilers.visualCpp) {
+                            compilerArgs '/Zi'
+                            linkerArgs '/DEBUG'
+                        } else {
+                            compilerArgs '-g'
+                        }
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = 'test'"
+
+        and:
+        file("src/main/cpp/helloworld.cpp") << """
+            #include <iostream>
+
+            int main () {
+              std::cout << "Hello!";
+              return 0;
+            }
+        """
+
+        when:
+        run "mainExecutable"
+
+        then:
+        def executable = executable("build/binaries/test")
+        executable.exec().out == "Hello!"
+        // TODO - need to verify that the debug info ended up in the binary
+    }
+
     def "can configure the binaries of a C++ library"() {
         given:
         buildFile << """
