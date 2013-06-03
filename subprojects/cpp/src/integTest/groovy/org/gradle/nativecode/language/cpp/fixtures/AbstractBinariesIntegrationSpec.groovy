@@ -24,8 +24,8 @@ import org.junit.runner.RunWith
 abstract class AbstractBinariesIntegrationSpec extends AbstractIntegrationSpec {
     static AvailableToolChains.ToolChainCandidate toolChain
 
-    def TestFile executable(Object path) {
-        return file(OperatingSystem.current().getExecutableName(path.toString()))
+    def Executable executable(Object path) {
+        return new Executable(file(OperatingSystem.current().getExecutableName(path.toString())), toolChain)
     }
 
     def TestFile objectFile(Object path) {
@@ -35,23 +35,11 @@ abstract class AbstractBinariesIntegrationSpec extends AbstractIntegrationSpec {
         return file("${path}.o")
     }
 
-    def TestFile debugFile(Object path) {
-        return file("${path}.pdb")
+    def SharedLibrary sharedLibrary(Object path) {
+        return new SharedLibrary(file(OperatingSystem.current().getSharedLibraryName(path.toString())), toolChain)
     }
 
-    def TestFile libraryLibFile(Object path) {
-        return file("${path}.lib")
-    }
-
-    def TestFile libraryExportFile(Object path) {
-        return file("${path}.exp")
-    }
-
-    def TestFile sharedLibrary(Object path) {
-        return file(OperatingSystem.current().getSharedLibraryName(path.toString()))
-    }
-
-    def TestFile staticLibrary(Object path) {
-        return file(OperatingSystem.current().getStaticLibraryName(path.toString()))
+    def NativeBinaryFixture staticLibrary(Object path) {
+        return new NativeBinaryFixture(file(OperatingSystem.current().getStaticLibraryName(path.toString())), toolChain)
     }
 }

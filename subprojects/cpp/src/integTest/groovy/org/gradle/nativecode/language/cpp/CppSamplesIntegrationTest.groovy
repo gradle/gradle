@@ -40,8 +40,8 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         ":exe:mainExecutable" in executedTasks
 
         and:
-        sharedLibrary("cpp/exewithlib/lib/build/binaries/mainSharedLibrary/lib").isFile()
-        executable("cpp/exewithlib/exe/build/binaries/mainExecutable/exe").isFile()
+        sharedLibrary("cpp/exewithlib/lib/build/binaries/mainSharedLibrary/lib").assertExists()
+        executable("cpp/exewithlib/exe/build/binaries/mainExecutable/exe").assertExists()
         normaliseLineSeparators(executable("cpp/exewithlib/exe/build/install/mainExecutable/exe").exec().out) == "Hello, World!\n"
     }
 
@@ -53,7 +53,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run ":lib:uploadArchives"
 
         then:
-        sharedLibrary("cpp/dependencies/lib/build/binaries/mainSharedLibrary/lib").isFile()
+        sharedLibrary("cpp/dependencies/lib/build/binaries/mainSharedLibrary/lib").assertExists()
         file("cpp/dependencies/lib/build/repo/some-org/some-lib/1.0/some-lib-1.0-so.so").isFile()
 
         when:
@@ -65,7 +65,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         ":exe:mainExecutable" in nonSkippedTasks
         
         and:
-        executable("cpp/dependencies/exe/build/binaries/mainExecutable/exe").isFile()
+        executable("cpp/dependencies/exe/build/binaries/mainExecutable/exe").assertExists()
         file("cpp/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
     }
     

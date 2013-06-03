@@ -109,7 +109,6 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
     def "rebuilds binary with source file change"() {
         when:
         def executable = executable("build/install/mainExecutable/main")
-        def snapshot = executable.snapshot()
 
         and:
         sourceFile.text = """
@@ -129,15 +128,13 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         executedAndNotSkipped ":mainExecutable"
 
         and:
-        executable.isFile()
+        executable.assertExists()
         executable.exec().out == "changed"
-        executable.assertHasChangedSince(snapshot)
     }
 
     def "relinks binary with library source file change"() {
         when:
         def executable = executable("build/install/mainExecutable/main")
-        def snapshot = executable.snapshot()
         librarySourceFile.text = """
             #include <iostream>
             #include "hello.h"
@@ -157,9 +154,8 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         executedAndNotSkipped ":mainExecutable"
 
         and:
-        executable.isFile()
+        executable.assertExists()
         executable.exec().out == "[${HELLO_WORLD}]"
-        executable.assertHasChangedSince(snapshot)
     }
 
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
@@ -184,7 +180,6 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
     def "rebuilds binary with compiler option change"() {
         when:
         def executable = executable("build/install/mainExecutable/main")
-        def snapshot = executable.snapshot()
 
         and:
         buildFile << """
@@ -204,9 +199,8 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         executedAndNotSkipped ":mainExecutable"
 
         and:
-        executable.isFile()
+        executable.assertExists()
         executable.exec().out == "$HELLO_WORLD $HELLO_WORLD_FRENCH"
-        executable.assertHasChangedSince(snapshot)
     }
 
     def "relinks binary when set of input libraries changes"() {
@@ -249,7 +243,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         executedAndNotSkipped ":mainExecutable"
 
         and:
-        executable.isFile()
+        executable.assertExists()
         executable.assertHasChangedSince(snapshot)
     }
 
@@ -301,8 +295,8 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         """
         run "mainExecutable"
 
-        def debugFile = debugFile("build/binaries/mainExecutable/main")
-        assert debugFile.file
+        def executable = executable("build/binaries/mainExecutable/main")
+        executable.assertDebugFileExists()
 
         when:
         buildFile << """
@@ -317,7 +311,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         executedAndNotSkipped ":mainExecutable"
 
         and:
-        !debugFile.file
+        executable.assertDebugFileDoesNotExist()
     }
 
 }
