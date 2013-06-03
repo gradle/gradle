@@ -41,12 +41,4 @@ public interface FileLock extends Closeable, FileAccess {
      * The actual mode of the lock. May be different to what was requested.
      */
     FileLockManager.LockMode getMode();
-
-    boolean isContended();
-
-    void setBusy(boolean busy);
-
-    boolean isBusy();
-
-    void setContended(boolean contended);
 }

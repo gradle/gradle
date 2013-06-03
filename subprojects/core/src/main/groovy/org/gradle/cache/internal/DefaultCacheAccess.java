@@ -15,9 +15,7 @@
  */
 package org.gradle.cache.internal;
 
-import com.google.common.collect.MapMaker;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheAccess;
@@ -30,7 +28,10 @@ import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -53,7 +54,8 @@ public class DefaultCacheAccess implements CacheAccess {
     private Thread owner;
     private FileLockManager.LockMode lockMode;
     private FileLock fileLock;
-    private final Map<File, FileLock> lockedFiles = new MapMaker().makeMap();
+    private boolean busy;
+    private boolean contended;
     private final ThreadLocal<CacheOperationStack> operationStack = new ThreadLocal<CacheOperationStack>() {
         @Override
         protected CacheOperationStack initialValue() {
@@ -82,25 +84,26 @@ public class DefaultCacheAccess implements CacheAccess {
             if (lockMode == FileLockManager.LockMode.None) {
                 return;
             }
-            if (lockedFiles.containsKey(lockFile)) {
+            if (fileLock != null) {
                 throw new IllegalStateException("File lock " + lockFile + " is already open.");
             }
             fileLock = lockManager.lock(lockFile, lockMode, cacheDiplayName, whenContended());
-            if (lockMode.equals(FileLockManager.LockMode.Exclusive)) {
-                lockedFiles.put(lockFile, fileLock);
-            }
             takeOwnership(String.format("Access %s", cacheDiplayName));
         } finally {
             lock.unlock();
         }
     }
 
-    private void closeFileLock(FileLock fileLock) {
-        cacheClosedCount++;
-        for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
-            cache.close(fileLock);
+    private void closeFileLock() {
+        try {
+            cacheClosedCount++;
+            for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
+                cache.close(fileLock);
+            }
+            fileLock.close();
+        } finally {
+            fileLock = null;
         }
-        fileLock.close();
     }
 
     public void close() {
@@ -110,15 +113,7 @@ public class DefaultCacheAccess implements CacheAccess {
             lockMode = null;
             owner = null;
             if (fileLock != null) {
-                try {
-                    closeFileLock(fileLock);
-                } finally {
-                    fileLock = null;
-                }
-            } else if (lockedFiles.containsKey(lockFile)){
-                //without this workaround, the artifact cache is never closed
-                //let's find out why we need this
-                closeFileLock(lockedFiles.get(lockFile));
+                closeFileLock();
             }
         } finally {
             if (cacheClosedCount != 1) {
@@ -291,17 +286,10 @@ public class DefaultCacheAccess implements CacheAccess {
         if (fileLock != null) {
             return false;
         }
+        busy = true;
 
-        if (lockedFiles.containsKey(lockFile)) {
-            FileLock cachedLock = lockedFiles.get(lockFile);
-            if (!cachedLock.getMode().equals(Exclusive)) {
-                throw new IllegalStateException("FileLock caching is only available for exclusive caches.");
-            }
-            fileLock = cachedLock;
-        } else {
-            fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operationStack.get().getDescription(), whenContended());
-            lockedFiles.put(lockFile, fileLock);
-        }
+        fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operationStack.get().getDescription(), whenContended());
+
         for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
             cache.onStartWork(operationStack.get().getDescription());
         }
@@ -312,16 +300,12 @@ public class DefaultCacheAccess implements CacheAccess {
         if (fileLock == null) {
             return false;
         }
+        busy = false;
 
-        try {
-            if (fileLock.isContended() || fileLock.getMode() == Shared) {
-                closeFileLock(fileLock);
-            } else {
-                fileLock.setBusy(false);
-            }
-        } finally {
-            fileLock = null;
+        if (contended || fileLock.getMode() == Shared) {
+            closeFileLock();
         }
+
         return true;
     }
 
@@ -409,22 +393,20 @@ public class DefaultCacheAccess implements CacheAccess {
         }
     }
 
-    Action<File> whenContended() {
-        return new Action<File>() {
-            public void execute(File lockTarget) {
+    Runnable whenContended() {
+        return new Runnable() {
+            public void run() {
                 takeOwnership("Other process requested access to " + cacheDiplayName);
+                LOG.info("Detected file lock contention of {} (fileLock={}, contended={}, busy={})", cacheDiplayName, fileLock != null, contended, busy);
                 try {
-                    FileLock lock = lockedFiles.get(lockTarget);
-                    if (lock == null) {
+                    if (fileLock == null) {
                         //the lock may have been closed before we entered the thread lock via takeOwnership()
                         return;
                     }
-                    if (!lock.isContended()) {
-                        LOG.info("Other process requested access to {} [busy: {}].", lockTarget, lock.isBusy());
-                        lock.setContended(true);
-                        if (!lock.isBusy()) {
-                            lockedFiles.remove(lockTarget);
-                            closeFileLock(lock);
+                    if (!contended) {
+                        contended = true;
+                        if (!busy) {
+                            closeFileLock();
                         }
                     }
                 } finally {
@@ -433,5 +415,4 @@ public class DefaultCacheAccess implements CacheAccess {
             }
         };
     }
-
 }

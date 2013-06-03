@@ -16,15 +16,13 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.gradle.api.Action;
-
 import java.io.File;
 
 /**
  * By Szczepan Faber on 5/28/13
  */
 public interface FileLockListener {
-    void lockCreated(File target, Action<File> whenContended);
+    void lockCreated(File target, Runnable whenContended);
 
     void lockClosed(File target);
 

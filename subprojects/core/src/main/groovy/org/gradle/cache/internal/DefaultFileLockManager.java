@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.locklistener.FileLockListener;
@@ -61,11 +60,11 @@ public class DefaultFileLockManager implements FileLockManager {
         this.fileLockListener = fileLockListener;
     }
 
-    public FileLock lock(File target, LockMode mode, String targetDisplayName, Action<File> whenContended) throws LockTimeoutException {
+    public FileLock lock(File target, LockMode mode, String targetDisplayName, Runnable whenContended) throws LockTimeoutException {
         return lock(target, mode, targetDisplayName, "", whenContended);
     }
 
-    public FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName, Action<File> whenContended) {
+    public FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName, Runnable whenContended) {
         if (mode == LockMode.None) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", mode));
         }
@@ -99,8 +98,6 @@ public class DefaultFileLockManager implements FileLockManager {
         private java.nio.channels.FileLock lock;
         private RandomAccessFile lockFileAccess;
         private boolean integrityViolated;
-        private boolean contended;
-        private boolean busy = true;
         private int port;
 
         public DefaultFileLock(File target, LockMode mode, String displayName, String operationDisplayName, int port) throws Throwable {
@@ -383,22 +380,6 @@ public class DefaultFileLockManager implements FileLockManager {
                 Thread.sleep(200L);
             } while (System.currentTimeMillis() < timeout);
             return null;
-        }
-
-        public void setContended(boolean contended) {
-            this.contended = true;
-        }
-
-        public boolean isContended() {
-            return contended;
-        }
-
-        public void setBusy(boolean busy) {
-            this.busy = busy;
-        }
-
-        public boolean isBusy() {
-            return busy;
         }
     }
 }
