@@ -17,7 +17,6 @@
 package org.gradle.cache.internal
 
 import org.apache.commons.lang.RandomStringUtils
-import org.gradle.api.Action
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.cache.internal.locklistener.NoOpFileLockListener
 import org.gradle.internal.Factory
@@ -402,7 +401,7 @@ class DefaultFileLockManagerTest extends Specification {
         def operationalDisplayName = RandomStringUtils.randomAlphanumeric(1000)
 
         when:
-        customManager.lock(testFile, Exclusive, "targetDisplayName", operationalDisplayName, {} as Action)
+        customManager.lock(testFile, Exclusive, "targetDisplayName", operationalDisplayName, {} as Runnable)
 
         then:
         isVersion2LockFile(testFileLock, processIdentifier.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
@@ -468,7 +467,7 @@ class DefaultFileLockManagerTest extends Specification {
     }
 
     private FileLock createLock(LockMode lockMode = Shared, File file = testFile) {
-        manager.lock(file, lockMode, "foo", "operation", _ as Action)
+        manager.lock(file, lockMode, "foo", "operation", _ as Runnable)
     }
 
     private File unlockUncleanly(LockMode lockMode = Shared, File file = testFile) {

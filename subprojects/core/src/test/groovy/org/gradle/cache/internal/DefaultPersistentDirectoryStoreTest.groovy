@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.api.Action
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -66,7 +65,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         store.open()
 
         then:
-        1 * lockManager.lock(cacheDir, Shared, "<display> ($cacheDir)", _ as Action) >> lock
+        1 * lockManager.lock(cacheDir, Shared, "<display> ($cacheDir)", _ as Runnable) >> lock
 
         when:
         store.close()

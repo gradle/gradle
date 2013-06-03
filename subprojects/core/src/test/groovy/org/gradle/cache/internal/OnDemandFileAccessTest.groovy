@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.api.Action
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -43,7 +42,7 @@ class OnDemandFileAccessTest extends Specification {
 
         then:
         !file.exists()
-        1 * manager.lock(file, LockMode.Shared, "some-lock", _ as Action) >> targetLock
+        1 * manager.lock(file, LockMode.Shared, "some-lock", _ as Runnable) >> targetLock
         1 * targetLock.readFile(action)
         1 * targetLock.close()
         0 * targetLock._
@@ -57,7 +56,7 @@ class OnDemandFileAccessTest extends Specification {
 
         then:
         !file.exists()
-        1 * manager.lock(file, LockMode.Exclusive, "some-lock", _ as Action) >> targetLock
+        1 * manager.lock(file, LockMode.Exclusive, "some-lock", _ as Runnable) >> targetLock
         1 * targetLock.updateFile(action)
         1 * targetLock.close()
         0 * targetLock._
@@ -71,7 +70,7 @@ class OnDemandFileAccessTest extends Specification {
 
         then:
         !file.exists()
-        1 * manager.lock(file, LockMode.Exclusive, "some-lock", _ as Action) >> targetLock
+        1 * manager.lock(file, LockMode.Exclusive, "some-lock", _ as Runnable) >> targetLock
         1 * targetLock.writeFile(action)
         1 * targetLock.close()
         0 * targetLock._
