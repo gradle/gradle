@@ -268,15 +268,18 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         sharedLibrary("build/binaries/helloSharedLibrary/hello").assertExists()
         executable("build/binaries/mainExecutable/test").assertExists()
 
-        executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD
-        executable("build/install/mainExecutable/test").exec("a", "1 2 3").out.contains("[a][1 2 3]")
+        def install = installation("build/install/mainExecutable")
+        install.assertInstalled()
+        install.assertIncludesLibraries("hello")
+        install.exec().out == HELLO_WORLD
+        install.exec("a", "1 2 3").out.contains("[a][1 2 3]")
 
         // Ensure installed binary is not dependent on the libraries in their original locations
         when:
         file("build/binaries").deleteDir()
 
         then:
-        executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD
+        install.exec().out == HELLO_WORLD
     }
 
     def "build, install and execute program with static library"() {
@@ -333,14 +336,17 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         staticLibrary("build/binaries/helloStaticLibrary/hello").assertExists()
         executable("build/binaries/mainExecutable/test").assertExists()
 
-        executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD
-        executable("build/install/mainExecutable/test").exec("a", "1 2 3").out.contains("[a][1 2 3]")
+        def install = installation("build/install/mainExecutable")
+        install.assertInstalled()
+        install.assertIncludesLibraries()
+        install.exec().out == HELLO_WORLD
+        install.exec("a", "1 2 3").out.contains("[a][1 2 3]")
 
         // Ensure installed binary is not dependent on the libraries in their original locations
         when:
         file("build/binaries").deleteDir()
 
         then:
-        executable("build/install/mainExecutable/test").exec().out == HELLO_WORLD
+        install.exec().out == HELLO_WORLD
     }
 }

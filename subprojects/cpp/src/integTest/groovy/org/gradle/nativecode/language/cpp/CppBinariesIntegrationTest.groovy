@@ -116,7 +116,7 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
             executables {
                 main {
                     binaries.all {
-                        lib project.binaries.helloStaticLibrary
+                        lib libraries.hello.static
                     }
                 }
             }
@@ -153,7 +153,7 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installMainExecutable"
 
         then:
-        staticLibrary("build/hello").file
+        staticLibrary("build/hello").assertExists()
         executable("build/install/mainExecutable/test").exec().out == "Hello!"
     }
 }

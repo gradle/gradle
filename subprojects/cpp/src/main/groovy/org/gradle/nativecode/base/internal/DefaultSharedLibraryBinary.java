@@ -57,8 +57,12 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
                 return library.getHeaders();
             }
 
-            public FileCollection getFiles() {
+            public FileCollection getLinkFiles() {
                 return new FileCollectionAdapter(new RuntimeFiles());
+            }
+
+            public FileCollection getRuntimeFiles() {
+                return getLinkFiles();
             }
         };
     }

@@ -23,8 +23,18 @@ import org.gradle.api.file.FileCollection;
  */
 @Incubating
 public interface NativeDependencySet {
-
+    /**
+     * Returns the header file directories to use at compile time.
+     */
     FileCollection getIncludeRoots();
-    FileCollection getFiles();
 
+    /**
+     * Returns the files to use at link time.
+     */
+    FileCollection getLinkFiles();
+
+    /**
+     * Returns the files to use at runtime.
+     */
+    FileCollection getRuntimeFiles();
 }

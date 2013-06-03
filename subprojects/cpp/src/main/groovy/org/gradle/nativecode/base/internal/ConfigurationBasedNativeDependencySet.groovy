@@ -71,8 +71,12 @@ class ConfigurationBasedNativeDependencySet implements NativeDependencySet {
         headerExtractionTask.outputs.files
     }
 
-    FileCollection getFiles() {
+    FileCollection getLinkFiles() {
         project.configurations[filesConfigurationName]
+    }
+
+    FileCollection getRuntimeFiles() {
+        return getLinkFiles()
     }
 
     void add(Map dep) {

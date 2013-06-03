@@ -123,7 +123,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         linkTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
 
         binary.libs.all { NativeDependencySet lib ->
-            linkTask.lib lib.files
+            linkTask.lib lib.linkFiles
         }
 
         linkTask.conventionMapping.outputFile = { binary.outputFile }
@@ -163,11 +163,11 @@ class CppPlugin implements Plugin<ProjectInternal> {
             dependsOn linkTask
             if (OperatingSystem.current().windows) {
                 from { executable.outputFile }
-                from { executable.libs*.files }
+                from { executable.libs*.runtimeFiles }
             } else {
                 into("lib") {
                     from { executable.outputFile }
-                    from { executable.libs*.files }
+                    from { executable.libs*.runtimeFiles }
                 }
                 doLast {
                     def script = new File(destinationDir, executable.outputFile.name)

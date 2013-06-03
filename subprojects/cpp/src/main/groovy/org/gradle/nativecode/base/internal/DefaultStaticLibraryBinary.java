@@ -20,6 +20,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.base.Library;
@@ -57,13 +58,22 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
                 return library.getHeaders();
             }
 
-            public FileCollection getFiles() {
-                return new FileCollectionAdapter(new RuntimeFiles());
+            public FileCollection getLinkFiles() {
+                return new FileCollectionAdapter(new LibraryFile());
+            }
+
+            public FileCollection getRuntimeFiles() {
+                return new SimpleFileCollection() {
+                    @Override
+                    public String getDisplayName() {
+                        return DefaultStaticLibraryBinary.this.toString();
+                    }
+                };
             }
         };
     }
 
-    private class RuntimeFiles implements MinimalFileSet, Buildable {
+    private class LibraryFile implements MinimalFileSet, Buildable {
         public Set<File> getFiles() {
             return Collections.singleton(getOutputFile());
         }

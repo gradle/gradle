@@ -19,8 +19,8 @@ package org.gradle.nativecode.language.cpp.fixtures
 import org.gradle.nativecode.language.cpp.fixtures.AvailableToolChains.ToolChainCandidate
 import org.gradle.test.fixtures.file.TestFile
 
-class Executable extends NativeBinaryFixture {
-    Executable(TestFile file, ToolChainCandidate toolChain) {
+class ExecutableFixture extends NativeBinaryFixture {
+    ExecutableFixture(TestFile file, ToolChainCandidate toolChain) {
         super(file, toolChain)
     }
 

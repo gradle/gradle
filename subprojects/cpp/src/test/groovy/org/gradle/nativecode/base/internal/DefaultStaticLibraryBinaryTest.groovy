@@ -16,9 +16,9 @@
 
 package org.gradle.nativecode.base.internal
 
+import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.nativecode.base.Library
-import org.gradle.tooling.model.Task
 import spock.lang.Specification
 
 class DefaultStaticLibraryBinaryTest extends Specification {
@@ -41,9 +41,16 @@ class DefaultStaticLibraryBinaryTest extends Specification {
 
         expect:
         def nativeDependency = binary.asNativeDependencySet
-        nativeDependency.files.files == [binary.outputFile] as Set
-        nativeDependency.files.buildDependencies == binary.buildDependencies
-        nativeDependency.files.toString() == "static library 'main'"
         nativeDependency.includeRoots == headers
+
+        and:
+        nativeDependency.linkFiles.files == [binary.outputFile] as Set
+        nativeDependency.linkFiles.buildDependencies == binary.buildDependencies
+        nativeDependency.linkFiles.toString() == "static library 'main'"
+
+        and:
+        nativeDependency.runtimeFiles.files.isEmpty()
+        nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)).isEmpty()
+        nativeDependency.runtimeFiles.toString() == "static library 'main'"
     }
 }

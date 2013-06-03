@@ -41,9 +41,16 @@ class DefaultSharedLibraryBinaryTest extends Specification {
 
         expect:
         def nativeDependency = binary.asNativeDependencySet
-        nativeDependency.files.files == [binary.outputFile] as Set
-        nativeDependency.files.buildDependencies == binary.buildDependencies
-        nativeDependency.files.toString() == "shared library 'main'"
         nativeDependency.includeRoots == headers
+
+        and:
+        nativeDependency.linkFiles.files == [binary.outputFile] as Set
+        nativeDependency.linkFiles.buildDependencies == binary.buildDependencies
+        nativeDependency.linkFiles.toString() == "shared library 'main'"
+
+        and:
+        nativeDependency.runtimeFiles.files == [binary.outputFile] as Set
+        nativeDependency.runtimeFiles.buildDependencies == binary.buildDependencies
+        nativeDependency.runtimeFiles.toString() == "shared library 'main'"
     }
 }

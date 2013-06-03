@@ -97,13 +97,14 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
     def "does not re-execute build with no change"() {
         when:
-        run "mainExecutable"
+        run "installMainExecutable"
 
         then:
         skipped ":compileHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         skipped ":compileMainExecutable"
         skipped ":mainExecutable"
+        skipped ":installMainExecutable"
     }
 
     def "rebuilds binary with source file change"() {
@@ -126,6 +127,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         skipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
         executedAndNotSkipped ":mainExecutable"
+        executedAndNotSkipped ":installMainExecutable"
 
         and:
         executable.assertExists()
@@ -152,6 +154,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         executedAndNotSkipped ":helloSharedLibrary"
         skipped ":compileMainExecutable"
         executedAndNotSkipped ":mainExecutable"
+        executedAndNotSkipped ":installMainExecutable"
 
         and:
         executable.assertExists()
@@ -168,13 +171,14 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 // Comment added to the end of the header file
 """
 
-        run "mainExecutable"
+        run "installMainExecutable"
 
         then:
         executedAndNotSkipped ":compileHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
         skipped ":mainExecutable"
+        skipped ":installMainExecutable"
     }
 
     def "rebuilds binary with compiler option change"() {
@@ -197,6 +201,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         skipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
         executedAndNotSkipped ":mainExecutable"
+        executedAndNotSkipped ":installMainExecutable"
 
         and:
         executable.assertExists()
@@ -204,18 +209,26 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
     }
 
     def "relinks binary when set of input libraries changes"() {
+        def executable = executable("build/binaries/mainExecutable/main")
+        def snapshot = executable.snapshot()
+
         when:
         buildFile << """
+            binaries.mainExecutable.libs.clear()
             binaries.mainExecutable.lib binaries.helloStaticLibrary
 """
 
-        run "mainExecutable"
+        run "installMainExecutable"
 
         then:
         skipped ":compileHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         skipped ":compileMainExecutable"
         executedAndNotSkipped ":mainExecutable"
+        executedAndNotSkipped ":installMainExecutable"
+
+        and:
+        executable.assertHasChangedSince(snapshot)
     }
 
     def "relinks binary but does not recompile when linker option changed"() {
@@ -234,7 +247,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
             }
 """
 
-        run "mainExecutable"
+        run "installMainExecutable"
 
         then:
         skipped ":compileHelloSharedLibrary"
@@ -254,13 +267,14 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         }
         when:
         sourceFile.text = sourceFile.text.replaceFirst("// Simple hello world app", "// Comment is changed")
-        run "mainExecutable"
+        run "installMainExecutable"
 
         then:
         skipped ":compileHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
         skipped ":mainExecutable"
+        skipped ":installMainExecutable"
     }
 
     def "cleans up stale object files when source file renamed"() {
