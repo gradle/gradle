@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.FileLockCommunicator;
@@ -36,7 +35,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultFileLockListener implements FileLockListener {
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockListener.class);
     private final Lock lock = new ReentrantLock();
-    private final Map<File, Action<File>> contendedActions = new HashMap();
+    private final Map<File, Runnable> contendedActions = new HashMap<File, Runnable>();
     private FileLockCommunicator communicator = new FileLockCommunicator();
 
     private Runnable listener() {
@@ -56,14 +55,14 @@ public class DefaultFileLockListener implements FileLockListener {
                 File requestedFileLock;
                 while ((requestedFileLock = communicator.receive()) != null) {
                     lock.lock();
-                    Action<File> action;
+                    Runnable action;
                     try {
                         action = contendedActions.get(requestedFileLock);
                     } finally {
                         lock.unlock();
                     }
                     if (action != null) {
-                        action.execute(requestedFileLock);
+                        action.run();
                     }
                 }
             }
@@ -72,7 +71,7 @@ public class DefaultFileLockListener implements FileLockListener {
 
     private StoppableExecutor executor;
 
-    public void lockCreated(File target, Action<File> whenContended) {
+    public void lockCreated(File target, Runnable whenContended) {
         lock.lock();
         try {
             if (contendedActions.isEmpty()) {

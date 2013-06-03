@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.internal.Actions;
 import org.gradle.internal.Factory;
 
 import java.io.File;
@@ -32,7 +31,7 @@ public class OnDemandFileAccess extends AbstractFileAccess {
     }
 
     public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
-        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Shared, displayName, Actions.<File>doNothing());
+        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Shared, displayName, doNothing());
         try {
             return lock.readFile(action);
         } finally {
@@ -40,8 +39,12 @@ public class OnDemandFileAccess extends AbstractFileAccess {
         }
     }
 
+    private Runnable doNothing() {
+        return new Runnable() { public void run() {} };
+    }
+
     public void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
-        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName, Actions.<File>doNothing());
+        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName, doNothing());
         try {
             lock.updateFile(action);
         } finally {
@@ -50,7 +53,7 @@ public class OnDemandFileAccess extends AbstractFileAccess {
     }
 
     public void writeFile(Runnable action) throws LockTimeoutException {
-        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName, Actions.<File>doNothing());
+        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName, doNothing());
         try {
             lock.writeFile(action);
         } finally {

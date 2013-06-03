@@ -16,8 +16,6 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.gradle.api.Action;
-
 import java.io.File;
 
 /**
@@ -25,7 +23,7 @@ import java.io.File;
  */
 public class NoOpFileLockListener implements FileLockListener {
 
-    public void lockCreated(File target, Action<File> whenContended) {}
+    public void lockCreated(File target, Runnable whenContended) {}
 
     public void lockClosed(File target) {}
 
