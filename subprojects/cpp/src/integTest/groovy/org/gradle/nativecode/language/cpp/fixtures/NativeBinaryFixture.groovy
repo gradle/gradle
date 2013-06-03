@@ -50,14 +50,14 @@ class NativeBinaryFixture {
     // Does nothing when tool chain does not generate a separate debug file
     void assertDebugFileExists() {
         if (toolChain.visualCpp) {
-            debugFile.assertIsFile()
+            getDebugFile().assertIsFile()
         }
     }
 
     // Does nothing when tool chain does not generate a separate debug file
     void assertDebugFileDoesNotExist() {
         if (toolChain.visualCpp) {
-            debugFile.assertDoesNotExist()
+            getDebugFile().assertDoesNotExist()
         }
     }
 
