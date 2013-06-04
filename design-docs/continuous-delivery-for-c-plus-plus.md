@@ -50,7 +50,7 @@ A native component that represents a library to be used in other native componen
 
 # Milestone 1
 
-## Story: Introduce native binaries
+## Story: Introduce native binaries (DONE)
 
 This story introduces domain objects to represent each native binary that is built, sharing the concepts introduced in the new JVM language DSL.
 
@@ -95,7 +95,7 @@ Running `gradle mainExecutable` will build the main executable binary.
 - For a build that uses the `cpp-lib` plugin:
     - Can run `gradle mainSharedLibrary` to build the main shared library.
 
-## Story: Separate C++ compilation and linking of binaries
+## Story: Separate C++ compilation and linking of binaries (DONE)
 
 This story separates C++ compilation and linking of binaries into separate tasks, so that:
 
@@ -222,7 +222,8 @@ Later stories will add more flexible and convenient support for customisation of
 - Add the following mutable properties to `ExecutableBinary` and `SharedLibraryBinary`:
     - `linkerArgs`
 - Add a `binaries` property to `NativeComponent`. This is a `DomainObjectCollection` of all binaries for the component.
-- Remove `NativeComponent.compilerArgs` and `linkerArgs` properties. Instead, configuration injection via the `binaries` container can be used to define shared settings for the binaries of a component.
+- Remove `NativeComponent.compilerArgs` and `linkerArgs` properties. Instead, configuration injection via the `binaries` container can be used to
+  define shared settings for the binaries of a component.
 
 ### User visible changes
 
@@ -269,16 +270,21 @@ Later stories will add more flexible and convenient support for customisation of
 - Allow customisation of the source sets for a binary.
 - Split the compiler and linker settings out to separate types.
 - Strongly type the compiler and linker args as `String`.
+- Need to run `ranlib` over static libraries.
 
 ## Story: Defer creation of binaries
 
 This story defers creation of the binaries for a native component until after the component has been fully configured. This will be used in later stories to allow different variants to be defined for a component.
 
-- Add some project level callback that is called just before `afterEvaluated { }`.
-- Change the handling of `@DeferredConfigurable` to use this callback.
-- Change the C++ plugin to use this callback to create the binaries of each component.
-- Add a `DomainObjectCollection` sub-interface with method `all(map, action)`. This method is equivalent to calling `matching(predicate, action)`, where `predicate` is a spec that selects all objects whose property values equal those specified in the map. This method can be used to do delayed configuration of the elements of the collection.
-- Change `NativeComponent.binaries` and `BinariesContainer` to provide implementations of this interface.
+- Add an internal (for now) `ConfigurationActionContainer` interface, with a single `onConfigure(Runnable)` method.
+- Add a project scoped implementation of this interface. The `onConfigure()` method is invoked just before the `afterEvaluated` event.
+- Change the publishing plugin to register an action that configures the publications of the project.
+- Change the handling of `@DeferredConfigurable` so that a `@DeferredConfigurable` is not automatically configured during project configuration. Instead, it is configured
+  on demand.
+- Change the C++ plugin to register an action that configures the components of the project and then creates the binaries of each component.
+
+*Note*: this story introduces some breaking changes, as the binaries and their tasks will not be defined when the build script is executed. Later stories will
+improve this.
 
 ### User visible changes
 
@@ -291,42 +297,88 @@ This story defers creation of the binaries for a native component until after th
                 …
             }
             // Defaults for all shared library binaries for this library
-            binaries.all(type: SharedLibraryBinary) {
+            binaries.withType(type: SharedLibraryBinary) {
                 …
             }
             // Note: These will not work as expected
             binaries.each { … }
+            binaries.find { … }
             binaries.size()
         }
     }
     
-    binaries.all(name: 'mainSharedLibrary') {
+    binaries.all {
         … 
     }
     
-    binaries.all(type: NativeBinary) {
+    binaries.withType(NativeBinary) {
         …
     }
     
-    // Note: this will not work as expected
-    binaries { mainSharedLibrary { … } }
+    // Note: this will not work as previously. It will fail because the binary does not exist yet
+    binaries {
+        mainSharedLibrary { … }
+    }
+
+    //Note: this will not work as previously. It will fail because the task does not exist yet
+    compileMainSharedLibrary { … }
 
 
 ### Open issues
 
-- Need a `NamedDomainObjectCollection` that uses delayed configuration of its elements.
+- Introduce a `DomainObjectCollection` that uses delayed configuration of its elements.
+- Introduce a `NamedDomainObjectCollection` that uses delayed configuration of its elements.
+
+## Story: Simplify configuration of a binary based on its properties
+
+- Add a `DomainObjectCollection` sub-interface with method `all(map, action)`. This method is equivalent to calling `matching(predicate, action)`, where `predicate` is a spec that selects all objects whose property values equal those specified in the map. This method can be used to do delayed configuration of the elements of the collection.
+- Change `NativeComponent.binaries` and `BinariesContainer` to provide implementations of this interface.
+
+### User visible changes
+
+    apply plugin: 'cpp-lib'
+
+    libraries {
+        main {
+            // Defaults for all binaries for this library
+            binaries.all {
+                …
+            }
+            // Defaults for all shared library binaries for this library
+            binaries.all(type: SharedLibraryBinary) {
+                …
+            }
+            // Defaults for all binaries built by Visual C++
+            binaries.all(toolchain: toolchains.visualCpp) {
+                …
+            }
+            // Defaults for all shared library binaries built by Visual C++
+            binaries.all(toolchain: toolchains.visualCpp, type: SharedLibraryBinary) {
+                …
+            }
+        }
+    }
+
+    binaries.all(name: 'mainSharedLibrary') {
+        …
+    }
+
+    binaries.all(type: NativeBinary) {
+        …
+    }
+
+### Open issues
+
 - Roll out the predicate methods to other containers.
+- Need to deal with things like 'all versions of visual C++', 'all toolchains except visual C++', 'visual C++ 9 and later', 'gcc 3' etc.
+- Need to deal with things like 'all unix environments', 'all windows environments', etc.
 
-## Story: Defer configuration of native components
+## Story: Convenient configuration of tasks for binaries and components
 
-TBD
+This story defers creation of the tasks for a binary or component until after the object has been fully configured.
 
-## Story: Defer creation of tasks for binaries
-
-This story defers creation of the tasks for a binary until after the binary has been fully configured.
-
-- Change the C++ plugin to use the configuration callback to create the tasks for each native binary.
-- Change the publication plugins to use the configuration callback to create tasks for each publication.
+- Change the C++ plugin to create the tasks for each native binary after the binary has been configured.
+- Change the C++ plugin to create the tasks for each component after the tasks for the binary have been configured.
 - Remove the convention mappings from the C++ plugin.
 
 ### Open issues
@@ -369,14 +421,30 @@ This will define 4 binaries:
 - Need to consume locally and between projects and between builds.
 - Need to infer the default variant.
 
+## Story: Additional integration test coverage for supported tool chains
+
+The CI builds include coverage for each supported tool chain. However, the coverage silently ignores tool chains which are not
+available on the current machine. Instead, the CI builds should asert that every expected tool chain is avilable on the current
+machine.
+
+Later stories will add further integration test coverage for particular OS and tool chain combinations.
+
+- Change `AbstractBinariesIntegrationSpec` to assert that each expected tool chain is installed on the current machine when
+  runnning as part of a CI coverage build.
+- Change `AbstractBinariesIntegrationSpec` to use a single tool chain for each machine as part of a CI commit build. For Windows,
+  the test should use a recent version of Visual C++, and for Linux, the test should use GCC.
+- Install Visual C++ 2010, Cygwin and MinGW on the Windows CI agents, as required.
+- Install GCC 3 and GCC 4 the linux CI agents, as required.
 
 ## Story: Allow library binaries to be used as input to other binaries
 
-This story adds support for using another library component or binary as input to compile and/or link a given binary. Adding a library component or binary as input  makes the header files of that library available at compilation time, and the appropriate binaries available at link and runtime.
+This story adds support for using another library component or binary as input to compile and/or link a given binary. Adding a library component or binary as input
+implies that the library's header files will be available at compilation time, and the appropriate binaries available at link and runtime.
 
 Some support will be added for expressing shared dependencies at the component level as well at the binary level.
 
-Later stories will build on this to unify the library dependency DSL, so that a consistent approach is used to consume libraries built by the same project, or another project in the same build, or from a binary repository.
+Later stories will build on this to unify the library dependency DSL, so that a consistent approach is used to consume libraries built by the same project, or another
+project in the same build, or from a binary repository.
 
 - Rename `NativeDependencySet.files` to `runtimeFiles`.
 - Add `NativeDependencySet.linkFiles`. Default implementation should return the runtime files. This will be improved in later stories.
@@ -400,20 +468,33 @@ Later stories will build on this to unify the library dependency DSL, so that a 
 - Add `NativeBinary.libraries` property of type `DomainObjectCollection<NativeDependencySet>`.
 - Change the C++ plugin to add the dependencies of each C++ source set to this collection.
 - Change the C++ plugin to wire the inputs of the binary's compile and link tasks based on the contents of the `NativeBinary.libraries` collection.
-- Add `NativeBinary.library(Object)` method which accepts anything that can be converted to a `NativeDependencySet`:
+- Add `Library.getShared()` and `getStatic()` methods which return `NativeDependencySet` imlementations for the shared and static variants of the library.
+- Add `NativeBinary.lib(Object)` method which accepts anything that can be converted to a `NativeDependencySet`:
     - A `NativeBinary` is converted by calling its `getAsNativeDependencySet()` method.
     - A `NativeDependencySet` can be used as is.
-    - Add `Library.getDefaultBinary()` which returns the shared library binary for the library, and convert a `Library` using its `getDefaultBinary().getAsNativeDependencySet()` method.
-- Add `Library.getShared()` and `getStatic()` methods which return `NativeDependencySet` imlementations for the shared and static variants of the library.
+    - A `Library` is converted by calling its `getShared().getAsNativeDependencySet()` method.
+- Add `CppSourceSet.lib(Object)` method which accepts the above types.
 
 ### User visible changes
 
     binaries {
         mainExecutable {
-            // Include the given static library in the executable
-            library binaries.customStaticLibrary
+            // Include the static variant of the given library in the executable
+            lib libraries.main.static
             // Include the default variant of the given library in the executable
-            library libraries.utils
+            lib libraries.utils
+            // Include the given binary in the executable
+            lib binaries.someSharedLibrary
+        }
+    }
+
+    cpp {
+        sourceSets {
+            main {
+                lib libraries.main
+                lib libraries.util.shared
+                lib binaries.someSharedLibrary
+            }
         }
     }
 
@@ -430,6 +511,7 @@ Later stories will build on this to unify the library dependency DSL, so that a 
 ### Open issues
 
 - Need a new name for `NativeDependencySet`.
+- Need some way to convert a `NativeDependencySet` to a read-only library.
 - Improve consumption of libraries from other projects.
 - Some mechanism to use the static binary as default for a library.
 - Some mechanism to select static or dynamic linkage for each dependency of a binary.
@@ -499,6 +581,8 @@ To define custom source sets and components:
 - Define a functional source set for each component.
 - Separate C++ header file source set type.
 - Need to configure each component and source set lazily.
+- Need to deal with source sets that are generated.
+- `source()` collides with `project.source`.
 
 ## Story: Compile C source files using the C compiler
 
@@ -724,6 +808,12 @@ To implement this:
 * Generate the test launcher source and compile it into the executable.
 * It would be nice to generate a test launcher that is integrated with Gradle's test eventing.
 * It would be nice to generate a test launcher that runs test cases detected from the test source (as we do for JUnit and TestNG tests).
+
+### Open issues
+
+* Need a `unitTest` lifecycle task, plus a test execution task for each variant of the unit tests.
+* Unit test executable needs to link with the object files that would be linked into the main executable.
+* Need to exclude the `main` method.
 
 ## Story: Expose only public header files for a library
 
