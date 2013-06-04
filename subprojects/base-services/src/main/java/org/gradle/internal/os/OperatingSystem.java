@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.os;
 
+import org.gradle.api.Nullable;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -87,6 +89,7 @@ public abstract class OperatingSystem {
     /**
      * Locates the given executable in the system path. Returns null if not found.
      */
+    @Nullable
     public File findInPath(String name) {
         String exeName = getExecutableName(name);
         if (exeName.contains(File.separator)) {
@@ -187,7 +190,10 @@ public abstract class OperatingSystem {
 
         @Override
         public String getSharedLibraryName(String libraryName) {
-            String suffix = getSharedLibSuffix();
+            return getLibraryName(libraryName, getSharedLibSuffix());
+        }
+
+        private String getLibraryName(String libraryName, String suffix) {
             if (libraryName.endsWith(suffix)) {
                 return libraryName;
             }
@@ -205,7 +211,7 @@ public abstract class OperatingSystem {
 
         @Override
         public String getStaticLibraryName(String libraryName) {
-            return libraryName.endsWith(".a") ? libraryName : libraryName + ".a";
+            return getLibraryName(libraryName, ".a");
         }
 
         @Override
