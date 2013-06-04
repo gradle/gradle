@@ -41,12 +41,12 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
             }
             executables {
                 main {
-                    sourceSets << project.cpp.sourceSets.main
+                    source cpp.sourceSets.main
                 }
             }
             libraries {
                 hello {
-                    sourceSets << project.cpp.sourceSets.hello
+                    source cpp.sourceSets.hello
                     binaries.withType(SharedLibraryBinary) {
                         define "DLL_EXPORT"
                     }

@@ -24,68 +24,6 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
     static final HELLO_WORLD = "Hello, World!"
     static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
 
-    def "build and execute simple c++ program"() {
-        given:
-        buildFile << """
-            apply plugin: "cpp-exe"
-        """
-        settingsFile << "rootProject.name = 'test'"
-
-        and:
-        file("src", "main", "cpp", "helloworld.cpp") << """
-            #include <iostream>
-
-            int main () {
-              std::cout << "${escapeString(HELLO_WORLD)}";
-              return 0;
-            }
-        """
-
-        when:
-        run "mainExecutable"
-
-        then:
-        def executable = executable("build/binaries/mainExecutable/test")
-        executable.assertExists()
-        executable.exec().out == HELLO_WORLD
-    }
-
-    def "build simple c++ library"() {
-        given:
-        buildFile << """
-            apply plugin: "cpp-lib"
-        """
-        settingsFile << "rootProject.name = 'test'"
-
-        and:
-        file("src", "main", "cpp", "helloworld.cpp") << """
-            #include <iostream>
-            #ifdef _WIN32
-            #define DLL_FUNC __declspec(dllexport)
-            #else
-            #define DLL_FUNC
-            #endif
-
-            int DLL_FUNC main () {
-              std::cout << "${escapeString(HELLO_WORLD)}";
-              return 0;
-            }
-        """
-
-        when:
-        run "mainSharedLibrary"
-
-        then:
-        def lib = sharedLibrary("build/binaries/mainSharedLibrary/test")
-        lib.assertExists()
-
-        when:
-        run "mainStaticLibrary"
-
-        then:
-        staticLibrary("build/binaries/mainStaticLibrary/test").assertExists()
-    }
-
     def "build fails when compilation fails"() {
         given:
         buildFile << """
@@ -131,10 +69,10 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
             }
             executables {
                 english {
-                    sourceSets << project.cpp.sourceSets.main
+                    source cpp.sourceSets.main
                 }
                 french {
-                    sourceSets << project.cpp.sourceSets.main
+                    source cpp.sourceSets.main
                     binaries.all {
                         compilerArgs "-DFRENCH"
                     }
@@ -221,7 +159,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
             }
             libraries {
                 hello {
-                    sourceSets << cpp.sourceSets.hello
+                    source cpp.sourceSets.hello
                 }
             }
             cpp.sourceSets.main.lib libraries.hello
@@ -294,7 +232,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
             }
             libraries {
                 hello {
-                    sourceSets << cpp.sourceSets.hello
+                    source cpp.sourceSets.hello
                 }
             }
             cpp.sourceSets.main.lib libraries.hello.static

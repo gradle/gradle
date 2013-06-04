@@ -38,8 +38,12 @@ public class DefaultNativeComponent implements NativeComponent {
         return name;
     }
 
-    public DomainObjectSet<SourceSet> getSourceSets() {
+    public DomainObjectSet<SourceSet> getSource() {
         return sourceSets;
+    }
+
+    public void source(SourceSet sourceSet) {
+        sourceSets.add(sourceSet);
     }
 
     public DomainObjectSet<NativeBinary> getBinaries() {

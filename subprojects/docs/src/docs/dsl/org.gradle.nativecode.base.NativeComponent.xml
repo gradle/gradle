@@ -27,7 +27,7 @@
                 <td>baseName</td>
             </tr>
             <tr>
-                <td>sourceSets</td>
+                <td>source</td>
             </tr>
             <tr>
                 <td>binaries</td>
@@ -42,6 +42,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>source</td>
+            </tr>
         </table>
     </section>
 </section>

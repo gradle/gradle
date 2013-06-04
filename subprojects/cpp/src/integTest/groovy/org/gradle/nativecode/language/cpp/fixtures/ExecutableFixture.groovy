@@ -25,6 +25,7 @@ class ExecutableFixture extends NativeBinaryFixture {
     }
 
     public Map<String, ?> exec(Object... args) {
-        return file.exec(args);
+        assertExists()
+        return file.exec(args)
     }
 }

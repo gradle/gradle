@@ -69,7 +69,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
     def createTasks(ProjectInternal project, NativeBinaryInternal binary) {
         // TODO:DAZ Move this logic into NativeBinary
-        binary.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
+        binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
             sourceSet.libs.all { NativeDependencySet lib ->
                 binary.lib lib
             }
@@ -95,9 +95,8 @@ class CppPlugin implements Plugin<ProjectInternal> {
         compileTask.forDynamicLinking = binary instanceof SharedLibraryBinary
 
         // TODO:DAZ Move some of this logic into NativeBinary
-        binary.sourceSets.withType(CppSourceSet).all { CppSourceSet sourceSet ->
+        binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
             compileTask.includes sourceSet.exportedHeaders
-
             compileTask.source sourceSet.source
 
             binary.libs.all { NativeDependencySet deps ->

@@ -20,6 +20,7 @@ import org.gradle.nativecode.base.Library
 import org.gradle.nativecode.base.LibraryBinary
 import org.gradle.nativecode.base.NativeComponent
 import org.gradle.nativecode.base.NativeDependencySet
+import org.gradle.nativecode.base.SourceSet
 import spock.lang.Specification
 
 class DefaultNativeBinaryTest extends Specification {
@@ -40,6 +41,18 @@ class DefaultNativeBinaryTest extends Specification {
 
         then:
         component.binaries.contains(binary)
+    }
+
+    def "binary uses source from its owner component"() {
+        given:
+        def binary = new TestBinary(component)
+        def sourceSet = Stub(SourceSet)
+
+        when:
+        component.source(sourceSet)
+
+        then:
+        binary.source.contains(sourceSet)
     }
 
     def "can add a library as a dependency of the binary"() {

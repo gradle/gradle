@@ -54,7 +54,7 @@ public class DefaultLibrary extends DefaultNativeComponent implements Library {
 
     private void initExportedHeaderTracking() {
         // TODO - headers.srcDirs() should allow a Callable<SourceDirectorySet> for lazy calculation
-        final DomainObjectSet<HeaderExportingSourceSet> headerExportingSourceSets = getSourceSets().withType(HeaderExportingSourceSet.class);
+        final DomainObjectSet<HeaderExportingSourceSet> headerExportingSourceSets = getSource().withType(HeaderExportingSourceSet.class);
         headerExportingSourceSets.all(new Action<HeaderExportingSourceSet>() {
             public void execute(HeaderExportingSourceSet headerExportingSourceSet) {
                 updateHeaderDirs(headerExportingSourceSets, headers);

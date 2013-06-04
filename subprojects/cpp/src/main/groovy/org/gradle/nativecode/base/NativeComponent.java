@@ -28,7 +28,12 @@ public interface NativeComponent extends Named {
     /**
      * The source sets that are used to build this component.
      */
-    DomainObjectSet<SourceSet> getSourceSets();
+    DomainObjectSet<SourceSet> getSource();
+
+    /**
+     * Adds some source to use to build this component.
+     */
+    void source(SourceSet sourceSet);
 
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
@@ -36,12 +41,12 @@ public interface NativeComponent extends Named {
     DomainObjectSet<NativeBinary> getBinaries();
 
     /**
-     * The name that is used to construct task names and output file names when building this component.
+     * The name that is used to construct the output file names when building this component.
      */
     String getBaseName();
 
     /**
-     * Sets the name that is used to construct task names and output file names when building this component.
+     * Sets the name that is used to construct the output file names when building this component.
      */
     void setBaseName(String baseName);
 }

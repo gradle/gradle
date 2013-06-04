@@ -106,7 +106,7 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
             }
             libraries {
                 hello {
-                    sourceSets << cpp.sourceSets.hello
+                    source cpp.sourceSets.hello
                     binaries.all {
                         outputFile file('${staticLibrary("build/hello").toURI()}')
                         define 'ENABLE_GREETING'
@@ -155,5 +155,58 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
         then:
         staticLibrary("build/hello").assertExists()
         executable("build/install/mainExecutable/test").exec().out == "Hello!"
+    }
+
+    def "can configure a binary to use additional source sets and compiler args"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp"
+
+            cpp {
+                sourceSets {
+                    main { }
+                    util { }
+                }
+            }
+            executables {
+                main {
+                    source cpp.sourceSets.main
+                    binaries.all {
+                        source cpp.sourceSets.util
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = 'test'"
+
+        and:
+        file("src/util/cpp/greeting.cpp") << """
+            #include <iostream>
+            #include "greeting.h"
+
+            void greeting() {
+                std::cout << "Hello!";
+            }
+        """
+
+        file("src/util/headers/greeting.h") << """
+            void greeting();
+"""
+
+        file("src/main/cpp/helloworld.cpp") << """
+            #include "greeting.h"
+
+            int main() {
+                greeting();
+                return 0;
+            }
+        """
+
+        when:
+        run "mainExecutable"
+
+        then:
+        def executable = executable("build/binaries/mainExecutable/main")
+        executable.exec().out == "Hello!"
     }
 }

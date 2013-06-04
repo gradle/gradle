@@ -41,9 +41,14 @@ public interface NativeBinary extends Binary {
     void setOutputFile(File outputFile);
 
     /**
-     * The source sets used to create this binary.
+     * The source sets used to compile this binary.
      */
-    DomainObjectSet<SourceSet> getSourceSets();
+    DomainObjectSet<SourceSet> getSource();
+
+    /**
+     * Adds a source set to use to compile this binary.
+     */
+    void source(SourceSet sourceSet);
 
     /**
      * Returns the {@link ToolChain} that will be used to build this binary.

@@ -40,7 +40,7 @@ class CppExeConventionPlugin implements Plugin<Project> {
             executables {
                 main {
                     baseName = project.name
-                    sourceSets << project.cpp.sourceSets.main
+                    source << project.cpp.sourceSets.main
                 }
             }
             

@@ -42,7 +42,7 @@ class CppLibConventionPlugin implements Plugin<Project> {
             libraries {
                 main {
                     baseName = project.name
-                    sourceSets << project.cpp.sourceSets.main
+                    source << project.cpp.sourceSets.main
                 }
             }
 

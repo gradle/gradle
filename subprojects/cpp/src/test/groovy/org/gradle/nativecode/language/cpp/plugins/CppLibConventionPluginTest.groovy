@@ -34,6 +34,6 @@ class CppLibConventionPluginTest extends Specification {
         def library = project.libraries.main
         def sourceSet = project.cpp.sourceSets.main
         library.baseName == project.name
-        library.sourceSets as List == [sourceSet]
+        library.source as List == [sourceSet]
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.base.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -34,6 +35,7 @@ import java.util.List;
 
 public abstract class DefaultNativeBinary implements NativeBinaryInternal {
     private final DomainObjectSet<NativeDependencySet> libs = new DefaultDomainObjectSet<NativeDependencySet>(NativeDependencySet.class);
+    private final DomainObjectSet<SourceSet> source = new DefaultDomainObjectSet<SourceSet>(SourceSet.class);
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private final ArrayList<Object> compilerArgs = new ArrayList<Object>();
     private final ArrayList<Object> linkerArgs = new ArrayList<Object>();
@@ -48,6 +50,11 @@ public abstract class DefaultNativeBinary implements NativeBinaryInternal {
         this.toolChain = toolChain;
         namer = new TaskNamerForBinaries(name);
         owner.getBinaries().add(this);
+        owner.getSource().all(new Action<SourceSet>() {
+            public void execute(SourceSet sourceSet) {
+                source.add(sourceSet);
+            }
+        });
     }
 
     public String getName() {
@@ -66,9 +73,12 @@ public abstract class DefaultNativeBinary implements NativeBinaryInternal {
         this.outputFile = outputFile;
     }
 
-    // TODO:DAZ This should allow source sets to be extended on a per-binary basis
-    public DomainObjectSet<SourceSet> getSourceSets() {
-        return getComponent().getSourceSets();
+    public DomainObjectSet<SourceSet> getSource() {
+        return source;
+    }
+
+    public void source(SourceSet sourceSet) {
+        source.add(sourceSet);
     }
 
     public List<Object> getMacros() {
