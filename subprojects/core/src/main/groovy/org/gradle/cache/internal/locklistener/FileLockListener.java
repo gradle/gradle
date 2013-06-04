@@ -24,7 +24,7 @@ import java.io.File;
 public interface FileLockListener {
     void lockCreated(File target, Runnable whenContended);
 
-    void lockClosed(File target);
+    void stopListening(File target);
 
     int reservePort();
 }

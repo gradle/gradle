@@ -58,12 +58,14 @@ public class DefaultFileLockListener implements FileLockListener {
                     Runnable action;
                     try {
                         action = contendedActions.get(requestedFileLock);
+                        if (action == null) {
+                            return;
+                        }
                     } finally {
                         lock.unlock();
                     }
-                    if (action != null) {
-                        action.run();
-                    }
+
+                    action.run();
                 }
             }
         };
@@ -85,16 +87,21 @@ public class DefaultFileLockListener implements FileLockListener {
         }
     }
 
-    public void lockClosed(File target) {
+    public void stopListening(File target) {
+        StoppableExecutor stopMe = null;
         lock.lock();
         try {
             contendedActions.remove(target);
             if (contendedActions.isEmpty()) {
                 communicator.stop();
-                executor.requestStop();
+                stopMe = executor;
+                stopMe.requestStop();
             }
         } finally {
             lock.unlock();
+        }
+        if (stopMe != null) {
+            stopMe.stop();
         }
     }
 

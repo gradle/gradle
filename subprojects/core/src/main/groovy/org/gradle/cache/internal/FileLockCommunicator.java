@@ -25,6 +25,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
+import static org.gradle.util.GFileUtils.canonicalise;
+
 /**
  * By Szczepan Faber on 5/23/13
  */
@@ -79,7 +81,7 @@ public class FileLockCommunicator {
 
     private static File decodeFile(byte[] bytes) throws IOException {
         DataInputStream data = new DataInputStream(new ByteArrayInputStream(bytes));
-        return new File(data.readUTF());
+        return canonicalise(new File(data.readUTF()));
     }
 
     public int getPort() {

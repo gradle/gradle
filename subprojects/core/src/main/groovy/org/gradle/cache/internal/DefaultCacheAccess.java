@@ -396,21 +396,26 @@ public class DefaultCacheAccess implements CacheAccess {
     Runnable whenContended() {
         return new Runnable() {
             public void run() {
-                takeOwnership("Other process requested access to " + cacheDiplayName);
-                LOG.info("Detected file lock contention of {} (fileLock={}, contended={}, busy={})", cacheDiplayName, fileLock != null, contended, busy);
+                lock.lock();
                 try {
+                    LOG.info("Detected file lock contention of {} (fileLock={}, contended={}, busy={}, owner={})", cacheDiplayName, fileLock != null, contended, busy, owner);
                     if (fileLock == null) {
-                        //the lock may have been closed before we entered the thread lock via takeOwnership()
+                        //the lock may have been closed
                         return;
                     }
-                    if (!contended) {
+                    if (owner != null) {
                         contended = true;
-                        if (!busy) {
-                            closeFileLock();
-                        }
+                        return;
+                    }
+
+                    takeOwnership("Other process requested access to " + cacheDiplayName);
+                    try {
+                        closeFileLock();
+                    } finally {
+                        releaseOwnership("Other process requested access to " + cacheDiplayName);
                     }
                 } finally {
-                    releaseOwnership("Other process requested access to " + cacheDiplayName);
+                    lock.unlock();
                 }
             }
         };

@@ -213,13 +213,17 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         public void close() {
+            try {
+                fileLockListener.stopListening(target);
+            } catch (Exception e) {
+                LOGGER.warn("Problems stopping the file lock listener of {}", displayName, e);
+            }
+
             if (lockFileAccess == null) {
                 return;
             }
             try {
                 LOGGER.debug("Releasing lock on {}.", displayName);
-                lockedFiles.remove(target);
-                // Also releases any locks
                 try {
                     if (lock != null && !lock.isShared()) {
                         // Discard information region
@@ -245,7 +249,7 @@ public class DefaultFileLockManager implements FileLockManager {
             } finally {
                 lock = null;
                 lockFileAccess = null;
-                fileLockListener.lockClosed(target);
+                lockedFiles.remove(target);
             }
         }
 
@@ -285,7 +289,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     // Acquire an exclusive lock on the information region and write our details there
                     java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive);
                     if (informationRegionLock == null) {
-                        throw new IllegalStateException(String.format("Timeout waiting to lock the information region for lock %s", displayName));
+                        throw new IllegalStateException(String.format("Unable to lock the information region for lock %s", displayName));
                     }
                     // check that the length of the reserved region is enough for storing our content
                     try {

@@ -25,7 +25,7 @@ public class NoOpFileLockListener implements FileLockListener {
 
     public void lockCreated(File target, Runnable whenContended) {}
 
-    public void lockClosed(File target) {}
+    public void stopListening(File target) {}
 
     public int reservePort() {
         return -1;
