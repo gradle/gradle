@@ -16,21 +16,18 @@
 
 package org.gradle.nativecode.base.internal;
 
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.nativecode.base.ToolChain;
+import org.gradle.internal.os.OperatingSystem;
 
-public interface ToolChainInternal extends ToolChain {
-    ToolChainAvailability getAvailability();
+public abstract class AbstractToolChain implements ToolChainInternal {
+    public String getExecutableName(String executablePath) {
+        return OperatingSystem.current().getExecutableName(executablePath);
+    }
 
-    <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType);
+    public String getSharedLibraryName(String libraryName) {
+        return OperatingSystem.current().getSharedLibraryName(libraryName);
+    }
 
-    <T extends LinkerSpec> Compiler<T> createLinker();
-
-    <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver();
-
-    String getExecutableName(String executablePath);
-
-    String getSharedLibraryName(String libraryName);
-
-    String getStaticLibraryName(String libraryName);
+    public String getStaticLibraryName(String libraryName) {
+        return OperatingSystem.current().getStaticLibraryName(libraryName);
+    }
 }

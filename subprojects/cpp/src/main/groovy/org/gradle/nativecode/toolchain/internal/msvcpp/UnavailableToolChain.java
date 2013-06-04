@@ -44,4 +44,16 @@ public class UnavailableToolChain implements ToolChainInternal {
     public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
         throw new UnsupportedOperationException();
     }
+
+    public String getExecutableName(String executablePath) {
+        throw new UnsupportedOperationException();
+    }
+
+    public String getSharedLibraryName(String libraryName) {
+        throw new UnsupportedOperationException();
+    }
+
+    public String getStaticLibraryName(String libraryName) {
+        throw new UnsupportedOperationException();
+    }
 }

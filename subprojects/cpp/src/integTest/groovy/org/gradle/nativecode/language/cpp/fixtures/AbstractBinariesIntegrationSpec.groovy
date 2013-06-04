@@ -15,8 +15,8 @@
  */
 
 package org.gradle.nativecode.language.cpp.fixtures
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
 
@@ -29,7 +29,7 @@ abstract class AbstractBinariesIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def ExecutableFixture executable(Object path) {
-        return new ExecutableFixture(file(OperatingSystem.current().getExecutableName(path.toString())), toolChain)
+        return toolChain.executable(file(path))
     }
 
     def TestFile objectFile(Object path) {
@@ -40,10 +40,10 @@ abstract class AbstractBinariesIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def SharedLibraryFixture sharedLibrary(Object path) {
-        return new SharedLibraryFixture(file(OperatingSystem.current().getSharedLibraryName(path.toString())), toolChain)
+        return toolChain.sharedLibrary(file(path))
     }
 
     def NativeBinaryFixture staticLibrary(Object path) {
-        return new NativeBinaryFixture(file(OperatingSystem.current().getStaticLibraryName(path.toString())), toolChain)
+        return toolChain.staticLibrary(file(path))
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.nativecode.language.cpp.fixtures;
 
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
+import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
 import java.util.*;
@@ -117,6 +118,18 @@ public class AvailableToolChains {
 
         public boolean isVisualCpp() {
             return getDisplayName().equals("visual c++");
+        }
+
+        public ExecutableFixture executable(Object path) {
+            return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
+        }
+
+        public SharedLibraryFixture sharedLibrary(Object path) {
+            return new SharedLibraryFixture(new TestFile(OperatingSystem.current().getSharedLibraryName(path.toString())), this);
+        }
+
+        public NativeBinaryFixture staticLibrary(Object path) {
+            return new NativeBinaryFixture(new TestFile(OperatingSystem.current().getStaticLibraryName(path.toString())), this);
         }
     }
     

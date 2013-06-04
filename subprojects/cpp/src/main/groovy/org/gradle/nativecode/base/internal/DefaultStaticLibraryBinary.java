@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.base.Library;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.StaticLibraryBinary;
@@ -49,7 +48,7 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
     }
 
     public String getOutputFileName() {
-        return OperatingSystem.current().getStaticLibraryName(getComponent().getBaseName());
+        return getToolChain().getStaticLibraryName(getComponent().getBaseName());
     }
 
     public NativeDependencySet getAsNativeDependencySet() {

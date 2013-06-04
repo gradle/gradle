@@ -20,12 +20,12 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.base.internal.*;
-import org.gradle.nativecode.language.cpp.internal.*;
+import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-public class VisualCppToolChain implements ToolChainInternal {
+public class VisualCppToolChain extends AbstractToolChain {
 
     public static final String NAME = "visualCpp";
     static final String COMPILER_EXE = "cl.exe";

@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.base.Library;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.SharedLibraryBinary;
@@ -48,7 +47,7 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
     }
 
     public String getOutputFileName() {
-        return OperatingSystem.current().getSharedLibraryName(getComponent().getBaseName());
+        return getToolChain().getSharedLibraryName(getComponent().getBaseName());
     }
 
     public NativeDependencySet getAsNativeDependencySet() {

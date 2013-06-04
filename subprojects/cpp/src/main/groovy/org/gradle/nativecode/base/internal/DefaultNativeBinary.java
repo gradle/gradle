@@ -26,7 +26,6 @@ import org.gradle.language.base.internal.TaskNamerForBinaries;
 import org.gradle.nativecode.base.NativeComponent;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.SourceSet;
-import org.gradle.nativecode.base.ToolChain;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -61,7 +60,7 @@ public abstract class DefaultNativeBinary implements NativeBinaryInternal {
         return name;
     }
 
-    public ToolChain getToolChain() {
+    public ToolChainInternal getToolChain() {
         return toolChain;
     }
 

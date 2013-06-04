@@ -16,7 +16,6 @@
 
 package org.gradle.nativecode.base.internal;
 
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.base.Executable;
 import org.gradle.nativecode.base.ExecutableBinary;
 
@@ -38,6 +37,6 @@ public class DefaultExecutableBinary extends DefaultNativeBinary implements Exec
     }
 
     public String getOutputFileName() {
-        return OperatingSystem.current().getExecutableName(getComponent().getBaseName());
+        return getToolChain().getExecutableName(getComponent().getBaseName());
     }
 }

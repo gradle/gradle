@@ -16,7 +16,6 @@
 
 package org.gradle.nativecode.base.plugins
 
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
@@ -33,8 +32,8 @@ class BinariesPluginTest extends Specification {
         }
 
         then:
-        final sharedLibName = OperatingSystem.current().getSharedLibraryName("test")
-        final staticLibName = OperatingSystem.current().getStaticLibraryName("test")
+        final sharedLibName = project.compilers.defaultToolChain.getSharedLibraryName("test")
+        final staticLibName = project.compilers.defaultToolChain.getStaticLibraryName("test")
 
         and:
         def sharedLibraryBinary = project.binaries.testSharedLibrary

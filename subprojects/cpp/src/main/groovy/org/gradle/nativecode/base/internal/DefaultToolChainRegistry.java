@@ -17,7 +17,6 @@ package org.gradle.nativecode.base.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativecode.base.ToolChain;
@@ -59,7 +58,7 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
         return new UnavailableToolChain(messages);
     }
 
-    private static class UnavailableToolChain implements ToolChainInternal {
+    private static class UnavailableToolChain extends AbstractToolChain {
         private final List<String> messages;
 
         public UnavailableToolChain(List<String> messages) {
@@ -74,16 +73,20 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
             throw new UnsupportedOperationException();
         }
 
+        private IllegalStateException failure() {
+            return new IllegalStateException(String.format("No tool chain is available: %s", messages));
+        }
+
         public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
-            throw new IllegalStateException(String.format("No tool chain is available: %s", messages));
+            throw failure();
         }
 
         public <T extends LinkerSpec> Compiler<T> createLinker() {
-            throw new IllegalStateException(String.format("No tool chain is available: %s", messages));
+            throw failure();
         }
 
         public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-            throw new IllegalStateException(String.format("No tool chain is available: %s", messages));
+            throw failure();
         }
     }
 }

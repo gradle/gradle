@@ -18,7 +18,6 @@ package org.gradle.nativecode.language.cpp.plugins
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.tasks.Sync
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.base.tasks.CreateStaticLibrary
 import org.gradle.nativecode.base.tasks.LinkExecutable
 import org.gradle.nativecode.base.tasks.LinkSharedLibrary
@@ -132,7 +131,7 @@ class CppPluginTest extends Specification {
         executableBinary.toolChain
         executableBinary.compilerArgs == ["ARG1", "ARG2"]
         executableBinary.linkerArgs == ["LINK1", "LINK2"]
-        executableBinary.outputFile == project.file("build/binaries/testExecutable/${OperatingSystem.current().getExecutableName('test')}")
+        executableBinary.outputFile == project.file("build/binaries/testExecutable/${executableBinary.toolChain.getExecutableName('test')}")
 
         and:
         executable.binaries.contains executableBinary
@@ -190,8 +189,8 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        final sharedLibName = OperatingSystem.current().getSharedLibraryName("test")
-        final staticLibName = OperatingSystem.current().getStaticLibraryName("test")
+        final sharedLibName = project.compilers.defaultToolChain.getSharedLibraryName("test")
+        final staticLibName = project.compilers.defaultToolChain.getStaticLibraryName("test")
         def library = project.libraries.test
 
         and:
