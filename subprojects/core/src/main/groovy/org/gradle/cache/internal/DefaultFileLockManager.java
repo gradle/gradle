@@ -19,7 +19,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.locklistener.FileLockListener;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 
 import java.io.EOFException;
@@ -28,6 +27,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
  * Uses file system locks on a lock file per target file. Each lock file is made up of 2 regions:
@@ -79,7 +80,7 @@ public class DefaultFileLockManager implements FileLockManager {
             return newLock;
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
-            throw UncheckedException.throwAsUncheckedException(t);
+            throw throwAsUncheckedException(t);
         }
     }
 
@@ -147,7 +148,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 // Process has crashed writing to lock file
                 return false;
             } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+                throw throwAsUncheckedException(e);
             }
 
             return true;
@@ -180,7 +181,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 markClean();
                 integrityViolated = false;
             } catch (Throwable t) {
-                throw UncheckedException.throwAsUncheckedException(t);
+                throw throwAsUncheckedException(t);
             }
         }
 
@@ -222,7 +223,19 @@ public class DefaultFileLockManager implements FileLockManager {
                 try {
                     if (lock != null && !lock.isShared()) {
                         // Discard information region
-                        lockFileAccess.setLength(INFORMATION_REGION_POS);
+                        java.nio.channels.FileLock info;
+                        try {
+                            info = lockInformationRegion(LockMode.Exclusive);
+                        } catch (InterruptedException e) {
+                            throw throwAsUncheckedException(e);
+                        }
+                        if (info != null) {
+                            try {
+                                lockFileAccess.setLength(INFORMATION_REGION_POS);
+                            } finally {
+                                info.release();
+                            }
+                        }
                     }
                 } finally {
                     lockFileAccess.close();
@@ -247,7 +260,7 @@ public class DefaultFileLockManager implements FileLockManager {
             // Lock the state region, with the requested mode
             java.nio.channels.FileLock stateRegionLock = lockStateRegion(lockMode, timeout);
             if (stateRegionLock == null) {
-                OwnerInfo ownerInfo = readInformationRegion(timeout);
+                OwnerInfo ownerInfo = readInformationRegion();
                 throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",
                         displayName, ownerInfo.pid, metaDataProvider.getProcessIdentifier(), ownerInfo.operation, operationDisplayName, lockFile));
             }
@@ -270,7 +283,7 @@ public class DefaultFileLockManager implements FileLockManager {
                         lockFileAccess.writeBoolean(false);
                     }
                     // Acquire an exclusive lock on the information region and write our details there
-                    java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, timeout);
+                    java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive);
                     if (informationRegionLock == null) {
                         throw new IllegalStateException(String.format("Timeout waiting to lock the information region for lock %s", displayName));
                     }
@@ -295,13 +308,13 @@ public class DefaultFileLockManager implements FileLockManager {
             return stateRegionLock;
         }
 
-        private OwnerInfo readInformationRegion(long timeout) throws IOException, InterruptedException {
+        private OwnerInfo readInformationRegion() throws IOException, InterruptedException {
             // Can't acquire lock, get details of owner to include in the error message
             OwnerInfo out = new OwnerInfo();
             out.pid = "unknown";
             out.operation = "unknown";
             out.port = -1;
-            java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared, timeout);
+            java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared);
             if (informationRegionLock == null) {
                 LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
             } else {
@@ -328,58 +341,37 @@ public class DefaultFileLockManager implements FileLockManager {
         private String trimIfNecessary(String inputString) {
             if(inputString.length() > INFORMATION_REGION_DESCR_CHUNK_LIMIT){
                 return inputString.substring(0, INFORMATION_REGION_DESCR_CHUNK_LIMIT);
-            }else{
+            } else {
                 return inputString;
             }
         }
 
         private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, final long timeout) throws IOException, InterruptedException {
-            Runnable whenFailed;
-            if (port == -1) {
-                //we assume that the lock operates in on-demand mode so we don't want to ping owner for cache access
-                //if we believe it is a good idea, we should model it better than with -1 port value
-                whenFailed = new Runnable() {
-                    public void run() {} //no op
-                };
-            } else {
-                whenFailed = new Runnable() {
-                    public void run() {
-                        try {
-                            OwnerInfo ownerInfo = readInformationRegion(timeout);
-                            if (ownerInfo.port != -1) {
-                                LOGGER.info("The file lock is held by a different Gradle process. Will attempt to ping owner at port {}", ownerInfo.port);
-                                FileLockCommunicator.pingOwner(ownerInfo.port, target);
-                            } else {
-                                LOGGER.info("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
-                            }
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                };
-            }
-            return lockRegion(lockMode, timeout, STATE_REGION_POS, STATE_REGION_SIZE, whenFailed);
-        }
-
-        private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, long timeout) throws IOException, InterruptedException {
-            return lockRegion(lockMode, timeout, INFORMATION_REGION_POS, INFORMATION_REGION_SIZE - INFORMATION_REGION_POS, new Runnable() {
-                public void run() {
-                    //no op
-                }
-            });
-        }
-
-        private java.nio.channels.FileLock lockRegion(FileLockManager.LockMode lockMode, long timeout,
-                    long start, long size, Runnable failAction) throws IOException, InterruptedException {
             do {
-                java.nio.channels.FileLock fileLock = lockFileAccess.getChannel().tryLock(start, size, lockMode == LockMode.Shared);
+                java.nio.channels.FileLock fileLock = lockRegion(lockMode, STATE_REGION_POS, STATE_REGION_SIZE);
                 if (fileLock != null) {
                     return fileLock;
                 }
-                failAction.run();
+                if (port != -1) { //we don't like the assumption about the port very much
+                    OwnerInfo ownerInfo = readInformationRegion();
+                    if (ownerInfo.port != -1) {
+                        LOGGER.info("The file lock is held by a different Gradle process. Will attempt to ping owner at port {}", ownerInfo.port);
+                        FileLockCommunicator.pingOwner(ownerInfo.port, target);
+                    } else {
+                        LOGGER.info("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
+                    }
+                }
                 Thread.sleep(200L);
             } while (System.currentTimeMillis() < timeout);
             return null;
+        }
+
+        private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode) throws IOException, InterruptedException {
+            return lockRegion(lockMode, INFORMATION_REGION_POS, INFORMATION_REGION_SIZE - INFORMATION_REGION_POS);
+        }
+
+        private java.nio.channels.FileLock lockRegion(LockMode lockMode, long start, long size) throws IOException, InterruptedException {
+            return lockFileAccess.getChannel().tryLock(start, size, lockMode == LockMode.Shared);
         }
     }
 }

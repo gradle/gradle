@@ -16,6 +16,9 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -28,6 +31,7 @@ import java.net.SocketException;
 public class FileLockCommunicator {
     private DatagramSocket socket;
     private boolean stopped;
+    private static final Logger LOG = Logging.getLogger(FileLockCommunicator.class);
 
     public static void pingOwner(int ownerPort, File target) {
         DatagramSocket datagramSocket = null;
@@ -35,8 +39,8 @@ public class FileLockCommunicator {
             datagramSocket = new DatagramSocket();
             byte[] bytesToSend = encodeFile(target);
             datagramSocket.send(new DatagramPacket(bytesToSend, bytesToSend.length, InetAddress.getLocalHost(), ownerPort));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            LOG.debug("Unable to ping the owner process for cache access", e);
         } finally {
             if (datagramSocket != null) {
                 datagramSocket.close();
