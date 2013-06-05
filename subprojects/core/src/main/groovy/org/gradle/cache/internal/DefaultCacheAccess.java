@@ -103,6 +103,7 @@ public class DefaultCacheAccess implements CacheAccess {
             fileLock.close();
         } finally {
             fileLock = null;
+            contended = false;
         }
     }
 
