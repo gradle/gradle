@@ -69,7 +69,8 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
             return "unknown";
         }
 
-        public ToolChainAvailability getAvailability() {
+        @Override
+        protected void checkAvailable(ToolChainAvailability availability) {
             throw new UnsupportedOperationException();
         }
 

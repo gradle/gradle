@@ -36,17 +36,15 @@ public class VisualCppToolChain extends AbstractToolChain {
     private final File linkerExe;
     private final File staticLinkerExe;
     private final Factory<ExecAction> execActionFactory;
-    private final OperatingSystem operatingSystem;
 
     public VisualCppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        this(operatingSystem.findInPath(COMPILER_EXE), operatingSystem.findInPath(LINKER_EXE), operatingSystem.findInPath(STATIC_LINKER_EXE), operatingSystem, execActionFactory);
+        this(operatingSystem.findInPath(COMPILER_EXE), operatingSystem.findInPath(LINKER_EXE), operatingSystem.findInPath(STATIC_LINKER_EXE), execActionFactory);
     }
 
-    protected VisualCppToolChain(File compilerExe, File linkerExe, File staticLinkerExe, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
+    protected VisualCppToolChain(File compilerExe, File linkerExe, File staticLinkerExe, Factory<ExecAction> execActionFactory) {
         this.compilerExe = compilerExe;
         this.linkerExe = linkerExe;
         this.staticLinkerExe = staticLinkerExe;
-        this.operatingSystem = operatingSystem;
         this.execActionFactory = execActionFactory;
     }
 
@@ -59,15 +57,10 @@ public class VisualCppToolChain extends AbstractToolChain {
         return "Visual C++";
     }
 
-    public ToolChainAvailability getAvailability() {
-        ToolChainAvailability availability = new ToolChainAvailability();
+    @Override
+    protected void checkAvailable(ToolChainAvailability availability) {
         availability.mustExist(COMPILER_EXE, compilerExe);
         availability.mustExist(LINKER_EXE, linkerExe);
-        return availability;
-    }
-
-    public boolean isAvailable() {
-        return operatingSystem.isWindows() && compilerExe != null && compilerExe.exists();
     }
 
     public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
@@ -84,11 +77,5 @@ public class VisualCppToolChain extends AbstractToolChain {
 
     public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
         return (Compiler<T>) new LibExeStaticLibraryArchiver(staticLinkerExe, execActionFactory);
-    }
-
-    private void checkAvailable() {
-        if (!isAvailable()) {
-            throw new IllegalStateException(String.format("Tool chain %s is not available", getName()));
-        }
     }
 }

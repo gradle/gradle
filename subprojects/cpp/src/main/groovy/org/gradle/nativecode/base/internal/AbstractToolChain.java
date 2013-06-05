@@ -19,6 +19,24 @@ package org.gradle.nativecode.base.internal;
 import org.gradle.internal.os.OperatingSystem;
 
 public abstract class AbstractToolChain implements ToolChainInternal {
+    private ToolChainAvailability availability;
+
+    public ToolChainAvailability getAvailability() {
+        if (availability == null) {
+            availability = new ToolChainAvailability();
+            checkAvailable(availability);
+        }
+        return availability;
+    }
+
+    protected void checkAvailable() {
+        if (!getAvailability().isAvailable()) {
+            throw new IllegalStateException(String.format("Tool chain %s is not available", getName()));
+        }
+    }
+
+    protected abstract void checkAvailable(ToolChainAvailability availability);
+
     public String getExecutableName(String executablePath) {
         return OperatingSystem.current().getExecutableName(executablePath);
     }

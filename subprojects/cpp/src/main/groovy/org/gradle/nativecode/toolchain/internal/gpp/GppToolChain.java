@@ -46,7 +46,6 @@ public class GppToolChain extends AbstractToolChain {
     private final Factory<ExecAction> execActionFactory;
     private final Transformer<String, File> versionDeterminer;
 
-    private boolean determinedVersion;
     private String version;
 
     public GppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
@@ -86,15 +85,14 @@ public class GppToolChain extends AbstractToolChain {
         return "GNU G++";
     }
 
-    public ToolChainAvailability getAvailability() {
-        ToolChainAvailability availability = new ToolChainAvailability();
+    @Override
+    protected void checkAvailable(ToolChainAvailability availability) {
         availability.mustExist(GPP, gppExecutable);
         availability.mustExist(AR, arExecutable);
         determineVersion();
         if (version == null) {
             availability.unavailable("Could not determine G++ version");
         }
-        return availability;
     }
 
     public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
@@ -115,21 +113,12 @@ public class GppToolChain extends AbstractToolChain {
         return (Compiler<T>) new ArStaticLibraryArchiver(arExecutable, execActionFactory);
     }
 
-    private void checkAvailable() {
-        if (version == null) {
-            throw new IllegalStateException(String.format("Tool chain %s is not available", getName()));
-        }
-    }
-
     private void determineVersion() {
-        if (!determinedVersion) {
-            determinedVersion = true;
-            version = determineVersion(gppExecutable);
-            if (version == null) {
-                LOGGER.info("Did not find {} on system", GPP);
-            } else {
-                LOGGER.info("Found {} with version {}", GPP, version);
-            }
+        version = determineVersion(gppExecutable);
+        if (version == null) {
+            LOGGER.info("Did not find {} on system", GPP);
+        } else {
+            LOGGER.info("Found {} with version {}", GPP, version);
         }
     }
 
