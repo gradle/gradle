@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,15 @@ package org.gradle.configuration.project;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 
-/**
- * Can be implemented by plugins to auto-configure each project.
- *
- * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
- * Each action is invoked for each project that is to be configured, before the project has been configured. Actions are executed
- * in an arbitrary order.
- */
-public interface ProjectConfigureAction extends Action<ProjectInternal> {
+public class DelayedConfigurationActions implements ProjectConfigureAction {
+    public void execute(ProjectInternal projectInternal) {
+        ProjectConfigurationActionContainer actions = projectInternal.getConfigurationActions();
+        try {
+            for (Action<? super ProjectInternal> action : actions.getActions()) {
+                action.execute(projectInternal);
+            }
+        } finally {
+            actions.finished();
+        }
+    }
 }

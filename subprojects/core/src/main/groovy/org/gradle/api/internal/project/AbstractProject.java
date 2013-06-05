@@ -46,6 +46,7 @@ import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -145,6 +146,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
+    private ProjectConfigurationActionContainer configurationActions;
+
     private String description;
 
     private final Path path;
@@ -193,6 +196,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         loggingManager = services.get(LoggingManagerInternal.class);
         softwareComponentContainer = services.get(SoftwareComponentContainer.class);
         scriptPluginFactory = services.get(ScriptPluginFactory.class);
+        configurationActions = services.get(ProjectConfigurationActionContainer.class);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {
@@ -912,6 +916,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return task(options, task.toString(), configureClosure);
     }
 
+    public ProjectConfigurationActionContainer getConfigurationActions() {
+        return configurationActions;
+    }
 
     @Override
     protected ScriptPluginFactory getScriptPluginFactory() {

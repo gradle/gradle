@@ -46,6 +46,8 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
@@ -80,6 +82,10 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     protected LoggingManagerInternal createLoggingManager() {
         return getFactory(LoggingManagerInternal.class).create();
+    }
+
+    protected ProjectConfigurationActionContainer createProjectConfigurationActionContainer() {
+        return new DefaultProjectConfigurationActionContainer();
     }
 
     protected DefaultFileOperations createFileOperations() {

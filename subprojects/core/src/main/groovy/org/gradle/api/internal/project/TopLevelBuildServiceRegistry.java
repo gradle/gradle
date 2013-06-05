@@ -144,6 +144,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new PluginsProjectConfigureActions(get(ClassLoaderRegistry.class).getPluginsClassLoader()),
                 new BuildScriptProcessor(get(ScriptPluginFactory.class)),
                 new ResolveDeferredConfigurableAction(),
+                new DelayedConfigurationActions(),
                 new ProjectDependencies2TaskResolver()
         );
         return new LifecycleProjectEvaluator(withActionsEvaluator);

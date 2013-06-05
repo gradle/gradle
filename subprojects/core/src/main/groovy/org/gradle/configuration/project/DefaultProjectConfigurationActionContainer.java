@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,21 @@ package org.gradle.configuration.project;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 
-/**
- * Can be implemented by plugins to auto-configure each project.
- *
- * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
- * Each action is invoked for each project that is to be configured, before the project has been configured. Actions are executed
- * in an arbitrary order.
- */
-public interface ProjectConfigureAction extends Action<ProjectInternal> {
+import java.util.ArrayList;
+import java.util.List;
+
+public class DefaultProjectConfigurationActionContainer implements ProjectConfigurationActionContainer {
+    private final List<Action<? super ProjectInternal>> actions = new ArrayList<Action<? super ProjectInternal>>();
+
+    public void finished() {
+        actions.clear();
+    }
+
+    public List<Action<? super ProjectInternal>> getActions() {
+        return actions;
+    }
+
+    public void add(Action<? super ProjectInternal> action) {
+        actions.add(action);
+    }
 }
