@@ -59,7 +59,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             public void update() {
-                cacheAccess.useCache("Update history", new Runnable() {
+                cacheAccess.useCache("Update task history", new Runnable() {
                     public void run() {
                         if (currentExecution.inputFilesSnapshotId == null && currentExecution.inputFilesSnapshot != null) {
                             currentExecution.inputFilesSnapshotId = snapshotRepository.add(currentExecution.inputFilesSnapshot);
@@ -84,7 +84,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private TaskHistory loadHistory(final TaskInternal task) {
-        return cacheAccess.useCache("Load history", new Factory<TaskHistory>() {
+        return cacheAccess.useCache("Load task history", new Factory<TaskHistory>() {
             public TaskHistory create() {
                 ClassLoader original = serializer.getClassLoader();
                 serializer.setClassLoader(task.getClass().getClassLoader());
@@ -183,7 +183,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         @Override
         public FileCollectionSnapshot getInputFilesSnapshot() {
             if (inputFilesSnapshot == null) {
-                inputFilesSnapshot = cacheAccess.useCache("fetch file snapshots", new Factory<FileCollectionSnapshot>() {
+                inputFilesSnapshot = cacheAccess.useCache("fetch input files", new Factory<FileCollectionSnapshot>() {
                     public FileCollectionSnapshot create() {
                         return snapshotRepository.get(inputFilesSnapshotId);
                     }
@@ -241,10 +241,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     byte[] serializedMap = new byte[inputProperties];
                     dataInput.readFully(serializedMap);
                     DefaultSerializer<Map> defaultSerializer = new DefaultSerializer<Map>(classLoader);
-                    Map map = defaultSerializer.read(new ByteArrayInputStream(serializedMap));
+                    Map<String, Object> map = defaultSerializer.read(new ByteArrayInputStream(serializedMap));
                     execution.setInputProperties(map);
                 } else {
-                    execution.setInputProperties(new HashMap());
+                    execution.setInputProperties(new HashMap<String, Object>());
                 }
                 return execution;
             }
