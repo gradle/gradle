@@ -42,7 +42,7 @@ public class FileLockCommunicator {
             byte[] bytesToSend = encodeFile(target);
             datagramSocket.send(new DatagramPacket(bytesToSend, bytesToSend.length, InetAddress.getLocalHost(), ownerPort));
         } catch (IOException e) {
-            LOG.debug("Unable to ping the owner process for cache access", e);
+            throw new RuntimeException("Problems pinging owner of '" + target + "' at port: " + ownerPort);
         } finally {
             if (datagramSocket != null) {
                 datagramSocket.close();

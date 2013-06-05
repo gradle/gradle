@@ -32,7 +32,9 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
     File actualFile = new File("foo")
 
     def cleanup() {
-        communicator.stop()
+        if (communicator.started) {
+            communicator.stop()
+        }
     }
 
     def "port after starting"() {
@@ -69,6 +71,14 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         poll {
             assert receivedFile == actualFile.absoluteFile
         }
+    }
+
+    def "pinging on a port that nobody listens is safe"() {
+        when:
+        FileLockCommunicator.pingOwner(6666, actualFile)
+
+        then:
+        noExceptionThrown()
     }
 
     def "can be stopped"() {
