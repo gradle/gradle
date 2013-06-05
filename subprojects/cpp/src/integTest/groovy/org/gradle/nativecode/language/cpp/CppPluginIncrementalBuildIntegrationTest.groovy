@@ -214,8 +214,13 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         when:
         buildFile << """
-            binaries.mainExecutable.libs.clear()
-            binaries.mainExecutable.lib binaries.helloStaticLibrary
+            executables {
+                main {
+                    binaries.all {
+                        lib libraries.hello.static
+                    }
+                }
+            }
 """
 
         run "installMainExecutable"

@@ -16,17 +16,16 @@
 package org.gradle.nativecode.language.cpp.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.internal.ConfigurationBasedNativeDependencySet;
-import org.gradle.nativecode.base.internal.NativeDependencyNotationParser;
+import org.gradle.nativecode.base.internal.ResolvableNativeDependencySet;
 import org.gradle.nativecode.language.cpp.CppSourceSet;
 import org.gradle.util.ConfigureUtil;
 
+import java.util.Collection;
 import java.util.Map;
 
 public class DefaultCppSourceSet implements CppSourceSet {
@@ -35,7 +34,7 @@ public class DefaultCppSourceSet implements CppSourceSet {
 
     private final DefaultSourceDirectorySet exportedHeaders;
     private final DefaultSourceDirectorySet source;
-    private final DefaultDomainObjectSet<NativeDependencySet> libs;
+    private final ResolvableNativeDependencySet libs;
     private final ConfigurationBasedNativeDependencySet configurationDependencySet;
 
     public DefaultCppSourceSet(String name, ProjectInternal project) {
@@ -43,7 +42,7 @@ public class DefaultCppSourceSet implements CppSourceSet {
 
         this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", project.getFileResolver());
         this.source = new DefaultSourceDirectorySet("source", project.getFileResolver());
-        this.libs = new DefaultDomainObjectSet<NativeDependencySet>(NativeDependencySet.class);
+        this.libs = new ResolvableNativeDependencySet();
         this.configurationDependencySet = new ConfigurationBasedNativeDependencySet(project, name);
         
         libs.add(configurationDependencySet);
@@ -76,12 +75,12 @@ public class DefaultCppSourceSet implements CppSourceSet {
         return this;
     }
 
-    public DomainObjectSet<NativeDependencySet> getLibs() {
-        return libs;
+    public Collection<NativeDependencySet> getLibs() {
+        return libs.resolve();
     }
 
     public void lib(Object library) {
-        libs.add(NativeDependencyNotationParser.parser().parseNotation(library));
+        libs.add(library);
     }
 
     public void dependency(Map<?, ?> dep) {

@@ -24,13 +24,11 @@ import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinariesContainer;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.nativecode.base.Executable;
-import org.gradle.nativecode.base.Library;
-import org.gradle.nativecode.base.NativeBinary;
-import org.gradle.nativecode.base.ToolChainRegistry;
+import org.gradle.nativecode.base.*;
 import org.gradle.nativecode.base.internal.*;
 
 import javax.inject.Inject;
@@ -43,10 +41,12 @@ import java.util.concurrent.Callable;
 @Incubating
 public class BinariesPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
+    private final ProjectConfigurationActionContainer configurationActions;
 
     @Inject
-    public BinariesPlugin(Instantiator instantiator) {
+    public BinariesPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions) {
         this.instantiator = instantiator;
+        this.configurationActions = configurationActions;
     }
 
     public void apply(final ProjectInternal project) {
@@ -58,7 +58,7 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
                 DefaultToolChainRegistry.class,
                 instantiator
         );
-        NamedDomainObjectSet<Executable> executables = project.getExtensions().create(
+        final NamedDomainObjectSet<Executable> executables = project.getExtensions().create(
                 "executables",
                 FactoryNamedDomainObjectContainer.class,
                 Executable.class,
@@ -66,26 +66,31 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
                 new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class)
         );
 
-        executables.all(new Action<Executable>() {
-            public void execute(Executable executable) {
-                binaries.add(setupDefaults(project, instantiator.newInstance(DefaultExecutableBinary.class, executable, toolChains.getDefaultToolChain())));
-            }
-        });
-
-        NamedDomainObjectSet<Library> libraries = project.getExtensions().create("libraries",
+        final NamedDomainObjectSet<Library> libraries = project.getExtensions().create("libraries",
                 FactoryNamedDomainObjectContainer.class,
                 Library.class,
                 instantiator,
                 new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project.getFileResolver())
         );
 
-        libraries.withType(Library.class, new Action<Library>() {
-            public void execute(Library library) {
-                DefaultSharedLibraryBinary sharedLibraryBinary = instantiator.newInstance(DefaultSharedLibraryBinary.class, library, toolChains.getDefaultToolChain());
-                binaries.add(setupDefaults(project, sharedLibraryBinary));
-                binaries.add(setupDefaults(project, instantiator.newInstance(DefaultStaticLibraryBinary.class, library, toolChains.getDefaultToolChain())));
+        configurationActions.add(new Action<ProjectInternal>() {
+            public void execute(ProjectInternal projectInternal) {
+                ToolChain defaultToolChain = toolChains.getDefaultToolChain();
+                for (Library library : libraries) {
+                    DefaultSharedLibraryBinary sharedLibraryBinary = instantiator.newInstance(DefaultSharedLibraryBinary.class, library, defaultToolChain);
+                    register(setupDefaults(project, sharedLibraryBinary), library, binaries);
+                    register(setupDefaults(project, instantiator.newInstance(DefaultStaticLibraryBinary.class, library, defaultToolChain)), library, binaries);
+                }
+                for (Executable executable : executables) {
+                    register(setupDefaults(project, instantiator.newInstance(DefaultExecutableBinary.class, executable, defaultToolChain)), executable, binaries);
+                }
             }
         });
+    }
+
+    private void register(NativeBinary binary, NativeComponent component, BinariesContainer binariesContainer) {
+        component.getBinaries().add(binary);
+        binariesContainer.add(binary);
     }
 
     private NativeBinary setupDefaults(final ProjectInternal project, final DefaultNativeBinary nativeBinary) {

@@ -16,33 +16,71 @@
 
 package org.gradle.nativecode.base.plugins
 
+import org.gradle.nativecode.language.cpp.plugins.CppPlugin
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class BinariesPluginTest extends Specification {
     final def project = HelperUtil.createRootProject()
 
-    def "creates domain objects for library"() {
+    def "creates domain objects for executable"() {
         given:
-        project.plugins.apply(BinariesPlugin)
+        dsl {
+            apply plugin: CppPlugin
+            executables {
+                test {
+                }
+            }
+        }
 
+        expect:
+        def executable = project.executables.test
+
+        and:
+        def executableBinary = project.binaries.testExecutable
+        executableBinary.component == executable
+        executableBinary.toolChain
+        executableBinary.outputFile == project.file("build/binaries/testExecutable/${executableBinary.toolChain.getExecutableName('test')}")
+
+        and:
+        executable.binaries.contains executableBinary
+    }
+
+    def "creates domain objects for library"() {
         when:
-        project.libraries {
-            test
+        dsl {
+            apply plugin: BinariesPlugin
+            libraries {
+                test {
+                }
+            }
         }
 
         then:
-        final sharedLibName = project.compilers.defaultToolChain.getSharedLibraryName("test")
-        final staticLibName = project.compilers.defaultToolChain.getStaticLibraryName("test")
+        def sharedLibName = project.compilers.defaultToolChain.getSharedLibraryName("test")
+        def staticLibName = project.compilers.defaultToolChain.getStaticLibraryName("test")
+        def library = project.libraries.test
 
         and:
         def sharedLibraryBinary = project.binaries.testSharedLibrary
+        sharedLibraryBinary.toolChain
         sharedLibraryBinary.outputFile == project.file("build/binaries/testSharedLibrary/$sharedLibName")
         sharedLibraryBinary.component == project.libraries.test
 
         and:
         def staticLibraryBinary = project.binaries.testStaticLibrary
+        staticLibraryBinary.toolChain
         staticLibraryBinary.outputFile == project.file("build/binaries/testStaticLibrary/$staticLibName")
         staticLibraryBinary.component == project.libraries.test
+
+        and:
+        library.binaries.contains(sharedLibraryBinary)
+        library.binaries.contains(staticLibraryBinary)
+    }
+
+    def dsl(Closure closure) {
+        closure.delegate = project
+        closure()
+        project.evaluate()
     }
 }

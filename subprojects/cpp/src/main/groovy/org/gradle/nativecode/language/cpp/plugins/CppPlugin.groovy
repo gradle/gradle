@@ -70,7 +70,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     def createTasks(ProjectInternal project, NativeBinaryInternal binary) {
         // TODO:DAZ Move this logic into NativeBinary
         binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
-            sourceSet.libs.all { NativeDependencySet lib ->
+            sourceSet.libs.each { NativeDependencySet lib ->
                 binary.lib lib
             }
         }
@@ -99,7 +99,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
             compileTask.includes sourceSet.exportedHeaders
             compileTask.source sourceSet.source
 
-            binary.libs.all { NativeDependencySet deps ->
+            binary.libs.each { NativeDependencySet deps ->
                 compileTask.includes deps.includeRoots
             }
         }
@@ -121,7 +121,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         linkTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
 
-        binary.libs.all { NativeDependencySet lib ->
+        binary.libs.each { NativeDependencySet lib ->
             linkTask.lib lib.linkFiles
         }
 

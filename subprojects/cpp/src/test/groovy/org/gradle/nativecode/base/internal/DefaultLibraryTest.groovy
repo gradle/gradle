@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.base.internal
 
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.nativecode.base.NativeDependencySet
 import org.gradle.nativecode.base.SharedLibraryBinary
@@ -32,6 +33,8 @@ class DefaultLibraryTest extends Specification {
 
     def "can use shared and static variants as dependencies"() {
         def library = new DefaultLibrary("someLib", Stub(FileResolver))
+        def sharedLinkFiles = Stub(FileCollection)
+        def staticLinkFiles = Stub(FileCollection)
         def sharedDependency = Stub(NativeDependencySet)
         def staticDependency = Stub(NativeDependencySet)
         def sharedBinary = Stub(SharedLibraryBinary)
@@ -42,11 +45,13 @@ class DefaultLibraryTest extends Specification {
         library.binaries.add(staticBinary)
 
         and:
+        sharedDependency.linkFiles >> sharedLinkFiles
+        staticDependency.linkFiles >> staticLinkFiles
         sharedBinary.asNativeDependencySet >> sharedDependency
         staticBinary.asNativeDependencySet >> staticDependency
 
         expect:
-        library.shared == sharedDependency
-        library.static == staticDependency
+        library.shared.linkFiles == sharedLinkFiles
+        library.static.linkFiles == staticLinkFiles
     }
 }

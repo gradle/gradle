@@ -157,7 +157,7 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
         executable("build/install/mainExecutable/test").exec().out == "Hello!"
     }
 
-    def "can configure a binary to use additional source sets and compiler args"() {
+    def "can configure a binary to use additional source sets"() {
         given:
         buildFile << """
             apply plugin: "cpp"

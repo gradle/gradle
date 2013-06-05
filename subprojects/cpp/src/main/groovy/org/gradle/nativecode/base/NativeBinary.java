@@ -22,6 +22,7 @@ import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.language.base.Binary;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 // TODO:DAZ These don't apply to all binary subtypes: look at splitting this up in to a number of smaller facets / functional interfaces
@@ -58,7 +59,7 @@ public interface NativeBinary extends Binary {
     /**
      * The libraries that should be linked into this binary.
      */
-    DomainObjectSet<NativeDependencySet> getLibs();
+    Collection<NativeDependencySet> getLibs();
 
     /**
      * Adds a library as input to this binary. This method accepts the following types:

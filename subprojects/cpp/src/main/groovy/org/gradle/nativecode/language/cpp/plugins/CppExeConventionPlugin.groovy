@@ -21,12 +21,21 @@ import org.gradle.api.Plugin
 
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
+import org.gradle.configuration.project.ProjectConfigurationActionContainer
+
+import javax.inject.Inject
 
 /**
  * A convention-based plugin that automatically adds a single C++ source set named "main" and wires it into a {@link org.gradle.nativecode.base.Executable} named "main".
  */
 @Incubating
 class CppExeConventionPlugin implements Plugin<Project> {
+    private final ProjectConfigurationActionContainer configureActions
+
+    @Inject
+    CppExeConventionPlugin(ProjectConfigurationActionContainer configureActions) {
+        this.configureActions = configureActions
+    }
 
     void apply(Project project) {
         project.plugins.apply(CppPlugin)
@@ -40,23 +49,28 @@ class CppExeConventionPlugin implements Plugin<Project> {
             executables {
                 main {
                     baseName = project.name
-                    source << project.cpp.sourceSets.main
+                    source cpp.sourceSets.main
                 }
             }
-            
-            def exeArtifact = new DefaultPublishArtifact(
-                archivesBaseName, // name
-                "exe", // ext
-                "exe", // type
-                null, // classifier
-                null, // date
 
-                // needs to be more general and not peer into the spec
-                binaries.mainExecutable.outputFile,
-                binaries.mainExecutable
-            )
+        }
 
-            extensions.getByType(DefaultArtifactPublicationSet).addCandidate(exeArtifact)
+        configureActions.add {
+            project.with {
+                def exeArtifact = new DefaultPublishArtifact(
+                        archivesBaseName, // name
+                        "exe", // ext
+                        "exe", // type
+                        null, // classifier
+                        null, // date
+
+                        // needs to be more general and not peer into the spec
+                        binaries.mainExecutable.outputFile,
+                        binaries.mainExecutable
+                )
+
+                extensions.getByType(DefaultArtifactPublicationSet).addCandidate(exeArtifact)
+            }
         }
     }
 

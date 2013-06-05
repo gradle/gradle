@@ -33,16 +33,6 @@ class DefaultNativeBinaryTest extends Specification {
         binary.namingScheme.getTaskName("compile", "cpp") == 'compileBinaryCpp'
     }
 
-    def "binary attaches itself to its owner component"() {
-        def binary
-
-        when:
-        binary = new TestBinary(component)
-
-        then:
-        component.binaries.contains(binary)
-    }
-
     def "binary uses source from its owner component"() {
         given:
         def binary = new TestBinary(component)

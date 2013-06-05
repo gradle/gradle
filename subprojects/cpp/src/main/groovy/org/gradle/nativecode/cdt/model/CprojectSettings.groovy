@@ -47,7 +47,7 @@ class CprojectSettings {
         }
 
         binary.source.withType(CppSourceSet).all { sourceSet ->
-            sourceSet.libs.all { NativeDependencySet lib ->
+            sourceSet.libs.each { NativeDependencySet lib ->
                 this.libs.from(lib.linkFiles)
                 this.includeRoots.from(lib.includeRoots)
             }

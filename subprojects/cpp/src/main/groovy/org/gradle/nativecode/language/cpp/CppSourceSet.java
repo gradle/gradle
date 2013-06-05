@@ -16,13 +16,13 @@
 package org.gradle.nativecode.language.cpp;
 
 import groovy.lang.Closure;
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.nativecode.base.HeaderExportingSourceSet;
 import org.gradle.nativecode.base.NativeDependencySet;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -53,7 +53,7 @@ public interface CppSourceSet extends HeaderExportingSourceSet, Named {
     /**
      * The libraries that this source set requires.
      */
-    DomainObjectSet<NativeDependencySet> getLibs();
+    Collection<NativeDependencySet> getLibs();
     
     /**
      * Adds a library that this source set requires. This method accepts the following types:

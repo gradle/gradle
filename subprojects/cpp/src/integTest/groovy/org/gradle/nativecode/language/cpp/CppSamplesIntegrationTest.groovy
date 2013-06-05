@@ -20,6 +20,7 @@ import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
@@ -29,6 +30,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     @Rule public final Sample exe = new Sample(temporaryFolder, 'cpp/exe')
     @Rule public final Sample library = new Sample(temporaryFolder, 'cpp/library')
 
+    @Ignore
     def "exe with lib"() {
         given:
         sample exewithlib

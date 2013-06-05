@@ -32,7 +32,9 @@ class CppPluginTest extends Specification {
 
     def "extensions are available"() {
         given:
-        project.plugins.apply(CppPlugin)
+        dsl {
+            apply plugin: CppPlugin
+        }
 
         expect:
         project.cpp instanceof CppExtension
@@ -42,7 +44,9 @@ class CppPluginTest extends Specification {
 
     def "gcc and visual cpp adapters are available"() {
         given:
-        project.plugins.apply(CppPlugin)
+        dsl {
+            apply plugin: CppPlugin
+        }
 
         expect:
         project.compilers*.name == ['gcc', 'visualCpp']
@@ -51,17 +55,17 @@ class CppPluginTest extends Specification {
 
     def "can create some cpp source sets"() {
         given:
-        project.plugins.apply(CppPlugin)
-
-        when:
-        project.cpp {
-            sourceSets {
-                s1 {}
-                s2 {}
+        dsl {
+            apply plugin: CppPlugin
+            cpp {
+                sourceSets {
+                    s1 {}
+                    s2 {}
+                }
             }
         }
 
-        then:
+        expect:
         def sourceSets = project.cpp.sourceSets
         sourceSets.size() == 2
         sourceSets*.name == ["s1", "s2"]
@@ -70,31 +74,31 @@ class CppPluginTest extends Specification {
 
     def "configure source sets"() {
         given:
-        project.plugins.apply(CppPlugin)
-
-        when:
-        project.cpp {
-            sourceSets {
-                ss1 {
-                    source {
-                        srcDirs "d1", "d2"
+        dsl {
+            apply plugin: CppPlugin
+            cpp {
+                sourceSets {
+                    ss1 {
+                        source {
+                            srcDirs "d1", "d2"
+                        }
+                        exportedHeaders {
+                            srcDirs "h1", "h2"
+                        }
                     }
-                    exportedHeaders {
-                        srcDirs "h1", "h2"
-                    }
-                }
-                ss2 {
-                    source {
-                        srcDirs "d3"
-                    }
-                    exportedHeaders {
-                        srcDirs "h3"
+                    ss2 {
+                        source {
+                            srcDirs "d3"
+                        }
+                        exportedHeaders {
+                            srcDirs "h3"
+                        }
                     }
                 }
             }
         }
 
-        then:
+        expect:
         def sourceSets = project.cpp.sourceSets
         def ss1 = sourceSets.ss1
         def ss2 = sourceSets.ss2
@@ -108,51 +112,22 @@ class CppPluginTest extends Specification {
         ss2.exportedHeaders.srcDirs*.name == ["headers", "h3"]
     }
 
-    def "creates domain objects for executable"() {
-        given:
-        project.plugins.apply(CppPlugin)
-
-        when:
-        project.executables {
-            test {
-                binaries.all {
-                    compilerArgs "ARG1", "ARG2"
-                    linkerArgs "LINK1", "LINK2"
-                }
-            }
-        }
-
-        then:
-        def executable = project.executables.test
-
-        and:
-        def executableBinary = project.binaries.testExecutable
-        executableBinary.component == executable
-        executableBinary.toolChain
-        executableBinary.compilerArgs == ["ARG1", "ARG2"]
-        executableBinary.linkerArgs == ["LINK1", "LINK2"]
-        executableBinary.outputFile == project.file("build/binaries/testExecutable/${executableBinary.toolChain.getExecutableName('test')}")
-
-        and:
-        executable.binaries.contains executableBinary
-    }
-
     def "creates tasks for each executable"() {
         given:
-        project.plugins.apply(CppPlugin)
-
-        when:
-        project.executables {
-            test {
-                binaries.all {
-                    define "NDEBUG"
-                    compilerArgs "ARG1", "ARG2"
-                    linkerArgs "LINK1", "LINK2"
+        dsl {
+            apply plugin: CppPlugin
+            executables {
+                test {
+                    binaries.all {
+                        define "NDEBUG"
+                        compilerArgs "ARG1", "ARG2"
+                        linkerArgs "LINK1", "LINK2"
+                    }
                 }
             }
         }
 
-        then:
+        expect:
         def binary = project.binaries.testExecutable
 
         def compile = project.tasks.compileTestExecutable
@@ -179,53 +154,23 @@ class CppPluginTest extends Specification {
         project.binaries.testExecutable.buildDependencies.getDependencies(null) == [link] as Set
     }
 
-    def "creates domain objects for library"() {
-        given:
-        project.plugins.apply(CppPlugin)
-
-        when:
-        project.libraries {
-            test
-        }
-
-        then:
-        final sharedLibName = project.compilers.defaultToolChain.getSharedLibraryName("test")
-        final staticLibName = project.compilers.defaultToolChain.getStaticLibraryName("test")
-        def library = project.libraries.test
-
-        and:
-        def sharedLibraryBinary = project.binaries.testSharedLibrary
-        sharedLibraryBinary.toolChain
-        sharedLibraryBinary.outputFile == project.file("build/binaries/testSharedLibrary/$sharedLibName")
-        sharedLibraryBinary.component == project.libraries.test
-
-        and:
-        def staticLibraryBinary = project.binaries.testStaticLibrary
-        staticLibraryBinary.toolChain
-        staticLibraryBinary.outputFile == project.file("build/binaries/testStaticLibrary/$staticLibName")
-        staticLibraryBinary.component == project.libraries.test
-
-        and:
-        library.binaries.contains(sharedLibraryBinary)
-        library.binaries.contains(staticLibraryBinary)
-    }
-
     def "creates tasks for each library"() {
         given:
-        project.plugins.apply(CppPlugin)
+        dsl {
+            apply plugin: CppPlugin
 
-        when:
-        project.libraries {
-            test {
-                binaries.all {
-                    define "NDEBUG"
-                    compilerArgs "ARG1", "ARG2"
-                    linkerArgs "LINK1", "LINK2"
+            libraries {
+                test {
+                    binaries.all {
+                        define "NDEBUG"
+                        compilerArgs "ARG1", "ARG2"
+                        linkerArgs "LINK1", "LINK2"
+                    }
                 }
             }
         }
 
-        then:
+        expect:
         def sharedLib = project.binaries.testSharedLibrary
         def staticLib = project.binaries.testStaticLibrary
 
@@ -260,5 +205,11 @@ class CppPluginTest extends Specification {
         and:
         sharedLib.buildDependencies.getDependencies(null) == [link] as Set
         staticLib.buildDependencies.getDependencies(null) == [staticLink] as Set
+    }
+
+    def dsl(Closure closure) {
+        closure.delegate = project
+        closure()
+        project.evaluate()
     }
 }
