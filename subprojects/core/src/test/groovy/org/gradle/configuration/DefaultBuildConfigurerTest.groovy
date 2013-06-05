@@ -18,6 +18,7 @@ package org.gradle.configuration
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.configuration.project.ProjectDependencies2TaskResolver
 import spock.lang.Specification
 
 class DefaultBuildConfigurerTest extends Specification {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration
+package org.gradle.configuration.project
 import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ class PluginsProjectConfigureActionsTest extends Specification {
         evaluator.execute(project)
 
         then:
-        1 * pluginsClassLoader.getResources('META-INF/services/org.gradle.configuration.ProjectConfigureAction') >> resources()
+        1 * pluginsClassLoader.getResources('META-INF/services/org.gradle.configuration.project.ProjectConfigureAction') >> resources()
         1 * pluginsClassLoader.loadClass('ConfigureActionClass') >> TestConfigureAction
         1 * project.setVersion(12)
         0 * _._

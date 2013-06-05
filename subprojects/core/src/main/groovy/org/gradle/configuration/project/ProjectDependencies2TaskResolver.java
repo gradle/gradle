@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration;
+package org.gradle.configuration.project;
 
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;

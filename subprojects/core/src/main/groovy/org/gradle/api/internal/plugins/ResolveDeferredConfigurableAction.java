@@ -17,7 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.configuration.ProjectConfigureAction;
+import org.gradle.configuration.project.ProjectConfigureAction;
 
 /**
  * Ensures that all {@link org.gradle.api.plugins.DeferredConfigurable} extensions are configured as part of project evaluation.

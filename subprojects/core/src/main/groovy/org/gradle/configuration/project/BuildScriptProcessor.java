@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.configuration;
+package org.gradle.configuration.project;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.configuration.ScriptPlugin;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

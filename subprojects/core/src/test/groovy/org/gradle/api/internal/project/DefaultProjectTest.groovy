@@ -33,7 +33,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.Directory
-import org.gradle.configuration.ProjectEvaluator
+import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration;
+package org.gradle.configuration.project;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceLocator;
