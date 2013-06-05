@@ -18,7 +18,9 @@ package org.gradle.cache.internal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.locklistener.FileLockListener;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factory;
+import org.gradle.internal.Stoppable;
 import org.gradle.util.GFileUtils;
 
 import java.io.EOFException;
@@ -213,44 +215,56 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         public void close() {
-            try {
-                fileLockListener.stopListening(target);
-            } catch (Exception e) {
-                LOGGER.warn("Problems stopping the file lock listener of {}", displayName, e);
-            }
-
-            if (lockFileAccess == null) {
-                return;
-            }
-            try {
-                LOGGER.debug("Releasing lock on {}.", displayName);
-                try {
-                    if (lock != null && !lock.isShared()) {
-                        // Discard information region
-                        java.nio.channels.FileLock info;
-                        try {
-                            info = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis());
-                        } catch (InterruptedException e) {
-                            throw throwAsUncheckedException(e);
-                        }
-                        if (info != null) {
-                            try {
-                                lockFileAccess.setLength(INFORMATION_REGION_POS);
-                            } finally {
-                                info.release();
-                            }
-                        }
+            CompositeStoppable stoppable = new CompositeStoppable();
+            stoppable.add(new Stoppable() {
+                public void stop() {
+                    try {
+                        fileLockListener.stopListening(target);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Unable to stop listening for file lock requests for " + displayName, e);
                     }
-                } finally {
-                    lockFileAccess.close();
                 }
-            } catch (IOException e) {
-                LOGGER.warn("Error releasing lock on {}: {}", displayName, e);
-            } finally {
-                lock = null;
-                lockFileAccess = null;
-                lockedFiles.remove(target);
-            }
+            });
+            stoppable.add(new Stoppable() {
+                public void stop() {
+                    if (lockFileAccess == null) {
+                        return;
+                    }
+                    try {
+                        LOGGER.debug("Releasing lock on {}.", displayName);
+                        try {
+                            if (lock != null && !lock.isShared()) {
+                                // Discard information region
+                                java.nio.channels.FileLock info;
+                                try {
+                                    info = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis());
+                                } catch (InterruptedException e) {
+                                    throw throwAsUncheckedException(e);
+                                }
+                                if (info != null) {
+                                    try {
+                                        lockFileAccess.setLength(INFORMATION_REGION_POS);
+                                    } finally {
+                                        info.release();
+                                    }
+                                }
+                            }
+                        } finally {
+                            lockFileAccess.close();
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException("Problems releasing lock on " + displayName, e);
+                    }
+                }
+            });
+            stoppable.add(new Stoppable() {
+                public void stop() {
+                    lock = null;
+                    lockFileAccess = null;
+                    lockedFiles.remove(target);
+                }
+            });
+            stoppable.stop();
         }
 
         public LockMode getMode() {
