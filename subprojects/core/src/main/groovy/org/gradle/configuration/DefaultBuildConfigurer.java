@@ -18,12 +18,10 @@ package org.gradle.configuration;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.configuration.project.ProjectDependencies2TaskResolver;
 import org.gradle.util.SingleMessageLogger;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
     public void configure(GradleInternal gradle) {
-        gradle.addProjectEvaluationListener(new ProjectDependencies2TaskResolver());
         if (gradle.getStartParameter().isConfigureOnDemand()) {
             SingleMessageLogger.informAboutIncubating("Configuration on demand");
             gradle.getRootProject().evaluate();

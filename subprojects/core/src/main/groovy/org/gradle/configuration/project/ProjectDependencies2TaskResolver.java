@@ -17,21 +17,18 @@
 package org.gradle.configuration.project;
 
 import org.gradle.api.Project;
-import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.ProjectState;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Hans Dockter
  */
-public class ProjectDependencies2TaskResolver implements ProjectEvaluationListener {
+public class ProjectDependencies2TaskResolver implements ProjectConfigureAction {
     private static Logger logger = LoggerFactory.getLogger(ProjectDependencies2TaskResolver.class);
 
-    public void beforeEvaluate(Project project) {}
-
-    public void afterEvaluate(Project project, ProjectState state) {
+    public void execute(ProjectInternal project) {
         for (Project dependsOnProject : project.getDependsOnProjects()) {
             logger.debug("Checking task dependencies for project: {} dependsOn: {}", project, dependsOnProject);
             for (Task task : project.getTasks()) {

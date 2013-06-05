@@ -25,15 +25,15 @@ import spock.lang.Specification
 class ProjectDependencies2TaskResolverTest extends Specification {
     private root = HelperUtil.createRootProject()
     private child = HelperUtil.createChildProject(root, "child")
-    private rootTask = root.tasks.add('compile')
-    private childTask = child.tasks.add('compile')
+    private rootTask = root.tasks.create('compile')
+    private childTask = child.tasks.create('compile')
 
     private resolver = new ProjectDependencies2TaskResolver()
 
     void "resolves task dependencies"() {
         child.dependsOn(root.path, false)
         when:
-        resolver.afterEvaluate(child, null)
+        resolver.execute(child)
         then:
         childTask.taskDependencies.getDependencies(childTask) == [rootTask] as Set
     }

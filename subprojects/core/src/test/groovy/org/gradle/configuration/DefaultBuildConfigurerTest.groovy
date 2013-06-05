@@ -18,7 +18,6 @@ package org.gradle.configuration
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.configuration.project.ProjectDependencies2TaskResolver
 import spock.lang.Specification
 
 class DefaultBuildConfigurerTest extends Specification {
@@ -43,7 +42,6 @@ class DefaultBuildConfigurerTest extends Specification {
         configurer.configure(gradle)
 
         then:
-        1 * gradle.addProjectEvaluationListener(_ as ProjectDependencies2TaskResolver);
         1 * rootProject.evaluate()
         1 * child1.evaluate()
         1 * child2.evaluate()
@@ -57,8 +55,5 @@ class DefaultBuildConfigurerTest extends Specification {
         1 * startParameter.isConfigureOnDemand() >> true
         1 * rootProject.evaluate()
         0 * rootProject._
-
-        and:
-        1 * gradle.addProjectEvaluationListener(_ as ProjectDependencies2TaskResolver);
     }
 }

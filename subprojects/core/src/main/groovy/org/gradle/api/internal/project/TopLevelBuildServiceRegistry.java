@@ -143,7 +143,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
                 new PluginsProjectConfigureActions(get(ClassLoaderRegistry.class).getPluginsClassLoader()),
                 new BuildScriptProcessor(get(ScriptPluginFactory.class)),
-                new ResolveDeferredConfigurableAction()
+                new ResolveDeferredConfigurableAction(),
+                new ProjectDependencies2TaskResolver()
         );
         return new LifecycleProjectEvaluator(withActionsEvaluator);
     }
