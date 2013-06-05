@@ -16,7 +16,9 @@
 
 package org.gradle.configuration.project;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import java.util.ArrayList;
@@ -35,5 +37,9 @@ public class DefaultProjectConfigurationActionContainer implements ProjectConfig
 
     public void add(Action<? super ProjectInternal> action) {
         actions.add(action);
+    }
+
+    public void add(Closure action) {
+        add(new ClosureBackedAction<ProjectInternal>(action));
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.configuration.project
 
 import org.gradle.api.Action
+import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
 
 class DefaultProjectConfigurationActionContainerTest extends Specification {
@@ -30,5 +31,22 @@ class DefaultProjectConfigurationActionContainerTest extends Specification {
 
         then:
         container.actions == [action]
+    }
+
+    def "can add action as closure"() {
+        def run = false
+        def action = { run = true }
+
+        when:
+        container.add(action)
+
+        then:
+        container.actions.size() == 1
+
+        when:
+        container.actions[0].execute(Stub(ProjectInternal))
+
+        then:
+        run
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.configuration.project;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 
@@ -31,4 +32,9 @@ public interface ProjectConfigurationActionContainer {
      * Registers an action to execute to configure the project. Actions are executed in an arbitrary order.
      */
     void add(Action<? super ProjectInternal> action);
+
+    /**
+     * Registers an action to execute to configure the project. Actions are executed in an arbitrary order.
+     */
+    void add(Closure action);
 }
