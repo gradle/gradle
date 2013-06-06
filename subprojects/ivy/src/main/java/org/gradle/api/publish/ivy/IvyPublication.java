@@ -284,5 +284,35 @@ public interface IvyPublication extends Publication {
      * @return the artifacts.
      */
     IvyArtifactSet getArtifacts();
+    
+    /**
+     * Returns the organisation for this publication.
+     */
+    String getOrganisation();
+
+    /**
+     * Sets the organisation for this publication.
+     */
+    void setOrganisation(String organisation);
+
+    /**
+     * Returns the module for this publication.
+     */
+    String getModule();
+
+    /**
+     * Sets the module for this publication.
+     */
+    void setModule(String module);
+
+    /**
+     * Returns the revision for this publication.
+     */
+    String getRevision();
+
+    /**
+     * Sets the revision for this publication.
+     */
+    void setRevision(String revision);
 
 }

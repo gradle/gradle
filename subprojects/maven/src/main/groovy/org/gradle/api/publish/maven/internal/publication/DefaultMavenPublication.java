@@ -53,7 +53,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             String name, MavenProjectIdentity projectIdentity, NotationParser<MavenArtifact> mavenArtifactParser, Instantiator instantiator
     ) {
         this.name = name;
-        this.projectIdentity = projectIdentity;
+        this.projectIdentity = new DefaultMavenProjectIdentity(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
     }
@@ -109,6 +109,30 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         for (Object source : sources) {
             artifact(source);
         }
+    }
+
+    public String getGroupId() {
+        return projectIdentity.getGroupId();
+    }
+
+    public void setGroupId(String groupId) {
+        projectIdentity.setGroupId(groupId);
+    }
+
+    public String getArtifactId() {
+        return projectIdentity.getArtifactId();
+    }
+
+    public void setArtifactId(String artifactId) {
+        projectIdentity.setArtifactId(artifactId);
+    }
+
+    public String getVersion() {
+        return projectIdentity.getVersion();
+    }
+
+    public void setVersion(String version) {
+        projectIdentity.setVersion(version);
     }
 
     public FileCollection getPublishableFiles() {

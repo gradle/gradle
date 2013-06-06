@@ -130,6 +130,30 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return ivyArtifacts;
     }
 
+    public String getOrganisation() {
+        return publicationIdentity.getOrganisation();
+    }
+
+    public void setOrganisation(String organisation) {
+        publicationIdentity.setOrganisation(organisation);
+    }
+
+    public String getModule() {
+        return publicationIdentity.getModule();
+    }
+
+    public void setModule(String module) {
+        publicationIdentity.setModule(module);
+    }
+
+    public String getRevision() {
+        return publicationIdentity.getRevision();
+    }
+
+    public void setRevision(String revision) {
+        publicationIdentity.setRevision(revision);
+    }
+
     public FileCollection getPublishableFiles() {
         return new UnionFileCollection(ivyArtifacts.getFiles(), descriptorFile);
     }
