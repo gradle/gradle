@@ -20,6 +20,7 @@ import org.apache.commons.lang.RandomStringUtils
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.cache.internal.locklistener.NoOpFileLockListener
 import org.gradle.internal.Factory
+import org.gradle.internal.id.IdGenerator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -37,7 +38,9 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 class DefaultFileLockManagerTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def metaDataProvider = Mock(ProcessMetaDataProvider)
-    FileLockManager manager = new DefaultFileLockManager(metaDataProvider, new NoOpFileLockListener())
+    def generator = Stub(IdGenerator)
+
+    FileLockManager manager = new DefaultFileLockManager(metaDataProvider, 5000, new NoOpFileLockListener(), generator)
 
     TestFile testFile
     TestFile testFileLock
@@ -52,6 +55,7 @@ class DefaultFileLockManagerTest extends Specification {
 
         metaDataProvider.processIdentifier >> '123'
         metaDataProvider.processDisplayName >> 'process'
+        generator.generateId() >> 678L
     }
 
     @Unroll
@@ -397,7 +401,7 @@ class DefaultFileLockManagerTest extends Specification {
         def customMetaDataProvider = Mock(ProcessMetaDataProvider)
         def processIdentifier = RandomStringUtils.randomAlphanumeric(1000)
         1 * customMetaDataProvider.processIdentifier >> processIdentifier
-        def customManager = new DefaultFileLockManager(customMetaDataProvider, new NoOpFileLockListener())
+        def customManager = new DefaultFileLockManager(customMetaDataProvider, 5000, new NoOpFileLockListener(), generator)
         def operationalDisplayName = RandomStringUtils.randomAlphanumeric(1000)
 
         when:
@@ -456,6 +460,7 @@ class DefaultFileLockManagerTest extends Specification {
             assert !str.readBoolean()
             assert str.readByte() == 3
             assert str.readInt() == -1
+            assert str.readLong() == 678L
             assert str.readUTF() == processIdentifier
             assert str.readUTF() == operationalName
             assert str.read() < 0

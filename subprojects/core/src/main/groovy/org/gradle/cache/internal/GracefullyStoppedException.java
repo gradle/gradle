@@ -13,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.cache.internal.locklistener;
+package org.gradle.cache.internal;
 
 /**
- * By Szczepan Faber on 5/28/13
+ * By Szczepan Faber on 6/6/13
  */
-public class NoOpFileLockListener implements FileLockListener {
-
-    public void lockCreated(long lockId, Runnable whenContended) {}
-
-    public void stopListening(long lockId) {}
-
-    public int reservePort() {
-        return -1;
-    }
+public class GracefullyStoppedException extends Exception {
 }

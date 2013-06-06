@@ -19,10 +19,10 @@ package org.gradle.cache.internal.locklistener;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.FileLockCommunicator;
+import org.gradle.cache.internal.GracefullyStoppedException;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -35,7 +35,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultFileLockListener implements FileLockListener {
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockListener.class);
     private final Lock lock = new ReentrantLock();
-    private final Map<File, Runnable> contendedActions = new HashMap<File, Runnable>();
+    private final Map<Long, Runnable> contendedActions = new HashMap<Long, Runnable>();
     private FileLockCommunicator communicator = new FileLockCommunicator();
 
     private Runnable listener() {
@@ -52,12 +52,17 @@ public class DefaultFileLockListener implements FileLockListener {
             }
 
             private void doRun() {
-                File requestedFileLock;
-                while ((requestedFileLock = communicator.receive()) != null) {
+                while (true) {
+                    long lockId;
+                    try {
+                        lockId = communicator.receive();
+                    } catch (GracefullyStoppedException e) {
+                        break;
+                    }
                     lock.lock();
                     Runnable action;
                     try {
-                        action = contendedActions.get(requestedFileLock);
+                        action = contendedActions.get(lockId);
                         if (action == null) {
                             return;
                         }
@@ -73,7 +78,7 @@ public class DefaultFileLockListener implements FileLockListener {
 
     private StoppableExecutor executor;
 
-    public void lockCreated(File target, Runnable whenContended) {
+    public void lockCreated(long lockId, Runnable whenContended) {
         lock.lock();
         try {
             if (contendedActions.isEmpty()) {
@@ -81,17 +86,17 @@ public class DefaultFileLockListener implements FileLockListener {
                 executor = new DefaultExecutorFactory().create("Listen for file lock access requests from other processes");
                 executor.execute(listener());
             }
-            contendedActions.put(target, whenContended);
+            contendedActions.put(lockId, whenContended);
         } finally {
             lock.unlock();
         }
     }
 
-    public void stopListening(File target) {
+    public void stopListening(long lockId) {
         StoppableExecutor stopMe = null;
         lock.lock();
         try {
-            contendedActions.remove(target);
+            contendedActions.remove(lockId);
             if (contendedActions.isEmpty()) {
                 communicator.stop();
                 stopMe = executor;

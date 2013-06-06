@@ -21,6 +21,8 @@ import org.gradle.cache.internal.locklistener.FileLockListener;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Stoppable;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.util.GFileUtils;
 
 import java.io.EOFException;
@@ -51,6 +53,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
     private final ProcessMetaDataProvider metaDataProvider;
     private final int lockTimeoutMs;
+    private final IdGenerator<Long> generator;
     private FileLockListener fileLockListener;
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockListener fileLockListener) {
@@ -58,9 +61,14 @@ public class DefaultFileLockManager implements FileLockManager {
     }
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockListener fileLockListener) {
+        this(metaDataProvider, lockTimeoutMs, fileLockListener, new RandomLongIdGenerator());
+    }
+
+    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockListener fileLockListener, IdGenerator<Long> generator) {
         this.metaDataProvider = metaDataProvider;
         this.lockTimeoutMs = lockTimeoutMs;
         this.fileLockListener = fileLockListener;
+        this.generator = generator;
     }
 
     public FileLock lock(File target, LockMode mode, String targetDisplayName, Runnable whenContended) throws LockTimeoutException {
@@ -78,7 +86,7 @@ public class DefaultFileLockManager implements FileLockManager {
         try {
             int port = fileLockListener.reservePort();
             DefaultFileLock newLock = new DefaultFileLock(canonicalTarget, mode, targetDisplayName, operationDisplayName, port);
-            fileLockListener.lockCreated(canonicalTarget, whenContended);
+            fileLockListener.lockCreated(newLock.lockId, whenContended);
             return newLock;
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
@@ -88,6 +96,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
     private class OwnerInfo {
         int port;
+        long lockId;
         String pid;
         String operation;
     }
@@ -102,9 +111,11 @@ public class DefaultFileLockManager implements FileLockManager {
         private RandomAccessFile lockFileAccess;
         private boolean integrityViolated;
         private int port;
+        private final long lockId;
 
         public DefaultFileLock(File target, LockMode mode, String displayName, String operationDisplayName, int port) throws Throwable {
             this.port = port;
+            this.lockId = generator.generateId();
             if (mode == LockMode.None) {
                 throw new UnsupportedOperationException("Locking mode None is not supported.");
             }
@@ -219,7 +230,7 @@ public class DefaultFileLockManager implements FileLockManager {
             stoppable.add(new Stoppable() {
                 public void stop() {
                     try {
-                        fileLockListener.stopListening(target);
+                        fileLockListener.stopListening(lockId);
                     } catch (Exception e) {
                         throw new RuntimeException("Unable to stop listening for file lock requests for " + displayName, e);
                     }
@@ -310,6 +321,7 @@ public class DefaultFileLockManager implements FileLockManager {
                         lockFileAccess.seek(INFORMATION_REGION_POS);
                         lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
                         lockFileAccess.writeInt(port);
+                        lockFileAccess.writeLong(lockId);
                         lockFileAccess.writeUTF(trimIfNecessary(metaDataProvider.getProcessIdentifier()));
                         lockFileAccess.writeUTF(trimIfNecessary(operationDisplayName));
                         lockFileAccess.setLength(lockFileAccess.getFilePointer());
@@ -345,6 +357,7 @@ public class DefaultFileLockManager implements FileLockManager {
                             throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
                         }
                         out.port = lockFileAccess.readInt();
+                        out.lockId = lockFileAccess.readLong();
                         out.pid = lockFileAccess.readUTF();
                         out.operation = lockFileAccess.readUTF();
                         LOGGER.debug("Read following information from the file lock info region. Port: {}, owner: {}, operation: {}", out.port, out.pid, out.operation);
@@ -374,7 +387,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     OwnerInfo ownerInfo = readInformationRegion(System.currentTimeMillis() + lockTimeoutMs);
                     if (ownerInfo.port != -1) {
                         LOGGER.info("The file lock is held by a different Gradle process. Will attempt to ping owner at port {}", ownerInfo.port);
-                        FileLockCommunicator.pingOwner(ownerInfo.port, target);
+                        FileLockCommunicator.pingOwner(ownerInfo.port, ownerInfo.lockId);
                     } else {
                         LOGGER.info("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
                     }

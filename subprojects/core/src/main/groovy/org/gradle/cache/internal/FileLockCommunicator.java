@@ -16,16 +16,13 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-import static org.gradle.util.GFileUtils.canonicalise;
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
  * By Szczepan Faber on 5/23/13
@@ -33,16 +30,15 @@ import static org.gradle.util.GFileUtils.canonicalise;
 public class FileLockCommunicator {
     private DatagramSocket socket;
     private boolean stopped;
-    private static final Logger LOG = Logging.getLogger(FileLockCommunicator.class);
 
-    public static void pingOwner(int ownerPort, File target) {
+    public static void pingOwner(int ownerPort, long lockId) {
         DatagramSocket datagramSocket = null;
         try {
             datagramSocket = new DatagramSocket();
-            byte[] bytesToSend = encodeFile(target);
+            byte[] bytesToSend = encode(lockId);
             datagramSocket.send(new DatagramPacket(bytesToSend, bytesToSend.length, InetAddress.getLocalHost(), ownerPort));
         } catch (IOException e) {
-            throw new RuntimeException("Problems pinging owner of '" + target + "' at port: " + ownerPort);
+            throw new RuntimeException("Problems pinging owner of lock '" + lockId + "' at port: " + ownerPort);
         } finally {
             if (datagramSocket != null) {
                 datagramSocket.close();
@@ -50,17 +46,17 @@ public class FileLockCommunicator {
         }
     }
 
-    public File receive() {
+    public long receive() throws GracefullyStoppedException {
         try {
-            byte[] bytes = new byte[2048];
+            byte[] bytes = new byte[8];
             DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
             socket.receive(packet);
-            return decodeFile(bytes);
+            return decode(bytes);
         } catch (IOException e) {
             if (!stopped) {
                 throw new RuntimeException(e);
             }
-            return null;
+            throw new GracefullyStoppedException();
         }
     }
 
@@ -72,16 +68,14 @@ public class FileLockCommunicator {
         socket.close();
     }
 
-    private static byte[] encodeFile(File target) throws IOException {
+    private static byte[] encode(long lockId) throws IOException {
         ByteArrayOutputStream packet = new ByteArrayOutputStream();
-        DataOutputStream data = new DataOutputStream(packet);
-        data.writeUTF(target.getAbsolutePath());
+        new DataOutputStream(packet).writeLong(lockId);
         return packet.toByteArray();
     }
 
-    private static File decodeFile(byte[] bytes) throws IOException {
-        DataInputStream data = new DataInputStream(new ByteArrayInputStream(bytes));
-        return canonicalise(new File(data.readUTF()));
+    private static long decode(byte[] bytes) throws IOException {
+        return new DataInputStream(new ByteArrayInputStream(bytes)).readLong();
     }
 
     public int getPort() {
@@ -92,7 +86,7 @@ public class FileLockCommunicator {
         try {
             socket = new DatagramSocket();
         } catch (SocketException e) {
-            throw new RuntimeException(e);
+            throw throwAsUncheckedException(e);
         }
     }
 

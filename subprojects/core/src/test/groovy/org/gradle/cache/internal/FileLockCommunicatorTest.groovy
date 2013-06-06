@@ -19,6 +19,7 @@ package org.gradle.cache.internal
 
 import org.gradle.util.ConcurrentSpecification
 
+import static org.gradle.cache.internal.FileLockCommunicator.pingOwner
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 /**
@@ -28,8 +29,8 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
     //TODO SF review and tighten
 
     def communicator = new FileLockCommunicator()
-    File receivedFile
-    File actualFile = new File("foo")
+    Long receivedId
+    long actualId = 123
 
     def cleanup() {
         if (communicator.started) {
@@ -54,28 +55,28 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         communicator.getPort() == -1
     }
 
-    def "can receive file"() {
+    def "can receive lock id"() {
         start {
             communicator.start()
-            receivedFile = communicator.receive()
+            receivedId = communicator.receive()
         }
 
         poll {
-            assert communicator.getPort() != -1 && receivedFile == null
+            assert communicator.getPort() != -1 && receivedId == null
         }
 
         when:
-        FileLockCommunicator.pingOwner(communicator.getPort(), actualFile)
+        pingOwner(communicator.getPort(), 155)
 
         then:
         poll {
-            assert receivedFile == actualFile.absoluteFile
+            assert receivedId == 155
         }
     }
 
     def "pinging on a port that nobody listens is safe"() {
         when:
-        FileLockCommunicator.pingOwner(6666, actualFile)
+        pingOwner(6666, 166)
 
         then:
         noExceptionThrown()
@@ -84,7 +85,9 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
     def "can be stopped"() {
         start {
             communicator.start()
-            communicator.receive()
+            try {
+                communicator.receive()
+            } catch (GracefullyStoppedException e) {}
         }
 
         sleep(300)
