@@ -49,14 +49,11 @@ public class GppToolChain extends AbstractToolChain {
     private String version;
 
     public GppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        this(findExecutable(operatingSystem), operatingSystem.findInPath(AR), execActionFactory, new GppVersionDeterminer());
-    }
-
-    protected GppToolChain(File gppExecutable, File arExecutable, Factory<ExecAction> execActionFactory, Transformer<String, File> versionDeterminer) {
-        this.gppExecutable = gppExecutable;
-        this.arExecutable = arExecutable;
+        super(operatingSystem);
+        gppExecutable = findExecutable(operatingSystem);
+        arExecutable = operatingSystem.findInPath(AR);
         this.execActionFactory = execActionFactory;
-        this.versionDeterminer = versionDeterminer;
+        this.versionDeterminer = new GppVersionDeterminer();
     }
 
     private static File findExecutable(OperatingSystem operatingSystem) {

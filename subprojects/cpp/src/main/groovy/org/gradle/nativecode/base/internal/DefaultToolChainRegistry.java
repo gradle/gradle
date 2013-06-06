@@ -18,6 +18,7 @@ package org.gradle.nativecode.base.internal;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativecode.base.ToolChain;
 import org.gradle.nativecode.base.ToolChainRegistry;
@@ -62,6 +63,7 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
         private final List<String> messages;
 
         public UnavailableToolChain(List<String> messages) {
+            super(OperatingSystem.current());
             this.messages = messages;
         }
 

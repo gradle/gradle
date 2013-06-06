@@ -30,7 +30,9 @@ public interface ToolChainInternal extends ToolChain {
 
     String getExecutableName(String executablePath);
 
-    String getSharedLibraryName(String libraryName);
+    String getSharedLibraryName(String libraryPath);
 
-    String getStaticLibraryName(String libraryName);
+    String getSharedLibraryLinkFileName(String libraryPath);
+
+    String getStaticLibraryName(String libraryPath);
 }

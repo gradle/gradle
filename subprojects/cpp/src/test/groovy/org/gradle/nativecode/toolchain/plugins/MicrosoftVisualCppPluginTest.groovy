@@ -26,7 +26,7 @@ class MicrosoftVisualCppPluginTest extends Specification {
     def project = HelperUtil.createRootProject()
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    def "installs a no-op toolchain when not windows"() {
+    def "installs a no-op tool chain when not windows"() {
         when:
         project.plugins.apply(MicrosoftVisualCppPlugin)
 
@@ -38,7 +38,7 @@ class MicrosoftVisualCppPluginTest extends Specification {
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "installs a real toolchain when windows"() {
+    def "installs a real tool chain when windows"() {
         when:
         project.plugins.apply(MicrosoftVisualCppPlugin)
 

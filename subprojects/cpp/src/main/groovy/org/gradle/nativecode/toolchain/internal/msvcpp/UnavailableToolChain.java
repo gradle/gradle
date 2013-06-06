@@ -53,6 +53,10 @@ public class UnavailableToolChain implements ToolChainInternal {
         throw new UnsupportedOperationException();
     }
 
+    public String getSharedLibraryLinkFileName(String libraryPath) {
+        throw new UnsupportedOperationException();
+    }
+
     public String getStaticLibraryName(String libraryName) {
         throw new UnsupportedOperationException();
     }

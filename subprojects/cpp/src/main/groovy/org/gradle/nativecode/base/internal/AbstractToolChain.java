@@ -19,7 +19,12 @@ package org.gradle.nativecode.base.internal;
 import org.gradle.internal.os.OperatingSystem;
 
 public abstract class AbstractToolChain implements ToolChainInternal {
+    private final OperatingSystem operatingSystem;
     private ToolChainAvailability availability;
+
+    protected AbstractToolChain(OperatingSystem operatingSystem) {
+        this.operatingSystem = operatingSystem;
+    }
 
     public ToolChainAvailability getAvailability() {
         if (availability == null) {
@@ -35,17 +40,25 @@ public abstract class AbstractToolChain implements ToolChainInternal {
         }
     }
 
+    public OperatingSystem getOperatingSystem() {
+        return operatingSystem;
+    }
+
     protected abstract void checkAvailable(ToolChainAvailability availability);
 
     public String getExecutableName(String executablePath) {
-        return OperatingSystem.current().getExecutableName(executablePath);
+        return operatingSystem.getExecutableName(executablePath);
     }
 
     public String getSharedLibraryName(String libraryName) {
-        return OperatingSystem.current().getSharedLibraryName(libraryName);
+        return operatingSystem.getSharedLibraryName(libraryName);
+    }
+
+    public String getSharedLibraryLinkFileName(String libraryName) {
+        return getSharedLibraryName(libraryName);
     }
 
     public String getStaticLibraryName(String libraryName) {
-        return OperatingSystem.current().getStaticLibraryName(libraryName);
+        return operatingSystem.getStaticLibraryName(libraryName);
     }
 }

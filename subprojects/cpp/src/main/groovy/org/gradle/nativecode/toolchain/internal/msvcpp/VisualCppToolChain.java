@@ -38,13 +38,10 @@ public class VisualCppToolChain extends AbstractToolChain {
     private final Factory<ExecAction> execActionFactory;
 
     public VisualCppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        this(operatingSystem.findInPath(COMPILER_EXE), operatingSystem.findInPath(LINKER_EXE), operatingSystem.findInPath(STATIC_LINKER_EXE), execActionFactory);
-    }
-
-    protected VisualCppToolChain(File compilerExe, File linkerExe, File staticLinkerExe, Factory<ExecAction> execActionFactory) {
-        this.compilerExe = compilerExe;
-        this.linkerExe = linkerExe;
-        this.staticLinkerExe = staticLinkerExe;
+        super(operatingSystem);
+        this.compilerExe = operatingSystem.findInPath(COMPILER_EXE);
+        this.linkerExe = operatingSystem.findInPath(LINKER_EXE);
+        this.staticLinkerExe = operatingSystem.findInPath(STATIC_LINKER_EXE);
         this.execActionFactory = execActionFactory;
     }
 
@@ -61,6 +58,11 @@ public class VisualCppToolChain extends AbstractToolChain {
     protected void checkAvailable(ToolChainAvailability availability) {
         availability.mustExist(COMPILER_EXE, compilerExe);
         availability.mustExist(LINKER_EXE, linkerExe);
+    }
+
+    @Override
+    public String getSharedLibraryLinkFileName(String libraryName) {
+        return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
     }
 
     public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {

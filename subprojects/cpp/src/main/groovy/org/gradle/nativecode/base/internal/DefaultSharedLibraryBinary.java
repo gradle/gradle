@@ -50,6 +50,10 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
         return getToolChain().getSharedLibraryName(getComponent().getBaseName());
     }
 
+    private File getLinkFile() {
+        return new File(getToolChain().getSharedLibraryLinkFileName(getOutputFile().getPath()));
+    }
+
     public NativeDependencySet getAsNativeDependencySet() {
         return new NativeDependencySet() {
             public FileCollection getIncludeRoots() {
@@ -57,18 +61,24 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
             }
 
             public FileCollection getLinkFiles() {
-                return new FileCollectionAdapter(new RuntimeFiles());
+                return new FileCollectionAdapter(new RuntimeFiles(getLinkFile()));
             }
 
             public FileCollection getRuntimeFiles() {
-                return getLinkFiles();
+                return new FileCollectionAdapter(new RuntimeFiles(getOutputFile()));
             }
         };
     }
 
     private class RuntimeFiles implements MinimalFileSet, Buildable {
+        private final File outputFile;
+
+        private RuntimeFiles(File outputFile) {
+            this.outputFile = outputFile;
+        }
+
         public Set<File> getFiles() {
-            return Collections.singleton(getOutputFile());
+            return Collections.singleton(outputFile);
         }
 
         public String getDisplayName() {
