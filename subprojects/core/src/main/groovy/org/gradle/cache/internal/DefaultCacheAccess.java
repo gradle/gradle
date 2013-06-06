@@ -56,12 +56,7 @@ public class DefaultCacheAccess implements CacheAccess {
     private FileLock fileLock;
     private boolean busy;
     private boolean contended;
-    private final ThreadLocal<CacheOperationStack> operationStack = new ThreadLocal<CacheOperationStack>() {
-        @Override
-        protected CacheOperationStack initialValue() {
-            return new CacheOperationStack();
-        }
-    };
+    private final CacheOperationStack operationStack = new CacheOperationStack();
     private int cacheClosedCount;
 
     public DefaultCacheAccess(String cacheDisplayName, File lockFile, FileLockManager lockManager) {
@@ -109,7 +104,6 @@ public class DefaultCacheAccess implements CacheAccess {
     public void close() {
         lock.lock();
         try {
-            operationStack.remove();
             lockMode = null;
             owner = null;
             if (fileLock != null) {
@@ -162,7 +156,7 @@ public class DefaultCacheAccess implements CacheAccess {
                 }
             }
             owner = Thread.currentThread();
-            operationStack.get().pushCacheAction(operationDisplayName);
+            operationStack.pushCacheAction(operationDisplayName);
         } finally {
             lock.unlock();
         }
@@ -171,8 +165,8 @@ public class DefaultCacheAccess implements CacheAccess {
     private void releaseOwnership(String operationDisplayName) {
         lock.lock();
         try {
-            operationStack.get().popCacheAction(operationDisplayName);
-            if (!operationStack.get().isInCacheAction()) {
+            operationStack.popCacheAction(operationDisplayName);
+            if (!operationStack.isInCacheAction()) {
                 owner = null;
                 condition.signalAll();
             }
@@ -206,8 +200,8 @@ public class DefaultCacheAccess implements CacheAccess {
     private boolean maybeReentrantLongRunningOperation(String operationDisplayName) {
         lock.lock();
         try {
-            if (operationStack.get().isInLongRunningOperation()) {
-                operationStack.get().pushLongRunningOperation(operationDisplayName);
+            if (operationStack.isInLongRunningOperation()) {
+                operationStack.pushLongRunningOperation(operationDisplayName);
                 return true;
             }
             return false;
@@ -219,7 +213,7 @@ public class DefaultCacheAccess implements CacheAccess {
     private void longOperationCompleted(String operationDisplayName) {
         lock.lock();
         try {
-            operationStack.get().popLongRunningOperation(operationDisplayName);
+            operationStack.popLongRunningOperation(operationDisplayName);
         } finally {
             lock.unlock();
         }
@@ -245,7 +239,7 @@ public class DefaultCacheAccess implements CacheAccess {
             owner = null;
             condition.signalAll();
 
-            operationStack.get().pushLongRunningOperation(operationDisplayName);
+            operationStack.pushLongRunningOperation(operationDisplayName);
         } finally {
             lock.unlock();
         }
@@ -291,7 +285,7 @@ public class DefaultCacheAccess implements CacheAccess {
         try {
             caches.add(indexedCache);
             if (fileLock != null) {
-                indexedCache.onStartWork(operationStack.get().getDescription());
+                indexedCache.onStartWork(operationStack.getDescription());
             }
         } finally {
             lock.unlock();
@@ -309,10 +303,10 @@ public class DefaultCacheAccess implements CacheAccess {
         }
         busy = true;
 
-        fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operationStack.get().getDescription(), whenContended());
+        fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operationStack.getDescription(), whenContended());
 
         for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
-            cache.onStartWork(operationStack.get().getDescription());
+            cache.onStartWork(operationStack.getDescription());
         }
         return true;
     }
