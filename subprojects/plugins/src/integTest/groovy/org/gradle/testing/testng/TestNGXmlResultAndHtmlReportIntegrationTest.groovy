@@ -17,48 +17,75 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
-import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.integtests.fixtures.*
+import spock.lang.Shared
+import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_SUITE
+import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_TESTCASE
 import static org.hamcrest.Matchers.*
 
+@Unroll
 public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         AbstractIntegrationSpec {
+
+    static class Mode {
+        String name
+        TestResultOutputAssociation outputAssociation
+        String config
+    }
+
+    @Shared Mode outputPerTestCase = new Mode(name: "output-per-testcase", outputAssociation: WITH_TESTCASE, config: "reports.junitXml.outputPerTestCase true")
+    @Shared Mode outputAtSuite = new Mode(name: "output-at-suite", outputAssociation: WITH_SUITE, config: "reports.junitXml.outputPerTestCase false")
+
+    @Shared List<Mode> modes = [outputAtSuite, outputPerTestCase]
 
     def setup() {
         executer.noExtraLogging()
         setupTestCases()
     }
 
-    def "produces JUnit xml results"() {
+    def "produces JUnit xml results - #mode.name"() {
         when:
-        runWithTestConfig("useTestNG()")
+        runWithTestConfig("useTestNG(); $mode.config")
+
         then:
-        verifyTestResultWith(new JUnitXmlTestExecutionResult(file(".")))
-        verifyTestResultWith(new HtmlTestExecutionResult(file(".")))
+        verify(mode)
+
+        where:
+        mode << modes
     }
 
-    def "produces JUnit xml results when running tests in parallel"() {
+    def "produces JUnit xml results when running tests in parallel - #mode.name"() {
         when:
-        runWithTestConfig("useTestNG(); maxParallelForks 2")
+        runWithTestConfig("useTestNG(); maxParallelForks 2; $mode.config")
+
         then:
-        verifyTestResultWith(new JUnitXmlTestExecutionResult(file(".")))
-        verifyTestResultWith(new HtmlTestExecutionResult(file(".")))
+        verify(mode)
+
+        where:
+        mode << modes
     }
 
-    def "produces JUnit xml results with aggressive forking"() {
+    def "produces JUnit xml results with aggressive forking - #mode.name"() {
         when:
-        runWithTestConfig("useTestNG(); forkEvery 1")
+        runWithTestConfig("useTestNG(); forkEvery 1; $mode.config")
+
         then:
-        verifyTestResultWith(new JUnitXmlTestExecutionResult(file(".")))
-        verifyTestResultWith(new HtmlTestExecutionResult(file(".")))
+        verify(mode)
+
+        where:
+        mode << modes
+    }
+
+    void verify(Mode mode) {
+        verifyTestResultWith(new JUnitXmlTestExecutionResult(file("."), mode.outputAssociation), mode.outputAssociation)
+        verifyTestResultWith(new HtmlTestExecutionResult(file(".")), mode.outputAssociation)
     }
 
     def runWithTestConfig(String testConfiguration) {
         def buildFile = file('build.gradle')
-        buildFile << """
+        buildFile.text = """
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'org.testng:testng:6.3.1' }
@@ -71,10 +98,10 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         executer.withTasks('test').runWithFailure().assertTestsFailed()
     }
 
-    def verifyTestResultWith(TestExecutionResult executionResult) {
+    def verifyTestResultWith(TestExecutionResult executionResult, TestResultOutputAssociation outputAssociation) {
         executionResult.assertTestClassesExecuted("org.FailingTest", "org.PassingTest", "org.MixedMethodsTest", "org.NoOutputsTest", "org.EncodingTest", "org.ParameterizedTest")
 
-        executionResult.testClass("org.MixedMethodsTest")
+        def mixedMethods = executionResult.testClass("org.MixedMethodsTest")
                 .assertTestCount(4, 2, 0)
                 .assertTestsExecuted("passing", "passing2", "failing", "failing2")
                 .assertTestFailed("failing", equalTo('java.lang.AssertionError: failing!'))
@@ -82,50 +109,117 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
                 .assertTestPassed("passing")
                 .assertTestPassed("passing2")
                 .assertTestsSkipped()
-                .assertStderr(allOf(containsString("err.fail"), containsString("err.fail2"), containsString("err.pass"), containsString("err.pass2")))
-                .assertStderr(not(containsString("out.")))
-                .assertStdout(allOf(containsString("out.fail"), containsString("out.fail2"), containsString("out.pass"), containsString("out.pass2")))
-                .assertStdout(not(containsString("err.")))
 
-        executionResult.testClass("org.PassingTest")
+        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+            mixedMethods
+                    .assertStderr(allOf(containsString("err.fail"), containsString("err.fail2"), containsString("err.pass"), containsString("err.pass2")))
+                    .assertStderr(not(containsString("out.")))
+                    .assertStdout(allOf(containsString("out.fail"), containsString("out.fail2"), containsString("out.pass"), containsString("out.pass2")))
+                    .assertStdout(not(containsString("err.")))
+        } else {
+            mixedMethods
+                    .assertTestCaseStdout("passing", equalTo("out.pass\n"))
+                    .assertTestCaseStderr("passing", equalTo("err.pass\n"))
+                    .assertTestCaseStdout("failing", equalTo("out.fail\n"))
+                    .assertTestCaseStderr("failing", equalTo("err.fail\n"))
+                    .assertTestCaseStdout("passing2", equalTo("out.pass2\n"))
+                    .assertTestCaseStderr("passing2", equalTo("err.pass2\n"))
+                    .assertTestCaseStdout("failing2", equalTo("out.fail2\n"))
+                    .assertTestCaseStderr("failing2", equalTo("err.fail2\n"))
+        }
+
+        def passing = executionResult.testClass("org.PassingTest")
                 .assertTestCount(2, 0, 0)
                 .assertTestsExecuted("passing", "passing2")
                 .assertTestPassed("passing").assertTestPassed("passing2")
-                .assertStdout(equalTo("out\n"))
-                .assertStderr(equalTo(""))
+        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+            passing
+                    .assertStdout(equalTo("out\n"))
+                    .assertStderr(equalTo(""))
+        } else {
+            passing
+                    .assertTestCaseStdout("passing", equalTo("out\n"))
+                    .assertTestCaseStderr("passing", equalTo(""))
+                    .assertTestCaseStdout("passing2", equalTo(""))
+                    .assertTestCaseStderr("passing2", equalTo(""))
+        }
 
-        executionResult.testClass("org.FailingTest")
+        def failing = executionResult.testClass("org.FailingTest")
                 .assertTestCount(2, 2, 0)
                 .assertTestsExecuted("failing", "failing2")
                 .assertTestFailed("failing", anything()).assertTestFailed("failing2", anything())
-                .assertStdout(equalTo(""))
-                .assertStderr(equalTo("err\n"))
 
-        executionResult.testClass("org.NoOutputsTest")
+        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+            failing
+                    .assertStdout(equalTo(""))
+                    .assertStderr(equalTo("err\n"))
+        } else {
+            failing
+                    .assertTestCaseStdout("failing", equalTo(""))
+                    .assertTestCaseStderr("failing", equalTo("err\n"))
+                    .assertTestCaseStdout("failing2", equalTo(""))
+                    .assertTestCaseStderr("failing2", equalTo(""))
+
+        }
+
+        def noOutputs = executionResult.testClass("org.NoOutputsTest")
                 .assertTestCount(1, 0, 0)
                 .assertTestsExecuted("passing").assertTestPassed("passing")
-                .assertStdout(equalTo(""))
-                .assertStderr(equalTo(""))
 
-        executionResult.testClass("org.EncodingTest")
+        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+            noOutputs
+                    .assertStdout(equalTo(""))
+                    .assertStderr(equalTo(""))
+        } else {
+            noOutputs
+                    .assertTestCaseStdout("passing", equalTo(""))
+                    .assertTestCaseStderr("passing", equalTo(""))
+        }
+
+        def encoding = executionResult.testClass("org.EncodingTest")
                 .assertTestCount(2, 1, 0)
                 .assertTestPassed("encodesCdata")
                 .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]> non-ascii: ż'))
-                .assertStdout(equalTo("""< html allowed, cdata closing token ]]> encoded!
+
+        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+            encoding
+                    .assertStdout(equalTo("""< html allowed, cdata closing token ]]> encoded!
 no EOL, non-ascii char: ż
 xml entity: &amp;
 """))
-                .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
+                    .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
+        } else {
+            encoding
+                    .assertTestCaseStdout("encodesCdata", equalTo("""< html allowed, cdata closing token ]]> encoded!
+no EOL, non-ascii char: ż
+xml entity: &amp;
+"""))
+                    .assertTestCaseStderr("encodesCdata", equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
+        }
 
-        executionResult.testClass("org.ParameterizedTest")
-                .assertTestCount(6, 3, 0)
+        def parameterized = executionResult.testClass("org.ParameterizedTest")
+                .assertTestCount(6, 4, 0)
                 .assertTestsExecuted(
-                    "p1(1, 2)", "p3(1, «toString() threw java.lang.RuntimeException: bang!»)", "p4(1, \">…Ú)",
-                    "p1(3, 4)", "p3(2, «toString() threw java.lang.RuntimeException: bang!»)", "p4(2, \">…Ú)"
-                )
-                .assertTestFailed("p1(3, 4)", anything())
-                .assertTestFailed("p3(2, «toString() threw java.lang.RuntimeException: bang!»)", anything())
-                .assertTestFailed("p4(2, \">…Ú)", anything())
+                "p1[0](1, 2)", "p4[0](1, \">…Ú)", "p1[1](3, 4)", "p3[0]", "p3[1]", "p4[1](2, \">…Ú)"
+        )
+                .assertTestFailed("p1[1](3, 4)", anything())
+                .assertTestFailed("p3[0]", containsString("Parameter 2 of iteration 1 of method 'p3' toString() method threw exception"))
+                .assertTestFailed("p3[1]", containsString("Parameter 2 of iteration 2 of method 'p3' toString() method threw exception"))
+                .assertTestFailed("p4[1](2, \">…Ú)", anything())
+
+        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+            parameterized
+                    .assertStdout(equalTo("var1 is: 1\nvar1 is: 3\n"))
+                    .assertStderr(equalTo("var2 is: 2\nvar2 is: 4\n"))
+        } else {
+            parameterized
+                    .assertTestCaseStdout("p1[0](1, 2)", equalTo("var1 is: 1\n"))
+                    .assertTestCaseStdout("p1[1](3, 4)", equalTo("var1 is: 3\n"))
+                    .assertTestCaseStderr("p1[0](1, 2)", equalTo("var2 is: 2\n"))
+                    .assertTestCaseStderr("p1[1](3, 4)", equalTo("var2 is: 4\n"))
+        }
+
+        true
     }
 
 
@@ -216,7 +310,7 @@ public class ParameterizedTest {
     @Test(dataProvider = "1")
 	public void p1(String var1, String var2) {
         System.out.println("var1 is: " + var1);
-        System.out.println("var2 is: " + var2);
+        System.err.println("var2 is: " + var2);
        	assertEquals(var1, "1");
 	}
 

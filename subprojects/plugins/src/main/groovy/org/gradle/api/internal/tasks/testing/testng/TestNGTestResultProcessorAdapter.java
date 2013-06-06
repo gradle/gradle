@@ -82,36 +82,43 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
             assert parentId != null;
         }
         resultProcessor.started(testInternal, new TestStartEvent(iTestResult.getStartMillis(), parentId));
+
+        if (iTestResult.getThrowable() instanceof UnrepresentableParameterException) {
+            throw (UnrepresentableParameterException) iTestResult.getThrowable();
+        }
     }
 
     private String calculateTestCaseName(ITestResult iTestResult) {
         Object[] parameters = iTestResult.getParameters();
         String name = iTestResult.getName();
         if (parameters != null && parameters.length > 0) {
-            StringBuilder builder = new StringBuilder(name).append("(");
+            StringBuilder builder = new StringBuilder(name).
+                    append("[").
+                    append(iTestResult.getMethod().getCurrentInvocationCount()).
+                    append("]");
+
+            StringBuilder paramsListBuilder = new StringBuilder("(");
             int i = 0;
             for (Object parameter : parameters) {
-                builder.append(calculateParameterRepresentation(parameter));
+                if (parameter == null) {
+                    paramsListBuilder.append("null");
+                } else {
+                    try {
+                        paramsListBuilder.append(parameter.toString());
+                    } catch (Exception e) {
+                        // This may be thrown by the caller of this method at a later time
+                        iTestResult.setThrowable(new UnrepresentableParameterException(iTestResult, i, e));
+                        return builder.toString();
+                    }
+                }
                 if (++i < parameters.length) {
-                    builder.append(", ");
+                    paramsListBuilder.append(", ");
                 }
             }
-            builder.append(")");
-            return builder.toString();
+            paramsListBuilder.append(")");
+            return builder.append(paramsListBuilder.toString()).toString();
         } else {
             return name;
-        }
-    }
-
-    private String calculateParameterRepresentation(Object parameter) {
-        if (parameter == null) {
-            return "null";
-        } else {
-            try {
-                return parameter.toString();
-            } catch (Exception e) {
-                return String.format("«toString() threw %s»", e.toString());
-            }
         }
     }
 

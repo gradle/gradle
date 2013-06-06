@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect;
+package org.gradle.internal.reflect
 
-import spock.lang.Specification
 import org.gradle.internal.UncheckedException
+import spock.lang.Specification
+
+import java.lang.reflect.InvocationTargetException
+
+import static org.gradle.internal.reflect.JavaReflectionUtil.*
 
 class JavaReflectionUtilTest extends Specification {
-    def myProperties = new MyProperties()
+    JavaTestSubject myProperties = new JavaTestSubject()
 
     def "read property"() {
         expect:
@@ -66,15 +70,42 @@ class JavaReflectionUtilTest extends Specification {
         e.cause instanceof NoSuchMethodException
     }
 
-    static class MyProperties {
-        private String myProp = "myValue"
-        private boolean myBooleanProp = true
-
-        String getMyProperty() {  myProp }
-        void setMyProperty(String value) { myProp = value }
-
-        boolean isMyBooleanProperty() { myBooleanProp }
-        void setMyBooleanProperty(boolean value) { myBooleanProp = value }
+    def "call methods successfully reflectively"() {
+        expect:
+        invokeMethod(myProperties, "getMyProperty") == myProperties.myProp
+        invokeMethod(myProperties, "setMyProperty", "foo") == null
+        invokeMethod(myProperties, "getMyProperty") == "foo"
     }
+
+    def "call failing methods reflectively"() {
+        when:
+        invokeMethod(myProperties, "throwsException")
+
+        then:
+        def e = thrown InvocationTargetException
+        e.cause instanceof IllegalStateException
+
+        when:
+        invokeMethodWrapException(myProperties, "throwsException")
+
+        then:
+        def e2 = thrown RuntimeException
+        e2.cause instanceof InvocationTargetException
+        e2.cause.cause instanceof IllegalStateException
+    }
+
+    def "call declared method that may not be public"() {
+        when:
+        invokeMethod(new JavaTestSubjectSubclass(), "protectedMethod")
+
+        then:
+        thrown NoSuchMethodException
+
+        then:
+        expect:
+        invokeDeclaredMethod(new JavaTestSubjectSubclass(), JavaTestSubject, "protectedMethod", [] as Class[]) == "parent"
+        invokeDeclaredMethod(new JavaTestSubjectSubclass(), JavaTestSubject, "overridden", [] as Class[]) == "subclass"
+    }
+
 }
 

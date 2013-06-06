@@ -17,31 +17,27 @@
 package org.gradle.buildsetup.plugins.internal
 
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ServiceRegistryFactory
 import spock.lang.Specification
 import spock.lang.Unroll
-
 
 class ProjectLayoutSetupRegistryFactoryTest extends Specification {
 
     ProjectLayoutSetupRegistryFactory projectLayoutSetupRegistry
     ServiceRegistryFactory serviceFactory
     DocumentationRegistry documentationRegistry
-    DependencyManagementServices dependencyManagementServices
     MavenSettingsProvider mavenSettingsProvider
+    FileResolver fileResolver
 
     def setup(){
         ProjectInternal projectInternal = Mock()
         serviceFactory = Mock()
-        dependencyManagementServices = Mock()
-        dependencyManagementServices.get(MavenSettingsProvider) >> mavenSettingsProvider
-        projectLayoutSetupRegistry =  new ProjectLayoutSetupRegistryFactory(projectInternal)
+        fileResolver = Mock()
+        projectLayoutSetupRegistry =  new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, fileResolver);
         projectInternal.services >> serviceFactory
-        serviceFactory.get(DocumentationRegistry) >> documentationRegistry
-        serviceFactory.get(DependencyManagementServices) >> dependencyManagementServices
     }
 
     @Unroll

@@ -27,6 +27,8 @@ dependencies {
     provided("com.typesafe.zinc:zinc:0.2.1")
 
     testCompile libraries.slf4j_api
+
+    integTestRuntime project(":ide")
 }
 
 useTestFixtures(project: ":plugins") // includes core test fixtures

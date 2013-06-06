@@ -46,12 +46,15 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
@@ -79,6 +82,10 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     protected LoggingManagerInternal createLoggingManager() {
         return getFactory(LoggingManagerInternal.class).create();
+    }
+
+    protected ProjectConfigurationActionContainer createProjectConfigurationActionContainer() {
+        return new DefaultProjectConfigurationActionContainer();
     }
 
     protected DefaultFileOperations createFileOperations() {
@@ -163,7 +170,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         if (project.getParent() != null) {
             parentClassLoader = project.getParent().getBuildscript().getClassLoader();
         } else {
-            parentClassLoader = project.getGradle().getScriptClassLoader();
+            parentClassLoader = get(BuildClassLoaderRegistry.class).getScriptClassLoader();
         }
         return factory.create(project.getBuildScriptSource(), parentClassLoader, project);
     }

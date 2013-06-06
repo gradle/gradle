@@ -41,6 +41,8 @@ repositories {
             ivy '[organisation]/v[revision]/ivy(.[ext])'
         }
     }
+
+    maven { url 'http://repo.gradle.org/gradle/gradle-build-internal' }
 }
 
 configurations {
@@ -48,6 +50,7 @@ configurations {
     userGuideStyleSheets
     userGuideTask
     jquery
+    jqueryTipTip
     fonts
 }
 
@@ -60,6 +63,7 @@ dependencies {
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
     jquery "jquery:jquery.min:1.8.0@js"
+    jqueryTipTip "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
     fonts \
         "lato:regular:6:v0SdcGFAl2aezM9Vq_aFTQ@ttf",
@@ -233,7 +237,7 @@ task defaultImports(type: GenerateDefaultImportsTask, dependsOn: dslMetaData) {
 
     // TODO - rename some incubating types to remove collisions and then remove these exclusions
     excludePackage 'org.gradle.plugins.binaries.model'
-    excludePackage 'org.gradle.plugins.cpp.cdt.model'
+    excludePackage 'org.gradle.nativecode.cdt.model'
 }
 
 task dslHtml(type: Docbook2Xhtml) {
@@ -315,6 +319,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/api/**'
     include 'org/gradle/*'
     include 'org/gradle/external/javadoc/**'
+    include 'org/gradle/nativecode/**'
     include 'org/gradle/process/**'
     include 'org/gradle/plugins/**'
     include 'org/gradle/testfixtures/**'
@@ -423,10 +428,6 @@ test {
     systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.source.singleFile
     systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 
-}
-
-if (project.hasProperty('noDocsTests')) {
-    gradle.startParameter.excludedTaskNames << test.path
 }
 
 task docs {

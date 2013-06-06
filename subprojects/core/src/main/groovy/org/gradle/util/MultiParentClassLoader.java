@@ -22,6 +22,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A {@code ClassLoader} which delegates to multiple parent ClassLoaders.
+ *
+ * Note: It's usually a good idea to add a {@link CachingClassLoader} between this ClassLoader and any
+ * ClassLoaders that use it as a parent, to prevent every path in the ClassLoader graph being searched.
  */
 public class MultiParentClassLoader extends ClassLoader implements ClasspathSource {
     private final List<ClassLoader> parents;

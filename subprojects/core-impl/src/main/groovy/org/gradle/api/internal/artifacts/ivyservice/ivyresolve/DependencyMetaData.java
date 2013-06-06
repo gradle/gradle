@@ -26,6 +26,8 @@ public interface DependencyMetaData {
 
     boolean isChanging();
 
+    boolean isTransitive();
+
     /**
      * Returns a copy of this dependency with the given requested version.
      */

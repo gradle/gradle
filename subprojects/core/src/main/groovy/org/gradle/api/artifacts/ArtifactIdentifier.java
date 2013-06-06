@@ -25,12 +25,12 @@ public interface ArtifactIdentifier {
     ModuleVersionIdentifier getModuleVersionIdentifier();
 
     /**
-     * Returns the name of the dependency artifact.
+     * Returns the name of this artifact.
      */
     String getName();
 
     /**
-     * Returns the type of the dependency artifact. Often the type is the same as the extension,
+     * Returns the type of this artifact. Often the type is the same as the extension,
      * but sometimes this is not the case. For example for an ivy XML module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
@@ -39,7 +39,7 @@ public interface ArtifactIdentifier {
     String getType();
 
     /**
-     * Returns the extension of this dependency artifact. Often the extension is the same as the type,
+     * Returns the extension of this artifact. Often the extension is the same as the type,
      * but sometimes this is not the case. For example for an ivy XML module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
@@ -48,7 +48,7 @@ public interface ArtifactIdentifier {
     String getExtension();
 
     /**
-     * Returns the classifier of this dependency artifact.
+     * Returns the classifier of this artifact, if any.
      */
     String getClassifier();
 

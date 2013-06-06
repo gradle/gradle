@@ -19,21 +19,20 @@ package org.gradle.performance
 import org.gradle.performance.fixture.AbstractPerformanceTest
 import spock.lang.Unroll
 
-import static org.gradle.performance.fixture.DataAmount.kbytes
-import static org.gradle.performance.fixture.Duration.millis
+import static org.gradle.performance.measure.Duration.millis
 
 /**
  * by Szczepan Faber, created at: 2/9/12
  */
 class TestExecutionPerformanceTest extends AbstractPerformanceTest {
-    @Unroll("Project '#testProject'")
+    @Unroll("Project '#testProject' test execution")
     def "test execution"() {
         given:
+        runner.testId = "test $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.maxMemoryRegression = kbytes(3000)
 
         when:
         def result = runner.run()

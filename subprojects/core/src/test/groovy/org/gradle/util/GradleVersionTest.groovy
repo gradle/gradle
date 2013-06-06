@@ -245,12 +245,15 @@ class GradleVersionTest extends Specification {
 Gradle $version.version
 ------------------------------------------------------------
 
-Gradle build time: $version.buildTime
-Groovy: $InvokerHelper.version
-Ant: $Main.antVersion
-Ivy: ${Ivy.ivyVersion}
-JVM: ${Jvm.current()}
-OS: ${OperatingSystem.current()}
+Build time:   $version.buildTime
+Build number: $version.buildNumber
+Revision:     $version.commitId
+
+Groovy:       $InvokerHelper.version
+Ant:          $Main.antVersion
+Ivy:          ${Ivy.ivyVersion}
+JVM:          ${Jvm.current()}
+OS:           ${OperatingSystem.current()}
 """
         expect:
         version.prettyPrint() == expectedText

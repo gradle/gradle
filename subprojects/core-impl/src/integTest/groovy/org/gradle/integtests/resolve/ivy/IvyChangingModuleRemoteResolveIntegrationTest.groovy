@@ -70,7 +70,6 @@ task retrieve(type: Copy) {
         module.expectIvySha1Get()
         module.expectIvyGet()
         module.expectJarHead()
-        module.expectJarSha1Get()
         module.expectArtifactGet('other')
         moduleB.expectIvyGet()
         moduleB.expectJarGet()

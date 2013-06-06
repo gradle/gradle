@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
@@ -48,7 +49,7 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
             ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) descriptor;
             ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(desc);
             ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
-            DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+            ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
             result.resolved(moduleVersionIdentifier, moduleDescriptor, artifactResolver);
         } else {
             resolver.resolve(dependency, result);
@@ -58,7 +59,7 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
     public void resolve(Module module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result) {
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configurations, module);
         ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
-        DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+        ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
         result.resolved(moduleVersionIdentifier, moduleDescriptor, artifactResolver);
     }
 

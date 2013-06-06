@@ -156,11 +156,7 @@ incremental execution for. A change in any other input file collection should tr
 
 ## C++ compilation is incremental when a C++ source file changes
 
-1. Split `LinkExecutable` and `LinkSharedLibrary` task implementations out of `CppCompile` task type.
-    - Change the `cpp` plugin to add these tasks and wire together.
-2. Change the `CppCompile` task to declare its source files, include directories and output directories as properties with
-   the appropriate annotations.
-4. Change the `CppCompile` task to be incremental wrt source file changes:
+Change the `CppCompile` task to be incremental wrt source file changes:
     - When a source file is added, compile only that source file.
     - When a source file is changed, compile only that source file.
     - When a source file is removed, remove the object file for that source file.
@@ -198,6 +194,10 @@ Add to the task history a hash of the task implementation, and rebuild the task'
 Allow type decoration to distinguish between domain objects and API objects.  API objects should not be
 decorated with `DynamicObjectAware`, `IConventionAware` or `ExtensionAware` or any of the asssociated
 state.
+
+## Improve accuracy of output file detection
+
+Change output file detection to use a change in file last modified time to detect that an output file has changed. Remove `OutputFilesSnapshotter`.
 
 ## Story: Java compile task specifies its output files
 

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
 import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
@@ -24,6 +25,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.hamcrest.Matchers
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.text.ParseException
@@ -32,7 +34,8 @@ import static junit.framework.Assert.*
 import static org.junit.Assert.assertThat
 
 class IvyXmlModuleDescriptorParserTest extends Specification {
-    @Rule public final Resources resources = new Resources()
+    @Rule
+    public final Resources resources = new Resources()
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
@@ -134,6 +137,36 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
                 .getConfigurations()))
         assertEquals(Arrays.asList("myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"), Arrays.asList(rules[1].getConfigurations()))
         true
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2766")
+    def "defaultconfmapping is respected"() {
+        given:
+        def file = temporaryFolder.createFile("ivy.xml")
+        file.text = """
+           <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+                <info organisation="myorg"
+                      module="mymodule"
+                      revision="myrev"
+                      status="integration"
+                      publication="20041101110000">
+                </info>
+                <configurations>
+                    <conf name="myconf" />
+                </configurations>
+                <publications/>
+                <dependencies defaultconfmapping="myconf->default">
+                    <dependency name="mymodule2"/>
+                </dependencies>
+            </ivy-module>
+        """
+
+        when:
+        def descriptor = parser.parseDescriptor(settings, file.toURI().toURL(), false)
+        def dependency = descriptor.dependencies.first()
+
+        then:
+        dependency.moduleConfigurations == ["myconf"]
     }
 
     def verifyFullDependencies(DependencyDescriptor[] dependencies) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,27 +27,26 @@ class JavaLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
     public static final String SAMPLE_LIBRARY_CLASS = "src/main/java/Library.java"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
 
-    WrapperTestFixture wrapper
-
-    def setup(){
-        wrapper = new WrapperTestFixture(testDirectory)
-    }
+    final wrapper = new WrapperTestFixture(testDirectory)
 
     def "creates sample source if no source present"() {
         when:
         succeeds('setupBuild', '--type', 'java-library')
+
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        buildFile.exists()
+        settingsFile.exists()
         wrapper.generated()
 
         when:
         succeeds("build")
+
         then:
         TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
         testResult.assertTestClassesExecuted("LibraryTest")
         testResult.testClass("LibraryTest").assertTestPassed("testSomeLibraryMethod")
-
     }
 
     def "setupProjectLayout is skipped when sources detected"() {
@@ -66,9 +65,12 @@ class JavaLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
         """
         when:
         succeeds('setupBuild', '--type', 'java-library')
+
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()
         !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        buildFile.exists()
+        settingsFile.exists()
         wrapper.generated()
     }
 }

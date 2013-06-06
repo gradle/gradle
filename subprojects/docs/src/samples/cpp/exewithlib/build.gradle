@@ -5,14 +5,14 @@ project(":lib") {
 
 project(":exe") {
     apply plugin: "cpp-exe"
+    evaluationDependsOn(":lib")
+
     cpp {
         sourceSets {
             main {
-                libs << project(":lib").libraries.main
+                lib project(":lib").libraries.main
             }
         }
     }
 }
 // END SNIPPET project-dependencies
-
-task build(dependsOn: project(":exe").compileMain)

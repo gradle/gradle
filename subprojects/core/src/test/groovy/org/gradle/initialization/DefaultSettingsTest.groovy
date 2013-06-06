@@ -194,7 +194,7 @@ class DefaultSettingsTest {
     public void testCreateClassLoader() {
         StartParameter expectedStartParameter = settings.startParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
-        URLClassLoader createdClassLoader = settings.getClassLoader()
+        def createdClassLoader = settings.getClassLoader()
         assertSame(createdClassLoader, expectedClassLoader)
     }
 

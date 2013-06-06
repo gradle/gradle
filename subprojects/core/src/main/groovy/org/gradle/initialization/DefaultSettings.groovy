@@ -28,7 +28,7 @@ public class DefaultSettings extends BaseSettings {
 
     DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
                     GradleInternal gradle,
-                    URLClassLoader classloader, File settingsDir,
+                    ClassLoader classloader, File settingsDir,
                     ScriptSource settingsScript, StartParameter startParameter) {
       super(serviceRegistryFactory, gradle, classloader, settingsDir, settingsScript, startParameter)
     }

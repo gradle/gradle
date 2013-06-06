@@ -20,13 +20,19 @@
 package org.gradle.api.tasks
 
 import org.apache.commons.lang.RandomStringUtils
-import org.apache.commons.lang.StringUtils
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.FileResource
+import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
+import java.util.zip.ZipFile
+
 import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertEquals
 
 public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
@@ -222,7 +228,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @Rule public final TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    public final TestResources resources = new TestResources(temporaryFolder)
 
     def "tarTreeFailsGracefully"() {
         given:
@@ -344,11 +351,11 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'uncompressedZip'
         run 'compressedZip'
         then:
-	def uncompressedSize = file('build/uncompressedTest.zip').length()
-	def compressedSize = file('build/compressedTest.zip').length()
-	println "uncompressed" + uncompressedSize
-	println "compressed" + compressedSize
-    assert compressedSize < uncompressedSize
+        def uncompressedSize = file('build/uncompressedTest.zip').length()
+        def compressedSize = file('build/compressedTest.zip').length()
+        println "uncompressed" + uncompressedSize
+        println "compressed" + compressedSize
+        assert compressedSize < uncompressedSize
 
         def expandDir = file('expandedUncompressed')
         file('build/uncompressedTest.zip').unzipTo(expandDir)
@@ -598,10 +605,159 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         expandDir.assertHasDescendants('shared/zip.txt', 'zipdir1/file1.txt', 'shared/tar.txt', 'tardir1/file1.txt', 'shared/dir.txt', 'dir1/file1.txt')
     }
 
+    def ensureDuplicatesIncludedInZipByDefault() {
+        given:
+        createFilesStructureForDupeTests();
+        buildFile << '''
+            task zip(type: Zip) {
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.zip'
+            }
+            '''
+        when:
+        run 'zip'
+
+        then:
+        assertZipContainsOnly('build/test.zip', ['file1.txt', 'file1.txt', 'file2.txt'])
+    }
+
+    def ensureDuplicatesCanBeExcludedFromZip() {
+        given:
+        createFilesStructureForDupeTests()
+        buildFile << '''
+                task zip(type: Zip) {
+                    from 'dir1'
+                    from 'dir2'
+                    from 'dir3'
+                    destinationDir = buildDir
+                    archiveName = 'test.zip'
+                    eachFile { it.duplicatesStrategy = 'exclude' }
+                }
+                '''
+        when:
+        run 'zip'
+
+        then:
+        assertZipContainsOnly('build/test.zip', ['file1.txt', 'file2.txt'], ['file1.txt': "dir1/file1.txt"])
+    }
+
+    def renamedFileWillBeTreatedAsDuplicateZip() {
+        given:
+        createFilesStructureForDupeTests()
+        buildFile << '''
+                task zip(type: Zip) {
+                    from 'dir1'
+                    from 'dir2'
+                    destinationDir = buildDir
+                    rename 'file2.txt', 'file1.txt'
+                    archiveName = 'test.zip'
+                    eachFile { it.duplicatesStrategy = 'exclude' }
+                }
+                '''
+        when:
+        run 'zip'
+
+        then:
+        assertZipContainsOnly('build/test.zip', ['file1.txt'], ['file1.txt': "dir1/file1.txt"])
+    }
+
+    def ensureDuplicatesIncludedInTarByDefault() {
+        given:
+        createFilesStructureForDupeTests();
+        buildFile << '''
+            task tar(type: Tar) {
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.tar'
+            }
+            '''
+        when:
+        run 'tar'
+
+        then:
+        assertTarContainsOnly('build/test.tar', ['file1.txt', 'file1.txt', 'file2.txt'])
+    }
+
+    def ensureDuplicatesCanBeExcludedFromTar() {
+        given:
+        createFilesStructureForDupeTests()
+        buildFile << '''
+            task tar(type: Tar) {
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.tar'
+                eachFile { it.duplicatesStrategy = 'exclude' }
+            }
+            '''
+        when:
+        run 'tar'
+
+        then:
+        assertTarContainsOnly('build/test.tar', ['file1.txt', 'file2.txt'], ['file1.txt':"dir1/file1.txt"])
+    }
+
+
     def createTar(String name, Closure cl) {
         TestFile tarRoot = file("${name}.root")
         TestFile tar = file(name)
         tarRoot.create(cl)
         tarRoot.tarTo(tar)
     }
+
+    private def createFilesStructureForDupeTests() {
+        createDir('dir1', {
+            file('file1.txt').text = "dir1/file1.txt"
+        })
+        createDir('dir2', {
+            file 'file2.txt'
+        })
+        createDir('dir3', {
+            file('file1.txt').text = "dir3/file1.txt"
+        })
+    }
+
+
+    def assertZipContainsOnly(String zipFileName, List files, Map fileContent = [:]) {
+        ZipFile zipFile = new ZipFile(file(zipFileName))
+        def entries = zipFile.entries();
+        def list = []
+        while (entries.hasMoreElements()) {
+            def entry = entries.nextElement()
+            def entryName = entry.getName()
+            list += entryName;
+            if(fileContent.containsKey(entryName)){
+                assert fileContent[entryName] == zipFile.getInputStream(entry).text
+            }
+        }
+        assertEquals(files.sort(), list.sort())
+        return this
+    }
+
+    def assertTarContainsOnly(String tarfileName, List files, Map fileContent = [:]) {
+        def list = []
+        def readableFile = new FileResource(file(tarfileName))
+        def temporaryDir = file('tmp')
+        new TarFileTree(readableFile, temporaryDir).visit(new FileVisitor() {
+            void visitDir(FileVisitDetails dirDetails) {}
+            void visitFile(FileVisitDetails fileDetails) {
+                String relativePathString = fileDetails.relativePath.toString()
+                list += relativePathString
+                if(fileContent.containsKey(relativePathString)){
+                    assert fileContent[relativePathString] == fileDetails.file.text
+                }
+            }
+        })
+
+
+        assertEquals(files.sort(), list.sort())
+        return this
+    }
+
 }

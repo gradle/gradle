@@ -49,6 +49,8 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
     private final String version;
     private final String buildTime;
+    private final String commitId;
+    private final String buildNumber;
     private final Long snapshot;
     private final String versionPart;
     private final Stage stage;
@@ -69,9 +71,11 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
             String version = properties.get("versionNumber").toString();
             String buildTimestamp = properties.get("buildTimestamp").toString();
+            String buildNumber = properties.get("buildNumber").toString();
+            String commitId = properties.get("commitId").toString();
             Date buildTime = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(buildTimestamp);
 
-            CURRENT = new GradleVersion(version, buildTime);
+            CURRENT = new GradleVersion(version, buildTime, buildNumber, commitId);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not load version details from resource '%s'.", resource), e);
         } finally {
@@ -90,11 +94,13 @@ public class GradleVersion implements Comparable<GradleVersion> {
     }
 
     public static GradleVersion version(String version) {
-        return new GradleVersion(version, null);
+        return new GradleVersion(version, null, null, null);
     }
 
-    private GradleVersion(String version, Date buildTime) {
+    private GradleVersion(String version, Date buildTime, String buildNumber, String commitId) {
         this.version = version;
+        this.buildNumber = buildNumber;
+        this.commitId = commitId;
         this.buildTime = buildTime == null ? null : formatBuildTime(buildTime);
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
@@ -140,7 +146,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
     }
 
     private String formatBuildTime(Date buildTime) {
-        DateFormat format = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL);
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return format.format(buildTime);
     }
@@ -261,17 +267,21 @@ public class GradleVersion implements Comparable<GradleVersion> {
         final StringBuilder sb = new StringBuilder();
         sb.append("\n------------------------------------------------------------\nGradle ");
         sb.append(getVersion());
-        sb.append("\n------------------------------------------------------------\n\nGradle build time: ");
+        sb.append("\n------------------------------------------------------------\n\nBuild time:   ");
         sb.append(getBuildTime());
-        sb.append("\nGroovy: ");
+        sb.append("\nBuild number: ");
+        sb.append(buildNumber);
+        sb.append("\nRevision:     ");
+        sb.append(commitId);
+        sb.append("\n\nGroovy:       ");
         sb.append(GroovySystem.getVersion());
-        sb.append("\nAnt: ");
+        sb.append("\nAnt:          ");
         sb.append(Main.getAntVersion());
-        sb.append("\nIvy: ");
+        sb.append("\nIvy:          ");
         sb.append(Ivy.getIvyVersion());
-        sb.append("\nJVM: ");
+        sb.append("\nJVM:          ");
         sb.append(Jvm.current());
-        sb.append("\nOS: ");
+        sb.append("\nOS:           ");
         sb.append(OperatingSystem.current());
         sb.append("\n");
         return sb.toString();

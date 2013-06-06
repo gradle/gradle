@@ -19,7 +19,7 @@ def releaseNotesStyleFile = project.file("$project.cssFiles.dir/release-notes.cs
 def scriptFile = project.file("src/docs/release/content/script.js")
 def incubatingMarker = " (i)"
 
-inputs.files([project.cssFiles, baseStyleFile, releaseNotesStyleFile, project.configurations.jquery, scriptFile])
+inputs.files([project.cssFiles, baseStyleFile, releaseNotesStyleFile, project.configurations.jquery, project.configurations.jqueryTipTip, scriptFile])
 
 transformDocument {
     outputSettings().indentAmount(2).prettyPrint(true)
@@ -32,8 +32,9 @@ transformDocument {
 
     head().append("<style>p{}</style>").children().last().childNode(0).attr("data", baseStyleFile.text + releaseNotesStyleFile.text)
 
-    head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", project.configurations.jquery.singleFile.text)
-    head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", scriptFile.text)
+    [project.configurations.jquery.singleFile, project.configurations.jqueryTipTip.singleFile, scriptFile].each {
+        head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", it.text)
+    }
 }
 
 // wrap each h2 section in section.topic

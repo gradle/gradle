@@ -28,13 +28,13 @@ import org.gradle.api.Incubating;
  *
  * <pre autoTested="true">
  * class IncrementalReverseTask extends DefaultTask {
- *      {@literal @InputDirectory}
+ *      @InputDirectory
  *      def File inputDir
  *
- *      {@literal @OutputDirectory}
+ *      @OutputDirectory
  *      def File outputDir
  *
- *      {@literal @TaskAction}
+ *      @TaskAction
  *      void execute(IncrementalTaskInputs inputs) {
  *          inputs.outOfDate { change ->
  *              def targetFile = project.file("$outputDir/${change.file.name}")

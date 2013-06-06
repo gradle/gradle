@@ -265,51 +265,49 @@ class CommandLineParserTest extends Specification {
         result.extraArguments == ['a', '--option', 'b']
     }
 
-    def canMapOptionToSubcommand() {
-        parser.option('a').mapsToSubcommand('subcmd')
+    def canCombineSubcommandShortOptionWithOtherShortOptions() {
+        parser.option('b')
+        parser.allowMixedSubcommandsAndOptions()
 
-        expect:
-        def result = parser.parse(['-a', '--option', 'b'])
-        result.extraArguments == ['subcmd', '--option', 'b']
-        result.hasOption('a')
+        when:
+        def result = parser.parse(['cmd', '-b', '-a'])
+
+        then:
+        result.extraArguments == ['cmd', '-a']
+        result.hasOption('b')
+
+        when:
+        result = parser.parse(['cmd', '-ba'])
+
+        then:
+        result.extraArguments == ['cmd', '-a']
+        result.hasOption('b')
     }
 
-    def canCombineSubcommandShortOptionWithOtherShortOptions() {
-        parser.option('a').mapsToSubcommand('subcmd')
-        parser.option('b')
+    def returnsLastMutuallyExclusiveOptionThatIsPresent() {
+        parser.option("a")
+        parser.option("b")
+        parser.option("c", "long-option")
+        parser.option("d")
+        parser.allowOneOf("a", "b", "c")
 
         when:
-        def result = parser.parse(['-abc', '--option', 'b'])
+        def result = parser.parse(['-a', '-b', '-c'])
 
         then:
-        result.extraArguments == ['subcmd', '-b', '-c', '--option', 'b']
-        result.hasOption('a')
+        !result.hasOption('a')
         !result.hasOption('b')
+        result.hasOption('c')
+        result.hasOption('long-option')
 
         when:
-        result = parser.parse(['-bac', '--option', 'b'])
+        result = parser.parse(['-a', '-b', '--long-option'])
 
         then:
-        result.extraArguments == ['subcmd', '-c', '--option', 'b']
-        result.hasOption('a')
-        result.hasOption('b')
-
-        when:
-        parser.allowMixedSubcommandsAndOptions()
-        result = parser.parse(['-abc', '--option', 'b'])
-
-        then:
-        result.extraArguments == ['subcmd', '-c', '--option', 'b']
-        result.hasOption('a')
-        result.hasOption('b')
-
-        when:
-        result = parser.parse(['-bac', '--option', 'b'])
-
-        then:
-        result.extraArguments == ['subcmd', '-c', '--option', 'b']
-        result.hasOption('a')
-        result.hasOption('b')
+        !result.hasOption('a')
+        !result.hasOption('b')
+        result.hasOption('c')
+        result.hasOption('long-option')
     }
 
     def singleDashIsNotConsideredAnOption() {

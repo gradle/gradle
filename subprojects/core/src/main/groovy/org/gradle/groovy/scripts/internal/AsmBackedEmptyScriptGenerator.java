@@ -16,7 +16,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -77,8 +77,9 @@ public class AsmBackedEmptyScriptGenerator implements EmptyScriptGenerator {
         visitor.visitEnd();
 
         byte[] bytecode = visitor.toByteArray();
-        return (Class<T>) ReflectionUtil.invoke(type.getClassLoader(), "defineClass", new Object[]{
-                typeName, bytecode, 0, bytecode.length
-        });
+        return (Class<T>) JavaReflectionUtil.invokeDeclaredMethodWrapException(type.getClassLoader(), ClassLoader.class, "defineClass",
+                new Class[]{String.class, byte[].class, int.class, int.class},
+                new Object[]{typeName, bytecode, 0, bytecode.length}
+        );
     }
 }

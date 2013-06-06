@@ -17,37 +17,23 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 
-class DefaultTaskPlanExecutor implements TaskPlanExecutor {
+class DefaultTaskPlanExecutor extends AbstractTaskPlanExecutor {
+    private final TaskArtifactStateCacheAccess stateCacheAccess;
 
-    public void process(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
-        TaskInfo taskInfo;
-        while ((taskInfo = taskExecutionPlan.getTaskToExecute()) != null) {
-            processTask(taskInfo, taskExecutionPlan, taskListener);
-        }
-        taskExecutionPlan.awaitCompletion();
+    DefaultTaskPlanExecutor(TaskArtifactStateCacheAccess stateCacheAccess) {
+        super(stateCacheAccess);
+        this.stateCacheAccess = stateCacheAccess;
     }
 
-    protected void processTask(TaskInfo taskInfo, TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
-        try {
-            executeTask(taskInfo, taskListener);
-        } catch (Throwable e) {
-            taskInfo.setExecutionFailure(e);
-        } finally {
-            taskExecutionPlan.taskComplete(taskInfo);
-        }
-    }
-
-    // TODO:PARALLEL It would be good to move this logic into a TaskExecuter wrapper, but we'd need a way to give it a TaskExecutionListener that
-    // is wired to the various add/remove listener methods on TaskExecutionGraph
-    private void executeTask(TaskInfo taskInfo, TaskExecutionListener taskListener) {
-        TaskInternal task = taskInfo.getTask();
-        taskListener.beforeExecute(task);
-        try {
-            task.executeWithoutThrowingTaskFailure();
-        } finally {
-            taskListener.afterExecute(task, task.getState());
-        }
+    public void process(final TaskExecutionPlan taskExecutionPlan, final TaskExecutionListener taskListener) {
+        //At the very beginning, we unlock the cache access. The synchronisation via 'useCache' is pushed down and ine grained.
+        stateCacheAccess.longRunningOperation("Execute tasks", new Runnable() {
+            public void run() {
+                taskWorker(taskExecutionPlan, taskListener).run();
+                taskExecutionPlan.awaitCompletion();
+            }
+        });
     }
 }

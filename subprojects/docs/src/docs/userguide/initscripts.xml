@@ -133,6 +133,8 @@
             </para>
             <sample id="usePluginsInInitScripts" dir="userguide/initScripts/plugins" title="Using plugins in init scripts">
                     <sourcefile file="init.gradle" snippet="init-script-plugin"/>
+                    <sourcefile file="build.gradle" snippet="show-repos-task"/>
+                    <output args="-q -I init.gradle showRepositories"/>
             </sample>
             <para>The plugin in the sample init scripts ensures, that only a specified repository is used when running the build.
             </para>

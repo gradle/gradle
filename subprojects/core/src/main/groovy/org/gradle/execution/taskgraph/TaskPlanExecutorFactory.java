@@ -36,7 +36,6 @@ public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
             SingleMessageLogger.informAboutIncubating("Parallel project execution");
             return new ParallelTaskPlanExecutor(taskArtifactStateCacheAccess, options.numberOfParallelThreads());
         }
-        return new DefaultTaskPlanExecutor();
-
+        return new DefaultTaskPlanExecutor(taskArtifactStateCacheAccess);
     }
 }

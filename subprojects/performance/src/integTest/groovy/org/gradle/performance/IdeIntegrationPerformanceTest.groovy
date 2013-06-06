@@ -19,8 +19,7 @@ package org.gradle.performance
 import org.gradle.performance.fixture.AbstractPerformanceTest
 import spock.lang.Unroll
 
-import static org.gradle.performance.fixture.DataAmount.kbytes
-import static org.gradle.performance.fixture.Duration.millis
+import static org.gradle.performance.measure.Duration.millis
 
 /**
  * by Szczepan Faber, created at: 2/9/12
@@ -29,10 +28,10 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
     @Unroll("Project '#testProject' eclipse")
     def "eclipse"() {
         given:
+        runner.testId = "eclipse $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.maxMemoryRegression = kbytes(3000)
 
         when:
         def result = runner.run()
@@ -42,7 +41,7 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
 
         where:
         testProject       | maxExecutionTimeRegression
-        "small"           | millis(500)
+        "small"           | millis(700)
         "multi"           | millis(1500)
         "lotDependencies" | millis(3000)
     }
@@ -50,10 +49,10 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
     @Unroll("Project '#testProject' idea")
     def "idea"() {
         given:
+        runner.testId = "idea $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['idea']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.maxMemoryRegression = kbytes(3000)
 
         when:
         def result = runner.run()
@@ -63,7 +62,7 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
 
         where:
         testProject       | maxExecutionTimeRegression
-        "small"           | millis(500)
+        "small"           | millis(700)
         "multi"           | millis(1500)
         "lotDependencies" | millis(3000)
     }

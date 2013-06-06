@@ -138,9 +138,18 @@ class HtmlTestExecutionResult implements TestExecutionResult {
             return this;
         }
 
+        TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
+            throw new UnsupportedOperationException()
+        }
+
         TestClassExecutionResult assertStderr(Matcher<? super String> matcher) {
             matcher.matches(html.select("div#tab3 > span > pre").text())
             return this;
         }
+
+        TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
+            throw new UnsupportedOperationException()
+        }
+
     }
 }

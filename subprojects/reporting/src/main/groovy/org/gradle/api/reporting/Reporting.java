@@ -19,14 +19,48 @@ package org.gradle.api.reporting;
 import groovy.lang.Closure;
 
 /**
- * An object that provides reporting options
+ * An object that provides reporting options.
+ * <p>
+ * Tasks that produce reports as part of their execution expose configuration options of those reports via these methods.
+ * The {@code Reporting} interface is parameterized, where the parameter denotes the specific type of reporting container
+ * that is exposed. The specific type of the reporting container denotes the different types of reports available.
+ * <p>
+ * For example, given a task such as:
+ * </p>
+ * <pre>
+ * class MyTask implements Reporting&lt;MyReportContainer&gt; {
+ *     // implementation
+ * }
+ *
+ * interface MyReportContainer extends ReportContainer&lt;Report&gt; {
+ *     Report getHtml();
+ *     Report getCsv();
+ * }
+ * </pre>
+ * <p>
+ * The reporting aspects of such a task can be configured as such:
+ * </p>
+ * <pre>
+ * task my(type: MyTask) {
+ *     reports {
+ *         html.enabled = true
+ *         csv.enabled = false
+ *     }
+ * }
+ * </pre>
+ * <p>
+ * See the documentation for the specific {@code ReportContainer} type for the task for information on report types and options.
+ * </p>
  *
  * @param <T> The base type of the report container
  */
 public interface Reporting<T extends ReportContainer> {
 
     /**
-     * Returns the report container.
+     * A {@link ReportContainer} instance.
+     * <p>
+     * Implementors specify a specific implementation of {@link ReportContainer} that describes the types of reports that
+     * are available.
      *
      * @return The report container
      */
@@ -34,8 +68,6 @@ public interface Reporting<T extends ReportContainer> {
 
     /**
      * Allow configuration of the report container by closure.
-     *
-     * For example…
      *
      * <pre>
      * reports {

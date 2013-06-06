@@ -70,88 +70,6 @@ Note: for the following discussion, all changes are `@Incubating` unless specifi
 
 See [completed stories](done/publication-model.md)
 
-## Publish Java libraries and web applications to Ivy repository
-
-1. Change the `ivy-publishing` plugin so that it no longer defines any publications.
-2. Allow `IvyPublication` instances to be added to the publications container.
-    - Default (organisation, module, revision) to (project.group, project.name, project.version)
-3. Allow zero or one components to be added to an Ivy publication.
-4. When publishing a java library, declare the runtime dependencies and the JAR artifact in the descriptor.
-5. When publishing a web application, declare the WAR artifact in the descriptor.
-6. Include a default configuration in the descriptor.
-
-Note: there is a breaking change in this story.
-
-### Test cases
-
-* Run `gradle publish` for a project with just the `ivy-publish` plugin applied. Verify nothing is published.
-* Publish a java project with compile, runtime and testCompile dependencies.
-    * Verify that the jar artifact is included in the descriptor runtime configuration.
-    * Verify only the compile and runtime dependencies are included in the descriptor runtime configuration.
-* Publish a war project with compile, runtime, providedCompile, providedRuntime and testCompile dependencies.
-    * Verify that the war artifact is published and included in the descriptor runtime configuration.
-    * Verify that no dependencies are included in the descriptor.
-* Publish multiple projects with the `java` or `war` plugin applied and project dependencies between the projects.
-    * Verify descriptor files contain appropriate artifact and dependency declarations.
-    * Verify that libraries and transitive dependencies can be successfully resolved from another build.
-* Cross-version test that verifies a Java project published by the current version of Gradle can be consumed by a previous version of Gradle,
-  and vice versa.
-
-## Allow outgoing artifacts to be customised for Ivy publications
-
-1. Add an `IvyArtifact` interface with the following attributes:
-    * `name`
-    * `type`
-    * `extension`
-    * `file`
-    * `conf`
-    * `classifier`
-2. Add an `IvyArtifactSet` interface. This is a collection of objects that can be converted to a collection of `IvyArtifact` instances.
-3. Add an `IvyConfiguration` interface. Add a `configurations` container to `IvyModuleDescriptor`
-4. Add an `artifacts` property to `IvyConfiguration`.
-5. When publishing or generating the descriptor, validate that the (name, type, extension, classifier) attributes are unique for each artifact.
-6. When publishing, validate that the artifact file exists and is a file.
-
-To customise an Ivy publication:
-
-    apply plugin: 'ivy-publish'
-
-    publishing {
-        publications {
-            ivy {
-                configurations {
-                     runtime
-                     distributions
-                     other {
-                        extend "runtime"
-                     }
-                }
-                artifacts = [jar]
-                artifact sourceJar {
-                    conf 'other'
-                }
-                artifact file: distZip, type: 'java-library-distribution', conf: 'other,distributions'
-            }
-        }
-    }
-
-The 'artifact' creation method will accept the following forms of input:
-* A PublishArtifact, that will be adapted to IvyArtifact
-* An AbstractArchiveTask, that will be adapted to IvyArtifact
-* Anything that is valid input to Project.file()
-* Any of the previous 4, together with a configuration closure that permits setting of name, type, classifier, extension and builtBy properties
-* A map with 'file' entry, that is interpreted as per Project.file(). Additional entries for 'name', 'type', 'extension', 'classifier' and 'builtBy'.
-
-Configurations will be constructed with no value for 'visibility', 'description', 'transitive', or 'deprecated' attributes, and will inherit ivy defaults.
-The configuration 'extends' attribute is a string value, not validated.
-
-Artifacts will be constructed with no attribute for 'conf' unless explicitly specified.
-This allows them to inherit the default ('*') in ivy.xml or take the default value from the parent <publications/> element.
-
-### Test cases
-
-* Verify that `archivesBaseName` does not affect the published artifact names.
-
 ## Handle compound source inputs when adding artifacts to Ivy or Maven publications
 
 Currently, all artifact inputs map one-one with a published artifact. We should handle compound inputs that will result in the creation of multiple artifacts.
@@ -317,6 +235,7 @@ And:
     4. Publish both projects to a Maven repository.
     5. Assert that another build can resolve project-A from this Maven repository.
 * Run `gradle publish` for a project that defines multiple publications and verify that they are all published
+* All publications of the project are visible via the tooling API's `GradleProject`.
 
 ## Allow outgoing dependency declarations to be customised
 
@@ -431,7 +350,7 @@ TBD
 
 ## Web application is published with runtime dependencies
 
-Provided dependencies should be included in the generated POM and ivy.xml
+Provided dependencies should be included in the generated POM and `ivy.xml`
 
 ## Allow further types of components to be published
 

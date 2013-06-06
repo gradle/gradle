@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import com.esotericsoftware.kryo.io.Input;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.Writer;
 
 /**
  * Assembles test results. Keeps a copy of the results in memory to provide them later and spools test output to file.
@@ -45,35 +49,43 @@ public class TestOutputSerializer {
     }
 
     private File standardErrorFile(String className) {
-        return new File(resultsDir, className + ".stderr");
+        return new File(resultsDir, className + ".stderr.bin");
     }
 
     private File standardOutputFile(String className) {
-        return new File(resultsDir, className + ".stdout");
+        return new File(resultsDir, className + ".stdout.bin");
     }
 
-    public boolean hasOutput(String className, TestOutputEvent.Destination destination){
+    public boolean hasOutput(String className, TestOutputEvent.Destination destination) {
         return outputsFile(className, destination).exists();
     }
 
     public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
+        doWriteOutputs(className, null, destination, writer);
+    }
+
+    public void writeOutputs(String className, String testCaseName, TestOutputEvent.Destination destination, Writer writer) {
+        doWriteOutputs(className, testCaseName, destination, writer);
+    }
+
+    protected void doWriteOutputs(String className, String targetTestCaseName, TestOutputEvent.Destination destination, Writer writer) {
         final File file = outputsFile(className, destination);
         if (!file.exists()) {
             return;
         }
         try {
-            Reader reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), "UTF-8");
+            Input input = new Input(new FileInputStream(file));
             try {
-                char[] buffer = new char[2048];
-                while (true) {
-                    int read = reader.read(buffer);
-                    if (read < 0) {
-                        return;
+                while (input.canReadInt()) { // using this to see if we are EOF yet
+                    String messageTestCaseName = input.readString();
+                    String message = input.readString();
+
+                    if (targetTestCaseName == null || targetTestCaseName.equals(messageTestCaseName)) {
+                        writer.write(message);
                     }
-                    writer.write(buffer, 0, read);
                 }
             } finally {
-                reader.close();
+                input.close();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -84,7 +96,7 @@ public class TestOutputSerializer {
         cachingFileWriter.closeAll();
     }
 
-    public void onOutput(String className, TestOutputEvent.Destination destination, String message) {
-        cachingFileWriter.write(outputsFile(className, destination), message);
+    public void onOutput(String className, String testName, TestOutputEvent.Destination destination, String message) {
+        cachingFileWriter.write(outputsFile(className, destination), testName, message);
     }
 }

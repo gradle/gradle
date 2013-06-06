@@ -19,21 +19,25 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.tasks.ContextualTaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Formatter;
+import java.util.List;
+
 /**
- * A {@link ContextualTaskExecuter} which skips tasks whose outputs are up-to-date.
+ * A {@link TaskExecuter} which skips tasks whose outputs are up-to-date.
  */
-public class SkipUpToDateTaskExecuter implements ContextualTaskExecuter {
+public class SkipUpToDateTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateTaskExecuter.class);
-    private final ContextualTaskExecuter executer;
+    private final TaskExecuter executer;
     private final TaskArtifactStateRepository repository;
 
-    public SkipUpToDateTaskExecuter(TaskArtifactStateRepository repository, ContextualTaskExecuter executer) {
+    public SkipUpToDateTaskExecuter(TaskArtifactStateRepository repository, TaskExecuter executer) {
         this.executer = executer;
         this.repository = repository;
     }
@@ -42,13 +46,13 @@ public class SkipUpToDateTaskExecuter implements ContextualTaskExecuter {
         LOGGER.debug("Determining if {} is up-to-date", task);
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
         try {
-            if (taskArtifactState.isUpToDate()) {
+            List<String> messages = new ArrayList<String>();
+            if (taskArtifactState.isUpToDate(messages)) {
                 LOGGER.info("Skipping {} as it is up-to-date", task);
                 state.upToDate();
                 return;
-
             }
-            LOGGER.debug("{} is not up-to-date", task);
+            logOutOfDateMessages(messages, task);
 
             task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
             context.setTaskArtifactState(taskArtifactState);
@@ -67,4 +71,17 @@ public class SkipUpToDateTaskExecuter implements ContextualTaskExecuter {
             taskArtifactState.finished();
         }
     }
+
+
+    private void logOutOfDateMessages(List<String> messages, TaskInternal task) {
+        if (LOGGER.isInfoEnabled()) {
+            Formatter formatter = new Formatter();
+            formatter.format("Executing %s due to:", task);
+            for (String message : messages) {
+                formatter.format("%n  %s", message);
+            }
+            LOGGER.info(formatter.toString());
+        }
+    }
+
 }

@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.Comparator;
 
 class LatestModuleConflictResolver implements ModuleConflictResolver {
-    public ModuleRevisionResolveState select(Collection<? extends ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root) {
+    public ModuleRevisionResolveState select(Collection<? extends ModuleRevisionResolveState> candidates) {
         return Collections.max(candidates, new VersionComparator());
     }
 

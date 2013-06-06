@@ -56,7 +56,6 @@ assert "${externalScript.absolutePath.replace("\\", "\\\\")}" == buildscript.sou
 assert "${externalScript.toURI()}" == buildscript.sourceURI as String
 assert buildscript.classLoader == getClass().classLoader.parent
 assert buildscript.classLoader == Thread.currentThread().contextClassLoader
-assert gradle.scriptClassLoader == buildscript.classLoader.parent
 assert project.buildscript.classLoader != buildscript.classLoader
 Gradle.class.classLoader.loadClass('${implClassName}')
 try {
@@ -93,7 +92,6 @@ new BuildSrcClass()
 assert 'doStuff' == name
 assert buildscript.classLoader == getClass().classLoader.parent
 assert buildscript.classLoader == Thread.currentThread().contextClassLoader
-assert project.gradle.scriptClassLoader == buildscript.classLoader.parent
 assert project.buildscript.classLoader != buildscript.classLoader
 ext.someProp = 'value'
 '''

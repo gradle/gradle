@@ -19,12 +19,10 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.util.ChangeListener;
 
-import java.io.Serializable;
-
 /**
  * An immutable snapshot of the contents of a collection of files.
  */
-public interface FileCollectionSnapshot extends Serializable {
+public interface FileCollectionSnapshot {
 
     ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot);
 
@@ -59,11 +57,5 @@ public interface FileCollectionSnapshot extends Serializable {
 
     interface ChangeIterator<T> {
         boolean next(ChangeListener<T> listener);
-    }
-
-    public interface SnapshotChangeListener extends ChangeListener<String> {
-        String getResumeAfter();
-
-        boolean isStopped();
     }
 }

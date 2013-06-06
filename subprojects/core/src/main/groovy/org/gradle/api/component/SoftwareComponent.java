@@ -18,10 +18,11 @@ package org.gradle.api.component;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.internal.HasInternalProtocol;
 
 /**
  * A software component produced by a Gradle software project.
  */
-@Incubating
+@Incubating @HasInternalProtocol
 public interface SoftwareComponent extends Named {
 }

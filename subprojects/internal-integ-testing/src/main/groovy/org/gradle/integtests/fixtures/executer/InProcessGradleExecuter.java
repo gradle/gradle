@@ -30,7 +30,6 @@ import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
@@ -47,6 +46,7 @@ import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.DeprecationLogger;
@@ -62,7 +62,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.hasMessage;
+import static org.gradle.util.Matchers.isEmpty;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -147,9 +148,8 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         System.getProperties().putAll(implicitJvmSystemProperties);
 
         StartParameter parameter = new StartParameter();
-        parameter.setLogLevel(LogLevel.INFO);
-        parameter.setSearchUpwards(true);
         parameter.setCurrentDir(getWorkingDir());
+        parameter.setShowStacktrace(ShowStacktrace.ALWAYS);
 
         CommandLineParser parser = new CommandLineParser();
         DefaultCommandLineConverter converter = new DefaultCommandLineConverter();

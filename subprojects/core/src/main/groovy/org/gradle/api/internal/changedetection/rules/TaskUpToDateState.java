@@ -25,9 +25,8 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
  * Represents the complete changes in a tasks state
  */
 public class TaskUpToDateState {
-    private static final int MAX_OUT_OF_DATE_MESSAGES = 10;
+    private static final int MAX_OUT_OF_DATE_MESSAGES = 3;
 
-    private TaskStateChanges upToDateSpecState;
     private TaskStateChanges noHistoryState;
     private TaskStateChanges inputFilesState;
     private TaskStateChanges inputPropertiesState;
@@ -40,14 +39,13 @@ public class TaskUpToDateState {
         TaskExecution thisExecution = history.getCurrentExecution();
         TaskExecution lastExecution = history.getPreviousExecution();
 
-        upToDateSpecState = TaskUpToDateSpecStateChangeRule.create(task);
         noHistoryState = NoHistoryStateChangeRule.create(task, lastExecution);
         taskTypeState = TaskTypeStateChangeRule.create(task, lastExecution, thisExecution);
         inputPropertiesState = InputPropertiesStateChangeRule.create(task, lastExecution, thisExecution);
         outputFilesState = caching(OutputFilesStateChangeRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter));
         inputFilesState = caching(InputFilesStateChangeRule.create(task, lastExecution, thisExecution, inputFilesSnapshotter));
-        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, upToDateSpecState, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState);
-        rebuildChanges = new SummaryTaskStateChanges(1, upToDateSpecState, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState);
+        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState);
+        rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState);
     }
 
     private TaskStateChanges caching(TaskStateChanges wrapped) {

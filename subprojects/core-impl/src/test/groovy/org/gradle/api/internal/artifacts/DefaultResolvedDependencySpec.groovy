@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import spock.lang.Specification
 
 class DefaultResolvedDependencySpec extends Specification {
-    final DefaultResolvedDependency dependency = new DefaultResolvedDependency("name", "group", "module", "version", "config")
+    final dependency = new DefaultResolvedDependency(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "config")
 
     def "provides meta-data about the module"() {
         expect:

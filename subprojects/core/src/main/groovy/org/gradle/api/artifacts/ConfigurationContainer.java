@@ -31,7 +31,7 @@ import org.gradle.api.internal.HasInternalProtocol;
  * configuration as the property name. For example:</p>
  *
  * <pre>
- * configurations.add('myConfiguration')
+ * configurations.create('myConfiguration')
  * configurations.myConfiguration.transitive = false
  * </pre>
  *
@@ -39,7 +39,7 @@ import org.gradle.api.internal.HasInternalProtocol;
  * calling {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
  *
  * <pre>
- * configurations.add('myConfiguration')
+ * configurations.create('myConfiguration')
  * configurations.myConfiguration {
  *     transitive = false
  * }

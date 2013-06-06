@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.core.module.descriptor.Artifact
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
@@ -111,25 +108,87 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         0 * moduleDescriptor._
     }
 
+    def "builds and caches the configuration meta-data from the module descriptor"() {
+        def id = Stub(ModuleVersionIdentifier)
+        def moduleDescriptor = Mock(ModuleDescriptor)
+
+        given:
+        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
+
+        when:
+        def config = descriptor.getConfiguration("conf")
+
+        then:
+        1 * moduleDescriptor.getConfiguration("conf") >> Stub(Configuration)
+
+        when:
+        def config2 = descriptor.getConfiguration("conf")
+
+        then:
+        config2.is(config)
+
+        and:
+        0 * moduleDescriptor._
+    }
+
+    def "returns null for unknown configuration"() {
+        def id = Stub(ModuleVersionIdentifier)
+        def moduleDescriptor = Mock(ModuleDescriptor)
+
+        given:
+        moduleDescriptor.getConfiguration("conf") >> null
+
+        and:
+        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
+
+        expect:
+        descriptor.getConfiguration("conf") == null
+    }
+
     def "builds artifacts from the module descriptor"() {
         def id = Stub(ModuleVersionIdentifier)
-        def moduleDescriptor = Stub(ModuleDescriptor)
+        def moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "group", "version"), "status", null)
         def artifact1 = Stub(Artifact)
         def artifact2 = Stub(Artifact)
 
         given:
-        moduleDescriptor.getArtifacts("config") >> ([artifact1, artifact2] as Artifact[])
+        moduleDescriptor.addConfiguration(new Configuration("config"))
+        moduleDescriptor.addArtifact("config", artifact1)
+        moduleDescriptor.addArtifact("config", artifact2)
 
         and:
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
 
         when:
-        def artifacts = descriptor.getArtifacts("config")
+        def artifacts = descriptor.getConfiguration("config").artifacts
 
         then:
-        artifacts.size() == 2
-        artifacts[0] == artifact1
-        artifacts[1] == artifact2
+        artifacts as List == [artifact1, artifact2]
+    }
+
+    def "artifacts include those inherited from other configurations"() {
+        def id = Stub(ModuleVersionIdentifier)
+        def moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "group", "version"), "status", null)
+        def artifact1 = Stub(Artifact)
+        def artifact2 = Stub(Artifact)
+        def artifact3 = Stub(Artifact)
+
+        given:
+        moduleDescriptor.addConfiguration(new Configuration("super"))
+        moduleDescriptor.addConfiguration(new Configuration("config", Configuration.Visibility.PUBLIC, "", ["super"] as String[], true, null))
+        moduleDescriptor.addArtifact("super", artifact1)
+        moduleDescriptor.addArtifact("super", artifact2)
+        moduleDescriptor.addArtifact("config", artifact2)
+        moduleDescriptor.addArtifact("config", artifact3)
+
+        and:
+        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
+
+        when:
+        def artifacts = descriptor.getConfiguration("config").artifacts
+
+        then:
+        artifacts as List == [artifact2, artifact3, artifact1]
     }
 
     def "can replace the dependencies for the module version"() {

@@ -143,12 +143,12 @@ class StartScriptGeneratorTest extends Specification {
 
     def "defaultJvmOpts is expanded properly in unix script -- single quotes"() {
         given:
-        generator.defaultJvmOpts = ['-Dfoo=b\'ar baz', '-Xi\'\'nt']
+        generator.defaultJvmOpts = ['-Dfoo=b\'ar baz', '-Xi\'\'n`t']
         generator.scriptRelPath = "bin"
         when:
         String unixScriptContent = generator.generateUnixScriptContent()
         then:
-        unixScriptContent.contains(/DEFAULT_JVM_OPTS='"-Dfoo=b'"'"'ar baz" "-Xi'"'"''"'"'nt"'/)
+        unixScriptContent.contains(/DEFAULT_JVM_OPTS='"-Dfoo=b'"'"'ar baz" "-Xi'"'"''"'"'n'"`"'t"'/)
     }
 
     def "defaultJvmOpts is expanded properly in unix script -- backslashes and shell metacharacters"() {

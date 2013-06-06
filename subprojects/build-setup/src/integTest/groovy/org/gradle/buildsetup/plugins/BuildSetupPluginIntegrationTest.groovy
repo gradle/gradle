@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.buildsetup.plugins
 
 import org.gradle.buildsetup.plugins.fixtures.WrapperTestFixture
@@ -25,6 +27,7 @@ import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
 class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
+    final wrapper = new WrapperTestFixture(testDirectory)
 
     @Override
     String getMainTask() {
@@ -38,55 +41,59 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
 
     def "setupBuild shows up on tasks overview "() {
         when:
-        def executed = run 'tasks'
+        run 'tasks'
+
         then:
-        executed.output.contains "setupBuild - Initializes a new Gradle build."
+        result.output.contains "setupBuild - Initializes a new Gradle build."
     }
 
-    def "can be executed without existing pom"() {
+    def "creates a simple project when no pom file present and no type specified"() {
         given:
         assert !buildFile.exists()
+        assert !settingsFile.exists()
+
         when:
         run 'setupBuild'
-        then:
-        new WrapperTestFixture(testDirectory).generated()
-        buildFile.exists()
-    }
 
-    def "auto-applied setupBuild task can be triggered with camel-case"() {
-        given:
-        assert !buildFile.exists()
-        when:
-        run setupTaskNAme
         then:
-        new WrapperTestFixture(testDirectory).generated()
+        wrapper.generated()
         buildFile.exists()
-        where:
-        setupTaskNAme << ["setupBuild", "sBuild", "setupB"]
+        settingsFile.exists()
+
+        expect:
+        succeeds 'tasks'
     }
 
     def "build file generation is skipped when build file already exists"() {
         given:
-        assert buildFile.createFile()
+        buildFile.createFile()
 
         when:
-        def executed = run('setupBuild')
+        run('setupBuild')
 
         then:
-        executed.assertTasksExecuted(":setupBuild")
-        executed.output.contains("The build file 'build.gradle' already exists. Skipping build initialization.")
+        result.assertTasksExecuted(":setupBuild")
+        result.output.contains("The build file 'build.gradle' already exists. Skipping build initialization.")
+
+        and:
+        !settingsFile.exists()
+        wrapper.notGenerated()
     }
 
     def "build file generation is skipped when settings file already exists"() {
         given:
-        assert settingsFile.createFile()
+        settingsFile.createFile()
 
         when:
-        def executed = run('setupBuild')
+        run('setupBuild')
 
         then:
-        executed.assertTasksExecuted(":setupBuild")
-        executed.output.contains("The settings file 'settings.gradle' already exists. Skipping build initialization.")
+        result.assertTasksExecuted(":setupBuild")
+        result.output.contains("The settings file 'settings.gradle' already exists. Skipping build initialization.")
+
+        and:
+        !buildFile.exists()
+        wrapper.notGenerated()
     }
 
     def "build file generation is skipped when custom build file exists"() {
@@ -95,11 +102,16 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
 
         when:
         executer.usingBuildScript(customBuildScript)
-        def executed = run('setupBuild')
+        run('setupBuild')
 
         then:
-        executed.assertTasksExecuted(":setupBuild")
-        executed.output.contains("The build file 'customBuild.gradle' already exists. Skipping build initialization.")
+        result.assertTasksExecuted(":setupBuild")
+        result.output.contains("The build file 'customBuild.gradle' already exists. Skipping build initialization.")
+
+        and:
+        !buildFile.exists()
+        !settingsFile.exists()
+        wrapper.notGenerated()
     }
 
     def "build file generation is skipped when part of a multi-project build with non-standard settings file location"() {
@@ -108,30 +120,39 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         customSettings << """
 include 'child'
 """
+
         when:
         executer.usingSettingsFile(customSettings)
-        def executed = run('setupBuild')
+        run('setupBuild')
 
         then:
-        executed.assertTasksExecuted(":setupBuild")
-        executed.output.contains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
+        result.assertTasksExecuted(":setupBuild")
+        result.output.contains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
+
+        and:
+        !buildFile.exists()
+        !settingsFile.exists()
+        wrapper.notGenerated()
     }
 
     def "pom conversion is triggered when pom and no gradle file found"() {
         given:
         pom()
+
         when:
-        succeeds('setupBuild')
+        run('setupBuild')
+
         then:
         pomValuesUsed()
-
     }
 
-    def "pom conversion not triggered when setupBuild-type passed"() {
+    def "pom conversion not triggered when build type is specified"() {
         given:
         pom()
+
         when:
         succeeds('setupBuild', '--type', 'java-library')
+
         then:
         pomValuesNotUsed()
     }
@@ -139,10 +160,10 @@ include 'child'
     def "gives decent error message when triggered with unknown setupBuild-type"() {
         when:
         fails('setupBuild', '--type', 'some-unknown-library')
-        then:
-        errorOutput.contains("Declared setup-type 'some-unknown-library' is not supported.")
-    }
 
+        then:
+        failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")
+    }
 
     private TestFile pom() {
         file("pom.xml") << """

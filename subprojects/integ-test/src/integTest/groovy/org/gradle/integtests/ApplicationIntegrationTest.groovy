@@ -105,7 +105,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    def canUseBothDefaulJvmArgsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
+    def canUseBothDefaultJvmArgsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
@@ -185,6 +185,33 @@ class Main {
         then:
         result.assertNormalExitValue()
     }
+
+    def canUseDefaultJvmArgsInRunTask() {
+            file("build.gradle") << '''
+    apply plugin: 'application'
+    mainClassName = 'org.gradle.test.Main'
+    applicationName = 'application'
+    applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']
+    '''
+            file('src/main/java/org/gradle/test/Main.java') << '''
+    package org.gradle.test;
+
+    class Main {
+        public static void main(String[] args) {
+            if (!"value1".equals(System.getProperty("var1"))) {
+                throw new RuntimeException("Expected system property not specified (var1)");
+            }
+            if (!"value2".equals(System.getProperty("var2"))) {
+                throw new RuntimeException("Expected system property not specified (var2)");
+            }
+        }
+    }
+    '''
+
+            expect:
+            run 'run'
+        }
+
 
     def "can customize application name"() {
         file('settings.gradle') << 'rootProject.name = "application"'

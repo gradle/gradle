@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * A {@link org.gradle.api.internal.tasks.TaskExecuter} which executes the actions of a task.
  */
-public class ExecuteActionsTaskExecuter implements ContextualTaskExecuter {
+public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static Logger logger = Logging.getLogger(ExecuteActionsTaskExecuter.class);
     private final TaskActionListener listener;
 

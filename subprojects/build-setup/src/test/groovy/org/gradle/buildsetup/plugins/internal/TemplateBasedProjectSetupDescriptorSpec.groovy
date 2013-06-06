@@ -16,10 +16,11 @@
 
 package org.gradle.buildsetup.plugins.internal
 
-import org.gradle.api.Project
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Matchers
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -27,32 +28,30 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
 
     private TestTemplateBasedProjectSetupDescriptor descriptor
     private DocumentationRegistry documentationRegistry
-    private Project project
+    private FileResolver fileResolver
+    private TestFile buildTemplateFile
+    private TestFile settingsTemplateFile
     private URL buildFileTemplateURL
     private URL settingsTemplateURL
-
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def setup() {
-
-        TestFile buildTemplateFile = temporaryFolder.createFile("build.gradle.template")
-        buildTemplateFile << ""
+        buildTemplateFile = temporaryFolder.createFile("build.gradle.template")
         buildFileTemplateURL = buildTemplateFile.toURI().toURL()
 
-        TestFile settingsTemplateFile = temporaryFolder.createFile("settings.gradle.template")
-        settingsTemplateFile << ""
+        settingsTemplateFile = temporaryFolder.createFile("settings.gradle.template")
+        settingsTemplateFile << 'root'
         settingsTemplateURL = settingsTemplateFile.toURI().toURL()
 
         documentationRegistry = Mock(DocumentationRegistry)
 
-        project = Mock(Project)
-        _ * project.name >> "someTestRootProject"
-        _ * project.file(_) >> {
-            temporaryFolder.createFile(it[0])
+        fileResolver = Mock(FileResolver)
+        _ * fileResolver.resolve(_) >> {
+            temporaryFolder.file(it[0])
         }
 
-        descriptor = new TestTemplateBasedProjectSetupDescriptor(project, documentationRegistry)
+        descriptor = new TestTemplateBasedProjectSetupDescriptor(fileResolver, documentationRegistry)
     }
 
     def "can generate build and settings file via templates"() {
@@ -63,10 +62,28 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
         temporaryFolder.file("settings.gradle").exists()
     }
 
+    def "escapes file paths"() {
+        setup:
+        buildTemplateFile.text = '${ref_userguide_java_tutorial}'
+        when:
+        descriptor.generateProject()
+        then:
+        temporaryFolder.file("build.gradle").assertContents(Matchers.strictlyEqual(/C:\\Programe Files\\gradle/))
+    }
+
+    def "escapes meaningful groovy characters"() {
+        setup:
+        settingsTemplateFile.text = '${rootProjectName}'
+        when:
+        descriptor.generateProject()
+        then:
+        temporaryFolder.file("settings.gradle").assertContents(Matchers.strictlyEqual(/a\'b\\c/))
+    }
+
     class TestTemplateBasedProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
 
-        public TestTemplateBasedProjectSetupDescriptor(Project project, DocumentationRegistry documentationRegistry) {
-            super(project, documentationRegistry)
+        public TestTemplateBasedProjectSetupDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+            super(fileResolver, documentationRegistry)
         }
 
         @Override
@@ -79,7 +96,14 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
             return settingsTemplateURL
         }
 
-        Map get
+        @Override
+        protected Map getAdditionalBuildFileTemplateBindings() {
+            return [ref_userguide_java_tutorial: "C:\\Programe Files\\gradle"]
+        }
+
+        protected Map getAdditionalSettingsFileTemplateBindings() {
+            return [rootProjectName: "a\'b\\c"]
+        }
 
         String getId() {
             return "test-ID"

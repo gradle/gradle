@@ -42,9 +42,7 @@ public interface TaskArtifactStateCacheAccess {
      *
      * <p>This method is re-entrant, so that an action can call back into this method.</p>
      */
-    void longRunningOperation(String operationDisplayName, Runnable action);
-
-    <K, V> PersistentIndexedCache createCache(String cacheName, Class<K> keyType, Class<V> valueType);
+    void longRunningOperation(String operationDisplayName, Runnable runnable);
 
     <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType, Serializer<V> valueSerializer);
 }

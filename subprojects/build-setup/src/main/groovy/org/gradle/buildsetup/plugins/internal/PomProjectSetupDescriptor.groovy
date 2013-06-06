@@ -16,22 +16,21 @@
 
 package org.gradle.buildsetup.plugins.internal
 
-import org.gradle.api.Project
-import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.buildsetup.plugins.internal.maven.Maven2Gradle
+import org.gradle.buildsetup.plugins.internal.maven.MavenConversionException
 import org.gradle.buildsetup.plugins.internal.maven.MavenProjectsCreator
 import org.gradle.util.SingleMessageLogger
 
-
 class PomProjectSetupDescriptor implements ProjectSetupDescriptor {
-    private final Project project
     private final MavenSettingsProvider settingsProvider
+    private final FileResolver fileResolver
 
 
-    PomProjectSetupDescriptor(Project project, DependencyManagementServices dependencyManagementServices) {
-        this.settingsProvider = dependencyManagementServices.get(MavenSettingsProvider)
-        this.project = project
+    PomProjectSetupDescriptor(FileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider) {
+        this.fileResolver = fileResolver
+        this.settingsProvider = mavenSettingsProvider
     }
 
     String getId() {
@@ -40,8 +39,13 @@ class PomProjectSetupDescriptor implements ProjectSetupDescriptor {
 
     void generateProject() {
         SingleMessageLogger.informAboutIncubating("Maven to Gradle conversion")
-        def settings = settingsProvider.buildSettings()
-        def mavenProjects = new MavenProjectsCreator().create(settings, project.file("pom.xml"))
-        new Maven2Gradle(mavenProjects).convert()
+        def pom = fileResolver.resolve("pom.xml")
+        try {
+            def settings = settingsProvider.buildSettings()
+            def mavenProjects = new MavenProjectsCreator().create(settings, pom)
+            new Maven2Gradle(mavenProjects).convert()
+        } catch (Exception exception){
+            throw new MavenConversionException("Could not convert Maven POM $pom to a Gradle build.", exception)
+        }
     }
 }

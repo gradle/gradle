@@ -16,8 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.internal.TimeProvider;
@@ -48,8 +49,8 @@ class DefaultCachedModuleDescriptor implements ModuleDescriptorCache.CachedModul
     }
 
     public ResolvedModuleVersion getModuleVersion() {
-        ModuleRevisionId moduleRevisionId = isMissing() ? null : moduleDescriptor.getModuleRevisionId();
-        return new DefaultResolvedModuleVersion(moduleRevisionId);
+        ModuleVersionIdentifier moduleVersionIdentifier = isMissing() ? null : DefaultModuleVersionIdentifier.newId(moduleDescriptor.getModuleRevisionId());
+        return new DefaultResolvedModuleVersion(moduleVersionIdentifier);
     }
 
     public ModuleDescriptor getModuleDescriptor() {

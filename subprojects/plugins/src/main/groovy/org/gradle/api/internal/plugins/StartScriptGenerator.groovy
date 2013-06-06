@@ -71,6 +71,7 @@ class StartScriptGenerator {
             it = it.replace('\\', '\\\\')
             it = it.replace('"', '\\"')
             it = it.replace(/'/, /'"'"'/)
+            it = it.replace(/`/, /'"`"'/)
             it = it.replace('$', '\\$')
             (/"${it}"/)
         }

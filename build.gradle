@@ -87,7 +87,7 @@ ext {
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
         'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear', 'javascript', 'buildComparison',
-        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildSetup', 'languageJvm', 'languageBase'
+        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildSetup', 'languageJvm', 'languageBase', 'buildSetup'
     ].collect {
         project(it)
     }
@@ -193,5 +193,6 @@ task installAll(type: Install) {
     with project(":distributions").allDistImage
     installDirPropertyName = 'gradle_installPath'
 }
+
 
 apply from: "gradle/intTestImage.gradle"

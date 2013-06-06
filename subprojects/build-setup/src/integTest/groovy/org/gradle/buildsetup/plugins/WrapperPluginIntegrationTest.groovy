@@ -26,10 +26,9 @@ class WrapperPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def "wrapper task generates wrapper files"() {
-        setup:
-        buildFile << "apply plugin:'wrapper'"
         when:
         run 'wrapper'
+
         then:
         new WrapperTestFixture(testDirectory).generated()
     }

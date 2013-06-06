@@ -23,7 +23,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
-import java.net.URLClassLoader;
 import java.util.Map;
 
 /**
@@ -40,7 +39,7 @@ public class SettingsFactory {
 
     public SettingsInternal createSettings(GradleInternal gradle, File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter,
-                                           URLClassLoader classloader) {
+                                           ClassLoader classloader) {
 
         DefaultSettings settings = instantiator.newInstance(DefaultSettings.class, serviceRegistryFactory,
                 gradle, classloader, settingsDir, settingsScript, startParameter

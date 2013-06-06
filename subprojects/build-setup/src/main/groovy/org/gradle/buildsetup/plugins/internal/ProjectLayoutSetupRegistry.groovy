@@ -23,14 +23,14 @@ import org.gradle.api.logging.Logging
 class ProjectLayoutSetupRegistry {
 
     private final Logger logger = Logging.getLogger(ProjectLayoutSetupRegistry.class);
-    Map<String, ProjectSetupDescriptor> registeredProjectDescriptors = new HashMap<String, ProjectSetupDescriptor>();
+    private final Map<String, ProjectSetupDescriptor> registeredProjectDescriptors = new HashMap<String, ProjectSetupDescriptor>();
 
     void add(ProjectSetupDescriptor descriptor) {
         if(registeredProjectDescriptors.containsKey(descriptor.id)){
             throw new GradleException("ProjectDescriptor with ID '${descriptor.id}' already registered.")
         }
         registeredProjectDescriptors.put(descriptor.id, descriptor)
-        logger.info("registered setupDescriptor {}", descriptor.id)
+        logger.debug("registered setupDescriptor {}", descriptor.id)
     }
 
     ProjectSetupDescriptor get(String type) {

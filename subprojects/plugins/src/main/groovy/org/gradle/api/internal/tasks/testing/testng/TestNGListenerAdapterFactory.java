@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.tasks.testing.testng;
 
-import org.gradle.util.ReflectionUtil;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.testng.ITestListener;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -53,8 +54,12 @@ class TestNGListenerAdapterFactory {
     
     private ITestListener createProxy(Class<?> configListenerClass, final ITestListener listener) {
         return (ITestListener) Proxy.newProxyInstance(classLoader, new Class<?>[] {ITestListener.class, configListenerClass}, new InvocationHandler() {
-            public Object invoke(Object proxy, Method method, Object[] args) {
-                return ReflectionUtil.invoke(listener, method.getName(), args);
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                try {
+                    return JavaReflectionUtil.invokeMethod(listener, method.getName(), method.getParameterTypes(), args);
+                } catch (InvocationTargetException e) {
+                    throw e.getCause();
+                }
             }
         });
     }

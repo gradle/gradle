@@ -31,6 +31,6 @@ class DetailedExecutionFailure {
     public assertTestsFailed() {
         failure
             .assertHasDescription("Execution failed for task ':test'.")
-            .assertThatCause(startsWith("There were failing tests."));
+            .assertThatCause(startsWith("There were failing tests"));
     }
 }

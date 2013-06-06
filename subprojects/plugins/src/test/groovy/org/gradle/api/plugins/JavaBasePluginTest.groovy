@@ -87,7 +87,7 @@ class JavaBasePluginTest extends Specification {
         sources sameCollection(project.sourceSets.custom.java)
 
         def classes = project.tasks['customClasses']
-        classes.description == "Assembles binary 'custom'."
+        classes.description == "Assembles classes 'custom'."
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
         classes.dependsOn.contains project.sourceSets.custom.output.dirs
@@ -283,7 +283,7 @@ class JavaBasePluginTest extends Specification {
         }
 
         then:
-        def binary = project.binaries.jvm.findByName("custom")
+        def binary = project.binaries.findByName("customClasses")
         binary instanceof ClassDirectoryBinary
         binary.classesDir == project.file("classes")
         binary.resourcesDir == project.file("resources")

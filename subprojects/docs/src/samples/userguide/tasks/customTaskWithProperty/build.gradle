@@ -8,7 +8,7 @@ task greeting(type: GreetingTask) {
 }
 
 class GreetingTask extends DefaultTask {
-    def String greeting = 'hello from GreetingTask'
+    String greeting = 'hello from GreetingTask'
 
     @TaskAction
     def greet() {

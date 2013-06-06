@@ -16,10 +16,10 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.configuration.Help
-import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
 import org.gradle.api.tasks.diagnostics.*
+import org.gradle.configuration.Help
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
 
 import static org.gradle.configuration.ImplicitTasksConfigurer.*
 
@@ -27,8 +27,7 @@ import static org.gradle.configuration.ImplicitTasksConfigurer.*
  * by Szczepan Faber, created at: 9/5/12
  */
 class HelpTasksPluginSpec extends Specification {
-
-    def project = new ProjectBuilder().build()
+    final project = HelperUtil.createRootProject()
 
     def "adds help tasks"() {
         when:
@@ -41,6 +40,19 @@ class HelpTasksPluginSpec extends Specification {
         hasHelpTask(PROJECTS_TASK, ProjectReportTask)
         hasHelpTask(TASKS_TASK, TaskReportTask)
         hasHelpTask(PROPERTIES_TASK, PropertyReportTask)
+    }
+
+    def "tasks description reflects whether project has sub-projects or not"() {
+        given:
+        def child = HelperUtil.createChildProject(project, "child")
+
+        when:
+        project.apply(plugin: 'help-tasks')
+        child.apply(plugin: 'help-tasks')
+
+        then:
+        project.implicitTasks[TASKS_TASK].description == "Displays the tasks runnable from root project 'test' (some of the displayed tasks may belong to subprojects)."
+        child.implicitTasks[TASKS_TASK].description == "Displays the tasks runnable from project ':child'."
     }
 
     def "configures tasks for java plugin"() {
@@ -57,12 +69,13 @@ class HelpTasksPluginSpec extends Specification {
         project.implicitTasks[DEPENDENCY_INSIGHT_TASK].configuration == project.configurations.compile
     }
 
-    private void hasHelpTask(String name, Class type) {
+    private hasHelpTask(String name, Class type) {
         def task = project.implicitTasks.getByName(name)
         assert type.isInstance(task)
         assert task.group == HELP_GROUP
         if (type != Help.class) {
             assert task.description.contains(project.name)
         }
+        return task
     }
 }

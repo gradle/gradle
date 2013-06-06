@@ -87,7 +87,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             classResult = new TestClassResult(className, 0);
             results.put(className, classResult);
         }
-        outputSerializer.onOutput(className, outputEvent.getDestination(), outputEvent.getMessage());
+        outputSerializer.onOutput(className, testDescriptor.getName(), outputEvent.getDestination(), outputEvent.getMessage());
     }
 
     public void visitClasses(Action<? super TestClassResult> visitor) {
@@ -102,5 +102,9 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
         outputSerializer.writeOutputs(className, destination, writer);
+    }
+
+    public void writeOutputs(String className, String testCaseName, TestOutputEvent.Destination destination, Writer writer) {
+        outputSerializer.writeOutputs(className, testCaseName, destination, writer);
     }
 }

@@ -77,20 +77,15 @@ task test
         succeeds('test')
     }
 
-    def "configure actions on deferred configurable extension are applied prior to project.afterEvaluate"() {
+    def "configure actions on deferred configurable extension are not applied if extension is not referenced"() {
         when:
         buildFile << '''
 apply plugin: CustomPlugin
 
-version = "before"
 custom {
-    append project.version
+    throw new RuntimeException()
 }
 
-project.afterEvaluate() {
-    project.version = "after"
-    assert project.custom.string == "before"
-}
 task test
 '''
         then:
@@ -115,23 +110,6 @@ task test
                 .assertHasLineNumber(buildFileLine(3))
     }
 
-    def "reports on failure in deferred configurable that is not referenced in the build"() {
-        when:
-        buildFile << '''
-apply plugin: CustomPlugin
-custom {
-    throw new RuntimeException("deferred configuration failure")
-}
-task test
-'''
-        then:
-        fails 'test'
-        failure.assertHasDescription("A problem occurred configuring root project 'customProject'.")
-                .assertHasCause("deferred configuration failure")
-                .assertHasFileName("Build file '${buildFile.path}'")
-                .assertHasLineNumber(buildFileLine(3))
-    }
-
     def "reports on failure in deferred configurable that is configured in plugin"() {
         when:
         buildFile << '''
@@ -147,20 +125,6 @@ task test
                 .assertHasLineNumber(12)
     }
 
-    def "reports on failure in deferred configurable that is configured in plugin and not referenced"() {
-        when:
-        buildFile << '''
-apply plugin: BrokenCustomPlugin
-task test
-'''
-        then:
-        fails 'test'
-        failure.assertHasDescription("A problem occurred configuring root project 'customProject'.")
-                .assertHasCause("broken configuration in plugin")
-                .assertHasFileName("Build file '${buildFile.path}'")
-                .assertHasLineNumber(12)
-    }
-
     def "does not report on deferred configuration failure in case of another configuration failure"() {
         when:
         buildFile << '''
@@ -170,6 +134,9 @@ custom {
 }
 task test {
     throw new RuntimeException("task configuration failure")
+}
+afterEvaluate {
+    project.custom
 }
 '''
         then:

@@ -19,19 +19,19 @@ import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.language.base.internal.BinaryInternal;
+import org.gradle.language.base.internal.BinaryNamingScheme;
+import org.gradle.language.java.internal.DefaultJavaSourceSet;
+import org.gradle.language.java.JavaSourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
-import org.gradle.language.base.BinariesContainer;
-import org.gradle.language.base.internal.DefaultClasspath;
-import org.gradle.api.internal.tasks.DefaultJavaSourceSet;
-import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.BinariesContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.jvm.internal.DefaultClasspath;
+import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.jvm.ClassDirectoryBinary;
-import org.gradle.language.jvm.JvmBinaryContainer;
-import org.gradle.language.jvm.JvmLanguageSourceSet;
 import org.gradle.language.jvm.plugins.JvmLanguagePlugin;
 
 import javax.inject.Inject;
@@ -56,13 +56,14 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     public void apply(final Project target) {
         target.getPlugins().apply(JvmLanguagePlugin.class);
 
-        JvmBinaryContainer jvmBinaryContainer = (JvmBinaryContainer) target.getExtensions().getByType(BinariesContainer.class).getByName("jvm");
-        jvmBinaryContainer.all(new Action<ClassDirectoryBinary>() {
+        BinariesContainer jvmBinaryContainer = target.getExtensions().getByType(BinariesContainer.class);
+        jvmBinaryContainer.withType(ClassDirectoryBinary.class).all(new Action<ClassDirectoryBinary>() {
             public void execute(final ClassDirectoryBinary binary) {
+                final BinaryNamingScheme namingScheme = ((BinaryInternal) binary).getNamingScheme();
                 binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
                     public void execute(JavaSourceSet javaSourceSet) {
                         // TODO: handle case where binary has multiple JavaSourceSet's
-                        JavaCompile compileTask = target.getTasks().create(binary.getTaskName("compile", "java"), JavaCompile.class);
+                        JavaCompile compileTask = target.getTasks().create(namingScheme.getTaskName("compile", "java"), JavaCompile.class);
                         configureCompileTask(compileTask, javaSourceSet, binary);
                         binary.getClassesTask().dependsOn(compileTask);
                     }
@@ -93,7 +94,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
      * @param sourceSet the source set for the compile task
      * @param binary the binary for the compile task
      */
-    public void configureCompileTask(AbstractCompile compile, final JvmLanguageSourceSet sourceSet, final ClassDirectoryBinary binary) {
+    public void configureCompileTask(AbstractCompile compile, final JavaSourceSet sourceSet, final ClassDirectoryBinary binary) {
         compile.setDescription(String.format("Compiles %s.", sourceSet));
         compile.setSource(sourceSet.getSource());
         compile.dependsOn(sourceSet);

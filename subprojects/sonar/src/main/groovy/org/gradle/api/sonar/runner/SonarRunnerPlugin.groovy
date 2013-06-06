@@ -102,6 +102,9 @@ class SonarRunnerPlugin implements Plugin<Project> {
     void apply(Project project) {
         targetProject = project
         def sonarRunnerTask = project.tasks.create("sonarRunner", SonarRunner)
+        sonarRunnerTask.with {
+            description = "Analyzes $project and its subprojects with Sonar Runner."
+        }
         sonarRunnerTask.conventionMapping.with {
             sonarProperties = {
                 def properties = new Properties()
@@ -179,7 +182,8 @@ class SonarRunnerPlugin implements Plugin<Project> {
             properties["sonar.tests"] = test.allSource.srcDirs.findAll { it.exists() } ?: null
             properties["sonar.binaries"] = main.runtimeClasspath.findAll { it.directory } ?: null
             properties["sonar.libraries"] = getLibraries(main)
-            properties["sonar.surefire.reportsPath"] = project.test.testResultsDir.exists() ? project.test.testResultsDir : null
+            File testResultsDir = project.test.reports.junitXml.destination
+            properties["sonar.surefire.reportsPath"] = testResultsDir.exists() ? testResultsDir : null
 
             project.plugins.withType(JacocoPlugin) {
                 properties["sonar.jacoco.reportPath"] = project.test.jacoco.destinationFile.exists() ? project.test.jacoco.destinationFile : null

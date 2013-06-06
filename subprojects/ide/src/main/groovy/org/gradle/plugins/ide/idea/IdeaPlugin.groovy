@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
@@ -173,6 +174,10 @@ class IdeaPlugin extends IdePlugin {
     }
 
     private void configureForScalaPlugin() {
+        project.plugins.withType(ScalaBasePlugin) {
+            //see IdeaScalaConfigurer
+            project.tasks.ideaModule.dependsOn(project.rootProject.tasks.ideaProject)
+        }
         if (isRoot(project)) {
             new IdeaScalaConfigurer(project).configure()
         }

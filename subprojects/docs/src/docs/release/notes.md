@@ -2,7 +2,20 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Faster Gradle builds due to in-memory caching of dependency metadata.
+### Faster Gradle builds
+
+Gradle 1.7 is the fastest version of Gradle yet. Here are the highlights:
+
+- Dependency resolution is now faster. This affects many aspects of a build. For example, incremental build up-to-date checks usually require dependencies
+  to be resolved. As does importing your build into an IDE. Or using the dependency reports.
+- Test execution is now faster. In some cases, up to 50% faster for those tests that generate a lot of logging output.
+- Build script compilation is much faster. This affects, for example, first time users of a build, build authors, and those upgrading a build to a new Gradle version.
+  In Gradle 1.6 there was a serious regression in build script compilation time. This has been fixed in Gradle 1.7, with an added bonus. Script compilation is now
+  75% faster than Gradle 1.6 and 50% faster than Gradle 1.0.
+
+As always, the performance improvements that you actually see for your build depends on many factors.
+
+#### Faster dependency resolution due to in-memory caching of dependency metadata
 
 With this change, the dependency resolution is much faster. Typically, the larger the project is the more configurations and dependencies are being resolved during the build.
 By caching the dependency metadata in memory we avoid hitting the repository and parsing the descriptor when the same dependency is requested in a different resolution.
@@ -27,7 +40,19 @@ You can also turn off the in-memory dependency metadata cache via a system prope
 
 To avoid increased heap consumption, the in-memory dependency metadata cache may clear the cached data if the system is running out of heap space.
 
-### TestNG parameters included in test reports
+#### Improved multiprocess locking
+
+TODO
+
+#### Faster build script compilation
+
+TODO
+
+#### ClassLoader caching
+
+TODO
+
+### TestNG parameters included in test reports (i)
 
 TestNG supports [parameterizing test methods](http://testng.org/doc/documentation-main.html#parameters), allowing a particular test method to be executed multiple times with different inputs.
 Previously in Gradle's test reports, parameterized methods were listed multiple times (for each parameterized iteration) with no way to differentiate the executions.
@@ -59,6 +84,65 @@ The test report will show that the following test cases were executed:
 
 This includes Gradle's own HTML test report and the “JUnit XML” file.
 The “JUnit XML” file is typically used to convey test execution information to the CI server running the automated build, which means the parameter info is also visible via the CI server.
+
+### Generate Gradle wrapper files without touching your build script (i)
+
+In Gradle 1.7 all files necessary to run your build with the Gradle Wrapper can be generated without explicitly declaring a task of type `Wrapper` in your build scripts.
+By just running
+
+    gradle wrapper
+
+The Gradle Wrapper files are generated pointing to the gradle version used to generate the wrapper files. To customize the wrapper task you can easily modify the task in your build script:
+
+    wrapper{
+        gradleVersion = '1.6'
+    }
+
+If you already defined a task of type `Wrapper`, the explicit declared in your build script, this task will be used when running `gradle wrapper`, otherwise the implicit default task will be used.
+
+### Improved build-setup plugin (i)
+
+The `build-setup` plugin now supports declaring a project type when setting up a build. With version 1.7 Gradle, now supports `java-library` as a setup project type
+which generates a simple build file with the java plugin applied, a sample junit test class and a sample production code class if no sources already exist.
+To declare the project type you have to specify a `--type` command line argument:
+
+    gradle setupBuild --type java-library
+
+
+### Added option to deal with duplicate files in archives and copy operations
+
+When copying files with duplicate relative paths in the target archive (or directory), you can now specify the strategy for dealing with these duplicate files by
+using `FileCopyDetails`.
+
+    task zip(type: Zip) {
+        from 'dir1'
+        from 'dir2'
+        archiveName = 'MyZip.zip'
+        eachFile { it.duplicatesStrategy = 'exclude' }
+    }
+
+### Can build static libraries from C++ sources (i)
+
+For any library declared in your C++ build, it is now possible to either compile and link the object files into a shared library,
+or compile and archive the object files into a static library (or both). For any library 'lib' added to your project,
+Gradle will create a 'libSharedLibrary' task to link the shared library, as well as a 'libStaticLibrary' task to create the static library.
+
+Please refer to the [User Guide chapter](userguide/cpp.html) for more details.
+
+### C++ plugin supports Cygwin
+
+TODO
+
+### Improved incremental build for C++
+
+TODO - handles changes to compiler and linker args.
+TODO - does not recompile when linker args change.
+TODO - does not recompile when dependency changes, only when library header file changes.
+TODO - removes stale object and debug files.
+
+### Specify default JVM arguments for the Application plugin
+
+TODO
 
 ## Promoted features
 
@@ -98,13 +182,42 @@ For more details, please refer to the section about the in-memory dependency met
 - `JacocoTaskExtension.classDumpPath` renamed to `classDumpFile`
 - `JacocoMerge.destFile` renamed to `destinationFile`
 
+### Incubating BuildSetup plugin changes
+
+- `ConvertMaven2Gradle`, `GenerateBuildScript` and `GenerateSettingsScript` have been removed. The according logic is now part of the `buildSetup` task
+which has now the type`SetupBuild` task.
+- The plugin creates different set of tasks, with different types and names depending on the build-setup type
+- The `setupWrapper` task is now called `wrapper`.
+
+### Major changes to C++ support
+
+Gradle has had basic support for C++ projects for some time. We're now excited to be starting on the process of expanding this support to make Gradle the best build
+system available for native code projects. By leveraging the flexibility of Gradle, we'll be introducing support for:
+
+- Creating and linking to static libraries
+- Building with different C++ toolchains (Visual C++, GCC, etc)
+- Building multiple variants of a single binary with different target architectures, build types (debug vs release), operating systems etc.
+- Variant-aware dependency resolution
+- Much more: see [https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md](https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md)
+
+In order to make these changes, the incubating C++ support in Gradle is undergoing a major update. Many existing plugins, tasks, API classes and the DSL have been being given an overhaul.
+It's likely that all but the simplest existing C++ builds will need to be updated to accommodate these changes.
+
+If you want your existing C++ build to continue working with Gradle, you have 2 options.
+- Remain on Gradle 1.6 for the next few releases until the C++ support stabilises, and then perform a single migration.
+- Keep your build updated for the latest changes, being aware that further changes will be required for subsequent releases.
+
+### `ConfigureableReport` renamed to `ConfigurableReport`
+
+The (incubating) class `org.gradle.api.reporting.ConfigureableReport` was renamed to `org.gradle.api.reporting.ConfigurableReport` as the original name was misspelt. 
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Dan Stine](https://github.com/dstine) - Added maxPriorityViolations settings to the CodeNarc plugin (GRADLE-1742).
-
-* [Olaf Klischat](https://github.com/multi-io) - Added defaultJvmOpts property Application plugin (GRADLE-1456). 
+* [Dan Stine](https://github.com/dstine) - Added `maxPriorityViolations` setting to the CodeNarc plugin (GRADLE-1742).
+* [Olaf Klischat](https://github.com/multi-io) - Added support for specifying the default JVM arguments for the Application plugin (GRADLE-1456).
+* [Kyle Mahan](https://github.com/kylewm) - Introduce duplicateStrategy property to archive and copy operations (GRADLE-2171).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

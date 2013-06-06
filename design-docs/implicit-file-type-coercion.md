@@ -37,7 +37,7 @@ in the DSL, a user should be able to set `File` properties of objects using diff
 
 ## Story: A DSL user specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
 
-A user sets a value for a file property, using a value that can be converted to a File via project.file(). No deferred evaluation is supported.
+A user sets a value for a file property, using a value that can be converted to a `File` via `project.file()`. No deferred evaluation is supported.
 That is, all values are coerced immediately. This will be targeted at DSL (or more precisely, Groovy) users. This story does
 not include a static Java friendly API for this functionality.
 
@@ -45,7 +45,17 @@ Only property setting is covered, so only setters will be decorated. Arbitrary m
 
 ### Coercing relative values
 
-For some objects (that are subject to DSL enhancement), there is no good way to coerce a value that equates to a relative path (e.g. `Gradle` and `Settings` objects). For such objects, if the value to be coerced is not coercable to an absolute file it will be an error condition. 
+Every DSL object currently lives in one of the following scopes. The scope associated with a DSL object determines the strategy for resolving a relative path to
+a `File`:
+
+- Project scope: all objects owned by a project, including tasks, project extensions and project plugins. Relative paths are resolved using the project directory
+  as the base directory.
+- Gradle scope: all objects owned by a gradle object. Relative paths are not supported.
+- Settings scope: all objects owned by a settings object. Relative paths are resolved using the settings directory as the base directory.
+- Global scope: everything else. Relative paths are not supported.
+
+Implementation-wise, the scope of a DSL object is encoded in the services that are visible to the object. In particular, a `FileResolver` is available to each object
+that is responsible for coercion to`File`. This story does not cover any changes to the above scopes.
 
 ### Coercing `Object`
 
@@ -53,9 +63,9 @@ Currently, every type is potentially convertible as the `project.file()` coercio
 
 ### User visible changes
 
-The only user visible change will the documentation that states that it is possible to assign different types of values to
-`File` implicitly in the documentation. There is also no new API or change required by plugin/task etc. authors to leverage this
-feature.
+- Documentation that states that it is possible to assign different types of values to `File` implicitly in the documentation. There is also no new
+  API or change required by plugin/task etc. authors to leverage this feature.
+- Update 'writing custom tasks' user guide chapter and sample to make use of this feature.
 
 ### Sad day cases
 
@@ -95,8 +105,8 @@ High level:
 
 Detail:
 
-A complicating factor is that the type coercing dynamic object must be contextual the project that the object belongs to.
-It is not straightforward to “push the project” down to the ExtensibleDynamicObject which will create the coercing wrapper.
+A complicating factor is that the type coercing dynamic object must be contextual the scope that the object belongs to.
+It is not straightforward to “push the scope” down to the ExtensibleDynamicObject which will create the coercing wrapper.
 We have the same problem with pushing down the instantiator to this level to facilitate extension containers being able to
 construct decorated objects.
 
@@ -116,10 +126,6 @@ The "type coercing wrapper" will be implemented as a `DynamicObject` implementat
 
 ## Story: User reading DSL guide understands where type coercion is applicable for `File` properties and what the coercion rules are
 
-## Story: Build logic authors understand the file type coercion mechanism and can use it in third party code
-
-This story is probably just about adding user guide content specifically aimed at people implementing build logic (where as the DSL ref story is targeted at people using build logic)
-
 ## Story: Build logic authors (internal and third party) implement defined strategy for removing old, untyped, File setter methods
 
 Having flexible file inputs is currently implemented by types implementing a setter that takes `Object` and doing the coercion internally. 
@@ -132,5 +138,3 @@ The strategy will be to simply overload setters and set methods with `File` acce
 ## Story: A static API user (e.g. Java) specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
 
 # Open issues
-
-This stuff is never done. This section is to keep track of assumptions and things we haven't figured out yet.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,29 +23,38 @@ import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.tasks.TaskAction
 import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
 
+/**
+ * Generates a Gradle project structure.
+ * */
 @Incubating
 class SetupBuild extends DefaultTask {
-
-    String type
+    private String type
 
     ProjectLayoutSetupRegistry projectLayoutRegistry
 
-    SetupBuild() {
-        getOutputs().files(project.file("build.gradle"), project.file("settings.gradle"), project.file("src"))
+    /**
+     * The desired type of build to create, defaults to 'pom' if 'pom.xml' is found in project root
+     * if no pom.xml is found, it defaults to 'empty'.
+     *
+     * This property can be set via command-line option '--type'.
+     */
+    String getType() {
+        if (type == null) {
+            return project.file("pom.xml").exists() ? "pom" : "empty"
+        }
+        return type
     }
 
     @TaskAction
     void setupProjectLayout() {
-        if (type == null) {
-            type = project.file("pom.xml").exists() ? "pom" : "empty"
-        }
+        def type = getType()
         if (!projectLayoutRegistry.supports(type)) {
-            throw new GradleException("Declared setup-type '${type}' is not supported. Supported types: ${projectLayoutRegistry.all.collect{"'${it.id}'"}.join(", ")}.")
+            throw new GradleException("The requested build setup type '${type}' is not supported. Supported types: ${projectLayoutRegistry.all.collect { "'${it.id}'" }.join(", ")}.")
         }
         projectLayoutRegistry.get(type).generateProject()
     }
 
-    @CommandLineOption(options = "type", description = "Set type of BuildSetup.")
+    @CommandLineOption(options = "type", description = "Set type of build to create.")
     public void setType(String type) {
         this.type = type;
     }

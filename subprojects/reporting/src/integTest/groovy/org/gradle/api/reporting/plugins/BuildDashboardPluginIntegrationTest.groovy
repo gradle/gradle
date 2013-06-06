@@ -92,7 +92,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         run('check', BUILD_DASHBOARD_TASK_NAME)
 
         then:
-        dashboardLinksCount == 2
+        dashboardLinksCount == 4
     }
 
     void 'buildDashboard task always runs after report generating tasks'() {
@@ -100,7 +100,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         run(BUILD_DASHBOARD_TASK_NAME, 'check')
 
         then:
-        dashboardLinksCount == 2
+        dashboardLinksCount == 4
     }
 
     void 'no report is generated if it is disabled'() {
@@ -143,7 +143,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         run('check', BUILD_DASHBOARD_TASK_NAME) && ":$BUILD_DASHBOARD_TASK_NAME".toString() in nonSkippedTasks
-        dashboardLinksCount == 3
+        dashboardLinksCount == 5
     }
 
     void 'reports from subprojects are aggregated'() {
@@ -154,7 +154,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         run(BUILD_DASHBOARD_TASK_NAME, 'check')
 
         then:
-        dashboardLinksCount == 3
+        dashboardLinksCount == 7
     }
 
     void 'dashboard lists jacoco reports'() {
@@ -171,7 +171,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run("test", "jacocoTestReport", BUILD_DASHBOARD_TASK_NAME, 'check')
         then:
-        dashboardLinksCount == 3
+        dashboardLinksCount == 5
         jacocoLinks() == 1
 
     }

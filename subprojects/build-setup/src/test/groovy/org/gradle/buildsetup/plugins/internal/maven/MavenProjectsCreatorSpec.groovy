@@ -16,7 +16,6 @@
 
 package org.gradle.buildsetup.plugins.internal.maven
 
-import org.gradle.api.GradleException
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider
 import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -104,15 +103,18 @@ class MavenProjectsCreatorSpec extends Specification {
         creator.create(settings.buildSettings(), pom) as List
 
         then:
-        def ex = thrown(GradleException)
-        ex.message.contains(pom.getAbsolutePath())
+        def ex = thrown(MavenConversionException)
+        ex.message == "Unable to create Maven project model using POM $pom."
     }
 
     def "fails with decent exception if pom does not exist"() {
+        def pom = temp.file("pom.xml")
+
         when:
-        creator.create(settings.buildSettings(), temp.file("pom.xml")) as List
+        creator.create(settings.buildSettings(), pom) as List
 
         then:
-        thrown(GradleException)
+        def ex = thrown(MavenConversionException)
+        ex.message == "Unable to create Maven project model. The POM file $pom does not exist."
     }
 }

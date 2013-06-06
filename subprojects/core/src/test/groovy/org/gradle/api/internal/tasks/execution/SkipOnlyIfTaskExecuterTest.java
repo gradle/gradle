@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -42,6 +43,8 @@ public class SkipOnlyIfTaskExecuterTest {
     private final TaskInternal task = context.mock(TaskInternal.class, "<task>");
     private final Spec<Task> spec = context.mock(Spec.class);
     private final TaskStateInternal state = context.mock(TaskStateInternal.class);
+    private final TaskExecutionContext executionContext = context.mock(TaskExecutionContext.class);
+
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final TaskExecuter delegate = context.mock(TaskExecuter.class);
     private final SkipOnlyIfTaskExecuter executer = new SkipOnlyIfTaskExecuter(delegate);
@@ -73,10 +76,10 @@ public class SkipOnlyIfTaskExecuterTest {
             allowing(spec).isSatisfiedBy(task);
             will(returnValue(true));
 
-            one(delegate).execute(task, state);
+            one(delegate).execute(task, state, executionContext);
         }});
 
-        executer.execute(task, state);
+        executer.execute(task, state, executionContext);
     }
 
     @Test
@@ -89,7 +92,7 @@ public class SkipOnlyIfTaskExecuterTest {
             one(state).skipped("SKIPPED");
         }});
 
-        executer.execute(task, state);
+        executer.execute(task, state, executionContext);
     }
 
     @Test
@@ -105,7 +108,7 @@ public class SkipOnlyIfTaskExecuterTest {
             will(collectTo(wrappedFailure));
         }});
 
-        executer.execute(task, state);
+        executer.execute(task, state, executionContext);
 
         GradleException exception = (GradleException) wrappedFailure.get();
         assertThat(exception.getMessage(), equalTo("Could not evaluate onlyIf predicate for <task>."));

@@ -17,26 +17,30 @@
 package org.gradle.buildsetup.plugins.internal
 
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.artifacts.DependencyManagementServices
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
+import org.gradle.api.internal.file.FileResolver
 
 class ProjectLayoutSetupRegistryFactory {
+    private final DocumentationRegistry documentationRegistry
+    private final MavenSettingsProvider mavenSettingsProvider
+    private final FileResolver fileResolver
 
-    ProjectInternal project
-
-    public ProjectLayoutSetupRegistryFactory(ProjectInternal project) {
-        this.project = project;
+    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider,
+                                             DocumentationRegistry documentationRegistry,
+                                             FileResolver fileResolver) {
+        this.mavenSettingsProvider = mavenSettingsProvider
+        this.documentationRegistry = documentationRegistry
+        this.fileResolver = fileResolver
     }
 
     ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry() {
-        DocumentationRegistry documentationRegistry = project.getServices().get(DocumentationRegistry)
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry()
 
         // TODO maybe referencing the implementation class here is enough and instantiation
         // should be defererred when descriptor is requested.
-        registry.add(new EmptyProjectSetupDescriptor(project, documentationRegistry));
-        registry.add(new JavaLibraryProjectSetupDescriptor(project, documentationRegistry));
-        registry.add(new PomProjectSetupDescriptor(project, project.getServices().get(DependencyManagementServices)))
+        registry.add(new EmptyProjectSetupDescriptor(fileResolver, documentationRegistry));
+        registry.add(new JavaLibraryProjectSetupDescriptor(fileResolver, documentationRegistry));
+        registry.add(new PomProjectSetupDescriptor(fileResolver, mavenSettingsProvider))
         return registry
     }
 

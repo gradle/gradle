@@ -37,12 +37,16 @@ import org.gradle.api.internal.tasks.DefaultTaskContainerFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginContainer
+import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer
+import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -73,10 +77,13 @@ class ProjectInternalServiceRegistryTest extends Specification {
         parent.get(DependencyFactory) >> dependencyFactory
         parent.get(PluginRegistry) >> pluginRegistry
         parent.get(DependencyManagementServices) >> dependencyManagementServices
-        parent.get(org.gradle.internal.reflect.Instantiator) >> new DirectInstantiator()
+        parent.get(Instantiator) >> new DirectInstantiator()
         parent.get(FileSystem) >> Stub(FileSystem)
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
+        parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry) {
+            getScriptClassLoader() >> new ClassLoader() { }
+        }
     }
 
     def "creates a registry for a task"() {
@@ -97,14 +104,12 @@ class ProjectInternalServiceRegistryTest extends Specification {
         1 * pluginRegistry.createChild(!null, _ as DependencyInjectingInstantiator) >> Stub(PluginRegistry)
 
         expect:
-        registry.get(PluginContainer) instanceof DefaultPluginContainer
-        registry.get(PluginContainer).is registry.get(PluginContainer)
+        provides(PluginContainer, DefaultPluginContainer)
     }
 
     def "provides a ToolingModelBuilderRegistry"() {
         expect:
-        registry.get(ToolingModelBuilderRegistry) instanceof DefaultToolingModelBuilderRegistry
-        registry.get(ToolingModelBuilderRegistry).is registry.get(ToolingModelBuilderRegistry)
+        provides(ToolingModelBuilderRegistry, DefaultToolingModelBuilderRegistry)
     }
 
     def "provides an ArtifactPublicationServices factory"() {
@@ -155,31 +160,32 @@ class ProjectInternalServiceRegistryTest extends Specification {
         expectScriptClassLoaderProviderCreated()
 
         expect:
-        registry.get(ScriptHandler) instanceof DefaultScriptHandler
-        registry.get(ScriptHandler).is registry.get(ScriptHandler)
+        provides(ScriptHandler, DefaultScriptHandler)
         registry.get(ScriptClassLoaderProvider).is registry.get(ScriptHandler)
     }
 
     def "provides a FileResolver"() {
         expect:
-        registry.get(FileResolver) instanceof BaseDirFileResolver
-        registry.get(FileResolver).is registry.get(FileResolver)
+        provides(FileResolver, BaseDirFileResolver)
     }
 
     def "provides a FileOperations instance"() {
         1 * project.tasks
 
         expect:
-        registry.get(FileOperations) instanceof DefaultFileOperations
-        registry.get(FileOperations).is registry.get(FileOperations)
+        provides(FileOperations, DefaultFileOperations)
     }
     
     def "provides a TemporaryFileProvider"() {
         expect:
-        registry.get(TemporaryFileProvider) instanceof DefaultTemporaryFileProvider
-        registry.get(TemporaryFileProvider).is registry.get(TemporaryFileProvider)
+        provides(TemporaryFileProvider, DefaultTemporaryFileProvider)
     }
-    
+
+    def "provides a ProjectConfigurationActionContainer"() {
+        expect:
+        provides(ProjectConfigurationActionContainer, DefaultProjectConfigurationActionContainer)
+    }
+
     def "provides a LoggingManager"() {
         Factory<LoggingManagerInternal> loggingManagerFactory = Mock()
         LoggingManager loggingManager = Mock(LoggingManagerInternal)
@@ -190,6 +196,11 @@ class ProjectInternalServiceRegistryTest extends Specification {
         expect:
         registry.get(LoggingManager).is loggingManager
         registry.get(LoggingManager).is registry.get(LoggingManager)
+    }
+
+    void provides(Class<?> contractType, Class<?> implementationType) {
+        assert implementationType.isInstance(registry.get(contractType))
+        assert registry.get(contractType).is(registry.get(contractType))
     }
 
     private void expectScriptClassLoaderProviderCreated() {

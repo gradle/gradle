@@ -42,7 +42,7 @@ class JDepend extends DefaultTask implements Reporting<JDependReports> {
     @InputDirectory
     File classesDir
 
-    // workaround for GRADLE-2020
+    // workaround for GRADLE-2026
     /**
      * Returns the directory containing the classes to be analyzed.
      */

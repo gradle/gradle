@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
+import org.gradle.api.internal.tasks.testing.SimpleTestResult
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.TestResult
-
-import spock.lang.Specification
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.logging.TestStyledTextOutputFactory
+import spock.lang.Specification
 
 class TestEventLoggerTest extends Specification {
     def textOutputFactory = new TestStyledTextOutputFactory()

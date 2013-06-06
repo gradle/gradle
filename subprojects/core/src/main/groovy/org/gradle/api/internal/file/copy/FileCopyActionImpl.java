@@ -24,7 +24,7 @@ public class FileCopyActionImpl extends CopyActionImpl implements FileCopyAction
     private Object destDir;
 
     public FileCopyActionImpl(FileResolver resolver, CopySpecVisitor visitor) {
-        super(resolver, visitor);
+        super(resolver, visitor, true);
     }
 
     @Override

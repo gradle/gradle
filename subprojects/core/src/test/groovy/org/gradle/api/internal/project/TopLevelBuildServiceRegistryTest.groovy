@@ -36,6 +36,8 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.invocation.BuildClassLoaderRegistry
+import org.gradle.invocation.DefaultBuildClassLoaderRegistry
 import org.gradle.listener.DefaultListenerManager
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
@@ -232,6 +234,12 @@ public class TopLevelBuildServiceRegistryTest extends Specification {
         assertThat(registry.get(ProfileEventAdapter), sameInstance(registry.get(ProfileEventAdapter)))
     }
 
+    def providesABuildClassLoaderRegistry() {
+        expect:
+        assertThat(registry.get(BuildClassLoaderRegistry), instanceOf(DefaultBuildClassLoaderRegistry))
+        assertThat(registry.get(BuildClassLoaderRegistry), sameInstance(registry.get(BuildClassLoaderRegistry)))
+    }
+
     private <T> T expectParentServiceLocated(Class<T> type) {
         T t = Mock(type)
         parent.get(type) >> t
@@ -251,7 +259,7 @@ public class TopLevelBuildServiceRegistryTest extends Specification {
     }
 
     private void expectScriptClassLoaderCreated() {
-        1 * classLoaderRegistry.createScriptClassLoader() >> new MultiParentClassLoader()
+        1 * classLoaderRegistry.rootClassLoader >> new MultiParentClassLoader()
     }
 
     private void allowGetGradleDistributionLocator() {

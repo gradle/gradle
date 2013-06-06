@@ -16,12 +16,12 @@
 package org.gradle.test.fixtures.maven
 
 import groovy.xml.MarkupBuilder
+import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.hash.HashUtil
 
 import java.text.SimpleDateFormat
 
-class MavenFileModule implements MavenModule {
+class MavenFileModule extends AbstractModule implements MavenModule {
     private static final String MAVEN_METADATA_FILE = "maven-metadata.xml"
     final TestFile moduleDir
     final String groupId
@@ -225,10 +225,10 @@ class MavenFileModule implements MavenModule {
 
         updateRootMavenMetaData(rootMavenMetaData)
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
-            publish(metaDataFile) {
-                metaDataFile.text = """
+            publish(metaDataFile) { Writer writer ->
+                writer << """
 <metadata>
-  <!-- $publishCount -->
+  <!-- ${getArtifactContent()} -->
   <groupId>$groupId</groupId>
   <artifactId>$artifactId</artifactId>
   <version>$version</version>
@@ -244,11 +244,11 @@ class MavenFileModule implements MavenModule {
             }
         }
 
-        publish(pomFile) {
+        publish(pomFile) { Writer writer ->
             def pomPackaging = packaging ?: type;
-            pomFile.text = ""
-            pomFile << """
+            writer << """
 <project xmlns="http://maven.apache.org/POM/4.0.0">
+  <!-- ${getArtifactContent()} -->
   <modelVersion>4.0.0</modelVersion>
   <groupId>$groupId</groupId>
   <artifactId>$artifactId</artifactId>
@@ -257,17 +257,17 @@ class MavenFileModule implements MavenModule {
   <description>Published on $publishTimestamp</description>"""
 
             if (parentPomSection) {
-                pomFile << "\n$parentPomSection\n"
+                writer << "\n$parentPomSection\n"
             }
 
             if (!dependencies.empty) {
-                pomFile << """
+                writer << """
   <dependencies>"""
             }
 
             dependencies.each { dependency ->
                 def typeAttribute = dependency['type'] == null ? "" : "<type>$dependency.type</type>"
-                pomFile << """
+                writer << """
     <dependency>
       <groupId>$dependency.groupId</groupId>
       <artifactId>$dependency.artifactId</artifactId>
@@ -277,11 +277,11 @@ class MavenFileModule implements MavenModule {
             }
 
             if (!dependencies.empty) {
-                pomFile << """
+                writer << """
   </dependencies>"""
             }
 
-            pomFile << "\n</project>"
+            writer << "\n</project>"
         }
 
         artifacts.each { artifact ->
@@ -294,25 +294,23 @@ class MavenFileModule implements MavenModule {
     private void updateRootMavenMetaData(TestFile rootMavenMetaData) {
         def allVersions = rootMavenMetaData.exists() ? new XmlParser().parseText(rootMavenMetaData.text).versioning.versions.version*.value().flatten() : []
         allVersions << version;
-        publish(rootMavenMetaData) {
-            rootMavenMetaData.withWriter {writer ->
-                def builder = new MarkupBuilder(writer)
-                builder.metadata {
-                    groupId(groupId)
-                    artifactId(artifactId)
-                    version(allVersions.max())
-                    versioning {
-                        if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
-                            snapshot {
-                                timestamp(timestampFormat.format(publishTimestamp))
-                                buildNumber(publishCount)
-                                lastUpdated(updateFormat.format(publishTimestamp))
-                            }
-                        } else {
-                            versions {
-                                allVersions.each {currVersion ->
-                                    version(currVersion)
-                                }
+        publish(rootMavenMetaData) { Writer writer ->
+            def builder = new MarkupBuilder(writer)
+            builder.metadata {
+                groupId(groupId)
+                artifactId(artifactId)
+                version(allVersions.max())
+                versioning {
+                    if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
+                        snapshot {
+                            timestamp(timestampFormat.format(publishTimestamp))
+                            buildNumber(publishCount)
+                            lastUpdated(updateFormat.format(publishTimestamp))
+                        }
+                    } else {
+                        versions {
+                            allVersions.each {currVersion ->
+                                version(currVersion)
                             }
                         }
                     }
@@ -323,21 +321,24 @@ class MavenFileModule implements MavenModule {
 
     private File publishArtifact(Map<String, ?> artifact) {
         def artifactFile = artifactFile(artifact)
-        publish(artifactFile) {
-            if (type != 'pom') {
-                artifactFile.text = "${artifactFile.name} : $publishCount"
-            }
+        if (type == 'pom') {
+            return artifactFile
+        }
+        publish(artifactFile) { Writer writer ->
+            writer << "${artifactFile.name} : $artifactContent"
         }
         return artifactFile
     }
 
-    private publish(File file, Closure cl) {
-        def lastModifiedTime = file.exists() ? file.lastModified() : null
-        cl.call(file)
-        if (lastModifiedTime != null) {
-            file.setLastModified(lastModifiedTime + 2000)
-        }
-        createHashFiles(file)
+    @Override
+    protected onPublish(TestFile file) {
+        sha1File(file)
+        md5File(file)
+    }
+
+    private String getArtifactContent() {
+        // Some content to include in each artifact, so that its size and content varies on each publish
+        return (0..publishCount).join("-")
     }
 
     private Map<String, Object> toArtifact(Map<String, ?> options) {
@@ -345,40 +346,5 @@ class MavenFileModule implements MavenModule {
         def artifact = [type: options.remove('type') ?: type, classifier: options.remove('classifier') ?: null]
         assert options.isEmpty(): "Unknown options : ${options.keySet()}"
         return artifact
-    }
-
-    private void createHashFiles(File file) {
-        sha1File(file)
-        md5File(file)
-    }
-
-    TestFile getSha1File(File file) {
-        getHashFile(file, "sha1")
-    }
-
-    TestFile sha1File(File file) {
-        hashFile(file, "sha1");
-    }
-
-    TestFile getMd5File(File file) {
-        getHashFile(file, "md5")
-    }
-
-    TestFile md5File(File file) {
-        hashFile(file, "md5")
-    }
-
-    private TestFile hashFile(TestFile file, String algorithm) {
-        def hashFile = getHashFile(file, algorithm)
-        hashFile.text = getHash(file, algorithm)
-        return hashFile
-    }
-
-    protected TestFile getHashFile(TestFile file, String algorithm) {
-        file.parentFile.file("${file.name}.${algorithm}")
-    }
-
-    protected String getHash(TestFile file, String algorithm) {
-        HashUtil.createHash(file, algorithm.toUpperCase()).asHexString()
     }
 }

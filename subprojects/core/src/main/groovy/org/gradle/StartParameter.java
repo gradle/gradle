@@ -315,14 +315,14 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Returns a newly constructed map that is the JVM system properties merged with the system property args. <p> System property args take precedence over JVM system properties.
      *
      * @return The merged system properties
-     * @deprecated
+     * @deprecated No replacement
      */
     @Deprecated
     public Map<String, String> getMergedSystemProperties() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.getMergedSystemProperties()");
         Map<String, String> merged = new HashMap<String, String>();
         merged.putAll((Map) System.getProperties());
         merged.putAll(getSystemPropertiesArgs());
-        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.getMergedSystemProperties()");
         return merged;
     }
 
@@ -401,7 +401,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     * Get task optimization disabled.
     *
     * @param noOpt The boolean value for disabling task optimization.
-    * @deprecated Use {@link #setRefreshDependencies(boolean)} instead.
+    * @deprecated Use {@link #setRerunTasks(boolean)} instead.
     */
     @Deprecated
     public void setNoOpt(boolean noOpt) {

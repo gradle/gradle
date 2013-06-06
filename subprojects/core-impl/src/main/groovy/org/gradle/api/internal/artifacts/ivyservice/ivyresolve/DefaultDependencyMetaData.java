@@ -28,7 +28,7 @@ import java.lang.reflect.Field;
 
 class DefaultDependencyMetaData implements DependencyMetaData {
     private final DependencyDescriptor dependencyDescriptor;
-    private DefaultModuleVersionSelector requested;
+    private final DefaultModuleVersionSelector requested;
 
     public DefaultDependencyMetaData(DependencyDescriptor dependencyDescriptor) {
         this.dependencyDescriptor = dependencyDescriptor;
@@ -47,6 +47,10 @@ class DefaultDependencyMetaData implements DependencyMetaData {
 
     public boolean isChanging() {
         return dependencyDescriptor.isChanging();
+    }
+
+    public boolean isTransitive() {
+        return dependencyDescriptor.isTransitive();
     }
 
     public DependencyDescriptor getDescriptor() {

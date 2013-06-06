@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
+import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.GradleException
-import org.gradle.api.Action
 
 /**
  * by Szczepan Faber, created at: 11/19/12
@@ -30,7 +30,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private resultsProvider = Mock(TestResultsProvider)
-    private generator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider)
+    private generator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE)
 
     def setup() {
         generator.saxWriter = Mock(JUnitXmlResultWriter)

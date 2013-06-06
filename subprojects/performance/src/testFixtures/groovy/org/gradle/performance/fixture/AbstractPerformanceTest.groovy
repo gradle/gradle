@@ -16,12 +16,43 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.Duration
+import org.gradle.performance.results.ReportGenerator
+import org.gradle.performance.results.ResultsStore
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 class AbstractPerformanceTest extends Specification {
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    static def resultStore = new ResultsStore(new File(System.getProperty("user.home"), ".gradle-performance-test-data/results"))
+    static def textReporter = new TextFileDataReporter(new File("build/performance-tests/results.txt"))
+
     final def runner = new PerformanceTestRunner(
+            testDirectoryProvider: tmpDir,
+            current: new UnderDevelopmentGradleDistribution(),
             runs: 5,
             warmUpRuns: 1,
-            targetVersions: ['1.0', '1.4', 'last']
+            targetVersions: ['1.0', '1.4', '1.7', 'last'],
+            maxExecutionTimeRegression: Duration.millis(500),
+            // Our performance tests on Windows seem to need more heap
+            // TODO - find out if this is a real problem
+            maxMemoryRegression: OperatingSystem.current().isWindows() ? DataAmount.mbytes(10) : DataAmount.mbytes(3)
     )
+
+    def setup() {
+        runner.reporter = new CompositeDataReporter([textReporter, resultStore])
+    }
+
+    static {
+        // TODO - find a better way to generate the report (eg move to a finalizer task)
+        System.addShutdownHook {
+            resultStore.close()
+            new ReportGenerator().generate(resultStore, new File("build/performance-tests/report"))
+            resultStore.close()
+        }
+    }
 }

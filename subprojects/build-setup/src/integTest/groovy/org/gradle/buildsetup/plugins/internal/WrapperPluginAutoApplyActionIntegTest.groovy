@@ -21,12 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
-
-    private WrapperTestFixture wrapper
-
-    def setup() {
-        wrapper = new WrapperTestFixture(testDirectory)
-    }
+    final wrapper = new WrapperTestFixture(testDirectory)
 
     def "can apply wrapper plugin dynamically"() {
         when:
@@ -38,15 +33,6 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
         run 'wrapper'
         then:
         wrapper.generated()
-    }
-
-    def "can use camel-case for dynamically applied wrapper plugin "() {
-        when:
-        run taskName
-        then:
-        wrapper.generated()
-        where:
-        taskName << ["wrapp", "wrap", "w"]
     }
 
     def "wrapper plugin not applied on subprojects"() {
@@ -91,6 +77,7 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
     def "manually declared wrapper task is preferred"() {
         when:
         buildFile << """
+
                 task wrapper << {
                     println "running custom wrapper task"
                 }

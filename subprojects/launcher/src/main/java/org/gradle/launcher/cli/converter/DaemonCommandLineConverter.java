@@ -48,5 +48,6 @@ public class DaemonCommandLineConverter extends AbstractCommandLineConverter<Dae
     public void configure(CommandLineParser parser) {
         parser.option(DAEMON).hasDescription("Uses the Gradle daemon to run the build. Starts the daemon if not running.");
         parser.option(NO_DAEMON).hasDescription("Do not use the Gradle daemon to run the build.");
+        parser.allowOneOf(DAEMON, NO_DAEMON);
     }
 }

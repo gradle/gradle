@@ -15,28 +15,40 @@
  */
 package org.gradle.language.jvm.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.BinaryInternal;
+import org.gradle.language.base.internal.BinaryNamingScheme;
+import org.gradle.language.base.internal.TaskNamerForBinaries;
 import org.gradle.language.jvm.ClassDirectoryBinary;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 
-public class DefaultClassDirectoryBinary implements ClassDirectoryBinary {
+public class DefaultClassDirectoryBinary implements ClassDirectoryBinary, BinaryInternal {
     private final String name;
+    private final String baseName;
     private File classesDir;
     private File resourcesDir;
     private final DomainObjectCollection<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private Task classesTask;
-    private Copy resourcesTask;
 
     public DefaultClassDirectoryBinary(String name) {
         this.name = name;
+        this.baseName = removeClassesSuffix(name);
+    }
+
+    private String removeClassesSuffix(String name) {
+        if (name.endsWith("Classes")) {
+            return name.substring(0, name.length() - 7);
+        }
+        return name;
+    }
+
+    public BinaryNamingScheme getNamingScheme() {
+        return TaskNamerForBinaries.collapseMain(baseName);
     }
 
     public String getName() {
@@ -75,30 +87,7 @@ public class DefaultClassDirectoryBinary implements ClassDirectoryBinary {
         this.classesTask = classesTask;
     }
 
-    @Nullable
-    public Copy getResourcesTask() {
-        return resourcesTask;
-    }
-
-    public void setResourcesTask(Copy resourcesTask) {
-        this.resourcesTask = resourcesTask;
-    }
-
-    public String getTaskName(@Nullable String verb, @Nullable String target) {
-        if (verb == null) {
-            return StringUtils.uncapitalize(String.format("%s%s", getTaskBaseName(), StringUtils.capitalize(target)));
-        }
-        if (target == null) {
-            return StringUtils.uncapitalize(String.format("%s%s", verb, GUtil.toCamelCase(name)));
-        }
-        return StringUtils.uncapitalize(String.format("%s%s%s", verb, getTaskBaseName(), StringUtils.capitalize(target)));
-    }
-
-    public String getTaskBaseName() {
-        return name.equals("main") ? "" : GUtil.toCamelCase(name);
-    }
-
     public String toString() {
-        return String.format("binary '%s'", getName());
+        return String.format("classes '%s'", baseName);
     }
 }

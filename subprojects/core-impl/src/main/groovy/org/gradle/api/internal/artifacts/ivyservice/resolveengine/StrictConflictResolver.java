@@ -19,7 +19,7 @@ import java.util.Collection;
 import java.util.Formatter;
 
 class StrictConflictResolver implements ModuleConflictResolver {
-    public ModuleRevisionResolveState select(Collection<? extends ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root) {
+    public ModuleRevisionResolveState select(Collection<? extends ModuleRevisionResolveState> candidates) {
         Formatter formatter = new Formatter();
         formatter.format("A conflict was found between the following modules:");
         for (ModuleRevisionResolveState candidate : candidates) {

@@ -30,9 +30,6 @@ class NoHistoryStateChangeRule {
                     changes.add(new DescriptiveChange("No history is available."));
                 }
             }
-
-            public void snapshotAfterTask() {
-            }
         };
     }
 }

@@ -92,7 +92,7 @@ HTML report is generated from the binary format, not from XML results
     - The XML results should include an XML file for `SomeClass` that includes each test method multiple times, one for each time it was executed.
     - The HTML report should include the same information.
 
-## Story: Add support for JUnit categories
+## Story: Add support for JUnit categories (DONE)
 
 - Add `JUnitOptions.includeCategories` and `excludeCategories` properties. These define a set of category types
   to include and exclude, respectively.
@@ -167,18 +167,129 @@ HTML report is generated from the binary format, not from XML results
 - Report is generated when one or more tests fail.
 - Report is not generated when tests cannot be run.
 
-## Story: HTML test report shows runtime grouping of tests into suites
+## Story: `Test` task implements the `Reporting` contract
 
-- Add the tree of test execution to the test report
+### Implementation plan
 
-## Story: Aggregate HTML test report can be generated
+Move reporting configuration into this framework, leaving existing Test properties/methods in place as deprecated facades.
 
-- Change test task to persist test results in internal format.
-- Add test report task.
+### User visible changes
+
+The Test task reports container will expose the HTML and XML reports…
+
+    test {
+      reports {
+        html.enabled = false
+        xml.enabled = false
+      }
+    }
+
+The standard `Report` options will be respected. This deprecates Test methods/properties such as `testReportEnabled`, `testReportDir`.
+
+### Test coverage
+
+- HTML and XML reports can be disabled
+- Changing HTML report configuration through old properties (e.g. `testReportDisabled`) is respected (and deprecated)
+
+## Story: XML test report shows output per test
+
+This is about providing a way to produce XML like:
+
+    <?xml version="1.1" encoding="UTF-8"?>
+    <testsuite name="junit.TheTest" tests="2" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="hasdrubal.local" time="1.366372749405E9">
+     <properties/>
+     <testcase name="t1" classname="junit.TheTest" time="0.001">
+       <system-out><![CDATA[from t1]]></system-out>
+     </testcase>
+     <testcase name="t2" classname="junit.TheTest" time="0.001">
+       <system-out><![CDATA[from t2]]></system-out>
+     </testcase>
+    </testsuite>
+
+Where as we currently produce:
+
+    <?xml version="1.1" encoding="UTF-8"?>
+    <testsuite name="junit.TheTest" tests="1" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="hasdrubal.local" time="1.366372749405E9">
+     <properties/>
+     <testcase name="t" classname="junit.TheTest" time="0.001"/>
+     <testcase name="t2" classname="junit.TheTest" time="0.001/">
+     <system-out><![CDATA[from t1
+    from t2]]></system-out>
+    </testsuite>
+
+Jenkins support the output-nested-under-testcase approach outlined above. Having output in this format will produce better test result reporting in the Jenkins UI.
+
+As this is a communication protocol between Gradle and other tools (e.g. CI servers) changing this format needs to be managed carefully.
+
+### User visible changes
+
+A boolean property named '`outputPerTestCase`' will be added to the `Report` that represents the XML file report.
+
+To enable this feature:
+
+    test {
+      reports {
+        junitXml.outputPerTestCase true
+      }
+    }
+
+### Implementation
+
+Our test execution infrastructure already associates output events with test cases. When we serialise the results to disk back in the build process we discard this association and write a single text file for each stream (out & err) of each class. The JUnit XML generator uses these files (along with the binary results file) to generate the XML.
+
+Instead of writing the output to text files, we will serialize the TestOutputEvent into the results binary file.
+
+The data structure that gets serialized must provide the means to reconstruct the ordered "stream" of output events:
+
+1. for the execution of each suite
+2. for the execution of each test case within a suite
+
+This implies that a sequence identifier id is added to the association between an output event and the test suite, and the output event and the test case. There is no requirement at this time to be able to reconstruct the ordered stream of output events for an execution (i.e. all tests).
+
+The result data structure needs to support being able to render the HTML and XML reports efficiently. Different ways of structuring the output event storage (e.g. are event children of `TestMethodResult` or `TestClassResult`?) will need to be trialled and measured.
+
+The impact of the new data structure on report generation will need to be measured for both the output-per-suite case and the output-per-test-case case.
+
+### Test coverage
+
+- Test class with multiple methods producing output produces correctly nested output elements in XML (JUnit and TestNG)
+- Test class with parameterised methods producing output produces correctly … (JUnit and TestNG)
+- Useful output/result when test case names are not unique 
+- With `outputPerTestCase` on, output from class level methods (e.g. `@BeforeClass`) is associated with the test class
+- With `outputPerTestCase` on, output from test case level methods (e.g. `@Before`) is associated with the test case
+- With `outputPerTestCase` off, existing output format is unchanged (should be covered by not introducing failures for our existing tests)
+- Output is correctly associated with test cases when a test cases logs output from multiple threads
+
+## Story: A user uses a test execution mode that executes test cases concurrently within the same VM
+
+Our test listening/event infrastructure does not support this in so far that it does not correctly associate output from test cases correctly when firing test output events.
+
+We also do not have a suitable level of test coverage of this kind of test parallelism.
+
+Potential execution modes:
+
+1. JUnit Suite using org.junit.experimental.ParallelComputer (classes and method level computers)
+2. TestNG managed parallelism (class and method level)
+
+### Implementation plan
+
+`CaptureTestOutputTestResultProcessor` (and associated classes) will need to handle concurrent output events. 
+As output events are generated by tests writing to standard streams, a facade stream will need to be inserted that uses thread local tracking internally to associate output with test cases. 
+As tests may spawn their own threads, an inheritable thread local strategy will need to be used.
+
+### User visible changes
+
+Test output is associated with the correct test when test cases are run concurrently in the same VM.
+
+### Test coverage
+
+- When using intra JVM parallelism (types listed above), test output listeners receive test output events associated with the correct test case
+  - Output during test cases
+  - Output during preflight/postflight methods (e.g. @Before, @BeforeClass etc.)
+- Test cases spawn threads that produce output
+- When generating JUnit XML report with output per test case, output is correctly associated to test cases
 
 ## Story: HTML test report shows output per test
-
--instead of showing output for the entire test class the report shows output per test method
 
 ## Story: HTML test report shows aggregated output (out + err)
 
@@ -189,10 +300,23 @@ HTML report is generated from the binary format, not from XML results
 -depending how the story is implemented, we might drop support for separate err and std output.
 It's a breaking change in a way but I don't find the separate err/std output useful.
 
+## Story: HTML test report shows runtime grouping of tests into suites
+
+- Add the tree of test execution to the test report
+
+## Story: Aggregate HTML test report can be generated
+
+- Change test task to persist test results in internal format.
+- Add test report task.
+
 ## Story: HTML report contains the output from TestNG Reporter
 
 I'm hoping we won't have to implement it. I don't know how popular the Reporter is.
 Also the problem can be avoided by using the Reporter methods that also print to the standard output (which is nice because the messages show up in IDE).
+
+## Separate test report generation from test execution
+
+Configure a `TestReport` task to always run after the `Test` task, and change the `TestReport` type to implement `Reporting`. Remove (via deprecation) the reporting from the `Test` task type.
 
 ## Bug GRADLE-2524: Missing stuff in TestNG output
 
@@ -212,6 +336,4 @@ We could possibly fix it by starting redirecting the output at suite start in th
 
 # Other issues
 
-- Test report aggregates multiple test results with the same class name from separate test task executions.
-- Allow XML results to be disabled.
 - Provide some way to generate only the old TestNG reports, so that both test report and test XML generation can be disabled.

@@ -24,6 +24,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.*;
+import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -279,7 +280,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void executeWithoutThrowingTaskFailure() {
-        executer.execute(this, state);
+        executer.execute(this, state, new DefaultTaskExecutionContext());
     }
 
     public TaskExecuter getExecuter() {

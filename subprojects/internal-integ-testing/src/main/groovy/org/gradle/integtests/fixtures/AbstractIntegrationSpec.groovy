@@ -127,7 +127,14 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
             assert !skippedTasks.contains(it)
         }
     }
-    
+
+    protected void skipped(String... tasks) {
+        tasks.each {
+            assert it in executedTasks
+            assert skippedTasks.contains(it)
+        }
+    }
+
     protected void failureHasCause(String cause) {
         failure.assertHasCause(cause)
     }

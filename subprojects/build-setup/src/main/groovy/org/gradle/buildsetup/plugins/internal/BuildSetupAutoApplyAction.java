@@ -17,7 +17,7 @@
 package org.gradle.buildsetup.plugins.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.configuration.ProjectConfigureAction;
+import org.gradle.configuration.project.ProjectConfigureAction;
 
 public class BuildSetupAutoApplyAction implements ProjectConfigureAction {
 

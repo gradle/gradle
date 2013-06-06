@@ -30,6 +30,7 @@ class DaemonCommandLineConverterTest extends Specification {
         !convert([]).enabled
         !convert(['--no-daemon']).enabled
         convert(['--daemon']).enabled
+        convert(['--no-daemon', '--daemon']).enabled
     }
 
     private DaemonParameters convert(Iterable args) {

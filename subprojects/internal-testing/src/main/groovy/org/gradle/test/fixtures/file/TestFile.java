@@ -101,6 +101,10 @@ public class TestFile extends File {
         return files;
     }
 
+    public TestFile withExtension(String extension) {
+        return getParentFile().file(getName().replaceAll("\\..*$", "." + extension));
+    }
+
     public TestFile writelns(String... lines) {
         return writelns(Arrays.asList(lines));
     }

@@ -1,4 +1,3 @@
-
 # Introduction
 
 In almost every build, there are dependencies between the build logic that defines the Gradle model and the build logic
@@ -159,6 +158,8 @@ Conditional configuration based on build type:
 Running `gradle ci` performs a clean build and includes the code coverage report.
 
 Running `gradle tasks` includes a listing of the available build types.
+
+TBD - change command-line handling so that custom command-line options can be attached to build types.
 
 TBD - need to figure out how this should interact with camel-case task name matching on the command-line.
 

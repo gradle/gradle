@@ -30,7 +30,6 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
-import java.net.URLClassLoader;
 
 /**
  * @author Hans Dockter
@@ -42,7 +41,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     private StartParameter startParameter;
 
-    private URLClassLoader classloader;
+    private ClassLoader classloader;
 
     private File settingsDir;
 
@@ -61,7 +60,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     private ScriptPluginFactory scriptPluginFactory;
 
     public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
-                        URLClassLoader classloader, File settingsDir, ScriptSource settingsScript,
+                        ClassLoader classloader, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
         this.gradle = gradle;
         this.settingsDir = settingsDir;
@@ -148,7 +147,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         return projectPath;
     }
 
-    public URLClassLoader getClassLoader() {
+    public ClassLoader getClassLoader() {
         return classloader;
     }
 

@@ -64,11 +64,10 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
 
         when:
         def projectBModuleRepo2 = mavenRepo2.module('org.name', 'projectB', '1.0').publish()
-        def projectBArtifactRepo2 = projectBModuleRepo2.artifact
         projectBModuleRepo2.pom.expectHead()
         projectBModuleRepo2.pom.sha1.expectGet()
-        projectBArtifactRepo2.expectHead()
-        projectBArtifactRepo2.sha1.expectGet()
+        projectBModuleRepo2.artifact.expectHead()
+        projectBModuleRepo2.artifact.sha1.expectGet()
 
         then:
         succeedsWith 'mavenRepository2'
@@ -98,7 +97,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
         projectBRepo1.pom.expectGet()
-        projectBRepo1.getArtifact().expectGet()
+        projectBRepo1.artifact.expectGet()
 
         then:
         succeedsWith 'mavenRepository1'
@@ -125,9 +124,8 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         when:
         def projectBRepo2 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
         projectBRepo2.pom.expectGet()
-        def projectBRepo2Artifact = projectBRepo2.artifact
-        projectBRepo2Artifact.expectHead()
-        projectBRepo2Artifact.sha1.expectGet()
+        projectBRepo2.artifact.expectHead()
+        projectBRepo2.artifact.sha1.expectGet()
 
         then:
         succeedsWith 'mavenRepository1'
@@ -153,7 +151,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
         projectBRepo1.pom.expectGet()
-        projectBRepo1.getArtifact().expectGet()
+        projectBRepo1.artifact.expectGet()
 
         then:
         succeedsWith 'mavenRepository1'
@@ -175,7 +173,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
         projectBRepo1.pom.expectGet()
-        projectBRepo1.getArtifact().expectGet()
+        projectBRepo1.artifact.expectGet()
 
         then:
         succeedsWith 'mavenRepository1'
@@ -186,10 +184,9 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         projectBRepo2.pom.sha1.expectGet()
         projectBRepo2.pom.expectGet()
 
-        def projRepo2BArtifact = projectBRepo2.artifact
-        projRepo2BArtifact.expectHead()
+        projectBRepo2.artifact.expectHead()
         projectBRepo2.artifact.sha1.expectGet()
-        projRepo2BArtifact.expectGet()
+        projectBRepo2.artifact.expectGet()
 
         then:
         succeedsWith 'mavenRepository2'

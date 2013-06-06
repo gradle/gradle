@@ -52,12 +52,4 @@ public class TaskExecution extends ContinuousOperation {
         this.state = state;
         return this;
     }
-
-    public String toString() {
-        return path;
-    }
-
-    public String getDescription() {
-        return path;
-    }
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.configuration.ProjectConfigureAction;
+import org.gradle.configuration.project.ProjectConfigureAction;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 public class ToolingRegistrationAction implements ProjectConfigureAction {

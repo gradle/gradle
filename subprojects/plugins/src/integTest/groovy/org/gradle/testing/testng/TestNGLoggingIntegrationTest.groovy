@@ -17,19 +17,70 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.TextUtil
-import org.junit.Rule
 
 // can make assumptions about order in which test methods of TestNGTest get executed
 // because the methods are chained with 'methodDependsOn'
 class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resources = new TestResources(temporaryFolder)
-    ExecutionResult result
 
     def setup() {
         executer.noExtraLogging().withStackTraceChecksDisabled().withTasks("test")
+
+        buildFile << """
+            apply plugin: "groovy"
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile "org.codehaus.groovy:groovy-all:2.0.5"
+                testCompile "org.testng:testng:6.3.1"
+            }
+
+            test {
+                useTestNG()
+                testLogging {
+                    quiet {
+                        events "skipped", "failed"
+                        minGranularity 2
+                        maxGranularity -1
+                        displayGranularity 3
+                        exceptionFormat "full"
+                        stackTraceFilters "truncate", "groovy"
+                    }
+                }
+            }
+        """
+
+        file("src/test/groovy/org/gradle/TestNGTest.groovy") << """
+            package org.gradle
+
+            import org.testng.annotations.Test
+
+            class TestNGTest {
+                @Test
+                void goodTest() {}
+
+                @Test(dependsOnMethods = ["goodTest"])
+                void badTest() {
+                    beBad()
+                }
+
+                @Test(dependsOnMethods = ["badTest"])
+                void ignoredTest() {}
+
+                @Test(dependsOnMethods = ["goodTest"])
+                void printTest() {
+                    println "line 1\\nline 2"
+                    println "line 3"
+                }
+
+                private beBad() {
+                    throw new RuntimeException("bad")
+                }
+            }
+        """
     }
 
     def "defaultLifecycleLogging"() {
@@ -39,7 +90,7 @@ class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("""
 Gradle test > org.gradle.TestNGTest.badTest FAILED
-    java.lang.RuntimeException at TestNGTest.groovy:40
+    java.lang.RuntimeException at TestNGTest.groovy:25
         """)
     }
 
@@ -51,8 +102,8 @@ Gradle test > org.gradle.TestNGTest.badTest FAILED
         outputContains("""
 org.gradle.TestNGTest.badTest FAILED
     java.lang.RuntimeException: bad
-        at org.gradle.TestNGTest.beBad(TestNGTest.groovy:40)
-        at org.gradle.TestNGTest.badTest(TestNGTest.groovy:27)
+        at org.gradle.TestNGTest.beBad(TestNGTest.groovy:25)
+        at org.gradle.TestNGTest.badTest(TestNGTest.groovy:12)
 
 org.gradle.TestNGTest.ignoredTest SKIPPED
 
@@ -61,6 +112,44 @@ Gradle test FAILED
     }
 
     def "standardOutputLogging"() {
+        given:
+        buildFile.text = """
+            apply plugin: "groovy"
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile "org.codehaus.groovy:groovy-all:2.0.5"
+                testCompile "org.testng:testng:6.3.1"
+            }
+
+            test {
+                useTestNG()
+                testLogging {
+                    quiet {
+                        events "standardOut", "standardError"
+                    }
+                }
+            }
+        """
+
+        and:
+        file("src/test/groovy/org/gradle/TestNGStandardOutputTest.groovy") << """
+            package org.gradle
+
+            import org.testng.annotations.Test
+
+            class TestNGStandardOutputTest {
+                @Test
+                void printTest() {
+                    println "line 1\\nline 2"
+                    println "line 3"
+                }
+            }
+        """
+
         when:
         result = executer.withArguments("-q").runWithFailure()
 
@@ -76,4 +165,6 @@ Gradle test > org.gradle.TestNGStandardOutputTest.printTest STANDARD_OUT
     private void outputContains(String text) {
         assert result.output.contains(TextUtil.toPlatformLineSeparators(text.trim()))
     }
+
+
 }

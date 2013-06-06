@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
-
-import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.language.jvm.ClassDirectoryBinary
-import org.gradle.language.jvm.JvmBinaryContainer
 import org.gradle.language.jvm.ResourceSet
+import org.gradle.language.jvm.internal.DefaultClassDirectoryBinary
 import org.gradle.language.jvm.plugins.JvmLanguagePlugin
+import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.util.HelperUtil
-
 import spock.lang.Specification
 
 class JvmLanguagePluginTest extends Specification {
@@ -37,27 +35,28 @@ class JvmLanguagePluginTest extends Specification {
         project.sources.custom.resources instanceof ResourceSet
     }
 
-    def "adds a 'binaries.jvm' container to the project"() {
+    def "registers the ClassDirectoryBinary type with the binaries container"() {
         def binaries = project.extensions.findByName("binaries")
+        def binary = binaries.create("test", ClassDirectoryBinary)
 
         expect:
-        binaries != null
-        binaries.jvm instanceof JvmBinaryContainer
+        binary != null
+        binary instanceof DefaultClassDirectoryBinary
     }
 
     def "adds a 'classes' task for every ClassDirectoryBinary added to the container"() {
         when:
-        def binary = project.binaries.jvm.create("prod", ClassDirectoryBinary)
+        def binary = project.binaries.create("prod", ClassDirectoryBinary)
 
         then:
         binary.classesDir == new File("$project.buildDir/classes/prod")
         def task = project.tasks.findByName("prodClasses")
         task != null
-        task.description == "Assembles binary 'prod'."
+        task.description == "Assembles classes 'prod'."
     }
 
     def "adds a 'processResources' task for every ResourceSet added to a ClassDirectoryBinary"() {
-        ClassDirectoryBinary binary = project.binaries.jvm.create("prod", ClassDirectoryBinary)
+        ClassDirectoryBinary binary = project.binaries.create("prod", ClassDirectoryBinary)
         ResourceSet resources = project.sources.create("main").create("resources", ResourceSet)
 
         when:
@@ -68,5 +67,23 @@ class JvmLanguagePluginTest extends Specification {
         def task = project.tasks.findByName("processProdResources")
         task instanceof ProcessResources
         task.description == "Processes source set 'main:resources'."
+    }
+
+    def "adds tasks based on short name when ClassDirectoryBinary has name ending in Classes"() {
+        when:
+        ClassDirectoryBinary binary = project.binaries.create("fooClasses", ClassDirectoryBinary)
+        ResourceSet resources = project.sources.create("main").create("resources", ResourceSet)
+        binary.source.add(resources)
+
+        then:
+        binary.classesDir == new File("$project.buildDir/classes/foo")
+        def task = project.tasks.findByName("fooClasses")
+        task != null
+        task.description == "Assembles classes 'foo'."
+
+        and:
+        def resourcesTask = project.tasks.findByName("processFooResources")
+        resourcesTask instanceof ProcessResources
+        resourcesTask.description == "Processes source set 'main:resources'."
     }
 }

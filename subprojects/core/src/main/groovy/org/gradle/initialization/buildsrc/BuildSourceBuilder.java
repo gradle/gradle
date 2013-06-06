@@ -47,7 +47,7 @@ public class BuildSourceBuilder {
         this.cacheRepository = cacheRepository;
     }
 
-    public URLClassLoader buildAndCreateClassLoader(StartParameter startParameter) {
+    public ClassLoader buildAndCreateClassLoader(StartParameter startParameter) {
         ClassPath classpath = createBuildSourceClasspath(startParameter);
         return new URLClassLoader(classpath.getAsURLArray(), classLoaderRegistry.getRootClassLoader());
     }
