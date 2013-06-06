@@ -328,6 +328,7 @@ class DefaultCacheAccessTest extends Specification {
         0 * _._
     }
 
+    //TODO SF cover the case when re-entering from a different thread
     def "can execute long running operation from within long running operation"() {
         Factory<String> action = Mock()
         Factory<String> longRunningAction = Mock()

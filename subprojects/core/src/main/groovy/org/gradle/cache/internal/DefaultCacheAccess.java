@@ -182,12 +182,11 @@ public class DefaultCacheAccess implements CacheAccess {
     }
 
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        if (operationStack.get().isInLongRunningOperation()) {
-            operationStack.get().pushLongRunningOperation(operationDisplayName);
+        if (maybeReentrantLongRunningOperation(operationDisplayName)) {
             try {
                 return action.create();
             } finally {
-                operationStack.get().popLongRunningOperation(operationDisplayName);
+                longOperationCompleted(operationDisplayName);
             }
         }
 
@@ -201,6 +200,28 @@ public class DefaultCacheAccess implements CacheAccess {
             if (wasEnded) {
                 onStartWork();
             }
+        }
+    }
+
+    private boolean maybeReentrantLongRunningOperation(String operationDisplayName) {
+        lock.lock();
+        try {
+            if (operationStack.get().isInLongRunningOperation()) {
+                operationStack.get().pushLongRunningOperation(operationDisplayName);
+                return true;
+            }
+            return false;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void longOperationCompleted(String operationDisplayName) {
+        lock.lock();
+        try {
+            operationStack.get().popLongRunningOperation(operationDisplayName);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -241,7 +262,7 @@ public class DefaultCacheAccess implements CacheAccess {
                 }
             }
             owner = Thread.currentThread();
-            operationStack.get().popLongRunningOperation(description);
+            longOperationCompleted(description);
         } finally {
             lock.unlock();
         }
