@@ -21,7 +21,7 @@ publishing {
 }
 // START SNIPPET generate
 publishing {
-    generateIvyCustomIvyModuleDescriptor {
+    generateDescriptorFileForIvyCustomPublication {
         destination = file("$buildDir/generated-ivy.xml")
     }
 }

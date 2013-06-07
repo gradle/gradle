@@ -244,8 +244,8 @@
         <para>
             The “<literal>ivy-publish</literal>” plugin automatically wires in one <apilink class="org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor" /> task
             for each registered <apilink class="org.gradle.api.publish.ivy.IvyPublication" />.
-            This task is given a name based on the name of the publication:  "<literal>generate«<emphasis>NAME OF PUBLICATION</emphasis>»IvyModuleDescriptor</literal>".
-            So in the above example where the publication is named "<literal>ivyJava</literal>", the task will be named "<literal>generateIvyJavaIvyModuleDescriptor</literal>".
+            This task is given a name based on the name of the publication:  "<literal>generateDescriptorFileFor«<emphasis>NAME OF PUBLICATION</emphasis>»Publication</literal>".
+            So in the above example where the publication is named "<literal>ivyJava</literal>", the task will be named "<literal>generateDescriptorFileForIvyJavaPublication</literal>".
         </para>
         <para>
             You can specify where the generated Ivy file will be located by setting the <literal>destination</literal> property on the generate task.
@@ -253,7 +253,7 @@
         </para>
         <sample dir="ivy-publish/descriptor-customization" id="publishingIvyGenerateDescriptor" title="Generating the Ivy module descriptor file">
             <sourcefile file="build.gradle" snippet="generate" />
-            <output args="generateIvyCustomIvyModuleDescriptor"/>
+            <output args="generateDescriptorFileForIvyCustomPublication"/>
         </sample>
         <note>
             <para>
