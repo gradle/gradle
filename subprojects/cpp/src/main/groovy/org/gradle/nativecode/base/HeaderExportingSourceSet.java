@@ -17,12 +17,13 @@ package org.gradle.nativecode.base;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * A source set that exposes headers
  */
 @Incubating
-public interface HeaderExportingSourceSet extends SourceSet {
+public interface HeaderExportingSourceSet extends LanguageSourceSet {
 
     SourceDirectorySet getExportedHeaders();
 

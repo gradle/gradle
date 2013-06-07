@@ -17,20 +17,20 @@ package org.gradle.nativecode.base.internal;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativecode.base.NativeBinary;
 import org.gradle.nativecode.base.NativeComponent;
-import org.gradle.nativecode.base.SourceSet;
 import org.gradle.util.GUtil;
 
 public class DefaultNativeComponent implements NativeComponent {
     private final String name;
-    private final DomainObjectSet<SourceSet> sourceSets;
+    private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;
     private String baseName;
 
     public DefaultNativeComponent(String name) {
         this.name = name;
-        this.sourceSets = new DefaultDomainObjectSet<SourceSet>(SourceSet.class);
+        this.sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
         binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);
     }
 
@@ -38,11 +38,11 @@ public class DefaultNativeComponent implements NativeComponent {
         return name;
     }
 
-    public DomainObjectSet<SourceSet> getSource() {
+    public DomainObjectSet<LanguageSourceSet> getSource() {
         return sourceSets;
     }
 
-    public void source(SourceSet sourceSet) {
+    public void source(LanguageSourceSet sourceSet) {
         sourceSets.add(sourceSet);
     }
 

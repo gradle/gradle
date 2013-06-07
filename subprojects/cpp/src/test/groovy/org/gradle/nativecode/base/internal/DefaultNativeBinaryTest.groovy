@@ -16,11 +16,11 @@
 
 package org.gradle.nativecode.base.internal
 
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativecode.base.Library
 import org.gradle.nativecode.base.LibraryBinary
 import org.gradle.nativecode.base.NativeComponent
 import org.gradle.nativecode.base.NativeDependencySet
-import org.gradle.nativecode.base.SourceSet
 import spock.lang.Specification
 
 class DefaultNativeBinaryTest extends Specification {
@@ -36,7 +36,7 @@ class DefaultNativeBinaryTest extends Specification {
     def "binary uses source from its owner component"() {
         given:
         def binary = new TestBinary(component)
-        def sourceSet = Stub(SourceSet)
+        def sourceSet = Stub(LanguageSourceSet)
 
         when:
         component.source(sourceSet)

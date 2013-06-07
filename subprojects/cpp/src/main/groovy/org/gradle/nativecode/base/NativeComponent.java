@@ -18,6 +18,7 @@ package org.gradle.nativecode.base;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * Represents a logical software component, which may be built in a number of variant binaries.
@@ -28,12 +29,12 @@ public interface NativeComponent extends Named {
     /**
      * The source sets that are used to build this component.
      */
-    DomainObjectSet<SourceSet> getSource();
+    DomainObjectSet<LanguageSourceSet> getSource();
 
     /**
      * Adds some source to use to build this component.
      */
-    void source(SourceSet sourceSet);
+    void source(LanguageSourceSet sourceSet);
 
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.

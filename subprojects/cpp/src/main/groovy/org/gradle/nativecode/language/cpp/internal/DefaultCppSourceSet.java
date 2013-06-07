@@ -19,6 +19,8 @@ import groovy.lang.Closure;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.internal.ConfigurationBasedNativeDependencySet;
 import org.gradle.nativecode.base.internal.ResolvableNativeDependencySet;
@@ -55,6 +57,11 @@ public class DefaultCppSourceSet implements CppSourceSet {
     @Override
     public String toString() {
         return String.format("C++ source '%s'", name);
+    }
+
+    public TaskDependency getBuildDependencies() {
+        // TODO -
+        return new DefaultTaskDependency();
     }
 
     public SourceDirectorySet getExportedHeaders() {

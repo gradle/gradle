@@ -20,6 +20,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.language.base.Binary;
+import org.gradle.language.base.LanguageSourceSet;
 
 import java.io.File;
 import java.util.Collection;
@@ -44,12 +45,12 @@ public interface NativeBinary extends Binary {
     /**
      * The source sets used to compile this binary.
      */
-    DomainObjectSet<SourceSet> getSource();
+    DomainObjectSet<LanguageSourceSet> getSource();
 
     /**
      * Adds a source set to use to compile this binary.
      */
-    void source(SourceSet sourceSet);
+    void source(LanguageSourceSet sourceSet);
 
     /**
      * Returns the {@link ToolChain} that will be used to build this binary.

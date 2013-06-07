@@ -17,8 +17,8 @@ package org.gradle.nativecode.language.cpp;
 
 import groovy.lang.Closure;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativecode.base.HeaderExportingSourceSet;
 import org.gradle.nativecode.base.NativeDependencySet;
 
@@ -29,7 +29,7 @@ import java.util.Map;
  * A representation of a unit of C++ source.
  */
 @Incubating
-public interface CppSourceSet extends HeaderExportingSourceSet, Named {
+public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSet {
     /**
      * The headers.
      */
