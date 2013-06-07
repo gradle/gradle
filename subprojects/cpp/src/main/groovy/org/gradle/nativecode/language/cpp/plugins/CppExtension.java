@@ -26,7 +26,7 @@ import org.gradle.nativecode.language.cpp.CppSourceSet;
 import org.gradle.nativecode.language.cpp.internal.DefaultCppSourceSet;
 
 /**
- * Adds a source set container.
+ * Configuration for the C++ language.
  */
 @Incubating
 public class CppExtension {
@@ -46,7 +46,10 @@ public class CppExtension {
     public NamedDomainObjectContainer<CppSourceSet> sourceSets(Closure closure) {
         return sourceSets.configure(closure);
     }
-    
+
+    /**
+     * Returns the C++ source sets for this project.
+     */
     public NamedDomainObjectContainer<CppSourceSet> getSourceSets() {
         return sourceSets;
     }
