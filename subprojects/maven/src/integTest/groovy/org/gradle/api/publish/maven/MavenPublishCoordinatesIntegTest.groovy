@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,29 @@
  * limitations under the License.
  */
 
+package org.gradle.api.publish.maven
 
-package org.gradle.api.publish.ivy
+import org.gradle.test.fixtures.maven.M2Installation
+import org.gradle.test.fixtures.maven.MavenFileRepository
 
-public class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
+class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
+    MavenFileRepository m2Repo
+
+    def "setup"() {
+        def m2Installation = new M2Installation(testDirectory)
+        m2Repo = m2Installation.mavenRepo()
+        executer.beforeExecute m2Installation
+    }
 
     def "can publish single jar with specified coordinates"() {
         given:
-        def module = ivyRepo.module('org.custom', 'custom', '2.2')
+        def repoModule = mavenRepo.module('org.custom', 'custom', '2.2')
+        def localModule = m2Repo.module('org.custom', 'custom', '2.2')
 
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'ivy-publish'
+            apply plugin: 'maven-publish'
             apply plugin: 'java'
 
             group = 'group'
@@ -34,42 +44,48 @@ public class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest 
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    ivy(IvyPublication) {
+                    maven(MavenPublication) {
                         from components.java
-                        organisation "org.custom"
-                        module "custom"
-                        revision "2.2"
+                        groupId 'org.custom'
+                        artifactId 'custom'
+                        version '2.2'
                     }
                 }
             }
         """
 
         when:
+        succeeds 'publishToMavenLocal'
+
+        then: "jar is published to maven local repository"
+        repoModule.assertNotPublished()
+        localModule.assertPublishedAsJavaModule()
+
+        when:
         succeeds 'publish'
 
-        then:
+        then: "jar is published to defined maven repository"
         file('build/libs/root-1.0.jar').assertExists()
 
         and:
-        module.assertPublishedAsJavaModule()
-        module.moduleDir.file('custom-2.2.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
+        repoModule.assertPublishedAsJavaModule()
 
         and:
-        resolveArtifacts(module) == ['custom-2.2.jar']
+        resolveArtifacts(repoModule) == ['custom-2.2.jar']
     }
 
     def "can produce multiple separate publications for single project"() {
         given:
-        def module = ivyRepo.module('org.custom', 'custom', '2.2')
-        def apiModule = ivyRepo.module('org.custom', 'custom-api', '2')
+        def module = mavenRepo.module('org.custom', 'custom', '2.2')
+        def apiModule = mavenRepo.module('org.custom', 'custom-api', '2')
 
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'ivy-publish'
+            apply plugin: 'maven-publish'
             apply plugin: 'java'
 
             group = 'group'
@@ -83,28 +99,20 @@ public class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest 
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    ivy(IvyPublication) {
-                        organisation "org.custom"
-                        module "custom"
-                        revision "2.2"
+                    impl(MavenPublication) {
+                        groupId "org.custom"
+                        artifactId "custom"
+                        version "2.2"
                         from components.java
                     }
-                    ivyApi(IvyPublication) {
-                        organisation "org.custom"
-                        module "custom-api"
-                        revision "2"
-                        configurations {
-                            runtime {}
-                            "default" {
-                                extend "runtime"
-                            }
-                        }
-                        artifact(apiJar) {
-                            conf "runtime"
-                        }
+                    api(MavenPublication) {
+                        groupId "org.custom"
+                        artifactId "custom-api"
+                        version "2"
+                        artifact(apiJar)
                     }
                 }
             }
