@@ -20,7 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
-import org.gradle.language.jvm.tasks.SimpleStaleClassCleaner
+import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
 import org.gradle.nativecode.base.ToolChain
 import org.gradle.nativecode.base.internal.LinkerSpec
 

@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.scala;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.language.jvm.tasks.SimpleStaleClassCleaner;
-import org.gradle.language.jvm.tasks.StaleClassCleaner;
+import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
+import org.gradle.language.jvm.internal.StaleClassCleaner;
 
 public class IncrementalScalaCompiler extends IncrementalJavaCompilerSupport<ScalaJavaJointCompileSpec>
         implements Compiler<ScalaJavaJointCompileSpec> {
