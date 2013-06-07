@@ -98,28 +98,32 @@ class CacheOperationStackTest extends Specification {
         thrown(IllegalStateException)
     }
 
-    def "knows if is in cache operation"() {
+    def "knows the kind of current cache operation"() {
         assert !stack.isInCacheAction()
 
         when:
         stack.pushLongRunningOperation("long")
         then:
-        !stack.isInCacheAction()
+        !stack.inCacheAction
+        stack.inLongRunningOperation
 
         when:
         stack.pushCacheAction("cache")
         then:
-        stack.isInCacheAction()
+        stack.inCacheAction
+        !stack.inLongRunningOperation
 
         when:
         stack.pushCacheAction("cache2")
         then:
-        stack.isInCacheAction()
+        stack.inCacheAction
+        !stack.inLongRunningOperation
 
         when:
         stack.popCacheAction("cache2")
         stack.popCacheAction("cache")
         then:
-        !stack.isInCacheAction()
+        !stack.inCacheAction
+        stack.inLongRunningOperation
     }
 }

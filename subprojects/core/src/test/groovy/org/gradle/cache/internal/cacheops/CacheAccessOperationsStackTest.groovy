@@ -75,7 +75,7 @@ class CacheAccessOperationsStackTest extends ConcurrentSpecification {
         }
     }
 
-    def "all long running operations must complete before "() {
+    def "when all long running operations complete the next operation is no longer reentrant"() {
         when:
         stack.pushLongRunningOperation("foo")
         stack.pushLongRunningOperation("foo2")
@@ -90,5 +90,15 @@ class CacheAccessOperationsStackTest extends ConcurrentSpecification {
 
         then:
         !stack.maybeReentrantLongRunningOperation("hey")
+    }
+
+    def "if any thread is in cache the next long running operation is not reentrant"() {
+        when:
+        stack.pushLongRunningOperation("long")
+        start { stack.pushCacheAction("cache") }
+        finished()
+
+        then:
+        !stack.maybeReentrantLongRunningOperation("long2")
     }
 }

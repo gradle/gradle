@@ -21,47 +21,49 @@ package org.gradle.cache.internal.cacheops;
  */
 public class CacheAccessOperationsStack {
 
-    private final ThreadLocal<CacheOperationStack> operationStack = new ThreadLocal<CacheOperationStack>() {
+    private final ThreadLocal<CacheOperationStack> perThradStack = new ThreadLocal<CacheOperationStack>() {
         @Override
         protected CacheOperationStack initialValue() {
             return new CacheOperationStack();
         }
     };
 
-    private int longRunningOperations;
+    private final CacheOperationStack globalStack = new CacheOperationStack();
 
     public void close() {
-        operationStack.remove();
+        perThradStack.remove();
     }
 
     public void pushCacheAction(String operationDisplayName) {
-        operationStack.get().pushCacheAction(operationDisplayName);
+        globalStack.pushCacheAction(operationDisplayName);
+        perThradStack.get().pushCacheAction(operationDisplayName);
     }
 
     public void popCacheAction(String operationDisplayName) {
-        operationStack.get().popCacheAction(operationDisplayName);
+        globalStack.popCacheAction(operationDisplayName);
+        perThradStack.get().popCacheAction(operationDisplayName);
     }
 
     public boolean isInCacheAction() {
-        return operationStack.get().isInCacheAction();
+        return perThradStack.get().isInCacheAction();
     }
 
     public void pushLongRunningOperation(String operationDisplayName) {
-        longRunningOperations++;
-        operationStack.get().pushLongRunningOperation(operationDisplayName);
+        globalStack.pushLongRunningOperation(operationDisplayName);
+        perThradStack.get().pushLongRunningOperation(operationDisplayName);
     }
 
     public void popLongRunningOperation(String operationDisplayName) {
-        longRunningOperations--;
-        operationStack.get().popLongRunningOperation(operationDisplayName);
+        globalStack.popLongRunningOperation(operationDisplayName);
+        perThradStack.get().popLongRunningOperation(operationDisplayName);
     }
 
     public String getDescription() {
-        return operationStack.get().getDescription();
+        return perThradStack.get().getDescription();
     }
 
     public boolean maybeReentrantLongRunningOperation(String operationDisplayName) {
-        if (longRunningOperations > 0) {
+        if (globalStack.isInLongRunningOperation()) {
             pushLongRunningOperation(operationDisplayName);
             return true;
         }

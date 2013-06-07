@@ -42,6 +42,10 @@ class CacheOperationStack {
         return !operations.isEmpty() && !operations.get(0).longRunningOperation;
     }
 
+    public boolean isInLongRunningOperation() {
+        return !operations.isEmpty() && !isInCacheAction();
+    }
+
     public void pushCacheAction(String description) {
         operations.add(0, new CacheOperation(description, false));
     }
