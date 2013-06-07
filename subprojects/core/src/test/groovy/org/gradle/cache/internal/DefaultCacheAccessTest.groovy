@@ -17,24 +17,25 @@ package org.gradle.cache.internal
 
 import org.gradle.api.Action
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
+import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack
 import org.gradle.internal.Factory
 import org.gradle.messaging.serialize.Serializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Ignore
+import spock.lang.IgnoreRest
 import spock.lang.Specification
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.*
 
-@Ignore //TODO SF fix & enable
 class DefaultCacheAccessTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final FileLockManager lockManager = Mock()
     final File lockFile = tmpDir.file('lock.bin')
     final File targetFile = tmpDir.file('cache.bin')
     final FileLock lock = Mock()
+    final CacheAccessOperationsStack operations = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
-    final DefaultCacheAccess access = new DefaultCacheAccess("<display-name>", lockFile, lockManager) {
+    final DefaultCacheAccess access = new DefaultCacheAccess("<display-name>", lockFile, lockManager, operations) {
         @Override
         def <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
             return backingCache
@@ -328,38 +329,23 @@ class DefaultCacheAccessTest extends Specification {
         0 * _._
     }
 
-    //TODO SF cover the case when re-entering from a different thread
+    @IgnoreRest //TODO SF fix other tests
     def "can execute long running operation from within long running operation"() {
-        Factory<String> action = Mock()
-        Factory<String> longRunningAction = Mock()
-        Factory<String> nestedAction = Mock()
+        Factory<String> longOp = Mock()
+        Factory<String> longOp2 = Mock()
+        access.open(Exclusive)
 
-        given:
-        access.open(None)
-        def cache = access.newCache(targetFile, String, Integer)
+        operations.maybeReentrantLongRunningOperation("foo") >> false
+        operations.maybeReentrantLongRunningOperation("foo2") >> true
 
         when:
-        access.useCache("some operation", action)
+        access.longRunningOperation("foo", longOp)
 
         then:
-        1 * action.create() >> {
-            canAccess cache
-            access.longRunningOperation("nested", longRunningAction)
-            canAccess cache
+        1 * longOp.create() >> {
+            access.longRunningOperation("foo2", longOp2)
         }
-        1 * longRunningAction.create() >> {
-            cannotAccess cache
-            access.longRunningOperation("nested 2", nestedAction)
-            cannotAccess cache
-        }
-        1 * nestedAction.create() >> {
-            cannotAccess cache
-        }
-        2 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
-        _ * lock.readFile(_)
-        _ * lock.writeFile(_)
-        2 * lock.close()
-        0 * _._
+        1 * longOp2.create()
     }
 
     def "can execute cache action from within cache action"() {
