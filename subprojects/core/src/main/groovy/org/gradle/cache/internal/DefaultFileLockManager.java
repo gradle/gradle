@@ -55,6 +55,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private final int lockTimeoutMs;
     private final IdGenerator<Long> generator;
     private FileLockListener fileLockListener;
+    private final long shortTimeoutMs = 10000;
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockListener fileLockListener) {
         this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockListener);
@@ -248,7 +249,7 @@ public class DefaultFileLockManager implements FileLockManager {
                                 // Discard information region
                                 java.nio.channels.FileLock info;
                                 try {
-                                    info = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis());
+                                    info = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
                                 } catch (InterruptedException e) {
                                     throw throwAsUncheckedException(e);
                                 }
@@ -289,7 +290,7 @@ public class DefaultFileLockManager implements FileLockManager {
             // Lock the state region, with the requested mode
             java.nio.channels.FileLock stateRegionLock = lockStateRegion(lockMode, waitUntil);
             if (stateRegionLock == null) {
-                OwnerInfo ownerInfo = readInformationRegion(System.currentTimeMillis() + lockTimeoutMs);
+                OwnerInfo ownerInfo = readInformationRegion(System.currentTimeMillis() + shortTimeoutMs);
                 throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",
                         displayName, ownerInfo.pid, metaDataProvider.getProcessIdentifier(), ownerInfo.operation, operationDisplayName, lockFile));
             }
@@ -312,7 +313,7 @@ public class DefaultFileLockManager implements FileLockManager {
                         lockFileAccess.writeBoolean(false);
                     }
                     // Acquire an exclusive lock on the information region and write our details there
-                    java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + lockTimeoutMs);
+                    java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
                     if (informationRegionLock == null) {
                         throw new IllegalStateException(String.format("Unable to lock the information region for lock %s", displayName));
                     }
@@ -384,7 +385,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     return fileLock;
                 }
                 if (port != -1) { //we don't like the assumption about the port very much
-                    OwnerInfo ownerInfo = readInformationRegion(System.currentTimeMillis() + lockTimeoutMs);
+                    OwnerInfo ownerInfo = readInformationRegion(System.currentTimeMillis()); //no need for timeout here, as we're already looping with timeout
                     if (ownerInfo.port != -1) {
                         LOGGER.info("The file lock is held by a different Gradle process. Will attempt to ping owner at port {}", ownerInfo.port);
                         FileLockCommunicator.pingOwner(ownerInfo.port, ownerInfo.lockId);
