@@ -19,6 +19,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
@@ -26,7 +27,6 @@ import org.gradle.language.java.JavaSourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinariesContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.jvm.internal.DefaultClasspath;
@@ -56,7 +56,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     public void apply(final Project target) {
         target.getPlugins().apply(JvmLanguagePlugin.class);
 
-        BinariesContainer jvmBinaryContainer = target.getExtensions().getByType(BinariesContainer.class);
+        BinaryContainer jvmBinaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         jvmBinaryContainer.withType(ClassDirectoryBinary.class).all(new Action<ClassDirectoryBinary>() {
             public void execute(final ClassDirectoryBinary binary) {
                 final BinaryNamingScheme namingScheme = ((BinaryInternal) binary).getNamingScheme();

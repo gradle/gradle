@@ -22,4 +22,4 @@ import org.gradle.api.*;
  * Added to a project by the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
  */
 @Incubating
-public interface BinariesContainer extends ExtensiblePolymorphicDomainObjectContainer<Binary> {}
+public interface BinaryContainer extends ExtensiblePolymorphicDomainObjectContainer<Binary> {}

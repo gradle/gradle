@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinariesContainer;
+import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.BinaryInternal;
@@ -40,7 +40,7 @@ import java.util.concurrent.Callable;
 
 /**
  * Base plugin for JVM language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.language.jvm.ClassDirectoryBinary} element type for the {@link BinariesContainer}.
+ * Registers the {@link org.gradle.language.jvm.ClassDirectoryBinary} element type for the {@link org.gradle.language.base.BinaryContainer}.
  * Adds a lifecycle task named {@code classes} for each {@link org.gradle.language.jvm.ClassDirectoryBinary}.
  * Registers the {@link org.gradle.language.jvm.ResourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
  * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.language.jvm.ClassDirectoryBinary}.
@@ -71,14 +71,14 @@ public class JvmLanguagePlugin implements Plugin<Project> {
             }
         });
 
-        BinariesContainer binariesContainer = target.getExtensions().getByType(BinariesContainer.class);
-        binariesContainer.registerFactory(ClassDirectoryBinary.class, new NamedDomainObjectFactory<ClassDirectoryBinary>() {
+        BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
+        binaryContainer.registerFactory(ClassDirectoryBinary.class, new NamedDomainObjectFactory<ClassDirectoryBinary>() {
             public ClassDirectoryBinary create(String name) {
                 return instantiator.newInstance(DefaultClassDirectoryBinary.class, name);
             };
         });
 
-        binariesContainer.withType(ClassDirectoryBinary.class).all(new Action<ClassDirectoryBinary>() {
+        binaryContainer.withType(ClassDirectoryBinary.class).all(new Action<ClassDirectoryBinary>() {
             public void execute(final ClassDirectoryBinary binary) {
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 final BinaryNamingScheme namingScheme = ((BinaryInternal) binary).getNamingScheme();

@@ -17,11 +17,11 @@ package org.gradle.language.base.internal;
 
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinariesContainer;
+import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.Binary;
 
-public class DefaultBinariesContainer extends DefaultPolymorphicDomainObjectContainer<Binary> implements BinariesContainer {
-    public DefaultBinariesContainer(Instantiator instantiator) {
+public class DefaultBinaryContainer extends DefaultPolymorphicDomainObjectContainer<Binary> implements BinaryContainer {
+    public DefaultBinaryContainer(Instantiator instantiator) {
         super(Binary.class, instantiator);
     }
 }
