@@ -301,8 +301,6 @@ public class DefaultCacheAccess implements CacheAccess {
         if (fileLock != null) {
             return false;
         }
-        busy = true;
-
         fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operations.getDescription(), whenContended());
 
         for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
@@ -315,12 +313,9 @@ public class DefaultCacheAccess implements CacheAccess {
         if (fileLock == null) {
             return false;
         }
-        busy = false;
-
         if (contended || fileLock.getMode() == Shared) {
             closeFileLock();
         }
-
         return true;
     }
 
@@ -328,7 +323,7 @@ public class DefaultCacheAccess implements CacheAccess {
         lock.lock();
         try {
             if (Thread.currentThread() != owner || fileLock == null) {
-                throw new IllegalStateException(String.format("The %s has not been locked. File lock available: %s", cacheDiplayName, fileLock != null));
+                throw new IllegalStateException(String.format("The %s has not been locked for this thread. File lock: %s, owner: %s", cacheDiplayName, fileLock != null, owner));
             }
         } finally {
             lock.unlock();
@@ -355,7 +350,7 @@ public class DefaultCacheAccess implements CacheAccess {
             public void run() {
                 lock.lock();
                 try {
-                    LOG.info("Detected file lock contention of {} (fileLock={}, contended={}, busy={}, owner={})", cacheDiplayName, fileLock != null, contended, busy, owner);
+                    LOG.info("Detected file lock contention of {} (fileLock={}, contended={}, owner={})", cacheDiplayName, fileLock != null, contended, owner);
                     if (fileLock == null) {
                         //the lock may have been closed
                         return;
@@ -376,5 +371,9 @@ public class DefaultCacheAccess implements CacheAccess {
                 }
             }
         };
+    }
+
+    Thread getOwner() {
+        return owner;
     }
 }
