@@ -57,8 +57,8 @@ class BinariesPluginTest extends Specification {
         }
 
         then:
-        def sharedLibName = project.compilers.defaultToolChain.getSharedLibraryName("test")
-        def staticLibName = project.compilers.defaultToolChain.getStaticLibraryName("test")
+        def sharedLibName = project.toolChains.defaultToolChain.getSharedLibraryName("test")
+        def staticLibName = project.toolChains.defaultToolChain.getStaticLibraryName("test")
         def library = project.libraries.test
 
         and:

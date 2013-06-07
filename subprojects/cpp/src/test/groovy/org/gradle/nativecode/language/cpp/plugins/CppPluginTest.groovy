@@ -49,8 +49,8 @@ class CppPluginTest extends Specification {
         }
 
         expect:
-        project.compilers*.name == ['gcc', 'visualCpp']
-        project.compilers.searchOrder*.name == ['visualCpp', 'gcc']
+        project.toolChains*.name == ['gcc', 'visualCpp']
+        project.toolChains.searchOrder*.name == ['visualCpp', 'gcc']
     }
 
     def "can create some cpp source sets"() {

@@ -15,62 +15,56 @@
  */
 package org.gradle.nativecode.base.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.Plugin;
-import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
-import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
-import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.*;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinariesContainer;
+import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.nativecode.base.*;
 import org.gradle.nativecode.base.internal.*;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
- * temp plugin, not sure what will provide the binaries container and model elements
+ * A plugin that sets up the infrastructure for defining native binaries.
  */
 @Incubating
-public class BinariesPlugin implements Plugin<ProjectInternal> {
+public class BinariesPlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final ProjectConfigurationActionContainer configurationActions;
+    private final FileResolver fileResolver;
 
     @Inject
-    public BinariesPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions) {
+    public BinariesPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.configurationActions = configurationActions;
+        this.fileResolver = fileResolver;
     }
 
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPlugins().apply(BasePlugin.class);
         project.getPlugins().apply(LanguageBasePlugin.class);
-        final BinariesContainer binaries = project.getExtensions().getByType(BinariesContainer.class);
+        final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
 
-        final ToolChainRegistry toolChains = project.getExtensions().create("compilers",
+        final ToolChainRegistry toolChains = project.getExtensions().create("toolChains",
                 DefaultToolChainRegistry.class,
                 instantiator
         );
         final NamedDomainObjectSet<Executable> executables = project.getExtensions().create(
                 "executables",
-                FactoryNamedDomainObjectContainer.class,
-                Executable.class,
-                instantiator,
-                new ReflectiveNamedDomainObjectFactory<Executable>(DefaultExecutable.class)
+                DefaultExecutableContainer.class,
+                instantiator
         );
 
-        final NamedDomainObjectSet<Library> libraries = project.getExtensions().create("libraries",
-                FactoryNamedDomainObjectContainer.class,
-                Library.class,
+        final NamedDomainObjectSet<Library> libraries = project.getExtensions().create(
+                "libraries",
+                DefaultLibraryContainer.class,
                 instantiator,
-                new ReflectiveNamedDomainObjectFactory<Library>(DefaultLibrary.class, project.getFileResolver())
+                fileResolver
         );
 
         configurationActions.add(new Action<ProjectInternal>() {
@@ -88,17 +82,13 @@ public class BinariesPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void register(NativeBinary binary, NativeComponent component, BinariesContainer binariesContainer) {
+    private void register(NativeBinary binary, NativeComponent component, BinaryContainer binaryContainer) {
         component.getBinaries().add(binary);
-        binariesContainer.add(binary);
+        binaryContainer.add(binary);
     }
 
-    private NativeBinary setupDefaults(final ProjectInternal project, final DefaultNativeBinary nativeBinary) {
-        new DslObject(nativeBinary).getConventionMapping().map("outputFile", new Callable<File>() {
-            public File call() throws Exception {
-                return new File(project.getBuildDir(), "binaries/" + nativeBinary.getNamingScheme().getOutputDirectoryBase() + "/" + nativeBinary.getOutputFileName());
-            }
-        });
+    private NativeBinary setupDefaults(final Project project, final DefaultNativeBinary nativeBinary) {
+        nativeBinary.setOutputFile(new File(project.getBuildDir(), "binaries/" + nativeBinary.getNamingScheme().getOutputDirectoryBase() + "/" + nativeBinary.getOutputFileName()));
         return nativeBinary;
     }
 
