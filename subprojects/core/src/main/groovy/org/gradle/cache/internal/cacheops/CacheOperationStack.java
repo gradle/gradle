@@ -30,8 +30,9 @@ class CacheOperationStack {
         return operations.get(0).description;
     }
 
-    public void pushLongRunningOperation(String description) {
+    public CacheOperationStack pushLongRunningOperation(String description) {
         operations.add(0, new CacheOperation(description, true));
+        return this;
     }
 
     public void popLongRunningOperation(String description) {
@@ -46,8 +47,9 @@ class CacheOperationStack {
         return !operations.isEmpty() && !isInCacheAction();
     }
 
-    public void pushCacheAction(String description) {
+    public CacheOperationStack pushCacheAction(String description) {
         operations.add(0, new CacheOperation(description, false));
+        return this;
     }
 
     public void popCacheAction(String description) {

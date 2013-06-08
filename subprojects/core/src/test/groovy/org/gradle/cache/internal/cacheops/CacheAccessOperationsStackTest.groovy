@@ -18,6 +18,9 @@ package org.gradle.cache.internal.cacheops
 
 import org.gradle.util.ConcurrentSpecification
 
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+
 /**
  * By Szczepan Faber on 6/7/13
  */
@@ -100,5 +103,43 @@ class CacheAccessOperationsStackTest extends ConcurrentSpecification {
 
         then:
         !stack.maybeReentrantLongRunningOperation("long2")
+    }
+
+    def "long running operation is reentrant if previous long running operation belongs to a different thread"() {
+        when:
+        start {
+            stack.pushLongRunningOperation("a")
+        }
+        finished()
+        then:
+        stack.maybeReentrantLongRunningOperation("b")
+    }
+
+    def "long running operations in separate threads can interleave"() {
+        when:
+        //Here's the scenario:
+        //Thread 1: pushes a
+        //Thread 2: pushes b
+        //Thread 1: pops a
+        //Thread 2: pops b
+
+        def latch1 = new CountDownLatch(1)
+        def latch2 = new CountDownLatch(1)
+        start {
+            stack.pushLongRunningOperation("a")
+            latch1.await(1, TimeUnit.SECONDS)
+            stack.popLongRunningOperation("a")
+            latch2.countDown()
+        }
+        start {
+            stack.pushLongRunningOperation("b")
+            latch1.countDown()
+            latch2.await(1, TimeUnit.SECONDS)
+            stack.popLongRunningOperation("b")
+        }
+        finished()
+
+        then:
+        noExceptionThrown()
     }
 }
