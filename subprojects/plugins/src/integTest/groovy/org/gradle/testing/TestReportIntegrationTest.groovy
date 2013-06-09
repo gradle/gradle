@@ -121,6 +121,45 @@ public class LoggingTest {
         "html" | "build/reports/tests"
     }
 
+    def "results or reports are linked to in error output"() {
+        given:
+        buildScript """
+            $junitSetup
+            test {
+                reports.all { it.enabled = true }
+            }
+        """
+
+        and:
+        failingTestClass "SomeTest"
+
+        when:
+        fails "test"
+
+        then:
+        ":test" in nonSkippedTasks
+        errorOutput.contains("See the report at: ")
+
+        when:
+        buildFile << "\ntest.reports.html.enabled = false\n"
+        fails "test"
+
+        then:
+        ":test" in nonSkippedTasks
+        errorOutput.contains("See the results at: ")
+
+        when:
+        buildFile << "\ntest.reports.junitXml.enabled = false\n"
+        fails "test"
+
+        then:
+        ":test" in nonSkippedTasks
+        errorOutput.contains("There were failing tests")
+        !errorOutput.contains("See the")
+    }
+
+
+
     String getJunitSetup() {
         """
         apply plugin: 'java'
@@ -129,11 +168,17 @@ public class LoggingTest {
         """
     }
 
-    void testClass(String name) {
-        file("${name}.java") << """
+    void failingTestClass(String name) {
+        testClass(name, true)
+    }
+
+    void testClass(String name, boolean failing = false) {
+        file("src/test/java/${name}.java") << """
             public class $name {
                 @org.junit.Test
-                public void test() {}
+                public void test() {
+                    assert false == ${failing};
+                }
             }
         """
     }

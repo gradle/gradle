@@ -1079,6 +1079,12 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         if (htmlReport.isEnabled()) {
             String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
             message = message.concat(". See the report at: " + reportUrl);
+        } else {
+            DirectoryReport junitXmlReport = reports.getJunitXml();
+            if (junitXmlReport.isEnabled()) {
+                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
+                message = message.concat(". See the results at: " + resultsUrl);
+            }
         }
 
         if (getIgnoreFailures()) {
