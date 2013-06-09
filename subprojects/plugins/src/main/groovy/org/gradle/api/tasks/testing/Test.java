@@ -919,6 +919,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
+     * Enables the HTML test report.
+     *
      * @deprecated Replaced by {@code getReports().getHtml().setEnabled()}
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -929,6 +931,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
+     * Disables the HTML test report.
+     *
      * @deprecated Replaced by {@code getReports().getHtml().setEnabled()}
      */
     @SuppressWarnings("UnusedDeclaration")
