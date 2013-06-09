@@ -19,6 +19,7 @@ package org.gradle.nativecode.base.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SkipWhenEmpty
@@ -44,6 +45,12 @@ class CreateStaticLibrary extends DefaultTask {
      * The tool chain used for creating the static library.
      */
     ToolChain toolChain
+
+    // Invalidate output when the tool chain output changes
+    @Input
+    def getOutputType() {
+        return toolChain.outputType
+    }
 
     /**
      * The file where the output binary will be located.

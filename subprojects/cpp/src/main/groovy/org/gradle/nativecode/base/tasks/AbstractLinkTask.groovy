@@ -41,6 +41,12 @@ abstract class AbstractLinkTask extends DefaultTask {
      */
     ToolChain toolChain
 
+    // Invalidate output when the tool chain output changes
+    @Input
+    def getOutputType() {
+        return toolChain.outputType
+    }
+
     // To pick up auxiliary files produced alongside the main output file
     @OutputDirectory
     File getDestinationDir() {
