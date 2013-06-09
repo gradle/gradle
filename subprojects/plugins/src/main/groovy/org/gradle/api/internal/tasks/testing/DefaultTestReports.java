@@ -19,12 +19,13 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.Task;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestReports;
 
-public class DefaultTestReports extends TaskReportContainer<ConfigurableReport> implements TestReports {
+public class DefaultTestReports extends TaskReportContainer<Report> implements TestReports {
 
     public DefaultTestReports(Task task) {
         super(ConfigurableReport.class, task);
