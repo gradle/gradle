@@ -128,6 +128,19 @@ class DefaultBaseRepositoryFactoryTest {
         assert repo.url == repoDir.toURI()
     }
 
+    @Test public void testCreateJCenterRepo() {
+        def jcenterUrl = new URI(RepositoryHandler.BINTRAY_JCENTER_URL)
+
+        context.checking {
+            allowing(fileResolver).resolveUri(RepositoryHandler.BINTRAY_JCENTER_URL)
+            will(returnValue(jcenterUrl))
+        }
+
+        def repo = factory.createJCenterRepository()
+        assert repo instanceof DefaultMavenArtifactRepository
+        assert repo.url == jcenterUrl
+    }
+
     @Test public void testCreateMavenCentralRepo() {
         def centralUrl = new URI(RepositoryHandler.MAVEN_CENTRAL_URL)
 
