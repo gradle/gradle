@@ -328,6 +328,8 @@ improve this.
 
 - Introduce a `DomainObjectCollection` that uses delayed configuration of its elements.
 - Introduce a `NamedDomainObjectCollection` that uses delayed configuration of its elements.
+- Warn when using binaries container in a way that won't work.
+- Warn when mutating component after binaries have been created.
 
 ## Story: Simplify configuration of a binary based on its properties
 
@@ -375,7 +377,7 @@ improve this.
 
 ## Story: Convenient configuration of tasks for binaries and components
 
-This story defers creation of the tasks for a binary or component until after the object has been fully configured.
+This story defers configuration of the tasks for a binary or component until after the object has been fully configured.
 
 - Change the C++ plugin to create the tasks for each native binary after the binary has been configured.
 - Change the C++ plugin to create the tasks for each component after the tasks for the binary have been configured.
@@ -512,6 +514,7 @@ project in the same build, or from a binary repository.
 
 - Need a new name for `NativeDependencySet`.
 - Need some way to convert a `NativeDependencySet` to a read-only library.
+- Need to apply a lifecycle to the resolved libs of `CppSourceSet` and `NativeBinary`.
 - Improve consumption of libraries from other projects.
 - Some mechanism to use the static binary as default for a library.
 - Some mechanism to select static or dynamic linkage for each dependency of a binary.
@@ -536,7 +539,7 @@ This story reworks the existing C++ source set concepts to reuse the concept of 
     - Add a `sources.main` functional source set
     - Add a `sources.main.cpp` C++ source set.
     - Wire the `sources.main.cpp` source set into the `main` executable/library.
-- Remove `CppExtension` and `org.gradle.language.nativecode.SourceSet`.
+- Remove `CppExtension`
 
 ### User visible changes
 
@@ -583,6 +586,7 @@ To define custom source sets and components:
 - Need to configure each component and source set lazily.
 - Need to deal with source sets that are generated.
 - `source()` collides with `project.source`.
+- Need a `CppSourceSet.getBuildDependencies()` implementation.
 
 ## Story: Compile C source files using the C compiler
 
