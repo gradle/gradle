@@ -94,8 +94,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         dashboardLinksCount == 4
-        linksLazy.find { it.contains("':test' (html)") }
-        linksLazy.find { it.contains("':test' (junitXml)") }
+        links.find { it.contains("':test' (html)") }
+        links.find { it.contains("':test' (junitXml)") }
     }
 
     void 'buildDashboard task always runs after report generating tasks'() {
@@ -104,8 +104,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         dashboardLinksCount == 4
-        linksLazy.find { it.contains("':test' (html)") }
-        linksLazy.find { it.contains("':test' (junitXml)") }
+        links.find { it.contains("':test' (html)") }
+        links.find { it.contains("':test' (junitXml)") }
     }
 
     void 'no report is generated if it is disabled'() {
