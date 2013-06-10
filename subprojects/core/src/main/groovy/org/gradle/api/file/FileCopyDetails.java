@@ -15,6 +15,8 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
+
 /**
  * <p>Provides details about a file or directory about to be copied, and allows some aspects of the destination file to
  * be modified.</p>

@@ -39,14 +39,12 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
     private ReadableCopySpec spec;
     private boolean warnOnIncludeDuplicate;
 
-    public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor) {
+    public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
         super(visitor);
-        this.warnOnIncludeDuplicate = false;
+        this.warnOnIncludeDuplicate = warnOnIncludeDuplicate;
     }
 
     public void startVisit(CopyAction action) {
-        CopyActionImpl actionImpl = (CopyActionImpl) action;
-        warnOnIncludeDuplicate = actionImpl != null && actionImpl.isWarnOnIncludeDuplicates();
         deferred.clear();
         super.startVisit(action);
     }
