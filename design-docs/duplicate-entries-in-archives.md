@@ -34,7 +34,6 @@ A user can specify the duplicates strategy for any file:
 ### Test coverage
 
 - Duplicate files are included in a ZIP and TAR by default.
-- Duplicate `MANIFEST.MF` files are included in a JAR by default.
 - When duplicate strategy is `exclude`, the only the first file with a given path is added to the archive.
 - The `Copy` task warns when a duplicate file is copied by default.
 - Can assemble a JAR where duplicate service files are added but other duplicate files are excluded.

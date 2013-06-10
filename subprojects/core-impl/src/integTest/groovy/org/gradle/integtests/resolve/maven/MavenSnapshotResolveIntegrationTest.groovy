@@ -349,6 +349,10 @@ allprojects {
         from configurations.compile
     }
 }
+
+//imposing an artificial order so that the parallel build retrieves sequentially, GRADLE-2788
+retrieve.dependsOn ":a:retrieve"
+tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
 """
         when: "Module is requested once"
         expectModuleServed(module)

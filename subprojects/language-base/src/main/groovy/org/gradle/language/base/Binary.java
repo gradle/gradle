@@ -16,12 +16,14 @@
 
 package org.gradle.language.base;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.internal.HasInternalProtocol;
 
 /**
  * A physical binary artifact, which can run on a particular platform or runtime.
  */
-@Incubating
-public interface Binary extends Named {
+@Incubating @HasInternalProtocol
+public interface Binary extends Named, Buildable {
 }

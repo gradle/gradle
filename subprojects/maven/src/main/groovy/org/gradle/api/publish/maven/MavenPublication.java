@@ -234,4 +234,34 @@ public interface MavenPublication extends Publication {
      */
     MavenArtifactSet getArtifacts();
 
+    /**
+     * Returns the groupId for this publication.
+     */
+    String getGroupId();
+
+    /**
+     * Sets the groupId for this publication.
+     */
+    void setGroupId(String groupId);
+
+    /**
+     * Returns the artifactId for this publication.
+     */
+    String getArtifactId();
+
+    /**
+     * Sets the artifactId for this publication.
+     */
+    void setArtifactId(String artifactId);
+
+    /**
+     * Returns the version for this publication.
+     */
+    String getVersion();
+
+    /**
+     * Sets the version for this publication.
+     */
+    void setVersion(String version);
+
 }

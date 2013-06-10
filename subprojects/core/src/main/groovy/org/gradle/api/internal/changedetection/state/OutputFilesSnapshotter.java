@@ -41,12 +41,14 @@ import java.util.*;
 public class OutputFilesSnapshotter implements FileSnapshotter {
     private final FileSnapshotter snapshotter;
     private final IdGenerator<Long> idGenerator;
+    private TaskArtifactStateCacheAccess cacheAccess;
     private final PersistentIndexedCache<String, Long> dirIdentiferCache;
 
     public OutputFilesSnapshotter(FileSnapshotter snapshotter, IdGenerator<Long> idGenerator,
                                   TaskArtifactStateCacheAccess cacheAccess) {
         this.snapshotter = snapshotter;
         this.idGenerator = idGenerator;
+        this.cacheAccess = cacheAccess;
         dirIdentiferCache = cacheAccess.createCache("outputFileStates", String.class, Long.class, new LongSerializer());
     }
 
@@ -54,22 +56,28 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
         return new OutputFilesSnapshot(new HashMap<String, Long>(), snapshotter.emptySnapshot());
     }
 
-    public OutputFilesSnapshot snapshot(FileCollection files) {
-        Map<String, Long> snapshotDirIds = new HashMap<String, Long>();
-        for (File file : files) {
-            Long dirId;
-            if (file.exists()) {
-                dirId = dirIdentiferCache.get(file.getAbsolutePath());
-                if (dirId == null) {
-                    dirId = idGenerator.generateId();
-                    dirIdentiferCache.put(file.getAbsolutePath(), dirId);
+    public OutputFilesSnapshot snapshot(final FileCollection files) {
+        final Map<String, Long> snapshotDirIds = new HashMap<String, Long>();
+        final Set<File> theFiles = files.getFiles();
+        cacheAccess.useCache("create dir snapshots", new Runnable() {
+            public void run() {
+                for (File file : theFiles) {
+                    Long dirId;
+                    if (file.exists()) {
+                        dirId = dirIdentiferCache.get(file.getAbsolutePath());
+                        if (dirId == null) {
+                            dirId = idGenerator.generateId();
+                            dirIdentiferCache.put(file.getAbsolutePath(), dirId);
+                        }
+                    } else {
+                        dirIdentiferCache.remove(file.getAbsolutePath());
+                        dirId = null;
+                    }
+                    snapshotDirIds.put(file.getAbsolutePath(), dirId);
                 }
-            } else {
-                dirIdentiferCache.remove(file.getAbsolutePath());
-                dirId = null;
+
             }
-            snapshotDirIds.put(file.getAbsolutePath(), dirId);
-        }
+        });
         return new OutputFilesSnapshot(snapshotDirIds, snapshotter.snapshot(files));
     }
 

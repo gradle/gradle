@@ -3,7 +3,14 @@ apply plugin: "cpp-exe"
 // START SNIPPET args
 executables {
     main {
-        compilerArgs "-fno-access-control", "-fconserve-space"
+        binaries.all {
+            // Define a preprocessor macro
+            define "NDEBUG"
+            // Add some additional compiler arguments
+            if (toolChain == toolChains.gcc) {
+                compilerArgs "-fno-access-control", "-fconserve-space"
+            }
+        }
     }
 }
 // END SNIPPET args

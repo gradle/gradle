@@ -39,12 +39,13 @@ class PomProjectSetupDescriptor implements ProjectSetupDescriptor {
 
     void generateProject() {
         SingleMessageLogger.informAboutIncubating("Maven to Gradle conversion")
+        def pom = fileResolver.resolve("pom.xml")
         try {
             def settings = settingsProvider.buildSettings()
-            def mavenProjects = new MavenProjectsCreator().create(settings, fileResolver.resolve("pom.xml"))
+            def mavenProjects = new MavenProjectsCreator().create(settings, pom)
             new Maven2Gradle(mavenProjects).convert()
         } catch (Exception exception){
-            throw new MavenConversionException("Failed to convert Maven project.", exception)
+            throw new MavenConversionException("Could not convert Maven POM $pom to a Gradle build.", exception)
         }
     }
 }

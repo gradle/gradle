@@ -25,6 +25,7 @@ import org.gradle.api.internal.notations.api.UnsupportedNotationException;
 import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -33,18 +34,17 @@ import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.concurrent.Callable;
 
 public class IvyArtifactNotationParserFactory implements Factory<NotationParser<IvyArtifact>> {
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
-    private final String defaultArtifactName;
+    private final IvyPublicationIdentity publicationIdentity;
 
     public IvyArtifactNotationParserFactory(Instantiator instantiator, FileResolver fileResolver, IvyPublicationIdentity publicationIdentity) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
-
-        // TODO - Need to handle name being modified after addition of artifacts, once we have that functionality.
-        this.defaultArtifactName = publicationIdentity.getModule();
+        this.publicationIdentity = publicationIdentity;
     }
 
     public NotationParser<IvyArtifact> create() {
@@ -71,6 +71,20 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         return parserBuilder.toComposite();
     }
 
+    private DefaultIvyArtifact createDefaultIvyArtifact(File file, String extension, String type, String classifier) {
+        DefaultIvyArtifact ivyArtifact = instantiator.newInstance(
+                DefaultIvyArtifact.class,
+                file, null, extension, type, classifier
+        );
+        // TODO:DAZ Find a good way to handle this with lazy configuration
+        new DslObject(ivyArtifact).getConventionMapping().map("name", new Callable<String>() {
+            public String call() throws Exception {
+                return publicationIdentity.getModule();
+            }
+        });
+        return ivyArtifact;
+    }
+
     private class ArchiveTaskNotationParser extends TypedNotationParser<AbstractArchiveTask, IvyArtifact> {
         private ArchiveTaskNotationParser() {
             super(AbstractArchiveTask.class);
@@ -78,10 +92,8 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         @Override
         protected IvyArtifact parseType(AbstractArchiveTask archiveTask) {
-            DefaultIvyArtifact ivyArtifact = instantiator.newInstance(
-                    DefaultIvyArtifact.class,
-                    archiveTask.getArchivePath(), defaultArtifactName, archiveTask.getExtension(), archiveTask.getExtension(), archiveTask.getClassifier()
-            );
+            DefaultIvyArtifact ivyArtifact = createDefaultIvyArtifact(
+                    archiveTask.getArchivePath(), archiveTask.getExtension(), archiveTask.getExtension(), archiveTask.getClassifier());
             ivyArtifact.builtBy(archiveTask);
             return ivyArtifact;
         }
@@ -94,10 +106,8 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         @Override
         protected IvyArtifact parseType(PublishArtifact publishArtifact) {
-            DefaultIvyArtifact ivyArtifact = instantiator.newInstance(
-                    DefaultIvyArtifact.class,
-                    publishArtifact.getFile(), defaultArtifactName, publishArtifact.getExtension(), publishArtifact.getType(), publishArtifact.getClassifier()
-            );
+            DefaultIvyArtifact ivyArtifact = createDefaultIvyArtifact(
+                    publishArtifact.getFile(), publishArtifact.getExtension(), publishArtifact.getType(), publishArtifact.getClassifier());
             ivyArtifact.builtBy(publishArtifact.getBuildDependencies());
             return ivyArtifact;
         }
@@ -117,10 +127,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         protected IvyArtifact parseFile(File file) {
             String extension = StringUtils.substringAfterLast(file.getName(), ".");
-            return instantiator.newInstance(
-                    DefaultIvyArtifact.class,
-                    file, defaultArtifactName, extension, extension, null
-            );
+            return createDefaultIvyArtifact(file, extension, extension, null);
         }
 
         public void describe(Collection<String> candidateFormats) {

@@ -74,7 +74,6 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         javaLink.usingNativeTools().deleteDir()
     }
 
-    //TODO SF add coverage for reconnecting to those daemons.
     def "honours jvm sys property that contain a space in gradle.properties"() {
         given:
         file("gradle.properties") << 'org.gradle.jvmargs=-Dsome-prop="i have space"'

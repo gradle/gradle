@@ -16,12 +16,15 @@
 
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
+
 /**
  * The possible strategies for handling files with the same relative
  * path during a copy (or archive) operation.
  *
  * @author Kyle Mahan
  */
+@Incubating
 public enum DuplicatesStrategy {
 
     /**

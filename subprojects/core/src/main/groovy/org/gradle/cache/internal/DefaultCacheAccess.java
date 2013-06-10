@@ -16,28 +16,33 @@
 package org.gradle.cache.internal;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheAccess;
-import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
+import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheAccess {
+
+    private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
+
     private final String cacheDiplayName;
     private final File lockFile;
     private final FileLockManager lockManager;
@@ -48,23 +53,25 @@ public class DefaultCacheAccess implements CacheAccess {
     private Thread owner;
     private FileLockManager.LockMode lockMode;
     private FileLock fileLock;
-    private final ThreadLocal<CacheOperationStack> operationStack = new ThreadLocal<CacheOperationStack>() {
-        @Override
-        protected CacheOperationStack initialValue() {
-            return new CacheOperationStack();
-        }
-    };
+    private boolean busy;
+    private boolean contended;
+    private final CacheAccessOperationsStack operations;
+    private int cacheClosedCount;
 
     public DefaultCacheAccess(String cacheDisplayName, File lockFile, FileLockManager lockManager) {
+        this(cacheDisplayName, lockFile, lockManager, new CacheAccessOperationsStack());
+    }
+
+    public DefaultCacheAccess(String cacheDisplayName, File lockFile, FileLockManager lockManager, CacheAccessOperationsStack operations) {
         this.cacheDiplayName = cacheDisplayName;
         this.lockFile = lockFile;
         this.lockManager = lockManager;
+        this.operations = operations;
     }
 
     /**
-     * Opens this cache access with the given lock mode. Calling this with {@link org.gradle.cache.internal.FileLockManager.LockMode#Exclusive} will
-     * lock the cache for exclusive access from all other threads (including those in this process and all other processes), until
-     * {@link #close()} is called.
+     * Opens this cache access with the given lock mode. Calling this with {@link org.gradle.cache.internal.FileLockManager.LockMode#Exclusive} will lock the cache for exclusive access from all other
+     * threads (including those in this process and all other processes), until {@link #close()} is called.
      */
     public void open(FileLockManager.LockMode lockMode) {
         lock.lock();
@@ -76,30 +83,42 @@ public class DefaultCacheAccess implements CacheAccess {
             if (lockMode == FileLockManager.LockMode.None) {
                 return;
             }
-            fileLock = lockManager.lock(lockFile, lockMode, cacheDiplayName);
+            if (fileLock != null) {
+                throw new IllegalStateException("File lock " + lockFile + " is already open.");
+            }
+            fileLock = lockManager.lock(lockFile, lockMode, cacheDiplayName, whenContended());
             takeOwnership(String.format("Access %s", cacheDiplayName));
         } finally {
             lock.unlock();
         }
     }
 
+    private void closeFileLock() {
+        try {
+            cacheClosedCount++;
+            for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
+                cache.close(fileLock);
+            }
+            fileLock.close();
+        } finally {
+            fileLock = null;
+            contended = false;
+        }
+    }
+
     public void close() {
         lock.lock();
         try {
-            for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
-                cache.close();
-            }
-            operationStack.remove();
+            operations.close();
             lockMode = null;
             owner = null;
             if (fileLock != null) {
-                try {
-                    fileLock.close();
-                } finally {
-                    fileLock = null;
-                }
+                closeFileLock();
             }
         } finally {
+            if (cacheClosedCount != 1) {
+                LOG.info("Cache {} was closed {} times.", cacheDiplayName, cacheClosedCount);
+            }
             lock.unlock();
         }
     }
@@ -143,7 +162,7 @@ public class DefaultCacheAccess implements CacheAccess {
                 }
             }
             owner = Thread.currentThread();
-            operationStack.get().pushCacheAction(operationDisplayName);
+            operations.pushCacheAction(operationDisplayName);
         } finally {
             lock.unlock();
         }
@@ -152,8 +171,8 @@ public class DefaultCacheAccess implements CacheAccess {
     private void releaseOwnership(String operationDisplayName) {
         lock.lock();
         try {
-            operationStack.get().popCacheAction(operationDisplayName);
-            if (!operationStack.get().isInCacheAction()) {
+            operations.popCacheAction(operationDisplayName);
+            if (!operations.isInCacheAction()) {
                 owner = null;
                 condition.signalAll();
             }
@@ -163,12 +182,18 @@ public class DefaultCacheAccess implements CacheAccess {
     }
 
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        if (operationStack.get().isInLongRunningOperation()) {
-            operationStack.get().pushLongRunningOperation(operationDisplayName);
+        boolean isReentrant;
+        lock.lock();
+        try {
+            isReentrant = operations.maybeReentrantLongRunningOperation(operationDisplayName);
+        } finally {
+            lock.unlock();
+        }
+        if (isReentrant) {
             try {
                 return action.create();
             } finally {
-                operationStack.get().popLongRunningOperation(operationDisplayName);
+                popLongRunningOperation(operationDisplayName);
             }
         }
 
@@ -182,6 +207,15 @@ public class DefaultCacheAccess implements CacheAccess {
             if (wasEnded) {
                 onStartWork();
             }
+        }
+    }
+
+    private void popLongRunningOperation(String operationDisplayName) {
+        lock.lock();
+        try {
+            operations.popLongRunningOperation(operationDisplayName);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -205,7 +239,7 @@ public class DefaultCacheAccess implements CacheAccess {
             owner = null;
             condition.signalAll();
 
-            operationStack.get().pushLongRunningOperation(operationDisplayName);
+            operations.pushLongRunningOperation(operationDisplayName);
         } finally {
             lock.unlock();
         }
@@ -222,7 +256,7 @@ public class DefaultCacheAccess implements CacheAccess {
                 }
             }
             owner = Thread.currentThread();
-            operationStack.get().popLongRunningOperation(description);
+            popLongRunningOperation(description);
         } finally {
             lock.unlock();
         }
@@ -251,7 +285,7 @@ public class DefaultCacheAccess implements CacheAccess {
         try {
             caches.add(indexedCache);
             if (fileLock != null) {
-                indexedCache.onStartWork(operationStack.get().getDescription());
+                indexedCache.onStartWork(operations.getDescription());
             }
         } finally {
             lock.unlock();
@@ -267,10 +301,10 @@ public class DefaultCacheAccess implements CacheAccess {
         if (fileLock != null) {
             return false;
         }
+        fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operations.getDescription(), whenContended());
 
-        fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operationStack.get().getDescription());
         for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
-            cache.onStartWork(operationStack.get().getDescription());
+            cache.onStartWork(operations.getDescription());
         }
         return true;
     }
@@ -279,14 +313,8 @@ public class DefaultCacheAccess implements CacheAccess {
         if (fileLock == null) {
             return false;
         }
-
-        try {
-            for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
-                cache.onEndWork();
-            }
-            fileLock.close();
-        } finally {
-            fileLock = null;
+        if (contended || fileLock.getMode() == Shared) {
+            closeFileLock();
         }
         return true;
     }
@@ -295,7 +323,7 @@ public class DefaultCacheAccess implements CacheAccess {
         lock.lock();
         try {
             if (Thread.currentThread() != owner || fileLock == null) {
-                throw new IllegalStateException(String.format("The %s has not been locked.", cacheDiplayName));
+                throw new IllegalStateException(String.format("The %s has not been locked for this thread. File lock: %s, owner: %s", cacheDiplayName, fileLock != null, owner));
             }
         } finally {
             lock.unlock();
@@ -317,61 +345,35 @@ public class DefaultCacheAccess implements CacheAccess {
         }
     }
 
-    private class CacheOperationStack {
-        private final List<CacheOperation> operations = new ArrayList<CacheOperation>();
+    Runnable whenContended() {
+        return new Runnable() {
+            public void run() {
+                lock.lock();
+                try {
+                    LOG.info("Detected file lock contention of {} (fileLock={}, contended={}, owner={})", cacheDiplayName, fileLock != null, contended, owner);
+                    if (fileLock == null) {
+                        //the lock may have been closed
+                        return;
+                    }
+                    if (owner != null) {
+                        contended = true;
+                        return;
+                    }
 
-        public String getDescription() {
-            checkNotEmpty();
-            return operations.get(0).description;
-        }
-
-        public boolean isInLongRunningOperation() {
-            return !operations.isEmpty() && operations.get(0).longRunningOperation;
-        }
-
-        public void pushLongRunningOperation(String description) {
-            operations.add(0, new CacheOperation(description, true));
-        }
-
-        public void popLongRunningOperation(String description) {
-            pop(description, true);
-        }
-
-        public boolean isInCacheAction() {
-            return !operations.isEmpty() && !operations.get(0).longRunningOperation;
-        }
-
-        public void pushCacheAction(String description) {
-            operations.add(0, new CacheOperation(description, false));
-        }
-
-        public void popCacheAction(String description) {
-            pop(description, false);
-        }
-
-        private CacheOperation pop(String description, boolean longRunningOperation) {
-            checkNotEmpty();
-            CacheOperation operation = operations.remove(0);
-            if (operation.description.equals(description) && operation.longRunningOperation == longRunningOperation) {
-                return operation;
+                    takeOwnership("Other process requested access to " + cacheDiplayName);
+                    try {
+                        closeFileLock();
+                    } finally {
+                        releaseOwnership("Other process requested access to " + cacheDiplayName);
+                    }
+                } finally {
+                    lock.unlock();
+                }
             }
-            throw new IllegalStateException();
-        }
-
-        private void checkNotEmpty() {
-            if (operations.isEmpty()) {
-                throw new IllegalStateException();
-            }
-        }
+        };
     }
 
-    private class CacheOperation {
-        final String description;
-        final boolean longRunningOperation;
-
-        private CacheOperation(String description, boolean longRunningOperation) {
-            this.description = description;
-            this.longRunningOperation = longRunningOperation;
-        }
+    Thread getOwner() {
+        return owner;
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DependencyManagementServices
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistryFactory
@@ -34,7 +35,7 @@ class BuildSetupPlugin implements Plugin<Project> {
     public static final String SETUP_BUILD_TASK_NAME = "setupBuild"
     public static final String GROUP = 'Build Setup'
 
-    private final DependencyManagementServices dependencyManagementServices
+    private final MavenSettingsProvider mavenSettingsProvider
     private final DocumentationRegistry documentationRegistry
     private final FileResolver fileResolver
 
@@ -42,11 +43,11 @@ class BuildSetupPlugin implements Plugin<Project> {
     BuildSetupPlugin(DependencyManagementServices dependencyManagementServices, DocumentationRegistry documentationRegistry, FileResolver fileResolver) {
         this.fileResolver = fileResolver
         this.documentationRegistry = documentationRegistry
-        this.dependencyManagementServices = dependencyManagementServices
+        this.mavenSettingsProvider = dependencyManagementServices.get(MavenSettingsProvider)
     }
 
     void apply(Project project) {
-        ProjectLayoutSetupRegistryFactory projectLayoutRegistryFactory = new ProjectLayoutSetupRegistryFactory(dependencyManagementServices,
+        ProjectLayoutSetupRegistryFactory projectLayoutRegistryFactory = new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider,
                 documentationRegistry,
                 fileResolver);
 

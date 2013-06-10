@@ -17,20 +17,18 @@
 package org.gradle.buildsetup.plugins.internal
 
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.internal.file.FileResolver
 
 class ProjectLayoutSetupRegistryFactory {
-
     private final DocumentationRegistry documentationRegistry
-    private final DependencyManagementServices dependencyManagementServices
+    private final MavenSettingsProvider mavenSettingsProvider
     private final FileResolver fileResolver
 
-    public ProjectLayoutSetupRegistryFactory(DependencyManagementServices dependencyManagementServices,
+    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider,
                                              DocumentationRegistry documentationRegistry,
                                              FileResolver fileResolver) {
-        this.dependencyManagementServices = dependencyManagementServices
+        this.mavenSettingsProvider = mavenSettingsProvider
         this.documentationRegistry = documentationRegistry
         this.fileResolver = fileResolver
     }
@@ -42,7 +40,7 @@ class ProjectLayoutSetupRegistryFactory {
         // should be defererred when descriptor is requested.
         registry.add(new EmptyProjectSetupDescriptor(fileResolver, documentationRegistry));
         registry.add(new JavaLibraryProjectSetupDescriptor(fileResolver, documentationRegistry));
-        registry.add(new PomProjectSetupDescriptor(fileResolver, dependencyManagementServices.get(MavenSettingsProvider)))
+        registry.add(new PomProjectSetupDescriptor(fileResolver, mavenSettingsProvider))
         return registry
     }
 

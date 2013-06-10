@@ -27,8 +27,8 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.*;
-import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
@@ -79,7 +79,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     private final ExecutorFactory executorFactory;
     private final IdGenerator<?> idGenerator;
 
-    //TODO SF - outputEventListener and buildStandardInput are per-build settings
+    //TODO - outputEventListener and buildStandardInput are per-build settings
     //so down the road we should refactor the code accordingly and potentially attach them to BuildActionParameters
     public DaemonClient(DaemonConnector connector, OutputEventListener outputEventListener, ExplainingSpec<DaemonContext> compatibilitySpec,
                         InputStream buildStandardInput, ExecutorFactory executorFactory, IdGenerator<?> idGenerator) {
@@ -154,7 +154,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 connection.stop();
             }
         }
-        //TODO SF if we want to keep below sanity it should include the errors that were accumulated above.
+        //TODO it would be nice if below includes the errors that were accumulated above.
         throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to "
                 + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
     }
@@ -231,7 +231,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     }
 
     private IllegalStateException invalidResponse(Object response, Build command) {
-        //TODO SF we could include diagnostics here (they might be available).
+        //TODO diagnostics could be included in the exception (they might be available).
         return new IllegalStateException(String.format(
                 "Received invalid response from the daemon: '%s' is a result of a type we don't have a strategy to handle."
                         + "Earlier, '%s' request was sent to the daemon.", response, command));

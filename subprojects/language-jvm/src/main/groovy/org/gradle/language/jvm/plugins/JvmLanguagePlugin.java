@@ -22,9 +22,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinariesContainer;
+import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.BinaryInternal;
+import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.jvm.ClassDirectoryBinary;
 import org.gradle.language.jvm.ResourceSet;
@@ -38,7 +40,7 @@ import java.util.concurrent.Callable;
 
 /**
  * Base plugin for JVM language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.language.jvm.ClassDirectoryBinary} element type for the {@link BinariesContainer}.
+ * Registers the {@link org.gradle.language.jvm.ClassDirectoryBinary} element type for the {@link org.gradle.language.base.BinaryContainer}.
  * Adds a lifecycle task named {@code classes} for each {@link org.gradle.language.jvm.ClassDirectoryBinary}.
  * Registers the {@link org.gradle.language.jvm.ResourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
  * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.language.jvm.ClassDirectoryBinary}.
@@ -69,28 +71,29 @@ public class JvmLanguagePlugin implements Plugin<Project> {
             }
         });
 
-        BinariesContainer binariesContainer = target.getExtensions().getByType(BinariesContainer.class);
-        binariesContainer.registerFactory(ClassDirectoryBinary.class, new NamedDomainObjectFactory<ClassDirectoryBinary>() {
+        BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
+        binaryContainer.registerFactory(ClassDirectoryBinary.class, new NamedDomainObjectFactory<ClassDirectoryBinary>() {
             public ClassDirectoryBinary create(String name) {
                 return instantiator.newInstance(DefaultClassDirectoryBinary.class, name);
             };
         });
 
-        binariesContainer.withType(ClassDirectoryBinary.class).all(new Action<ClassDirectoryBinary>() {
+        binaryContainer.withType(ClassDirectoryBinary.class).all(new Action<ClassDirectoryBinary>() {
             public void execute(final ClassDirectoryBinary binary) {
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
+                final BinaryNamingScheme namingScheme = ((BinaryInternal) binary).getNamingScheme();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {
-                        return new File(new File(target.getBuildDir(), "classes"), binary.getTaskName(null, null));
+                        return new File(new File(target.getBuildDir(), "classes"), namingScheme.getOutputDirectoryBase());
                     }
                 });
-                final Task classesTask = target.getTasks().create(binary.getTaskName(null, "classes"));
+                final Task classesTask = target.getTasks().create(namingScheme.getTaskName(null, "classes"));
                 classesTask.setDescription(String.format("Assembles %s.", binary));
                 binary.setClassesTask(classesTask);
                 binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
                     public void execute(ResourceSet resourceSet) {
                         // TODO: handle case where binary has multiple ResourceSet's
-                        Copy resourcesTask = target.getTasks().create(binary.getTaskName("process", "resources"), ProcessResources.class);
+                        Copy resourcesTask = target.getTasks().create(namingScheme.getTaskName("process", "resources"), ProcessResources.class);
                         resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
                         new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
                             public File call() throws Exception {

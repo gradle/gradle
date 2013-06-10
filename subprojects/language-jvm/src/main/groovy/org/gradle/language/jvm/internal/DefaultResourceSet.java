@@ -35,10 +35,6 @@ public class DefaultResourceSet implements ResourceSet {
         return source;
     }
 
-    public FunctionalSourceSet getParent() {
-        return parent;
-    }
-
     public TaskDependency getBuildDependencies() {
         return source.getBuildDependencies();
     }

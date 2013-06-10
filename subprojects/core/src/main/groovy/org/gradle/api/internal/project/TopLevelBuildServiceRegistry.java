@@ -32,7 +32,6 @@ import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.plugins.ResolveDeferredConfigurableAction;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -42,6 +41,7 @@ import org.gradle.cache.CacheValidator;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
 import org.gradle.configuration.*;
+import org.gradle.configuration.project.*;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
@@ -142,7 +142,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
                 new PluginsProjectConfigureActions(get(ClassLoaderRegistry.class).getPluginsClassLoader()),
                 new BuildScriptProcessor(get(ScriptPluginFactory.class)),
-                new ResolveDeferredConfigurableAction()
+                new DelayedConfigurationActions(),
+                new ProjectDependencies2TaskResolver()
         );
         return new LifecycleProjectEvaluator(withActionsEvaluator);
     }

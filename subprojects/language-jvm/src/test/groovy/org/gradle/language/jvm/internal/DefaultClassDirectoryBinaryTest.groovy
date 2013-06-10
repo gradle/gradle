@@ -27,10 +27,10 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
         binary.name == 'mainClasses'
 
         and:
-        binary.getTaskName(null, null) == 'main'
-        binary.getTaskName("compile", null) == 'compileMain'
-        binary.getTaskName(null, "groovy") == 'groovy'
-        binary.getTaskName("compile", "groovy") == 'compileGroovy'
+        binary.namingScheme.getTaskName(null, null) == 'main'
+        binary.namingScheme.getTaskName("compile", null) == 'compileMain'
+        binary.namingScheme.getTaskName(null, "groovy") == 'groovy'
+        binary.namingScheme.getTaskName("compile", "groovy") == 'compileGroovy'
     }
 
     def "uses medium task names for binary with name 'otherClasses'"() {
@@ -41,10 +41,10 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
         binary.name == 'otherClasses'
 
         and:
-        binary.getTaskName(null, null) == 'other'
-        binary.getTaskName("compile", null) == 'compileOther'
-        binary.getTaskName(null, "groovy") == 'otherGroovy'
-        binary.getTaskName("compile", "groovy") == 'compileOtherGroovy'
+        binary.namingScheme.getTaskName(null, null) == 'other'
+        binary.namingScheme.getTaskName("compile", null) == 'compileOther'
+        binary.namingScheme.getTaskName(null, "groovy") == 'otherGroovy'
+        binary.namingScheme.getTaskName("compile", "groovy") == 'compileOtherGroovy'
     }
 
     def "uses full task names for binary with name 'otherBinary'"() {
@@ -55,10 +55,10 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
         binary.name == 'otherBinary'
 
         and:
-        binary.getTaskName(null, null) == 'otherBinary'
-        binary.getTaskName("compile", null) == 'compileOtherBinary'
-        binary.getTaskName(null, "groovy") == 'otherBinaryGroovy'
-        binary.getTaskName("compile", "groovy") == 'compileOtherBinaryGroovy'
+        binary.namingScheme.getTaskName(null, null) == 'otherBinary'
+        binary.namingScheme.getTaskName("compile", null) == 'compileOtherBinary'
+        binary.namingScheme.getTaskName(null, "groovy") == 'otherBinaryGroovy'
+        binary.namingScheme.getTaskName("compile", "groovy") == 'compileOtherBinaryGroovy'
     }
 
     def "has a useful toString() representation"() {

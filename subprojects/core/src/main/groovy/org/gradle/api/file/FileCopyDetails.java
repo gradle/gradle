@@ -62,6 +62,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      * @param strategy the strategy used when a duplicate file is encountered.
      *  Either 'include' or 'exclude'
      */
+    @Incubating
     void setDuplicatesStrategy(String strategy);
     
     /**
@@ -71,6 +72,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      *
      * @return the duplicates strategy for this file
      */
+    @Incubating
     DuplicatesStrategy getDuplicatesStrategy();
 
 }

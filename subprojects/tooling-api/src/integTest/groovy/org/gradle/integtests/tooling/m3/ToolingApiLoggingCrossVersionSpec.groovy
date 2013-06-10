@@ -30,45 +30,6 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.isEmbedded = false
     }
 
-    def "client receives same standard output and standard error as if running from the command-line"() {
-        toolingApi.verboseLogging = false
-
-        file("build.gradle") << """
-System.err.println "System.err \u03b1\u03b2"
-
-println "System.out \u03b1\u03b2"
-
-project.logger.error("error logging \u03b1\u03b2");
-project.logger.warn("warn logging");
-project.logger.lifecycle("lifecycle logging \u03b1\u03b2");
-project.logger.quiet("quiet logging");
-project.logger.info ("info logging");
-project.logger.debug("debug logging");
-"""
-        when:
-        def commandLineResult = targetDist.executer(temporaryFolder).run();
-
-        and:
-        def op = withBuild()
-
-        then:
-        def out = op.standardOutput
-        def err = op.standardError
-        normaliseOutput(out) == normaliseOutput(commandLineResult.output)
-        err == commandLineResult.error
-
-        and:
-        err.count("System.err \u03b1\u03b2") == 1
-        err.count("error logging \u03b1\u03b2") == 1
-
-        and:
-        out.count("lifecycle logging \u03b1\u03b2") == 1
-        out.count("warn logging") == 1
-        out.count("quiet logging") == 1
-        out.count("info") == 0
-        out.count("debug") == 0
-    }
-
     def "logging is live"() {
         def marker = file("marker.txt")
 
@@ -99,10 +60,6 @@ task log << {
         then:
         output.toString().contains("waiting")
         output.toString().contains("finished")
-    }
-
-    String normaliseOutput(String output) {
-        return output.replaceFirst("Total time: .+ secs", "Total time: 0 secs")
     }
 
     class TestResultHandler implements ResultHandler<Object> {

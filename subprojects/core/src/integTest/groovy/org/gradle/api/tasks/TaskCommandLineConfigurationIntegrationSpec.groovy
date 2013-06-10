@@ -188,7 +188,7 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         then:
         failure.assertHasDescription("Problem configuring task :someTask2 from command line. Unknown command-line option '--secon'.")
 
-        //TODO SF it's not fixable easily we would need to change some stuff in options parsing. See also ignore test method below.
+        //TODO it's not fixable easily we would need to change some stuff in options parsing. See also ignored test method below.
 //        when:
 //        runAndFail 'someTask', '-second', 'foo'
 //

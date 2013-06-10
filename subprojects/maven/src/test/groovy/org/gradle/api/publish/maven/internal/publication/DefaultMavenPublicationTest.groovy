@@ -61,7 +61,40 @@ public class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.name == "pub-name"
-        publication.mavenProjectIdentity == module
+        publication.mavenProjectIdentity.groupId == "group"
+        publication.mavenProjectIdentity.artifactId == "name"
+        publication.mavenProjectIdentity.version == "version"
+    }
+
+    def "changing publication coordinates does not effect those provided"() {
+        when:
+        module.artifactId >> "name"
+        module.groupId >> "group"
+        module.version >> "version"
+
+        and:
+        def publication = createPublication()
+
+        and:
+        publication.groupId = "group2"
+        publication.artifactId = "name2"
+        publication.version = "version2"
+
+        then:
+        module.groupId == "group"
+        module.artifactId == "name"
+        module.version == "version"
+
+        and:
+        publication.groupId == "group2"
+        publication.artifactId == "name2"
+        publication.version == "version2"
+
+        and:
+        publication.mavenProjectIdentity.groupId == "group2"
+        publication.mavenProjectIdentity.artifactId == "name2"
+        publication.mavenProjectIdentity.version == "version2"
+
     }
 
     def "packaging is taken from first added artifact without extension"() {

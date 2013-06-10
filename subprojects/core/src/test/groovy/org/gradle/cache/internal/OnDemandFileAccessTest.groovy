@@ -42,7 +42,7 @@ class OnDemandFileAccessTest extends Specification {
 
         then:
         !file.exists()
-        1 * manager.lock(file, LockMode.Shared, "some-lock") >> targetLock
+        1 * manager.lock(file, LockMode.Shared, "some-lock", _ as Runnable) >> targetLock
         1 * targetLock.readFile(action)
         1 * targetLock.close()
         0 * targetLock._
@@ -56,7 +56,7 @@ class OnDemandFileAccessTest extends Specification {
 
         then:
         !file.exists()
-        1 * manager.lock(file, LockMode.Exclusive, "some-lock") >> targetLock
+        1 * manager.lock(file, LockMode.Exclusive, "some-lock", _ as Runnable) >> targetLock
         1 * targetLock.updateFile(action)
         1 * targetLock.close()
         0 * targetLock._
@@ -70,7 +70,7 @@ class OnDemandFileAccessTest extends Specification {
 
         then:
         !file.exists()
-        1 * manager.lock(file, LockMode.Exclusive, "some-lock") >> targetLock
+        1 * manager.lock(file, LockMode.Exclusive, "some-lock", _ as Runnable) >> targetLock
         1 * targetLock.writeFile(action)
         1 * targetLock.close()
         0 * targetLock._

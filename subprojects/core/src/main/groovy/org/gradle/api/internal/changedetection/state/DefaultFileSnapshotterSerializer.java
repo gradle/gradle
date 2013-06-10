@@ -36,18 +36,18 @@ class DefaultFileSnapshotterSerializer extends DataStreamBackedSerializer<FileCo
         int snapshotsCount = dataInput.readInt();
         for (int i = 0; i < snapshotsCount; i++) {
             String key = dataInput.readUTF();
-            int fileSnapshotKind = dataInput.readInt();
+            byte fileSnapshotKind = dataInput.readByte();
             if (fileSnapshotKind == 1) {
                 snapshots.put(key, new DefaultFileSnapshotter.DirSnapshot());
             } else if (fileSnapshotKind == 2) {
                 snapshots.put(key, new DefaultFileSnapshotter.MissingFileSnapshot());
             } else if (fileSnapshotKind == 3) {
-                int hashSize = dataInput.readInt();
+                byte hashSize = dataInput.readByte();
                 byte[] hash = new byte[hashSize];
                 dataInput.readFully(hash);
                 snapshots.put(key, new DefaultFileSnapshotter.FileHashSnapshot(hash));
             } else {
-                assert false;
+                throw new RuntimeException("Unable to read serialized file collection snapshot. Unrecognized value found in the data stream.");
             }
         }
         return snapshot;
@@ -61,13 +61,13 @@ class DefaultFileSnapshotterSerializer extends DataStreamBackedSerializer<FileCo
             dataOutput.writeUTF(key);
             DefaultFileSnapshotter.FileSnapshot fileSnapshot = cached.snapshots.get(key);
             if (fileSnapshot instanceof DefaultFileSnapshotter.DirSnapshot) {
-                dataOutput.writeInt(1);
+                dataOutput.writeByte(1);
             } else if (fileSnapshot instanceof DefaultFileSnapshotter.MissingFileSnapshot) {
-                dataOutput.writeInt(2);
+                dataOutput.writeByte(2);
             } else if (fileSnapshot instanceof DefaultFileSnapshotter.FileHashSnapshot) {
-                dataOutput.writeInt(3);
+                dataOutput.writeByte(3);
                 byte[] hash = ((DefaultFileSnapshotter.FileHashSnapshot) fileSnapshot).hash;
-                dataOutput.writeInt(hash.length);
+                dataOutput.writeByte(hash.length);
                 dataOutput.write(hash);
             }
         }

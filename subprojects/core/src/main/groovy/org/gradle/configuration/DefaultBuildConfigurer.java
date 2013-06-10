@@ -22,7 +22,6 @@ import org.gradle.util.SingleMessageLogger;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
     public void configure(GradleInternal gradle) {
-        gradle.addProjectEvaluationListener(new ProjectDependencies2TaskResolver());
         if (gradle.getStartParameter().isConfigureOnDemand()) {
             SingleMessageLogger.informAboutIncubating("Configuration on demand");
             gradle.getRootProject().evaluate();

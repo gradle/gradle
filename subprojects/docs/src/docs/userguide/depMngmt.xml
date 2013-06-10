@@ -1112,7 +1112,7 @@ someroot/[artifact]-[revision].[ext]
                 </para>
                 <para>The <literal>--refresh-dependencies</literal> option tells Gradle to ignore all cached entries for resolved modules and artifacts.
                     A fresh resolve will be performed against all configured repositories, with dynamic versions recalculated, modules refreshed, and artifacts downloaded.
-                    However, where possible Gradle will attempt to if the previously downloaded artifacts are valid before downloading again.
+                    However, where possible Gradle will check if the previously downloaded artifacts are valid before downloading again.
                     This is done by comparing published SHA1 values in the repository with the SHA1 values for existing downloaded artifacts.
                 </para>
             </section>

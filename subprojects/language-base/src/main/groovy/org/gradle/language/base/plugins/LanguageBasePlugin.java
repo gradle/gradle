@@ -17,14 +17,15 @@ package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.internal.DefaultBinariesContainer;
+import org.gradle.language.base.internal.DefaultBinaryContainer;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 
 import javax.inject.Inject;
 
 /**
  * Base plugin for language support.
- * Adds a {@link org.gradle.language.base.BinariesContainer} named {@code binaries} to the project.
+ *
+ * Adds a {@link org.gradle.language.base.BinaryContainer} named {@code binaries} to the project.
  * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  */
 @Incubating
@@ -38,7 +39,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     public void apply(Project target) {
-        target.getExtensions().create("binaries", DefaultBinariesContainer.class, instantiator);
+        target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
     }
 }

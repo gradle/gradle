@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.language.jvm.tasks.StaleClassCleaner
+import org.gradle.language.jvm.internal.StaleClassCleaner
 import spock.lang.Specification
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.file.FileCollection

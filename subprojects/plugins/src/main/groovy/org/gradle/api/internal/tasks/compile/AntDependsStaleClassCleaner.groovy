@@ -19,7 +19,7 @@ import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.Factory
-import org.gradle.language.jvm.tasks.StaleClassCleaner
+import org.gradle.language.jvm.internal.StaleClassCleaner
 
 class AntDependsStaleClassCleaner extends StaleClassCleaner {
     private final Factory<AntBuilder> antBuilderFactory

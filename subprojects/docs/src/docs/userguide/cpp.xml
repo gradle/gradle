@@ -25,27 +25,31 @@
 
     <para>
         The C++ plugins add support for building software comprised of C++ source code, and managing the process of building “native” software in general.
-        While many excellent build tools exist for this space of software development, Gradle brings the dependency management practices more traditionally
-        found in the JVM development space to C++ developers.
+        While many excellent build tools exist for this space of software development, Gradle offers C++ developers it's trademark power and flexibility
+        together with the dependency management practices more traditionally found in the JVM development space.
     </para>
     <para>
-        The following platforms are supported:
+        Gradle offers the ability to execute the same build using different tool chains. At present, you control which tool chain will be used to build
+        by changing the operating system PATH to include the desired tool chain compiler. The following tool chains are supported:
     </para>
     <table>
         <thread>
-            <tr><td>Operating System</td><td>Compiler</td><td>Notes</td></tr>
+            <tr><td>Operating System</td><td>Tool Chain</td><td>Notes</td></tr>
         </thread>
         <tr>
-            <td>Linux</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Tested with GCC 4.6.1 on Ubuntu 11.10</td>
+            <td>Linux</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td></td>
         </tr>
         <tr>
-            <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Tested with XCode 4.2.1 on OS X 10.7</td>
+            <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Using GCC distributed with XCode.</td>
         </tr>
         <tr>
-            <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Tested with Windows 7 and Visual C++ 2010</td>
+            <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Windows XP and later, using GCC distributed with Cygwin.</td>
         </tr>
         <tr>
-            <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Tested with Windows 7 and MinGW 4.6.2. Note: G++ support is currently broken under cygwin</td>
+            <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
+        </tr>
+        <tr>
+            <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later.</td>
         </tr>
     </table>
     <para>
@@ -58,7 +62,7 @@
     <section>
         <title>Usage</title>
         <para>
-            The build scripts DSLs, model elements and tasks used to manage C++ projects are added by the <literal>cpp</literal> plugin. However, it is typically
+            Everything a build scripts DSLs, model elements and tasks used to manage C++ projects are added by the <literal>cpp</literal> plugin. However, it is typically
             more convenient to use either the <literal>cpp-lib</literal> or <literal>cpp-exe</literal> plugins that sit on top of the <literal>cpp</literal>
             plugin to pre-configure the project to build either a native library or executable respectively.
         </para>
@@ -69,9 +73,24 @@
             <sourcefile file="build.gradle" snippet="use-plugin-lib"/>
         </sample>
         <para>
-            The <literal>cpp-exe</literal> plugin configures the project to build a single executable (at <filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable></filename>) and
-            the <literal>cpp-lib</literal> plugin configures the project to build a single shared library (at <filename><replaceable>$buildDir</replaceable>/binaries/lib<replaceable>$project.name</replaceable>.so</filename>).
+            The <literal>cpp-exe</literal> plugin configures the project to build a single executable,
+            and the <literal>cpp-lib</literal> plugin configures the project to build a shared and static version of a single library.
         </para>
+        <table>
+            <thread>
+                <tr><td>Plugin</td><td>Output</td><td>Task to create</td><td>Location of created binary</td></tr>
+            </thread>
+            <tr>
+                <td>cpp-exe</td><td>Executable</td><td><literal>mainExecutable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable></filename></td>
+            </tr>
+            <tr>
+                <td>cpp-lib</td><td>Shared Library</td><td><literal>mainSharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/lib<replaceable>$project.name</replaceable>.so</filename></td>
+            </tr>
+            <tr>
+                <td>cpp-lib</td><td>Static Library</td><td><literal>mainStaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable>.a</filename></td>
+            </tr>
+        </table>
+
     </section>
 
     <section>
@@ -83,16 +102,12 @@
             such header files should always be referenced in a manner relative to the file including them).
         </para>
         <para>
-            The <literal>cpp</literal> plugin is also very flexible in where it looks for source and header files, and you can configure the above conventions to look however you
-            like.
+            The <literal>cpp</literal> plugin is also very flexible in where it looks for source and header files, and you can configure the above conventions to look however you like.
         </para>
     </section>
 
     <section>
-        <title>Compiling</title>
-        <para>
-            For both the <literal>cpp-lib</literal> and <literal>cpp-exe</literal> plugins, you can run <userinput>gradle compileMain</userinput> to compile and link the binary.
-        </para>
+        <title>Building</title>
         <section>
             <title>Compiling on UNIX</title>
             <para>
@@ -124,7 +139,7 @@
     <section>
         <title>Working with shared libraries</title>
         <para>
-            The C++ plugin provides an <literal>installMain</literal> task, which creates a development install of the executable, along with the shared libraries it requires.
+            The <literal>cpp-exe</literal> plugin provides an <literal>installMainExecutable</literal> task, which creates a development install of the executable, along with the shared libraries it requires.
             This allows you to run the executable without needing to install the shared libraries in their final locations.
         </para>
     </section>

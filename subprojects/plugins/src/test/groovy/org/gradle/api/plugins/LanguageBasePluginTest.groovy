@@ -16,7 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.language.base.BinariesContainer
+import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.util.HelperUtil
@@ -32,7 +32,7 @@ class LanguageBasePluginTest extends Specification {
 
     def "adds a 'binaries' container to the project"() {
         expect:
-        project.extensions.findByName("binaries") instanceof BinariesContainer
+        project.extensions.findByName("binaries") instanceof BinaryContainer
     }
 
     def "adds a 'sources' container to the project"() {

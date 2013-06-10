@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.logging.StandardOutputCapture;
@@ -71,4 +72,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
     ProjectStateInternal getState();
 
     ExtensionContainerInternal getExtensions();
+
+    ProjectConfigurationActionContainer getConfigurationActions();
 }
