@@ -349,22 +349,22 @@ public class CopySpecImplTest {
     }
 
     @Test public void testGetSetDuplicatesStrategy() {
-        assertEquals(DuplicatesStrategy.INHERIT, spec.duplicatesStrategy)
-        spec.setDuplicatesStrategy('include')
-        assertEquals(DuplicatesStrategy.INCLUDE, spec.duplicatesStrategy)
-        spec.setDuplicatesStrategy('exclude')
-        assertEquals(DuplicatesStrategy.EXCLUDE, spec.duplicatesStrategy)
-        spec.setDuplicatesStrategy((String) null)
-        assertEquals(DuplicatesStrategy.INHERIT, spec.duplicatesStrategy)
-        spec.setDuplicatesStrategy('inherit')
-        assertEquals(DuplicatesStrategy.INHERIT, spec.duplicatesStrategy)
+        assertEquals(DuplicatesStrategy.inherit, spec.duplicatesStrategy)
+        spec.duplicatesStrategy = 'include'
+        assertEquals(DuplicatesStrategy.include, spec.duplicatesStrategy)
+        spec.duplicatesStrategy = 'exclude'
+        assertEquals(DuplicatesStrategy.exclude, spec.duplicatesStrategy)
+        spec.duplicatesStrategy = null
+        assertEquals(null, spec.duplicatesStrategy)
+        spec.duplicatesStrategy = 'inherit'
+        assertEquals(DuplicatesStrategy.inherit, spec.duplicatesStrategy)
     }
 
 
     @Test public void testDuplicatesStrategyInherited() {
-        spec.setDuplicatesStrategy('exclude')
+        spec.duplicatesStrategy = 'exclude'
         spec.with new CopySpecImpl(fileResolver, spec)
-        assertEquals(DuplicatesStrategy.EXCLUDE, spec.childSpecs[0].duplicatesStrategy)
+        assertEquals(DuplicatesStrategy.exclude, spec.childSpecs[0].duplicatesStrategy)
     }
 
     @Test public void testMatchingCreatesAppropriateAction() {

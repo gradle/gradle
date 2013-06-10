@@ -60,7 +60,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<ReadableCopySpec>();
         patternSet = new PatternSet();
-        duplicatesStrategy = DuplicatesStrategy.INHERIT;
+        duplicatesStrategy = DuplicatesStrategy.inherit;
     }
 
     public CopySpecImpl(FileResolver resolver) {
@@ -212,14 +212,10 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     }
 
     public DuplicatesStrategy getDuplicatesStrategy() {
-        if (parentSpec != null && duplicatesStrategy == DuplicatesStrategy.INHERIT) {
+        if (parentSpec != null && duplicatesStrategy == DuplicatesStrategy.inherit) {
             return parentSpec.getDuplicatesStrategy();
         }
         return duplicatesStrategy;
-    }
-
-    public void setDuplicatesStrategy(String strategy) {
-        setDuplicatesStrategy(DuplicatesStrategy.fromString(strategy));
     }
 
     public void setDuplicatesStrategy(DuplicatesStrategy strategy) {

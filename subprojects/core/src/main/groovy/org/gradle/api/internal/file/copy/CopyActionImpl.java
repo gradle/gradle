@@ -204,12 +204,6 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         return root.getDuplicatesStrategy();
     }
 
-    public void setDuplicatesStrategy(String strategy) {
-        // this is root and not mainContent because eg, Jar.metaInf extends from root,
-        // and we want it to inherit the duplicates strategy too
-        root.setDuplicatesStrategy(strategy);
-    }
-
     public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
         // this is root and not mainContent because eg, Jar.metaInf extends from root,
         // and we want it to inherit the duplicates strategy too

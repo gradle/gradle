@@ -68,7 +68,7 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
             this.fileDetails = fileDetails;
             this.spec = spec;
             this.fileSystem = fileSystem;
-            this.duplicatesStrategy = DuplicatesStrategy.INHERIT;
+            this.duplicatesStrategy = DuplicatesStrategy.inherit;
         }
 
         public String getDisplayName() {
@@ -207,8 +207,8 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
             return this;
         }
 
-        public void setDuplicatesStrategy(String strategy) {
-            this.duplicatesStrategy = DuplicatesStrategy.fromString(strategy);
+        public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+            this.duplicatesStrategy = strategy;
         }
 
         public DuplicatesStrategy getDuplicatesStrategy() {

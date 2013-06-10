@@ -64,7 +64,7 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
     public void visitFile(FileVisitDetails visitDetails) {
         FileCopyDetails details = (FileCopyDetails) visitDetails;
         DuplicatesStrategy strategy = determineStrategy(details);
-        if (strategy == DuplicatesStrategy.EXCLUDE) {
+        if (strategy == DuplicatesStrategy.exclude) {
             maybeDefer(visitDetails);
             return;
         }
@@ -93,7 +93,7 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
 
     private DuplicatesStrategy determineStrategy(FileCopyDetails details) {
         if (details.getDuplicatesStrategy() == null
-                || details.getDuplicatesStrategy() == DuplicatesStrategy.INHERIT) {
+                || details.getDuplicatesStrategy() == DuplicatesStrategy.inherit) {
             return spec.getDuplicatesStrategy();
         }
         return details.getDuplicatesStrategy();

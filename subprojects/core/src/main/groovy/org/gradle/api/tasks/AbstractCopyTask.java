@@ -124,13 +124,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    public void setDuplicatesStrategy(String strategy) {
-        getMainSpec().setDuplicatesStrategy(strategy);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
         getMainSpec().setDuplicatesStrategy(strategy);
     }

@@ -96,10 +96,10 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     void setIncludeEmptyDirs(boolean includeEmptyDirs);
 
     /**
-     * The strategy for handling more than one file with the same path name. The EXCLUDE strategy will
-     * skip subsequent files with a path that has already been encountered. This is set to INHERIT by default,
-     * which will use the behavior of the parent spec. If no parent spec is explicitly set, then INHERIT will
-     * act as INCLUDE. Also accepts strings in the form 'include', 'exclude', or 'inherit'.
+     * The strategy for handling more than one file with the same path name. The exclude strategy will
+     * skip subsequent files with a path that has already been encountered. This is set to inherit by default,
+     * which will use the behavior of the parent spec. If no parent spec is explicitly set, then inherit will
+     * act as include. Also accepts strings in the form 'include', 'exclude', or 'inherit'.
      *
      * @return the strategy for handling duplicate file paths
      */
@@ -108,16 +108,9 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * Sets the default strategy for handling files with duplicate path names. This strategy can be overridden for
      * individual files by configuring FileCopyDetails.
-     * @param strategy Can be DuplicatesStrategy.INHERIT (default), INCLUDE, or EXCLUDE
+     * @param strategy Can be DuplicatesStrategy.inherit (default), include, or exclude
      */
     void setDuplicatesStrategy(DuplicatesStrategy strategy);
-
-    /**
-     * Sets the default strategy for handling files with duplicate path names. This strategy can be overridden for individual files
-     * by configuring FileCopyDetails.
-     * @param strategy Can be 'inherit' (default), 'include', or 'exclude'
-     */
-    void setDuplicatesStrategy(String strategy);
 
     /**
      * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches the specified Ant-style pattern.

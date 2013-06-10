@@ -35,7 +35,7 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
     MyCopySpec copySpec = Mock()
     FileTree fileTree = Mock()
     def visitor = new MappingCopySpecVisitor(
-            new DuplicateHandlingCopySpecVisitor(delegate), fileSystem)
+            new DuplicateHandlingCopySpecVisitor(delegate, false), fileSystem)
 
     
     def duplicatesIncludedByDefault() {
@@ -80,7 +80,7 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
 
         copySpec.allCopyActions >> [
                 {it.name = it.name.replaceAll('module[0-9]+/', '')} as org.gradle.api.Action,
-                {it.setDuplicatesStrategy('exclude')} as org.gradle.api.Action ]
+                {it.duplicatesStrategy = 'exclude'} as org.gradle.api.Action ]
 
         when:
         visitor.startVisit(null);
@@ -98,7 +98,7 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
         given:
         buildCopySpec(['path/file1.txt', 'path/file2.txt', 'path/file1.txt'])
         copySpec.allCopyActions >> []
-        copySpec.duplicatesStrategy >> DuplicatesStrategy.EXCLUDE
+        copySpec.duplicatesStrategy >> DuplicatesStrategy.exclude
 
         when:
         visitor.startVisit(null);
