@@ -239,7 +239,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([finalized1, finalized2])
 
         then:
-        executedTasks == [finalized1, finalized2, finalizerDependency, finalizer1, finalizer2]
+        executedTasks == [finalized1, finalizerDependency, finalizer1, finalized2, finalizer2]
     }
 
     def "finalizer task is not added to the graph if it is filtered"() {

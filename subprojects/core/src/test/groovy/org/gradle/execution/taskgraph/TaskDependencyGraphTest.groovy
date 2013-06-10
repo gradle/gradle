@@ -41,7 +41,8 @@ class TaskDependencyGraphTest extends Specification {
         then:
         graph.getNode(a).is(node)
         graph.addNode(a).is(node)
-        !node.required
+        !node.inKnownState
+        node.hardPredecessors.empty
         node.softSuccessors.empty
         node.hardSuccessors.empty
         node.finalizers.empty
@@ -66,9 +67,8 @@ class TaskDependencyGraphTest extends Specification {
         with graph, {
             tasks == [a, c, b] as Set
             getNode(a).hardSuccessors*.task == [b, c]
+            [b, c].every { getNode(it).hardPredecessors*.task == [a] }
             [b, c].every { !getNode(it).hardSuccessors }
-            [a, b, c].every { !getNode(it).softSuccessors }
-            [a, b, c].every { !getNode(it).finalizers }
         }
     }
 
@@ -83,8 +83,6 @@ class TaskDependencyGraphTest extends Specification {
             tasks == [a, c, b] as Set
             getNode(a).softSuccessors*.task == [b, c]
             [b, c].every { !getNode(it).softSuccessors }
-            [a, b, c].every { !getNode(it).hardSuccessors }
-            [a, b, c].every { !getNode(it).finalizers }
         }
     }
 
@@ -99,8 +97,6 @@ class TaskDependencyGraphTest extends Specification {
             tasks == [a, c, b] as Set
             getNode(a).finalizers*.task == [b, c]
             [b, c].every { !getNode(it).finalizers }
-            [a, b, c].every { !getNode(it).hardSuccessors }
-            [a, b, c].every { !getNode(it).softSuccessors }
         }
     }
 
