@@ -94,8 +94,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         dashboardLinksCount == 4
-        links.find { it.contains("':test' (html)") }
-        links.find { it.contains("':test' (junitXml)") }
+        linksLazy.find { it.contains("':test' (html)") }
+        linksLazy.find { it.contains("':test' (junitXml)") }
     }
 
     void 'buildDashboard task always runs after report generating tasks'() {
@@ -104,8 +104,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         dashboardLinksCount == 4
-        links.find { it.contains("':test' (html)") }
-        links.find { it.contains("':test' (junitXml)") }
+        linksLazy.find { it.contains("':test' (html)") }
+        linksLazy.find { it.contains("':test' (junitXml)") }
     }
 
     void 'no report is generated if it is disabled'() {
@@ -206,12 +206,12 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
             }"""
     }
 
-    List<String> _links
+    private List<String> linksLazy
     List<String> getLinks() {
-        if (_links == null) {
-            _links = dashboard.select("div#content li a")*.text()
+        if (linksLazy == null) {
+            linksLazy = dashboard.select("div#content li a")*.text()
         }
-        _links
+        linksLazy
     }
 
     Document getDashboard() {
