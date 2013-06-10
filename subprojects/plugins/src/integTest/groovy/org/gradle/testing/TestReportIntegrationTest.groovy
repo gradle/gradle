@@ -32,6 +32,7 @@ class TestReportIntegrationTest extends AbstractIntegrationSpec {
     def "report includes results of each invocation"() {
         given:
         buildFile << """
+$junitSetup
 test { systemProperty 'LogLessStuff', System.getProperty('LogLessStuff') }
 """
 
