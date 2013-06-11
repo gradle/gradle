@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.tasks.PublishToIvyRepository;
+import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.TaskContainer;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
@@ -76,7 +77,7 @@ public class IvyPublishDynamicTaskCreator {
             PublishToIvyRepository publishTask = tasks.create(publishTaskName, PublishToIvyRepository.class);
             publishTask.setPublication(publication);
             publishTask.setRepository(repository);
-            publishTask.setGroup("publishing");
+            publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             publishTask.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'.", publicationName, repositoryName));
 
             publishLifecycleTask.dependsOn(publishTask);

@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
+import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.TaskContainer;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
@@ -53,7 +54,7 @@ public class MavenPublishLocalDynamicTaskCreator {
 
         PublishToMavenLocal publishTask = tasks.create(installTaskName, PublishToMavenLocal.class);
         publishTask.setPublication(publication);
-        publishTask.setGroup("publishing");
+        publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
         publishTask.setDescription(String.format("Publishes Maven publication '%s' to the local Maven repository.", publicationName));
 
         publishToMavenLocalLifecycleTask.dependsOn(publishTask);
