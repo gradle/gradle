@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.ConfigureUtil;
 
 /**
  * Action performed on each FileCopyDetails that matches the given specification
@@ -30,16 +28,16 @@ public class MatchingCopyAction implements Action<FileCopyDetails> {
 
     private final Spec<RelativePath> matchSpec;
 
-    private final Closure toApply;
+    private final Action<? super FileCopyDetails> toApply;
 
-    public MatchingCopyAction(Spec<RelativePath> matchSpec, Closure toApply) {
+    public MatchingCopyAction(Spec<RelativePath> matchSpec, Action<? super FileCopyDetails> toApply) {
         this.matchSpec = matchSpec;
         this.toApply = toApply;
     }
 
     public void execute(FileCopyDetails details) {
         if (matchSpec.isSatisfiedBy(details.getRelativePath())) {
-            ConfigureUtil.configure(toApply, details);
+            toApply.execute(details);
         }
     }
 

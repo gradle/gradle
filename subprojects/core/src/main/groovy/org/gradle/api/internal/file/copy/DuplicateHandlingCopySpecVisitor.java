@@ -22,9 +22,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -35,25 +33,12 @@ import java.util.Set;
 public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor {
 
     private final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
-    private Map<RelativePath, PossibleDuplicate> deferred = new HashMap<RelativePath, PossibleDuplicate>();
     private ReadableCopySpec spec;
     private boolean warnOnIncludeDuplicate;
 
     public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
         super(visitor);
         this.warnOnIncludeDuplicate = warnOnIncludeDuplicate;
-    }
-
-    public void startVisit(CopyAction action) {
-        deferred.clear();
-        super.startVisit(action);
-    }
-
-
-    public void endVisit() {
-        visitDeferred();
-        deferred.clear();
-        super.endVisit();
     }
 
     public void visitSpec(ReadableCopySpec spec) {
@@ -64,30 +49,18 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
     public void visitFile(FileVisitDetails visitDetails) {
         FileCopyDetails details = (FileCopyDetails) visitDetails;
         DuplicatesStrategy strategy = determineStrategy(details);
-        if (strategy == DuplicatesStrategy.exclude) {
-            maybeDefer(visitDetails);
-            return;
+
+        if (!visitedFiles.add(details.getRelativePath())) {
+            if (strategy == DuplicatesStrategy.exclude) {
+                return;
+            }
+            if (warnOnIncludeDuplicate) {
+                DeprecationLogger.nagUserOfDeprecatedBehaviour(
+                        String.format("Including duplicate file %s", details.getRelativePath()));
+            }
         }
-        if (warnOnIncludeDuplicate && !visitedFiles.add(details.getRelativePath())) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour(
-                    String.format("Including duplicate file %s", details.getRelativePath()));
-        }
+
         super.visitFile(visitDetails);
-    }
-
-    private void maybeDefer(FileVisitDetails details) {
-        PossibleDuplicate oldDuplicate = deferred.get(details.getRelativePath());
-        PossibleDuplicate newDuplicate = new PossibleDuplicate(details, spec, spec.getDuplicatesPriority());
-        if (oldDuplicate == null || newDuplicate.isHigherPriority(oldDuplicate)) {
-            deferred.put(details.getRelativePath(), newDuplicate);
-        }
-    }
-
-    private void visitDeferred() {
-        for (PossibleDuplicate kept : deferred.values()) {
-            super.visitSpec(kept.copySpec);
-            super.visitFile(kept.details);
-        }
     }
 
 
@@ -97,22 +70,6 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
             return spec.getDuplicatesStrategy();
         }
         return details.getDuplicatesStrategy();
-    }
-
-    private static final class PossibleDuplicate {
-        public FileVisitDetails details;
-        public ReadableCopySpec copySpec;
-        public Integer priority;
-
-        public PossibleDuplicate(FileVisitDetails details, ReadableCopySpec spec, Integer priority) {
-            this.details = details;
-            this.copySpec = spec;
-            this.priority = priority;
-        }
-
-        public boolean isHigherPriority(PossibleDuplicate o) {
-            return priority != null && (o.priority == null || priority > o.priority);
-        }
     }
 
 }

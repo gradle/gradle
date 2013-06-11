@@ -42,6 +42,4 @@ public interface ReadableCopySpec {
 
     DuplicatesStrategy getDuplicatesStrategy();
 
-    Integer getDuplicatesPriority();
-
 }

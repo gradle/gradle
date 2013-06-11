@@ -15,11 +15,7 @@
  */
 package org.gradle.api.internal.file.copy
 
-import org.gradle.api.file.CopySpec
-import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.file.FileTree
-import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.file.RelativePath
+import org.gradle.api.file.*
 import spock.lang.Specification
 
 /**

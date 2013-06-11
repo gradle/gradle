@@ -49,9 +49,6 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private Boolean includeEmptyDirs;
     private PathNotationParser<String> pathNotationParser;
     private DuplicatesStrategy duplicatesStrategy;
-    // Higher priority means files from this spec are more likely to be included
-    // vs. duplicates from a spec with lower (or null) priority
-    private Integer duplicatesPriority;
 
     private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec) {
         this.parentSpec = parentSpec;
@@ -222,27 +219,24 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         this.duplicatesStrategy = strategy;
     }
 
-    public Integer getDuplicatesPriority() {
-        if (parentSpec != null && duplicatesPriority == null) {
-            return parentSpec.getDuplicatesPriority();
-        }
-        return duplicatesPriority;
-    }
-
-    public void setDuplicatesPriority(Integer priority) {
-        this.duplicatesPriority = priority;
-    }
-
     public CopySpec matching(String pattern, Closure closure) {
+        return matching(pattern, new ClosureBackedAction<FileCopyDetails>(closure));
+    }
+
+    public CopySpec matching(String pattern, Action<? super FileCopyDetails> action) {
         Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
         return eachFile(
-                new MatchingCopyAction(matcher, closure));
+                new MatchingCopyAction(matcher, action));
     }
 
     public CopySpec notMatching(String pattern, Closure closure) {
+        return notMatching(pattern, new ClosureBackedAction<FileCopyDetails>(closure));
+    }
+
+    public CopySpec notMatching(String pattern, Action<? super FileCopyDetails> action) {
         Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
         return eachFile(
-                new MatchingCopyAction(new NotSpec<RelativePath>(matcher), closure));
+                new MatchingCopyAction(new NotSpec<RelativePath>(matcher), action));
     }
 
     public CopySpec include(String... includes) {
@@ -501,10 +495,6 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
 
         public DuplicatesStrategy getDuplicatesStrategy() {
             return spec.getDuplicatesStrategy();
-        }
-
-        public Integer getDuplicatesPriority() {
-            return spec.getDuplicatesPriority();
         }
     }
 }

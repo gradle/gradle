@@ -42,14 +42,14 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         this(resolver, visitor, false);
     }
 
-    public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor, boolean warnOnIncludeDuplicates) {
+    public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
         this.resolver = resolver;
         root = new CopySpecImpl(resolver);
         mainContent = root.addChild();
         this.visitor = new MappingCopySpecVisitor(
                            new DuplicateHandlingCopySpecVisitor(
                                new NormalizingCopySpecVisitor(visitor),
-                               warnOnIncludeDuplicates),
+                               warnOnIncludeDuplicate),
                            FileSystems.getDefault());
     }
 
@@ -214,8 +214,16 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         return mainContent.matching(pattern, closure);
     }
 
+    public CopySpec matching(String pattern, Action<? super FileCopyDetails> action) {
+        return mainContent.matching(pattern, action);
+    }
+
     public CopySpec notMatching(String pattern, Closure closure) {
         return mainContent.notMatching(pattern, closure);
+    }
+
+    public CopySpec notMatching(String pattern, Action<? super FileCopyDetails> action) {
+        return mainContent.notMatching(pattern, action);
     }
 
     public CopySpec rename(Closure closure) {
