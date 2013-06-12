@@ -32,7 +32,7 @@ public class DefaultDependencyToConfigurationResolver implements DependencyToCon
         DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();
         Set<String> targetConfigurationNames = new LinkedHashSet<String>();
         for (String config : dependencyDescriptor.getModuleConfigurations()) {
-            if (config.equals("*")) {
+            if (config.equals("*") || config.equals("%")) {
                 collectTargetConfiguration(dependencyDescriptor, fromConfiguration, fromConfiguration.getName(), targetDescriptor, targetConfigurationNames);
             } else if (fromConfiguration.getHierarchy().contains(config)) {
                 collectTargetConfiguration(dependencyDescriptor, fromConfiguration, config, targetDescriptor, targetConfigurationNames);

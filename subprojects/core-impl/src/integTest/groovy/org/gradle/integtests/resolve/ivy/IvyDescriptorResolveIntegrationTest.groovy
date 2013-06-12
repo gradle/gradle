@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
+
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Unroll
 
@@ -132,13 +133,15 @@ task check(type: Sync) {
         file("libs").assertHasDescendants(jars.toArray(new String[0]))
 
         where:
-        name                     | excludeAttributes                          | transitiveJars
-        "empty exclude"          | [:]                                        | []
-        "unmatched exclude"      | [module: "different"]                      | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
-        "module exclude"         | [module: "mod_one"]                        | ['mod_two-2.2.jar']
-        "org exclude"            | [org: "org.gradle.two"]                    | ['mod_one-1.1.jar', 'mod_one-1.1.war']
-        "module and org exclude" | [org: "org.gradle.two", module: "mod_one"] | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_two-2.2.jar']
-        "regex module exclude"   | [module: "mod.*"]                          | []
+        name                       | excludeAttributes                          | transitiveJars
+        "empty exclude"            | [:]                                        | []
+        "unmatched exclude"        | [module: "different"]                      | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
+        "module exclude"           | [module: "mod_one"]                        | ['mod_two-2.2.jar']
+        "org exclude"              | [org: "org.gradle.two"]                    | ['mod_one-1.1.jar', 'mod_one-1.1.war']
+        "module and org exclude"   | [org: "org.gradle.two", module: "mod_one"] | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_two-2.2.jar']
+        "regex module exclude"     | [module: "mod.*"]                          | []
+        "matching config exclude"  | [module: "mod_one", conf: "default,other"] | ['mod_two-2.2.jar']
+        "unmatched config exclude" | [module: "mod_one", conf: "other"]         | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
 //  GRADLE-2674
 //        "type exclude"           | [type: "war"]                              | ['mod_one-1.1.jar', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
     }

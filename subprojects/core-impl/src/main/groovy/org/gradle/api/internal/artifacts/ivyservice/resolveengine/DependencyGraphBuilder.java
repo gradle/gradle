@@ -354,7 +354,7 @@ public class DependencyGraphBuilder {
             }
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
             for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-                ModuleRevisionId id = childConfiguration.moduleMetaData.getDescriptor().getModuleRevisionId();
+                ModuleRevisionId id = childConfiguration.moduleRevision.metaData.getDescriptor().getModuleRevisionId();
                 Artifact artifact = new DefaultArtifact(id, null, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
                 artifacts.add(resolvedArtifactFactory.create(childConfiguration.getResult(), artifact, targetModuleRevision.resolve().getArtifactResolver()));
             }
@@ -456,7 +456,7 @@ public class DependencyGraphBuilder {
             ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(original, configurationName);
             ConfigurationNode configuration = nodes.get(id);
             if (configuration == null) {
-                configuration = new ConfigurationNode(module, module.metaData, configurationName, this);
+                configuration = new ConfigurationNode(module, configurationName, this);
                 nodes.put(id, configuration);
             }
             return configuration;
@@ -685,30 +685,24 @@ public class DependencyGraphBuilder {
      */
     private static class ConfigurationNode {
         final ModuleVersionResolveState moduleRevision;
-        final ModuleVersionMetaData moduleMetaData;
         final ConfigurationMetaData metaData;
         final ResolveState resolveState;
-        final DefaultModuleDescriptor descriptor;
-        final String configurationName;
         final Set<DependencyEdge> incomingEdges = new LinkedHashSet<DependencyEdge>();
         final Set<DependencyEdge> outgoingEdges = new LinkedHashSet<DependencyEdge>();
         DefaultResolvedDependency result;
         ModuleVersionSpec previousTraversal;
         Set<ResolvedArtifact> artifacts;
 
-        private ConfigurationNode(ModuleVersionResolveState moduleRevision, ModuleVersionMetaData moduleMetaData, String configurationName, ResolveState resolveState) {
+        private ConfigurationNode(ModuleVersionResolveState moduleRevision, String configurationName, ResolveState resolveState) {
             this.moduleRevision = moduleRevision;
-            this.moduleMetaData = moduleMetaData;
             this.resolveState = resolveState;
-            this.descriptor = (DefaultModuleDescriptor) moduleMetaData.getDescriptor();
-            this.configurationName = configurationName;
-            this.metaData = moduleMetaData.getConfiguration(configurationName);
+            this.metaData = moduleRevision.metaData.getConfiguration(configurationName);
             moduleRevision.addConfiguration(this);
         }
 
         @Override
         public String toString() {
-            return String.format("%s(%s)", moduleRevision, configurationName);
+            return String.format("%s(%s)", moduleRevision, metaData.getName());
         }
 
         public Set<ResolvedArtifact> getArtifacts(ResolvedArtifactFactory resolvedArtifactFactory) {
@@ -723,7 +717,7 @@ public class DependencyGraphBuilder {
 
         public DefaultResolvedDependency getResult() {
             if (result == null) {
-                result = new DefaultResolvedDependency(moduleRevision.id, configurationName);
+                result = new DefaultResolvedDependency(moduleRevision.id, metaData.getName());
             }
 
             return result;

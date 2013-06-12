@@ -157,9 +157,11 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         dependency3.addDependencyConfiguration("super", "c")
         def dependency4 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
         dependency4.addDependencyConfiguration("other", "d")
+        def dependency5 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        dependency5.addDependencyConfiguration("%", "e")
 
         given:
-        moduleDescriptor.dependencies >> ([dependency1, dependency2, dependency3, dependency4] as DependencyDescriptor[])
+        moduleDescriptor.dependencies >> ([dependency1, dependency2, dependency3, dependency4, dependency5] as DependencyDescriptor[])
         moduleDescriptor.getConfiguration("conf") >> config
         config.extends >> ["super"]
 
@@ -170,7 +172,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         def dependencies = descriptor.getConfiguration("conf").dependencies
 
         then:
-        dependencies*.descriptor == [dependency1, dependency2, dependency3]
+        dependencies*.descriptor == [dependency1, dependency2, dependency3, dependency5]
 
         and:
         descriptor.getConfiguration("conf").dependencies.is(dependencies)

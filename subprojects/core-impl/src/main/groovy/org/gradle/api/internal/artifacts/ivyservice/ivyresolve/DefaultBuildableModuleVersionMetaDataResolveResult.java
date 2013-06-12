@@ -199,7 +199,7 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
                 dependencies = new ArrayList<DependencyMetaData>();
                 for (DependencyMetaData dependency : DefaultBuildableModuleVersionMetaDataResolveResult.this.getDependencies()) {
                     for (String moduleConfiguration : dependency.getDescriptor().getModuleConfigurations()) {
-                        if (moduleConfiguration.equals("*") || hierarchy.contains(moduleConfiguration)) {
+                        if (moduleConfiguration.equals("*") || moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
                             dependencies.add(dependency);
                         }
                     }
