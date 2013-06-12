@@ -16,14 +16,27 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.test.fixtures.maven.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.junit.Rule
 
 class ResolveCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
+    @Rule HttpServer server = new HttpServer()
 
     def "can upgrade and downgrade Gradle version"() {
         given:
+        mavenRepo.module("test", "io", "1.4").publish()
+        mavenRepo.module("test", "lang", "2.4").publish()
+        mavenRepo.module("test", "lang", "2.6").publish()
+
+        and:
+        server.start()
+        server.allowGetOrHead("/repo", mavenRepo.rootDir)
+
+        and:
         buildFile << """
 repositories {
-    mavenCentral()
+    maven { url "http://localhost:${server.port}/repo" }
 }
 
 configurations {
@@ -31,12 +44,12 @@ configurations {
 }
 
 dependencies {
-    compile 'commons-io:commons-io:1.4'
-    compile 'commons-lang:commons-lang:2.+'
+    compile 'test:io:1.4'
+    compile 'test:lang:2.+'
 }
 
 task check << {
-    assert configurations.compile*.name as Set == ['commons-io-1.4.jar', 'commons-lang-2.6.jar'] as Set
+    assert configurations.compile*.name as Set == ['io-1.4.jar', 'lang-2.6.jar'] as Set
 }
 """
 
