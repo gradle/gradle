@@ -42,6 +42,7 @@ public class DependencyGraphBuilder {
     private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final DependencyToModuleVersionIdResolver dependencyResolver;
     private final CacheLockingManager cacheLockingManager;
+    private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
     private final InternalConflictResolver conflictResolver;
     private final ModuleToModuleVersionResolver moduleResolver;
 
@@ -49,11 +50,13 @@ public class DependencyGraphBuilder {
                                   DependencyToModuleVersionIdResolver dependencyResolver,
                                   ModuleToModuleVersionResolver moduleResolver,
                                   ModuleConflictResolver conflictResolver,
-                                  CacheLockingManager cacheLockingManager) {
+                                  CacheLockingManager cacheLockingManager,
+                                  DependencyToConfigurationResolver dependencyToConfigurationResolver) {
         this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.dependencyResolver = dependencyResolver;
         this.moduleResolver = moduleResolver;
         this.cacheLockingManager = cacheLockingManager;
+        this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
         this.conflictResolver = new InternalConflictResolver(conflictResolver);
     }
 
@@ -61,7 +64,7 @@ public class DependencyGraphBuilder {
         DefaultBuildableModuleVersionResolveResult rootModule = new DefaultBuildableModuleVersionResolveResult();
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
-        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver);
+        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver);
         traverseGraph(resolveState);
 
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult(), cacheLockingManager);
@@ -335,48 +338,10 @@ public class DependencyGraphBuilder {
                 return;
             }
 
-            ModuleDescriptor targetDescriptor = targetModuleVersion.getDescriptor();
-            Set<String> targets = new LinkedHashSet<String>();
-            for (String config : dependencyDescriptor.getModuleConfigurations()) {
-                if (config.equals("*")) {
-                    collectTargetConfiguration(from.configurationName, targetDescriptor, targets);
-                } else if (from.metaData.getHierarchy().contains(config)) {
-                    collectTargetConfiguration(config, targetDescriptor, targets);
-                }
-            }
-
-            for (String targetConfigurationName : targets) {
-                // TODO - this is the wrong spot for this check
-                if (targetDescriptor.getConfiguration(targetConfigurationName) == null) {
-                    throw new RuntimeException(String.format("Module version %s, configuration:%s declares a dependency on configuration '%s' which is not declared in the module descriptor for %s",
-                            from.moduleRevision.id, from.configurationName,
-                            targetConfigurationName, targetModuleRevision.id));
-                }
-                ConfigurationNode targetConfiguration = resolveState.getConfigurationNode(targetModuleRevision, targetConfigurationName);
-                targetConfigurations.add(targetConfiguration);
-            }
-        }
-
-        private void collectTargetConfiguration(String mappingRhs, ModuleDescriptor targetModule, Collection<String> targetConfigs) {
-            String[] dependencyConfigurations = dependencyDescriptor.getDependencyConfigurations(mappingRhs, from.configurationName);
-            for (String target : dependencyConfigurations) {
-                String candidate = target;
-                int startFallback = candidate.indexOf('(');
-                if (startFallback >= 0) {
-                    if (candidate.charAt(candidate.length() - 1) == ')') {
-                        String preferred = candidate.substring(0, startFallback);
-                        if (targetModule.getConfiguration(preferred) != null) {
-                            targetConfigs.add(preferred);
-                            continue;
-                        }
-                        candidate = candidate.substring(startFallback + 1, candidate.length() - 1);
-                    }
-                }
-                if (candidate.equals("*")) {
-                    Collections.addAll(targetConfigs, targetModule.getConfigurationsNames());
-                    continue;
-                }
-                targetConfigs.add(candidate);
+            List<ConfigurationMetaData> targetConfigurations = resolveState.dependencyToConfigurationResolver.resolveTargetConfigurations(dependencyMetaData, from.metaData, targetModuleVersion);
+            for (ConfigurationMetaData targetConfiguration : targetConfigurations) {
+                ConfigurationNode targetConfigurationNode = resolveState.getConfigurationNode(targetModuleRevision, targetConfiguration.getName());
+                this.targetConfigurations.add(targetConfigurationNode);
             }
         }
 
@@ -454,11 +419,13 @@ public class DependencyGraphBuilder {
         private final Map<ModuleVersionSelector, ModuleVersionSelectorResolveState> selectors = new LinkedHashMap<ModuleVersionSelector, ModuleVersionSelectorResolveState>();
         private final ConfigurationNode root;
         private final DependencyToModuleVersionIdResolver resolver;
+        private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
 
-        public ResolveState(ModuleVersionResolveResult rootResult, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver) {
+        public ResolveState(ModuleVersionResolveResult rootResult, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver, DependencyToConfigurationResolver dependencyToConfigurationResolver) {
             this.resolver = resolver;
+            this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
             ModuleVersionResolveState rootVersion = getRevision(rootResult.getId());
             rootVersion.setResolveResult(rootResult);
             root = getConfigurationNode(rootVersion, rootConfigurationName);

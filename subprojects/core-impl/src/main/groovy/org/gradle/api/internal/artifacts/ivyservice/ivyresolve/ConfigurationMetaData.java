@@ -27,6 +27,10 @@ public interface ConfigurationMetaData {
      */
     Set<String> getHierarchy();
 
+    String getName();
+
+    ModuleVersionMetaData getModuleVersion();
+
     List<DependencyMetaData> getDependencies();
 
     Set<Artifact> getArtifacts();

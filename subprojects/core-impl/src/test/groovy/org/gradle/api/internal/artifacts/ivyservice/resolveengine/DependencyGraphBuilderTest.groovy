@@ -47,14 +47,13 @@ import org.gradle.api.artifacts.ModuleDependency
 class DependencyGraphBuilderTest extends Specification {
     final ResolvedArtifactFactory resolvedArtifactFactory = Mock()
     final ConfigurationInternal configuration = Mock()
-    final ResolveEngine resolveEngine = Mock()
-    final ResolveData resolveData = new ResolveData(resolveEngine, new ResolveOptions())
     final ModuleConflictResolver conflictResolver = Mock()
     final DependencyToModuleVersionIdResolver dependencyResolver = Mock()
     final ResolvedConfigurationListener listener = Mock()
     final ModuleVersionMetaData root = revision('root')
     final ModuleToModuleVersionResolver moduleResolver = Mock()
-    final DependencyGraphBuilder builder = new DependencyGraphBuilder(resolvedArtifactFactory, dependencyResolver, moduleResolver, conflictResolver, Stub(CacheLockingManager))
+    final DependencyToConfigurationResolver dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
+    final DependencyGraphBuilder builder = new DependencyGraphBuilder(resolvedArtifactFactory, dependencyResolver, moduleResolver, conflictResolver, Stub(CacheLockingManager), dependencyToConfigurationResolver)
 
     def setup() {
         config(root, 'root', 'default')

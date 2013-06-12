@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 

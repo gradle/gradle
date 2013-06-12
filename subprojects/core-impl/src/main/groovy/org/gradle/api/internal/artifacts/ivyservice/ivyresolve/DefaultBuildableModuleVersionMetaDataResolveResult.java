@@ -125,6 +125,9 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     public void setDependencies(Iterable<? extends DependencyMetaData> dependencies) {
         assertResolved();
         this.dependencies = CollectionUtils.toList(dependencies);
+        for (DefaultConfigurationMetaData configuration : configurations.values()) {
+            configuration.dependencies = null;
+        }
     }
 
     public DefaultConfigurationMetaData getConfiguration(final String name) {
@@ -169,10 +172,19 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     private class DefaultConfigurationMetaData implements ConfigurationMetaData {
         private final Configuration descriptor;
         private final Set<String> hierarchy;
+        private List<DependencyMetaData> dependencies;
 
         private DefaultConfigurationMetaData(Configuration descriptor, Set<String> hierarchy) {
             this.descriptor = descriptor;
             this.hierarchy = hierarchy;
+        }
+
+        public ModuleVersionMetaData getModuleVersion() {
+            return DefaultBuildableModuleVersionMetaDataResolveResult.this;
+        }
+
+        public String getName() {
+            return descriptor.getName();
         }
 
         public Set<String> getHierarchy() {
@@ -184,11 +196,13 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         }
 
         public List<DependencyMetaData> getDependencies() {
-            List<DependencyMetaData> dependencies = new ArrayList<DependencyMetaData>();
-            for (DependencyMetaData dependency : DefaultBuildableModuleVersionMetaDataResolveResult.this.getDependencies()) {
-                for (String moduleConfiguration : dependency.getDescriptor().getModuleConfigurations()) {
-                    if (moduleConfiguration.equals("*") || hierarchy.contains(moduleConfiguration)) {
-                        dependencies.add(dependency);
+            if (dependencies == null) {
+                dependencies = new ArrayList<DependencyMetaData>();
+                for (DependencyMetaData dependency : DefaultBuildableModuleVersionMetaDataResolveResult.this.getDependencies()) {
+                    for (String moduleConfiguration : dependency.getDescriptor().getModuleConfigurations()) {
+                        if (moduleConfiguration.equals("*") || hierarchy.contains(moduleConfiguration)) {
+                            dependencies.add(dependency);
+                        }
                     }
                 }
             }

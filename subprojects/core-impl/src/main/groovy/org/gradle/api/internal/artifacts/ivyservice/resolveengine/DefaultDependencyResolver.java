@@ -71,7 +71,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
         ModuleConflictResolver actualResolver = new VersionSelectionReasonResolver(conflictResolver);
 
-        DependencyGraphBuilder builder = new DependencyGraphBuilder(resolvedArtifactFactory, idResolver, projectDependencyResolver, actualResolver, cacheLockingManager);
+        DependencyGraphBuilder builder = new DependencyGraphBuilder(resolvedArtifactFactory, idResolver, projectDependencyResolver, actualResolver, cacheLockingManager, new DefaultDependencyToConfigurationResolver());
         ResolutionResultBuilder resultBuilder = new ResolutionResultBuilder();
         DefaultLenientConfiguration result = builder.resolve(configuration, resultBuilder);
         return new ResolverResults(new DefaultResolvedConfiguration(result), resultBuilder.getResult());

@@ -145,7 +145,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.getConfiguration("conf") == null
     }
 
-    def "filters module dependencies to determine dependencies of a configuration"() {
+    def "builds and caches dependencies for a configuration"() {
         def id = Stub(ModuleVersionIdentifier)
         def moduleDescriptor = Stub(ModuleDescriptor)
         def config = Stub(Configuration)
@@ -166,8 +166,20 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         and:
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
 
-        expect:
-        descriptor.getConfiguration("conf").dependencies*.descriptor == [dependency1, dependency2, dependency3]
+        when:
+        def dependencies = descriptor.getConfiguration("conf").dependencies
+
+        then:
+        dependencies*.descriptor == [dependency1, dependency2, dependency3]
+
+        and:
+        descriptor.getConfiguration("conf").dependencies.is(dependencies)
+
+        when:
+        descriptor.setDependencies([])
+
+        then:
+        descriptor.getConfiguration("conf").dependencies == []
     }
 
     def "builds artifacts from the module descriptor"() {
