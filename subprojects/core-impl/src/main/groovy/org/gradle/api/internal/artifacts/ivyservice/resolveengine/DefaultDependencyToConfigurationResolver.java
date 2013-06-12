@@ -25,7 +25,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMeta
 import java.util.*;
 
 public class DefaultDependencyToConfigurationResolver implements DependencyToConfigurationResolver {
-    public List<ConfigurationMetaData> resolveTargetConfigurations(DependencyMetaData dependencyMetaData, ConfigurationMetaData fromConfiguration, ModuleVersionMetaData targetModuleVersion) {
+    // TODO - don't pass in 'from' configuration - the dependency should have whatever context it needs
+    public Set<ConfigurationMetaData> resolveTargetConfigurations(DependencyMetaData dependencyMetaData, ConfigurationMetaData fromConfiguration, ModuleVersionMetaData targetModuleVersion) {
         // TODO - resolve directly to config meta data
         ModuleDescriptor targetDescriptor = targetModuleVersion.getDescriptor();
         DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();
@@ -38,7 +39,7 @@ public class DefaultDependencyToConfigurationResolver implements DependencyToCon
             }
         }
 
-        List<ConfigurationMetaData> targets = new ArrayList<ConfigurationMetaData>();
+        Set<ConfigurationMetaData> targets = new LinkedHashSet<ConfigurationMetaData>();
         for (String targetConfigurationName : targetConfigurationNames) {
             // TODO - move this down below
             if (targetDescriptor.getConfiguration(targetConfigurationName) == null) {

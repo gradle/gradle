@@ -20,11 +20,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfigurationMeta
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
-import java.util.List;
+import java.util.Set;
 
 /**
- * Responsible for mapping a dependency definition to the set of configurations it refers to in some target module.
+ * Responsible for mapping a dependency definition to the set of configurations that it refers to.
  */
 public interface DependencyToConfigurationResolver {
-    List<ConfigurationMetaData> resolveTargetConfigurations(DependencyMetaData dependencyMetaData, ConfigurationMetaData fromConfiguration, ModuleVersionMetaData targetModuleVersion);
+    Set<ConfigurationMetaData> resolveTargetConfigurations(DependencyMetaData dependencyMetaData, ConfigurationMetaData fromConfiguration, ModuleVersionMetaData targetModuleVersion);
 }

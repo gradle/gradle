@@ -182,7 +182,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.getConfiguration("conf").dependencies == []
     }
 
-    def "builds artifacts from the module descriptor"() {
+    def "builds and caches artifacts from the module descriptor"() {
         def id = Stub(ModuleVersionIdentifier)
         def moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "group", "version"), "status", null)
         def artifact1 = Stub(Artifact)
@@ -201,6 +201,9 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
 
         then:
         artifacts as List == [artifact1, artifact2]
+
+        and:
+        descriptor.getConfiguration("config").artifacts.is(artifacts)
     }
 
     def "artifacts include those inherited from other configurations"() {
@@ -226,6 +229,38 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
 
         then:
         artifacts as List == [artifact2, artifact3, artifact1]
+    }
+
+    def "builds and caches exclude rules for a configuration"() {
+        def id = Stub(ModuleVersionIdentifier)
+        def moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "group", "version"), "status", null)
+        def rule1 = Stub(ExcludeRule)
+        def rule2 = Stub(ExcludeRule)
+        def rule3 = Stub(ExcludeRule)
+
+        given:
+        rule1.configurations >> ["config"]
+        rule2.configurations >> ["super"]
+        rule3.configurations >> ["other"]
+
+        and:
+        moduleDescriptor.addConfiguration(new Configuration("super"))
+        moduleDescriptor.addConfiguration(new Configuration("config", Configuration.Visibility.PUBLIC, "", ["super"] as String[], true, null))
+        moduleDescriptor.addExcludeRule(rule1)
+        moduleDescriptor.addExcludeRule(rule2)
+        moduleDescriptor.addExcludeRule(rule3)
+
+        and:
+        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
+
+        when:
+        def excludeRules = descriptor.getConfiguration("config").excludeRules
+
+        then:
+        excludeRules as List == [rule1, rule2]
+
+        and:
+        descriptor.getConfiguration("config").excludeRules.is(excludeRules)
     }
 
     def "can replace the dependencies for the module version"() {
