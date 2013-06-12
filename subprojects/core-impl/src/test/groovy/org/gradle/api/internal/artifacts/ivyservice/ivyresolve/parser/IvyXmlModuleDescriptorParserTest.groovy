@@ -193,6 +193,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
                     <dependency name="mymodule2" conf="a->one,two;a,b->three;*->four;%->none"/>
                     <dependency name="mymodule2" conf="a->#"/>
                     <dependency name="mymodule2" conf="a->a;%->@"/>
+                    <dependency name="mymodule2" conf="a->a;*,!a->b"/>
                 </dependencies>
             </ivy-module>
         """
@@ -250,6 +251,13 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         dependency9.getDependencyConfigurations("a", "requested") == ["a"]
         dependency9.getDependencyConfigurations("b") == ["b"]
         dependency9.getDependencyConfigurations("b", "requested") == ["b"]
+
+        def dependency10 = descriptor.dependencies[9]
+        dependency10.moduleConfigurations == ["a", "*", "!a"]
+        dependency10.getDependencyConfigurations("a") == ["a", "b"]
+        dependency10.getDependencyConfigurations("a", "requested") == ["a", "b"]
+        dependency10.getDependencyConfigurations("b") == ["b"]
+        dependency10.getDependencyConfigurations("b", "requested") == ["b"]
     }
 
     def verifyFullDependencies(DependencyDescriptor[] dependencies) {

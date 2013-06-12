@@ -198,14 +198,35 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
             if (dependencies == null) {
                 dependencies = new ArrayList<DependencyMetaData>();
                 for (DependencyMetaData dependency : DefaultBuildableModuleVersionMetaDataResolveResult.this.getDependencies()) {
-                    for (String moduleConfiguration : dependency.getDescriptor().getModuleConfigurations()) {
-                        if (moduleConfiguration.equals("*") || moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
-                            dependencies.add(dependency);
-                        }
+                    if (include(dependency)) {
+                        dependencies.add(dependency);
                     }
                 }
             }
             return dependencies;
+        }
+
+        private boolean include(DependencyMetaData dependency) {
+            String[] moduleConfigurations = dependency.getDescriptor().getModuleConfigurations();
+            for (int i = 0; i < moduleConfigurations.length; i++) {
+                String moduleConfiguration = moduleConfigurations[i];
+                if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
+                    return true;
+                }
+                if (moduleConfiguration.equals("*")) {
+                    boolean include = true;
+                    for (int j = i + 1; j < moduleConfigurations.length && moduleConfigurations[j].startsWith("!"); j++) {
+                        if (moduleConfigurations[j].substring(1).equals(getName())) {
+                            include = false;
+                            break;
+                        }
+                    }
+                    if (include) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         public Set<ExcludeRule> getExcludeRules() {
