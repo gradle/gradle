@@ -8,6 +8,8 @@ Gradle 2.0 is the next major Gradle release that offers the opportunity to make 
   Leave behind some methods which operate on the file tree as a whole, eg `eachFile()`, `duplicatesStrategy`, `matching()`.
 * Change the copy tasks so that `into` always refers to the root of the destination file tree, and that `destinationDir` (possibly with a rename) is instead used to
   specify the root of the destination file tree, for those tasks that produce a file tree on the file system.
+* Change the `Jar` type so that there is a single `metaInf` copy spec which is a child of the main content, rather than creating a new copy spec each time `metainf`
+  is referenced. Do the same for `War.webInf`.
 * The `CopySpec.with()` method currently assumes that a root copy spec is supplied with all values specified, and no values are inherted by the attached copy spec.
   Instead, change `CopySpec.with()` so that values are inherited from the copy spec.
 * Change the default duplicatesStrategy to `fail` or perhaps `warn`.

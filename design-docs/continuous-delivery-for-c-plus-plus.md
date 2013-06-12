@@ -137,7 +137,6 @@ This story introduces the concept of a static library binary that can be built f
 - Change visual C++ toolchain to:
      - Use `lib.exe` to assemble the static library.
 - Change the GCC toolchain to:
-    - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
     - Don't use other shared library flags (`-shared`) when compiling source files for a static library.
     - Use `ar` to assemble the static library.
 - Update the user guide to reflect the fact that static libraries can be built. Include a stand-alone sample that
@@ -526,6 +525,10 @@ project in the same build, or from a binary repository.
 - Merge `CppSourceSet.libs` and `CppSourceSet.nativeDependencySets`.
 - Allow a `Binary` to be attached to a publication.
 - Update publication so that a binary's include, link and runtime files are published.
+- Need to be able to deal with the fact that only relocatable binaries can be linked into relocatable binaries
+    - Make it possible to build a relocatable variant of a static library binary.
+    - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
+    - Change dependency resolution to choose the relocatable variant of a static library when linking into a shared library
 
 ## Story: Introduce native functional source sets
 
@@ -1081,3 +1084,5 @@ TBD
 * Custom variants.
 * Calling convention.
 * Can in theory share the compile task between a static library and an executable built from the same source.
+* Publishing and resolving RPM/DEB/NuGet/pkg-config/ etc.
+* Support for profiling builds: build with profiling enabled, execute a bunch of times, then build again using the profiling information.
