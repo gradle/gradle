@@ -145,6 +145,31 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.getConfiguration("conf") == null
     }
 
+    def "filters module dependencies to determine dependencies of a configuration"() {
+        def id = Stub(ModuleVersionIdentifier)
+        def moduleDescriptor = Stub(ModuleDescriptor)
+        def config = Stub(Configuration)
+        def dependency1 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        dependency1.addDependencyConfiguration("conf", "a")
+        def dependency2 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        dependency2.addDependencyConfiguration("*", "b")
+        def dependency3 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        dependency3.addDependencyConfiguration("super", "c")
+        def dependency4 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        dependency4.addDependencyConfiguration("other", "d")
+
+        given:
+        moduleDescriptor.dependencies >> ([dependency1, dependency2, dependency3, dependency4] as DependencyDescriptor[])
+        moduleDescriptor.getConfiguration("conf") >> config
+        config.extends >> ["super"]
+
+        and:
+        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
+
+        expect:
+        descriptor.getConfiguration("conf").dependencies*.descriptor == [dependency1, dependency2, dependency3]
+    }
+
     def "builds artifacts from the module descriptor"() {
         def id = Stub(ModuleVersionIdentifier)
         def moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "group", "version"), "status", null)

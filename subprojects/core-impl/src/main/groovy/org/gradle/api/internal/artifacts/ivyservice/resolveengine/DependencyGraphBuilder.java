@@ -17,8 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.resolve.IvyNode;
-import org.apache.ivy.core.resolve.ResolveData;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
@@ -59,11 +57,11 @@ public class DependencyGraphBuilder {
         this.conflictResolver = new InternalConflictResolver(conflictResolver);
     }
 
-    public DefaultLenientConfiguration resolve(ConfigurationInternal configuration, ResolveData resolveData, ResolvedConfigurationListener listener) throws ResolveException {
+    public DefaultLenientConfiguration resolve(ConfigurationInternal configuration, ResolvedConfigurationListener listener) throws ResolveException {
         DefaultBuildableModuleVersionResolveResult rootModule = new DefaultBuildableModuleVersionResolveResult();
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
-        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, resolveData);
+        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver);
         traverseGraph(resolveState);
 
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult(), cacheLockingManager);
@@ -268,18 +266,16 @@ public class DependencyGraphBuilder {
         private final ConfigurationNode from;
         private final DependencyDescriptor dependencyDescriptor;
         private final DependencyMetaData dependencyMetaData;
-        private final Set<String> targetConfigurationRules;
         private final ResolveState resolveState;
         private final ModuleVersionSpec selectorSpec;
         private final Set<ConfigurationNode> targetConfigurations = new LinkedHashSet<ConfigurationNode>();
         private final ModuleVersionSelectorResolveState selector;
         private ModuleVersionResolveState targetModuleRevision;
 
-        public DependencyEdge(ConfigurationNode from, DependencyMetaData dependencyMetaData, Set<String> targetConfigurationRules, ModuleVersionSpec selectorSpec, ResolveState resolveState) {
+        public DependencyEdge(ConfigurationNode from, DependencyMetaData dependencyMetaData, ModuleVersionSpec selectorSpec, ResolveState resolveState) {
             this.from = from;
             this.dependencyMetaData = dependencyMetaData;
             this.dependencyDescriptor = dependencyMetaData.getDescriptor();
-            this.targetConfigurationRules = targetConfigurationRules;
             this.selectorSpec = selectorSpec;
             this.resolveState = resolveState;
             selector = resolveState.getSelector(dependencyMetaData);
@@ -287,7 +283,7 @@ public class DependencyGraphBuilder {
 
         @Override
         public String toString() {
-            return String.format("%s -> %s(%s)", from.toString(), dependencyMetaData.getRequested(), targetConfigurationRules);
+            return String.format("%s -> %s(%s)", from.toString(), dependencyMetaData.getRequested(), dependencyDescriptor);
         }
 
         /**
@@ -340,10 +336,13 @@ public class DependencyGraphBuilder {
             }
 
             ModuleDescriptor targetDescriptor = targetModuleVersion.getDescriptor();
-            IvyNode node = new IvyNode(resolveState.resolveData, targetDescriptor);
             Set<String> targets = new LinkedHashSet<String>();
-            for (String targetConfiguration : targetConfigurationRules) {
-                Collections.addAll(targets, node.getRealConfs(targetConfiguration));
+            for (String config : dependencyDescriptor.getModuleConfigurations()) {
+                if (config.equals("*")) {
+                    collectTargetConfiguration(from.configurationName, targetDescriptor, targets);
+                } else if (from.metaData.getHierarchy().contains(config)) {
+                    collectTargetConfiguration(config, targetDescriptor, targets);
+                }
             }
 
             for (String targetConfigurationName : targets) {
@@ -355,6 +354,29 @@ public class DependencyGraphBuilder {
                 }
                 ConfigurationNode targetConfiguration = resolveState.getConfigurationNode(targetModuleRevision, targetConfigurationName);
                 targetConfigurations.add(targetConfiguration);
+            }
+        }
+
+        private void collectTargetConfiguration(String mappingRhs, ModuleDescriptor targetModule, Collection<String> targetConfigs) {
+            String[] dependencyConfigurations = dependencyDescriptor.getDependencyConfigurations(mappingRhs, from.configurationName);
+            for (String target : dependencyConfigurations) {
+                String candidate = target;
+                int startFallback = candidate.indexOf('(');
+                if (startFallback >= 0) {
+                    if (candidate.charAt(candidate.length() - 1) == ')') {
+                        String preferred = candidate.substring(0, startFallback);
+                        if (targetModule.getConfiguration(preferred) != null) {
+                            targetConfigs.add(preferred);
+                            continue;
+                        }
+                        candidate = candidate.substring(startFallback + 1, candidate.length() - 1);
+                    }
+                }
+                if (candidate.equals("*")) {
+                    Collections.addAll(targetConfigs, targetModule.getConfigurationsNames());
+                    continue;
+                }
+                targetConfigs.add(candidate);
             }
         }
 
@@ -432,13 +454,11 @@ public class DependencyGraphBuilder {
         private final Map<ModuleVersionSelector, ModuleVersionSelectorResolveState> selectors = new LinkedHashMap<ModuleVersionSelector, ModuleVersionSelectorResolveState>();
         private final ConfigurationNode root;
         private final DependencyToModuleVersionIdResolver resolver;
-        private final ResolveData resolveData;
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
 
-        public ResolveState(ModuleVersionResolveResult rootResult, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver, ResolveData resolveData) {
+        public ResolveState(ModuleVersionResolveResult rootResult, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver) {
             this.resolver = resolver;
-            this.resolveData = resolveData;
             ModuleVersionResolveState rootVersion = getRevision(rootResult.getId());
             rootVersion.setResolveResult(rootResult);
             root = getConfigurationNode(rootVersion, rootConfigurationName);
@@ -602,7 +622,6 @@ public class DependencyGraphBuilder {
         final ModuleVersionIdentifier id;
         final ResolveState resolveState;
         final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();
-        List<DependencyMetaData> dependencies;
         ModuleVersionMetaData metaData;
         ModuleState state = ModuleState.New;
         ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
@@ -623,13 +642,6 @@ public class DependencyGraphBuilder {
 
         public String getRevision() {
             return id.getVersion();
-        }
-
-        public Iterable<DependencyMetaData> getDependencies() {
-            if (dependencies == null) {
-                dependencies = getMetaData().getDependencies();
-            }
-            return dependencies;
         }
 
         public String getId() {
@@ -793,33 +805,18 @@ public class DependencyGraphBuilder {
                 removeOutgoingEdges();
             }
 
-            for (DependencyMetaData dependency : moduleRevision.getDependencies()) {
+            for (DependencyMetaData dependency : metaData.getDependencies()) {
                 DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
                 ModuleId targetModuleId = dependencyDescriptor.getDependencyRevisionId().getModuleId();
-                Set<String> targetConfigurations = getTargetConfigurations(dependencyDescriptor);
-                if (!targetConfigurations.isEmpty()) {
-                    if (!selectorSpec.isSatisfiedBy(targetModuleId)) {
-                        LOGGER.debug("{} is excluded from {}.", targetModuleId, this);
-                    } else {
-                        DependencyEdge dependencyEdge = new DependencyEdge(this, dependency, targetConfigurations, selectorSpec, resolveState);
-                        outgoingEdges.add(dependencyEdge);
-                        target.add(dependencyEdge);
-                    }
+                if (!selectorSpec.isSatisfiedBy(targetModuleId)) {
+                    LOGGER.debug("{} is excluded from {}.", targetModuleId, this);
+                    continue;
                 }
+                DependencyEdge dependencyEdge = new DependencyEdge(this, dependency, selectorSpec, resolveState);
+                outgoingEdges.add(dependencyEdge);
+                target.add(dependencyEdge);
             }
             previousTraversal = selectorSpec;
-        }
-
-        Set<String> getTargetConfigurations(DependencyDescriptor dependencyDescriptor) {
-            Set<String> targetConfigurations = new LinkedHashSet<String>();
-            for (String moduleConfiguration : dependencyDescriptor.getModuleConfigurations()) {
-                if (moduleConfiguration.equals("*") || metaData.getHierarchy().contains(moduleConfiguration)) {
-                    for (String targetConfiguration : dependencyDescriptor.getDependencyConfigurations(moduleConfiguration)) {
-                        targetConfigurations.add(targetConfiguration);
-                    }
-                }
-            }
-            return targetConfigurations;
         }
 
         public void addIncomingEdge(DependencyEdge dependencyEdge) {

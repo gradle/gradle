@@ -44,7 +44,6 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         this.organisation = organisation
         this.module = module
         this.revision = revision
-        artifact([:])
         configurations['runtime'] = [extendsFrom: [], transitive: true]
         configurations['default'] = [extendsFrom: ['runtime'], transitive: true]
     }
@@ -68,7 +67,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
      * @param options Can specify any of name, type or classifier
      * @return this
      */
-    IvyFileModule artifact(Map<String, ?> options) {
+    IvyFileModule artifact(Map<String, ?> options = [:]) {
         artifacts << [name: options.name ?: module, type: options.type ?: 'jar', classifier: options.classifier ?: null, conf: options.conf ?: '*']
         return this
     }
@@ -130,6 +129,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
      */
     IvyModule publish() {
         moduleDir.createDir()
+
+        if (artifacts.empty) {
+            artifact([:])
+        }
 
         artifacts.each { artifact ->
             def artifactFile = file(artifact)

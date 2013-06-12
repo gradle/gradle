@@ -99,7 +99,7 @@ task check << {
                 .dependsOn("org.gradle.two", "mod_one", "2.1")
                 .dependsOn("org.gradle.two", "mod_two", "2.2")
                 .publish()
-        ivyRepo.module("org.gradle.one", "mod_one", "1.1").artifact([type: 'war']).publish()
+        ivyRepo.module("org.gradle.one", "mod_one", "1.1").artifact([:]).artifact([type: 'war']).publish()
         ivyRepo.module("org.gradle.two", "mod_one", "2.1").publish()
         ivyRepo.module("org.gradle.two", "mod_two", "2.2").publish()
 

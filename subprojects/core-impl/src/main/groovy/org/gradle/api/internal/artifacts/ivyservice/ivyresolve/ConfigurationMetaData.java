@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 
+import java.util.List;
 import java.util.Set;
 
 public interface ConfigurationMetaData {
@@ -25,6 +26,8 @@ public interface ConfigurationMetaData {
      * The set of configurations that this configuration extends. Includes this configuration.
      */
     Set<String> getHierarchy();
+
+    List<DependencyMetaData> getDependencies();
 
     Set<Artifact> getArtifacts();
 

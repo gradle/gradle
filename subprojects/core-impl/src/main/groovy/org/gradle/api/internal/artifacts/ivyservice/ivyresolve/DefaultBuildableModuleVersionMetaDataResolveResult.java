@@ -183,6 +183,18 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
             return descriptor.isTransitive();
         }
 
+        public List<DependencyMetaData> getDependencies() {
+            List<DependencyMetaData> dependencies = new ArrayList<DependencyMetaData>();
+            for (DependencyMetaData dependency : DefaultBuildableModuleVersionMetaDataResolveResult.this.getDependencies()) {
+                for (String moduleConfiguration : dependency.getDescriptor().getModuleConfigurations()) {
+                    if (moduleConfiguration.equals("*") || hierarchy.contains(moduleConfiguration)) {
+                        dependencies.add(dependency);
+                    }
+                }
+            }
+            return dependencies;
+        }
+
         public Set<Artifact> getArtifacts() {
             Set<Artifact> artifacts = new LinkedHashSet<Artifact>();
             for (String ancestor : hierarchy) {
