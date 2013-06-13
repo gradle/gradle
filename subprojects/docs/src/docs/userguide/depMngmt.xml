@@ -658,6 +658,12 @@
             </tr>
             <tr>
                 <td>
+                    <link linkend="sub:maven_jcenter">Maven jcenter repository</link>
+                </td>
+                <td>A pre-configured repository that looks for dependencies in Bintray's JCenter.</td>
+            </tr>
+            <tr>
+                <td>
                     <link linkend="sub:maven_local">Maven local repository</link>
                 </td>
                 <td>A pre-configured repository that looks for dependencies in the local Maven repository.</td>
@@ -690,6 +696,19 @@
                 <sourcefile file="build.gradle" snippet="maven-central"/>
             </sample>
             <para>Now Gradle will look for your dependencies in this repository.
+            </para>
+        </section>
+
+        <section id='sub:maven_jcenter'>
+            <title>Maven jcenter repository</title>
+            <para><ulink url='http://bintray.com'>Bintray</ulink>'s JCenter is an up-to-date collection of all popular Maven OSS artifacts, including artifacts published directly to Bintray.
+            </para>
+            <para>To add the jcenter Maven repository (<ulink url='http://jcenter.bintray.com'/>) simply add this to your build script:
+            </para>
+            <sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Adding Bintray's JCenter Maven repository">
+                <sourcefile file="build.gradle" snippet="maven-jcenter"/>
+            </sample>
+            <para>Now Gradle will look for your dependencies in the jcenter repository.
             </para>
         </section>
 
@@ -1186,6 +1205,10 @@ someroot/[artifact]-[revision].[ext]
             libraries and you need a backup. It is another layer of indirection. Another source of information
             you have to lookup. All this is not really a big deal but in its sum it has an impact. Repository Manager like
             Artifactory or Nexus make this easier. But for example open source projects don't usually have a host for those products.
+            This is changing with new services like <ulink url='http://bintray.com'>Bintray</ulink> that let developers host and
+            distribute their release binaries using a self-service repository platform. Bintray also supports sharing approved artifacts
+            though the <ulink url='http://jcenter.bintray.com'>JCenter</ulink> public repository to provide a single resolution address for
+            all popular OSS java artifacts (see <xref linkend="sub:maven_jcenter"/>).
         </para>
         <para>This is a reason why some projects prefer to store their libraries in their version control system. This
             approach is fully supported by Gradle. The libraries can be stored in a flat directory without any XML module

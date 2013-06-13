@@ -6,6 +6,12 @@ repositories {
 }
 //END SNIPPET maven-central
 
+//START SNIPPET maven-jcenter
+repositories {
+    jcenter()
+}
+//END SNIPPET maven-jcenter
+
 //START SNIPPET maven-central-jar-repo
 repositories {
     mavenCentral name: 'single-jar-repo', artifactUrls: ["http://repo.mycompany.com/jars"]
