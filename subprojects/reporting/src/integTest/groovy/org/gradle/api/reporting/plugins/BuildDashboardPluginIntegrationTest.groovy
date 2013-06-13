@@ -19,6 +19,7 @@ package org.gradle.api.reporting.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 
 import static org.gradle.api.reporting.plugins.BuildDashboardPlugin.BUILD_DASHBOARD_TASK_NAME
 
@@ -93,6 +94,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         dashboardLinksCount == 4
+        links.find { it.contains("':test' (html)") }
+        links.find { it.contains("':test' (junitXml)") }
     }
 
     void 'buildDashboard task always runs after report generating tasks'() {
@@ -101,6 +104,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         dashboardLinksCount == 4
+        links.find { it.contains("':test' (html)") }
+        links.find { it.contains("':test' (junitXml)") }
     }
 
     void 'no report is generated if it is disabled'() {
@@ -200,4 +205,17 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
                 }
             }"""
     }
+
+    private List<String> linksLazy
+    List<String> getLinks() {
+        if (linksLazy == null) {
+            linksLazy = dashboard.select("div#content li a")*.text()
+        }
+        linksLazy
+    }
+
+    Document getDashboard() {
+        Jsoup.parse(buildDashboardFile, "utf8")
+    }
+
 }

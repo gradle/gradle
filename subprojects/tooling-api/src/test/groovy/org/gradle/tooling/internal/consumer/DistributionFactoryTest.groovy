@@ -19,11 +19,11 @@ import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.Network
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Specification
 
 class DistributionFactoryTest extends Specification {
@@ -157,7 +157,7 @@ class DistributionFactoryTest extends Specification {
         0 * _._
     }
 
-    @IgnoreIf({ Network.offline })
+    @Requires(TestPrecondition.ONLINE)
     def failsWhenDistributionZipDoesNotExist() {
         URI zipFile = new URI("http://google.com/does-not-exist/gradle-1.0.zip")
         def dist = factory.getDistribution(zipFile)

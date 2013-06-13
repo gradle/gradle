@@ -137,7 +137,6 @@ This story introduces the concept of a static library binary that can be built f
 - Change visual C++ toolchain to:
      - Use `lib.exe` to assemble the static library.
 - Change the GCC toolchain to:
-    - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
     - Don't use other shared library flags (`-shared`) when compiling source files for a static library.
     - Use `ar` to assemble the static library.
 - Update the user guide to reflect the fact that static libraries can be built. Include a stand-alone sample that
@@ -328,6 +327,8 @@ improve this.
 
 - Introduce a `DomainObjectCollection` that uses delayed configuration of its elements.
 - Introduce a `NamedDomainObjectCollection` that uses delayed configuration of its elements.
+- Warn when using binaries container in a way that won't work.
+- Warn when mutating component after binaries have been created.
 
 ## Story: Simplify configuration of a binary based on its properties
 
@@ -375,7 +376,7 @@ improve this.
 
 ## Story: Convenient configuration of tasks for binaries and components
 
-This story defers creation of the tasks for a binary or component until after the object has been fully configured.
+This story defers configuration of the tasks for a binary or component until after the object has been fully configured.
 
 - Change the C++ plugin to create the tasks for each native binary after the binary has been configured.
 - Change the C++ plugin to create the tasks for each component after the tasks for the binary have been configured.
@@ -512,6 +513,7 @@ project in the same build, or from a binary repository.
 
 - Need a new name for `NativeDependencySet`.
 - Need some way to convert a `NativeDependencySet` to a read-only library.
+- Need to apply a lifecycle to the resolved libs of `CppSourceSet` and `NativeBinary`.
 - Improve consumption of libraries from other projects.
 - Some mechanism to use the static binary as default for a library.
 - Some mechanism to select static or dynamic linkage for each dependency of a binary.
@@ -523,6 +525,10 @@ project in the same build, or from a binary repository.
 - Merge `CppSourceSet.libs` and `CppSourceSet.nativeDependencySets`.
 - Allow a `Binary` to be attached to a publication.
 - Update publication so that a binary's include, link and runtime files are published.
+- Need to be able to deal with the fact that only relocatable binaries can be linked into relocatable binaries
+    - Make it possible to build a relocatable variant of a static library binary.
+    - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
+    - Change dependency resolution to choose the relocatable variant of a static library when linking into a shared library
 
 ## Story: Introduce native functional source sets
 
@@ -536,7 +542,7 @@ This story reworks the existing C++ source set concepts to reuse the concept of 
     - Add a `sources.main` functional source set
     - Add a `sources.main.cpp` C++ source set.
     - Wire the `sources.main.cpp` source set into the `main` executable/library.
-- Remove `CppExtension` and `org.gradle.language.nativecode.SourceSet`.
+- Remove `CppExtension`
 
 ### User visible changes
 
@@ -583,6 +589,7 @@ To define custom source sets and components:
 - Need to configure each component and source set lazily.
 - Need to deal with source sets that are generated.
 - `source()` collides with `project.source`.
+- Need a `CppSourceSet.getBuildDependencies()` implementation.
 
 ## Story: Compile C source files using the C compiler
 
@@ -1077,3 +1084,5 @@ TBD
 * Custom variants.
 * Calling convention.
 * Can in theory share the compile task between a static library and an executable built from the same source.
+* Publishing and resolving RPM/DEB/NuGet/pkg-config/ etc.
+* Support for profiling builds: build with profiling enabled, execute a bunch of times, then build again using the profiling information.

@@ -22,6 +22,7 @@ class IvyResolveIntegrationTest extends AbstractDependencyResolutionTest {
         given:
         ivyRepo.module("org.gradle", "test", "1.45")
                 .dependsOn("org.gradle", "other", "preview-1")
+                .artifact()
                 .artifact(classifier: "classifier")
                 .artifact(name: "test-extra")
                 .publish()
@@ -136,112 +137,5 @@ task check << {
 
         expect:
         succeeds "check"
-    }
-
-    def "correctly handles wildcard configuration mapping in transitive dependencies"() {
-        given:
-        buildFile << """
-configurations {
-    compile
-}
-dependencies {
-    repositories {
-        ivy { url "${ivyRepo.uri}" }
-    }
-    compile 'ivy.configuration:projectA:1.2'
-}
-task retrieve(type: Sync) {
-  from configurations.compile
-  into 'libs'
-}
-"""
-        when: "projectA uses a wildcard configuration mapping for dependency on projectB"
-        def moduleA = ivyRepo.module('ivy.configuration', 'projectA', '1.2')
-                .configuration('parent')
-                .artifact([:])
-                .dependsOn(organisation: 'ivy.configuration', module: 'projectB', revision: '1.5', conf: 'runtime->*')
-                .publish()
-
-        ivyRepo.module('ivy.configuration', 'projectB', '1.5')
-                .configuration('child')
-                .artifact([name: 'projectB', conf: 'runtime'])
-                .artifact([name: 'projectB-child', conf: 'child'])
-                .dependsOn(organisation: 'ivy.configuration', module: 'projectC', revision: '1.7', conf: 'child->*')
-                .publish()
-
-        ivyRepo.module('ivy.configuration', 'projectC', '1.7').artifact([:]).publish()
-
-        and:
-        succeeds 'retrieve'
-
-        then: "artifacts and dependencies from all configurations of projectB are included"
-        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.5.jar', 'projectB-child-1.5.jar', 'projectC-1.7.jar')
-
-        when: "projectB-1.5 is replaced by conflict resolution with projectB-1.6 that has a different set of configurations"
-
-        ivyRepo.module('ivy.configuration', 'projectB', '1.6')
-                .configuration('other')
-                .artifact([name: 'projectB-other', conf: 'other'])
-                .publish()
-
-        ivyRepo.module('ivy.configuration', 'projectD', '1.0')
-                .dependsOn('ivy.configuration', 'projectB', '1.6')
-                .publish()
-
-        moduleA.dependsOn('ivy.configuration', 'projectD', '1.0').publish()
-
-        and:
-        succeeds 'retrieve'
-
-        then: "we resolve artifacts from projectB-1.6 only"
-        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.6.jar', 'projectB-other-1.6.jar', 'projectD-1.0.jar')
-    }
-
-    def "prefers revConstraint over rev when dynamic resolve mode is used"() {
-        given:
-        buildFile << """
-configurations {
-    compile
-}
-dependencies {
-    repositories {
-        ivy {
-            url "${ivyRepo.uri}"
-            resolve.dynamicMode = project.hasProperty('useDynamicResolve')
-        }
-    }
-    compile 'org:projectA:1.2'
-}
-task retrieve(type: Sync) {
-  from configurations.compile
-  into 'libs'
-}
-"""
-        ivyRepo.module('org', 'projectA', '1.2')
-                .dependsOn(organisation: 'org', module: 'projectB', revision: '1.5', revConstraint: '1.6')
-                .dependsOn(organisation: 'org', module: 'projectC', revision: 'alpha-12')
-                .publish()
-
-        ivyRepo.module('org', 'projectB', '1.5')
-                .publish()
-
-        ivyRepo.module('org', 'projectB', '1.6')
-                .publish()
-
-        ivyRepo.module('org', 'projectC', 'alpha-12')
-                .publish()
-
-        when:
-        executer.withArguments("-PuseDynamicResolve=true")
-        run 'retrieve'
-
-        then:
-        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.6.jar', 'projectC-alpha-12.jar')
-
-        when:
-        run 'retrieve'
-
-        then:
-        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.5.jar', 'projectC-alpha-12.jar')
     }
 }

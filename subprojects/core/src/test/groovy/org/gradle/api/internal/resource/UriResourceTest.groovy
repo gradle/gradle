@@ -19,7 +19,8 @@ package org.gradle.api.internal.resource
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.Network
+import org.gradle.util.TestPrecondition
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -150,7 +151,7 @@ class UriResourceTest {
 
     @Test
     public void hasNoContentWhenUsingHttpUriAndFileDoesNotExist() {
-        if (Network.offline) { return } // when this test moves to spock, ignore this test instead of just passing.
+        Assume.assumeTrue(TestPrecondition.ONLINE.fulfilled) // when this test moves to spock, ignore this test instead of just passing.
 
         UriResource resource = new UriResource('<display-name>', new URI("http://www.gradle.org/unknown.txt"));
         assertFalse(resource.exists)

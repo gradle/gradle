@@ -1,4 +1,4 @@
-:generateIvyJavaIvyModuleDescriptor
+:generateDescriptorFileForIvyJavaPublication
 :compileJava UP-TO-DATE
 :processResources UP-TO-DATE
 :classes UP-TO-DATE

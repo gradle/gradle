@@ -109,7 +109,7 @@ class SonarPluginTest extends Specification {
         sonarProject.binaryDirs == [project.sourceSets.main.output.classesDir]
         sonarProject.libraries.files as List == [Jvm.current().runtimeJar]
 
-        sonarProject.testReportPath == project.test.reports.html.destination
+        sonarProject.testReportPath == project.test.reports.junitXml.destination
         sonarProject.language == "java"
 
         where:

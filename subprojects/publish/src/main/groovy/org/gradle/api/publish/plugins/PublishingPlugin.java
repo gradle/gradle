@@ -37,6 +37,7 @@ import javax.inject.Inject;
 @Incubating
 public class PublishingPlugin implements Plugin<Project> {
 
+    public static final String PUBLISH_TASK_GROUP = "publishing";
     public static final String PUBLISH_LIFECYCLE_TASK_NAME = "publish";
 
     private final Instantiator instantiator;
@@ -57,7 +58,7 @@ public class PublishingPlugin implements Plugin<Project> {
 
         Task publishLifecycleTask = project.getTasks().create(PUBLISH_LIFECYCLE_TASK_NAME);
         publishLifecycleTask.setDescription("Publishes all publications produced by this project.");
-        publishLifecycleTask.setGroup("publishing");
+        publishLifecycleTask.setGroup(PUBLISH_TASK_GROUP);
 
         configurationActions.add(new Action<ProjectInternal>() {
             public void execute(ProjectInternal projectInternal) {

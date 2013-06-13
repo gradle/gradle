@@ -40,6 +40,10 @@ public abstract class AbstractToolChain implements ToolChainInternal {
         }
     }
 
+    public String getOutputType() {
+        return String.format("%s-%s", getName(), operatingSystem.getName());
+    }
+
     public OperatingSystem getOperatingSystem() {
         return operatingSystem;
     }

@@ -267,8 +267,9 @@
             Archives are created using the various archive tasks:
             <apilink class="org.gradle.api.tasks.bundling.Zip"/>,
             <apilink class="org.gradle.api.tasks.bundling.Tar"/>,
-            <apilink class="org.gradle.api.tasks.bundling.Jar"/>, and
-            <apilink class="org.gradle.api.tasks.bundling.War"/>.
+            <apilink class="org.gradle.api.tasks.bundling.Jar"/>,
+            <apilink class="org.gradle.api.tasks.bundling.War"/>, and
+            <apilink class="org.gradle.plugins.ear.Ear"/>.
             They all work the same way, so let's look at how you create a ZIP file.
         </para>
         <sample id="createZip" dir="userguide/files/archives" title="Creating a ZIP archive">

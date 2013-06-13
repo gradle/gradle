@@ -60,4 +60,8 @@ public class UnavailableToolChain implements ToolChainInternal {
     public String getStaticLibraryName(String libraryName) {
         throw new UnsupportedOperationException();
     }
+
+    public String getOutputType() {
+        throw new UnsupportedOperationException();
+    }
 }

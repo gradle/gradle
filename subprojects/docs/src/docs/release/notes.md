@@ -189,6 +189,11 @@ which has now the type`SetupBuild` task.
 - The plugin creates different set of tasks, with different types and names depending on the build-setup type
 - The `setupWrapper` task is now called `wrapper`.
 
+### Changed task name in incubating ivy-publish plugin
+
+- For consistency with the maven-publish plugin, the task for generating the ivy.xml file for an IvyPublication has changed.
+  This task is now named `generateDescriptorFileFor${publication.name}Publication`.
+
 ### Major changes to C++ support
 
 Gradle has had basic support for C++ projects for some time. We're now excited to be starting on the process of expanding this support to make Gradle the best build

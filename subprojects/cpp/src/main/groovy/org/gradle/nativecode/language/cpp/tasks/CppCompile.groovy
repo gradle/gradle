@@ -51,6 +51,12 @@ class CppCompile extends DefaultTask {
         source
     }
 
+    // Invalidate output when the tool chain output changes
+    @Input
+    def getOutputType() {
+        return toolChain.outputType
+    }
+
     @Input
     List<String> macros
 
