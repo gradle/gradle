@@ -35,7 +35,7 @@ class ResolveCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         and:
         buildFile << """
 repositories {
-    maven { url "http://localhost:${server.port}/repo" }
+    mavenRepo urls: "http://localhost:${server.port}/repo"
 }
 
 configurations {
