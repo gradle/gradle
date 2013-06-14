@@ -58,6 +58,14 @@ apply plugin: 'project-report'
             </tr>
             <tr>
                 <td>
+                    <literal>htmlDependencyReport</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.diagnostics.HtmlDependencyReportTask"/></td>
+                <td>Generates an HTML dependency and dependency insight report for the project or a set of projects.</td>
+            </tr>
+            <tr>
+                <td>
                     <literal>propertyReport</literal>
                 </td>
                 <td>-</td>

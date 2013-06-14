@@ -280,6 +280,9 @@
                 <td>org.gradle.api.tasks.diagnostics.DependencyInsightReportTask</td>
             </tr>
             <tr>
+                <td>org.gradle.api.tasks.diagnostics.HtmlDependencyReportTask</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>
             </tr>
         </table>
