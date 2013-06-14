@@ -65,8 +65,7 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
 
 
     private DuplicatesStrategy determineStrategy(FileCopyDetails details) {
-        if (details.getDuplicatesStrategy() == null
-                || details.getDuplicatesStrategy() == DuplicatesStrategy.inherit) {
+        if (details.getDuplicatesStrategy() == null) {
             return spec.getDuplicatesStrategy();
         }
         return details.getDuplicatesStrategy();

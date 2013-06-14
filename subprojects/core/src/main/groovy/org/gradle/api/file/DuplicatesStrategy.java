@@ -28,13 +28,6 @@ import org.gradle.api.Incubating;
 public enum DuplicatesStrategy {
 
     /**
-     * FileCopyDetails should use the strategy of its CopySpec, and CopySpec
-     * should use the strategy of its parent. If no DuplicatesStrategy is
-     * explicitly defined for any parent, this will act as 'include'.
-     */
-    inherit,
-
-    /**
      * Files with the same relative path should be included. For Copy
      * operations this will generate a warning.
      */

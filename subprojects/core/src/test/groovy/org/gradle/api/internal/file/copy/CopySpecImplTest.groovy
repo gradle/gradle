@@ -349,15 +349,13 @@ public class CopySpecImplTest {
     }
 
     @Test public void testGetSetDuplicatesStrategy() {
-        assertEquals(DuplicatesStrategy.inherit, spec.duplicatesStrategy)
+        assertEquals(null, spec.duplicatesStrategy)
         spec.duplicatesStrategy = 'include'
         assertEquals(DuplicatesStrategy.include, spec.duplicatesStrategy)
         spec.duplicatesStrategy = 'exclude'
         assertEquals(DuplicatesStrategy.exclude, spec.duplicatesStrategy)
         spec.duplicatesStrategy = null
         assertEquals(null, spec.duplicatesStrategy)
-        spec.duplicatesStrategy = 'inherit'
-        assertEquals(DuplicatesStrategy.inherit, spec.duplicatesStrategy)
     }
 
 
