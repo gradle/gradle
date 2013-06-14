@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
+import org.gradle.api.tasks.diagnostics.HtmlDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.util.HelperUtil;
@@ -61,8 +62,13 @@ public class ProjectReportsPluginTest {
         assertThat(task, instanceOf(DependencyReportTask.class));
         assertThat(task.property("outputFile"), equalTo((Object) new File(project.getBuildDir(), "reports/project/dependencies.txt")));
         assertThat(task.property("projects"), equalTo((Object) WrapUtil.toSet(project)));
+
+        task = project.getTasks().getByName(ProjectReportsPlugin.HTML_DEPENDENCY_REPORT);
+        assertThat(task, instanceOf(HtmlDependencyReportTask.class));
+        assertThat(task.property("outputDirectory"), equalTo((Object) new File(project.getBuildDir(), "reports/project/dependencies")));
+        assertThat(task.property("projects"), equalTo((Object) WrapUtil.toSet(project)));
         
         task = project.getTasks().getByName(ProjectReportsPlugin.PROJECT_REPORT);
-        assertThat(task, dependsOn(ProjectReportsPlugin.TASK_REPORT, ProjectReportsPlugin.PROPERTY_REPORT, ProjectReportsPlugin.DEPENDENCY_REPORT));
+        assertThat(task, dependsOn(ProjectReportsPlugin.TASK_REPORT, ProjectReportsPlugin.PROPERTY_REPORT, ProjectReportsPlugin.DEPENDENCY_REPORT, ProjectReportsPlugin.HTML_DEPENDENCY_REPORT));
     }
 }

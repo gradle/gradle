@@ -19,6 +19,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
+import org.gradle.api.tasks.diagnostics.HtmlDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 
@@ -32,6 +33,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
     public static final String TASK_REPORT = "taskReport";
     public static final String PROPERTY_REPORT = "propertyReport";
     public static final String DEPENDENCY_REPORT = "dependencyReport";
+    public static final String HTML_DEPENDENCY_REPORT = "htmlDependencyReport";
     public static final String PROJECT_REPORT = "projectReport";
 
     public void apply(Project project) {
@@ -79,8 +81,22 @@ public class ProjectReportsPlugin implements Plugin<Project> {
             }
         });
 
+        HtmlDependencyReportTask htmlDependencyReportTask = project.getTasks().create(HTML_DEPENDENCY_REPORT,
+                HtmlDependencyReportTask.class);
+        htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
+        htmlDependencyReportTask.conventionMapping("outputDirectory", new Callable<Object>() {
+            public Object call() throws Exception {
+                return new File(convention.getProjectReportDir(), "dependencies");
+            }
+        });
+        htmlDependencyReportTask.conventionMapping("projects", new Callable<Object>() {
+            public Object call() throws Exception {
+                return convention.getProjects();
+            }
+        });
+
         Task projectReportTask = project.getTasks().create(PROJECT_REPORT);
-        projectReportTask.dependsOn(TASK_REPORT, PROPERTY_REPORT, DEPENDENCY_REPORT);
+        projectReportTask.dependsOn(TASK_REPORT, PROPERTY_REPORT, DEPENDENCY_REPORT, HTML_DEPENDENCY_REPORT);
         projectReportTask.setDescription("Generates a report about your project.");
         projectReportTask.setGroup("reporting");
     }
