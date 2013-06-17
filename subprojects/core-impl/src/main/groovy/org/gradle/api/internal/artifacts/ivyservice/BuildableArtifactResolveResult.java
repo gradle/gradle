@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 
 import java.io.File;
@@ -33,7 +33,7 @@ public interface BuildableArtifactResolveResult extends ArtifactResolveResult {
     void failed(ArtifactResolveException failure);
 
     /**
-     * Marks the module version as not found.
+     * Marks the artifact as not found.
      */
-    void notFound(Artifact artifact);
+    void notFound(ArtifactIdentifier artifact);
 }

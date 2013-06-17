@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.ArtifactIdentifier;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
@@ -61,11 +59,10 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
         }
     }
 
-    public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        ArtifactIdentifier id = new DefaultArtifactIdentifier(artifact);
-        if(!cache.supplyArtifact(id, result)) {
+    public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+        if(!cache.supplyArtifact(artifact, result)) {
             delegate.resolve(artifact, result, moduleSource);
-            cache.newArtifact(id, result);
+            cache.newArtifact(artifact, result);
         }
     }
 }

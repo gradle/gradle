@@ -51,6 +51,8 @@ import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.Message;
+import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
@@ -482,10 +484,11 @@ public class ExternalResourceResolver implements DependencyResolver {
         }
     }
 
-    public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        EnhancedArtifactDownloadReport artifactDownloadReport = download(artifact, moduleSource);
+    public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+        Artifact ivyArtifact = DefaultArtifactIdentifier.toArtifact(artifact);
+        EnhancedArtifactDownloadReport artifactDownloadReport = download(ivyArtifact, moduleSource);
         if (downloadFailed(artifactDownloadReport)) {
-            result.failed(new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getFailure()));
+            result.failed(new ArtifactResolveException(artifact, artifactDownloadReport.getFailure()));
             return;
         }
         File localFile = artifactDownloadReport.getLocalFile();

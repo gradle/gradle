@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.settings.IvySettings;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 
@@ -63,7 +63,7 @@ public class ExternalResourceResolverAdapter implements IvyAwareModuleVersionRep
         resolver.getDependency(dependency.getDescriptor(), result);
     }
 
-    public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+    public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
         resolver.resolve(artifact, result, moduleSource);
     }
 }

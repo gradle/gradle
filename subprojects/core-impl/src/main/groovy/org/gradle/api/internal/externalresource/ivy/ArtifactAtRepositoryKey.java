@@ -16,37 +16,18 @@
 
 package org.gradle.api.internal.externalresource.ivy;
 
-import org.apache.ivy.core.IvyPatternHelper;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 
 public class ArtifactAtRepositoryKey {
     private final String repositoryId;
-    private final String artifactId;
+    private final ArtifactIdentifier artifactId;
 
-    public ArtifactAtRepositoryKey(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
-        this(repository, getArtifactKey(artifactId));
-    }
-
-    public ArtifactAtRepositoryKey(String repositoryId, String artifactId) {
+    public ArtifactAtRepositoryKey(String repositoryId, ArtifactIdentifier artifactId) {
         this.repositoryId = repositoryId;
         this.artifactId = artifactId;
     }
 
-    private ArtifactAtRepositoryKey(ModuleVersionRepository repository, String artifactPath) {
-        this.repositoryId = repository.getId();
-        this.artifactId = artifactPath;
-    }
-
-    private static String getArtifactKey(ArtifactRevisionId artifactId) {
-        String format = "[organisation]/[module](/[branch])/[revision]/[type]/[artifact](-[classifier])(.[ext])";
-        Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
-        return IvyPatternHelper.substitute(format, dummyArtifact);
-    }
-
-    public String getArtifactId() {
+    public ArtifactIdentifier getArtifactId() {
         return artifactId;
     }
 
@@ -65,11 +46,11 @@ public class ArtifactAtRepositoryKey {
             return false;
         }
         ArtifactAtRepositoryKey other = (ArtifactAtRepositoryKey) o;
-        return toString().equals(other.toString());
+        return repositoryId.equals(other.repositoryId) && artifactId.equals(other.artifactId);
     }
 
     @Override
     public int hashCode() {
-        return toString().hashCode();
+        return repositoryId.hashCode() ^ artifactId.hashCode();
     }
 }

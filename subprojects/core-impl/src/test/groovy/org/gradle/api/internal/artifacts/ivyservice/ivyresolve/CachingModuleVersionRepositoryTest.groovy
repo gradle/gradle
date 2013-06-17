@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.core.module.descriptor.Artifact
-import org.apache.ivy.core.module.id.ArtifactId
-import org.apache.ivy.core.module.id.ArtifactRevisionId
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
@@ -41,7 +37,6 @@ class CachingModuleVersionRepositoryTest extends Specification {
     CachedArtifactIndex artifactAtRepositoryCache = Mock()
     CachePolicy cachePolicy = Mock()
     CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache, cachePolicy, new TrueTimeProvider())
-    ModuleRevisionId moduleRevisionId = Mock()
     int descriptorHash = 1234
     CachingModuleVersionRepository.CachingModuleSource moduleSource = Mock()
 
@@ -51,12 +46,11 @@ class CachingModuleVersionRepositoryTest extends Specification {
         ExternalResourceMetaData externalResourceMetaData = new DefaultExternalResourceMetaData("remote url", lastModified, -1, null, null)
         File file = new File("local")
         BuildableArtifactResolveResult result = Mock()
-        Artifact artifact = Mock()
-        ArtifactRevisionId id = arid()
-        ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey(realRepo, id)
+        ArtifactIdentifier artifact = Stub()
+        ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey("repo-id", artifact)
 
         and:
-        _ * artifact.getModuleRevisionId() >> moduleRevisionId;
+        _ * realRepo.id >> "repo-id"
         _ * realRepo.isLocal() >> false
         _ * moduleSource.descriptorHash >> descriptorHash
         _ * moduleSource.isChangingModule >> true
@@ -64,7 +58,6 @@ class CachingModuleVersionRepositoryTest extends Specification {
         _ * realRepo.resolve(artifact, result, null)
         _ * result.file >> file
         _ * result.externalResourceMetaData >> externalResourceMetaData
-        _ * artifact.getId() >> id
 
         when:
         repo.resolve(artifact, result, moduleSource)
@@ -75,20 +68,4 @@ class CachingModuleVersionRepositoryTest extends Specification {
         where:
         lastModified << [new Date(), null]
     }
-
-    ArtifactRevisionId arid(Map attrs = [:]) {
-        Map defaults = [
-                org: "org", name: "name", revision: "1.0",
-                type: "type", ext: "ext"
-        ]
-
-        attrs = defaults + attrs
-
-        ModuleId mid = new ModuleId(attrs.org, attrs.name)
-        new ArtifactRevisionId(
-                new ArtifactId(mid, mid.name, attrs.type, attrs.ext),
-                new ModuleRevisionId(mid, attrs.revision)
-        )
-    }
-
 }
