@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 
-import java.io.IOException;
+import java.io.File;
+import java.util.Map;
 
-public interface ModuleVersionPublisher {
-    void publish(ModuleVersionPublishMetaData moduleVersion) throws IOException;
+public interface ModuleVersionPublishMetaData {
+    ModuleRevisionId getId();
 
-    void setSettings(IvySettings settings);
+    Map<Artifact, File> getArtifacts();
 }

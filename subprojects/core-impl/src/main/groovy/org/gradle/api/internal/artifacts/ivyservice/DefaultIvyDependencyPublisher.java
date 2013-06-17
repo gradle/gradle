@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.MDArtifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.util.ConfigurationUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
@@ -74,7 +75,7 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
                 addPublishedDescriptor(artifactsFiles);
             }
 
-            publisher.publish(moduleDescriptor.getModuleRevisionId(), artifactsFiles);
+            publisher.publish(new DefaultModuleVersionPublishMetaData(moduleDescriptor.getModuleRevisionId(), artifactsFiles));
         }
 
         private void addPublishedDescriptor(Map<Artifact, File> artifactsFiles) {

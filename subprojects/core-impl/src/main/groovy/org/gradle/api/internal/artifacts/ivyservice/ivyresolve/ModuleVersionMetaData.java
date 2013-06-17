@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -23,7 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import java.util.List;
 
 /**
- * The meta-data for a module version.
+ * The meta-data for a module version required during dependency resolution.
  */
 public interface ModuleVersionMetaData {
     ModuleVersionIdentifier getId();
@@ -31,8 +30,6 @@ public interface ModuleVersionMetaData {
     ModuleDescriptor getDescriptor();
 
     List<DependencyMetaData> getDependencies();
-
-    List<Artifact> getArtifacts(String configurationName);
 
     @Nullable
     ConfigurationMetaData getConfiguration(String name);

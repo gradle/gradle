@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
@@ -59,11 +60,12 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
             publishResolvers.add(publisher);
         }
 
+        ModuleDescriptor moduleDescriptor = publishModuleDescriptorConverter.convert(configurations, module);
         Set<String> confs = Configurations.getNames(configurations, false);
         dependencyPublisher.publish(
                 confs,
                 publishResolvers,
-                publishModuleDescriptorConverter.convert(configurations, module),
+                moduleDescriptor,
                 descriptor);
     }
 

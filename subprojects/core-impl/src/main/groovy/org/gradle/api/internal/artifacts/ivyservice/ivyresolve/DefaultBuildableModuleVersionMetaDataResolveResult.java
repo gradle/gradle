@@ -146,11 +146,6 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         return configuration;
     }
 
-    public List<Artifact> getArtifacts(String configurationName) {
-        assertResolved();
-        return Arrays.asList(moduleDescriptor.getArtifacts(configurationName));
-    }
-
     public boolean isChanging() {
         assertResolved();
         return changing;

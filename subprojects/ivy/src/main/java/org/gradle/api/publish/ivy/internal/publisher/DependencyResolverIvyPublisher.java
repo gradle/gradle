@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
@@ -52,7 +53,7 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
             Artifact artifact = DefaultArtifact.newIvyArtifact(moduleRevisionId, null);
             artifactFiles.put(artifact, publication.getDescriptorFile());
 
-            publisher.publish(moduleRevisionId, artifactFiles);
+            publisher.publish(new DefaultModuleVersionPublishMetaData(moduleRevisionId, artifactFiles));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
