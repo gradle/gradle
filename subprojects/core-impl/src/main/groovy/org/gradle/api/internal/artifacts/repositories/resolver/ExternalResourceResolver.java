@@ -34,6 +34,7 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.search.ModuleEntry;
 import org.apache.ivy.core.search.OrganisationEntry;
 import org.apache.ivy.core.search.RevisionEntry;
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.latest.LatestStrategy;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.namespace.Namespace;
@@ -53,6 +54,8 @@ import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.Message;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
@@ -77,7 +80,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 
-public class ExternalResourceResolver implements DependencyResolver {
+public class ExternalResourceResolver implements DependencyResolver, ModuleVersionPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private List<String> ivyPatterns = new ArrayList<String>();
@@ -644,6 +647,16 @@ public class ExternalResourceResolver implements DependencyResolver {
             }
         } else {
             return false;
+        }
+    }
+
+    public void setSettings(IvySettings settings) {
+        this.settings = settings;
+    }
+
+    public void publish(ModuleVersionPublishMetaData moduleVersion) throws IOException {
+        for (Map.Entry<Artifact, File> entry : moduleVersion.getArtifacts().entrySet()) {
+            publish(entry.getKey(), entry.getValue(), true);
         }
     }
 
