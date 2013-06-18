@@ -367,6 +367,33 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         bazInsight[0].children[0].children.size == 0
     }
 
+    def "doesn't add insight for dependency with same prefix"() {
+        given:
+        mavenRepo.module("foo", "bar", "1.0").publish()
+        mavenRepo.module("foo", "barImpl", "1.0").publish()
+
+        file("build.gradle") << """
+            apply plugin : 'project-report'
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations { compile }
+            dependencies {
+              compile 'foo:bar:1.0'
+              compile 'foo:barImpl:1.0'
+            }
+        """
+
+        when:
+        run "htmlDependencyReport"
+        def json = readGeneratedJson("root")
+
+        then:
+        def barInsight = json.project.configurations[0].moduleInsights.find({ it.module == 'foo:bar' }).insight
+        barInsight.size == 1
+        barInsight[0].name == 'foo:bar:1.0'
+    }
+
     private def readGeneratedJson(fileNameWithoutExtension) {
         TestFile htmlReport = file("build/reports/project/dependencies/" + fileNameWithoutExtension + ".js")
         String content = htmlReport.getText(StandardCharsets.UTF_8.name());

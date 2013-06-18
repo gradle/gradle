@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationParser
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter
@@ -187,8 +186,7 @@ class JsonProjectDependencyRenderer {
     }
 
     private List createInsight(ModuleIdentifier module, Configuration configuration) {
-        def parser = DependencyResultSpecNotationParser.create()
-        Spec<DependencyResult> dependencySpec = parser.parseNotation(module.group + ':' + module.name)
+        Spec<DependencyResult> dependencySpec = new StrictDependencyResultSpec(module)
 
         ResolutionResult result = configuration.incoming.resolutionResult;
         Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>()
