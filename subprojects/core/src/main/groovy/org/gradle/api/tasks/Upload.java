@@ -73,7 +73,7 @@ public class Upload extends ConventionTask {
             if (descriptorDestination != null) {
                 Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
                 ModuleDescriptorConverter moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
-                ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(allConfigurations, module);
+                ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(allConfigurations, module).getModuleDescriptor();
                 IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
                 ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorDestination);
             }

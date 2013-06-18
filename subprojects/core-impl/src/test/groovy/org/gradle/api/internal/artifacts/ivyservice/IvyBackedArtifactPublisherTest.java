@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
@@ -45,6 +46,7 @@ import static org.hamcrest.Matchers.equalTo;
 @RunWith(JMock.class)
 public class IvyBackedArtifactPublisherTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
+    private ModuleVersionPublishMetaData publishMetaDataDummy = context.mock(ModuleVersionPublishMetaData.class);
     private ModuleDescriptor publishModuleDescriptorDummy = context.mock(ModuleDescriptor.class);
     private IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
     private SettingsConverter settingsConverterStub = context.mock(SettingsConverter.class);
@@ -79,6 +81,9 @@ public class IvyBackedArtifactPublisherTest {
 
             one(publishModuleDescriptorConverter).convert(with(equalTo(configurations)),
                     with(equalTo(moduleDummy)));
+            will(returnValue(publishMetaDataDummy));
+
+            allowing(publishMetaDataDummy).getModuleDescriptor();
             will(returnValue(publishModuleDescriptorDummy));
 
             one(repo1).createPublisher();

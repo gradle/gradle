@@ -35,7 +35,7 @@ public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
     public ModuleDescriptor findProject(ProjectDependencyDescriptor descriptor) {
         ProjectInternal project = descriptor.getTargetProject();
         Module projectModule = project.getModule();
-        ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations(), projectModule);
+        ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations(), projectModule).getModuleDescriptor();
 
         for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
             for (Artifact artifact : projectDescriptor.getAllArtifacts()) {

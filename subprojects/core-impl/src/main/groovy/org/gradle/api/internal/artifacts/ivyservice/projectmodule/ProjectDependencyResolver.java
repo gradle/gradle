@@ -57,7 +57,7 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
     }
 
     public void resolve(Module module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result) {
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configurations, module);
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configurations, module).getModuleDescriptor();
         ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
         result.resolved(moduleVersionIdentifier, moduleDescriptor, artifactResolver);

@@ -60,7 +60,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
             publishResolvers.add(publisher);
         }
 
-        ModuleDescriptor moduleDescriptor = publishModuleDescriptorConverter.convert(configurations, module);
+        ModuleDescriptor moduleDescriptor = publishModuleDescriptorConverter.convert(configurations, module).getModuleDescriptor();
         Set<String> confs = Configurations.getNames(configurations, false);
         dependencyPublisher.publish(
                 confs,

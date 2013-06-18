@@ -20,6 +20,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Module
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter
 import spock.lang.Specification
 
@@ -33,6 +34,7 @@ public class PublishModuleDescriptorConverterTest extends Specification {
         def configurationsDummy = [Mock(Configuration)] as Set
         def moduleDummy = Mock(Module)
         def moduleDescriptorDummy = Mock(DefaultModuleDescriptor)
+        def publishMetaDataDummy = Mock(ModuleVersionPublishMetaData)
         def artifactsToModuleDescriptorConverter = Mock(ArtifactsToModuleDescriptorConverter)
         def resolveModuleDescriptorConverter = Mock(ModuleDescriptorConverter)
 
@@ -40,15 +42,19 @@ public class PublishModuleDescriptorConverterTest extends Specification {
                 resolveModuleDescriptorConverter,
                 artifactsToModuleDescriptorConverter);
 
-        resolveModuleDescriptorConverter.convert(configurationsDummy, moduleDummy) >> moduleDescriptorDummy
+        and:
+        publishMetaDataDummy.moduleDescriptor >> moduleDescriptorDummy
+        resolveModuleDescriptorConverter.convert(configurationsDummy, moduleDummy) >> publishMetaDataDummy
 
         when:
-        def actualModuleDescriptor = publishModuleDescriptorConverter.convert(configurationsDummy, moduleDummy);
+        def actualMetaData = publishModuleDescriptorConverter.convert(configurationsDummy, moduleDummy);
 
         then:
         1 * moduleDescriptorDummy.addExtraAttributeNamespace(PublishModuleDescriptorConverter.IVY_MAVEN_NAMESPACE_PREFIX,
                     PublishModuleDescriptorConverter.IVY_MAVEN_NAMESPACE);
         1 * artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptorDummy, configurationsDummy)
-        actualModuleDescriptor == moduleDescriptorDummy
+
+        and:
+        actualMetaData == publishMetaDataDummy
     }
 }
