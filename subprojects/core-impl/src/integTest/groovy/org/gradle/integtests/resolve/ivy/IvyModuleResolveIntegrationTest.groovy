@@ -110,9 +110,10 @@ task retrieve(type: Sync) {
         ivyRepo.module('ivy.configuration', 'projectB', '1.5')
                 .configuration('a')
                 .configuration('b')
-                .configuration('other')
+                .configuration('c')
                 .artifact([name: 'projectB-a', conf: 'a'])
                 .artifact([name: 'projectB-b', conf: 'b'])
+                .artifact([name: 'projectB-c', conf: 'c'])
                 .dependsOn(organisation: 'ivy.configuration', module: 'projectC', revision: '1.7', conf: 'a->default')
                 .dependsOn(organisation: 'ivy.configuration', module: 'projectD', revision: '1.7', conf: 'b->default')
                 .publish()
@@ -136,7 +137,7 @@ task retrieve(type: Sync) {
         "a->a,b"                | ["projectB-a-1.5.jar", "projectB-b-1.5.jar", "projectC-1.7.jar", "projectD-1.7.jar"]
         "a;a->b"                | ["projectB-a-1.5.jar", "projectB-b-1.5.jar", "projectC-1.7.jar", "projectD-1.7.jar"]
         "*->a"                  | ["projectB-a-1.5.jar", "projectC-1.7.jar"]
-        "*->*"                  | ["projectB-a-1.5.jar", "projectB-b-1.5.jar", "projectC-1.7.jar", "projectD-1.7.jar"]
+        "*->*"                  | ["projectB-a-1.5.jar", "projectB-b-1.5.jar", "projectB-c-1.5.jar", "projectC-1.7.jar", "projectD-1.7.jar"]
         "*->@"                  | ["projectB-a-1.5.jar", "projectC-1.7.jar"]
         "a,b->@"                | ["projectB-a-1.5.jar", "projectC-1.7.jar"]
         "runtime->unknown;%->@" | ["projectB-a-1.5.jar", "projectC-1.7.jar"]
@@ -148,7 +149,8 @@ task retrieve(type: Sync) {
         "parent->#"             | ["projectB-a-1.5.jar", "projectC-1.7.jar"]
         "*->#"                  | ["projectB-a-1.5.jar", "projectC-1.7.jar"]
         "*->unknown(a)"         | ["projectB-a-1.5.jar", "projectC-1.7.jar"]
-        "a->unknown(*)"         | ["projectB-a-1.5.jar", "projectB-b-1.5.jar", "projectC-1.7.jar", "projectD-1.7.jar"]
+        "a->unknown(*)"         | ["projectB-a-1.5.jar", "projectB-b-1.5.jar", "projectB-c-1.5.jar", "projectC-1.7.jar", "projectD-1.7.jar"]
+        "a->a(*),b(*);b->b(*)"  | ["projectB-a-1.5.jar", "projectB-b-1.5.jar", "projectC-1.7.jar", "projectD-1.7.jar"]
     }
 
     def "prefers revConstraint over rev when dynamic resolve mode is used"() {
