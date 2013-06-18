@@ -17,22 +17,31 @@
 package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DefaultModuleVersionPublishMetaData implements ModuleVersionPublishMetaData {
-    private final ModuleRevisionId moduleRevisionId;
-    private final Map<Artifact, File> artifacts;
+    private final Map<Artifact, File> artifacts = new LinkedHashMap<Artifact, File>();
+    private final ModuleDescriptor moduleDescriptor;
 
-    public DefaultModuleVersionPublishMetaData(ModuleRevisionId moduleRevisionId, Map<Artifact, File> artifacts) {
-        this.moduleRevisionId = moduleRevisionId;
-        this.artifacts = artifacts;
+    public DefaultModuleVersionPublishMetaData(ModuleDescriptor moduleDescriptor) {
+        this.moduleDescriptor = moduleDescriptor;
     }
 
     public ModuleRevisionId getId() {
-        return moduleRevisionId;
+        return moduleDescriptor.getModuleRevisionId();
+    }
+
+    public ModuleDescriptor getModuleDescriptor() {
+        return moduleDescriptor;
+    }
+
+    public void addArtifact(Artifact artifact, File file) {
+        artifacts.put(artifact, file);
     }
 
     public Map<Artifact, File> getArtifacts() {

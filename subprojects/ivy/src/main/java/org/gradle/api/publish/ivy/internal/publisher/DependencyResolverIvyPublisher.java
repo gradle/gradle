@@ -18,6 +18,8 @@ package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Dependency;
@@ -28,11 +30,10 @@ import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.util.GUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DependencyResolverIvyPublisher implements IvyPublisher {
@@ -42,18 +43,19 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
         Map<String, String> extraAttributes = Collections.emptyMap();
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision(), extraAttributes);
+        ModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId, "integration", new Date());
+        DefaultModuleVersionPublishMetaData publishMetaData = new DefaultModuleVersionPublishMetaData(moduleDescriptor);
 
         try {
-            Map<Artifact, File> artifactFiles = new LinkedHashMap<Artifact, File>();
             for (IvyArtifact publishArtifact : publication.getArtifacts()) {
                 Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleRevisionId);
-                artifactFiles.put(ivyArtifact, publishArtifact.getFile());
+                publishMetaData.addArtifact(ivyArtifact, publishArtifact.getFile());
             }
 
             Artifact artifact = DefaultArtifact.newIvyArtifact(moduleRevisionId, null);
-            artifactFiles.put(artifact, publication.getDescriptorFile());
+            publishMetaData.addArtifact(artifact, publication.getDescriptorFile());
 
-            publisher.publish(new DefaultModuleVersionPublishMetaData(moduleRevisionId, artifactFiles));
+            publisher.publish(publishMetaData);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
