@@ -22,6 +22,7 @@ dependencies {
 
     compile project(":baseServices")
     compile project(":native")
+    compile project(":core")
     compile libraries.commons_lang
     compile libraries.commons_io
     compile libraries.ant
