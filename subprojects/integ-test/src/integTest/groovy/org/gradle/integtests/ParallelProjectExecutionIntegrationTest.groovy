@@ -31,9 +31,15 @@ public class ParallelProjectExecutionIntegrationTest extends AbstractIntegration
         buildFile << """
 assert gradle.startParameter.parallelThreadCount != 0
 allprojects {
-    task pingServer << {
-        URL url = new URL("http://localhost:${blockingServer.port}/" + project.path)
-        println url.openConnection().getHeaderField('RESPONSE')
+    tasks.addRule("ping<>") { String name ->
+        if (name.startsWith("ping")) {
+            tasks.create(name) {
+                doLast {
+                    URL url = new URL("http://localhost:${blockingServer.port}/" + project.path)
+                    println url.openConnection().getHeaderField('RESPONSE')
+                }
+            }
+        }
     }
 }
 """
@@ -81,6 +87,20 @@ allprojects {
         failure.error =~ 'c failed'
     }
 
+    def "tasks are executed when they are ready and not necessarily alphabetically"() {
+        buildFile << """
+            tasks.getByPath(':b:pingA').dependsOn(':a:pingA')
+            tasks.getByPath(':b:pingC').dependsOn([':b:pingA', ':b:pingB'])
+        """
+
+        expect:
+        //project a and b are both executed even though alphabetically more important task is blocked
+        blockingServer.expectConcurrentExecution(':b', ':a')
+        blockingServer.expectConcurrentExecution(':b')
+        blockingServer.expectConcurrentExecution(':b')
+
+        run 'b:pingC'
+    }
 
     def projectDependency(def link) {
         def from = link['from']
