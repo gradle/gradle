@@ -24,9 +24,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskState
 import org.gradle.execution.TaskFailureHandler
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
-import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.util.HelperUtil.createChildProject
@@ -35,7 +33,6 @@ import static org.gradle.util.WrapUtil.toList
 
 public class DefaultTaskExecutionPlanTest extends Specification {
 
-    @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
     DefaultTaskExecutionPlan executionPlan
     DefaultProject root;
 
@@ -561,36 +558,20 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([fooA, barA, fooB, barB])
 
         when:
-        //simulate build with 4 parallel threads
-        List<TaskInfo> executing = []
-        def t1 = concurrent.start { executing << executionPlan.getTaskToExecute() }
-        def t2 = concurrent.start { executing << executionPlan.getTaskToExecute() }
-        concurrent.finished() //wait for first 2 threads to get tasks
-        def t3 = concurrent.start { executing << executionPlan.getTaskToExecute() }
-        def t4 = concurrent.start { executing << executionPlan.getTaskToExecute() }
+        def t1 = executionPlan.getTaskToExecute()
+        def t2 = executionPlan.getTaskToExecute()
 
         then:
-        //tasks from different projects were retrieved
-        assert executing*.task.project as Set == [projectA, projectB] as Set
-        //3rd,4th threads are still waiting for tasks
-        t3.running()
-        t4.running()
+        t1.task.project != t2.task.project
 
-        when: //complete first round of tasks
-        concurrent.start { executionPlan.taskComplete(executing[0]) }
-        concurrent.start { executionPlan.taskComplete(executing[1]) }
-        concurrent.finished()
-
-        then: //all tasks started
-        executing*.task as Set == [fooA, fooB, barA, barB] as Set
-
-        when: //complete second round of tasks
-        concurrent.start { executionPlan.taskComplete(executing[2]) }
-        concurrent.start { executionPlan.taskComplete(executing[3]) }
-        concurrent.finished()
+        when:
+        executionPlan.taskComplete(t1)
+        executionPlan.taskComplete(t2)
+        def t3 = executionPlan.getTaskToExecute()
+        def t4 = executionPlan.getTaskToExecute()
 
         then:
-        executionPlan.getTaskToExecute() == null
+        t3.task.project != t4.task.project
     }
 
     private TaskDependency taskDependencyResolvingTo(TaskInternal task, List<Task> tasks) {
