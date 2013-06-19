@@ -43,7 +43,7 @@ public class PublishModuleDescriptorConverter implements ModuleDescriptorConvert
 
     public ModuleVersionPublishMetaData convert(Set<? extends Configuration> configurations, Module module) {
         BuildableModuleVersionPublishMetaData publishMetaData = (BuildableModuleVersionPublishMetaData) resolveModuleDescriptorConverter.convert(configurations, module);
-        DefaultModuleDescriptor moduleDescriptor = (DefaultModuleDescriptor) publishMetaData.getModuleDescriptor();
+        DefaultModuleDescriptor moduleDescriptor = publishMetaData.getModuleDescriptor();
         moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);
         artifactsToModuleDescriptorConverter.addArtifacts(publishMetaData, configurations);
         return publishMetaData;

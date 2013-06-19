@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.MDArtifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.UncheckedIOException;
@@ -44,7 +45,7 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
                         ModuleDescriptor moduleDescriptor,
                         File descriptorDestination) {
         try {
-            Publication publication = new Publication(moduleDescriptor, configurations, descriptorDestination);
+            Publication publication = new Publication((DefaultModuleDescriptor) moduleDescriptor, configurations, descriptorDestination);
             for (ModuleVersionPublisher publisher : publishResolvers) {
                 logger.info("Publishing to {}", publisher);
                 publisher.publish(publication);
@@ -58,7 +59,7 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
         private final Set<String> configurations;
         private final File descriptorFile;
 
-        private Publication(ModuleDescriptor moduleDescriptor, Set<String> configurations, File descriptorFile) {
+        private Publication(DefaultModuleDescriptor moduleDescriptor, Set<String> configurations, File descriptorFile) {
             super(moduleDescriptor);
             this.configurations = configurations;
             this.descriptorFile = descriptorFile;

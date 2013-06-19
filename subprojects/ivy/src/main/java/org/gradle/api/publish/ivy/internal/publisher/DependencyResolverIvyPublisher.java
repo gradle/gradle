@@ -19,7 +19,6 @@ package org.gradle.api.publish.ivy.internal.publisher;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Dependency;
@@ -43,7 +42,7 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
         Map<String, String> extraAttributes = Collections.emptyMap();
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision(), extraAttributes);
-        ModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId, "integration", new Date());
+        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId, "integration", new Date());
         DefaultModuleVersionPublishMetaData publishMetaData = new DefaultModuleVersionPublishMetaData(moduleDescriptor);
 
         try {

@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
@@ -32,10 +33,11 @@ public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
     }
 
-    public ModuleDescriptor findProject(ProjectDependencyDescriptor descriptor) {
+    public ModuleVersionPublishMetaData findProject(ProjectDependencyDescriptor descriptor) {
         ProjectInternal project = descriptor.getTargetProject();
         Module projectModule = project.getModule();
-        ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations(), projectModule).getModuleDescriptor();
+        ModuleVersionPublishMetaData publishMetaData = moduleDescriptorConverter.convert(project.getConfigurations(), projectModule);
+        ModuleDescriptor projectDescriptor = publishMetaData.getModuleDescriptor();
 
         for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
             for (Artifact artifact : projectDescriptor.getAllArtifacts()) {
@@ -48,6 +50,6 @@ public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
             }
         }
 
-        return projectDescriptor;
+        return publishMetaData;
     }
 }

@@ -53,7 +53,7 @@ public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToM
     }
 
     public void addArtifacts(BuildableModuleVersionPublishMetaData metaData, Iterable<? extends Configuration> configurations) {
-        DefaultModuleDescriptor moduleDescriptor = (DefaultModuleDescriptor) metaData.getModuleDescriptor();
+        DefaultModuleDescriptor moduleDescriptor = metaData.getModuleDescriptor();
         for (Configuration configuration : configurations) {
             for (PublishArtifact publishArtifact : configuration.getArtifacts()) {
                 Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleDescriptor.getModuleRevisionId());

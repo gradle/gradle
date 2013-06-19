@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter
@@ -40,6 +41,7 @@ class ProjectDependencyResolverTest extends Specification {
         1 * moduleRevisionId.name >> "project"
         1 * moduleRevisionId.revision >> "1.0"
 
+        def publishMetaData = Mock(ModuleVersionPublishMetaData)
         def moduleDescriptor = Mock(ModuleDescriptor)
         def result = Mock(BuildableModuleVersionResolveResult)
         def dependencyProject = Mock(ProjectInternal)
@@ -54,7 +56,8 @@ class ProjectDependencyResolverTest extends Specification {
         resolver.resolve(dependencyMetaData, result)
 
         then:
-        1 * registry.findProject(dependencyDescriptor) >> moduleDescriptor
+        1 * registry.findProject(dependencyDescriptor) >> publishMetaData
+        _ * publishMetaData.moduleDescriptor >> moduleDescriptor
         _ * moduleDescriptor.moduleRevisionId >> moduleRevisionId
         1 * result.resolved(_, moduleDescriptor, _) >> { args ->
             ModuleVersionIdentifier moduleVersionIdentifier = args[0]
