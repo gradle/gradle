@@ -49,7 +49,8 @@ class DefaultCacheAccessTest extends Specification {
         access.open(Shared)
 
         then:
-        1 * lockManager.lock(lockFile, Shared, "<display-name>", _) >> lock
+        1 * lockManager.lock(lockFile, Shared, "<display-name>") >> lock
+        1 * lockManager.allowContention(lock, _ as Runnable)
         1 * operations.pushCacheAction("Access <display-name>")
         0 * _._
 
@@ -69,7 +70,7 @@ class DefaultCacheAccessTest extends Specification {
     }
 
     def "lock cannot be acquired more than once when initial lock mode is not none"() {
-        lockManager.lock(lockFile, Shared, "<display-name>", _) >> lock
+        lockManager.lock(lockFile, Shared, "<display-name>") >> lock
 
         when:
         access.open(Shared)
@@ -108,7 +109,8 @@ class DefaultCacheAccessTest extends Specification {
 
         then:
         1 * operations.description >> "some operation"
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation", _) >> lock
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        1 * lockManager.allowContention(lock, _ as Runnable)
 
         then:
         1 * action.create() >> {
@@ -132,7 +134,7 @@ class DefaultCacheAccessTest extends Specification {
         access.useCache("some operation", action)
 
         then:
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", _, _) >> lock
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", _) >> lock
         1 * action.create()
         1 * operations.inCacheAction >> true
 
@@ -147,7 +149,7 @@ class DefaultCacheAccessTest extends Specification {
         access.open(Exclusive)
 
         then:
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", _) >> lock
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>") >> lock
 
         when:
         access.useCache("some operation", action)
@@ -184,7 +186,7 @@ class DefaultCacheAccessTest extends Specification {
         access.open(Exclusive)
 
         then:
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", _) >> lock
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>") >> lock
         assert access.owner
 
         when:
@@ -217,7 +219,7 @@ class DefaultCacheAccessTest extends Specification {
         access.open(Exclusive)
 
         then:
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", _) >> lock
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>") >> lock
 
         when:
         access.whenContended().run()
@@ -230,7 +232,7 @@ class DefaultCacheAccessTest extends Specification {
         1 * action.create()
 
         then:
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", _, _)
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", _)
     }
 
     def "long running operation closes the lock if the lock is shared"() {
@@ -240,7 +242,7 @@ class DefaultCacheAccessTest extends Specification {
         access.open(Shared)
 
         then:
-        1 * lockManager.lock(lockFile, Shared, "<display-name>", _) >> lock
+        1 * lockManager.lock(lockFile, Shared, "<display-name>") >> lock
 
         when:
         access.longRunningOperation("some operation", action)
@@ -253,7 +255,7 @@ class DefaultCacheAccessTest extends Specification {
         1 * action.create()
 
         then:
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", _, _)
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", _)
     }
 
     def "reentrant long running operation does not involve locking"() {
@@ -299,7 +301,7 @@ class DefaultCacheAccessTest extends Specification {
         access.longRunningOperation("some operation", action)
 
         then:
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", _) >> lock
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>") >> lock
         action.create() >> {
             access.whenContended().run()
         }

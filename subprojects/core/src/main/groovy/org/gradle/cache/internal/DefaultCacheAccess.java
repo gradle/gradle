@@ -85,8 +85,9 @@ public class DefaultCacheAccess implements CacheAccess {
             if (fileLock != null) {
                 throw new IllegalStateException("File lock " + lockFile + " is already open.");
             }
-            fileLock = lockManager.lock(lockFile, lockMode, cacheDiplayName, whenContended());
+            fileLock = lockManager.lock(lockFile, lockMode, cacheDiplayName);
             takeOwnership(String.format("Access %s", cacheDiplayName));
+            lockManager.allowContention(fileLock, whenContended());
         } finally {
             lock.unlock();
         }
@@ -300,11 +301,14 @@ public class DefaultCacheAccess implements CacheAccess {
         if (fileLock != null) {
             return false;
         }
-        fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operations.getDescription(), whenContended());
+        fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operations.getDescription());
 
         for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
             cache.onStartWork(operations.getDescription());
         }
+
+        lockManager.allowContention(fileLock, whenContended());
+
         return true;
     }
 

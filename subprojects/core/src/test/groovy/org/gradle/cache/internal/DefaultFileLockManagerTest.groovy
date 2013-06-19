@@ -18,7 +18,7 @@ package org.gradle.cache.internal
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.cache.internal.FileLockManager.LockMode
-import org.gradle.cache.internal.locklistener.NoOpFileLockListener
+import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.Factory
 import org.gradle.internal.id.IdGenerator
 import org.gradle.test.fixtures.file.TestFile
@@ -40,7 +40,7 @@ class DefaultFileLockManagerTest extends Specification {
     def metaDataProvider = Mock(ProcessMetaDataProvider)
     def generator = Stub(IdGenerator)
 
-    FileLockManager manager = new DefaultFileLockManager(metaDataProvider, 5000, new NoOpFileLockListener(), generator)
+    FileLockManager manager = new DefaultFileLockManager(metaDataProvider, 5000, new NoOpFileLockContentionHandler(), generator)
 
     TestFile testFile
     TestFile testFileLock
@@ -401,11 +401,11 @@ class DefaultFileLockManagerTest extends Specification {
         def customMetaDataProvider = Mock(ProcessMetaDataProvider)
         def processIdentifier = RandomStringUtils.randomAlphanumeric(1000)
         1 * customMetaDataProvider.processIdentifier >> processIdentifier
-        def customManager = new DefaultFileLockManager(customMetaDataProvider, 5000, new NoOpFileLockListener(), generator)
+        def customManager = new DefaultFileLockManager(customMetaDataProvider, 5000, new NoOpFileLockContentionHandler(), generator)
         def operationalDisplayName = RandomStringUtils.randomAlphanumeric(1000)
 
         when:
-        customManager.lock(testFile, Exclusive, "targetDisplayName", operationalDisplayName, {} as Runnable)
+        customManager.lock(testFile, Exclusive, "targetDisplayName", operationalDisplayName)
 
         then:
         isVersion2LockFile(testFileLock, processIdentifier.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
@@ -472,7 +472,7 @@ class DefaultFileLockManagerTest extends Specification {
     }
 
     private FileLock createLock(LockMode lockMode = Shared, File file = testFile) {
-        manager.lock(file, lockMode, "foo", "operation", _ as Runnable)
+        manager.lock(file, lockMode, "foo", "operation")
     }
 
     private File unlockUncleanly(LockMode lockMode = Shared, File file = testFile) {

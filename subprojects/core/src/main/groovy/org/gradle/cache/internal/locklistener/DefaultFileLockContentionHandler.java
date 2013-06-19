@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * By Szczepan Faber on 5/28/13
  */
 //TODO SF if this is ok, let's tighten up the unit test coverage
-public class DefaultFileLockListener implements FileLockListener {
-    private static final Logger LOGGER = Logging.getLogger(DefaultFileLockListener.class);
+public class DefaultFileLockContentionHandler implements FileLockContentionHandler {
+    private static final Logger LOGGER = Logging.getLogger(DefaultFileLockContentionHandler.class);
     private final Lock lock = new ReentrantLock();
     private final Map<Long, Runnable> contendedActions = new HashMap<Long, Runnable>();
     private FileLockCommunicator communicator = new FileLockCommunicator();
@@ -79,7 +79,7 @@ public class DefaultFileLockListener implements FileLockListener {
 
     private StoppableExecutor executor;
 
-    public void lockCreated(long lockId, Runnable whenContended) {
+    public void start(long lockId, Runnable whenContended) {
         lock.lock();
         try {
             if (contendedActions.isEmpty()) {
@@ -93,7 +93,7 @@ public class DefaultFileLockListener implements FileLockListener {
         }
     }
 
-    public void stopListening(long lockId) {
+    public void stop(long lockId) {
         StoppableExecutor stopMe = null;
         lock.lock();
         try {

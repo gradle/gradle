@@ -17,7 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.internal.locklistener.FileLockListener;
+import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Stoppable;
@@ -56,29 +56,29 @@ public class DefaultFileLockManager implements FileLockManager {
     private final ProcessMetaDataProvider metaDataProvider;
     private final int lockTimeoutMs;
     private final IdGenerator<Long> generator;
-    private FileLockListener fileLockListener;
+    private FileLockContentionHandler fileLockContentionHandler;
     private final long shortTimeoutMs = 10000;
 
-    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockListener fileLockListener) {
-        this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockListener);
+    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockContentionHandler fileLockContentionHandler) {
+        this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler);
     }
 
-    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockListener fileLockListener) {
-        this(metaDataProvider, lockTimeoutMs, fileLockListener, new RandomLongIdGenerator());
+    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler) {
+        this(metaDataProvider, lockTimeoutMs, fileLockContentionHandler, new RandomLongIdGenerator());
     }
 
-    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockListener fileLockListener, IdGenerator<Long> generator) {
+    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler, IdGenerator<Long> generator) {
         this.metaDataProvider = metaDataProvider;
         this.lockTimeoutMs = lockTimeoutMs;
-        this.fileLockListener = fileLockListener;
+        this.fileLockContentionHandler = fileLockContentionHandler;
         this.generator = generator;
     }
 
-    public FileLock lock(File target, LockMode mode, String targetDisplayName, Runnable whenContended) throws LockTimeoutException {
-        return lock(target, mode, targetDisplayName, "", whenContended);
+    public FileLock lock(File target, LockMode mode, String targetDisplayName) throws LockTimeoutException {
+        return lock(target, mode, targetDisplayName, "");
     }
 
-    public FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName, Runnable whenContended) {
+    public FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName) {
         if (mode == LockMode.None) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", mode));
         }
@@ -87,14 +87,17 @@ public class DefaultFileLockManager implements FileLockManager {
             throw new IllegalStateException(String.format("Cannot lock %s as it has already been locked by this process.", targetDisplayName));
         }
         try {
-            int port = fileLockListener.reservePort();
+            int port = fileLockContentionHandler.reservePort();
             DefaultFileLock newLock = new DefaultFileLock(canonicalTarget, mode, targetDisplayName, operationDisplayName, port);
-            fileLockListener.lockCreated(newLock.lockId, whenContended);
             return newLock;
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
             throw throwAsUncheckedException(t);
         }
+    }
+
+    public void allowContention(FileLock fileLock, Runnable whenContended) {
+        fileLockContentionHandler.start(fileLock.getLockId(), whenContended);
     }
 
     private class OwnerInfo {
@@ -233,7 +236,7 @@ public class DefaultFileLockManager implements FileLockManager {
             stoppable.add(new Stoppable() {
                 public void stop() {
                     try {
-                        fileLockListener.stopListening(lockId);
+                        fileLockContentionHandler.stop(lockId);
                     } catch (Exception e) {
                         throw new RuntimeException("Unable to stop listening for file lock requests for " + displayName, e);
                     }
@@ -283,6 +286,10 @@ public class DefaultFileLockManager implements FileLockManager {
 
         public LockMode getMode() {
             return mode;
+        }
+
+        public long getLockId() {
+            return lockId;
         }
 
         private java.nio.channels.FileLock lock(FileLockManager.LockMode lockMode) throws Throwable {

@@ -65,7 +65,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         store.open()
 
         then:
-        1 * lockManager.lock(cacheDir, Shared, "<display> ($cacheDir)", _ as Runnable) >> lock
+        1 * lockManager.lock(cacheDir, Shared, "<display> ($cacheDir)") >> lock
 
         when:
         store.close()

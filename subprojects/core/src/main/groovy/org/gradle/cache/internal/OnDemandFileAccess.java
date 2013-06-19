@@ -31,7 +31,7 @@ public class OnDemandFileAccess extends AbstractFileAccess {
     }
 
     public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
-        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Shared, displayName, doNothing());
+        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Shared, displayName);
         try {
             return lock.readFile(action);
         } finally {
@@ -44,7 +44,7 @@ public class OnDemandFileAccess extends AbstractFileAccess {
     }
 
     public void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
-        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName, doNothing());
+        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName);
         try {
             lock.updateFile(action);
         } finally {
@@ -53,7 +53,7 @@ public class OnDemandFileAccess extends AbstractFileAccess {
     }
 
     public void writeFile(Runnable action) throws LockTimeoutException {
-        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName, doNothing());
+        FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName);
         try {
             lock.writeFile(action);
         } finally {

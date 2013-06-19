@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,10 @@ package org.gradle.cache.internal.locklistener;
 /**
  * By Szczepan Faber on 5/28/13
  */
-public class NoOpFileLockListener implements FileLockListener {
+public interface FileLockContentionHandler {
+    void start(long lockId, Runnable whenContended);
 
-    public void lockCreated(long lockId, Runnable whenContended) {}
+    void stop(long lockId);
 
-    public void stopListening(long lockId) {}
-
-    public int reservePort() {
-        return -1;
-    }
+    int reservePort();
 }
