@@ -53,7 +53,6 @@ public class DefaultCacheAccess implements CacheAccess {
     private Thread owner;
     private FileLockManager.LockMode lockMode;
     private FileLock fileLock;
-    private boolean busy;
     private boolean contended;
     private final CacheAccessOperationsStack operations;
     private int cacheClosedCount;
@@ -98,7 +97,7 @@ public class DefaultCacheAccess implements CacheAccess {
         try {
             cacheClosedCount++;
             for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
-                cache.close(fileLock);
+                cache.close();
             }
             fileLock.close();
         } finally {
@@ -111,15 +110,15 @@ public class DefaultCacheAccess implements CacheAccess {
         lock.lock();
         try {
             operations.close();
-            lockMode = null;
-            owner = null;
             if (fileLock != null) {
                 closeFileLock();
             }
-        } finally {
             if (cacheClosedCount != 1) {
                 LOG.info("Cache {} was closed {} times.", cacheDiplayName, cacheClosedCount);
             }
+        } finally {
+            lockMode = null;
+            owner = null;
             lock.unlock();
         }
     }
@@ -326,7 +325,7 @@ public class DefaultCacheAccess implements CacheAccess {
     private FileLock getLock() {
         lock.lock();
         try {
-            if (Thread.currentThread() != owner || fileLock == null) {
+            if ((Thread.currentThread() != owner && owner != null) || fileLock == null) {
                 throw new IllegalStateException(String.format("The %s has not been locked for this thread. File lock: %s, owner: %s", cacheDiplayName, fileLock != null, owner));
             }
         } finally {
@@ -379,5 +378,9 @@ public class DefaultCacheAccess implements CacheAccess {
 
     Thread getOwner() {
         return owner;
+    }
+
+    FileAccess getFileAccess() {
+        return fileAccess;
     }
 }

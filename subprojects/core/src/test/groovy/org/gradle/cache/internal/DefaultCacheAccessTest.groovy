@@ -29,7 +29,6 @@ class DefaultCacheAccessTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final FileLockManager lockManager = Mock()
     final File lockFile = tmpDir.file('lock.bin')
-    final File targetFile = tmpDir.file('cache.bin')
     final FileLock lock = Mock()
     final CacheAccessOperationsStack operations = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
@@ -310,5 +309,41 @@ class DefaultCacheAccessTest extends Specification {
         1 * operations.pushCacheAction('Other process requested access to <display-name>')
         1 * lock.close()
         1 * operations.popCacheAction('Other process requested access to <display-name>')
+    }
+
+    def "file access requires acquired lock"() {
+        def runnable = Mock(Runnable)
+
+        when:
+        access.open(None)
+        access.fileAccess.updateFile(runnable)
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "file access is available when lock is acquired"() {
+        def runnable = Mock(Runnable)
+
+        when:
+        access.open(Exclusive)
+        access.fileAccess.updateFile(runnable)
+
+        then:
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>") >> lock
+        1 * lock.updateFile(runnable)
+    }
+
+    def "file access can be accessed when there is no owner"() {
+        def runnable = Mock(Runnable)
+
+        when:
+        access.open(None)
+        access.useCache("use cache", {} as Runnable) //acquires file lock but releases the thread lock
+        access.fileAccess.updateFile(runnable)
+
+        then:
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", _) >> lock
+        1 * lock.updateFile(runnable)
     }
 }
