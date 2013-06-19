@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
+import static org.gradle.util.Matchers.strictlyEqual
+import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultArtifactIdentifierTest extends Specification {
 
@@ -33,8 +35,7 @@ class DefaultArtifactIdentifierTest extends Specification {
         def badClassifier = new DefaultArtifactIdentifier(newId("org", "lib", "1.0"), "someArtifact", "jar", "jar", "sources")
 
         expect:
-        base == same
-        same == base
+        assertThat(base, strictlyEqual(same))
 
         base != badId
         base != badName
