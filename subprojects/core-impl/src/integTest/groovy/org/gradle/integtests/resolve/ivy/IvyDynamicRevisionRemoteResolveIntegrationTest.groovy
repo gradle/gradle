@@ -284,10 +284,9 @@ task retrieveMilestone(type: Sync) {
 """
         when:
         repo1.expectDirectoryListGet("org.test", "projectA")
-        repo1version2.expectIvyGet()
         repo2.expectDirectoryListGet("org.test", "projectA")
         repo2version3.expectIvyGet()
-        repo2version1.expectIvyGet()
+        repo1version2.expectIvyGet()
         repo1version2.expectJarGet()
 
         then:

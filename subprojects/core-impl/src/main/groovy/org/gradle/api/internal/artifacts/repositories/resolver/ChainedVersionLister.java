@@ -67,10 +67,10 @@ public class ChainedVersionLister implements VersionLister {
                 }
             }
 
-            public Set<String> getVersionStrings() {
-                Set<String> allVersions = new HashSet<String>();
+            public Set<ListedVersion> getVersions() {
+                Set<ListedVersion> allVersions = new HashSet<ListedVersion>();
                 for (VersionList versionList : versionLists) {
-                    allVersions.addAll(versionList.getVersionStrings());
+                    allVersions.addAll(versionList.getVersions());
                 }
                 return allVersions;
             }

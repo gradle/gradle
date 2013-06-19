@@ -157,7 +157,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
                 result.missing();
             } else {
                 long lastModified = artifactRef.getLastModified();
-                if (lastModified != 0 && nsMd instanceof DefaultModuleDescriptor) {
+                if (lastModified != 0) {
                     ((DefaultModuleDescriptor) nsMd).setLastModified(lastModified);
                 }
                 LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.", nsMrid, getName());
@@ -334,14 +334,11 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     }
 
     protected ResolvedResource findResourceUsingPatterns(ModuleRevisionId requestedModuleRevision, List<String> patternList, Artifact artifact, ResourceMDParser rmdparser, Date date, boolean forDownload) {
-        boolean dynamic = getVersionMatcher().isDynamic(requestedModuleRevision);
-
-        if (dynamic) {
+        if (getVersionMatcher().isDynamic(requestedModuleRevision)) {
             return findDynamicResourceUsingPatterns(requestedModuleRevision, patternList, artifact, rmdparser, date, forDownload);
+        } else {
+            return findStaticResourceUsingPatterns(requestedModuleRevision, patternList, artifact, forDownload);
         }
-        return findStaticResourceUsingPatterns(requestedModuleRevision, patternList, artifact, forDownload);
-
-
     }
 
     private ResolvedResource findStaticResourceUsingPatterns(ModuleRevisionId moduleRevision, List<String> patternList, Artifact artifact, boolean forDownload) {
@@ -362,49 +359,32 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     }
 
     private ResolvedResource findDynamicResourceUsingPatterns(ModuleRevisionId requestedModuleRevision, List<String> patternList, Artifact artifact, ResourceMDParser rmdparser, Date date, boolean forDownload) {
-        List<ResolvedResource> resolvedResources = new ArrayList<ResolvedResource>();
-        Set<String> foundRevisions = new HashSet<String>();
-
-        // TODO:DAZ Include resourcePattern in VersionList entries, so can sort ALL before iterating over to check matches.
-        // First need test coverage for this
-
-        // Find the latest for each pattern
-        for (String pattern : patternList) {
-            ResourcePattern resourcePattern = toResourcePattern(pattern);
-            VersionList versions = listVersions(requestedModuleRevision, resourcePattern, artifact);
-            ResolvedResource resource = findLatestResource(requestedModuleRevision, versions, rmdparser, date, resourcePattern, artifact, forDownload);
-            if (resource == null) {
-                LOGGER.debug("No resource found for {}: pattern={}", requestedModuleRevision, resourcePattern);
-            }
-            if ((resource != null) && !foundRevisions.contains(resource.getRevision())) {
-                // only add the first found ResolvedResource for each revision
-                foundRevisions.add(resource.getRevision());
-                resolvedResources.add(resource);
-            }
-        }
-
-        // Find the latest of these
-        if (resolvedResources.size() > 1) {
-            ResolvedResource[] candidateVersions = resolvedResources.toArray(new ResolvedResource[resolvedResources.size()]);
-            List<ResolvedResource> sortedResources = getLatestStrategy().sort(candidateVersions);
-            // Discard all but the last, which is returned
-            for (int i = 0; i < sortedResources.size() - 1; i++) {
-                ResolvedResource resolvedResource = sortedResources.get(i);
-                discardResource(resolvedResource.getResource());
-            }
-            return sortedResources.get(sortedResources.size() - 1);
-        } else if (resolvedResources.size() == 1) {
-            return resolvedResources.get(0);
-        } else {
-            return null;
-        }
+        // Dynamic version: list all, then choose latest
+        VersionList versionList = listVersionsForAllPatterns(requestedModuleRevision, patternList, artifact);
+        return findLatestResource(requestedModuleRevision, versionList, rmdparser, date, artifact, forDownload);
     }
 
-    private ResolvedResource findLatestResource(ModuleRevisionId mrid, VersionList versions, ResourceMDParser rmdparser, Date date, ResourcePattern pattern, Artifact artifact, boolean forDownload) {
+    private VersionList listVersionsForAllPatterns(ModuleRevisionId requestedModuleRevision, List<String> patternList, Artifact artifact) {
+        VersionList versionList = versionLister.getVersionList(requestedModuleRevision);
+        for (String pattern : patternList) {
+            ResourcePattern resourcePattern = toResourcePattern(pattern);
+            try {
+                versionList.visit(resourcePattern, artifact);
+            } catch (ResourceNotFoundException e) {
+                LOGGER.debug(String.format("Unable to load version list for %s from %s", requestedModuleRevision.getModuleId(), getRepository()));
+                // Don't add any versions
+                // TODO:DAZ Should fail?
+            }
+        }
+        return versionList;
+    }
+
+    private ResolvedResource findLatestResource(ModuleRevisionId mrid, VersionList versions, ResourceMDParser rmdparser, Date date, Artifact artifact, boolean forDownload) {
         String name = getName();
         VersionMatcher versionMatcher = getVersionMatcher();
-        List<String> sorted = versions.sortLatestFirst(getLatestStrategy());
-        for (String version : sorted) {
+        for (VersionList.ListedVersion listedVersion : versions.sortLatestFirst(getLatestStrategy())) {
+            String version = listedVersion.getVersion();
+
             ModuleRevisionId foundMrid = ModuleRevisionId.newInstance(mrid, version);
 
             if (!versionMatcher.accept(mrid, foundMrid)) {
@@ -414,7 +394,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
 
             boolean needsModuleDescriptor = versionMatcher.needModuleDescriptor(mrid, foundMrid);
             artifact = DefaultArtifact.cloneWithAnotherMrid(artifact, foundMrid);
-            String resourcePath = pattern.toPath(artifact);
+            String resourcePath = listedVersion.getPattern().toPath(artifact);
             Resource resource = getResource(resourcePath, artifact, forDownload || needsModuleDescriptor);
             String description = version + " [" + resource + "]";
             if (!resource.exists()) {
@@ -495,17 +475,6 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
             }
         } catch (IOException e) {
             throw new RuntimeException(String.format("Could not get resource '%s'.", source), e);
-        }
-    }
-
-    private VersionList listVersions(ModuleRevisionId moduleRevisionId, ResourcePattern pattern, Artifact artifact) {
-        try {
-            VersionList versionList = versionLister.getVersionList(moduleRevisionId);
-            versionList.visit(pattern, artifact);
-            return versionList;
-        } catch (ResourceNotFoundException e) {
-            LOGGER.debug(String.format("Unable to load version list for %s from %s", moduleRevisionId.getModuleId(), getRepository()));
-            return new DefaultVersionList(Collections.<String>emptyList());
         }
     }
 
