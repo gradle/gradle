@@ -37,8 +37,10 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 /**
  * Uses file system locks on a lock file per target file. Each lock file is made up of 2 regions:
  *
- * <ul> <li>State region: 1 byte version field, 1 byte clean flag.</li> <li>Owner information region: 1 byte version field, utf-8 encoded owner process id, utf-8 encoded owner operation display
- * name.</li> </ul>
+ * <ul>
+ *     <li>State region: 1 byte version field, 1 byte clean flag.</li>
+ *     <li>Owner information region: 1 byte version field, bunch of other fields, see the code below for more info</li>
+ * </ul>
  */
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockManager.class);
