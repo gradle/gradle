@@ -30,10 +30,10 @@ class ResourceVersionListerTest extends Specification {
     def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "proj1", "1.0")
     def artifact = new DefaultArtifact(moduleRevisionId, new Date(), "proj1", "jar", "jar")
 
-    def org.gradle.api.internal.artifacts.repositories.resolver.ResourceVersionLister lister;
+    def ResourceVersionLister lister;
 
     def setup() {
-        lister = new org.gradle.api.internal.artifacts.repositories.resolver.ResourceVersionLister(repo)
+        lister = new ResourceVersionLister(repo)
     }
 
     def "visit propagates Exceptions as ResourceException"() {

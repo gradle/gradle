@@ -16,11 +16,30 @@
 
 package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
+import org.apache.ivy.core.cache.CacheDownloadOptions;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
+import org.apache.ivy.plugins.repository.ResourceDownloader;
+import org.apache.ivy.plugins.resolver.util.ResolvedResource;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
+
+import java.text.ParseException;
 
 /**
  * This is a transitional interface for moving away from the Ivy RepositoryCacheManager.
  */
-public interface RepositoryArtifactCache extends RepositoryCacheManager {
+public interface RepositoryArtifactCache {
     boolean isLocal();
+
+    public ModuleDescriptor cacheModuleDescriptor(ExternalResourceResolver resolver,
+            ResolvedResource orginalMetadataRef, DependencyDescriptor dd,
+            Artifact requestedMetadataArtifact,  ResourceDownloader downloader) throws ParseException;
+
+    public EnhancedArtifactDownloadReport download(
+            Artifact artifact,
+            ArtifactResourceResolver resourceResolver,
+            ResourceDownloader resourceDownloader,
+            CacheDownloadOptions options);
 }

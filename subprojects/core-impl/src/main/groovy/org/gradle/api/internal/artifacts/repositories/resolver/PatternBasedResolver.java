@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-
 import java.net.URI;
 import java.util.List;
 
-public interface PatternBasedResolver extends DependencyResolver {
+public interface PatternBasedResolver {
     void addArtifactLocation(URI baseUri, String pattern);
 
     void addDescriptorLocation(URI baseUri, String pattern);

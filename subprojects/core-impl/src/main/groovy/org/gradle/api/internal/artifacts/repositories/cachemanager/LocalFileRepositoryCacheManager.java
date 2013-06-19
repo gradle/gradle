@@ -29,6 +29,7 @@ import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 
 import java.io.File;
 import java.text.ParseException;
@@ -88,5 +89,14 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
 
         ModuleDescriptor descriptor = parseModuleDescriptor(resolver, moduleArtifact, options, file, resolvedResource.getResource());
         return new ResolvedModuleRevision(resolver, resolver, descriptor, report);
+    }
+
+    public ModuleDescriptor cacheModuleDescriptor(ExternalResourceResolver resolver, ResolvedResource resolvedResource, DependencyDescriptor dd, Artifact moduleArtifact, ResourceDownloader downloader) throws ParseException {
+        if (!moduleArtifact.isMetadata()) {
+            return null;
+        }
+
+        File file = new File(resolvedResource.getResource().getName());
+        return parseModuleDescriptor(resolver, moduleArtifact, file, resolvedResource.getResource());
     }
 }
