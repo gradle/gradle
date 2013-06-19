@@ -25,7 +25,7 @@ public interface FileLockManager {
      * @param target The file to be locked.
      * @param mode The lock mode.
      * @param targetDisplayName A display name for the target file. This is used in log and error messages.
-     * @param whenContended
+     * @param whenContended will be called asynchronously by the thread that listens for cache access requests, when such request is received
      */
     FileLock lock(File target, LockMode mode, String targetDisplayName, Runnable whenContended) throws LockTimeoutException;
 
@@ -37,7 +37,7 @@ public interface FileLockManager {
      * @param mode The lock mode.
      * @param targetDisplayName A display name for the target file. This is used in log and error messages.
      * @param operationDisplayName A display name for the operation being performed on the target file. This is used in log and error messages.
-     * @param whenContended
+     * @param whenContended will be called asynchronously by the thread that listens for cache access requests, when such request is received
      */
     FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName, Runnable whenContended) throws LockTimeoutException;
 
