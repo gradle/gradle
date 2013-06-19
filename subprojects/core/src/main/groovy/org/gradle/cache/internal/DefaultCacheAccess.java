@@ -53,6 +53,7 @@ public class DefaultCacheAccess implements CacheAccess {
     private Thread owner;
     private FileLockManager.LockMode lockMode;
     private FileLock fileLock;
+    private boolean busy;
     private boolean contended;
     private final CacheAccessOperationsStack operations;
     private int cacheClosedCount;
@@ -97,7 +98,7 @@ public class DefaultCacheAccess implements CacheAccess {
         try {
             cacheClosedCount++;
             for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
-                cache.close();
+                cache.close(fileLock);
             }
             fileLock.close();
         } finally {
@@ -110,15 +111,15 @@ public class DefaultCacheAccess implements CacheAccess {
         lock.lock();
         try {
             operations.close();
+            lockMode = null;
+            owner = null;
             if (fileLock != null) {
                 closeFileLock();
             }
+        } finally {
             if (cacheClosedCount != 1) {
                 LOG.info("Cache {} was closed {} times.", cacheDiplayName, cacheClosedCount);
             }
-        } finally {
-            lockMode = null;
-            owner = null;
             lock.unlock();
         }
     }

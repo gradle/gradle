@@ -60,7 +60,7 @@ public class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec
         //first build is waiting for file, so the lock should be releasable now (for example: the task history lock)
 
         and:
-        def handle2 = executer.withArguments('b:build', '-is').start()
+        def handle2 = executer.withArguments('b:build', '-i').start()
         handle2.waitForFinish()
         handle1.waitForFinish()
 
