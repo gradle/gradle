@@ -37,6 +37,7 @@ public class DefaultFileLockListener implements FileLockListener {
     private final Lock lock = new ReentrantLock();
     private final Map<Long, Runnable> contendedActions = new HashMap<Long, Runnable>();
     private FileLockCommunicator communicator = new FileLockCommunicator();
+    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
 
     private Runnable listener() {
         return new Runnable() {
@@ -83,7 +84,7 @@ public class DefaultFileLockListener implements FileLockListener {
         try {
             if (contendedActions.isEmpty()) {
                 communicator.start();
-                executor = new DefaultExecutorFactory().create("Listen for file lock access requests from other processes");
+                executor = executorFactory.create("Listen for file lock access requests from other processes");
                 executor.execute(listener());
             }
             contendedActions.put(lockId, whenContended);
