@@ -19,20 +19,19 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -40,6 +39,10 @@ import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -57,19 +60,23 @@ public class DefaultArtifactsToModuleDescriptorConverterTest {
         final ArtifactsExtraAttributesStrategy artifactsExtraAttributesStrategyMock = context.mock(ArtifactsExtraAttributesStrategy.class);
         final Map<String, String> extraAttributesArtifact1 = WrapUtil.toMap("name", publishArtifactConf1.getName());
         final Map<String, String> extraAttributesArtifact2 = WrapUtil.toMap("name", publishArtifactConf2.getName());
+        final DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(WrapUtil.toSet(configurationStub1.getName(),
+                configurationStub2.getName()));
+        final BuildableModuleVersionPublishMetaData publishMetaData = context.mock(BuildableModuleVersionPublishMetaData.class);
         context.checking(new Expectations() {{
+            allowing(publishMetaData).getModuleDescriptor();
+            will(returnValue(moduleDescriptor));
             one(artifactsExtraAttributesStrategyMock).createExtraAttributes(publishArtifactConf1);
             will(returnValue(extraAttributesArtifact1));
             one(artifactsExtraAttributesStrategyMock).createExtraAttributes(publishArtifactConf2);
             will(returnValue(extraAttributesArtifact2));
+            exactly(2).of(publishMetaData).addArtifact(with(notNullValue(Artifact.class)), with(notNullValue(File.class)));
         }});
-        DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(WrapUtil.toSet(configurationStub1.getName(),
-                configurationStub2.getName()));
 
         DefaultArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter =
                 new DefaultArtifactsToModuleDescriptorConverter(artifactsExtraAttributesStrategyMock);
 
-        artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor, WrapUtil.toSet(configurationStub1, configurationStub2));
+        artifactsToModuleDescriptorConverter.addArtifacts(publishMetaData, WrapUtil.toSet(configurationStub1, configurationStub2));
 
         assertArtifactIsAdded(configurationStub1, moduleDescriptor, extraAttributesArtifact1);
         assertArtifactIsAdded(configurationStub2, moduleDescriptor, extraAttributesArtifact2);

@@ -22,6 +22,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
@@ -45,17 +46,19 @@ public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToM
         }
     };
 
-    private ArtifactsExtraAttributesStrategy artifactsExtraAttributesStrategy;
+    private final ArtifactsExtraAttributesStrategy artifactsExtraAttributesStrategy;
 
     public DefaultArtifactsToModuleDescriptorConverter(ArtifactsExtraAttributesStrategy artifactsExtraAttributesStrategy) {
         this.artifactsExtraAttributesStrategy = artifactsExtraAttributesStrategy;
     }
 
-    public void addArtifacts(DefaultModuleDescriptor moduleDescriptor, Iterable<? extends Configuration> configurations) {
+    public void addArtifacts(BuildableModuleVersionPublishMetaData metaData, Iterable<? extends Configuration> configurations) {
+        DefaultModuleDescriptor moduleDescriptor = (DefaultModuleDescriptor) metaData.getModuleDescriptor();
         for (Configuration configuration : configurations) {
             for (PublishArtifact publishArtifact : configuration.getArtifacts()) {
                 Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleDescriptor.getModuleRevisionId());
                 moduleDescriptor.addArtifact(configuration.getName(), ivyArtifact);
+                metaData.addArtifact(ivyArtifact, publishArtifact.getFile());
             }
         }
     }

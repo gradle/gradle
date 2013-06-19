@@ -24,7 +24,7 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DefaultModuleVersionPublishMetaData implements ModuleVersionPublishMetaData {
+public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersionPublishMetaData {
     private final Map<Artifact, File> artifacts = new LinkedHashMap<Artifact, File>();
     private final ModuleDescriptor moduleDescriptor;
 
