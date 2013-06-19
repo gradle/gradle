@@ -19,7 +19,6 @@ package org.gradle.buildsetup.plugins.internal.maven;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
 import org.gradle.mvn3.org.apache.maven.execution.*;
-import org.gradle.mvn3.org.apache.maven.model.building.ModelBuildingRequest;
 import org.gradle.mvn3.org.apache.maven.project.*;
 import org.gradle.mvn3.org.apache.maven.settings.Settings;
 import org.gradle.mvn3.org.codehaus.plexus.ContainerConfiguration;
@@ -38,9 +37,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 9/11/12
- */
 public class MavenProjectsCreator {
 
     public Set<MavenProject> create(Settings mavenSettings, File pomFile) {
@@ -69,9 +65,8 @@ public class MavenProjectsCreator {
         populator.populateFromSettings(executionRequest, settings);
         populator.populateDefaults(executionRequest);
         ProjectBuildingRequest buildingRequest = executionRequest.getProjectBuildingRequest();
-        buildingRequest.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
+        buildingRequest.setProcessPlugins(false);
         MavenProject mavenProject = builder.build(pomFile, buildingRequest).getProject();
-
         Set<MavenProject> reactorProjects = new LinkedHashSet<MavenProject>();
 
         //TODO adding the parent project first because the converter needs it this way ATM. This is oversimplified.
