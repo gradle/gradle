@@ -90,6 +90,10 @@ that shares compatible model classes.
 
 Similar to `gradleApi()`
 
+## Story: Add ability to launch tests in debug mode
+
+Need to allow a debug port to be specified, as hard-coded port 5005 can conflict with IDEA.
+
 # Open issues
 
 * Discovery or registration?
