@@ -56,35 +56,65 @@ class IncrementalTestIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void executesTestsWhenSelectedTestsChange() {
+    public void executesTestsWhenTestFrameworkChanges() {
         executer.withTasks('test').run()
 
         def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('JUnitTest')
 
-        // Include more tests
-        file('build.gradle').append 'test.include "**/*Extra*"\n'
-
-        executer.withTasks('test').run().assertTasksNotSkipped(':test')
-        result.assertTestClassesExecuted('JUnitTest', 'JUnitExtra')
-
-        executer.withTasks('test').run().assertTasksNotSkipped()
-
-        // Use single test execution
-        executer.withTasks('test').withArguments('-Dtest.single=Ok').run().assertTasksNotSkipped(':test')
-        executer.withTasks('test').run().assertTasksNotSkipped(':test')
-        executer.withTasks('test').run().assertTasksNotSkipped()
-
         // Switch test framework
         file('build.gradle').append 'test.useTestNG()\n'
 
-        //TODO this exposes a possible problem: When changing the test framework stale XML result files from former test framework are still present.
-        executer.withTasks('cleanTest', 'test').run().assertTasksNotSkipped(':cleanTest',':test')
+        executer.withTasks('test').run().assertTasksNotSkipped(':test')
 
         result = new JUnitXmlTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('TestNGTest')
+        result.assertTestClassesExecuted('TestNGTest', 'JUnitTest') //previous result still present in the dir
 
         executer.withTasks('test').run().assertTasksNotSkipped()
+    }
+
+    @Test
+    public void "test up-to-date status respects test name patterns"() {
+        file("src/test/java/FooTest.java") << """
+import org.junit.*;
+public class FooTest {
+    @Test public void test() {}
+}
+"""
+        file("src/test/java/BarTest.java") << """
+import org.junit.*;
+public class BarTest {
+    @Test public void test() {}
+}
+"""
+
+        file("build.gradle") << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.10' }
+            test.beforeTest { println "executed " + it }
+        """
+
+        when:
+        def result = executer.withTasks("test", "-Dtest.single=Foo").run()
+
+        then:
+        //asserting on output because test results are kept in between invocations
+        result.output.contains("executed test test(BarTest)")
+        !result.output.contains("executed test test(FooTest)")
+
+        when:
+        result = executer.withTasks("test", "-Dtest.single=Bar").run()
+
+        then:
+        !result.output.contains("executed test test(BarTest)")
+        result.output.contains("executed test test(FooTest)")
+
+        when:
+        result = executer.withTasks("test", "-Dtest.single=Bar").run()
+
+        then:
+        result.assertTaskSkipped(":test")
     }
 
     @Test @Ignore
