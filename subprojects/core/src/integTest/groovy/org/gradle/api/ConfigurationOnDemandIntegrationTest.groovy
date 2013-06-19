@@ -240,12 +240,9 @@ project(':api') {
         run("impl:build", "--no-rebuild") // impl -> api
 
         then:
-        //api tasks are not executed
+        //api tasks are not executed and api is not configured
         !result.executedTasks.find { it.startsWith ":api" }
-        //but the api project is still configured
-        //ideally, the ':api' project is not configured in the configure on demand mode
-        //but this is complicated to implement so lets leave it for now
-        fixture.assertProjectsConfigured(":", ":impl", ":api")
+        fixture.assertProjectsConfigured(":", ":impl")
     }
 
     def "respects external task dependencies"() {
