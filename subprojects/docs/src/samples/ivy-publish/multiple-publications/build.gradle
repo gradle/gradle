@@ -1,0 +1,72 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'ivy-publish'
+
+    repositories {
+        mavenCentral()
+    }
+
+    publishing {
+        repositories {
+            ivy {
+                url "file://${rootProject.buildDir}/repo" // change to point to your repo, e.g. http://my.org/repo
+            }
+        }
+    }
+}
+
+project(":project1") {
+    dependencies {
+       compile 'junit:junit:4.11', project(':project2')
+    }
+
+
+    // START SNIPPET customise-identity
+    publishing {
+        publications {
+            ivy(IvyPublication) {
+                organisation 'org.gradle.sample'
+                module 'project1-sample'
+                revision '1.0'
+
+                from components.java
+            }
+        }
+    }
+    // END SNIPPET customise-identity
+}
+
+project(":project2") {
+    // START SNIPPET multiple-publications
+    task apiJar(type: Jar) {
+        baseName "publishing-api"
+        from sourceSets.main.output
+        exclude '**/impl/**'
+    }
+    // END SNIPPET multiple-publications
+
+    dependencies {
+       compile 'commons-collections:commons-collections:3.1'
+    }
+
+    // START SNIPPET multiple-publications
+    publishing {
+        publications {
+            impl(IvyPublication) {
+                organisation 'org.gradle.sample.impl'
+                module 'project2-impl'
+                revision '2.3'
+
+                from components.java
+            }
+            api(IvyPublication) {
+                organisation 'org.gradle.sample'
+                module 'project2-api'
+                revision '2'
+
+                artifact apiJar
+            }
+        }
+    }
+    // END SNIPPET multiple-publications
+}

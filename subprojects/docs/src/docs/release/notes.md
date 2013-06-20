@@ -98,7 +98,7 @@ The Gradle Wrapper files are generated pointing to the gradle version used to ge
         gradleVersion = '1.6'
     }
 
-If you already defined a task of type `Wrapper`, the explicit declared in your build script, this task will be used when running `gradle wrapper`, otherwise the implicit default task will be used.
+If you already defined a task of type `Wrapper` in your build script, this task will be used when running `gradle wrapper`; otherwise the implicit default task will be used.
 
 ### Improved build-setup plugin (i)
 
@@ -143,6 +143,54 @@ TODO - removes stale object and debug files.
 ### Specify default JVM arguments for the Application plugin
 
 TODO
+
+### Customise publication identity with new publishing plugins (i)
+
+In Gradle 1.7 the new publishing plugins got a lot more powerful with the ability to directly specify the complete coordinates (or GAV) that will be used to publish.
+
+For a `MavenPublication` you can specify the `groupId`, `artifactId` and `version` used for publishing;
+for an `IvyPublication` you can set the `organisation`, `module` and `revision`.
+
+    publications {
+        ivyPub(IvyPublication) {
+            from components.java
+            organisation "my.org"
+            module "my-module"
+            revision "3"
+        }
+        mavenPub(MavenPublication) {
+            from components.java
+            groupId "my.group.id"
+            artifactId "my-publication"
+            version "3.1"
+        }
+    }
+
+This ability is particularly useful when publishing with a different `module` or `artifactId`, since these values default to the `project.name`
+which cannot be modified from within the Gradle build script itself.
+
+### Publish multiple modules from a single Gradle project (i)
+
+Building on the ability to tweak the identity of a publication, the publishing plugins now allow you to
+publish multiple modules from a single Gradle project. While this was quite tricky to achieve in the past, the `ivy-publish` and `maven-publish`
+plugins now make it easy.
+
+    project.group "org.cool.library"
+
+    publications {
+        implJar(MavenPublication) {
+            artifactId "cool-library"
+            version "3.1"
+
+            artifact jar
+        }
+        apiJar(MavenPublication) {
+            artifactId "cool-library-api"
+            version "3"
+
+            artifact apiJar
+        }
+    }
 
 ## Promoted features
 
@@ -214,7 +262,7 @@ If you want your existing C++ build to continue working with Gradle, you have 2 
 
 ### `ConfigureableReport` renamed to `ConfigurableReport`
 
-The (incubating) class `org.gradle.api.reporting.ConfigureableReport` was renamed to `org.gradle.api.reporting.ConfigurableReport` as the original name was misspelt. 
+The (incubating) class `org.gradle.api.reporting.ConfigureableReport` was renamed to `org.gradle.api.reporting.ConfigurableReport` as the original name was misspelled.
 
 ## External contributions
 
