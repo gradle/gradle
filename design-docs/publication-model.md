@@ -132,6 +132,9 @@ To customise the `ivy.xml`:
     4. Publish both projects to a Maven repository.
     5. Assert that another build can resolve project-A from this Maven repository.
 * Run `gradle publish` for a project that defines multiple publications and verify that they are all published
+* Run `gradle publish` for a project that depends on a project with multiple publications [A,B,C]
+    1. Assert that generated `ivy.xml` includes dependencies for all of [A,B,C]
+    2. Assert that generated `pom.xml` includes dependencies for all of [A,B,C]
 * All publications of the project are visible via the tooling API's `GradleProject`.
 
 ## Handle compound source inputs when adding artifacts to Ivy or Maven publications
