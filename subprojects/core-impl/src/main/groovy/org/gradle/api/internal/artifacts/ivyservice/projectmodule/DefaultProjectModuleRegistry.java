@@ -15,16 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.ReflectionUtil;
 
 public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
@@ -36,20 +31,6 @@ public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
     public ModuleVersionPublishMetaData findProject(ProjectDependencyDescriptor descriptor) {
         ProjectInternal project = descriptor.getTargetProject();
         Module projectModule = project.getModule();
-        ModuleVersionPublishMetaData publishMetaData = moduleDescriptorConverter.convert(project.getConfigurations(), projectModule);
-        ModuleDescriptor projectDescriptor = publishMetaData.getModuleDescriptor();
-
-        for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
-            for (Artifact artifact : projectDescriptor.getAllArtifacts()) {
-                if (artifact.getName().equals(artifactDescriptor.getName()) && artifact.getExt().equals(
-                        artifactDescriptor.getExt())) {
-                    String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE);
-                    ReflectionUtil.invoke(artifactDescriptor, "setExtraAttribute",
-                            new Object[]{DefaultIvyDependencyPublisher.FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE, path});
-                }
-            }
-        }
-
-        return publishMetaData;
+        return moduleDescriptorConverter.convert(project.getConfigurations(), projectModule);
     }
 }

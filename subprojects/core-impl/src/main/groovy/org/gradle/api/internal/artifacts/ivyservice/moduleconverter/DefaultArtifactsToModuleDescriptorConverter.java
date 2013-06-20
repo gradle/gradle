@@ -23,9 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,23 +32,6 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToModuleDescriptorConverter {
-    public final static ArtifactsExtraAttributesStrategy IVY_FILE_STRATEGY = new ArtifactsExtraAttributesStrategy() {
-        public Map<String, String> createExtraAttributes(PublishArtifact publishArtifact) {
-            return new HashMap<String, String>();
-        }
-    };
-
-    public final static ArtifactsExtraAttributesStrategy RESOLVE_STRATEGY = new ArtifactsExtraAttributesStrategy() {
-        public Map<String, String> createExtraAttributes(PublishArtifact publishArtifact) {
-            return WrapUtil.toMap(DefaultIvyDependencyPublisher.FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE, publishArtifact.getFile().getAbsolutePath());
-        }
-    };
-
-    private final ArtifactsExtraAttributesStrategy artifactsExtraAttributesStrategy;
-
-    public DefaultArtifactsToModuleDescriptorConverter(ArtifactsExtraAttributesStrategy artifactsExtraAttributesStrategy) {
-        this.artifactsExtraAttributesStrategy = artifactsExtraAttributesStrategy;
-    }
 
     public void addArtifacts(BuildableModuleVersionPublishMetaData metaData, Iterable<? extends Configuration> configurations) {
         DefaultModuleDescriptor moduleDescriptor = metaData.getModuleDescriptor();
@@ -64,7 +45,7 @@ public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToM
     }
 
     public Artifact createIvyArtifact(PublishArtifact publishArtifact, ModuleRevisionId moduleRevisionId) {
-        Map<String, String> extraAttributes = artifactsExtraAttributesStrategy.createExtraAttributes(publishArtifact);
+        Map<String, String> extraAttributes = new HashMap<String, String>();
         if (GUtil.isTrue(publishArtifact.getClassifier())) {
             extraAttributes.put(Dependency.CLASSIFIER, publishArtifact.getClassifier());
         }
