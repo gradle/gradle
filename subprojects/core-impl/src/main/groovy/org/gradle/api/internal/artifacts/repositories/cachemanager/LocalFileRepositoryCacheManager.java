@@ -29,7 +29,6 @@ import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 
 import java.io.File;
 import java.text.ParseException;
@@ -48,9 +47,9 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
     }
 
     public EnhancedArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver, ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
+        ResolvedResource resolvedResource = resourceResolver.resolve(artifact);
         long start = System.currentTimeMillis();
         EnhancedArtifactDownloadReport report = new EnhancedArtifactDownloadReport(artifact);
-        ResolvedResource resolvedResource = resourceResolver.resolve(artifact);
         if (resolvedResource == null) {
             report.setDownloadStatus(DownloadStatus.FAILED);
             report.setDownloadDetails(ArtifactDownloadReport.MISSING_ARTIFACT);
@@ -91,12 +90,4 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
         return new ResolvedModuleRevision(resolver, resolver, descriptor, report);
     }
 
-    public ModuleDescriptor cacheModuleDescriptor(ExternalResourceResolver resolver, ResolvedResource resolvedResource, DependencyDescriptor dd, Artifact moduleArtifact, ResourceDownloader downloader) throws ParseException {
-        if (!moduleArtifact.isMetadata()) {
-            return null;
-        }
-
-        File file = new File(resolvedResource.getResource().getName());
-        return parseModuleDescriptor(resolver, moduleArtifact, file, resolvedResource.getResource());
-    }
 }

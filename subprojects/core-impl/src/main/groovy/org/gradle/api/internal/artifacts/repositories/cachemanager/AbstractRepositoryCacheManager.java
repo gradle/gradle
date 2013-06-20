@@ -33,8 +33,6 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleScopedParserSettings;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ParserRegistry;
-import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolverDependencyResolver;
-import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
@@ -74,6 +72,7 @@ abstract class AbstractRepositoryCacheManager implements RepositoryArtifactCache
     public void saveResolvedRevision(ModuleRevisionId dynamicMrid, String revision) {
     }
 
+    // TODO:DAZ Switch parsing to use Gradle APIs and adapt native ivy APIs (not vice-versa)
     protected ModuleDescriptor parseModuleDescriptor(DependencyResolver resolver, Artifact moduleArtifact, CacheMetadataOptions options, File artifactFile, Resource resource) throws ParseException {
         ModuleRevisionId moduleRevisionId = moduleArtifact.getId().getModuleRevisionId();
         try {
@@ -81,19 +80,6 @@ abstract class AbstractRepositoryCacheManager implements RepositoryArtifactCache
             ParserSettings parserSettings = new ModuleScopedParserSettings(ivySettings, resolver, moduleRevisionId);
             ModuleDescriptorParser parser = parserRegistry.forResource(resource);
             return parser.parseDescriptor(parserSettings, new URL(artifactFile.toURI().toASCIIString()), resource, options.isValidate());
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    // TODO:DAZ Switch parsing to use Gradle APIs and adapt native ivy APIs (not vice-versa)
-    protected ModuleDescriptor parseModuleDescriptor(ExternalResourceResolver resolver, Artifact moduleArtifact, File artifactFile, Resource resource) throws ParseException {
-        ModuleRevisionId moduleRevisionId = moduleArtifact.getId().getModuleRevisionId();
-        try {
-            IvySettings ivySettings = IvyContextualiser.getIvyContext().getSettings();
-            ParserSettings parserSettings = new ModuleScopedParserSettings(ivySettings, new ExternalResourceResolverDependencyResolver(resolver), moduleRevisionId);
-            ModuleDescriptorParser parser = parserRegistry.forResource(resource);
-            return parser.parseDescriptor(parserSettings, new URL(artifactFile.toURI().toASCIIString()), resource, false);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

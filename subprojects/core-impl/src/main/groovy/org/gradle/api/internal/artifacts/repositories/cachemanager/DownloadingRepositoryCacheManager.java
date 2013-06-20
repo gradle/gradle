@@ -34,7 +34,6 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
@@ -164,29 +163,6 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         madr.setSize(report.getSize());
 
         return new ResolvedModuleRevision(resolver, resolver, md, madr);
-    }
-
-    public ModuleDescriptor cacheModuleDescriptor(ExternalResourceResolver resolver, final ResolvedResource resolvedResource, DependencyDescriptor dd, Artifact moduleArtifact, ResourceDownloader downloader) throws ParseException {
-        if (!moduleArtifact.isMetadata()) {
-            return null;
-        }
-
-        ArtifactResourceResolver artifactResourceResolver = new ArtifactResourceResolver() {
-            public ResolvedResource resolve(Artifact artifact) {
-                return resolvedResource;
-            }
-        };
-
-        ArtifactDownloadReport report = download(moduleArtifact, artifactResourceResolver, downloader, new CacheDownloadOptions().setForce(true));
-
-        if (report.getDownloadStatus() == DownloadStatus.FAILED) {
-            Message.warn("problem while downloading module descriptor: " + resolvedResource.getResource()
-                    + ": " + report.getDownloadDetails()
-                    + " (" + report.getDownloadTimeMillis() + "ms)");
-            return null;
-        }
-
-        return parseModuleDescriptor(resolver, moduleArtifact, report.getLocalFile(), resolvedResource.getResource());
     }
 
 }
