@@ -74,16 +74,17 @@ See [completed stories](done/publication-model.md)
 
 This step will allow some basic customisation of the meta data model for each publication:
 
-1. Add `groupId`, `artifactId`, `version` properties to `MavenPublication` and `MavenPom`. Add `packaging` property to `MavenPom`.
+1. Add `groupId`, `artifactId`, `version` properties to `MavenPublication`. Add `packaging` property to `MavenPom`.
 2. Change `pom.xml` generation to use these properties.
-3. Add `organisation`, `module`, `revision` properties to `IvyPublication` and `IvyModuleDescriptor`. Add `status` property to `IvyModuleDescriptor`.
+3. Add `organisation`, `module`, `revision` properties to `IvyPublication`. Add `status` property to `IvyModuleDescriptor`.
 4. Change `ivy.xml` generation to use these properties. Do not default `status` to `project.status` (this value should have not effect on ivy publication).
 5. Change the `ivy.xml` generation to prefer the (organisation, module, revision) identifier of the `IvyPublication` instance from the target project
    for a project dependencies, over the existing candidate identifiers.
 6. Change the `pom.xml` generation to prefer the (groupId, artifactId, version) identifier of the `MavenPublication` instance from the target project
    for project dependencies, over the existing candidate identifiers.
-7. Change the `ivy.xml` and `pom.xml` generation for a project dependency to include a dependency for each publication included the 
-   the depended-on project.
+7. Change the `ivy.xml` and `pom.xml` generation for project with project dependency on `Project A`:
+    * Where `Project A` has the publishing extension applied, include a dependency for each `Maven Publication`/`IvyPublication` defined in `Project A`
+    * Where `Project A` does not have the publishing extension applied, create a dependency with `group|name|version` attributes of `Project A`. Ignore the `archivesBaseName` of `Project A`.
 
 A side-effect of this change is that it will be possible to create and publish multiple publications from a single build.
 
@@ -132,9 +133,9 @@ To customise the `ivy.xml`:
     4. Publish both projects to a Maven repository.
     5. Assert that another build can resolve project-A from this Maven repository.
 * Run `gradle publish` for a project that defines multiple publications and verify that they are all published
-* Run `gradle publish` for a project that depends on a project with multiple publications [A,B,C]
-    1. Assert that generated `ivy.xml` includes dependencies for all of [A,B,C]
-    2. Assert that generated `pom.xml` includes dependencies for all of [A,B,C]
+* Run `gradle publish` for a project that depends on a project with multiple publications [A,B]
+    1. Assert that generated `ivy.xml` includes dependencies for all of [A,B]
+    2. Assert that generated `pom.xml` includes dependencies for all of [A,B]
 * All publications of the project are visible via the tooling API's `GradleProject`.
 
 ## Handle compound source inputs when adding artifacts to Ivy or Maven publications
