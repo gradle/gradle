@@ -93,5 +93,6 @@ class IvyDescriptor {
             assert dependencies.containsKey(key)
             assert dependencies[key].hasConf(conf)
         }
+        true
     }
 }

@@ -60,11 +60,21 @@ project(":project2") {
                 from components.java
             }
             api(IvyPublication) {
+    // END SNIPPET multiple-publications
+                configurations {
+                    it.default {
+                        extend "runtime"
+                    }
+                    runtime {}
+                }
+                artifact(apiJar) {
+                    conf "runtime"
+                }
+
+    // START SNIPPET multiple-publications
                 organisation 'org.gradle.sample'
                 module 'project2-api'
                 revision '2'
-
-                artifact apiJar
             }
         }
     }
