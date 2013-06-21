@@ -155,7 +155,7 @@
 
             <para>
                 Overriding the default identity values is easy: simply specify the <literal>organisation</literal>, <literal>module</literal>
-                or <literal>version</literal> attributes when configuring the <literal>IvyPublication</literal>.
+                or <literal>revision</literal> attributes when configuring the <literal>IvyPublication</literal>.
             </para>
             <sample dir="ivy-publish/multiple-publications" id="publishing_ivy:publish-customise-identity" title="Customising the publication identity">
                 <sourcefile file="build.gradle" snippet="customise-identity" />

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
