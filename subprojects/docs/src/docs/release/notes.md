@@ -148,21 +148,29 @@ TODO
 
 In Gradle 1.7 the new publishing plugins got a lot more powerful with the ability to directly specify the complete coordinates (or GAV) that will be used to publish.
 
-For a `MavenPublication` you can specify the `groupId`, `artifactId` and `version` used for publishing;
-for an `IvyPublication` you can set the `organisation`, `module` and `revision`.
+For a `MavenPublication` you can specify the `groupId`, `artifactId` and `version` used for publishing. You can also set the `packaging` value on the `MavenPom`.
+
+    publications {
+        mavenPub(MavenPublication) {
+            from components.java
+
+            groupId "my.group.id"
+            artifactId "my-publication"
+            version "3.1"
+            pom.packaging "pom"
+        }
+    }
+
+For an `IvyPublication` you can set the `organisation`, `module` and `revision`. You can also set the `status` value on the `IvyModuleDescriptor`.
 
     publications {
         ivyPub(IvyPublication) {
             from components.java
+
             organisation "my.org"
             module "my-module"
             revision "3"
-        }
-        mavenPub(MavenPublication) {
-            from components.java
-            groupId "my.group.id"
-            artifactId "my-publication"
-            version "3.1"
+            descriptor.status "milestone"
         }
     }
 
@@ -241,6 +249,13 @@ which has now the type`SetupBuild` task.
 
 - For consistency with the maven-publish plugin, the task for generating the ivy.xml file for an IvyPublication has changed.
   This task is now named `generateDescriptorFileFor${publication.name}Publication`.
+
+### Default 'status' value of IvyPublication is 'integration' and no longer defaults to 'project.status' (i)
+
+- In order to continue decoupling the Gradle project model from the Ivy publication model, the 'project.status' value is no longer used
+  when publishing an IvyPublication with the `ivy-publish` plugin.
+- If no status value is set on the `IvyModuleDescriptor` of an `IvyPublication`, then the default ivy status ('integration') will be used.
+  Previously, 'release' was used, being the default value for 'project.status'.
 
 ### Major changes to C++ support
 

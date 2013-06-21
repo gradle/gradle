@@ -41,6 +41,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     mavenCustom(MavenPublication) {
+                        pom.packaging "custom-packaging"
                         pom.withXml {
                             asNode().appendNode('description', "custom-description")
 
@@ -61,6 +62,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         def module = mavenRepo.module('org.gradle.test', 'customisePom', '1.0')
         module.assertPublished()
         module.parsedPom.description == 'custom-description'
+        module.parsedPom.packaging == 'custom-packaging'
         module.parsedPom.scopes.runtime.assertDependsOn("junit:junit:4.11")
     }
 

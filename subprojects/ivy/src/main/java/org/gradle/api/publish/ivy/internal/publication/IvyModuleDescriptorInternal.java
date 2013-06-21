@@ -37,8 +37,4 @@ public interface IvyModuleDescriptorInternal extends IvyModuleDescriptor {
     Set<IvyDependencyInternal> getDependencies();
 
     Action<XmlProvider> getXmlAction();
-
-    String getStatus();
-
-    void setStatus(String status);
 }

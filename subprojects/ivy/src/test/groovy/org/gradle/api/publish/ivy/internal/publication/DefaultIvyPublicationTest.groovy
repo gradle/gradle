@@ -59,6 +59,14 @@ class DefaultIvyPublicationTest extends Specification {
         publication.name == "pub-name"
     }
 
+    def "status property is defaults to 'integration'"() {
+        when:
+        def publication = createPublication()
+
+        then:
+        publication.descriptor.status == "integration"
+    }
+
     def "empty publishableFiles and artifacts when no component is added"() {
         when:
         def publication = createPublication()
