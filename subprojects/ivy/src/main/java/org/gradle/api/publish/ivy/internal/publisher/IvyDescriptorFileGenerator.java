@@ -20,8 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
@@ -93,7 +91,7 @@ public class IvyDescriptorFileGenerator {
     private void writeDescriptor(final Writer writer) throws IOException {
         OptionalAttributeXmlWriter xmlWriter = new OptionalAttributeXmlWriter(writer, "  ", IVY_FILE_ENCODING);
         xmlWriter.startElement("ivy-module").attribute("version", "2.0");
-        if (hasClassifier()) {
+        if (usesClassifier()) {
             xmlWriter.attribute("xmlns:m", "http://ant.apache.org/ivy/maven");
         }
 
@@ -110,14 +108,15 @@ public class IvyDescriptorFileGenerator {
         writeDependencies(xmlWriter);
         xmlWriter.endElement();
     }
-    private boolean hasClassifier() {
+
+    private boolean usesClassifier() {
         for (IvyArtifact artifact : artifacts) {
             if (artifact.getClassifier() != null) {
                 return true;
             }
         }
         for (IvyDependencyInternal dependency : this.dependencies) {
-            for (DependencyArtifact dependencyArtifact : dependency.getModuleDependency().getArtifacts()) {
+            for (DependencyArtifact dependencyArtifact : dependency.getArtifacts()) {
                 if (dependencyArtifact.getClassifier() != null) {
                     return true;
                 }
@@ -157,23 +156,18 @@ public class IvyDescriptorFileGenerator {
     private void writeDependencies(OptionalAttributeXmlWriter xmlWriter) throws IOException {
         xmlWriter.startElement("dependencies");
         for (IvyDependencyInternal dependency : dependencies) {
-            ModuleDependency dep = dependency.getModuleDependency();
             xmlWriter.startElement("dependency")
-                    .attribute("org", dep.getGroup())
-                    .attribute("name", getDependencyName(dep))
-                    .attribute("rev", dep.getVersion())
+                    .attribute("org", dependency.getOrganisation())
+                    .attribute("name", dependency.getModule())
+                    .attribute("rev", dependency.getRevision())
                     .attribute("conf", dependency.getConfMapping());
 
-            for (DependencyArtifact dependencyArtifact : dep.getArtifacts()) {
+            for (DependencyArtifact dependencyArtifact : dependency.getArtifacts()) {
                 printDependencyArtifact(dependencyArtifact, xmlWriter);
             }
             xmlWriter.endElement();
         }
         xmlWriter.endElement();
-    }
-
-    private String getDependencyName(ModuleDependency dep) {
-        return dep instanceof ProjectDependency ? ((ProjectDependency) dep).getDependencyProject().getName() : dep.getName();
     }
 
     private void printDependencyArtifact(DependencyArtifact dependencyArtifact, OptionalAttributeXmlWriter xmlWriter) throws IOException {
