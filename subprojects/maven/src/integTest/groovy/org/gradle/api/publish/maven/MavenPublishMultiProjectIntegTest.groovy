@@ -16,8 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import spock.lang.Ignore
-
 class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
     def project1 = mavenRepo.module("org.gradle.test", "project1", "1.0")
     def project2 = mavenRepo.module("org.gradle.test", "project2", "2.0")
@@ -130,36 +128,6 @@ project(":project2") {
 
         project1.assertPublishedAsJavaModule()
         project1.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test:project2:2.0")
-    }
-
-    @Ignore("This does not work: fix this as part of making the project coordinates customisable via DSL (using new mechanism to set artifactId")
-    def "project dependency correctly reflected in POM if dependency publication pom is changed"() {
-        createBuildScripts("""
-project(":project1") {
-    dependencies {
-        compile project(":project2")
-    }
-}
-
-project(":project2") {
-    publishing {
-        publications {
-            maven {
-                pom.withXml {
-                    asNode().artifactId[0].value = "changed"
-                }
-            }
-        }
-    }
-}
-        """)
-
-        when:
-        run ":project1:publish"
-
-        then:
-        def pom = project1.parsedPom
-        pom.scopes.runtime.assertDependsOn("org.gradle.test:changed:1.9")
     }
 
     private void createBuildScripts(String append = "") {

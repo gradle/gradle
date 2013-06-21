@@ -171,4 +171,36 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
         failure.assertHasCause("Invalid publication 'maven': POM file is invalid. Check any modifications you have made to the POM file.")
     }
+
+    def "has reasonable error message when withXML modifies publication coordinates"() {
+        when:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        groupId "group"
+                        artifactId "artifact"
+                        version "1.0"
+
+                        pom.withXml {
+                            asNode().version[0].value = "2.0"
+                        }
+                    }
+                }
+            }
+        """
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
+        failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
+        failure.assertHasCause("Invalid publication 'maven': supplied version does not match POM file (cannot edit version directly in the POM file).")
+    }
 }
