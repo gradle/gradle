@@ -17,9 +17,9 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.internal.UserCodeAction;
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.listener.ActionBroadcast;
 
@@ -50,7 +50,7 @@ public class DefaultMavenPom implements MavenPomInternal {
         return mavenPublication.getMavenProjectIdentity();
     }
 
-    public Set<Dependency> getRuntimeDependencies() {
+    public Set<MavenDependencyInternal> getRuntimeDependencies() {
         return mavenPublication.getRuntimeDependencies();
     }
 }

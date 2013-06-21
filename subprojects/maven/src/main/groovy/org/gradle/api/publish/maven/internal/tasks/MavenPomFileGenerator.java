@@ -23,9 +23,9 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.xml.XmlTransformer;
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,23 +39,12 @@ public class MavenPomFileGenerator {
     private MavenProject mavenProject = new MavenProject();
     private XmlTransformer xmlTransformer = new XmlTransformer();
 
-    public MavenPomFileGenerator() {
+    public MavenPomFileGenerator(MavenProjectIdentity identity) {
         mavenProject.setModelVersion(POM_VERSION);
-    }
-
-    public MavenPomFileGenerator setGroupId(String groupId) {
-        getModel().setGroupId(groupId);
-        return this;
-    }
-
-    public MavenPomFileGenerator setArtifactId(String artifactId) {
-        getModel().setArtifactId(artifactId);
-        return this;
-    }
-
-    public MavenPomFileGenerator setVersion(String version) {
-        getModel().setVersion(version);
-        return this;
+        Model model = getModel();
+        model.setGroupId(identity.getGroupId());
+        model.setArtifactId(identity.getArtifactId());
+        model.setVersion(identity.getVersion());
     }
 
     public MavenPomFileGenerator setPackaging(String packaging) {
@@ -63,13 +52,39 @@ public class MavenPomFileGenerator {
         return this;
     }
 
+    private Model getModel() {
+        return mavenProject.getModel();
+    }
+
+    public void addRuntimeDependency(MavenDependencyInternal dependency) {
+        addDependency(dependency, "runtime");
+    }
+
+    private void addDependency(MavenDependencyInternal mavenDependency, String scope) {
+        if (mavenDependency.getArtifacts().size() == 0) {
+            addDependency(mavenDependency, mavenDependency.getArtifactId(), scope, null, null);
+        } else {
+            for (DependencyArtifact artifact : mavenDependency.getArtifacts()) {
+                addDependency(mavenDependency, artifact.getName(), scope, artifact.getType(), artifact.getClassifier());
+            }
+        }
+    }
+
+    private void addDependency(MavenDependencyInternal dependency, String artifactId, String scope, String type, String classifier) {
+        Dependency mavenDependency = new Dependency();
+        mavenDependency.setGroupId(dependency.getGroupId());
+        mavenDependency.setArtifactId(artifactId);
+        mavenDependency.setVersion(dependency.getVersion());
+        mavenDependency.setType(type);
+        mavenDependency.setScope(scope);
+        mavenDependency.setClassifier(classifier);
+
+        getModel().addDependency(mavenDependency);
+    }
+
     public MavenPomFileGenerator withXml(final Action<XmlProvider> action) {
         xmlTransformer.addAction(action);
         return this;
-    }
-
-    private Model getModel() {
-        return mavenProject.getModel();
     }
 
     public MavenPomFileGenerator writeTo(File file) {
@@ -83,42 +98,6 @@ public class MavenPomFileGenerator {
             }
         });
         return this;
-    }
-
-    public void addRuntimeDependency(org.gradle.api.artifacts.Dependency dependency) {
-        if (dependency instanceof ModuleDependency) {
-            addDependency((ModuleDependency) dependency, "runtime");
-        }
-    }
-
-    private void addDependency(ModuleDependency moduleDependency, String scope) {
-        if (moduleDependency.getArtifacts().size() == 0) {
-            getModel().addDependency(createMavenDependency(moduleDependency, moduleDependency.getName(), null, scope, null));
-        } else {
-            for (DependencyArtifact artifact : moduleDependency.getArtifacts()) {
-                getModel().addDependency(createMavenDependency(moduleDependency, artifact.getName(), artifact.getType(), scope, artifact.getClassifier()));
-            }
-        }
-    }
-
-    private Dependency createMavenDependency(ModuleDependency dependency, String name, String type, String scope, String classifier) {
-        Dependency mavenDependency =  new Dependency();
-        mavenDependency.setGroupId(dependency.getGroup());
-        if (dependency instanceof ProjectDependency) {
-            mavenDependency.setArtifactId(determineProjectDependencyArtifactId((ProjectDependency) dependency));
-        } else {
-            mavenDependency.setArtifactId(name);
-        }
-        mavenDependency.setVersion(dependency.getVersion());
-        mavenDependency.setType(type);
-        mavenDependency.setScope(scope);
-        mavenDependency.setOptional(false);
-        mavenDependency.setClassifier(classifier);
-        return mavenDependency;
-    }
-
-    private String determineProjectDependencyArtifactId(ProjectDependency dependency) {
-        return dependency.getDependencyProject().getName();
     }
 
 }

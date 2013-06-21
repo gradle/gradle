@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.publish.maven.internal.dependencies;
 
-package org.gradle.test.fixtures.maven
+import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.publish.maven.MavenDependency;
 
-class MavenDependency {
-    String groupId
-    String artifactId
-    String version
-    String classifier
-    String type
+import java.util.Collection;
 
-    MavenDependency hasType(def type) {
-        assert this.type == type
-        return this
-    }
-
-    @Override
-    public String toString() {
-        return String.format("MavenDependency %s:%s:%s:%s@%s", groupId, artifactId, version, classifier, type)
-    }
+public interface MavenDependencyInternal extends MavenDependency {
+    Collection<DependencyArtifact> getArtifacts();
 }

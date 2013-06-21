@@ -31,6 +31,76 @@ class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
         projectsCorrectlyPublished()
     }
 
+    def "project dependencies reference publication identity of dependent project"() {
+        def project3 = mavenRepo.module("changed.group", "changed-artifact-id", "changed")
+
+        createBuildScripts("""
+project(":project3") {
+    publishing {
+        publications.maven {
+            groupId "changed.group"
+            artifactId "changed-artifact-id"
+            version "changed"
+        }
+    }
+}
+""")
+
+        when:
+        run "publish"
+
+        then:
+        project1.assertPublishedAsJavaModule()
+        project1.parsedPom.scopes.runtime.assertDependsOn("changed.group:changed-artifact-id:changed", "org.gradle.test:project2:2.0")
+
+        project2.assertPublishedAsJavaModule()
+        project2.parsedPom.scopes.runtime.assertDependsOn("changed.group:changed-artifact-id:changed")
+
+        project3.assertPublishedAsJavaModule()
+        project3.parsedPom.scopes.runtime == null
+
+        and:
+        resolveArtifacts(project1) == ['changed-artifact-id-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar']
+    }
+
+    def "project dependencies reference all publications of dependent project"() {
+        def project3extra = mavenRepo.module("extra.group", "extra-artifact", "extra")
+
+        createBuildScripts("""
+project(":project3") {
+    publishing {
+        publications {
+            extraMaven(MavenPublication) {
+                from components.java
+                groupId "extra.group"
+                artifactId "extra-artifact"
+                version "extra"
+            }
+        }
+    }
+}
+""")
+
+        when:
+        run "publish"
+
+        then:
+        project1.assertPublishedAsJavaModule()
+        project1.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test:project2:2.0", "org.gradle.test:project3:3.0", "extra.group:extra-artifact:extra")
+
+        project2.assertPublishedAsJavaModule()
+        project2.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test:project3:3.0", "extra.group:extra-artifact:extra")
+
+        project3.assertPublishedAsJavaModule()
+        project3.parsedPom.scopes.runtime == null
+
+        project3extra.assertPublishedAsJavaModule()
+        project3extra.parsedPom.scopes.runtime == null
+
+        and:
+        resolveArtifacts(project1) == ['extra-artifact-extra.jar', 'project1-1.0.jar', 'project2-2.0.jar', 'project3-3.0.jar']
+    }
+
     def "maven-publish plugin does not take archivesBaseName into account when publishing"() {
         createBuildScripts("""
 project(":project2") {
