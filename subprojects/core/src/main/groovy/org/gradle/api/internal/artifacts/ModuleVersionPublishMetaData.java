@@ -18,13 +18,13 @@ package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.io.File;
 import java.util.Map;
 
 public interface ModuleVersionPublishMetaData {
-    ModuleRevisionId getId();
+    ModuleVersionIdentifier getId();
 
     ModuleDescriptor getModuleDescriptor();
 

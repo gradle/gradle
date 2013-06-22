@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Module
 import org.gradle.api.internal.artifacts.DefaultModuleVersionPublishMetaData
@@ -43,12 +44,13 @@ public class ResolveModuleDescriptorConverterTest extends Specification {
                 dependenciesConverter);
 
         and:
-        moduleDescriptorFactory.createModuleDescriptor(module) >> moduleDescriptor
+        moduleDescriptor.moduleRevisionId >> ModuleRevisionId.newInstance("group", "module", "version")
 
         when:
         def actualDescriptor = resolveModuleDescriptorConverter.convert(configurations, module);
 
         then:
+        1 * moduleDescriptorFactory.createModuleDescriptor(module) >> moduleDescriptor
         1 * configurationsConverter.addConfigurations(moduleDescriptor, configurations)
         1 * dependenciesConverter.addDependencyDescriptors(moduleDescriptor, configurations)
 

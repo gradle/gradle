@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
@@ -30,21 +29,20 @@ import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
     final ProjectModuleRegistry registry = Mock()
-    final ModuleRevisionId moduleRevisionId = Mock()
     final DependencyToModuleVersionResolver target = Mock()
     final ModuleDescriptorConverter converter = Mock()
     final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target, converter)
 
     def "resolves project dependency"() {
         setup:
-        1 * moduleRevisionId.organisation >> "group"
-        1 * moduleRevisionId.name >> "project"
-        1 * moduleRevisionId.revision >> "1.0"
-
-        def publishMetaData = Mock(ModuleVersionPublishMetaData)
-        def moduleDescriptor = Mock(ModuleDescriptor)
+        def ModuleVersionIdentifier moduleId = Stub(ModuleVersionIdentifier)
+        def moduleDescriptor = Stub(ModuleDescriptor)
+        def publishMetaData = Stub(ModuleVersionPublishMetaData) {
+            getId() >> moduleId
+            getModuleDescriptor() >> moduleDescriptor
+        }
         def result = Mock(BuildableModuleVersionResolveResult)
-        def dependencyProject = Mock(ProjectInternal)
+        def dependencyProject = Stub(ProjectInternal)
         def dependencyDescriptor = Stub(ProjectDependencyDescriptor) {
             getTargetProject() >> dependencyProject
         }
@@ -57,20 +55,13 @@ class ProjectDependencyResolverTest extends Specification {
 
         then:
         1 * registry.findProject(dependencyDescriptor) >> publishMetaData
-        _ * publishMetaData.moduleDescriptor >> moduleDescriptor
-        _ * moduleDescriptor.moduleRevisionId >> moduleRevisionId
-        1 * result.resolved(_, moduleDescriptor, _) >> { args ->
-            ModuleVersionIdentifier moduleVersionIdentifier = args[0]
-            moduleVersionIdentifier.group == "group"
-            moduleVersionIdentifier.name == "project"
-            moduleVersionIdentifier.version == "1.0"
-        }
+        1 * result.resolved(moduleId, moduleDescriptor, _)
         0 * result._
     }
 
     def "delegates to backing resolver for non-project dependency"() {
         def result = Mock(BuildableModuleVersionResolveResult)
-        def dependencyDescriptor = Mock(DependencyDescriptor)
+        def dependencyDescriptor = Stub(DependencyDescriptor)
         def dependencyMetaData = Stub(DependencyMetaData) {
             getDescriptor() >> dependencyDescriptor
         }

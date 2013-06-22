@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -27,13 +27,15 @@ import java.util.Map;
 public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersionPublishMetaData {
     private final Map<Artifact, File> artifacts = new LinkedHashMap<Artifact, File>();
     private final DefaultModuleDescriptor moduleDescriptor;
+    private final ModuleVersionIdentifier id;
 
     public DefaultModuleVersionPublishMetaData(DefaultModuleDescriptor moduleDescriptor) {
         this.moduleDescriptor = moduleDescriptor;
+        id = DefaultModuleVersionIdentifier.newId(moduleDescriptor.getModuleRevisionId());
     }
 
-    public ModuleRevisionId getId() {
-        return moduleDescriptor.getModuleRevisionId();
+    public ModuleVersionIdentifier getId() {
+        return id;
     }
 
     public DefaultModuleDescriptor getModuleDescriptor() {
