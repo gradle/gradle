@@ -28,8 +28,16 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
  * By Szczepan Faber on 5/23/13
  */
 public class FileLockCommunicator {
-    private DatagramSocket socket;
+    private final DatagramSocket socket;
     private boolean stopped;
+
+    public FileLockCommunicator() {
+        try {
+            socket = new DatagramSocket();
+        } catch (SocketException e) {
+            throw throwAsUncheckedException(e);
+        }
+    }
 
     public static void pingOwner(int ownerPort, long lockId) {
         DatagramSocket datagramSocket = null;
@@ -80,17 +88,5 @@ public class FileLockCommunicator {
 
     public int getPort() {
         return socket.getLocalPort();
-    }
-
-    public void start() {
-        try {
-            socket = new DatagramSocket();
-        } catch (SocketException e) {
-            throw throwAsUncheckedException(e);
-        }
-    }
-
-    public boolean isStarted() {
-        return socket != null;
     }
 }

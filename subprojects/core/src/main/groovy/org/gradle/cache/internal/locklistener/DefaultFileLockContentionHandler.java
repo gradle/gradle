@@ -25,8 +25,11 @@ import org.gradle.internal.concurrent.StoppableExecutor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
  * By Szczepan Faber on 5/28/13
@@ -38,6 +41,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private final Map<Long, Runnable> contendedActions = new HashMap<Long, Runnable>();
     private FileLockCommunicator communicator = new FileLockCommunicator();
     private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
+    private CountDownLatch receiving;
 
     private Runnable listener() {
         return new Runnable() {
@@ -54,11 +58,27 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
             private void doRun() {
                 while (true) {
+                    lock.lock();
+                    try {
+                        if (communicator == null) {
+                            //stopped before the thread kicked in
+                            return;
+                        }
+                        //we cannot receive inside lock
+                        //so there's a chance the communicator is stopped and nulled out
+                        // after the thread started but before we started receiving.
+                        //to avoid that, we create a latch that the stop method needs to wait for before nulling out the communicator
+                        receiving = new CountDownLatch(1);
+                    } finally {
+                        lock.unlock();
+                    }
                     long lockId;
                     try {
                         lockId = communicator.receive();
                     } catch (GracefullyStoppedException e) {
-                        break;
+                        return;
+                    } finally {
+                        receiving.countDown();
                     }
                     lock.lock();
                     Runnable action;
@@ -83,7 +103,10 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         lock.lock();
         try {
             if (contendedActions.isEmpty()) {
-                communicator.start();
+                if (communicator == null) {
+                    communicator = new FileLockCommunicator();
+                }
+
                 executor = executorFactory.create("Listen for file lock access requests from other processes");
                 executor.execute(listener());
             }
@@ -100,6 +123,17 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             contendedActions.remove(lockId);
             if (contendedActions.isEmpty()) {
                 communicator.stop();
+                try {
+                    if (receiving != null) {
+                        //the communicator is either receiving or just about to start receiving
+                        // wait before nulling out the communicator
+                        receiving.await();
+                        receiving = null;
+                    }
+                } catch (InterruptedException e) {
+                    throw throwAsUncheckedException(e);
+                }
+                communicator = null;
                 stopMe = executor;
                 stopMe.requestStop();
             }
@@ -114,8 +148,8 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     public int reservePort() {
         lock.lock();
         try {
-            if (!communicator.isStarted()) {
-                communicator.start();
+            if (communicator == null) {
+                communicator = new FileLockCommunicator();
             }
             return communicator.getPort();
         } finally {

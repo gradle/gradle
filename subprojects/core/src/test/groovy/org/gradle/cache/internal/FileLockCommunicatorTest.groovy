@@ -30,25 +30,18 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
 
     def communicator = new FileLockCommunicator()
     Long receivedId
-    long actualId = 123
 
     def cleanup() {
-        if (communicator.started) {
-            communicator.stop()
-        }
+        communicator.stop()
     }
 
-    def "port after starting"() {
-        when:
-        communicator.start()
-
-        then:
+    def "knows port"() {
+        expect:
         communicator.getPort() != -1
     }
 
-    def "port after stopping"() {
+    def "knows port after stopping"() {
         when:
-        communicator.start()
         communicator.stop()
 
         then:
@@ -57,7 +50,6 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
 
     def "can receive lock id"() {
         start {
-            communicator.start()
             receivedId = communicator.receive()
         }
 
@@ -83,14 +75,16 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
     }
 
     def "can be stopped"() {
+        expect:
+        communicator.stop()
+    }
+
+    def "can be stopped during receive"() {
         start {
-            communicator.start()
             try {
                 communicator.receive()
             } catch (GracefullyStoppedException e) {}
         }
-
-        sleep(300)
 
         when:
         communicator.stop()
