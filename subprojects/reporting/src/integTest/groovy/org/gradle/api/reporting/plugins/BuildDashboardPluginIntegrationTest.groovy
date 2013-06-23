@@ -33,6 +33,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     private void writeProjectFiles(TestFile root) {
         root.file("src/main/groovy/org/gradle/class1.groovy") << "package org.gradle; class class1 { }"
         root.file("config/codenarc/rulesets.groovy") << ""
+        root.file("src/test/java/FooTest.java") << "public class FooTest {}"
     }
 
     private TestFile getBuildDashboardFile() {

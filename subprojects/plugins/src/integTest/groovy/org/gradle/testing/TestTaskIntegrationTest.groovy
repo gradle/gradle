@@ -16,13 +16,15 @@
 
 package org.gradle.testing;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue;
 
 /**
  * By Szczepan Faber on 6/17/13
  */
-public class TestTaskConfigurationsResolutionTest extends AbstractIntegrationSpec {
+public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
+    @Issue("GRADLE-2702")
     def "should not resolve configurations when there are no tests"() {
         buildFile << """
             apply plugin: 'java'
@@ -37,5 +39,16 @@ public class TestTaskConfigurationsResolutionTest extends AbstractIntegrationSpe
 
         then:
         noExceptionThrown()
+    }
+
+    def "test task is skipped when there are no tests"() {
+        buildFile << "apply plugin: 'java'"
+        file("src/test/java/not_a_test.txt")
+
+        when:
+        run("build")
+
+        then:
+        result.assertTaskSkipped(":test")
     }
 }

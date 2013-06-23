@@ -18,18 +18,17 @@ package org.gradle.api.plugins
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
-import org.gradle.language.jvm.ClassDirectoryBinary
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.jvm.ClassDirectoryBinary
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.sameCollection
@@ -226,7 +225,7 @@ class JavaBasePluginTest extends Specification {
         task.debug
     }
 
-    def configuresTestTaskWhenSingleTestSystemPropertyIsSet() {
+    def "configures test task when test.single is used"() {
         javaBasePlugin.apply(project)
         def task = project.tasks.create('test', Test.class)
         task.include 'ignoreme'
@@ -237,6 +236,7 @@ class JavaBasePluginTest extends Specification {
 
         then:
         task.includes == ['**/pattern*.class'] as Set
+        task.inputs.getSourceFiles().empty
     }
 
     def "adds functional and language source sets for each source set added to the 'sourceSets' container"() {
