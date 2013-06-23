@@ -16,6 +16,10 @@
 
 package org.gradle.plugins.ear
 
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.copy.CopySpecVisitor
+import org.gradle.api.internal.file.copy.ReadableCopySpec
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule
@@ -27,6 +31,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
+import org.gradle.plugins.ear.internal.ReorderingCopySpecVisitor
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -46,12 +51,13 @@ class Ear extends Jar {
      * The deployment descriptor configuration.
      */
     DeploymentDescriptor deploymentDescriptor
+    CopySpec depDescCopySpec
 
     private CopySpec lib
 
     Ear() {
         extension = EAR_EXTENSION
-        lib = copyAction.rootSpec.addChild().into {
+        lib = copyAction.rootSpec.addFirst().into {
             getLibDirName()
         }
         copyAction.mainSpec.eachFile { FileCopyDetails details ->
@@ -75,7 +81,7 @@ class Ear extends Jar {
         // create our own metaInf which runs after mainSpec's files
         // this allows us to generate the deployment descriptor after recording all modules it contains
         def metaInf = copyAction.mainSpec.addChild().into('META-INF')
-        metaInf.addChild().from {
+        depDescCopySpec = metaInf.addChild().from {
             MapFileTree descriptorSource = new MapFileTree(temporaryDirFactory)
             final DeploymentDescriptor descriptor = deploymentDescriptor
             if (descriptor) {
@@ -108,6 +114,11 @@ class Ear extends Jar {
         this
     }
 
+    @Override
+    protected EarCopyActionImpl createCopyAction() {
+        return new EarCopyActionImpl(this, getServices().get(FileResolver.class));
+    }
+
     /**
      * A location for dependency libraries to include in the 'lib' directory of the EAR archive.
      */
@@ -127,4 +138,30 @@ class Ear extends Jar {
     public CopySpec lib(Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getLib())
     }
+
+    /**
+     * Copy action adds a visitor that can reorder around the DeploymentDescriptor,
+     * ensuring it is written first.
+     */
+    protected static class EarCopyActionImpl extends Zip.ZipCopyActionImpl {
+
+        private final Ear parentTask
+
+        EarCopyActionImpl(Ear parentTask, FileResolver resolver) {
+            super(parentTask, resolver)
+            this.parentTask = parentTask
+        }
+
+        protected boolean isDeploymentDescriptor(ReadableCopySpec spec) {
+            return parentTask.depDescCopySpec == spec;
+        }
+
+        @Override
+        protected CopySpecVisitor createDuplicateHandlingVisitor(CopySpecVisitor nestedVisitor, boolean warnOnIncludeDuplicate) {
+            return new ReorderingCopySpecVisitor( this.&isDeploymentDescriptor,
+                    super.createDuplicateHandlingVisitor(nestedVisitor, warnOnIncludeDuplicate))
+        }
+
+    }
+
 }

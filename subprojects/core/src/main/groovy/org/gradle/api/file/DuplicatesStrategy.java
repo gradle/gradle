@@ -31,21 +31,12 @@ public enum DuplicatesStrategy {
      * Files with the same relative path should be included. For Copy
      * operations this will generate a warning.
      */
-    INCLUDE,
+    include,
 
     /**
      * Only the first file with a given relative path will be
      * included.
      */
-    EXCLUDE;
-
-    /**
-     * Convert a string in the form 'include'/'exclude' to a DuplicatesStrategy
-     * @param str the string to convert
-     * @return a DuplicatesStrategy
-     */
-    public static DuplicatesStrategy fromString(String str) {
-        return valueOf(str.toUpperCase());
-    }
+    exclude
 
 }

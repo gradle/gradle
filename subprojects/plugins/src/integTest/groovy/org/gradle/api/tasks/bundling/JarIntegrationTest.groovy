@@ -17,10 +17,12 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.archive.JarTestFixture
+
+import java.util.jar.JarFile
+
 import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.hasItem
-import static org.hamcrest.Matchers.not
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
 
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
@@ -207,14 +209,28 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         when:
         run 'jar'
         then:
-        def jar = new JarTestFixture(file('test.jar'))
 
-        2 == jar.countFiles('META-INF/services/org.gradle.Service')
-        1 == jar.countFiles('path/test.txt')
+        def files = []
+        def services = []
+        def other = []
 
-        jar.assertTextFileContent(hasItem('Content of first file'))
-        jar.assertTextFileContent(not(hasItem('Content of second file')))
-        jar.hasService('org.gradle.BetterServiceImpl')
-        jar.hasService('org.gradle.DefaultServiceImpl')
+        def jarfile = new JarFile(file('test.jar'))
+        def entries = jarfile.entries()
+        while (entries.hasMoreElements()) {
+            def entry = entries.nextElement()
+            files += entry.name
+            def lines = jarfile.getInputStream(entry).readLines()
+            if (entry.name.endsWith('org.gradle.Service')) {
+                services.addAll(lines)
+            } else {
+                other.addAll(lines)
+            }
+        }
+        jarfile.close();
+
+        assertEquals('Services listed across both files', ['org.gradle.BetterServiceImpl', 'org.gradle.DefaultServiceImpl'], services.sort())
+        assertEquals('Duplicate service files preserved', 2, files.findAll({ it == 'META-INF/services/org.gradle.Service'}).size())
+        assertEquals('Duplicate text files eliminated', 1, files.findAll({it == 'path/test.txt'}).size())
+        assertTrue('Only first duplicate file added', other.contains('Content of first file') && !other.contains('Content of second file'))
     }
 }

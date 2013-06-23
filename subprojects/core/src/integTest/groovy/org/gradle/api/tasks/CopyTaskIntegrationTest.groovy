@@ -507,4 +507,28 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         file('dest/path/file.txt').assertContents(Matchers.containsText("file1"))
         assertFalse(result.output.contains('deprecated'))
     }
+
+    @Test
+    public void testChainMatchingRules() {
+        file('path/abc.txt').createFile().write('test file with $attr')
+        file('path/bcd.txt').createFile()
+
+        def buildFile = testFile('build.gradle') <<
+            '''
+            task copy(type: Copy) {
+                from 'path'
+                into 'dest'
+                matching ('**/a*') {
+                    path = path + '.template'
+                }
+                matching ('**/*.template') {
+                    expand(attr: 'some value')
+                    path = path.replace('template', 'concrete')
+                }
+            }'''
+
+        usingBuildFile(buildFile).withTasks('copy').run();
+        file('dest').assertHasDescendants('bcd.txt', 'abc.txt.concrete')
+        file('dest/abc.txt.concrete').text = 'test file with some value'
+    }
 }

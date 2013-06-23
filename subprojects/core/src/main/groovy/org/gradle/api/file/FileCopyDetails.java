@@ -62,15 +62,15 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      * Sets the strategy for handling duplicates.
      *
      * @param strategy the strategy used when a duplicate file is encountered.
-     *  Either 'include' or 'exclude'
+     * Either 'include', 'exclude', or 'inherit'
      */
     @Incubating
-    void setDuplicatesStrategy(String strategy);
-    
+    void setDuplicatesStrategy(DuplicatesStrategy strategy);
+
     /**
      * Get the strategy for handling duplicates, either
-     * DuplicatesStrategy.INCLUDE if duplicate files of this type
-     * should be retained or DuplicatesStrategy.EXCLUDE otherwise.
+     * DuplicatesStrategy.include if duplicate files of this type
+     * should be retained or DuplicatesStrategy.exclude otherwise.
      *
      * @return the duplicates strategy for this file
      */

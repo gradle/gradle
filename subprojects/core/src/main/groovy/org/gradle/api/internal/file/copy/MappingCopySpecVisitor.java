@@ -62,12 +62,13 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
         private RelativePath relativePath;
         private boolean excluded;
         private Integer mode;
-        private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INCLUDE;
+        private DuplicatesStrategy duplicatesStrategy;
 
         public FileVisitDetailsImpl(FileVisitDetails fileDetails, ReadableCopySpec spec, FileSystem fileSystem) {
             this.fileDetails = fileDetails;
             this.spec = spec;
             this.fileSystem = fileSystem;
+            this.duplicatesStrategy = null; // inherit from CopySpec
         }
 
         public String getDisplayName() {
@@ -206,8 +207,8 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
             return this;
         }
 
-        public void setDuplicatesStrategy(String strategy) {
-            this.duplicatesStrategy = DuplicatesStrategy.fromString(strategy);
+        public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+            this.duplicatesStrategy = strategy;
         }
 
         public DuplicatesStrategy getDuplicatesStrategy() {

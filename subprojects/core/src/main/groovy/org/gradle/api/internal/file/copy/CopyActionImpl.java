@@ -42,15 +42,19 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         this(resolver, visitor, false);
     }
 
-    public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor, boolean warnOnIncludeDuplicates) {
+    public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
         this.resolver = resolver;
         root = new CopySpecImpl(resolver);
         mainContent = root.addChild();
         this.visitor = new MappingCopySpecVisitor(
-                           new DuplicateHandlingCopySpecVisitor(
+                           createDuplicateHandlingVisitor(
                                new NormalizingCopySpecVisitor(visitor),
-                               warnOnIncludeDuplicates),
+                               warnOnIncludeDuplicate),
                            FileSystems.getDefault());
+    }
+
+    protected CopySpecVisitor createDuplicateHandlingVisitor(CopySpecVisitor nestedVisitor, boolean warnOnIncludeDuplicate) {
+        return new DuplicateHandlingCopySpecVisitor(nestedVisitor, warnOnIncludeDuplicate);
     }
 
     public FileResolver getResolver() {
@@ -197,6 +201,33 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
 
     public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
         mainContent.setIncludeEmptyDirs(includeEmptyDirs);
+    }
+
+    public DuplicatesStrategy getDuplicatesStrategy() {
+        // see note below for why this is root and not mainContent
+        return root.getDuplicatesStrategy();
+    }
+
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+        // this is root and not mainContent because eg, Jar.metaInf extends from root,
+        // and we want it to inherit the duplicates strategy too
+        root.setDuplicatesStrategy(strategy);
+    }
+
+    public CopySpec matching(String pattern, Closure closure) {
+        return mainContent.matching(pattern, closure);
+    }
+
+    public CopySpec matching(String pattern, Action<? super FileCopyDetails> action) {
+        return mainContent.matching(pattern, action);
+    }
+
+    public CopySpec notMatching(String pattern, Closure closure) {
+        return mainContent.notMatching(pattern, closure);
+    }
+
+    public CopySpec notMatching(String pattern, Action<? super FileCopyDetails> action) {
+        return mainContent.notMatching(pattern, action);
     }
 
     public CopySpec rename(Closure closure) {

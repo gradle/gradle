@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,29 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.specs.Spec;
 
-import java.util.Collection;
+/**
+ * Action performed on each FileCopyDetails that matches the given specification
+ * @author Kyle Mahan
+ */
+public class MatchingCopyAction implements Action<FileCopyDetails> {
 
-public interface ReadableCopySpec {
-    RelativePath getDestPath();
+    private final Spec<RelativePath> matchSpec;
 
-    Integer getFileMode();
+    private final Action<? super FileCopyDetails> toApply;
 
-    Integer getDirMode();
+    public MatchingCopyAction(Spec<RelativePath> matchSpec, Action<? super FileCopyDetails> toApply) {
+        this.matchSpec = matchSpec;
+        this.toApply = toApply;
+    }
 
-    FileTree getSource();
-
-    Collection<? extends ReadableCopySpec> getAllSpecs();
-
-    boolean hasSource();
-
-    Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
-
-    boolean getIncludeEmptyDirs();
-
-    DuplicatesStrategy getDuplicatesStrategy();
+    public void execute(FileCopyDetails details) {
+        if (matchSpec.isSatisfiedBy(details.getRelativePath())) {
+            toApply.execute(details);
+        }
+    }
 
 }
