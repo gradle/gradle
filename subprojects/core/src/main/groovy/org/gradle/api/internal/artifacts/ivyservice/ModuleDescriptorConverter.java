@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 
 import java.util.Set;
 
@@ -25,5 +25,5 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface ModuleDescriptorConverter {
-    ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module);
+    ModuleVersionPublishMetaData convert(Set<? extends Configuration> configurations, Module module);
 }

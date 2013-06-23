@@ -47,9 +47,9 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
     }
 
     public EnhancedArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver, ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
+        ResolvedResource resolvedResource = resourceResolver.resolve(artifact);
         long start = System.currentTimeMillis();
         EnhancedArtifactDownloadReport report = new EnhancedArtifactDownloadReport(artifact);
-        ResolvedResource resolvedResource = resourceResolver.resolve(artifact);
         if (resolvedResource == null) {
             report.setDownloadStatus(DownloadStatus.FAILED);
             report.setDownloadDetails(ArtifactDownloadReport.MISSING_ARTIFACT);
@@ -89,4 +89,5 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
         ModuleDescriptor descriptor = parseModuleDescriptor(resolver, moduleArtifact, options, file, resolvedResource.getResource());
         return new ResolvedModuleRevision(resolver, resolver, descriptor, report);
     }
+
 }

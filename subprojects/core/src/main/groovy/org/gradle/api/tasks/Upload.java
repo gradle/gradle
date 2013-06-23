@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
@@ -28,8 +27,6 @@ import org.gradle.api.internal.Transformers;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.util.ConfigureUtil;
 
@@ -67,19 +64,11 @@ public class Upload extends ConventionTask {
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();
 
         ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher();
+        File descriptorDestination = isUploadDescriptor() ? getDescriptorDestination() : null;
+        List<PublicationAwareRepository> publishRepositories = collect(repositories, Transformers.cast(PublicationAwareRepository.class));
 
         try {
-            File descriptorDestination = isUploadDescriptor() ? getDescriptorDestination() : null;
-            if (descriptorDestination != null) {
-                Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
-                ModuleDescriptorConverter moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
-                ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(allConfigurations, module);
-                IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
-                ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorDestination);
-            }
-
-            List<PublicationAwareRepository> publishRepositories = collect(repositories, Transformers.cast(PublicationAwareRepository.class));
-            artifactPublisher.publish(publishRepositories,  module, configurationsToPublish, descriptorDestination);
+            artifactPublisher.publish(publishRepositories, module, configurationsToPublish, descriptorDestination);
         } catch (Exception e) {
             throw new PublishException(String.format("Could not publish configuration '%s'", configuration.getName()), e);
         }

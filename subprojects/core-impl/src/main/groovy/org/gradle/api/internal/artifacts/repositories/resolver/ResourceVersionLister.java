@@ -51,7 +51,9 @@ public class ResourceVersionLister implements VersionLister {
                 LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
                 try {
                     List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);
-                    add(versionStrings);
+                    for (String versionString : versionStrings) {
+                        add(new ListedVersion(versionString, resourcePattern));
+                    }
                 } catch (ResourceNotFoundException e) {
                     throw e;
                 } catch (Exception e) {

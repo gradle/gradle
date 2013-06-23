@@ -18,44 +18,40 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.CacheDownloadOptions;
-import org.apache.ivy.core.cache.CacheMetadataOptions;
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
-import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
-import org.apache.ivy.core.resolve.DownloadOptions;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.core.search.ModuleEntry;
-import org.apache.ivy.core.search.OrganisationEntry;
-import org.apache.ivy.core.search.RevisionEntry;
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.latest.LatestStrategy;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
-import org.apache.ivy.plugins.parser.ModuleDescriptorParserRegistry;
+import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.BasicResolver;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
-import org.apache.ivy.plugins.resolver.util.MDResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.Message;
+import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleScopedParserSettings;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ParserRegistry;
+import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolverDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -66,17 +62,22 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.text.ParseException;
 import java.util.*;
 
-public class ExternalResourceResolver implements DependencyResolver {
+// TODO:DAZ Implement ModuleVersionRepository directly, or add an API
+public class ExternalResourceResolver implements ModuleVersionPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
+
+    private final ParserRegistry parserRegistry = new ParserRegistry();
 
     private List<String> ivyPatterns = new ArrayList<String>();
     private List<String> artifactPatterns = new ArrayList<String>();
@@ -89,20 +90,21 @@ public class ExternalResourceResolver implements DependencyResolver {
     private ResolverSettings settings;
     private LatestStrategy latestStrategy;
     private String latestStrategyName;
-    private String cacheManagerName;
     private RepositoryArtifactCache repositoryCacheManager;
     private String changingMatcherName;
     private String changingPattern;
-    private Boolean checkmodified;
 
     private final ExternalResourceRepository repository;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     protected VersionLister versionLister;
+
+    // TODO:DAZ Get rid of this
     private ArtifactResourceResolver artifactResourceResolver = new ArtifactResourceResolver() {
         public ResolvedResource resolve(Artifact artifact) {
-            return getArtifactRef(artifact, null);
+            return getArtifactRef(artifact, null, true);
         }
     };
+    // TODO:DAZ Get rid of this
     private final ResourceDownloader resourceDownloader = new ResourceDownloader() {
         public void download(Artifact artifact, Resource resource, File dest) throws IOException {
             getAndCheck(resource, dest);
@@ -144,87 +146,111 @@ public class ExternalResourceResolver implements DependencyResolver {
         return repository;
     }
 
-    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
-        // This is not used
-        throw new UnsupportedOperationException();
-    }
-
     public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result) {
-        ModuleRevisionId nsMrid = dependencyDescriptor.getDependencyRevisionId();
+        ModuleRevisionId moduleRevisionId = dependencyDescriptor.getDependencyRevisionId();
 
-        boolean isDynamic = getVersionMatcher().isDynamic(nsMrid);
+        boolean isDynamic = getVersionMatcher().isDynamic(moduleRevisionId);
 
         ResolvedResource ivyRef = findIvyFileRef(dependencyDescriptor);
 
         // get module descriptor
-        ModuleDescriptor nsMd;
         if (ivyRef == null) {
             if (!isAllownomd()) {
-                LOGGER.debug("No ivy file found for module '{}' in repository '{}'.", nsMrid, getName());
+                LOGGER.debug("No ivy file found for module '{}' in repository '{}'.", moduleRevisionId, getName());
                 result.missing();
                 return;
             }
-            nsMd = DefaultModuleDescriptor.newDefaultInstance(nsMrid, dependencyDescriptor.getAllDependencyArtifacts());
+            ModuleDescriptor nsMd = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependencyDescriptor.getAllDependencyArtifacts());
             ResolvedResource artifactRef = findFirstArtifactRef(nsMd);
             if (artifactRef == null) {
-                LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.", nsMrid, getName());
+                LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.", moduleRevisionId, getName());
                 result.missing();
             } else {
                 long lastModified = artifactRef.getLastModified();
-                if (lastModified != 0 && nsMd instanceof DefaultModuleDescriptor) {
+                if (lastModified != 0) {
                     ((DefaultModuleDescriptor) nsMd).setLastModified(lastModified);
                 }
-                LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.", nsMrid, getName());
+                LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.", moduleRevisionId, getName());
                 if (isDynamic) {
-                    nsMd.setResolvedModuleRevisionId(ModuleRevisionId.newInstance(nsMrid, artifactRef.getRevision()));
+                    nsMd.setResolvedModuleRevisionId(ModuleRevisionId.newInstance(moduleRevisionId, artifactRef.getRevision()));
                 }
                 result.resolved(nsMd, isChanging(nsMd), null);
             }
         } else {
             try {
-                ResolvedModuleRevision rmr = null;
+                ModuleDescriptor nsMd;
                 if (ivyRef instanceof MDResolvedResource) {
-                    rmr = ((MDResolvedResource) ivyRef).getResolvedModuleRevision();
+                    nsMd = ((MDResolvedResource) ivyRef).getDescriptor();
+                } else {
+                    nsMd = parse(ivyRef, dependencyDescriptor);
                 }
-                if (rmr == null) {
-                    rmr = parse(ivyRef, dependencyDescriptor);
-                }
-
-                nsMd = rmr.getDescriptor();
 
                 // check descriptor data is in sync with resource revision and names
                 if (isCheckconsistency()) {
-                    checkDescriptorConsistency(nsMrid, nsMd, ivyRef);
+                    checkDescriptorConsistency(moduleRevisionId, nsMd, ivyRef);
                 }
-                LOGGER.debug("Ivy file found for module '{}' in repository '{}'.", nsMrid, getName());
+                LOGGER.debug("Ivy file found for module '{}' in repository '{}'.", moduleRevisionId, getName());
                 result.resolved(nsMd, isChanging(nsMd), null);
             } catch (ParseException e) {
-                result.failed(new ModuleVersionResolveException(nsMrid, e));
+                result.failed(new ModuleVersionResolveException(moduleRevisionId, e));
             }
         }
     }
 
-    protected VersionMatcher getVersionMatcher() {
+    private VersionMatcher getVersionMatcher() {
         return getSettings().getVersionMatcher();
     }
 
-    private ResolvedModuleRevision parse(final ResolvedResource mdRef, DependencyDescriptor dd) throws ParseException {
-        //TODO: check why we don't use our own ParserRegistry here.
-        ModuleRevisionId mrid = dd.getDependencyRevisionId();
-        ModuleDescriptorParser parser = ModuleDescriptorParserRegistry.getInstance().getParser(mdRef.getResource());
-        if (parser == null) {
-            throw new RuntimeException("no module descriptor parser available for " + mdRef.getResource());
-        }
+    private ModuleDescriptor parse(final ResolvedResource resolvedResource, DependencyDescriptor dd) throws ParseException {
 
-        ModuleRevisionId resolvedMrid = mrid;
+        ModuleRevisionId dependencyRevisionId = dd.getDependencyRevisionId();
 
         // first check if this dependency has not yet been resolved
-        if (getVersionMatcher().isDynamic(mrid)) {
-            resolvedMrid = ModuleRevisionId.newInstance(mrid, mdRef.getRevision());
+        if (getVersionMatcher().isDynamic(dependencyRevisionId)) {
+            dependencyRevisionId = ModuleRevisionId.newInstance(dependencyRevisionId, resolvedResource.getRevision());
         }
 
-        Artifact moduleArtifact = parser.getMetadataArtifact(resolvedMrid, mdRef.getResource());
-        return getRepositoryCacheManager().cacheModuleDescriptor(this, mdRef, dd, moduleArtifact, resourceDownloader, new CacheMetadataOptions());
+
+        File moduleDescriptorFile;
+        if (repositoryCacheManager.isLocal()) {
+            moduleDescriptorFile = new File(resolvedResource.getResource().getName());
+        } else {
+            moduleDescriptorFile = downloadModuleDescriptorFile(dependencyRevisionId, resolvedResource);
+        }
+        return parseModuleDescriptor(dependencyRevisionId, moduleDescriptorFile, resolvedResource.getResource());
+    }
+
+    private File downloadModuleDescriptorFile(ModuleRevisionId dependencyRevisionId, final ResolvedResource resolvedResource) {
+        ModuleDescriptorParser parser = parserRegistry.forResource(resolvedResource.getResource());
+        Artifact moduleArtifact = parser.getMetadataArtifact(dependencyRevisionId, resolvedResource.getResource());
+
+        ArtifactResourceResolver artifactResourceResolver = new ArtifactResourceResolver() {
+            public ResolvedResource resolve(Artifact artifact) {
+                return resolvedResource;
+            }
+        };
+
+        ArtifactDownloadReport report = repositoryCacheManager.download(moduleArtifact, artifactResourceResolver, resourceDownloader, new CacheDownloadOptions().setForce(true));
+
+        if (report.getDownloadStatus() == DownloadStatus.FAILED) {
+            // TODO:DAZ Work out if/when this happens
+            LOGGER.warn("problem while downloading module descriptor: {}: {} ({} ms)",
+                    resolvedResource.getResource(), report.getDownloadDetails(), report.getDownloadTimeMillis());
+            return null;
+        }
+
+        return report.getLocalFile();
+    }
+
+    protected ModuleDescriptor parseModuleDescriptor(ModuleRevisionId moduleRevisionId, File artifactFile, Resource resource) throws ParseException {
+        try {
+            IvySettings ivySettings = IvyContextualiser.getIvyContext().getSettings();
+            ParserSettings parserSettings = new ModuleScopedParserSettings(ivySettings, new ExternalResourceResolverDependencyResolver(this), moduleRevisionId);
+            ModuleDescriptorParser parser = parserRegistry.forResource(resource);
+            return parser.parseDescriptor(parserSettings, new URL(artifactFile.toURI().toASCIIString()), resource, false);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     private void checkDescriptorConsistency(ModuleRevisionId mrid, ModuleDescriptor md,
@@ -280,18 +306,13 @@ public class ExternalResourceResolver implements DependencyResolver {
         }
     }
 
-    public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
-        // This is not used
-        throw new UnsupportedOperationException();
-    }
-
-    public ResolvedResource findIvyFileRef(DependencyDescriptor dd) {
+    protected ResolvedResource findIvyFileRef(DependencyDescriptor dd) {
         ModuleRevisionId mrid = dd.getDependencyRevisionId();
         Artifact artifact = DefaultArtifact.newIvyArtifact(mrid, null);
         return findResourceUsingPatterns(mrid, ivyPatterns, artifact, getRMDParser(dd), null, true);
     }
 
-    protected ResolvedResource findFirstArtifactRef(ModuleDescriptor md) {
+    private ResolvedResource findFirstArtifactRef(ModuleDescriptor md) {
         for (String configuration : md.getConfigurationsNames()) {
             for (Artifact artifact : md.getArtifacts(configuration)) {
                 ResolvedResource artifactRef = getArtifactRef(artifact, null, false);
@@ -303,11 +324,6 @@ public class ExternalResourceResolver implements DependencyResolver {
         return null;
     }
 
-    public boolean exists(Artifact artifact) {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
     public ArtifactOrigin locate(Artifact artifact) {
         ResolvedResource artifactRef = getArtifactRef(artifact, null, false);
         if (artifactRef != null && artifactRef.getResource().exists()) {
@@ -317,11 +333,7 @@ public class ExternalResourceResolver implements DependencyResolver {
         return null;
     }
 
-    protected ResolvedResource getArtifactRef(Artifact artifact, Date date) {
-        return getArtifactRef(artifact, date, true);
-    }
-
-    protected ResolvedResource getArtifactRef(Artifact artifact, Date date, boolean forDownload) {
+    private ResolvedResource getArtifactRef(Artifact artifact, Date date, boolean forDownload) {
         ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
         ResourceMDParser parser = getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId());
         return findResourceUsingPatterns(moduleRevisionId, getArtifactPatterns(), artifact, parser, date, forDownload);
@@ -331,11 +343,11 @@ public class ExternalResourceResolver implements DependencyResolver {
         return new ResourceMDParser() {
             public MDResolvedResource parse(Resource resource, String rev) {
                 try {
-                    ResolvedModuleRevision rmr = ExternalResourceResolver.this.parse(new ResolvedResource(resource, rev), dd);
-                    if (rmr == null) {
+                    ModuleDescriptor md = ExternalResourceResolver.this.parse(new ResolvedResource(resource, rev), dd);
+                    if (md == null) {
                         return null;
                     } else {
-                        return new MDResolvedResource(resource, rev, rmr);
+                        return new MDResolvedResource(resource, rev, md);
                     }
                 } catch (ParseException e) {
                     Message.warn("Failed to parse the file '" + resource + "': "
@@ -355,49 +367,64 @@ public class ExternalResourceResolver implements DependencyResolver {
                 MetadataArtifactDownloadReport madr = new MetadataArtifactDownloadReport(md.getMetadataArtifact());
                 madr.setDownloadStatus(DownloadStatus.NO);
                 madr.setSearched(true);
-                return new MDResolvedResource(resource, rev, new ResolvedModuleRevision(ExternalResourceResolver.this, ExternalResourceResolver.this, md, madr, isForce()));
+
+                return new MDResolvedResource(resource, rev, md);
             }
         };
     }
 
-    protected ResolvedResource findResourceUsingPatterns(ModuleRevisionId moduleRevision, List<String> patternList, Artifact artifact, ResourceMDParser rmdparser, Date date, boolean forDownload) {
-        List<ResolvedResource> resolvedResources = new ArrayList<ResolvedResource>();
-        Set<String> foundRevisions = new HashSet<String>();
-        boolean dynamic = getVersionMatcher().isDynamic(moduleRevision);
-        for (String pattern : patternList) {
-            ResourcePattern resourcePattern = toResourcePattern(pattern);
-            ResolvedResource rres = findResourceUsingPattern(moduleRevision, resourcePattern, artifact, rmdparser, date, forDownload);
-            if ((rres != null) && !foundRevisions.contains(rres.getRevision())) {
-                // only add the first found ResolvedResource for each revision
-                foundRevisions.add(rres.getRevision());
-                resolvedResources.add(rres);
-                if (!dynamic) {
-                    break;
-                }
-            }
-        }
-
-        if (resolvedResources.size() > 1) {
-            ResolvedResource[] rress = resolvedResources.toArray(new ResolvedResource[resolvedResources.size()]);
-            List<ResolvedResource> sortedResources = getLatestStrategy().sort(rress);
-            // Discard all but the last, which is returned
-            for (int i = 0; i < sortedResources.size() - 1; i++) {
-                ResolvedResource resolvedResource = sortedResources.get(i);
-                discardResource(resolvedResource.getResource());
-            }
-            return sortedResources.get(sortedResources.size() - 1);
-        } else if (resolvedResources.size() == 1) {
-            return resolvedResources.get(0);
+    protected ResolvedResource findResourceUsingPatterns(ModuleRevisionId requestedModuleRevision, List<String> patternList, Artifact artifact, ResourceMDParser rmdparser, Date date, boolean forDownload) {
+        if (getVersionMatcher().isDynamic(requestedModuleRevision)) {
+            return findDynamicResourceUsingPatterns(requestedModuleRevision, patternList, artifact, rmdparser, date, forDownload);
         } else {
-            return null;
+            return findStaticResourceUsingPatterns(requestedModuleRevision, patternList, artifact, forDownload);
         }
     }
 
-    public ResolvedResource findLatestResource(ModuleRevisionId mrid, VersionList versions, ResourceMDParser rmdparser, Date date, ResourcePattern pattern, Artifact artifact, boolean forDownload) {
+    private ResolvedResource findStaticResourceUsingPatterns(ModuleRevisionId moduleRevision, List<String> patternList, Artifact artifact, boolean forDownload) {
+        // Static version, return first found
+        for (String pattern : patternList) {
+            ResourcePattern resourcePattern = toResourcePattern(pattern);
+            String resourceName = resourcePattern.toPath(artifact);
+            LOGGER.debug("Loading {}", resourceName);
+            Resource res = getResource(resourceName, artifact, forDownload);
+            if (res.exists()) {
+                String revision = moduleRevision.getRevision();
+                return new ResolvedResource(res, revision);
+            } else {
+                LOGGER.debug("Resource not reachable for {}: res={}", moduleRevision, res);
+            }
+        }
+        return null;
+    }
+
+    private ResolvedResource findDynamicResourceUsingPatterns(ModuleRevisionId requestedModuleRevision, List<String> patternList, Artifact artifact, ResourceMDParser rmdparser, Date date, boolean forDownload) {
+        // Dynamic version: list all, then choose latest
+        VersionList versionList = listVersionsForAllPatterns(requestedModuleRevision, patternList, artifact);
+        return findLatestResource(requestedModuleRevision, versionList, rmdparser, date, artifact, forDownload);
+    }
+
+    private VersionList listVersionsForAllPatterns(ModuleRevisionId requestedModuleRevision, List<String> patternList, Artifact artifact) {
+        VersionList versionList = versionLister.getVersionList(requestedModuleRevision);
+        for (String pattern : patternList) {
+            ResourcePattern resourcePattern = toResourcePattern(pattern);
+            try {
+                versionList.visit(resourcePattern, artifact);
+            } catch (ResourceNotFoundException e) {
+                LOGGER.debug(String.format("Unable to load version list for %s from %s", requestedModuleRevision.getModuleId(), getRepository()));
+                // Don't add any versions
+                // TODO:DAZ Should fail?
+            }
+        }
+        return versionList;
+    }
+
+    private ResolvedResource findLatestResource(ModuleRevisionId mrid, VersionList versions, ResourceMDParser rmdparser, Date date, Artifact artifact, boolean forDownload) {
         String name = getName();
         VersionMatcher versionMatcher = getVersionMatcher();
-        List<String> sorted = versions.sortLatestFirst(getLatestStrategy());
-        for (String version : sorted) {
+        for (VersionList.ListedVersion listedVersion : versions.sortLatestFirst(getLatestStrategy())) {
+            String version = listedVersion.getVersion();
+
             ModuleRevisionId foundMrid = ModuleRevisionId.newInstance(mrid, version);
 
             if (!versionMatcher.accept(mrid, foundMrid)) {
@@ -407,7 +434,7 @@ public class ExternalResourceResolver implements DependencyResolver {
 
             boolean needsModuleDescriptor = versionMatcher.needModuleDescriptor(mrid, foundMrid);
             artifact = DefaultArtifact.cloneWithAnotherMrid(artifact, foundMrid);
-            String resourcePath = pattern.toPath(artifact);
+            String resourcePath = listedVersion.getPattern().toPath(artifact);
             Resource resource = getResource(resourcePath, artifact, forDownload || needsModuleDescriptor);
             String description = version + " [" + resource + "]";
             if (!resource.exists()) {
@@ -427,7 +454,7 @@ public class ExternalResourceResolver implements DependencyResolver {
                     discardResource(resource);
                     continue;
                 }
-                ModuleDescriptor md = parsedResource.getResolvedModuleRevision().getDescriptor();
+                ModuleDescriptor md = parsedResource.getDescriptor();
                 if (!versionMatcher.accept(mrid, md)) {
                     LOGGER.debug(name + ": md rejected by version matcher: " + description);
                     discardResource(resource);
@@ -441,37 +468,6 @@ public class ExternalResourceResolver implements DependencyResolver {
         return null;
     }
 
-    protected ResolvedResource findResourceUsingPattern(ModuleRevisionId moduleRevisionId, ResourcePattern pattern, Artifact artifact, ResourceMDParser resourceParser, Date date, boolean forDownload) {
-        VersionMatcher versionMatcher = getVersionMatcher();
-        if (!versionMatcher.isDynamic(moduleRevisionId)) {
-            return findStaticResourceUsingPattern(moduleRevisionId, pattern, artifact, forDownload);
-        } else {
-            return findDynamicResourceUsingPattern(resourceParser, moduleRevisionId, pattern, artifact, date, forDownload);
-        }
-    }
-
-    private ResolvedResource findStaticResourceUsingPattern(ModuleRevisionId moduleRevisionId, ResourcePattern pattern, Artifact artifact, boolean forDownload) {
-        String resourceName = pattern.toPath(artifact);
-        LOGGER.debug("Loading {}", resourceName);
-        Resource res = getResource(resourceName, artifact, forDownload);
-        if (res.exists()) {
-            String revision = moduleRevisionId.getRevision();
-            return new ResolvedResource(res, revision);
-        } else {
-            LOGGER.debug("Resource not reachable for {}: res={}", moduleRevisionId, res);
-            return null;
-        }
-    }
-
-    private ResolvedResource findDynamicResourceUsingPattern(ResourceMDParser resourceParser, ModuleRevisionId moduleRevisionId, ResourcePattern pattern, Artifact artifact, Date date, boolean forDownload) {
-        VersionList versions = listVersions(moduleRevisionId, pattern, artifact);
-        ResolvedResource found = findLatestResource(moduleRevisionId, versions, resourceParser, date, pattern, artifact, forDownload);
-        if (found == null) {
-            LOGGER.debug("No resource found for {}: pattern={}", moduleRevisionId, pattern);
-        }
-        return found;
-    }
-
     protected void discardResource(Resource resource) {
         if (resource instanceof ExternalResource) {
             try {
@@ -482,10 +478,11 @@ public class ExternalResourceResolver implements DependencyResolver {
         }
     }
 
-    public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        EnhancedArtifactDownloadReport artifactDownloadReport = download(artifact, moduleSource);
+    public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+        Artifact ivyArtifact = DefaultArtifactIdentifier.toArtifact(artifact);
+        EnhancedArtifactDownloadReport artifactDownloadReport = download(ivyArtifact, moduleSource);
         if (downloadFailed(artifactDownloadReport)) {
-            result.failed(new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getFailure()));
+            result.failed(new ArtifactResolveException(artifact, artifactDownloadReport.getFailure()));
             return;
         }
         File localFile = artifactDownloadReport.getLocalFile();
@@ -500,72 +497,11 @@ public class ExternalResourceResolver implements DependencyResolver {
         return download(artifact);
     }
 
-    public EnhancedArtifactDownloadReport download(Artifact artifact) {
-        RepositoryCacheManager cacheManager = getRepositoryCacheManager();
-
-        return (EnhancedArtifactDownloadReport) cacheManager.download(artifact, artifactResourceResolver, resourceDownloader, new CacheDownloadOptions());
+    protected EnhancedArtifactDownloadReport download(Artifact artifact) {
+        return repositoryCacheManager.download(artifact, artifactResourceResolver, resourceDownloader, new CacheDownloadOptions());
     }
 
-    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
-    public ArtifactDownloadReport download(ArtifactOrigin origin, DownloadOptions options) {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
-    public void reportFailure() {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
-    public void reportFailure(Artifact art) {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
-    public String[] listTokenValues(String token, Map otherTokenValues) {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
-    public Map[] listTokenValues(String[] tokens, Map criteria) {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
-    public OrganisationEntry[] listOrganisations() {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
-    public ModuleEntry[] listModules(OrganisationEntry org) {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
-    public RevisionEntry[] listRevisions(ModuleEntry mod) {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
-    public void abortPublishTransaction() throws IOException {
-    }
-
-    public void beginPublishTransaction(ModuleRevisionId module, boolean overwrite) throws IOException {
-    }
-
-    public void commitPublishTransaction() throws IOException {
-    }
-
-    public Namespace getNamespace() {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
-    protected Resource getResource(String source, Artifact target, boolean forDownload) {
+    private Resource getResource(String source, Artifact target, boolean forDownload) {
         try {
             if (forDownload) {
                 ArtifactRevisionId arid = target.getId();
@@ -582,18 +518,7 @@ public class ExternalResourceResolver implements DependencyResolver {
         }
     }
 
-    protected VersionList listVersions(ModuleRevisionId moduleRevisionId, ResourcePattern pattern, Artifact artifact) {
-        try {
-            VersionList versionList = versionLister.getVersionList(moduleRevisionId);
-            versionList.visit(pattern, artifact);
-            return versionList;
-        } catch (ResourceNotFoundException e) {
-            LOGGER.debug(String.format("Unable to load version list for %s from %s", moduleRevisionId.getModuleId(), getRepository()));
-            return new DefaultVersionList(Collections.<String>emptyList());
-        }
-    }
-
-    protected long get(Resource resource, File destination) throws IOException {
+    private long get(Resource resource, File destination) throws IOException {
         LOGGER.debug("Downloading {} to {}", resource.getName(), destination);
         if (destination.getParentFile() != null) {
             GFileUtils.mkdirs(destination.getParentFile());
@@ -644,7 +569,17 @@ public class ExternalResourceResolver implements DependencyResolver {
         }
     }
 
-    public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
+    public void setSettings(IvySettings settings) {
+        this.settings = settings;
+    }
+
+    public void publish(ModuleVersionPublishMetaData moduleVersion) throws IOException {
+        for (Map.Entry<Artifact, File> entry : moduleVersion.getArtifacts().entrySet()) {
+            publish(entry.getKey(), entry.getValue(), true);
+        }
+    }
+
+    private void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
         String destinationPattern;
         if ("ivy".equals(artifact.getType()) && !getIvyPatterns().isEmpty()) {
             destinationPattern = getIvyPatterns().get(0);
@@ -691,11 +626,6 @@ public class ExternalResourceResolver implements DependencyResolver {
 
     protected void setArtifactPatterns(List<String> patterns) {
         artifactPatterns = patterns;
-    }
-
-    public void dumpSettings() {
-        // this is not used
-        throw new UnsupportedOperationException();
     }
 
     public boolean isM2compatible() {
@@ -830,10 +760,6 @@ public class ExternalResourceResolver implements DependencyResolver {
         return changingPattern;
     }
 
-    public void setCheckmodified(boolean check) {
-        checkmodified = Boolean.valueOf(check);
-    }
-
     public RepositoryArtifactCache getRepositoryCacheManager() {
         return repositoryCacheManager;
     }
@@ -842,15 +768,11 @@ public class ExternalResourceResolver implements DependencyResolver {
         this.repositoryCacheManager = repositoryCacheManager;
     }
 
-    public void setCache(String cacheName) {
-        cacheManagerName = cacheName;
-    }
-
     protected ResourcePattern toResourcePattern(String pattern) {
         return isM2compatible() ? new M2ResourcePattern(pattern) : new IvyResourcePattern(pattern);
     }
 
-    protected boolean downloadFailed(ArtifactDownloadReport artifactReport) {
+    private boolean downloadFailed(ArtifactDownloadReport artifactReport) {
         return artifactReport.getDownloadStatus() == DownloadStatus.FAILED
                 && !artifactReport.getDownloadDetails().equals(ArtifactDownloadReport.MISSING_ARTIFACT);
     }
@@ -866,4 +788,23 @@ public class ExternalResourceResolver implements DependencyResolver {
         }
         return matcher.getMatcher(changingPattern).matches(moduleDescriptor.getResolvedModuleRevisionId().getRevision());
     }
+
+    public interface ResourceMDParser {
+        MDResolvedResource parse(Resource resource, String rev);
+    }
+
+    public static class MDResolvedResource extends ResolvedResource {
+        private ModuleDescriptor md;
+
+        public MDResolvedResource(Resource res, String rev, ModuleDescriptor md) {
+            super(res, rev);
+            this.md = md;
+        }
+
+        public ModuleDescriptor getDescriptor() {
+            return md;
+        }
+
+    }
+
 }

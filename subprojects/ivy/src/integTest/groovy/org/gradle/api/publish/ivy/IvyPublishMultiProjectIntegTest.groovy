@@ -41,6 +41,76 @@ class IvyPublishMultiProjectIntegTest extends AbstractIvyPublishIntegTest {
         resolveArtifacts(project1) == ['project1-1.0.jar', 'project2-2.0.jar', 'project3-3.0.jar']
     }
 
+    def "project dependencies reference publication identity of dependent project"() {
+        def project3 = ivyRepo.module("changed.org", "changed-module", "changed")
+
+        createBuildScripts("""
+project(":project3") {
+    publishing {
+        publications.ivy {
+            organisation "changed.org"
+            module "changed-module"
+            revision "changed"
+        }
+    }
+}
+""")
+
+        when:
+        run "publish"
+
+        then:
+        project1.assertPublishedAsJavaModule()
+        project1.ivy.assertDependsOn("org.gradle.test:project2:2.0@runtime", "changed.org:changed-module:changed@runtime")
+
+        project2.assertPublishedAsJavaModule()
+        project2.ivy.assertDependsOn("changed.org:changed-module:changed@runtime")
+
+        project3.assertPublishedAsJavaModule()
+        project3.ivy.dependencies.isEmpty()
+
+        and:
+        resolveArtifacts(project1) == ['changed-module-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar']
+    }
+
+    def "project dependencies reference all publications of dependent project"() {
+        def project3extra = ivyRepo.module("extra.org", "extra-module", "extra")
+
+        createBuildScripts("""
+project(":project3") {
+    publishing {
+        publications {
+            extraIvy(IvyPublication) {
+                from components.java
+                organisation "extra.org"
+                module "extra-module"
+                revision "extra"
+            }
+        }
+    }
+}
+""")
+
+        when:
+        run "publish"
+
+        then:
+        project1.assertPublishedAsJavaModule()
+        project1.ivy.assertDependsOn("org.gradle.test:project2:2.0@runtime", "org.gradle.test:project3:3.0@runtime", "extra.org:extra-module:extra@runtime")
+
+        project2.assertPublishedAsJavaModule()
+        project2.ivy.assertDependsOn("org.gradle.test:project3:3.0@runtime", "extra.org:extra-module:extra@runtime")
+
+        project3.assertPublishedAsJavaModule()
+        project3.ivy.dependencies.isEmpty()
+
+        project3extra.assertPublishedAsJavaModule()
+        project3extra.ivy.dependencies.isEmpty()
+
+        and:
+        resolveArtifacts(project1) == ['extra-module-extra.jar', 'project1-1.0.jar', 'project2-2.0.jar', 'project3-3.0.jar']
+    }
+
     def "ivy-publish plugin does not take archivesBaseName into account"() {
         createBuildScripts("""
 project(":project2") {

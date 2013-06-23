@@ -253,7 +253,10 @@ public interface IvyPublication extends Publication {
     IvyArtifact artifact(Object source, Action<? super IvyArtifact> config);
 
     /**
-     * Clears any previously added artifacts from {@link #getArtifacts} and creates artifacts from the specified sources.
+     * The complete set of artifacts for this publication.
+     *
+     * <p>
+     * Setting this property will clear any previously added artifacts and create artifacts from the specified sources.
      * Each supplied source is interpreted as per {@link #artifact(Object)}.
      *
      * For example, to exclude the dependencies declared by a component and instead use a custom set of artifacts:
@@ -275,16 +278,17 @@ public interface IvyPublication extends Publication {
      * }
      * </pre>
      *
+     * @return the artifacts.
+     */
+    IvyArtifactSet getArtifacts();
+
+    /**
+     * Sets the artifacts for this publication. Each supplied value is interpreted as per {@link #artifact(Object)}.
+     *
      * @param sources The set of artifacts for this publication.
      */
     void setArtifacts(Iterable<?> sources);
 
-    /**
-     * Returns the complete set of artifacts for this publication.
-     * @return the artifacts.
-     */
-    IvyArtifactSet getArtifacts();
-    
     /**
      * Returns the organisation for this publication.
      */

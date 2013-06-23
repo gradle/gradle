@@ -22,7 +22,6 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
@@ -157,7 +156,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         setArtifactPatterns(artifactPatterns);
     }
 
-    public ResolvedResource findIvyFileRef(DependencyDescriptor dd) {
+    protected ResolvedResource findIvyFileRef(DependencyDescriptor dd) {
         if (isUsepoms()) {
             ModuleRevisionId moduleRevisionId = dd.getDependencyRevisionId();
             //we might need a own implementation of DefaultArtifact here as there is no way to pass extraAttributes AND isMetaData to DefaultArtifact

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 
 import java.io.File;
@@ -28,6 +28,6 @@ import java.util.Set;
 public interface IvyDependencyPublisher {
     void publish(Set<String> configurations,
                  List<ModuleVersionPublisher> publishResolvers,
-                 ModuleDescriptor moduleDescriptor,
+                 ModuleVersionPublishMetaData publishMetaData,
                  File descriptorDestination);
 }

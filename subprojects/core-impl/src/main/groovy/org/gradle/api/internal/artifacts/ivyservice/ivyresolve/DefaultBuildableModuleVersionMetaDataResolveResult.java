@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -125,6 +122,9 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     public void setDependencies(Iterable<? extends DependencyMetaData> dependencies) {
         assertResolved();
         this.dependencies = CollectionUtils.toList(dependencies);
+        for (DefaultConfigurationMetaData configuration : configurations.values()) {
+            configuration.dependencies = null;
+        }
     }
 
     public DefaultConfigurationMetaData getConfiguration(final String name) {
@@ -146,11 +146,6 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         return configuration;
     }
 
-    public List<Artifact> getArtifacts(String configurationName) {
-        assertResolved();
-        return Arrays.asList(moduleDescriptor.getArtifacts(configurationName));
-    }
-
     public boolean isChanging() {
         assertResolved();
         return changing;
@@ -169,10 +164,21 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     private class DefaultConfigurationMetaData implements ConfigurationMetaData {
         private final Configuration descriptor;
         private final Set<String> hierarchy;
+        private List<DependencyMetaData> dependencies;
+        private Set<Artifact> artifacts;
+        private LinkedHashSet<ExcludeRule> excludeRules;
 
         private DefaultConfigurationMetaData(Configuration descriptor, Set<String> hierarchy) {
             this.descriptor = descriptor;
             this.hierarchy = hierarchy;
+        }
+
+        public ModuleVersionMetaData getModuleVersion() {
+            return DefaultBuildableModuleVersionMetaDataResolveResult.this;
+        }
+
+        public String getName() {
+            return descriptor.getName();
         }
 
         public Set<String> getHierarchy() {
@@ -183,11 +189,63 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
             return descriptor.isTransitive();
         }
 
+        public List<DependencyMetaData> getDependencies() {
+            if (dependencies == null) {
+                dependencies = new ArrayList<DependencyMetaData>();
+                for (DependencyMetaData dependency : DefaultBuildableModuleVersionMetaDataResolveResult.this.getDependencies()) {
+                    if (include(dependency)) {
+                        dependencies.add(dependency);
+                    }
+                }
+            }
+            return dependencies;
+        }
+
+        private boolean include(DependencyMetaData dependency) {
+            String[] moduleConfigurations = dependency.getDescriptor().getModuleConfigurations();
+            for (int i = 0; i < moduleConfigurations.length; i++) {
+                String moduleConfiguration = moduleConfigurations[i];
+                if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
+                    return true;
+                }
+                if (moduleConfiguration.equals("*")) {
+                    boolean include = true;
+                    for (int j = i + 1; j < moduleConfigurations.length && moduleConfigurations[j].startsWith("!"); j++) {
+                        if (moduleConfigurations[j].substring(1).equals(getName())) {
+                            include = false;
+                            break;
+                        }
+                    }
+                    if (include) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public Set<ExcludeRule> getExcludeRules() {
+            if (excludeRules == null) {
+                excludeRules = new LinkedHashSet<ExcludeRule>();
+                for (ExcludeRule excludeRule : moduleDescriptor.getAllExcludeRules()) {
+                    for (String config : excludeRule.getConfigurations()) {
+                        if (hierarchy.contains(config)) {
+                            excludeRules.add(excludeRule);
+                            break;
+                        }
+                    }
+                }
+            }
+            return excludeRules;
+        }
+
         public Set<Artifact> getArtifacts() {
-            Set<Artifact> artifacts = new LinkedHashSet<Artifact>();
-            for (String ancestor : hierarchy) {
-                for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
-                    artifacts.add(artifact);
+            if (artifacts == null) {
+                artifacts = new LinkedHashSet<Artifact>();
+                for (String ancestor : hierarchy) {
+                    for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
+                        artifacts.add(artifact);
+                    }
                 }
             }
             return artifacts;

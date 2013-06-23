@@ -45,9 +45,6 @@
                 <td>artifact</td>
             </tr>
             <tr>
-                <td>setArtifacts</td>
-            </tr>
-            <tr>
                 <td>configurations</td>
             </tr>
         </table>

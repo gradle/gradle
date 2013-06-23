@@ -69,4 +69,14 @@ public interface IvyModuleDescriptor {
      */
     void withXml(Action<? super XmlProvider> action);
 
+    /**
+     * Returns the status for this publication.
+     */
+    String getStatus();
+
+    /**
+     * Sets the status for this publication.
+     */
+    void setStatus(String status);
+
 }

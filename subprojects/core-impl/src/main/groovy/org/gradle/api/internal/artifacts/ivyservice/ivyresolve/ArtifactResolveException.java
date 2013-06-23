@@ -16,9 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.Contextual;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.util.GUtil;
 
 @Contextual
@@ -28,14 +30,18 @@ public class ArtifactResolveException extends GradleException {
     }
 
     public ArtifactResolveException(Artifact artifact, Throwable cause) {
+        this(new DefaultArtifactIdentifier(artifact), cause);
+    }
+
+    public ArtifactResolveException(ArtifactIdentifier artifact, Throwable cause) {
         super(format(artifact, ""), cause);
     }
 
-    public ArtifactResolveException(Artifact artifact, String message) {
+    public ArtifactResolveException(ArtifactIdentifier artifact, String message) {
         super(format(artifact, message));
     }
 
-    private static String format(Artifact artifact, String message) {
+    private static String format(ArtifactIdentifier artifact, String message) {
         StringBuilder builder = new StringBuilder();
         builder.append("Could not download artifact '");
         formatTo(artifact, builder);
@@ -47,15 +53,15 @@ public class ArtifactResolveException extends GradleException {
         return builder.toString();
     }
 
-    protected static void formatTo(Artifact artifact, StringBuilder builder) {
-        ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
-        builder.append(moduleRevisionId.getOrganisation())
-                .append(":").append(moduleRevisionId.getName())
-                .append(":").append(moduleRevisionId.getRevision());
-        String classifier = artifact.getExtraAttribute("classifier");
+    protected static void formatTo(ArtifactIdentifier artifact, StringBuilder builder) {
+        ModuleVersionIdentifier moduleVersion = artifact.getModuleVersionIdentifier();
+        builder.append(moduleVersion.getGroup())
+                .append(":").append(moduleVersion.getName())
+                .append(":").append(moduleVersion.getVersion());
+        String classifier = artifact.getClassifier();
         if (GUtil.isTrue(classifier)) {
             builder.append(":").append(classifier);
         }
-        builder.append("@").append(artifact.getExt());
+        builder.append("@").append(artifact.getExtension());
     }
 }

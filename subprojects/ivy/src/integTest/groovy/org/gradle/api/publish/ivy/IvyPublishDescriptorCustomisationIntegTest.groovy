@@ -64,6 +64,7 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
                 publications {
                     ivy {
                         descriptor {
+                            status "custom-status"
                             withXml {
                                 asNode().info[0].appendNode('description', 'Customized descriptor')
                             }
@@ -80,6 +81,7 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
 
         and:
         module.ivy.description == "Customized descriptor"
+        module.ivy.status == "custom-status"
     }
 
     def "can generate ivy.xml without publishing"() {

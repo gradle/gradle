@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -43,6 +41,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     mavenCustom(MavenPublication) {
+                        pom.packaging "custom-packaging"
                         pom.withXml {
                             asNode().appendNode('description', "custom-description")
 
@@ -63,6 +62,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         def module = mavenRepo.module('org.gradle.test', 'customisePom', '1.0')
         module.assertPublished()
         module.parsedPom.description == 'custom-description'
+        module.parsedPom.packaging == 'custom-packaging'
         module.parsedPom.scopes.runtime.assertDependsOn("junit:junit:4.11")
     }
 
@@ -170,5 +170,37 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
         failure.assertHasCause("Invalid publication 'maven': POM file is invalid. Check any modifications you have made to the POM file.")
+    }
+
+    def "has reasonable error message when withXML modifies publication coordinates"() {
+        when:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        groupId "group"
+                        artifactId "artifact"
+                        version "1.0"
+
+                        pom.withXml {
+                            asNode().version[0].value = "2.0"
+                        }
+                    }
+                }
+            }
+        """
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
+        failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
+        failure.assertHasCause("Invalid publication 'maven': supplied version does not match POM file (cannot edit version directly in the POM file).")
     }
 }

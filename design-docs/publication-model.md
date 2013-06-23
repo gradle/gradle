@@ -70,6 +70,74 @@ Note: for the following discussion, all changes are `@Incubating` unless specifi
 
 See [completed stories](done/publication-model.md)
 
+## Customising the Maven and Ivy publication identifier
+
+This step will allow some basic customisation of the meta data model for each publication:
+
+1. Add `groupId`, `artifactId`, `version` properties to `MavenPublication`. Add `packaging` property to `MavenPom`.
+2. Change `pom.xml` generation to use these properties.
+3. Add `organisation`, `module`, `revision` properties to `IvyPublication`. Add `status` property to `IvyModuleDescriptor`.
+4. Change `ivy.xml` generation to use these properties. Do not default `status` to `project.status` (this value should have not effect on ivy publication).
+5. Change the `ivy.xml` generation to prefer the (organisation, module, revision) identifier of the `IvyPublication` instance from the target project
+   for a project dependencies, over the existing candidate identifiers.
+6. Change the `pom.xml` generation to prefer the (groupId, artifactId, version) identifier of the `MavenPublication` instance from the target project
+   for project dependencies, over the existing candidate identifiers.
+7. Change the `ivy.xml` and `pom.xml` generation for project with project dependency on `Project A`:
+    * Where `Project A` has the publishing extension applied, include a dependency for each `Maven Publication`/`IvyPublication` defined in `Project A`
+    * Where `Project A` does not have the publishing extension applied, create a dependency with `group|name|version` attributes of `Project A`. Ignore the `archivesBaseName` of `Project A`.
+
+A side-effect of this change is that it will be possible to create and publish multiple publications from a single build.
+
+To customise the `pom.xml`:
+
+    apply plugin: 'maven-publish'
+
+    publishing {
+        repositories.maven { ... }
+
+        publications {
+            maven(MavenPublication) {
+                groupId 'my-maven-group'
+                artifactId 'my-artifact-id'
+                version '1.2'
+                pom.packaging 'war'
+            }
+        }
+    }
+
+Running `gradle publish` will publish to the remote repository, with the customisations. Running `gradle publishLocalMaven` will publish to the local
+Maven repository, with the same customisations.
+
+To customise the `ivy.xml`:
+
+    apply plugin: 'ivy-publish'
+
+    publishing {
+        repositories.ivy { ... }
+
+        publications {
+            ivy(IvyPublication) {
+                organisation 'my-organisation'
+                module 'my-module'
+                revision '1.2'
+            }
+        }
+    }
+
+### Integration test cases
+
+* A build with project-A depends on project-B.
+    1. Customise the Ivy module identifier and Maven coordinates of project-B.
+    2. Publish both projects to an Ivy repository.
+    3. Assert that another build can resolve project-A from this Ivy repository.
+    4. Publish both projects to a Maven repository.
+    5. Assert that another build can resolve project-A from this Maven repository.
+* Run `gradle publish` for a project that defines multiple publications and verify that they are all published
+* Run `gradle publish` for a project that depends on a project with multiple publications [A,B]
+    1. Assert that generated `ivy.xml` includes dependencies for all of [A,B]
+    2. Assert that generated `pom.xml` includes dependencies for all of [A,B]
+* All publications of the project are visible via the tooling API's `GradleProject`.
+
 ## Handle compound source inputs when adding artifacts to Ivy or Maven publications
 
 Currently, all artifact inputs map one-one with a published artifact. We should handle compound inputs that will result in the creation of multiple artifacts.
@@ -156,86 +224,6 @@ This story will address this issue, by ensuring that failure to publish is detec
 * Publish an Ivy publication with extension ending in '.' to FileSystem repository on Windows. Assert that failure is reported.
 * Publish an Ivy publication to an HTTP repository that returns a 500. Assert that failure is reported.
 * Similar tests for Maven publications.
-
-## Customising the Maven and Ivy publication identifier
-
-This step will allow some basic customisation of the meta data model for each publication:
-
-1. Add `groupId`, `artifactId`, `version` properties to `MavenPublication` and `MavenPom`. Add `packaging` property to `MavenPom`.
-2. Change `pom.xml` generation to use these properties.
-3. Add `organisation`, `module`, `revision` properties to `IvyPublication` and `IvyModuleDescriptor`. Add `status` property to `IvyModuleDescriptor`.
-4. Change `ivy.xml` generation to use these properties. Do not default `status` to `project.status` (this value should have not effect on ivy publication).
-5. Change the `ivy.xml` generation to prefer the (organisation, module, revision) identifier of the `IvyPublication` instance from the target project
-   for a project dependencies, over the existing candidate identifiers.
-6. Change the `pom.xml` generation to prefer the (groupId, artifactId, version) identifier of the `MavenPublication` instance from the target project
-   for project dependencies, over the existing candidate identifiers.
-
-To customise the `pom.xml`:
-
-    apply plugin: 'maven-publish'
-
-    publishing {
-        repositories.maven { ... }
-
-        publications {
-            maven(MavenPublication) {
-                groupId 'my-maven-group'
-                artifactId 'my-artifact-id'
-                version '1.2'
-                pom.packaging 'war'
-            }
-        }
-    }
-
-Running `gradle publish` will publish to the remote repository, with the customisations. Running `gradle publishLocalMaven` will publish to the local
-Maven repository, with the same customisations.
-
-To customise the `ivy.xml`:
-
-    apply plugin: 'ivy-publish'
-
-    publishing {
-        repositories.ivy { ... }
-
-        publications {
-            ivy(IvyPublication) {
-                organisation 'my-organisation'
-                module 'my-module'
-                revision '1.2'
-            }
-        }
-    }
-
-We might also add an `ivy` and `maven` project extension as a convenience to specify defaults for all publications of the appropriate type:
-
-    apply plugin: 'ivy-publish'
-
-    ivy {
-        organisation 'my-organisation'
-        module 'my-module'
-        revision '1.2'
-    }
-
-And:
-
-    apply plugin: 'maven-publish'
-
-    maven {
-        groupId 'my-group'
-        artifactId 'my-module'
-        version '1.2'
-    }
-
-### Integration test cases
-
-* A build with project-A depends on project-B.
-    1. Customise the Ivy module identifier and Maven coordinates of project-B.
-    2. Publish both projects to an Ivy repository.
-    3. Assert that another build can resolve project-A from this Ivy repository.
-    4. Publish both projects to a Maven repository.
-    5. Assert that another build can resolve project-A from this Maven repository.
-* Run `gradle publish` for a project that defines multiple publications and verify that they are all published
-* All publications of the project are visible via the tooling API's `GradleProject`.
 
 ## Allow outgoing dependency declarations to be customised
 
@@ -333,6 +321,31 @@ The 'dependency' creation method will accept the following forms of input:
 * A configuration closure to specify values for created dependency
 * Either of the first 2, together with a configuration closure that permits further configuration (like adding scope/conf)
 * A map that is treated as per the configuration closure.
+
+## Make it convenient to supply default values for publication coordinates
+
+It would be good if `project.group` and `project.version` could be eventually deprecated. One part of this is providing
+a good way to provide the 'groupId' ('organization') and 'version' values for publication.
+
+We could add an `ivy` and `maven` project extension as a convenience to specify defaults for all publications of the appropriate type:
+
+    apply plugin: 'ivy-publish'
+
+    ivy {
+        organisation 'my-organisation'
+        module 'my-module'
+        revision '1.2'
+    }
+
+And:
+
+    apply plugin: 'maven-publish'
+
+    maven {
+        groupId 'my-group'
+        artifactId 'my-module'
+        version '1.2'
+    }
 
 ## Fix POM generation issues
 

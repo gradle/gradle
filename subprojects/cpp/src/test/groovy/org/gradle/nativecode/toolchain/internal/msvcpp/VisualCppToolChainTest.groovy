@@ -15,13 +15,17 @@
  */
 
 package org.gradle.nativecode.toolchain.internal.msvcpp
-
-import org.gradle.internal.os.OperatingSystem
-import spock.lang.Specification
 import org.gradle.internal.Factory
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativecode.base.internal.ToolChainAvailability
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import spock.lang.Specification
 
 class VisualCppToolChainTest extends Specification {
+    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final toolChain = new VisualCppToolChain(new OperatingSystem.Windows(), Stub(Factory))
+
 
     def "uses .lib file for shared library at link time"() {
         expect:
@@ -33,5 +37,55 @@ class VisualCppToolChainTest extends Specification {
         expect:
         toolChain.getSharedLibraryName("test") == "test.dll"
         toolChain.getSharedLibraryName("test.dll") == "test.dll"
+    }
+
+    def "checks availability of required executables"() {
+        final os = Mock(OperatingSystem)
+
+        when:
+        def cppToolChain = new VisualCppToolChain(os, Stub(Factory))
+
+        then:
+        os.findInPath("cl.exe") >> file('cl.exe')
+        os.findInPath("link.exe") >> file('link.exe')
+        os.findInPath("lib.exe") >> file('lib.exe')
+
+        when:
+        def availability = new ToolChainAvailability()
+        cppToolChain.checkAvailable(availability)
+
+        then:
+        !availability.available
+        availability.unavailableMessage == "cl.exe cannot be found"
+
+        when:
+        createFile('cl.exe')
+        createFile('link.exe')
+
+        and:
+        def availability2 = new ToolChainAvailability()
+        cppToolChain.checkAvailable(availability2);
+
+        then:
+        !availability2.available
+        availability2.unavailableMessage == 'lib.exe cannot be found'
+
+        when:
+        createFile('lib.exe')
+
+        and:
+        def availability3 = new ToolChainAvailability()
+        cppToolChain.checkAvailable(availability3);
+
+        then:
+        availability3.available
+    }
+
+    def file(String name) {
+        testDirectoryProvider.testDirectory.file(name)
+    }
+
+    def createFile(String name) {
+        file(name).createFile()
     }
 }

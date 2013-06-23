@@ -16,6 +16,7 @@
 package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
@@ -23,6 +24,7 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample quickstart = new Sample(temporaryFolder, "ivy-publish/quickstart")
     @Rule public final Sample javaProject = new Sample(temporaryFolder, "ivy-publish/java-multi-project")
     @Rule public final Sample customization = new Sample(temporaryFolder, "ivy-publish/descriptor-customization")
+    @Rule public final Sample multiPublish = new Sample(temporaryFolder, "ivy-publish/multiple-publications")
 
     def "quickstart sample"() {
         given:
@@ -71,10 +73,6 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         actualIvyXmlText == getExpectedIvyOutput(javaProject.dir.file("output-ivy.xml"))
     }
 
-    String getExpectedIvyOutput(def outputFile) {
-        outputFile.readLines()[1..-1].join(TextUtil.getPlatformLineSeparator()).trim()
-    }
-
     def "descriptor-customization sample"() {
         given:
         sample customization
@@ -89,5 +87,47 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         then:
         module.assertPublished()
         module.ivy.description == "A demonstration of ivy descriptor customization"
+    }
+
+    def "multiple-publications sample"() {
+        given:
+        sample multiPublish
+
+        and:
+        def fileRepo = ivy(multiPublish.dir.file("build/repo"))
+        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.0")
+        def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2")
+        def project2impl = fileRepo.module("org.gradle.sample.impl", "project2-impl", "2.3")
+
+        when:
+        succeeds "publish"
+
+        then:
+        project1sample.assertPublishedAsJavaModule()
+        project1sample.ivy.assertDependsOn("junit:junit:4.11@runtime", "org.gradle.sample:project2-api:2@runtime", "org.gradle.sample.impl:project2-impl:2.3@runtime")
+
+        verifyIvyFile(project1sample, "output/project1.ivy.xml")
+
+        and:
+        project2api.assertPublishedAsJavaModule()
+        project2api.ivy.assertDependsOn()
+
+        verifyIvyFile(project2api, "output/project2-api.ivy.xml")
+
+        and:
+        project2impl.assertPublishedAsJavaModule()
+        project2impl.ivy.assertDependsOn('commons-collections:commons-collections:3.1@runtime')
+        
+        verifyIvyFile(project2impl, "output/project2-impl.ivy.xml")
+    }
+
+    private void verifyIvyFile(IvyFileModule project1sample, String outputFileName) {
+        def actualIvyXmlText = project1sample.ivyFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
+        assert actualIvyXmlText == getExpectedIvyOutput(multiPublish.dir.file(outputFileName))
+    }
+
+    String getExpectedIvyOutput(File outputFile) {
+        assert outputFile.file
+        outputFile.readLines()[1..-1].join(TextUtil.getPlatformLineSeparator()).trim()
     }
 }

@@ -125,3 +125,7 @@ task outputsZip(type: Zip) {
 artifacts {
     dists allZip, binZip, srcZip
 }
+
+integTest {
+    inputs.files allZip, binZip, srcZip
+}

@@ -27,6 +27,21 @@ import org.gradle.api.internal.HasInternalProtocol;
 public interface IvyDependency {
 
     /**
+     * The organisation value for this dependency.
+     */
+    String getOrganisation();
+
+    /**
+     * The module value for this dependency.
+     */
+    String getModule();
+
+    /**
+     * The revision value for this dependency.
+     */
+    String getRevision();
+
+    /**
      * The configuration mapping string that will be output for this dependency.
      * A null value indicates that no "conf" attribute will be written for this dependency.
      *

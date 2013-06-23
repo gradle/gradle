@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.cachemanager;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.CacheMetadataOptions;
 import org.apache.ivy.core.cache.ModuleDescriptorWriter;
+import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -39,7 +40,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.ParseException;
 
-abstract class AbstractRepositoryCacheManager implements RepositoryArtifactCache {
+abstract class AbstractRepositoryCacheManager implements RepositoryArtifactCache, RepositoryCacheManager {
     protected final String name;
     private final ParserRegistry parserRegistry = new ParserRegistry();
 
@@ -71,6 +72,7 @@ abstract class AbstractRepositoryCacheManager implements RepositoryArtifactCache
     public void saveResolvedRevision(ModuleRevisionId dynamicMrid, String revision) {
     }
 
+    // TODO:DAZ Switch parsing to use Gradle APIs and adapt native ivy APIs (not vice-versa)
     protected ModuleDescriptor parseModuleDescriptor(DependencyResolver resolver, Artifact moduleArtifact, CacheMetadataOptions options, File artifactFile, Resource resource) throws ParseException {
         ModuleRevisionId moduleRevisionId = moduleArtifact.getId().getModuleRevisionId();
         try {
@@ -82,4 +84,5 @@ abstract class AbstractRepositoryCacheManager implements RepositoryArtifactCache
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
+
 }

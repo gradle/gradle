@@ -40,7 +40,7 @@ class MavenScope {
     MavenDependency expectDependency(String key) {
         final dependency = dependencies[key]
         if (dependency == null) {
-            throw new AssertionError("Could not find expected dependency $dep. Actual: ${dependencies.values()}")
+            throw new AssertionError("Could not find expected dependency $key. Actual: ${dependencies.values()}")
         }
         return dependency
     }

@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
 
+import java.util.List;
 import java.util.Set;
 
 public interface ConfigurationMetaData {
@@ -26,7 +28,15 @@ public interface ConfigurationMetaData {
      */
     Set<String> getHierarchy();
 
+    String getName();
+
+    ModuleVersionMetaData getModuleVersion();
+
+    List<DependencyMetaData> getDependencies();
+
     Set<Artifact> getArtifacts();
+
+    Set<ExcludeRule> getExcludeRules();
 
     boolean isTransitive();
 }

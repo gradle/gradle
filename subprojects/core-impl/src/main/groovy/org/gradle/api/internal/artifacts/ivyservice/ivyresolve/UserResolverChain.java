@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,7 +157,7 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
         }
 
         public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
-            delegate.resolve(artifact, result, moduleSource);
+            delegate.resolve(new DefaultArtifactIdentifier(artifact), result, moduleSource);
         }
     }
 

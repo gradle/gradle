@@ -16,9 +16,9 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
@@ -34,7 +34,7 @@ public interface MavenPublicationInternal extends MavenPublication {
 
     MavenProjectIdentity getMavenProjectIdentity();
 
-    Set<Dependency> getRuntimeDependencies();
+    Set<MavenDependencyInternal> getRuntimeDependencies();
 
     MavenNormalizedPublication asNormalisedPublication();
 

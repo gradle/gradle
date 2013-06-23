@@ -15,13 +15,11 @@
  */
 
 package org.gradle.api.publish.maven.internal.tasks
-
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,7 +29,8 @@ import spock.lang.Specification
 
 class MavenPomFileGeneratorTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    MavenPomFileGenerator generator = new MavenPomFileGenerator()
+    def projectIdentity = new DefaultMavenProjectIdentity("group-id", "artifact-id", "1.0")
+    MavenPomFileGenerator generator = new MavenPomFileGenerator(projectIdentity)
 
     def "writes correct prologue and schema declarations"() {
         expect:
@@ -42,38 +41,32 @@ class MavenPomFileGeneratorTest extends Specification {
 """))
     }
 
-    def "writes empty pom with default values"() {
-        expect:
-        with (pom) {
-            modelVersion == "4.0.0"
-            groupId == "unknown"
-            artifactId == "empty-project"
-            version == "0"
-            dependencies.empty
-        }
-    }
-
     def "writes configured coordinates"() {
-        when:
-        generator.groupId = "group-id"
-        generator.artifactId = "artifact-id"
-        generator.version = "1.0"
-        generator.packaging = "pom"
-
-        then:
+        expect:
         with (pom) {
             groupId == "group-id"
             artifactId == "artifact-id"
             version == "1.0"
+            packaging.empty
+        }
+    }
+
+    def "writes packaging"() {
+        when:
+        generator.packaging = "pom"
+
+        then:
+        with (pom) {
             packaging == "pom"
         }
     }
 
     def "encodes coordinates for XML and unicode"() {
         when:
-        generator.groupId = 'group-ぴ₦ガき∆ç√∫'
-        generator.artifactId = 'artifact-<tag attrib="value"/>-markup'
-        generator.version = 'version-&"'
+        def groupId = 'group-ぴ₦ガき∆ç√∫'
+        def artifactId = 'artifact-<tag attrib="value"/>-markup'
+        def version = 'version-&"'
+        generator = new MavenPomFileGenerator(new DefaultMavenProjectIdentity(groupId, artifactId, version))
 
         then:
         with (pom) {
@@ -84,14 +77,14 @@ class MavenPomFileGeneratorTest extends Specification {
     }
 
     def "writes regular dependency"() {
-        def dependency = Mock(ModuleDependency)
+        def dependency = Mock(MavenDependencyInternal)
         when:
         generator.addRuntimeDependency(dependency)
 
         then:
         dependency.artifacts >> new HashSet<DependencyArtifact>()
-        dependency.group >> "dep-group"
-        dependency.name >> "dep-name"
+        dependency.groupId >> "dep-group"
+        dependency.artifactId >> "dep-name"
         dependency.version >> "dep-version"
 
         and:
@@ -106,33 +99,8 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
-    def "writes project dependency"() {
-        def dependency = Mock(ProjectDependency)
-        when:
-        generator.addRuntimeDependency(dependency)
-
-        then:
-        dependency.artifacts >> new HashSet<DependencyArtifact>()
-        dependency.group >> "dep-group"
-        dependency.version >> "dep-version"
-        dependency.dependencyProject >> Stub(Project) {
-            getName() >> "project-name"
-        }
-
-        and:
-        with (pom) {
-            dependencies.dependency.size() == 1
-            with (dependencies[0].dependency[0]) {
-                groupId == "dep-group"
-                artifactId == "project-name"
-                version == "dep-version"
-                scope == "runtime"
-            }
-        }
-    }
-
     def "writes dependency with artifacts"() {
-        def dependency = Mock(ModuleDependency)
+        def dependency = Mock(MavenDependencyInternal)
         def artifact1 = Mock(DependencyArtifact)
         def artifact2 = Mock(DependencyArtifact)
         
@@ -141,7 +109,7 @@ class MavenPomFileGeneratorTest extends Specification {
 
         then:
         dependency.artifacts >> CollectionUtils.toSet([artifact1, artifact2])
-        dependency.group >> "dep-group"
+        dependency.groupId >> "dep-group"
         dependency.version >> "dep-version"
         artifact1.name >> "artifact-1"
         artifact1.type >> "type-1"

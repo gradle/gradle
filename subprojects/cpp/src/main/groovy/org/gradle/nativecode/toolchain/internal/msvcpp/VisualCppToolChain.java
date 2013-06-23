@@ -58,6 +58,7 @@ public class VisualCppToolChain extends AbstractToolChain {
     protected void checkAvailable(ToolChainAvailability availability) {
         availability.mustExist(COMPILER_EXE, compilerExe);
         availability.mustExist(LINKER_EXE, linkerExe);
+        availability.mustExist(STATIC_LINKER_EXE, staticLinkerExe);
     }
 
     @Override

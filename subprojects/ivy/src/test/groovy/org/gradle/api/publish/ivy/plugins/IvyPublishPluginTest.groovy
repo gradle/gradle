@@ -63,7 +63,7 @@ class IvyPublishPluginTest extends Specification {
         when:
         project.group = "foo"
         project.version = 1.0
-        project.status = "integration"
+        project.status = "another"
 
         and:
         publishing.publications.create("test", IvyPublication)

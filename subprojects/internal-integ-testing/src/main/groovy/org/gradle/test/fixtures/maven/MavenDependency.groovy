@@ -27,4 +27,9 @@ class MavenDependency {
         assert this.type == type
         return this
     }
+
+    @Override
+    public String toString() {
+        return String.format("MavenDependency %s:%s:%s:%s@%s", groupId, artifactId, version, classifier, type)
+    }
 }

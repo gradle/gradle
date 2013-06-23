@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 
 /**
@@ -37,5 +37,5 @@ public interface ModuleVersionRepository {
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource);
+    void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource);
 }

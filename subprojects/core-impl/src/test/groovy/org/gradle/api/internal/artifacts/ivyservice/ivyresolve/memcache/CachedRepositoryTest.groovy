@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
-import org.apache.ivy.core.module.descriptor.Artifact
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
@@ -97,27 +93,28 @@ class CachedRepositoryTest extends Specification {
 
     def "retrieves and caches artifacts"() {
         def result = Mock(BuildableArtifactResolveResult)
-        def artifact = Stub(Artifact)
+        def artifact = Stub(ArtifactIdentifier)
         def source = Mock(ModuleSource)
 
         when:
         repo.resolve(artifact, result, source)
 
         then:
-        1 * cache.supplyArtifact(_ as ArtifactIdentifier, result) >> false
+        1 * cache.supplyArtifact(artifact, result) >> false
         1 * delegate.resolve(artifact, result, source)
-        1 * cache.newArtifact(_ as ArtifactIdentifier, result)
+        1 * cache.newArtifact(artifact, result)
         0 * _
     }
 
     def "uses artifacts from cache"() {
         def result = Mock(BuildableArtifactResolveResult)
+        def artifact = Stub(ArtifactIdentifier)
 
         when:
-        repo.resolve(Stub(Artifact), result, Mock(ModuleSource))
+        repo.resolve(artifact, result, Mock(ModuleSource))
 
         then:
-        1 * cache.supplyArtifact(_ as ArtifactIdentifier, result) >> true
+        1 * cache.supplyArtifact(artifact, result) >> true
         0 * _
     }
 }

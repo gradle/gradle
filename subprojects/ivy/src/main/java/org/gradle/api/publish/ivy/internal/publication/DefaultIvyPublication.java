@@ -18,7 +18,9 @@ package org.gradle.api.publish.ivy.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
@@ -26,9 +28,11 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
+import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependencySet;
@@ -98,10 +102,34 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             for (ModuleDependency dependency : usage.getDependencies()) {
                 // TODO: When we support multiple components or configurable dependencies, we'll need to merge the confs of multiple dependencies with same id.
                 String confMapping = String.format("%s->%s", conf, dependency.getConfiguration());
-                ivyDependencies.add(new DefaultIvyDependency(dependency, confMapping));
+                if (dependency instanceof ProjectDependency) {
+                    addProjectDependency((ProjectDependency) dependency, confMapping);
+                } else {
+                    addModuleDependency(dependency, confMapping);
+                }
             }
         }
     }
+
+    private void addProjectDependency(ProjectDependency dependency, String confMapping) {
+         Project dependencyProject = dependency.getDependencyProject();
+         PublishingExtension publishing = dependencyProject.getExtensions().findByType(PublishingExtension.class);
+
+         if (publishing == null) {
+             // Project does not apply publishing: simply use the project name in place of the dependency name
+             ivyDependencies.add(new DefaultIvyDependency(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion(), confMapping));
+             return;
+         }
+
+         Set<IvyPublication> ivyPublications = publishing.getPublications().withType(IvyPublication.class);
+         for (IvyPublication ivyPublication : ivyPublications) {
+             ivyDependencies.add(new DefaultIvyDependency(ivyPublication.getOrganisation(), ivyPublication.getModule(), ivyPublication.getRevision(), confMapping));
+         }
+    }
+
+    private void addModuleDependency(ModuleDependency dependency, String confMapping) {
+        ivyDependencies.add(new DefaultIvyDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), confMapping, dependency.getArtifacts()));
+     }
 
     public void configurations(Action<? super IvyConfigurationContainer> config) {
         config.execute(configurations);
