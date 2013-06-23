@@ -47,10 +47,14 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         root = new CopySpecImpl(resolver);
         mainContent = root.addChild();
         this.visitor = new MappingCopySpecVisitor(
-                           new DuplicateHandlingCopySpecVisitor(
+                           createDuplicateHandlingVisitor(
                                new NormalizingCopySpecVisitor(visitor),
                                warnOnIncludeDuplicate),
                            FileSystems.getDefault());
+    }
+
+    protected CopySpecVisitor createDuplicateHandlingVisitor(CopySpecVisitor nestedVisitor, boolean warnOnIncludeDuplicate) {
+        return new DuplicateHandlingCopySpecVisitor(nestedVisitor, warnOnIncludeDuplicate);
     }
 
     public FileResolver getResolver() {
