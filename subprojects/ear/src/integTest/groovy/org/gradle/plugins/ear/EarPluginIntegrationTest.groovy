@@ -18,13 +18,10 @@ package org.gradle.plugins.ear
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
-import org.testng.Assert
 
 import static org.testng.Assert.assertEquals
 import static org.testng.Assert.assertFalse
-import static org.testng.Assert.assertTrue
 
 /**
  * @author: Szczepan Faber, created at: 6/3/11
@@ -172,7 +169,7 @@ ear {
         assert file("unzipped/META-INF/application.xml").text == applicationXml
     }
 
-    @Test @Ignore
+    @Test
     void "exclude duplicates: deploymentDescriptor has priority over metaInf"() {
         file('bad-meta-inf/application.xml').createFile().write('bad descriptor')
         file('build.gradle').write('''

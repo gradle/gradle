@@ -39,7 +39,15 @@ public class Zip extends AbstractArchiveTask {
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
-        action = new ZipCopyActionImpl(getServices().get(FileResolver.class));
+        action = createCopyAction();
+    }
+
+    /**
+     * Creates the CopyAction with the logic for performing the actual copy-to-zip
+     * @return a new ZipCopyActionImpl
+     */
+    protected ZipCopyActionImpl createCopyAction() {
+        return new ZipCopyActionImpl(this, getServices().get(FileResolver.class));
     }
 
     /**
@@ -69,23 +77,26 @@ public class Zip extends AbstractArchiveTask {
     /**
      * Zip compress action implementation.
      */
-    protected class ZipCopyActionImpl extends CopyActionImpl implements ZipCopyAction {
-        public ZipCopyActionImpl(FileResolver fileResolver) {
+    protected static class ZipCopyActionImpl extends CopyActionImpl implements ZipCopyAction {
+        private final Zip parentTask;
+
+        public ZipCopyActionImpl(Zip parentTask, FileResolver fileResolver) {
             super(fileResolver, new ZipCopySpecVisitor());
+            this.parentTask = parentTask;
         }
 
         public File getArchivePath() {
-            return Zip.this.getArchivePath();
+            return parentTask.getArchivePath();
         }
 
         public ZipCompressor getCompressor() {
-            switch(entryCompression) {
+            switch(parentTask.entryCompression) {
                 case DEFLATED:
                     return ZipDeflatedCompressor.INSTANCE;
                 case STORED:
                     return ZipStoredCompressor.INSTANCE;
                 default:
-                    throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
+                    throw new IllegalArgumentException(String.format("Unknown Compression type %s", parentTask.entryCompression));
             }
         }
     }
