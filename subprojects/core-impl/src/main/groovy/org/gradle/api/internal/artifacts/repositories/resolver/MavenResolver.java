@@ -24,7 +24,6 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
@@ -34,6 +33,8 @@ import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 
@@ -101,20 +102,17 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return dd.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT");
     }
 
-    protected EnhancedArtifactDownloadReport download(Artifact artifact, ModuleSource moduleSource) {
-        EnhancedArtifactDownloadReport artifactDownloadReport;
-
+    protected File download(Artifact artifact, ModuleSource moduleSource) throws IOException {
         if (moduleSource instanceof TimestampedModuleSource) {
             TimestampedModuleSource timestampedModuleSource = (TimestampedModuleSource) moduleSource;
             String timestampedVersion = timestampedModuleSource.getTimestampedVersion();
-            artifactDownloadReport = downloadTimestampedVersion(artifact, timestampedVersion);
+            return downloadTimestampedVersion(artifact, timestampedVersion);
         } else {
-            artifactDownloadReport = download(artifact);
+            return download(artifact);
         }
-        return artifactDownloadReport;
     }
 
-    private EnhancedArtifactDownloadReport downloadTimestampedVersion(Artifact artifact, String timestampedVersion) {
+    private File downloadTimestampedVersion(Artifact artifact, String timestampedVersion) throws IOException {
         final ModuleRevisionId artifactModuleRevisionId = artifact.getModuleRevisionId();
         final ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(artifactModuleRevisionId.getOrganisation(),
                 artifactModuleRevisionId.getName(),

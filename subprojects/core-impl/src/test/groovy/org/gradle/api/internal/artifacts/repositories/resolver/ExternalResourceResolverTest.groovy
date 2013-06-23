@@ -15,15 +15,12 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
-
 import org.apache.ivy.core.module.id.ArtifactRevisionId
-import org.apache.ivy.core.report.ArtifactDownloadReport
-import org.apache.ivy.core.report.DownloadStatus
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
-import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import spock.lang.Specification
@@ -36,13 +33,12 @@ class ExternalResourceResolverTest extends Specification {
     BuildableArtifactResolveResult result = Mock()
     ArtifactIdentifier artifact = new DefaultArtifactIdentifier(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "name", "type", "ext", "classifier")
     MavenResolver.TimestampedModuleSource moduleSource = Mock()
-    EnhancedArtifactDownloadReport downloadReport = Mock()
+    File downloadedFile = Mock(File)
     ExternalResourceResolver resolver
 
     def setup() {
         //We use a spy here to avoid dealing with all the overhead ivys basicresolver brings in here.
         resolver = Spy(ExternalResourceResolver, constructorArgs: [name, repository, versionLister, locallyAvailableResourceFinder])
-        resolver.download(_) >> downloadReport
     }
 
     def reportsNotFoundArtifactResolveResult() {
@@ -59,14 +55,15 @@ class ExternalResourceResolverTest extends Specification {
 
     def reportsFailedArtifactResolveResult() {
         given:
-        downloadIsFailing()
+        downloadIsFailing(new IOException("DOWNLOAD FAILURE"))
 
         when:
         resolver.resolve(artifact, result, moduleSource)
 
         then:
-        1 * result.failed(_) >> { exception ->
-            assert exception.message.toString() == "[Could not download artifact 'group:module:version:classifier@ext']"
+        1 * result.failed(_) >> { ArtifactResolveException exception ->
+            assert exception.message == "Could not download artifact 'group:module:version:classifier@ext'"
+            assert exception.cause.message == "DOWNLOAD FAILURE"
         }
         0 * result._
     }
@@ -101,17 +98,16 @@ class ExternalResourceResolverTest extends Specification {
     }
 
     def artifactIsMissing() {
-        1 * downloadReport.getDownloadStatus() >> DownloadStatus.FAILED
-        1 * downloadReport.getDownloadDetails() >> ArtifactDownloadReport.MISSING_ARTIFACT;
+        resolver.download(_) >> null
     }
 
-    def downloadIsFailing() {
-        1 * downloadReport.getDownloadStatus() >> DownloadStatus.FAILED
-        1 * downloadReport.getDownloadDetails() >> "Broken Connection";
+    def downloadIsFailing(IOException failure) {
+        resolver.download(_) >> {
+            throw failure
+        }
     }
 
     def artifactCanBeResolved() {
-        1 * downloadReport.getDownloadStatus() >> DownloadStatus.SUCCESSFUL
-        1 * downloadReport.getLocalFile() >> Mock(File);
+        resolver.download(_) >> downloadedFile
     }
 }

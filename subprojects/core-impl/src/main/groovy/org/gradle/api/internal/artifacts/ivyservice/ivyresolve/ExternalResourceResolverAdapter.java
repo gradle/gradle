@@ -48,7 +48,7 @@ public class ExternalResourceResolverAdapter implements IvyAwareModuleVersionRep
     }
 
     public boolean isLocal() {
-        return resolver.getRepositoryCacheManager().isLocal();
+        return resolver.isLocal();
     }
 
     public void setSettings(IvySettings settings) {

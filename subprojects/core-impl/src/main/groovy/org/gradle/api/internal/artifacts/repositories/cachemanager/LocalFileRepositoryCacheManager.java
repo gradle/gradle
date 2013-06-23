@@ -26,11 +26,13 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
+import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 
 /**
@@ -90,4 +92,11 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
         return new ResolvedModuleRevision(resolver, resolver, descriptor, report);
     }
 
+    public File downloadAndCacheArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, Resource resource) throws IOException {
+        // Does not download, copy or cache local files.
+        assert resource.isLocal();
+        File file = new File(resource.getName());
+        assert file.isFile();
+        return file;
+    }
 }
