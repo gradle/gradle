@@ -37,8 +37,8 @@ public class ValidatingMavenPublisherTest extends Specification {
 
     def "delegates when publication is valid"() {
         when:
-        def projectIdentity = projectIdentity("the-group", "the-artifact", "the-version")
-        def publication = new MavenNormalizedPublication("pub-name", createPomFile("the-group", "the-artifact", "the-version"), projectIdentity, emptySet())
+        def projectIdentity = makeProjectIdentity("the-group", "the-artifact", "the-version")
+        def publication = new MavenNormalizedPublication("pub-name", createPomFile(projectIdentity), projectIdentity, emptySet())
         def repository = Mock(MavenArtifactRepository)
 
         and:
@@ -50,8 +50,8 @@ public class ValidatingMavenPublisherTest extends Specification {
 
     def "validates project coordinates"() {
         given:
-        def projectIdentity = projectIdentity(groupId, artifactId, version)
-        def publication = new MavenNormalizedPublication("pub-name", createPomFile(groupId, artifactId, version), projectIdentity, emptySet())
+        def projectIdentity = makeProjectIdentity(groupId, artifactId, version)
+        def publication = new MavenNormalizedPublication("pub-name", createPomFile(projectIdentity), projectIdentity, emptySet())
 
         def repository = Mock(MavenArtifactRepository)
 
@@ -78,8 +78,8 @@ public class ValidatingMavenPublisherTest extends Specification {
 
     def "project coordinates must match POM file"() {
         given:
-        def projectIdentity = projectIdentity("group", "artifact", "version")
-        def pomFile = createPomFile(groupId, artifactId, version)
+        def projectIdentity = makeProjectIdentity("group", "artifact", "version")
+        def pomFile = createPomFile(makeProjectIdentity(groupId, artifactId, version))
         def publication = new MavenNormalizedPublication("pub-name", pomFile, projectIdentity, emptySet())
 
         def repository = Mock(MavenArtifactRepository)
@@ -99,8 +99,8 @@ public class ValidatingMavenPublisherTest extends Specification {
     }
 
     def "validates artifact attributes"() {
-        def projectIdentity = projectIdentity("group", "artifact", "version")
-        def pomFile = createPomFile("group", "artifact", "version")
+        def projectIdentity = makeProjectIdentity("group", "artifact", "version")
+        def pomFile = createPomFile(projectIdentity)
         def mavenArtifact = Stub(MavenArtifact) {
             getExtension() >> extension
             getClassifier() >> classifier
@@ -126,8 +126,8 @@ public class ValidatingMavenPublisherTest extends Specification {
 
     @Unroll
     def "cannot publish with file that #message"() {
-        def projectIdentity = projectIdentity("group", "artifact", "version")
-        def pomFile = createPomFile("group", "artifact", "version")
+        def projectIdentity = makeProjectIdentity("group", "artifact", "version")
+        def pomFile = createPomFile(projectIdentity)
         def mavenArtifact = Mock(MavenArtifact)
         def publication = new MavenNormalizedPublication("pub-name", pomFile, projectIdentity, toSet([mavenArtifact]))
 
@@ -160,8 +160,8 @@ public class ValidatingMavenPublisherTest extends Specification {
             getClassifier() >> "classified"
             getFile() >> testDir.createFile('artifact2')
         }
-        def projectIdentity = projectIdentity("group", "artifact", "version")
-        def pomFile = createPomFile("group", "artifact", "version")
+        def projectIdentity = makeProjectIdentity("group", "artifact", "version")
+        def pomFile = createPomFile(projectIdentity)
         def publication = new MavenNormalizedPublication("pub-name", pomFile, projectIdentity, toSet([artifact1, artifact2]))
 
         when:
@@ -179,8 +179,8 @@ public class ValidatingMavenPublisherTest extends Specification {
             getClassifier() >> null
             getFile() >> testDir.createFile('artifact1')
         }
-        def projectIdentity = projectIdentity("group", "artifact", "version")
-        def pomFile = createPomFile("group", "artifact", "version")
+        def projectIdentity = makeProjectIdentity("group", "artifact", "version")
+        def pomFile = createPomFile(projectIdentity)
         def publication = new MavenNormalizedPublication("pub-name", pomFile, projectIdentity, toSet([artifact1]))
 
         when:
@@ -193,8 +193,8 @@ public class ValidatingMavenPublisherTest extends Specification {
 
     def "supplied POM file must be valid"() {
         given:
-        def projectIdentity = projectIdentity("group", "artifact", "version")
-        def pomFile = createPomFile("group", "artifact", "version", new Action<XmlProvider>() {
+        def projectIdentity = makeProjectIdentity("group", "artifact", "version")
+        def pomFile = createPomFile(projectIdentity, new Action<XmlProvider>() {
             void execute(XmlProvider xml) {
                 xml.asNode().appendNode("invalid", "This is not a valid pomFile element")
             }
@@ -213,7 +213,7 @@ public class ValidatingMavenPublisherTest extends Specification {
         e.cause.message =~ "Unrecognised tag: 'invalid' .*"
     }
 
-    private def projectIdentity(def groupId, def artifactId, def version) {
+    private def makeProjectIdentity(def groupId, def artifactId, def version) {
         return Stub(MavenProjectIdentity) {
             getGroupId() >> groupId
             getArtifactId() >> artifactId
@@ -221,12 +221,9 @@ public class ValidatingMavenPublisherTest extends Specification {
         }
     }
 
-    private def createPomFile(def groupId, def artifactId, def version, Action<XmlProvider> withXmlAction = null) {
+    private def createPomFile(MavenProjectIdentity projectIdentity, Action<XmlProvider> withXmlAction = null) {
         def pomFile = testDir.file("pom")
-        MavenPomFileGenerator pomFileGenerator = new MavenPomFileGenerator();
-        pomFileGenerator.groupId = groupId
-        pomFileGenerator.artifactId = artifactId
-        pomFileGenerator.version = version
+        MavenPomFileGenerator pomFileGenerator = new MavenPomFileGenerator(projectIdentity);
         if (withXmlAction != null) {
             pomFileGenerator.withXml(withXmlAction)
         }

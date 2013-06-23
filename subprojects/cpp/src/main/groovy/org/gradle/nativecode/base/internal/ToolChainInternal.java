@@ -35,4 +35,9 @@ public interface ToolChainInternal extends ToolChain {
     String getSharedLibraryLinkFileName(String libraryPath);
 
     String getStaticLibraryName(String libraryPath);
+
+    /**
+     * Returns a unique identifier for the output produced by this toolchain on the current platform.
+     */
+    String getOutputType();
 }

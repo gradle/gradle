@@ -35,7 +35,7 @@ class ChainedVersionListerTest extends Specification {
     Artifact artifact = Mock()
     ModuleRevisionId moduleRevisionId = Mock()
 
-    def chainedVersionLister = new org.gradle.api.internal.artifacts.repositories.resolver.ChainedVersionLister(lister1, lister2)
+    def chainedVersionLister = new ChainedVersionLister(lister1, lister2)
 
     def "visit stops listing after first success"() {
         when:
@@ -53,14 +53,14 @@ class ChainedVersionListerTest extends Specification {
         0 * _._
 
         when:
-        def result = versionList.versionStrings
+        def result = versionList.versions
 
         then:
         result == ["1.0", "1.2"] as Set
 
         and:
-        versionList1.versionStrings >> ["1.0", "1.2"]
-        versionList2.versionStrings >> []
+        versionList1.versions >> ["1.0", "1.2"]
+        versionList2.versions >> []
     }
 
     @Unroll

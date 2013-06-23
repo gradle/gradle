@@ -16,16 +16,12 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 public interface ModuleVersionPublisher {
-    void publish(ModuleRevisionId id, Map<Artifact, File> artifacts) throws IOException;
+    void publish(ModuleVersionPublishMetaData moduleVersion) throws IOException;
 
     void setSettings(IvySettings settings);
 }

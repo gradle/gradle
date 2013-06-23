@@ -16,11 +16,8 @@
 
 package org.gradle.api.publish.ivy.internal.publisher
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
@@ -28,7 +25,6 @@ import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIden
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.CollectionUtils
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -136,33 +132,16 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         }
     }
     def "writes supplied dependencies"() {
-        def projectDependency = Mock(ProjectDependency)
-        def moduleDependency = Mock(ModuleDependency)
         when:
-        projectDependency.artifacts >> new HashSet<DependencyArtifact>()
-        projectDependency.group >> "dep-group"
-        projectDependency.name >> "dep-name-1"
-        projectDependency.version >> "dep-version"
-        projectDependency.dependencyProject >> Stub(Project) {
-            getName() >> "project-name"
-        }
-
-        and:
-        moduleDependency.artifacts >> new HashSet<DependencyArtifact>()
-        moduleDependency.group >> "dep-group"
-        moduleDependency.name >> "dep-name-2"
-        moduleDependency.version >> "dep-version"
-
-        and:
-        generator.addDependency(new DefaultIvyDependency(projectDependency, "confMappingProject"))
-        generator.addDependency(new DefaultIvyDependency(moduleDependency, null))
+        generator.addDependency(new DefaultIvyDependency('dep-group', 'dep-name-1', 'dep-version', "confMappingProject"))
+        generator.addDependency(new DefaultIvyDependency('dep-group', 'dep-name-2', 'dep-version', null))
 
         then:
         with (ivyXml) {
             dependencies.dependency.size() == 2
             with (dependencies[0].dependency[0]) {
                 it.@org == "dep-group"
-                it.@name == "project-name"
+                it.@name == "dep-name-1"
                 it.@rev == "dep-version"
                 it.@conf == "confMappingProject"
             }
@@ -176,15 +155,10 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     }
 
     def "writes dependency with artifacts"() {
-        def dependency = Mock(ModuleDependency)
         def artifact1 = Mock(DependencyArtifact)
         def artifact2 = Mock(DependencyArtifact)
 
         when:
-        dependency.artifacts >> CollectionUtils.toSet([artifact1, artifact2])
-        dependency.group >> "dep-group"
-        dependency.name >> "dep-name"
-        dependency.version >> "dep-version"
         artifact1.name >> "artifact-1"
         artifact1.type >> "type-1"
         artifact1.extension >> "ext-1"
@@ -194,7 +168,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         artifact2.classifier >> "classy"
 
         and:
-        generator.addDependency(new DefaultIvyDependency(dependency, "confMapping"))
+        generator.addDependency(new DefaultIvyDependency('dep-group', 'dep-name', 'dep-version', "confMapping", [artifact1, artifact2]))
 
         then:
         includesMavenNamespace()

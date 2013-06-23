@@ -99,7 +99,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected PublishModuleDescriptorConverter createPublishModuleDescriptorConverter() {
         return new PublishModuleDescriptorConverter(
                 get(ResolveModuleDescriptorConverter.class),
-                new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.RESOLVE_STRATEGY));
+                new DefaultArtifactsToModuleDescriptorConverter());
     }
 
     protected ModuleDescriptorFactory createModuleDescriptorFactory() {
@@ -379,10 +379,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(SettingsConverter.class),
                     get(PublishModuleDescriptorConverter.class),
                     get(IvyFactory.class),
-                    new DefaultIvyDependencyPublisher()
+                    new DefaultIvyDependencyPublisher(),
+                    new IvyXmlModuleDescriptorWriter()
             );
         }
-
     }
 
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {
@@ -394,16 +394,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         public DefaultRepositoryHandler createRepositoryHandler() {
             return dependencyResolutionServices.createRepositoryHandler();
-        }
-
-        public ModuleDescriptorConverter getDescriptorFileModuleConverter() {
-            return new PublishModuleDescriptorConverter(
-                    dependencyResolutionServices.parent.get(ResolveModuleDescriptorConverter.class),
-                    new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
-        }
-
-        public IvyModuleDescriptorWriter getIvyModuleDescriptorWriter() {
-            return new IvyXmlModuleDescriptorWriter();
         }
 
         public ArtifactPublisher createArtifactPublisher() {

@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Matchers
 import org.junit.Rule
 import org.junit.Test
 
@@ -461,8 +462,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testCopyExcludeDuplicates() {
-        file('dir1', 'path', 'file.txt').createFile()
-        file('dir2', 'path', 'file.txt').createFile()
+        file('dir1', 'path', 'file.txt').createFile() << "f1"
+        file('dir2', 'path', 'file.txt').createFile() << "f2"
 
 
         def buildFile = testFile('build.gradle') <<
@@ -478,15 +479,17 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         '''
 
         def result = usingBuildFile(buildFile).withTasks("copy").run()
-        assertTrue(file('dest/path/file.txt').exists())
+        file('dest').assertHasDescendants('path/file.txt')
+        file('dest/path/file.txt').assertContents(Matchers.containsText("f1"))
         assertFalse(result.output.contains('deprecated'))
     }
 
     @Test
     public void renamedFileCanBeTreatedAsDuplicate() {
-        file('dir1', 'path', 'file.txt').createFile()
-        file('dir2', 'path', 'file2.txt').createFile()
-
+        File file1 = file('dir1', 'path', 'file.txt').createFile()
+        File file2 = file('dir2', 'path', 'file2.txt').createFile()
+        file1.text = "file1"
+        file2.text = "file2"
 
         def buildFile = testFile('build.gradle') <<
                 '''
@@ -500,7 +503,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                 }
             '''
         def result = usingBuildFile(buildFile).withTasks("copy").run()
-        assertTrue(file('dest/path/file.txt').exists())
+        file('dest').assertHasDescendants('path/file.txt')
+        file('dest/path/file.txt').assertContents(Matchers.containsText("file1"))
         assertFalse(result.output.contains('deprecated'))
     }
 

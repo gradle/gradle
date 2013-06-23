@@ -46,6 +46,11 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         testDirectory.file('build.gradle')
     }
 
+    protected TestFile buildScript(String script) {
+        buildFile.text = script
+        buildFile
+    }
+
     protected TestFile getSettingsFile() {
         testDirectory.file('settings.gradle')
     }

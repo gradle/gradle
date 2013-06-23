@@ -253,6 +253,49 @@ task retrieveMilestone(type: Sync) {
         file('milestone').assertHasDescendants('projectA-1.1.jar')
     }
 
+    def "can get latest version from repository with multiple ivyPatterns"() {
+        server.start()
+
+        given:
+        def repo1 = ivyHttpRepo("ivyRepo1")
+        repo1.module('org.test', 'projectA', '1.1').withStatus("integration").publish()
+        def repo1version2 = repo1.module('org.test', 'projectA', '1.2').withStatus("milestone").publish()
+        def repo2 = ivyHttpRepo("ivyRepo2")
+        def repo2version1 = repo2.module('org.test', 'projectA', '1.1').withStatus("milestone").publish()
+        def repo2version3 = repo2.module('org.test', 'projectA', '1.3').withStatus("integration").publish()
+
+        and:
+        buildFile << """
+repositories {
+    ivy {
+        url "${repo1.uri}"
+        ivyPattern "${repo2.uri}/[organisation]/[module]/[revision]/ivy-[revision].xml"
+        artifactPattern "${repo2.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+    }
+}
+configurations { milestone }
+dependencies {
+  milestone 'org.test:projectA:latest.milestone'
+}
+task retrieveMilestone(type: Sync) {
+  from configurations.milestone
+  into 'milestone'
+}
+"""
+        when:
+        repo1.expectDirectoryListGet("org.test", "projectA")
+        repo2.expectDirectoryListGet("org.test", "projectA")
+        repo2version3.expectIvyGet()
+        repo1version2.expectIvyGet()
+        repo1version2.expectJarGet()
+
+        then:
+        succeeds 'retrieveMilestone'
+
+        and:
+        file('milestone').assertHasDescendants('projectA-1.2.jar')
+    }
+
     def "checks new repositories before returning any cached value"() {
         server.start()
         def repo1 = ivyHttpRepo("repo1")

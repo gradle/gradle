@@ -28,9 +28,9 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
             apply plugin: "cpp-lib"
 
             task checkBinaries << {
-                assert binaries.mainClasses instanceof org.gradle.language.jvm.ClassDirectoryBinary
-                assert binaries.mainExecutable instanceof org.gradle.nativecode.base.ExecutableBinary
-                assert binaries.mainSharedLibrary instanceof org.gradle.nativecode.base.SharedLibraryBinary
+                assert binaries.mainClasses instanceof ClassDirectoryBinary
+                assert binaries.mainExecutable instanceof ExecutableBinary
+                assert binaries.mainSharedLibrary instanceof SharedLibraryBinary
             }
 """
         expect:

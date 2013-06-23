@@ -95,6 +95,14 @@ enum TestPrecondition {
     }),
     JDK7_POSIX({
         JDK7.fulfilled && NOT_WINDOWS.fulfilled
+    }),
+    ONLINE({
+        try {
+            new URL("http://google.com").openConnection().openStream()
+            true
+        } catch (IOException) {
+            false
+        }
     });
 
     /**

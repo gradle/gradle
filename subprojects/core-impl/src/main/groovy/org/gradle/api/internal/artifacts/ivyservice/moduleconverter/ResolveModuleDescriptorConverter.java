@@ -17,9 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 
@@ -41,11 +42,11 @@ public class ResolveModuleDescriptorConverter implements ModuleDescriptorConvert
         this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
     }
 
-    public ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module) {
+    public BuildableModuleVersionPublishMetaData convert(Set<? extends Configuration> configurations, Module module) {
         assert configurations.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
         DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(module);
         configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
         dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations);
-        return moduleDescriptor;
+        return new DefaultModuleVersionPublishMetaData(moduleDescriptor);
     }
 }

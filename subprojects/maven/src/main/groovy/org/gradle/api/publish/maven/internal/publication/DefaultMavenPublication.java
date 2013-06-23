@@ -18,7 +18,9 @@ package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
@@ -26,10 +28,14 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenPom;
+import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
+import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.reflect.Instantiator;
@@ -45,7 +51,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
     private final DefaultMavenArtifactSet mavenArtifacts;
-    private final Set<Dependency> runtimeDependencies = new LinkedHashSet<Dependency>();
+    private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private FileCollection pomFile;
     private SoftwareComponentInternal component;
 
@@ -88,9 +94,35 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
 
             // TODO Need a smarter way to map usage to scope
-            runtimeDependencies.addAll(usage.getDependencies());
+            for (ModuleDependency dependency : usage.getDependencies()) {
+                if (dependency instanceof ProjectDependency) {
+                    addProjectDependency((ProjectDependency) dependency);
+                } else {
+                    addModuleDependency(dependency);
+                }
+            }
         }
     }
+
+    private void addProjectDependency(ProjectDependency dependency) {
+        Project dependencyProject = dependency.getDependencyProject();
+        PublishingExtension publishing = dependencyProject.getExtensions().findByType(PublishingExtension.class);
+
+        if (publishing == null) {
+            // Project does not apply publishing: simply use the project name in place of the dependency name
+            runtimeDependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion()));
+            return;
+        }
+
+        Set<MavenPublication> publications = publishing.getPublications().withType(MavenPublication.class);
+        for (MavenPublication publication : publications) {
+            runtimeDependencies.add(new DefaultMavenDependency(publication.getGroupId(), publication.getArtifactId(), publication.getVersion()));
+        }
+    }
+
+    private void addModuleDependency(ModuleDependency dependency) {
+        runtimeDependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts()));
+     }
 
     public MavenArtifact artifact(Object source) {
         return mavenArtifacts.artifact(source);
@@ -143,7 +175,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return projectIdentity;
     }
 
-    public Set<Dependency> getRuntimeDependencies() {
+    public Set<MavenDependencyInternal> getRuntimeDependencies() {
         return runtimeDependencies;
     }
 

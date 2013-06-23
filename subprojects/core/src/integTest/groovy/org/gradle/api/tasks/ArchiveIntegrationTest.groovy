@@ -20,19 +20,14 @@
 package org.gradle.api.tasks
 
 import org.apache.commons.lang.RandomStringUtils
-import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.FileResource
-import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
-import java.util.zip.ZipFile
-
+import static org.gradle.test.fixtures.archive.ZipTestFixture.assertZipContainsOnly
 import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.assertEquals
 
 public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
@@ -621,7 +616,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'zip'
 
         then:
-        assertZipContainsOnly('build/test.zip', ['file1.txt', 'file1.txt', 'file2.txt'])
+        assertZipContainsOnly(file('build/test.zip'), ['file1.txt', 'file1.txt', 'file2.txt'])
     }
 
     def ensureDuplicatesCanBeExcludedFromZip() {
@@ -641,7 +636,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'zip'
 
         then:
-        assertZipContainsOnly('build/test.zip', ['file1.txt', 'file2.txt'], ['file1.txt': "dir1/file1.txt"])
+        assertZipContainsOnly(file('build/test.zip'), ['file1.txt', 'file2.txt'], ['file1.txt': "dir1/file1.txt"])
     }
 
     def renamedFileWillBeTreatedAsDuplicateZip() {
@@ -661,7 +656,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'zip'
 
         then:
-        assertZipContainsOnly('build/test.zip', ['file1.txt'], ['file1.txt': "dir1/file1.txt"])
+        assertZipContainsOnly(file('build/test.zip'), ['file1.txt'], ['file1.txt': "dir1/file1.txt"])
     }
 
     def ensureDuplicatesIncludedInTarByDefault() {
@@ -680,7 +675,9 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'tar'
 
         then:
-        assertTarContainsOnly('build/test.tar', ['file1.txt', 'file1.txt', 'file2.txt'])
+        def tar = new TarTestFixture(file("build/test.tar"), testDirectory.createDir('tmp'))
+        tar.assertContainsFile('file1.txt', 2)
+        tar.assertContainsFile('file2.txt')
     }
 
     def ensureDuplicatesCanBeExcludedFromTar() {
@@ -700,7 +697,10 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'tar'
 
         then:
-        assertTarContainsOnly('build/test.tar', ['file1.txt', 'file2.txt'], ['file1.txt':"dir1/file1.txt"])
+        def tar = new TarTestFixture(file("build/test.tar"), testDirectory.createDir('tmp'))
+        tar.assertContainsFile('file1.txt')
+        tar.assertContainsFile('file2.txt')
+        tar.file("file1.txt").text == "dir1/file1.txt"
     }
 
 
@@ -722,42 +722,4 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             file('file1.txt').text = "dir3/file1.txt"
         })
     }
-
-
-    def assertZipContainsOnly(String zipFileName, List files, Map fileContent = [:]) {
-        ZipFile zipFile = new ZipFile(file(zipFileName))
-        def entries = zipFile.entries();
-        def list = []
-        while (entries.hasMoreElements()) {
-            def entry = entries.nextElement()
-            def entryName = entry.getName()
-            list += entryName;
-            if(fileContent.containsKey(entryName)){
-                assert fileContent[entryName] == zipFile.getInputStream(entry).text
-            }
-        }
-        assertEquals(files.sort(), list.sort())
-        return this
-    }
-
-    def assertTarContainsOnly(String tarfileName, List files, Map fileContent = [:]) {
-        def list = []
-        def readableFile = new FileResource(file(tarfileName))
-        def temporaryDir = file('tmp')
-        new TarFileTree(readableFile, temporaryDir).visit(new FileVisitor() {
-            void visitDir(FileVisitDetails dirDetails) {}
-            void visitFile(FileVisitDetails fileDetails) {
-                String relativePathString = fileDetails.relativePath.toString()
-                list += relativePathString
-                if(fileContent.containsKey(relativePathString)){
-                    assert fileContent[relativePathString] == fileDetails.file.text
-                }
-            }
-        })
-
-
-        assertEquals(files.sort(), list.sort())
-        return this
-    }
-
 }

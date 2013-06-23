@@ -20,6 +20,8 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 
 import java.io.File;
@@ -42,12 +44,13 @@ public class IvyResolverBackedModuleVersionPublisher implements ModuleVersionPub
         settings.addResolver(resolver);
     }
 
-    public void publish(ModuleRevisionId id, Map<Artifact, File> artifacts) throws IOException {
+    public void publish(ModuleVersionPublishMetaData moduleVersion) throws IOException {
         boolean successfullyPublished = false;
         try {
-            resolver.beginPublishTransaction(id, true);
-            // for each declared published artifact in this descriptor, do:
-            for (Map.Entry<Artifact, File> entry : artifacts.entrySet()) {
+            ModuleVersionIdentifier id = moduleVersion.getId();
+            ModuleRevisionId ivyId = ModuleRevisionId.newInstance(id.getGroup(), id.getName(), id.getVersion());
+            resolver.beginPublishTransaction(ivyId, true);
+            for (Map.Entry<Artifact, File> entry : moduleVersion.getArtifacts().entrySet()) {
                 Artifact artifact = entry.getKey();
                 File artifactFile = entry.getValue();
                 resolver.publish(artifact, artifactFile, true);

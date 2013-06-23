@@ -184,6 +184,21 @@ it.exclude group: '*', module: 'badArtifact'
         failure.assertHasCause("Could not convert Maven POM $pom to a Gradle build.")
     }
 
+    def "mavenExtensions"() {
+        when:
+        run 'setupBuild'
+        then:
+        settingsFile.exists()
+        buildFile.exists()
+        wrapperFilesGenerated()
+
+        when:
+        run 'clean', 'build'
+
+        then:
+        file("build/libs/testApp-1.0.jar").exists()
+    }
+
     void wrapperFilesGenerated(TestFile parentFolder = file(".")) {
         new WrapperTestFixture(parentFolder).generated()
     }

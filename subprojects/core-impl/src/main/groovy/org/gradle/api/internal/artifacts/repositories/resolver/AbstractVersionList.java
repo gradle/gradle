@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.LatestStrategy;
 
 import java.util.ArrayList;
@@ -25,39 +24,15 @@ import java.util.List;
 
 abstract class AbstractVersionList implements VersionList {
     public boolean isEmpty() {
-        return getVersionStrings().isEmpty();
+        return getVersions().isEmpty();
     }
 
-    public List<String> sortLatestFirst(LatestStrategy latestStrategy) {
-        List<String> versions = new ArrayList<String>(getVersionStrings());
-        ArtifactInfo[] artifactInfos = new ArtifactInfo[versions.size()];
-        for (int i = 0; i < versions.size(); i++) {
-            String version = versions.get(i);
-            artifactInfos[i] = new VersionArtifactInfo(version);
-        }
-        List<ArtifactInfo> sorted = latestStrategy.sort(artifactInfos);
+    public List<ListedVersion> sortLatestFirst(LatestStrategy latestStrategy) {
+        List<ListedVersion> versions = new ArrayList<ListedVersion>(getVersions());
+        ListedVersion[] artifactInfos = getVersions().toArray(new ListedVersion[versions.size()]);
+        List<ListedVersion> sorted = latestStrategy.sort(artifactInfos);
         Collections.reverse(sorted);
 
-        List<String> sortedVersions = new ArrayList<String>();
-        for (ArtifactInfo info : sorted) {
-            sortedVersions.add(info.getRevision());
-        }
-        return sortedVersions;
-    }
-
-    private class VersionArtifactInfo implements ArtifactInfo {
-        private final String version;
-
-        private VersionArtifactInfo(String version) {
-            this.version = version;
-        }
-
-        public String getRevision() {
-            return version;
-        }
-
-        public long getLastModified() {
-            return 0;
-        }
+        return sorted;
     }
 }

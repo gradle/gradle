@@ -17,11 +17,12 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.internal.UserCodeAction;
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.listener.ActionBroadcast;
+import org.gradle.util.GUtil;
 
 import java.util.Set;
 
@@ -29,6 +30,7 @@ public class DefaultMavenPom implements MavenPomInternal {
 
     private final ActionBroadcast<XmlProvider> xmlAction = new ActionBroadcast<XmlProvider>();
     private final MavenPublicationInternal mavenPublication;
+    private String packaging;
 
     public DefaultMavenPom(MavenPublicationInternal mavenPublication) {
         this.mavenPublication = mavenPublication;
@@ -43,14 +45,18 @@ public class DefaultMavenPom implements MavenPomInternal {
     }
 
     public String getPackaging() {
-        return mavenPublication.determinePackagingFromArtifacts();
+        return GUtil.elvis(packaging, mavenPublication.determinePackagingFromArtifacts());
+    }
+
+    public void setPackaging(String packaging) {
+        this.packaging = packaging;
     }
 
     public MavenProjectIdentity getProjectIdentity() {
         return mavenPublication.getMavenProjectIdentity();
     }
 
-    public Set<Dependency> getRuntimeDependencies() {
+    public Set<MavenDependencyInternal> getRuntimeDependencies() {
         return mavenPublication.getRuntimeDependencies();
     }
 }

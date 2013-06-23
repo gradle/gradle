@@ -26,10 +26,6 @@ integTestTasks.all {
     systemProperty "org.gradle.userguide.samples.filter", System.getProperty("org.gradle.userguide.samples.filter")
 }
 
-daemonIntegTest {
-    exclude "**/CrossVersionCompatibilityIntegrationTest.class" //ignored just in case to avoid old daemon implementation
-}
-
 parallelIntegTest {
     systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
 }

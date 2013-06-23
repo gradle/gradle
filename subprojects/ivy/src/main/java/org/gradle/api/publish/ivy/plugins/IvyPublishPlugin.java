@@ -93,12 +93,10 @@ public class IvyPublishPlugin implements Plugin<Project> {
             Module module = dependencyMetaDataProvider.getModule();
             IvyPublicationIdentity publicationIdentity = new DefaultIvyPublicationIdentity(module.getGroup(), module.getName(), module.getVersion());
             NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
-            DefaultIvyPublication ivyPublication = instantiator.newInstance(
+            return instantiator.newInstance(
                     DefaultIvyPublication.class,
                     name, instantiator, publicationIdentity, notationParser
             );
-            ivyPublication.getDescriptor().setStatus(module.getStatus());
-            return ivyPublication;
         }
     }
 }

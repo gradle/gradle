@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.internal.util
+package org.gradle.api.internal.artifacts;
 
-class Network {
-    
-    static boolean isOffline() {
-        try {
-            new URL("http://google.com").openConnection().openStream()
-            false
-        } catch (IOException) {
-            true
-        }
-    }
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+
+import java.io.File;
+
+public interface BuildableModuleVersionPublishMetaData extends ModuleVersionPublishMetaData {
+    DefaultModuleDescriptor getModuleDescriptor();
+
+    void addArtifact(Artifact artifact, File file);
 }

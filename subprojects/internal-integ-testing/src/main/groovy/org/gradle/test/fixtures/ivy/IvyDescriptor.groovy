@@ -90,7 +90,9 @@ class IvyDescriptor {
         expected.each {
             String key = StringUtils.substringBefore(it, "@")
             String conf = StringUtils.substringAfter(it, "@") + "->default"
+            assert dependencies.containsKey(key)
             assert dependencies[key].hasConf(conf)
         }
+        true
     }
 }

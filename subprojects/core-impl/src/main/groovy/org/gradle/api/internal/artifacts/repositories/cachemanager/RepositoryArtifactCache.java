@@ -16,11 +16,20 @@
 
 package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
+import org.apache.ivy.core.cache.CacheDownloadOptions;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
+import org.apache.ivy.plugins.repository.ResourceDownloader;
 
 /**
  * This is a transitional interface for moving away from the Ivy RepositoryCacheManager.
  */
-public interface RepositoryArtifactCache extends RepositoryCacheManager {
+public interface RepositoryArtifactCache {
     boolean isLocal();
+
+    public EnhancedArtifactDownloadReport download(
+            Artifact artifact,
+            ArtifactResourceResolver resourceResolver,
+            ResourceDownloader resourceDownloader,
+            CacheDownloadOptions options);
 }

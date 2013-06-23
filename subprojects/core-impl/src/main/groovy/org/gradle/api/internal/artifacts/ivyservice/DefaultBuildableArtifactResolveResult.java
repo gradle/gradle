@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 
@@ -34,7 +34,7 @@ public class DefaultBuildableArtifactResolveResult implements BuildableArtifactR
         this.file = file;
     }
 
-    public void notFound(Artifact artifact) {
+    public void notFound(ArtifactIdentifier artifact) {
         failed(new ArtifactNotFoundException(artifact));
     }
 
