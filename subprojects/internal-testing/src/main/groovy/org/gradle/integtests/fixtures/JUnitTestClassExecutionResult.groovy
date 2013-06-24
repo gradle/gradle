@@ -137,10 +137,9 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
                     Assert.assertThat(failure.@type.text(), Matchers.not(Matchers.equalTo('')))
                     Assert.assertThat(failure.text(), Matchers.not(Matchers.equalTo('')))
                 }
-                if (outputAssociation == TestResultOutputAssociation.WITH_TESTCASE) {
-                    Assert.assertThat(node.'system-out'.size(), Matchers.equalTo(1))
-                    Assert.assertThat(node.'system-err'.size(), Matchers.equalTo(1))
-                }
+                def matcher = Matchers.equalTo(outputAssociation == TestResultOutputAssociation.WITH_TESTCASE ? 1 : 0)
+                Assert.assertThat(node.'system-err'.size(), matcher)
+                Assert.assertThat(node.'system-out'.size(), matcher)
             }
             if (outputAssociation == TestResultOutputAssociation.WITH_SUITE) {
                 Assert.assertThat(testClassNode.'system-out'.size(), Matchers.equalTo(1))
