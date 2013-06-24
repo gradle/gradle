@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.reporting.DirectoryReport;
 
 /**
@@ -26,11 +27,13 @@ public interface JUnitXmlReport extends DirectoryReport {
     /**
      * Should the output be associated with individual test cases instead of at the suite level.
      */
+    @Incubating
     boolean isOutputPerTestCase();
 
     /**
      * Should the output be associated with individual test cases instead of at the suite level.
      */
+    @Incubating
     void setOutputPerTestCase(boolean outputPerTestCase);
 
 }
