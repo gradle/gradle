@@ -104,6 +104,31 @@ giving control over both the HTML report and the JUnit XML result files (these f
 This brings the `Test` task into line with other tasks that produce reports in terms of API. It also allows you to completely disable the JUnit XML file generation 
 (if you don't need it) and also means that the test reports appear in the [build dashboard](userguide/buildDashboard_plugin.html).
 
+### Record test output per test case in JUnit XML result files (i)
+
+This change facilitates better reporting of test execution on CI servers, notably [Jenkins](http://jenkins-ci.org/).
+
+The JUnit XML file format is a de-facto standard for communicating test execution results between systems. 
+CI servers typically use this file as the source of test execution information. 
+It was originally conceived by the “JUnit Ant Tasks” that quickly appeared after the introduction of JUnit and became widely used, without a specification ever forming.
+
+This file also captures the system output (`System.out` and `System.err`) that occurs during test execution. Traditionally, the output has been recorded at the _class level_.
+That is, output is not associated with the individual test cases (i.e. methods) within the class but with the class as a whole.
+You can now enable “output per test case” mode in Gradle to get better reporting.
+
+    test {
+        reports {
+            junitXml.outputPerTestCase = true
+        }
+    }
+
+With this mode enabled, the XML report will associate output to the particular test case that created it. 
+The Jenkins CI server provides a UI for inspecting the result of a particular test case of class. 
+With `outputPerTestCase = true`, output from that test case will be shown on that screen.
+
+This is also necessary for effective use of the Jenkins [JUnit Attachments Plugin](https://wiki.jenkins-ci.org/display/JENKINS/JUnit+Attachments+Plugin) that allows
+associating test attachments (e.g. Selenium screen shots) with test execution in the Jenkins UI.
+
 ### Generate Gradle wrapper files without touching your build script (i)
 
 In Gradle 1.7 all files necessary to run your build with the Gradle Wrapper can be generated without explicitly declaring a task of type `Wrapper` in your build scripts.
