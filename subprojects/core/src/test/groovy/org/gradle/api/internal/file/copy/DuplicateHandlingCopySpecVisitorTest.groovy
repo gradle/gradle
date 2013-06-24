@@ -16,6 +16,8 @@
 package org.gradle.api.internal.file.copy
 
 import org.gradle.api.file.*
+import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import spock.lang.Specification
 
 /**
@@ -24,97 +26,90 @@ import spock.lang.Specification
  */
 class DuplicateHandlingCopySpecVisitorTest extends Specification {
 
-    private static interface MyCopySpec extends CopySpec, ReadableCopySpec { }
+    private static interface MyCopySpec extends CopySpec, ReadableCopySpec {}
 
-    FileCopySpecVisitor delegate = Mock()
-    org.gradle.internal.nativeplatform.filesystem.FileSystem fileSystem = Mock()
-    MyCopySpec copySpec = Mock()
-    FileTree fileTree = Mock()
-    def visitor = new MappingCopySpecVisitor(
-            new DuplicateHandlingCopySpecVisitor(delegate, false), fileSystem)
+    def fileSystem = Mock(FileSystem)
+    def delegate = Mock(FileCopySpecVisitor)
+    def visitor = new DuplicateHandlingCopySpecVisitor(delegate, false)
+    def driver = new CopySpecVisitorDriver(fileSystem)
+    def copySpec = Mock(MyCopySpec)
 
-    
     def duplicatesIncludedByDefault() {
         given:
-        buildCopySpec(['path/file1.txt', 'path/file2.txt', 'path/file1.txt'])
-        copySpec.allCopyActions >> []
+        files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
+        actions {}
 
         when:
-        visitor.startVisit(null);
-        visitor.visitSpec(copySpec)
-        fileTree.files.each { visitor.visitFile it }
-        visitor.endVisit();
+        visit()
 
         then:
-        _ * delegate.visitSpec(copySpec)
-        2 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file1.txt' })
-        1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file2.txt' })
-
+        2 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
     def duplicatesExcludedByPerFileConfiguration() {
         given:
-        buildCopySpec(['path/file1.txt', 'path/file2.txt', 'path/file1.txt'])
-        copySpec.allCopyActions >> [ { it.duplicatesStrategy = 'exclude'} as org.gradle.api.Action ]
+        files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
+        actions { it.duplicatesStrategy = 'exclude' }
 
         when:
-        visitor.startVisit(null);
-        visitor.visitSpec(copySpec)
-        fileTree.files.each { visitor.visitFile it }
-        visitor.endVisit();
+        visit()
 
         then:
-        _ * delegate.visitSpec(copySpec)
-        1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file1.txt' })
-        1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file2.txt' })
+        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
 
     def duplicatesExcludedEvenWhenRenamed() {
         given:
-        buildCopySpec(['module1/path/file1.txt', 'module1/path/file2.txt', 'module2/path/file1.txt'])
+        files 'module1/path/file1.txt', 'module1/path/file2.txt', 'module2/path/file1.txt'
 
-        copySpec.allCopyActions >> [
-                {it.name = it.name.replaceAll('module[0-9]+/', '')} as org.gradle.api.Action,
-                {it.duplicatesStrategy = 'exclude'} as org.gradle.api.Action ]
+        actions({ it.name = it.name.replaceAll('module[0-9]+/', '') }, { it.duplicatesStrategy = 'exclude' })
 
         when:
-        visitor.startVisit(null);
-        visitor.visitSpec(copySpec)
-        fileTree.files.each { visitor.visitFile it }
-        visitor.endVisit();
+        visit()
 
         then:
-        _ * delegate.visitSpec(copySpec)
-        1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file1.txt' })
-        1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file2.txt' })
+        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
     def duplicatesExcludedByDefaultConfiguration() {
         given:
-        buildCopySpec(['path/file1.txt', 'path/file2.txt', 'path/file1.txt'])
-        copySpec.allCopyActions >> []
+        files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
+        actions {}
         copySpec.duplicatesStrategy >> DuplicatesStrategy.exclude
 
         when:
-        visitor.startVisit(null);
-        visitor.visitSpec(copySpec)
-        fileTree.files.each { visitor.visitFile it }
-        visitor.endVisit();
+        visit()
 
         then:
-        _ * delegate.visitSpec(copySpec)
-        1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file1.txt' })
-        1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file2.txt' })
+        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
-    def buildCopySpec(List<String> fileNames) {
-        fileTree.files >> fileNames.collect { fileName ->
-            def file = Mock(FileVisitDetails)
-            file.relativePath >> new RelativePath(true, fileName)
-            return file
-        }
+    void files(String... fileNames) {
         copySpec.destPath >> new RelativePath(false, '/root')
-        copySpec.source >> fileTree
+        def fileTree = Mock(FileTree)
+        copySpec.getSource() >> fileTree
+        fileTree.visit(_ as FileVisitor) >> { FileVisitor visitor ->
+            fileNames.each { filename ->
+                def fvd = Mock(FileVisitDetails) {
+                    getRelativePath() >> new RelativePath(true, filename)
+                }
+                visitor.visitFile(fvd)
+            }
+            fileTree
+        }
     }
+
+    void actions(Closure... actions) {
+        copySpec.allCopyActions >> actions.collect { new ClosureBackedAction<>(it) }
+    }
+
+    void visit() {
+        driver.visit(null, [copySpec], visitor)
+    }
+
 }

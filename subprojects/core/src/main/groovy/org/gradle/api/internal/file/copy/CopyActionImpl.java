@@ -44,13 +44,12 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
 
     public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
         this.resolver = resolver;
-        root = new CopySpecImpl(resolver);
-        mainContent = root.addChild();
-        this.visitor = new MappingCopySpecVisitor(
-                           new DuplicateHandlingCopySpecVisitor(
-                               new NormalizingCopySpecVisitor(visitor),
-                               warnOnIncludeDuplicate),
-                           FileSystems.getDefault());
+        this.root = new CopySpecImpl(resolver);
+        this.mainContent = root.addChild();
+        this.visitor = new DuplicateHandlingCopySpecVisitor(
+                new NormalizingCopySpecVisitor(visitor),
+                warnOnIncludeDuplicate
+        );
     }
 
     public FileResolver getResolver() {
@@ -66,12 +65,8 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
     }
 
     public void execute() {
-        visitor.startVisit(this);
-        for (ReadableCopySpec spec : root.getAllSpecs()) {
-            visitor.visitSpec(spec);
-            spec.getSource().visit(visitor);
-        }
-        visitor.endVisit();
+        CopySpecVisitorDriver driver = new CopySpecVisitorDriver(FileSystems.getDefault());
+        driver.visit(this, root.getAllSpecs(), visitor);
     }
 
     public boolean getDidWork() {
