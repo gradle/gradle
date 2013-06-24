@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
@@ -49,8 +50,8 @@ public class SyncCopySpecVisitorTest {
     public void setUp() {
         context.checking(new Expectations(){{
             allowing(delegate).startVisit(with(notNullValue(CopyAction.class)));
-            allowing(delegate).visitFile(with(notNullValue(FileVisitDetails.class)));
-            allowing(delegate).visitDir(with(notNullValue(FileVisitDetails.class)));
+            allowing(delegate).visitFile(with(notNullValue(FileCopyDetails.class)));
+            allowing(delegate).visitDir(with(notNullValue(FileCopyDetails.class)));
             allowing(delegate).endVisit();
         }});
     }
@@ -148,16 +149,24 @@ public class SyncCopySpecVisitorTest {
         return action;
     }
 
-    private FileVisitDetails file(final String path) {
+    private FileCopyDetails file(final String path) {
         return file(RelativePath.parse(true, path));
     }
 
-    private FileVisitDetails dir(final String path) {
-        return file(RelativePath.parse(false, path));
+    private FileCopyDetails dir(final String path) {
+        final RelativePath relativePath = RelativePath.parse(false, path);
+        final FileCopyDetails details = context.mock(FileCopyDetails.class, relativePath.toString());
+
+        context.checking(new Expectations(){{
+            allowing(details).getRelativePath();
+            will(returnValue(relativePath));
+        }});
+
+        return details;
     }
 
-    private FileVisitDetails file(final RelativePath relativePath) {
-        final FileVisitDetails details = context.mock(FileVisitDetails.class, relativePath.toString());
+    private FileCopyDetails file(final RelativePath relativePath) {
+        final FileCopyDetails details = context.mock(FileCopyDetails.class, relativePath.toString());
 
         context.checking(new Expectations(){{
             allowing(details).getRelativePath();

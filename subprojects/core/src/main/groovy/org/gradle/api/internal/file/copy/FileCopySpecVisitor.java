@@ -16,8 +16,8 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FileVisitDetails;
 
 import java.io.File;
 
@@ -35,11 +35,11 @@ public class FileCopySpecVisitor extends EmptyCopySpecVisitor {
         }
     }
 
-    public void visitFile(FileVisitDetails source) {
+    public void visitFile(FileCopyDetails source) {
         visitFileOrDir(source);
     }
 
-    public void visitDir(FileVisitDetails source) {
+    public void visitDir(FileCopyDetails source) {
         visitFileOrDir(source);
     }
 
@@ -47,7 +47,7 @@ public class FileCopySpecVisitor extends EmptyCopySpecVisitor {
         return didWork;
     }
 
-    private void visitFileOrDir(FileVisitDetails source) {
+    private void visitFileOrDir(FileTreeElement source) {
         File target = source.getRelativePath().getFile(baseDestDir);
         copyFile(source, target);
     }

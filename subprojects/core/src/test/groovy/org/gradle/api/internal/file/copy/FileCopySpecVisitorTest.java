@@ -17,7 +17,7 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
@@ -51,13 +51,7 @@ public class FileCopySpecVisitorTest {
     @Test
     public void plainCopy() {
         visitor.startVisit(action(destDir));
-
-        visitor.visitDir(file(new RelativePath(false), destDir));
-
         visitor.visitFile(file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")));
-
-        visitor.visitDir(file(new RelativePath(false, "subdir"), new File(destDir, "subdir")));
-
         visitor.visitFile(file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt")));
     }
 
@@ -80,8 +74,8 @@ public class FileCopySpecVisitorTest {
         return action;
     }
 
-    private FileVisitDetails file(final RelativePath relativePath, final File targetFile) {
-        final FileVisitDetails details = context.mock(FileVisitDetails.class, relativePath.getPathString());
+    private FileCopyDetails file(final RelativePath relativePath, final File targetFile) {
+        final FileCopyDetails details = context.mock(FileCopyDetails.class, relativePath.getPathString());
         context.checking(new Expectations(){{
             allowing(details).getRelativePath();
             will(returnValue(relativePath));

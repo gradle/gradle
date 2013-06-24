@@ -16,8 +16,8 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.copy.CopySpecVisitor;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.test.fixtures.file.TestFile;
@@ -51,11 +51,11 @@ public class DirectoryFileTreeTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private JUnit4Mockery context = new JUnit4GroovyMockery();
-    private CopySpecVisitor visitor;
+    private FileVisitor visitor;
 
     @Before
     public void setUp() {
-        visitor = context.mock(CopySpecVisitor.class);
+        visitor = context.mock(FileVisitor.class);
     }
 
     @Test

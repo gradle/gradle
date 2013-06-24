@@ -15,22 +15,25 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.FileVisitDetails;
+import groovy.lang.Closure;
+import org.gradle.api.file.ContentFilterable;
+import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 
 import java.io.File;
+import java.io.FilterReader;
 import java.io.InputStream;
 import java.util.*;
 
 /**
- * A {@link CopySpecVisitor} which cleans up the tree as it is visited. Removes duplicate directories and
- * adds in missing directories. Removes empty directories if instructed to do so by copy spec.
+ * A {@link CopySpecVisitor} which cleans up the tree as it is visited. Removes duplicate directories and adds in missing directories. Removes empty directories if instructed to do so by copy spec.
  */
 public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
     private ReadableCopySpec spec;
     private final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
-    private final Map<RelativePath, FileVisitDetails> pendingDirs = new HashMap<RelativePath, FileVisitDetails>();
+    private final Map<RelativePath, FileCopyDetails> pendingDirs = new HashMap<RelativePath, FileCopyDetails>();
 
     public NormalizingCopySpecVisitor(CopySpecVisitor visitor) {
         super(visitor);
@@ -58,40 +61,37 @@ public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
             return;
         }
         maybeVisit(path.getParent());
-        FileVisitDetails dir = pendingDirs.remove(path);
+        FileCopyDetails dir = pendingDirs.remove(path);
         if (dir == null) {
-            dir = new FileVisitDetailsImpl(path);
+            // TODO - this is pretty nasty, look at avoiding using a time bomb stub here
+            dir = new FileCopyDetailsImpl(path);
         }
         getVisitor().visitDir(dir);
     }
 
-    public void visitFile(FileVisitDetails fileDetails) {
+    public void visitFile(FileCopyDetails fileDetails) {
         maybeVisit(fileDetails.getRelativePath().getParent());
         getVisitor().visitFile(fileDetails);
     }
 
-    public void visitDir(FileVisitDetails dirDetails) {
+    public void visitDir(FileCopyDetails dirDetails) {
         RelativePath path = dirDetails.getRelativePath();
         if (!visitedDirs.contains(path)) {
             pendingDirs.put(path, dirDetails);
         }
     }
 
-    private static class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
+    private static class FileCopyDetailsImpl extends AbstractFileTreeElement implements FileCopyDetails {
         private final RelativePath path;
         private long lastModified = System.currentTimeMillis();
 
-        private FileVisitDetailsImpl(RelativePath path) {
+        private FileCopyDetailsImpl(RelativePath path) {
             this.path = path;
         }
 
         @Override
         public String getDisplayName() {
             return path.toString();
-        }
-
-        public void stopVisiting() {
-            throw new UnsupportedOperationException();
         }
 
         public File getFile() {
@@ -116,6 +116,50 @@ public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
 
         public RelativePath getRelativePath() {
             return path;
+        }
+
+        public void exclude() {
+            throw new UnsupportedOperationException();
+        }
+
+        public void setName(String name) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void setPath(String path) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void setRelativePath(RelativePath path) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void setMode(int mode) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+            throw new UnsupportedOperationException();
+        }
+
+        public DuplicatesStrategy getDuplicatesStrategy() {
+            throw new UnsupportedOperationException();
+        }
+
+        public ContentFilterable filter(Map<String, ?> properties, Class<? extends FilterReader> filterType) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ContentFilterable filter(Class<? extends FilterReader> filterType) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ContentFilterable filter(Closure closure) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ContentFilterable expand(Map<String, ?> properties) {
+            throw new UnsupportedOperationException();
         }
     }
 }

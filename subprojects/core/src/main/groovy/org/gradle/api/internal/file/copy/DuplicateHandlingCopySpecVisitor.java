@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.util.DeprecationLogger;
 
@@ -46,8 +45,7 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
         super.visitSpec(spec);
     }
 
-    public void visitFile(FileVisitDetails visitDetails) {
-        FileCopyDetails details = (FileCopyDetails) visitDetails;
+    public void visitFile(FileCopyDetails details) {
         DuplicatesStrategy strategy = determineStrategy(details);
 
         if (!visitedFiles.add(details.getRelativePath())) {
@@ -60,7 +58,7 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
             }
         }
 
-        super.visitFile(visitDetails);
+        super.visitFile(details);
     }
 
 

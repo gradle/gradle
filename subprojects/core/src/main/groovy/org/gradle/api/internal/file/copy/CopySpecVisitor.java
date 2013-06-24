@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.tasks.WorkResult;
 
-public interface CopySpecVisitor extends FileVisitor, WorkResult {
+public interface CopySpecVisitor extends WorkResult {
     /**
      * Called at the start of the visit.
      */
@@ -33,4 +33,19 @@ public interface CopySpecVisitor extends FileVisitor, WorkResult {
      * Visits a spec. Called before any of the files or directories of the spec are visited.
      */
     void visitSpec(ReadableCopySpec spec);
+
+    /**
+     * Visits a directory.
+     *
+     * @param dirDetails Meta-info about the directory.
+     */
+    public void visitDir(FileCopyDetails dirDetails);
+
+    /**
+     * Visits a file.
+     *
+     * @param fileDetails Meta-info about the file.
+     */
+    public void visitFile(FileCopyDetails fileDetails);
+
 }
