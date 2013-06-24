@@ -63,7 +63,7 @@ abstract class TemplateBasedProjectSetupDescriptor implements ProjectSetupDescri
         def bindings = [genDate: new Date(), genUser: System.getProperty("user.name"), genGradleVersion: GradleVersion.current().toString()]
         bindings += additionalBindings
         Template template = templateEngine.createTemplate(templateURL.text)
-        Map escapedBindings = bindings.collectEntries{key, value -> [key, escape(value.toString())]}
+        Map escapedBindings = bindings.collectEntries { key, value -> [key, escape(value.toString())] }
         targetFile.withWriter("utf-8") { writer ->
             template.make(escapedBindings).writeTo(writer)
         }

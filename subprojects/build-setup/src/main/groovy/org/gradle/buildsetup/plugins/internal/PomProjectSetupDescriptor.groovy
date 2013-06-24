@@ -44,7 +44,7 @@ class PomProjectSetupDescriptor implements ProjectSetupDescriptor {
             def settings = settingsProvider.buildSettings()
             def mavenProjects = new MavenProjectsCreator().create(settings, pom)
             new Maven2Gradle(mavenProjects).convert()
-        } catch (Exception exception){
+        } catch (Exception exception) {
             throw new MavenConversionException("Could not convert Maven POM $pom to a Gradle build.", exception)
         }
     }

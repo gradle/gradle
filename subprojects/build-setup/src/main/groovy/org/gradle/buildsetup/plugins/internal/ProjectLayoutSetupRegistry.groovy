@@ -26,7 +26,7 @@ class ProjectLayoutSetupRegistry {
     private final Map<String, ProjectSetupDescriptor> registeredProjectDescriptors = new HashMap<String, ProjectSetupDescriptor>();
 
     void add(ProjectSetupDescriptor descriptor) {
-        if(registeredProjectDescriptors.containsKey(descriptor.id)){
+        if (registeredProjectDescriptors.containsKey(descriptor.id)) {
             throw new GradleException("ProjectDescriptor with ID '${descriptor.id}' already registered.")
         }
         registeredProjectDescriptors.put(descriptor.id, descriptor)
@@ -37,11 +37,11 @@ class ProjectLayoutSetupRegistry {
         return registeredProjectDescriptors.get(type)
     }
 
-    List<ProjectSetupDescriptor> getAll(){
+    List<ProjectSetupDescriptor> getAll() {
         return Arrays.asList(registeredProjectDescriptors.values())
     }
 
-    boolean supports(String type){
-        return get(type)!=null
+    boolean supports(String type) {
+        return get(type) != null
     }
 }
