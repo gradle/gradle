@@ -92,8 +92,10 @@ public class JavaReflectionUtil {
     public static Object invokeMethodWrapException(Object target, String name, Object... args) {
         try {
             return invokeMethod(target, name, args);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
