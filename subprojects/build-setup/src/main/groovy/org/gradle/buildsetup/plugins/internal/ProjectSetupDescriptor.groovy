@@ -17,9 +17,9 @@
 package org.gradle.buildsetup.plugins.internal
 
 interface ProjectSetupDescriptor {
-    String getId();
+
+    String getId()
 
     void generateProject()
-
 
 }
