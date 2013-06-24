@@ -90,8 +90,7 @@ class JavaReflectionUtilTest extends Specification {
 
         then:
         def e2 = thrown RuntimeException
-        e2.cause instanceof InvocationTargetException
-        e2.cause.cause instanceof IllegalStateException
+        e2 instanceof IllegalStateException
     }
 
     def "call declared method that may not be public"() {
