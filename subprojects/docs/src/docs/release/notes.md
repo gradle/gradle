@@ -64,17 +64,17 @@ Given a TestNG test case:
 
     public class ParameterizedTest {
         @Test(dataProvider = "1")
-    	public void aParameterizedTestCase(String var1, String var2) {
-    	    …
-    	}
+        public void aParameterizedTestCase(String var1, String var2) {
+            …
+        }
 
-    	@DataProvider(name = "1")
-    	public Object[][] provider1() {
-    		return new Object[][] {
-    		   {"1", "2"},
-    		   {"3", "4"}
-    	    };
-    	}
+        @DataProvider(name = "1")
+        public Object[][] provider1() {
+            return new Object[][] {
+               {"1", "2"},
+               {"3", "4"}
+            };
+        }
     }
 
 The test report will show that the following test cases were executed:
