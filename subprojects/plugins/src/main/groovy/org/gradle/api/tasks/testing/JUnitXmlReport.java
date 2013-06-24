@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.reporting.DirectoryReport;
 
 /**
- * The JUnit XML file, commonly used to communicate results to CI servers.
+ * The JUnit XML files, commonly used to communicate results to CI servers.
  */
 public interface JUnitXmlReport extends DirectoryReport {
 

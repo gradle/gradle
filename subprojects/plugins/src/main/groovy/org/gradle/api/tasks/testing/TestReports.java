@@ -25,8 +25,18 @@ import org.gradle.api.reporting.ReportContainer;
  */
 public interface TestReports extends ReportContainer<Report> {
 
+    /**
+     * A HTML report indicate the results of the test execution.
+     *
+     * @return The HTML report
+     */
     DirectoryReport getHtml();
 
+    /**
+     * The test results in “JUnit XML” format.
+     *
+     * @return The test results in “JUnit XML” format
+     */
     JUnitXmlReport getJunitXml();
 
 }

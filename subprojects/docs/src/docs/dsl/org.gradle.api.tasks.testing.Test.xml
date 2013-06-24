@@ -25,6 +25,10 @@
                 <td><literal>project.testReportDir</literal></td>
             </tr>
             <tr>
+                <td>reports</td>
+                <td><literal>project.testReportDir</literal></td>
+            </tr>
+            <tr>
                 <td>classpath</td>
                 <td><literal>project.sourceSets.test.runtimeClasspath</literal></td>
             </tr>
@@ -180,6 +184,9 @@
             </tr>
             <tr>
                 <td>testLogging</td>
+            </tr>
+            <tr>
+                <td>reports</td>
             </tr>
             <tr>
                 <td>options</td>

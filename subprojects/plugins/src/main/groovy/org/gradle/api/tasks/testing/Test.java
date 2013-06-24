@@ -1046,10 +1046,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         ConfigureUtil.configure(closure, testLogging);
     }
 
+    /**
+     * The reports that this task potentially produces.
+     *
+     * @return The reports that this task potentially produces
+     */
     public TestReports getReports() {
         return reports;
     }
 
+    /**
+     * Configures the reports that this task potentially produces.
+     * @param closure The configuration
+     * @return The reports that this task potentially produces
+     */
     public TestReports reports(Closure closure) {
         reports.configure(closure);
         return reports;

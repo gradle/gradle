@@ -85,6 +85,25 @@ The test report will show that the following test cases were executed:
 This includes Gradle's own HTML test report and the “JUnit XML” file.
 The “JUnit XML” file is typically used to convey test execution information to the CI server running the automated build, which means the parameter info is also visible via the CI server.
 
+### `Test` task implements standard `Reporting` interface
+
+The `Reporting` interface provides a standardised way to control the reporting aspects of tasks that produce reports. The `Test` task type now implements this interface.
+
+    apply plugin: "java"
+    
+    test {
+        reports {
+            html.enabled = false
+            junitXml.destination = file("$buildDir/junit-xml")
+        }
+    }
+
+The `Test` task provides a [`ReportContainer`](javadoc/org/gradle/api/reporting/ReportContainer.html) of type [`TestReports`](javadoc/org/gradle/api/tasks/testing/TestReports.html), giving control over both the HTML report and the JUnit XML result files 
+(these files are typically used to communicate test results to CI servers and other tools).
+
+This brings the `Test` task into line with other tasks that produce reports in terms of API. It also allows you to completely disable the JUnit XML file generation 
+(if you don't need it) and also means that the test reports appear in the [build dashboard](userguide/buildDashboard_plugin.html).
+
 ### Generate Gradle wrapper files without touching your build script (i)
 
 In Gradle 1.7 all files necessary to run your build with the Gradle Wrapper can be generated without explicitly declaring a task of type `Wrapper` in your build scripts.
