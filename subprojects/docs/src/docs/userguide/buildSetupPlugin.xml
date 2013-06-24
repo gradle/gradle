@@ -98,7 +98,7 @@
             to convert to a Gradle build.
         </para>
         <para>
-            If the type could not be inferred, the type "<literal>empty</literal>" will be used.
+            If the type could not be inferred, the type "<literal>basic</literal>" will be used.
         </para>
         <para>All build setup types include the setup of the Gradle Wrapper.</para>
     </section>
@@ -164,9 +164,9 @@
             </itemizedlist>
         </section>
         <section>
-            <title>"empty"</title>
+            <title>"basic"</title>
             <para>
-                The "<literal>empty</literal>" build setup type is useful for creating a fresh new Gradle project.
+                The "<literal>basic</literal>" build setup type is useful for creating a fresh new Gradle project.
                 It creates a sample
                 <literal>build.gradle</literal>
                 file, with comments and links to help get started.

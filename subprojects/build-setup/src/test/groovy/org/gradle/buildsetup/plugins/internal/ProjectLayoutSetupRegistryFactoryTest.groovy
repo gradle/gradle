@@ -52,7 +52,7 @@ class ProjectLayoutSetupRegistryFactoryTest extends Specification {
         where:
         type             |   clazz
         "pom"            |   PomProjectSetupDescriptor.class
-        "empty"          |   EmptyProjectSetupDescriptor.class
+        "empty"          |   BasicProjectSetupDescriptor.class
         "java-library"   |   JavaLibraryProjectSetupDescriptor.class
     }
 }

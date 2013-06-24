@@ -19,23 +19,23 @@ package org.gradle.buildsetup.plugins.internal
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
 
-class EmptyProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
+class BasicProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
 
-    public EmptyProjectSetupDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+    public BasicProjectSetupDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
         super(fileResolver, documentationRegistry)
     }
 
     String getId() {
-        BuildSetupTypeIds.EMPTY
+        BuildSetupTypeIds.BASIC
     }
 
     @Override
     URL getBuildFileTemplate() {
-        return EmptyProjectSetupDescriptor.class.getResource("/org/gradle/buildsetup/tasks/templates/build.gradle.template");
+        return BasicProjectSetupDescriptor.class.getResource("/org/gradle/buildsetup/tasks/templates/build.gradle.template");
     }
 
     @Override
     URL getSettingsTemplate() {
-        return EmptyProjectSetupDescriptor.class.getResource("/org/gradle/buildsetup/tasks/templates/settings.gradle.template")
+        return BasicProjectSetupDescriptor.class.getResource("/org/gradle/buildsetup/tasks/templates/settings.gradle.template")
     }
 }

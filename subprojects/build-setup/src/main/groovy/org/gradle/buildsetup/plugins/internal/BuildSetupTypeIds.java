@@ -20,7 +20,7 @@ public abstract class BuildSetupTypeIds {
 
     private BuildSetupTypeIds() {}
 
-    public static final String EMPTY = "empty";
+    public static final String BASIC = "basic";
     public static final String POM = "pom";
     public static final String JAVA_LIBRARY = "java-library";
 

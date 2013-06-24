@@ -34,16 +34,13 @@ class SetupBuild extends DefaultTask {
     ProjectLayoutSetupRegistry projectLayoutRegistry
 
     /**
-     * The desired type of build to create, defaults to 'pom' if 'pom.xml' is found in project root
-     * if no pom.xml is found, it defaults to 'empty'.
+     * The desired type of build to create, defaults to {@value BuildSetupTypeIds#POM} if 'pom.xml' is found in project root
+     * if no pom.xml is found, it defaults to {@value BuildSetupTypeIds#BASIC}.
      *
      * This property can be set via command-line option '--type'.
      */
     String getType() {
-        if (type == null) {
-            return project.file("pom.xml").exists() ? BuildSetupTypeIds.POM : BuildSetupTypeIds.EMPTY
-        }
-        return type
+        type ?: project.file("pom.xml").exists() ? BuildSetupTypeIds.POM : BuildSetupTypeIds.BASIC
     }
 
     @TaskAction

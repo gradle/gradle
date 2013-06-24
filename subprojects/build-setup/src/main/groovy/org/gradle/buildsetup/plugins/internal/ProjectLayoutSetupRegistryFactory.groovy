@@ -38,7 +38,7 @@ class ProjectLayoutSetupRegistryFactory {
 
         // TODO maybe referencing the implementation class here is enough and instantiation
         // should be defererred when descriptor is requested.
-        registry.add(new EmptyProjectSetupDescriptor(fileResolver, documentationRegistry));
+        registry.add(new BasicProjectSetupDescriptor(fileResolver, documentationRegistry));
         registry.add(new JavaLibraryProjectSetupDescriptor(fileResolver, documentationRegistry));
         registry.add(new PomProjectSetupDescriptor(fileResolver, mavenSettingsProvider))
         return registry
