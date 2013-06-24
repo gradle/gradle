@@ -98,8 +98,8 @@ The `Reporting` interface provides a standardised way to control the reporting a
         }
     }
 
-The `Test` task provides a [`ReportContainer`](javadoc/org/gradle/api/reporting/ReportContainer.html) of type [`TestReports`](javadoc/org/gradle/api/tasks/testing/TestReports.html), giving control over both the HTML report and the JUnit XML result files 
-(these files are typically used to communicate test results to CI servers and other tools).
+The `Test` task provides a [`ReportContainer`](javadoc/org/gradle/api/reporting/ReportContainer.html) of type [`TestReports`](javadoc/org/gradle/api/tasks/testing/TestReports.html),
+giving control over both the HTML report and the JUnit XML result files (these files are typically used to communicate test results to CI servers and other tools).
 
 This brings the `Test` task into line with other tasks that produce reports in terms of API. It also allows you to completely disable the JUnit XML file generation 
 (if you don't need it) and also means that the test reports appear in the [build dashboard](userguide/buildDashboard_plugin.html).
