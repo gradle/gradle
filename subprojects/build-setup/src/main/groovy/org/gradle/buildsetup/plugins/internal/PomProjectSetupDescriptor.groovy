@@ -34,7 +34,7 @@ class PomProjectSetupDescriptor implements ProjectSetupDescriptor {
     }
 
     String getId() {
-        return "pom"
+        BuildSetupTypeIds.POM
     }
 
     void generateProject() {

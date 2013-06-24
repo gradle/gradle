@@ -17,7 +17,6 @@
 package org.gradle.buildsetup.plugins.internal
 
 import groovy.text.SimpleTemplateEngine
-import org.gradle.api.Project
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.GradleVersion
@@ -32,7 +31,7 @@ class JavaLibraryProjectSetupDescriptor extends TemplateBasedProjectSetupDescrip
     }
 
     String getId() {
-        return "java-library";
+        BuildSetupTypeIds.JAVA_LIBRARY
     }
 
     URL getBuildFileTemplate() {

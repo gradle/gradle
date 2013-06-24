@@ -26,7 +26,7 @@ class EmptyProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
     }
 
     String getId() {
-        return "empty"
+        BuildSetupTypeIds.EMPTY
     }
 
     @Override

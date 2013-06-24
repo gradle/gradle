@@ -21,6 +21,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.tasks.TaskAction
+import org.gradle.buildsetup.plugins.internal.BuildSetupTypeIds
 import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
 
 /**
@@ -40,7 +41,7 @@ class SetupBuild extends DefaultTask {
      */
     String getType() {
         if (type == null) {
-            return project.file("pom.xml").exists() ? "pom" : "empty"
+            return project.file("pom.xml").exists() ? BuildSetupTypeIds.POM : BuildSetupTypeIds.EMPTY
         }
         return type
     }
