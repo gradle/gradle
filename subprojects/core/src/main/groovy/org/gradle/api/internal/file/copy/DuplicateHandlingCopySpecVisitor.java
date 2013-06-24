@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.file.copy;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.util.DeprecationLogger;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Maintains a set of relative paths that has been seen and optionally
@@ -33,18 +33,25 @@ import org.gradle.util.DeprecationLogger;
 public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor {
 
     private final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
+    private ReadableCopySpec spec;
     private boolean warnOnIncludeDuplicate;
 
-    public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor, boolean warnOnIncludeDuplicates) {
+    public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
         super(visitor);
-        this.warnOnIncludeDuplicate = warnOnIncludeDuplicates;
+        this.warnOnIncludeDuplicate = warnOnIncludeDuplicate;
     }
 
-    public void visitFile(FileVisitDetails fileDetails) {
-        FileCopyDetails details = (FileCopyDetails) fileDetails;
+    public void visitSpec(ReadableCopySpec spec) {
+        this.spec = spec;
+        super.visitSpec(spec);
+    }
+
+    public void visitFile(FileVisitDetails visitDetails) {
+        FileCopyDetails details = (FileCopyDetails) visitDetails;
+        DuplicatesStrategy strategy = determineStrategy(details);
 
         if (!visitedFiles.add(details.getRelativePath())) {
-            if (details.getDuplicatesStrategy() == DuplicatesStrategy.EXCLUDE) {
+            if (strategy == DuplicatesStrategy.exclude) {
                 return;
             }
             if (warnOnIncludeDuplicate) {
@@ -52,7 +59,16 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
                         String.format("Including duplicate file %s", details.getRelativePath()));
             }
         }
-        getVisitor().visitFile(fileDetails);
+
+        super.visitFile(visitDetails);
+    }
+
+
+    private DuplicatesStrategy determineStrategy(FileCopyDetails details) {
+        if (details.getDuplicatesStrategy() == null) {
+            return spec.getDuplicatesStrategy();
+        }
+        return details.getDuplicatesStrategy();
     }
 
 }

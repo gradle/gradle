@@ -36,6 +36,10 @@
                 <td>includeEmptyDirs</td>
                 <td><literal>true</literal></td>
             </tr>
+	    <tr>
+	        <td>duplicatesStrategy</td>
+	        <td><literal>DuplicatesStrategy.INHERIT</literal></td>
+	    </tr>
         </table>
     </section>
     <section>
@@ -72,6 +76,12 @@
             </tr>
             <tr>
                 <td>eachFile</td>
+            </tr>
+            <tr>
+                <td>matching</td>
+            </tr>
+            <tr>
+                <td>notMatching</td>
             </tr>
         </table>
     </section>

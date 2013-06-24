@@ -124,8 +124,54 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+        getMainSpec().setDuplicatesStrategy(strategy);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public DuplicatesStrategy getDuplicatesStrategy() {
+        return getMainSpec().getDuplicatesStrategy();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public AbstractCopyTask from(Object... sourcePaths) {
         getMainSpec().from(sourcePaths);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask matching(String pattern, Closure closure) {
+        getMainSpec().matching(pattern, closure);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask matching(String pattern, Action<? super FileCopyDetails> action) {
+        getMainSpec().matching(pattern, action);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask notMatching(String pattern, Closure closure) {
+        getMainSpec().notMatching(pattern, closure);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask notMatching(String pattern, Action<? super FileCopyDetails> action) {
+        getMainSpec().notMatching(pattern, action);
         return this;
     }
 

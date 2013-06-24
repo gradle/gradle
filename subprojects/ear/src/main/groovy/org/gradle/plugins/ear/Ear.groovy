@@ -51,7 +51,7 @@ class Ear extends Jar {
 
     Ear() {
         extension = EAR_EXTENSION
-        lib = copyAction.rootSpec.addChild().into {
+        lib = copyAction.rootSpec.addFirst().into {
             getLibDirName()
         }
         copyAction.mainSpec.eachFile { FileCopyDetails details ->

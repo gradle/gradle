@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal.file.copy
 
-import org.gradle.api.file.CopySpec
-import org.gradle.api.file.FileTree
-import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.file.RelativePath
+import org.gradle.api.file.*
 import spock.lang.Specification
 
+/**
+ * Unit tests for DuplicateHandlingCopySpecVisitor
+ * @author Kyle Mahan
+ */
 class DuplicateHandlingCopySpecVisitorTest extends Specification {
 
     private static interface MyCopySpec extends CopySpec, ReadableCopySpec { }
@@ -34,84 +35,86 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
 
     
     def duplicatesIncludedByDefault() {
-        FileVisitDetails file1 = Mock()
-        FileVisitDetails file2 = Mock()
-        FileVisitDetails file3 = Mock()
-
         given:
-        file1.relativePath >> new RelativePath(true, 'path/file1.txt')
-        file2.relativePath >> new RelativePath(true, 'path/file2.txt')
-        file3.relativePath >> new RelativePath(true, 'path/file1.txt')
-
-        fileTree.files >> [ file1, file2, file3 ]
-        copySpec.destPath >> new RelativePath(false, '/root')
+        buildCopySpec(['path/file1.txt', 'path/file2.txt', 'path/file1.txt'])
         copySpec.allCopyActions >> []
-        copySpec.source >> fileTree
 
         when:
+        visitor.startVisit(null);
         visitor.visitSpec(copySpec)
         fileTree.files.each { visitor.visitFile it }
+        visitor.endVisit();
 
         then:
-        1 * delegate.visitSpec(copySpec)
+        _ * delegate.visitSpec(copySpec)
         2 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file1.txt' })
         1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file2.txt' })
 
     }
 
-    def duplicatesExcludedByConfiguration() {
-        FileVisitDetails file1 = Mock()
-        FileVisitDetails file2 = Mock()
-        FileVisitDetails file3 = Mock()
-
+    def duplicatesExcludedByPerFileConfiguration() {
         given:
-        file1.relativePath >> new RelativePath(true, 'path/file1.txt')
-        file2.relativePath >> new RelativePath(true, 'path/file2.txt')
-        file3.relativePath >> new RelativePath(true, 'path/file1.txt')
-
-        fileTree.files >> [ file1, file2, file3 ]
-        copySpec.destPath >> new RelativePath(false, '/root')
-        copySpec.allCopyActions >> [ {it.setDuplicatesStrategy('exclude')} as org.gradle.api.Action ]
-        copySpec.source >> fileTree
+        buildCopySpec(['path/file1.txt', 'path/file2.txt', 'path/file1.txt'])
+        copySpec.allCopyActions >> [ { it.duplicatesStrategy = 'exclude'} as org.gradle.api.Action ]
 
         when:
+        visitor.startVisit(null);
         visitor.visitSpec(copySpec)
         fileTree.files.each { visitor.visitFile it }
+        visitor.endVisit();
 
         then:
-        1 * delegate.visitSpec(copySpec)
+        _ * delegate.visitSpec(copySpec)
         1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file1.txt' })
         1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file2.txt' })
-
     }
 
 
     def duplicatesExcludedEvenWhenRenamed() {
-        FileVisitDetails file1 = Mock()
-        FileVisitDetails file2 = Mock()
-        FileVisitDetails file3 = Mock()
-
         given:
-        file1.relativePath >> new RelativePath(true, 'module1/path/file1.txt')
-        file2.relativePath >> new RelativePath(true, 'module1/path/file2.txt')
-        file3.relativePath >> new RelativePath(true, 'module2/path/file1.txt')
-
-        fileTree.files >> [ file1, file2, file3 ]
-        copySpec.destPath >> new RelativePath(false, '/root')
+        buildCopySpec(['module1/path/file1.txt', 'module1/path/file2.txt', 'module2/path/file1.txt'])
 
         copySpec.allCopyActions >> [
                 {it.name = it.name.replaceAll('module[0-9]+/', '')} as org.gradle.api.Action,
-                {it.setDuplicatesStrategy('exclude')} as org.gradle.api.Action ]
-        copySpec.source >> fileTree
+                {it.duplicatesStrategy = 'exclude'} as org.gradle.api.Action ]
 
         when:
+        visitor.startVisit(null);
         visitor.visitSpec(copySpec)
         fileTree.files.each { visitor.visitFile it }
+        visitor.endVisit();
 
         then:
-        1 * delegate.visitSpec(copySpec)
+        _ * delegate.visitSpec(copySpec)
         1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file1.txt' })
         1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file2.txt' })
+    }
 
+    def duplicatesExcludedByDefaultConfiguration() {
+        given:
+        buildCopySpec(['path/file1.txt', 'path/file2.txt', 'path/file1.txt'])
+        copySpec.allCopyActions >> []
+        copySpec.duplicatesStrategy >> DuplicatesStrategy.exclude
+
+        when:
+        visitor.startVisit(null);
+        visitor.visitSpec(copySpec)
+        fileTree.files.each { visitor.visitFile it }
+        visitor.endVisit();
+
+        then:
+        _ * delegate.visitSpec(copySpec)
+        1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file1.txt' })
+        1 * delegate.visitFile({ it.relativePath.pathString ==  '/root/path/file2.txt' })
+    }
+
+    def buildCopySpec(List<String> fileNames) {
+        fileTree.files >> fileNames.collect { fileName ->
+            def file = Mock(FileVisitDetails)
+            file.relativePath >> new RelativePath(true, fileName)
+            return file
+        }
+        copySpec.destPath >> new RelativePath(false, '/root')
+        copySpec.source >> fileTree
     }
 }
