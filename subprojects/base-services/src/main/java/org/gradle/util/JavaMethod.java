@@ -59,7 +59,8 @@ public class JavaMethod<T, R> {
 
     public R invoke(T target, Object... args) {
         try {
-            return returnType.cast(method.invoke(target, args));
+            Object result = method.invoke(target, args);
+            return returnType.cast(result);
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
             if (cause instanceof RuntimeException) {

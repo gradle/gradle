@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.util.JavaMethod;
 import org.testng.ITestListener;
 
 import java.lang.reflect.InvocationHandler;
@@ -54,7 +55,19 @@ class TestNGListenerAdapterFactory {
     private ITestListener createProxy(Class<?> configListenerClass, final ITestListener listener) {
         return (ITestListener) Proxy.newProxyInstance(classLoader, new Class<?>[]{ITestListener.class, configListenerClass}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                return JavaReflectionUtil.method(ITestListener.class, method.getReturnType(), method).invoke(listener, args);
+                Class<?> realReturnType = method.getReturnType();
+                Class<?> boxedReturnType = realReturnType;
+                if (!realReturnType.equals(void.class) && realReturnType.isPrimitive()) {
+                    boxedReturnType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(realReturnType);
+                }
+
+                return invoke(listener.getClass(), listener, boxedReturnType, method, args);
+            }
+
+            private <T, R> R invoke(Class<T> listenerType, Object listener, Class<R> returnType, Method method, Object[] args) {
+                T listenerCast = listenerType.cast(listener);
+                JavaMethod<T, R> javaMethod = JavaReflectionUtil.method(listenerType, returnType, method.getName(), method.getParameterTypes());
+                return javaMethod.invoke(listenerCast, args);
             }
         });
     }
