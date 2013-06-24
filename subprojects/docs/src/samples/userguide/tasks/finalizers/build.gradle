@@ -1,0 +1,8 @@
+task taskX << {
+    println 'taskX'
+}
+task taskY << {
+    println 'taskY'
+}
+
+taskX.finalizedBy taskY

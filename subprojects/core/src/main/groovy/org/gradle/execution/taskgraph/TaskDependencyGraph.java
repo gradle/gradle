@@ -44,6 +44,10 @@ public class TaskDependencyGraph {
         fromNode.addSoftSuccessor(addNode(toTask));
     }
 
+    public void addFinalizedByEdge(TaskInfo fromNode, Task toTask) {
+        fromNode.addFinalizer(addNode(toTask));
+    }
+
     @Nullable
     public TaskInfo getNode(Task task) {
         return nodes.get(task);
