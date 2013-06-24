@@ -10,12 +10,12 @@
 
 apply plugin:'java' // applies the java plugin
 
-repositories{
+repositories {
     mavenCentral() // Use 'maven central' for resolving your thirdparty dependencies.
                    // you can declare any maven/ivy/file repository to resolve your thirdparty dependencies
 }
 
-dependencies{
+dependencies {
     // in this section you declare your dependencies for your production and your test code.
 
     // the production code uses the slf4j logging api at compile time
