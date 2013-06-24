@@ -224,8 +224,10 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         def jar = file('build/test.jar')
         jar.unzipTo(file('expected'))
         def target = file('expected/META-INF/file.txt')
+
+        then:
         target.assertIsFile()
-        assertEquals('good', target.text)
+        target.text == 'good'
     }
 
     def duplicateServicesIncludedOthersExcluded() {

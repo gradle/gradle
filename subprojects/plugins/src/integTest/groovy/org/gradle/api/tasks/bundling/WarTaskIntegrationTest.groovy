@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import static org.hamcrest.Matchers.equalTo
 
 class WarTaskIntegrationTest extends AbstractIntegrationSpec {

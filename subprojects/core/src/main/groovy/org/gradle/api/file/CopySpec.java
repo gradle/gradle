@@ -17,11 +17,11 @@ package org.gradle.api.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternFilterable;
 
-import java.util.Map;
 import java.io.FilterReader;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
