@@ -32,16 +32,16 @@ class ProjectLayoutSetupRegistryFactoryTest extends Specification {
     MavenSettingsProvider mavenSettingsProvider
     FileResolver fileResolver
 
-    def setup(){
+    def setup() {
         ProjectInternal projectInternal = Mock()
         serviceFactory = Mock()
         fileResolver = Mock()
-        projectLayoutSetupRegistry =  new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, fileResolver);
+        projectLayoutSetupRegistry = new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, fileResolver);
         projectInternal.services >> serviceFactory
     }
 
     @Unroll
-    def "supports '#type' project descriptor type"(){
+    def "supports '#type' project descriptor type"() {
         when:
         ProjectSetupDescriptor descriptor = projectLayoutSetupRegistry.createProjectLayoutSetupRegistry().get(type)
 
@@ -50,9 +50,9 @@ class ProjectLayoutSetupRegistryFactoryTest extends Specification {
         descriptor.class == clazz
 
         where:
-        type             |   clazz
-        "pom"            |   PomProjectSetupDescriptor.class
-        "empty"          |   BasicProjectSetupDescriptor.class
-        "java-library"   |   JavaLibraryProjectSetupDescriptor.class
+        type                           | clazz
+        BuildSetupTypeIds.POM          | PomProjectSetupDescriptor.class
+        BuildSetupTypeIds.BASIC        | BasicProjectSetupDescriptor.class
+        BuildSetupTypeIds.JAVA_LIBRARY | JavaLibraryProjectSetupDescriptor.class
     }
 }

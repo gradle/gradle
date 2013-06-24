@@ -17,6 +17,7 @@
 package org.gradle.buildsetup.tasks
 
 import org.gradle.api.GradleException
+import org.gradle.buildsetup.plugins.internal.BuildSetupTypeIds
 import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildsetup.plugins.internal.ProjectSetupDescriptor
 import org.gradle.util.HelperUtil
@@ -58,8 +59,8 @@ class SetupBuildSpec extends Specification {
 
     def "delegates task action to referenced setupDescriptor"() {
         setup:
-        1 * projectLayoutRegistry.supports("empty") >> true
-        1 * projectLayoutRegistry.get("empty") >> projectSetupDescriptor1
+        1 * projectLayoutRegistry.supports(BuildSetupTypeIds.BASIC) >> true
+        1 * projectLayoutRegistry.get(BuildSetupTypeIds.BASIC) >> projectSetupDescriptor1
         when:
         setupBuild.setupProjectLayout()
         then:
