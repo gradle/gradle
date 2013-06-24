@@ -60,7 +60,7 @@ public class BuildDashboardPlugin implements Plugin<ProjectInternal> {
                 buildDashboardTask.aggregate(reporting);
 
                 if (!task.equals(buildDashboardTask)) {
-                    buildDashboardTask.mustRunAfter(task);
+                    task.finalizedBy(buildDashboardTask);
                 }
             }
         };

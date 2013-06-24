@@ -34,6 +34,10 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         root.file("src/main/groovy/org/gradle/Class1.groovy") << "package org.gradle; class Class1 { }"
     }
 
+    private void goodTests(TestFile root = testDirectory) {
+        root.file("src/test/groovy/org/gradle/Class1.groovy") << "package org.gradle; class TestClass1 { }"
+    }
+
     private void badCode(TestFile root = testDirectory) {
         root.file("src/main/groovy/org/gradle/class1.groovy") << "package org.gradle; class class1 { }"
     }
@@ -113,12 +117,13 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     void 'running buildDashboard task after some report generating task generates link to it in the dashboard'() {
         given:
         goodCode()
+        goodTests()
 
         when:
         run('check', BUILD_DASHBOARD_TASK_NAME)
 
         then:
-        dashboardLinksCount == 4
+        dashboardLinksCount == 5
         links.find { it.contains("':test' (html)") }
         links.find { it.contains("':test' (junitXml)") }
     }
@@ -126,12 +131,13 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     void 'buildDashboard task always runs after report generating tasks'() {
         given:
         goodCode()
+        goodTests()
 
         when:
         run(BUILD_DASHBOARD_TASK_NAME, 'check')
 
         then:
-        dashboardLinksCount == 4
+        dashboardLinksCount == 5
         links.find { it.contains("':test' (html)") }
         links.find { it.contains("':test' (junitXml)") }
     }
@@ -177,7 +183,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
         when:
         args('--continue')
-        runAndFail('check')
+        runAndFail('codeNarcMain')
 
         then:
         !buildDashboardFile.exists()
@@ -220,6 +226,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
         expect:
         run('check', BUILD_DASHBOARD_TASK_NAME) && ":$BUILD_DASHBOARD_TASK_NAME".toString() in nonSkippedTasks
+        dashboardLinksCount == 2
 
         when:
         buildFile << """
@@ -230,7 +237,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         run('check', BUILD_DASHBOARD_TASK_NAME) && ":$BUILD_DASHBOARD_TASK_NAME".toString() in nonSkippedTasks
-        dashboardLinksCount == 5
+        dashboardLinksCount == 3
     }
 
     void 'reports from subprojects are aggregated'() {
@@ -242,7 +249,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         run(BUILD_DASHBOARD_TASK_NAME, 'check')
 
         then:
-        dashboardLinksCount == 7
+        dashboardLinksCount == 3
     }
 
     void 'dashboard lists jacoco reports'() {
@@ -259,9 +266,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run("test", "jacocoTestReport")
         then:
-        dashboardLinksCount == 5
+        dashboardLinksCount == 4
         jacocoLinks() == 1
-
     }
 
     private int jacocoLinks() {

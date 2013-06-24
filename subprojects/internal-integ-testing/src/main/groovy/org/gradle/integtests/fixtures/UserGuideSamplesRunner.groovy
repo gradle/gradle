@@ -206,6 +206,7 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/tutorial/properties').each { it.envs['ORG_GRADLE_PROJECT_envProjectProp'] = 'envPropertyValue' }
         samplesByDir.get('userguide/buildlifecycle/taskExecutionEvents')*.expectFailure = true
         samplesByDir.get('userguide/buildlifecycle/buildProjectEvaluateEvents')*.expectFailure = true
+        samplesByDir.get('userguide/tasks/finalizersWithFailure')*.expectFailure = true
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
 
