@@ -26,13 +26,13 @@ public class JavaMethod<T, R> {
     private final Method method;
     private final Class<R> returnType;
 
-    private JavaMethod(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) {
+    public JavaMethod(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) {
         this.returnType = returnType;
         method = findMethod(target, name, paramTypes);
         method.setAccessible(true);
     }
 
-    private JavaMethod(Class<T> target, Class<R> returnType, Method method) {
+    public JavaMethod(Class<T> target, Class<R> returnType, Method method) {
         this.returnType = returnType;
         this.method = method;
         method.setAccessible(true);
@@ -65,11 +65,4 @@ public class JavaMethod<T, R> {
         }
     }
 
-    public static <T, R> JavaMethod<T, R> create(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) {
-        return new JavaMethod<T, R>(target, returnType, name, paramTypes);
-    }
-
-    public static <T, R> JavaMethod<T, R> create(Class<T> target, Class<R> returnType, Method method) {
-        return new JavaMethod<T, R>(target, returnType, method);
-    }
 }

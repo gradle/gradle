@@ -15,14 +15,17 @@
  */
 package org.gradle.util;
 
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class JavaMethodTest {
@@ -30,7 +33,7 @@ public class JavaMethodTest {
 
     @Test
     public void invokesMethodOnObject() {
-        JavaMethod<CharSequence, CharSequence> method = JavaMethod.create(CharSequence.class, CharSequence.class, "subSequence", int.class, int.class);
+        JavaMethod<CharSequence, CharSequence> method = JavaReflectionUtil.method(CharSequence.class, CharSequence.class, "subSequence", int.class, int.class);
         assertThat(method.invoke("string", 0, 3), equalTo((CharSequence) "str"));
     }
     
@@ -43,7 +46,7 @@ public class JavaMethodTest {
             will(throwException(failure));
         }});
 
-        JavaMethod<CharSequence, CharSequence> method = JavaMethod.create(CharSequence.class, CharSequence.class, "subSequence", int.class, int.class);
+        JavaMethod<CharSequence, CharSequence> method = JavaReflectionUtil.method(CharSequence.class, CharSequence.class, "subSequence", int.class, int.class);
         try {
             method.invoke(mock, 0, 3);
             fail();
@@ -62,7 +65,7 @@ public class JavaMethodTest {
             }
         };
 
-        JavaMethod<ClassLoader, Package[]> method = JavaMethod.create(ClassLoader.class, Package[].class, "getPackages");
+        JavaMethod<ClassLoader, Package[]> method = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
         assertThat(method.invoke(classLoader), sameInstance(packages));
     }
 }

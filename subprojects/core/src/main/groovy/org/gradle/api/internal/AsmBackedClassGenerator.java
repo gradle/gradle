@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
-    private static final JavaMethod<ClassLoader, Class> DEFINE_CLASS_METHOD = JavaMethod.create(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
+    private static final JavaMethod<ClassLoader, Class> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
 
     @Override
     protected <T> ClassBuilder<T> start(Class<T> type) {

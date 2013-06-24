@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.JavaMethod;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -144,4 +145,11 @@ public class JavaReflectionUtil {
         return method.invoke(target, args);
     }
 
+    public static <T, R> JavaMethod<T, R> method(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) {
+        return new JavaMethod<T, R>(target, returnType, name, paramTypes);
+    }
+
+    public static <T, R> JavaMethod<T, R> method(Class<T> target, Class<R> returnType, Method method) {
+        return new JavaMethod<T, R>(target, returnType, method);
+    }
 }

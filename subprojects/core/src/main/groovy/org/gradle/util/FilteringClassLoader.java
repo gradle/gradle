@@ -16,6 +16,8 @@
 
 package org.gradle.util;
 
+import org.gradle.internal.reflect.JavaReflectionUtil;
+
 import java.io.IOException;
 import java.net.URL;
 import java.security.AccessController;
@@ -42,7 +44,7 @@ public class FilteringClassLoader extends ClassLoader {
         for (ClassLoader cl = EXT_CLASS_LOADER; cl != null; cl = cl.getParent()) {
             SYSTEM_CLASS_LOADERS.add(cl);
         }
-        JavaMethod<ClassLoader, Package[]> method = JavaMethod.create(ClassLoader.class, Package[].class, "getPackages");
+        JavaMethod<ClassLoader, Package[]> method = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
         Package[] systemPackages = method.invoke(EXT_CLASS_LOADER);
         for (Package p : systemPackages) {
             SYSTEM_PACKAGES.add(p.getName());

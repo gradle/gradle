@@ -15,9 +15,11 @@
  */
 package org.gradle.util;
 
-import java.util.*;
-import java.net.URL;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+
 import java.io.IOException;
+import java.net.URL;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -34,8 +36,8 @@ public class MultiParentClassLoader extends ClassLoader implements ClasspathSour
     public MultiParentClassLoader(ClassLoader... parents) {
         super(null);
         this.parents = new CopyOnWriteArrayList<ClassLoader>(Arrays.asList(parents));
-        getPackagesMethod = JavaMethod.create(ClassLoader.class, Package[].class, "getPackages");
-        getPackageMethod = JavaMethod.create(ClassLoader.class, Package.class, "getPackage", String.class);
+        getPackagesMethod = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
+        getPackageMethod = JavaReflectionUtil.method(ClassLoader.class, Package.class, "getPackage", String.class);
     }
 
     public void addParent(ClassLoader parent) {
