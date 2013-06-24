@@ -19,9 +19,7 @@ package org.gradle.internal.reflect
 import org.gradle.internal.UncheckedException
 import spock.lang.Specification
 
-import java.lang.reflect.InvocationTargetException
-
-import static org.gradle.internal.reflect.JavaReflectionUtil.*
+import static org.gradle.internal.reflect.JavaReflectionUtil.method
 
 class JavaReflectionUtilTest extends Specification {
     JavaTestSubject myProperties = new JavaTestSubject()
@@ -72,38 +70,27 @@ class JavaReflectionUtilTest extends Specification {
 
     def "call methods successfully reflectively"() {
         expect:
-        invokeMethod(myProperties, "getMyProperty") == myProperties.myProp
-        invokeMethod(myProperties, "setMyProperty", "foo") == null
-        invokeMethod(myProperties, "getMyProperty") == "foo"
+        method(myProperties.class, String, "getMyProperty").invoke(myProperties) == myProperties.myProp
+
+        when:
+        method(myProperties.class, Void, "setMyProperty", String).invoke(myProperties, "foo")
+
+        then:
+        method(myProperties.class, String, "getMyProperty").invoke(myProperties) == "foo"
     }
 
     def "call failing methods reflectively"() {
         when:
-        invokeMethod(myProperties, "throwsException")
+        method(myProperties.class, Void, "throwsException").invoke(myProperties)
 
         then:
-        def e = thrown InvocationTargetException
-        e.cause instanceof IllegalStateException
-
-        when:
-        invokeMethodWrapException(myProperties, "throwsException")
-
-        then:
-        def e2 = thrown RuntimeException
-        e2 instanceof IllegalStateException
+        thrown IllegalStateException
     }
 
     def "call declared method that may not be public"() {
-        when:
-        invokeMethod(new JavaTestSubjectSubclass(), "protectedMethod")
-
-        then:
-        thrown NoSuchMethodException
-
-        then:
         expect:
-        invokeDeclaredMethod(new JavaTestSubjectSubclass(), JavaTestSubject, "protectedMethod", [] as Class[]) == "parent"
-        invokeDeclaredMethod(new JavaTestSubjectSubclass(), JavaTestSubject, "overridden", [] as Class[]) == "subclass"
+        method(JavaTestSubjectSubclass, String, "protectedMethod").invoke(new JavaTestSubjectSubclass()) == "parent"
+        method(JavaTestSubjectSubclass, String, "overridden").invoke(new JavaTestSubjectSubclass()) == "subclass"
     }
 
 }

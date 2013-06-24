@@ -19,7 +19,6 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.testng.ITestListener;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -43,7 +42,7 @@ class TestNGListenerAdapterFactory {
 
         throw new UnsupportedOperationException("Neither found interface 'org.testng.IConfigurationListener2' nor interface 'org.testng.internal.IConfigurationListener'. Which version of TestNG are you using?");
     }
-    
+
     private Class<?> tryLoadClass(String name) {
         try {
             return classLoader.loadClass(name);
@@ -51,15 +50,11 @@ class TestNGListenerAdapterFactory {
             return null;
         }
     }
-    
+
     private ITestListener createProxy(Class<?> configListenerClass, final ITestListener listener) {
-        return (ITestListener) Proxy.newProxyInstance(classLoader, new Class<?>[] {ITestListener.class, configListenerClass}, new InvocationHandler() {
+        return (ITestListener) Proxy.newProxyInstance(classLoader, new Class<?>[]{ITestListener.class, configListenerClass}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                try {
-                    return JavaReflectionUtil.invokeMethod(listener, method.getName(), method.getParameterTypes(), args);
-                } catch (InvocationTargetException e) {
-                    throw e.getCause();
-                }
+                return JavaReflectionUtil.method(ITestListener.class, method.getReturnType(), method).invoke(listener, args);
             }
         });
     }

@@ -47,8 +47,14 @@ public class JavaMethod<T, R> {
                 return method;
             }
         }
-        throw new GradleException(String.format("Could not find method %s(%s) on %s", name, Arrays.toString(paramTypes),
-                target));
+
+        Class<?> parent = target.getSuperclass();
+        if (parent == null) {
+            throw new GradleException(String.format("Could not find method %s(%s) on %s", name, Arrays.toString(paramTypes),
+                    target));
+        } else {
+            return findMethod(parent, name, paramTypes);
+        }
     }
 
     public R invoke(T target, Object... args) {

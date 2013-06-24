@@ -19,7 +19,6 @@ package org.gradle.internal.reflect;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.JavaMethod;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -84,65 +83,6 @@ public class JavaReflectionUtil {
             return Double.class;
         }
         throw new IllegalArgumentException(String.format("Don't know how wrapper type for primitive type %s.", type));
-    }
-
-    public static Object invokeMethodWrapException(Object target, String name) {
-        return invokeMethodWrapException(target, name, new Object[0]);
-    }
-
-    public static Object invokeMethodWrapException(Object target, String name, Object... args) {
-        try {
-            return invokeMethod(target, name, args);
-        } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    public static Object invokeMethodWrapException(Object target, String name, Class<?>[] argTypes, Object... args) {
-        try {
-            return invokeMethod(target, name, argTypes, args);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static Object invokeMethod(Object target, String name) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        return invokeMethod(target, name, new Object[0]);
-    }
-
-    public static Object invokeMethod(Object target, String name, Object... args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Class<?>[] argTypes = new Class[args.length];
-        for (int i = 0; i < args.length; i++) {
-            argTypes[i] = args[i].getClass();
-        }
-
-        return invokeMethod(target, name, argTypes, args);
-    }
-
-    public static Object invokeMethod(Object target, String name, Class<?>[] argTypes, Object... args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Method method = target.getClass().getMethod(name, argTypes);
-        method.setAccessible(true);
-        return method.invoke(target, args);
-    }
-
-    public static Object invokeDeclaredMethodWrapException(Object target, Class<?> declaringClass, String name, Class<?>[] argTypes, Object... args) {
-        try {
-            return invokeDeclaredMethod(target, declaringClass, name, argTypes, args);
-        } catch (Exception e) {
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            } else {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    public static Object invokeDeclaredMethod(Object target, Class<?> declaringClass, String name, Class<?>[] argTypes, Object... args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Method method = declaringClass.getDeclaredMethod(name, argTypes);
-        method.setAccessible(true);
-        return method.invoke(target, args);
     }
 
     public static <T, R> JavaMethod<T, R> method(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) {
