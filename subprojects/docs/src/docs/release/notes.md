@@ -286,6 +286,7 @@ We would like to thank the following community members for making contributions 
 * [Dan Stine](https://github.com/dstine) - Added `maxPriorityViolations` setting to the CodeNarc plugin (GRADLE-1742).
 * [Olaf Klischat](https://github.com/multi-io) - Added support for specifying the default JVM arguments for the Application plugin (GRADLE-1456).
 * [Kyle Mahan](https://github.com/kylewm) - Introduce duplicateStrategy property to archive and copy operations (GRADLE-2171).
+* [Robert Kühne](https://github.com/sponiro) - Spelling correction in User Guide
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
