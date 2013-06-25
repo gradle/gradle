@@ -119,9 +119,11 @@ giving control over both the HTML report and the JUnit XML result files (these f
 This brings the `Test` task into line with other tasks that produce reports in terms of API. It also allows you to completely disable the JUnit XML file generation 
 (if you don't need it).
 
-### Test reports appear in the build dashboard (i)
+### Build dashboard improvements (i)
 
-The above change means that the test reports now appear in the [build dashboard](userguide/buildDashboard_plugin.html).
+The above test change means that the test reports now appear in the [build dashboard](userguide/buildDashboard_plugin.html).
+
+Also, the `buildDashboard` task is automatically executed if when any reporting task is executed.
 
 ### Record test output per test case in JUnit XML result files (i)
 
@@ -352,12 +354,16 @@ The (incubating) class `org.gradle.api.reporting.ConfigureableReport` was rename
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Dan Stine](https://github.com/dstine) - Added `maxPriorityViolations` setting to the CodeNarc plugin (GRADLE-1742).
+* [Marcin Erdmann](https://github.com/erdi) - Added finalizer tasks.
+* [Dan Stine](https://github.com/dstine)
+    - Added `maxPriorityViolations` setting to the CodeNarc plugin (GRADLE-1742).
+    - Correction in User Guide.
 * [Olaf Klischat](https://github.com/multi-io) - Added support for specifying the default JVM arguments for the Application plugin (GRADLE-1456).
 * [Kyle Mahan](https://github.com/kylewm) - Introduce duplicateStrategy property to archive and copy operations (GRADLE-2171).
 * [Robert Kühne](https://github.com/sponiro) - Spelling correction in User Guide.
 * [Björn Kautler](https://github.com/Vampire) - Correction to Build Dashboard sample.
-* [Marcin Erdmann](https://github.com/erdi) - Added task finalizers.
+* [Seth Goings](https://github.com/sgoings) - Correction in User Guide.
+* [Scott Bennett-McLeish](https://github.com/sbennettmcleish) - Correction in User Guide.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
