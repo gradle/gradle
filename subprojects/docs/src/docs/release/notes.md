@@ -6,49 +6,62 @@ Here are the new features introduced in this Gradle release.
 
 Gradle 1.7 is the fastest version of Gradle yet. Here are the highlights:
 
-- Dependency resolution is now faster. This affects many aspects of a build. For example, incremental build up-to-date checks usually require dependencies
-  to be resolved. As does importing your build into an IDE. Or using the dependency reports.
-- Test execution is now faster. In some cases, up to 50% faster for those tests that generate a lot of logging output.
+- Dependency resolution is now faster. This affects many aspects of a build. For example, incremental build up-to-date checks almost always require dependencies
+  to be resolved. So does importing your build into an IDE. Or using the dependency reports.
+- Test execution is now faster. In some cases, up to 50% faster for tests that generate a lot of logging output.
 - Build script compilation is much faster. This affects, for example, first time users of a build, build authors, and those upgrading a build to a new Gradle version.
-  In Gradle 1.6 there was a serious regression in build script compilation time. This has been fixed in Gradle 1.7, with an added bonus. Script compilation is now
+  In Gradle 1.6 there was a serious regression in build script compilation time. This has been fixed in Gradle 1.7, with an added bonus that script compilation is now
   75% faster than Gradle 1.6 and 50% faster than Gradle 1.0.
+- Parallel execution mode is now faster.
 
 As always, the performance improvements that you actually see for your build depends on many factors.
 
-#### Faster dependency resolution due to in-memory caching of dependency metadata
+#### Faster dependency resolution due to in-memory caching of artifact meta-data
 
-With this change, the dependency resolution is much faster. Typically, the larger the project is the more configurations and dependencies are being resolved during the build.
-By caching the dependency metadata in memory we avoid hitting the repository and parsing the descriptor when the same dependency is requested in a different resolution.
+With this change, the dependency resolution is much faster. Typically, the larger the project is the more configurations and dependencies are resolved during the build.
+By caching the artifact meta-data in memory we avoid parsing the descriptor when the same dependency is requested multiple times in a build.
+
 An incremental build for a large project should be tangibly faster with Gradle 1.7.
 A full build may be much faster, too. The level of performance improvement depends on the build.
 If a large portion of the build time is taken by slow integration tests, the performance improvements are smaller.
 Nevertheless, some of the large builds we used for benchmarking show up to 30% speed increase.
 
-Caching the dependency metadata in-memory is very important for local repositories (e.g. local filesystem like mavenLocal())
-and for resolution of snapshots / dynamic versions.
+Caching the artifact metadata in-memory is very important for local repositories, such as `mavenLocal()` and for resolution of snapshots / dynamic versions.
 Prior to Gradle 1.7, every time a local dependency was resolved, Gradle would load the dependency metadata directly from the local repository.
-This behavior also applies to resolution from remote repositories, but only for expired changing modules (snapshots) or expired dynamic versions (e.g. '1.2+').
 With the in-memory caching of dependency metadata, this behavior now *changes*.
-During a single build, a resolved dependency will not be reloaded again from the repository.
-This may be a breaking change for exotic builds that depend the on the fact that certain dependencies are reloaded from the repository during each resolution.
-Bear in mind that the vast majority of builds would much better enjoy faster dependency resolution offered by the in-memory dependency metadata cache.
-If your project require refreshability of snapshots or local dependencies during the build please let us know so that we can better fully your scenario and model it correctly.
+During a single build, a given dependency will be loaded once only and will not be reloaded again from the repository.
+
+This may be a breaking change for builds that depend the on the fact that certain dependencies are reloaded from the repository during each resolution.
+Bear in mind that the vast majority of builds will enjoy faster dependency resolution offered by the in-memory caching.
+If your project requires reloading of snapshots or local dependencies during the build please let us know so that we can better understand your scenario and model it correctly.
+
 You can also turn off the in-memory dependency metadata cache via a system property:
 
     //gradle.properties
     systemProp.org.gradle.resolution.memorycache=false
 
-To avoid increased heap consumption, the in-memory dependency metadata cache may clear the cached data if the system is running out of heap space.
+To avoid increased heap consumption, the in-memory dependency metadata cache may clear the cached data when there is heap pressure.
 
 #### Improved multiprocess locking
 
-TODO
+This change improves the mechanism that Gradle uses to coordinate multi-process access to the Gradle caches. This new mechanism means that the Gradle process now
+requires far fewer operations on the file system and can make better use of in-memory caching, even in the presence of multiple Gradle processes accessing the
+caches concurrently.
+
+The caches used for dependency resolution and for incremental build up-to-date checks are affected by this change, meaning faster dependency resolution and incremental
+build checks.
+
+Coupled with this change are some improvements to the synchronization of worker threads within a given Gradle process, which means parallel execution mode is now
+more efficient.
+
+The new mechanism is biased to the case where a single Gradle process is running on a machine. We believe that there should not be any performance regressions when
+multiple Gradle processes are used, but please let us know if you observe a regression.
 
 #### Faster build script compilation
 
-TODO
+This change improves build script compilation by adding some caching in critical points in the ClassLoader hierarchy.
 
-#### ClassLoader caching
+### Task finalizers
 
 TODO
 
@@ -102,7 +115,11 @@ The `Test` task provides a [`ReportContainer`](javadoc/org/gradle/api/reporting/
 giving control over both the HTML report and the JUnit XML result files (these files are typically used to communicate test results to CI servers and other tools).
 
 This brings the `Test` task into line with other tasks that produce reports in terms of API. It also allows you to completely disable the JUnit XML file generation 
-(if you don't need it) and also means that the test reports appear in the [build dashboard](userguide/buildDashboard_plugin.html).
+(if you don't need it).
+
+### Test reports appear in the build dashboard (i)
+
+The above change means that the test reports now appear in the [build dashboard](userguide/buildDashboard_plugin.html).
 
 ### Record test output per test case in JUnit XML result files (i)
 
@@ -144,14 +161,13 @@ The Gradle Wrapper files are generated pointing to the gradle version used to ge
 
 If you already defined a task of type `Wrapper` in your build script, this task will be used when running `gradle wrapper`; otherwise the implicit default task will be used.
 
-### Improved build-setup plugin (i)
+### Generate a Gradle project from scratch (i)
 
 The `build-setup` plugin now supports declaring a project type when setting up a build. With version 1.7 Gradle, now supports `java-library` as a setup project type
 which generates a simple build file with the java plugin applied, a sample junit test class and a sample production code class if no sources already exist.
 To declare the project type you have to specify a `--type` command line argument:
 
     gradle setupBuild --type java-library
-
 
 ### Added option to deal with duplicate files in archives and copy operations
 
@@ -175,18 +191,22 @@ Gradle will create a 'libSharedLibrary' task to link the shared library, as well
 
 Please refer to the [User Guide chapter](userguide/cpp.html) for more details.
 
-### C++ plugin supports Cygwin
+### C++ plugins supports Cygwin (i)
 
-TODO
+The C++ plugins now handle using g++ from Cygwin.
 
-### Improved incremental build for C++
+### Improved incremental build for C++ (i)
 
-TODO - handles changes to compiler and linker args.
-TODO - does not recompile when linker args change.
-TODO - does not recompile when dependency changes, only when library header file changes.
-TODO - removes stale object and debug files.
+The incremental build support offered by the C++ plugins has been improved in this release, making incremental build very accurate:
 
-### Specify default JVM arguments for the Application plugin
+- Detects changes to compiler and linker settings, in addition to changes in source and header files.
+- No longer recompiles source files when linker settings change.
+- Detects changes to dependencies of a binary and recompiles or relinks as appropriate.
+- Detects changes to the toolchain used to build a binary and recompiles and relinks.
+- Removes stale object files when source files are removed or renamed.
+- Removes stale output files when compiler and linker settings change. For example, removes stale debug files when debug is disabled.
+
+### Specify default JVM arguments for the Application plugin (i)
 
 TODO
 
@@ -332,8 +352,8 @@ We would like to thank the following community members for making contributions 
 * [Dan Stine](https://github.com/dstine) - Added `maxPriorityViolations` setting to the CodeNarc plugin (GRADLE-1742).
 * [Olaf Klischat](https://github.com/multi-io) - Added support for specifying the default JVM arguments for the Application plugin (GRADLE-1456).
 * [Kyle Mahan](https://github.com/kylewm) - Introduce duplicateStrategy property to archive and copy operations (GRADLE-2171).
-* [Robert Kühne](https://github.com/sponiro) - Spelling correction in User Guide
-* [Björn Kautler](https://github.com/Vampire) - Correction to Build Dashboard sample
+* [Robert Kühne](https://github.com/sponiro) - Spelling correction in User Guide.
+* [Björn Kautler](https://github.com/Vampire) - Correction to Build Dashboard sample.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
