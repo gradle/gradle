@@ -26,7 +26,6 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
  * By Szczepan Faber on 5/23/13
  */
 class FileLockCommunicatorTest extends ConcurrentSpecification {
-    //TODO SF review and tighten
 
     def communicator = new FileLockCommunicator()
     Long receivedId

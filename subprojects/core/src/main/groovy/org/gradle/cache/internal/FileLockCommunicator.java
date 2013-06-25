@@ -70,9 +70,6 @@ public class FileLockCommunicator {
 
     public void stop() {
         stopped = true;
-        if (socket == null) {
-            throw new IllegalStateException("The communicator was not started.");
-        }
         socket.close();
     }
 
