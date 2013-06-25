@@ -17,7 +17,7 @@ subprojects {
 
 project(":project1") {
     dependencies {
-       compile 'junit:junit:4.11', project(':project2')
+       compile 'junit:junit:4.11'
     }
 
 
@@ -27,7 +27,8 @@ project(":project1") {
             ivy(IvyPublication) {
                 organisation 'org.gradle.sample'
                 module 'project1-sample'
-                revision '1.0'
+                revision '1.1'
+                descriptor.status = 'milestone'
 
                 from components.java
             }
@@ -46,7 +47,7 @@ project(":project2") {
     // END SNIPPET multiple-publications
 
     dependencies {
-       compile 'commons-collections:commons-collections:3.1'
+       compile 'commons-collections:commons-collections:3.1', project(':project1')
     }
 
     // START SNIPPET multiple-publications

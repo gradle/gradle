@@ -29,6 +29,8 @@ import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.internal.DefaultPublicationContainer
+import org.gradle.api.publish.internal.PublicationCoordinates
+import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity
 import org.gradle.api.tasks.TaskDependency
@@ -179,15 +181,14 @@ public class DefaultMavenPublicationTest extends Specification {
         }
     }
 
-    def "adopts dependency on project with multiple publications"() {
+    def "adopts dependency on project with single publications"() {
         given:
         def publication = createPublication()
         def projectDependency = Mock(ProjectDependency)
         def extensionContainer = Mock(ExtensionContainer)
         def publishingExtension = Mock(PublishingExtension)
         def publications = new DefaultPublicationContainer(new DirectInstantiator())
-        publications.add(otherMavenPublication("mavenPub1", "pub-group", "pub-name", "pub-version"))
-        publications.add(otherMavenPublication("mavenPub2", "pub-group-2", "pub-name-2", "pub-version-2"))
+        publications.add(otherPublication("otherPub1", "pub-group", "pub-name", "pub-version"))
 
         when:
         projectDependency.artifacts >> []
@@ -201,18 +202,11 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithDependency(projectDependency))
 
         then:
-        final deps = publication.runtimeDependencies.asList().sort({it.groupId})
-        assert deps.size() == 2
-        with (deps[0]) {
+        publication.runtimeDependencies.size() == 1
+        with (publication.runtimeDependencies.asList().first()) {
             groupId == "pub-group"
             artifactId == "pub-name"
             version == "pub-version"
-            artifacts == []
-        }
-        with (deps[1]) {
-            groupId == "pub-group-2"
-            artifactId == "pub-name-2"
-            version == "pub-version-2"
             artifacts == []
         }
     }
@@ -360,12 +354,10 @@ public class DefaultMavenPublicationTest extends Specification {
         return component
     }
 
-    def otherMavenPublication(String name, String group, String artifactId, String version) {
-        def pub = Mock(MavenPublicationInternal)
+    def otherPublication(String name, String group, String artifactId, String version) {
+        def pub = Mock(PublicationInternal)
         pub.name >> name
-        pub.groupId >> group
-        pub.artifactId >> artifactId
-        pub.version >> version
+        pub.coordinates >> new PublicationCoordinates(group, artifactId, version)
         return pub
     }
 }

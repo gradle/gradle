@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
@@ -24,7 +25,7 @@ import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 import java.util.Set;
 
-public interface MavenPublicationInternal extends MavenPublication {
+public interface MavenPublicationInternal extends MavenPublication, PublicationInternal {
 
     MavenPomInternal getPom();
 

@@ -95,7 +95,7 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         def fileRepo = ivy(multiPublish.dir.file("build/repo"))
-        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.0")
+        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1")
         def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2")
         def project2impl = fileRepo.module("org.gradle.sample.impl", "project2-impl", "2.3")
 
@@ -104,20 +104,14 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         project1sample.assertPublishedAsJavaModule()
-        project1sample.ivy.assertDependsOn("junit:junit:4.11@runtime", "org.gradle.sample:project2-api:2@runtime", "org.gradle.sample.impl:project2-impl:2.3@runtime")
-
         verifyIvyFile(project1sample, "output/project1.ivy.xml")
 
         and:
         project2api.assertPublishedAsJavaModule()
-        project2api.ivy.assertDependsOn()
-
         verifyIvyFile(project2api, "output/project2-api.ivy.xml")
 
         and:
         project2impl.assertPublishedAsJavaModule()
-        project2impl.ivy.assertDependsOn('commons-collections:commons-collections:3.1@runtime')
-        
         verifyIvyFile(project2impl, "output/project2-impl.ivy.xml")
     }
 

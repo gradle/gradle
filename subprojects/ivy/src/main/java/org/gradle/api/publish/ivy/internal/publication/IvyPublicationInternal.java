@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal.publication;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
@@ -24,7 +25,7 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 
 import java.util.Set;
 
-public interface IvyPublicationInternal extends IvyPublication {
+public interface IvyPublicationInternal extends IvyPublication, PublicationInternal {
 
     IvyPublicationIdentity getIdentity();
 

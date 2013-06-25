@@ -73,9 +73,7 @@ project(":project3") {
         resolveArtifacts(project1) == ['changed-module-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar']
     }
 
-    def "project dependencies reference all publications of dependent project"() {
-        def project3extra = ivyRepo.module("extra.org", "extra-module", "extra")
-
+    def "reports failure when project dependency references a project with multiple publications"() {
         createBuildScripts("""
 project(":project3") {
     publishing {
@@ -92,23 +90,11 @@ project(":project3") {
 """)
 
         when:
-        run "publish"
+        fails "publish"
 
         then:
-        project1.assertPublishedAsJavaModule()
-        project1.ivy.assertDependsOn("org.gradle.test:project2:2.0@runtime", "org.gradle.test:project3:3.0@runtime", "extra.org:extra-module:extra@runtime")
-
-        project2.assertPublishedAsJavaModule()
-        project2.ivy.assertDependsOn("org.gradle.test:project3:3.0@runtime", "extra.org:extra-module:extra@runtime")
-
-        project3.assertPublishedAsJavaModule()
-        project3.ivy.dependencies.isEmpty()
-
-        project3extra.assertPublishedAsJavaModule()
-        project3extra.ivy.dependencies.isEmpty()
-
-        and:
-        resolveArtifacts(project1) == ['extra-module-extra.jar', 'project1-1.0.jar', 'project2-2.0.jar', 'project3-3.0.jar']
+        failure.assertHasDescription "A problem occurred configuring project ':project1'."
+        failure.assertHasCause "Publishing is not yet able to resolve a dependency on a project with multiple different publications."
     }
 
     def "ivy-publish plugin does not take archivesBaseName into account"() {

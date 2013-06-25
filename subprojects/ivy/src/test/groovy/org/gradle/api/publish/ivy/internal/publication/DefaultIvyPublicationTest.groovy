@@ -15,9 +15,13 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publication
+
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.DependencyArtifact
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -27,6 +31,8 @@ import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.internal.DefaultPublicationContainer
+import org.gradle.api.publish.internal.PublicationCoordinates
+import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
 import org.gradle.internal.reflect.DirectInstantiator
@@ -135,15 +141,14 @@ class DefaultIvyPublicationTest extends Specification {
         }
     }
 
-    def "adopts dependency on project with multiple publications"() {
+    def "adopts dependency on project with single publications"() {
         given:
         def publication = createPublication()
         def projectDependency = Mock(ProjectDependency)
         def extensionContainer = Mock(ExtensionContainer)
         def publishingExtension = Mock(PublishingExtension)
         def publications = new DefaultPublicationContainer(new DirectInstantiator())
-        publications.add(otherIvyPublication("ivyPub1", "pub-org", "pub-module", "pub-revision"))
-        publications.add(otherIvyPublication("ivyPub2", "pub-org-2", "pub-module-2", "pub-revision-2"))
+        publications.add(otherPublication("ivyPub1", "pub-org", "pub-module", "pub-revision"))
 
         when:
         projectDependency.configuration >> "dep-configuration"
@@ -162,22 +167,43 @@ class DefaultIvyPublicationTest extends Specification {
         publication.artifacts.empty
 
         and:
-        final deps = publication.dependencies.asList().sort({it.organisation})
-        assert deps.size() == 2
-        with (deps[0]) {
+        publication.dependencies.size() == 1
+        def ivyDependency = publication.dependencies.asList().first()
+
+        with (ivyDependency) {
             organisation == "pub-org"
             module == "pub-module"
             revision == "pub-revision"
             confMapping == "runtime->dep-configuration"
             artifacts == []
         }
-        with (deps[1]) {
-            organisation == "pub-org-2"
-            module == "pub-module-2"
-            revision == "pub-revision-2"
-            confMapping == "runtime->dep-configuration"
-            artifacts == []
+    }
+
+    def "fails to resolve dependency on project with multiple publications"() {
+        given:
+        def publication = createPublication()
+        def projectDependency = Mock(ProjectDependency)
+        def extensionContainer = Mock(ExtensionContainer)
+        def publishingExtension = Mock(PublishingExtension)
+        def publications = new DefaultPublicationContainer(new DirectInstantiator())
+        publications.add(otherPublication("ivyPub1", "pub-org", "pub-module", "pub-revision"))
+        publications.add(otherPublication("ivyPub2", "pub-org-2", "pub-module-2", "pub-revision-2"))
+
+        when:
+        projectDependency.configuration >> "dep-configuration"
+        projectDependency.artifacts >> []
+        projectDependency.dependencyProject >> Stub(Project) {
+            getExtensions() >> extensionContainer
         }
+        extensionContainer.findByType(PublishingExtension) >> publishingExtension
+        publishingExtension.publications >> publications
+
+        and:
+        publication.from(componentWithDependency(projectDependency))
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "Publishing is not yet able to resolve a dependency on a project with multiple different publications."
     }
 
     def "adopts dependency on project without a publication"() {
@@ -336,12 +362,10 @@ class DefaultIvyPublicationTest extends Specification {
         return component
     }
 
-    def otherIvyPublication(String name, String org, String module, String revision) {
-        def ivyPub = Mock(IvyPublicationInternal)
-        ivyPub.name >> name
-        ivyPub.organisation >> org
-        ivyPub.module >> module
-        ivyPub.revision >> revision
-        return ivyPub
+    def otherPublication(String name, String org, String module, String revision) {
+        def pub = Mock(PublicationInternal)
+        pub.name >> name
+        pub.coordinates >> new PublicationCoordinates(org, module, revision)
+        return pub
     }
 }

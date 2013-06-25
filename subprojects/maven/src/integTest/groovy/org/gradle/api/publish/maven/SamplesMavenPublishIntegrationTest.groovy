@@ -108,7 +108,7 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
 
         and:
         def fileRepo = maven(multiPublish.dir.file("build/repo"))
-        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.0")
+        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1")
         def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2")
         def project2impl = fileRepo.module("org.gradle.sample.impl", "project2-impl", "2.3")
 
@@ -117,21 +117,14 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         project1sample.assertPublishedAsJavaModule()
-        project1sample.parsedPom.scopes.runtime
-                .assertDependsOn("org.slf4j:slf4j-api:1.7.5", "org.gradle.sample:project2-api:2", "org.gradle.sample.impl:project2-impl:2.3")
-
         verifyPomFile(project1sample, "output/project1.pom.xml")
 
         and:
         project2api.assertPublishedAsJavaModule()
-        project2api.parsedPom.scopes.runtime == null
-
         verifyPomFile(project2api, "output/project2-api.pom.xml")
 
         and:
         project2impl.assertPublishedAsJavaModule()
-        project2impl.parsedPom.scopes.runtime.assertDependsOn('commons-collections:commons-collections:3.1')
-
         verifyPomFile(project2impl, "output/project2-impl.pom.xml")
     }
 

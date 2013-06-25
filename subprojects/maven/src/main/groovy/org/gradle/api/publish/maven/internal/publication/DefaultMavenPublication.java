@@ -18,7 +18,6 @@ package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -28,11 +27,11 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
+import org.gradle.api.publish.internal.PublicationCoordinates;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenPom;
-import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
@@ -105,19 +104,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private void addProjectDependency(ProjectDependency dependency) {
-        Project dependencyProject = dependency.getDependencyProject();
-        PublishingExtension publishing = dependencyProject.getExtensions().findByType(PublishingExtension.class);
-
-        if (publishing == null) {
-            // Project does not apply publishing: simply use the project name in place of the dependency name
-            runtimeDependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion()));
-            return;
-        }
-
-        Set<MavenPublication> publications = publishing.getPublications().withType(MavenPublication.class);
-        for (MavenPublication publication : publications) {
-            runtimeDependencies.add(new DefaultMavenDependency(publication.getGroupId(), publication.getArtifactId(), publication.getVersion()));
-        }
+        PublicationCoordinates coordinates = new ProjectDependencyPublicationResolver().resolve(dependency);
+        runtimeDependencies.add(new DefaultMavenDependency(coordinates.getGroup(), coordinates.getName(), coordinates.getVersion()));
     }
 
     private void addModuleDependency(ModuleDependency dependency) {
@@ -197,5 +185,9 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
         }
         return "pom";
+    }
+
+    public PublicationCoordinates getCoordinates() {
+        return new PublicationCoordinates(getGroupId(), getArtifactId(), getVersion());
     }
 }

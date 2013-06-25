@@ -83,7 +83,10 @@ This step will allow some basic customisation of the meta data model for each pu
 6. Change the `pom.xml` generation to prefer the (groupId, artifactId, version) identifier of the `MavenPublication` instance from the target project
    for project dependencies, over the existing candidate identifiers.
 7. Change the `ivy.xml` and `pom.xml` generation for project with project dependency on `Project A`:
-    * Where `Project A` has the publishing extension applied, include a dependency for each `Maven Publication`/`IvyPublication` defined in `Project A`
+    * Where `Project A` has the publishing extension applied, attempt to resolve a publication to reference:
+        * If all publications share the same coordinates, use those coordinates
+        * else if `Project A` has no publications, use the coordinates of `Project A` (as per no publishing extension applied)
+        * else fail (cannot handle multiple publications with the different coordinates)
     * Where `Project A` does not have the publishing extension applied, create a dependency with `group|name|version` attributes of `Project A`. Ignore the `archivesBaseName` of `Project A`.
 
 A side-effect of this change is that it will be possible to create and publish multiple publications from a single build.
