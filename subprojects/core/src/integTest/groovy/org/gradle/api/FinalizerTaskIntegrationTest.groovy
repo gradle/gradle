@@ -192,6 +192,25 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 (*) - details omitted (listed previously)""")
     }
 
+    void 'finalizer task can be used by multiple tasks that depend on one another'(){
+        buildFile << """
+            task a {
+                finalizedBy 'c'
+            }
+            task b {
+                dependsOn 'a'
+                finalizedBy 'c'
+            }
+            task c
+        """
+
+        when:
+        succeeds 'b'
+
+        then:
+        executedTasks == [':a', ':b', ':c']
+    }
+
     private void setupProject() {
         buildFile << """
             task a {
