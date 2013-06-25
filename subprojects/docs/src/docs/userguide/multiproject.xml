@@ -465,7 +465,7 @@
                 distribution out of them.
                 <footnote>
                     <para>The real use case we had, was using <ulink url='http://lucene.apache.org/solr'/>, where you
-                        need a separate war for each index your are accessing. That was one reason why we have created a
+                        need a separate war for each index you are accessing. That was one reason why we have created a
                         distribution of webapps. The Resin servlet container allows us, to let such a distribution point
                         to a base installation of the servlet container.
                     </para>
