@@ -62,21 +62,14 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
         temporaryFolder.file("settings.gradle").exists()
     }
 
-    def "escapes file paths"() {
+    def "escapes strings"() {
         setup:
-        buildTemplateFile.text = '${ref_userguide_java_tutorial}'
+        buildTemplateFile.text = '${ref_userguide_java_tutorial.groovyComment}'
+        settingsTemplateFile.text = '${rootProjectName.groovyString}'
         when:
         descriptor.generateProject()
         then:
         temporaryFolder.file("build.gradle").assertContents(Matchers.strictlyEqual(/C:\\Programe Files\\gradle/))
-    }
-
-    def "escapes meaningful groovy characters"() {
-        setup:
-        settingsTemplateFile.text = '${rootProjectName}'
-        when:
-        descriptor.generateProject()
-        then:
         temporaryFolder.file("settings.gradle").assertContents(Matchers.strictlyEqual(/a\'b\\c/))
     }
 

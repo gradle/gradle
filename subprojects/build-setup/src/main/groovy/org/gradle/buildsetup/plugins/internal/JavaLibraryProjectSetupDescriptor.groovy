@@ -16,10 +16,8 @@
 
 package org.gradle.buildsetup.plugins.internal
 
-import groovy.text.SimpleTemplateEngine
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.util.GradleVersion
 
 class JavaLibraryProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
 
@@ -54,8 +52,6 @@ class JavaLibraryProjectSetupDescriptor extends TemplateBasedProjectSetupDescrip
         sourceRootFolder.mkdirs()
         File clazzFile = new File(sourceRootFolder, clazzFileName)
         URL productionClazzFileTemplate = JavaLibraryProjectSetupDescriptor.class.getResource("/org/gradle/buildsetup/tasks/templates/${clazzFileName}.template");
-        SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
-        def bindings = [genDate: new Date(), genUser: System.getProperty("user.name"), genGradleVersion: GradleVersion.current().toString()]
-        clazzFile.text = templateEngine.createTemplate(productionClazzFileTemplate.text).make(bindings).toString();
+        generateFileFromTemplate(productionClazzFileTemplate, clazzFile, [:])
     }
 }

@@ -18,10 +18,11 @@ package org.gradle.buildsetup.plugins.internal
 
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
-import org.apache.commons.lang.StringEscapeUtils
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.GradleVersion
+
+import java.text.DateFormat
 
 abstract class TemplateBasedProjectSetupDescriptor implements ProjectSetupDescriptor {
 
@@ -60,16 +61,13 @@ abstract class TemplateBasedProjectSetupDescriptor implements ProjectSetupDescri
 
     protected generateFileFromTemplate(URL templateURL, File targetFile, Map additionalBindings) {
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
-        def bindings = [genDate: new Date(), genUser: System.getProperty("user.name"), genGradleVersion: GradleVersion.current().toString()]
+        String now = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(new Date())
+        def bindings = [genDate: now, genUser: System.getProperty("user.name"), genGradleVersion: GradleVersion.current().toString()]
         bindings += additionalBindings
         Template template = templateEngine.createTemplate(templateURL.text)
-        Map escapedBindings = bindings.collectEntries { key, value -> [key, escape(value.toString())] }
+        Map wrappedBindings = bindings.collectEntries { key, value -> [key, new TemplateValue(value.toString())] }
         targetFile.withWriter("utf-8") { writer ->
-            template.make(escapedBindings).writeTo(writer)
+            template.make(wrappedBindings).writeTo(writer)
         }
-    }
-
-    String escape(def stringToEscape) {
-        StringEscapeUtils.escapeJavaScript(stringToEscape)
     }
 }
