@@ -17,8 +17,8 @@
 package org.gradle.nativecode.language.cpp.plugins
 
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.tasks.Sync
 import org.gradle.nativecode.base.tasks.AssembleStaticLibrary
+import org.gradle.nativecode.base.tasks.InstallExecutable
 import org.gradle.nativecode.base.tasks.LinkExecutable
 import org.gradle.nativecode.base.tasks.LinkSharedLibrary
 import org.gradle.nativecode.language.cpp.CppSourceSet
@@ -150,8 +150,10 @@ class CppPluginTest extends Specification {
 
         and:
         def install = project.tasks.installTestExecutable
-        install instanceof Sync
+        install instanceof InstallExecutable
         install.destinationDir == project.file('build/install/testExecutable')
+        install.executable == project.binaries.testExecutable.outputFile
+        install.libs.files.empty
         install Matchers.dependsOn("testExecutable")
 
         and:

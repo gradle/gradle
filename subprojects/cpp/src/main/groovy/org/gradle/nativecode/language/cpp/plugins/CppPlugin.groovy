@@ -18,15 +18,10 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
-import org.gradle.api.tasks.Sync
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.base.*
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.base.plugins.BinariesPlugin
-import org.gradle.nativecode.base.tasks.AbstractLinkTask
-import org.gradle.nativecode.base.tasks.AssembleStaticLibrary
-import org.gradle.nativecode.base.tasks.LinkExecutable
-import org.gradle.nativecode.base.tasks.LinkSharedLibrary
+import org.gradle.nativecode.base.tasks.*
 import org.gradle.nativecode.language.cpp.CppSourceSet
 import org.gradle.nativecode.language.cpp.tasks.CppCompile
 import org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin
@@ -152,31 +147,15 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     def createInstallTask(ProjectInternal project, NativeBinaryInternal executable) {
-        def installTask = project.task(executable.namingScheme.getTaskName("install"), type: Sync) {
+        InstallExecutable installTask = project.task(executable.namingScheme.getTaskName("install"), type: InstallExecutable) {
             description = "Installs a development image of $executable"
             group = BasePlugin.BUILD_GROUP
-            into { project.file("${project.buildDir}/install/$executable.name") }
-            if (OperatingSystem.current().windows) {
-                from { executable.outputFile }
-                from { executable.libs*.runtimeFiles }
-            } else {
-                into("lib") {
-                    from { executable.outputFile }
-                    from { executable.libs*.runtimeFiles }
-                }
-                doLast {
-                    def script = new File(destinationDir, executable.outputFile.name)
-                    script.text = """
-#/bin/sh
-APP_BASE_NAME=`dirname "\$0"`
-export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
-export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
-exec "\$APP_BASE_NAME/lib/${executable.outputFile.name}" \"\$@\"
-                    """
-                    ant.chmod(perm: 'u+x', file: script)
-                }
-            }
         }
+
+        installTask.conventionMapping.destinationDir = { project.file("${project.buildDir}/install/$executable.name") }
+
+        installTask.conventionMapping.executable = { executable.outputFile }
+        installTask.lib { executable.libs*.runtimeFiles }
 
         installTask.dependsOn(executable)
     }
