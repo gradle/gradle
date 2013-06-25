@@ -257,17 +257,12 @@ Later stories will add more flexible and convenient support for customisation of
 
 ### Open issues
 
-- Allow navigation from a `Binary` to the tasks associated with the binary.
-- Add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
-- Preprocessor macros should be modelled as a map.
-- Add properties to set macros and include directories for a binary, allow these to be set as toolchain specific compiler args (ie -D and -I) as well.
-- Add properties to set system libs and lib directories for a binary, allow these to be set as toolchain specific linker args (ie -l and -L) as well.
+- Preprocessor macros should be modelled as a map
 - Add set methods for each of these properties.
 - `NativeComponent.binaries` collides with `project.binaries`, for example, when defining binary libs.
 - `NativeComponent.binaries.all { }` is awkward for linker settings, as these aren't available for a shared lib binary.
 - Add back some conveniences for compiler and linker args for all binaries once delayed configuration is implemented.
 - Allow customisation of the source sets for a binary.
-- Split the compiler and linker settings out to separate types.
 - Strongly type the compiler and linker args as `String`.
 - Need to run `ranlib` over static libraries.
 
@@ -358,7 +353,7 @@ Note that this story does not include support for including the transitive depen
 - Move Component and Binary interfaces to new packages.
 - Add some way to create ad hoc `NativeDependencySet` instances, for example, a library produced by another build tool.
 - Need to be able to fine-tune compile time, link time and runtime inputs.
-- Merge `CppSourceSet.libs` and `CppSourceSet.nativeDependencySets`.
+- Merge `CppSourceSet.lib()` and `CppSourceSet.dependency()`.
 - Allow a `Binary` to be attached to a publication.
 - Update publication so that a binary's include, link and runtime files are published.
 - Need to be able to deal with the fact that only position-independent binaries can be linked into position-independent binaries
@@ -437,8 +432,9 @@ This story adds initial support for building multiple variants of a native compo
 - Add a property to `NativeBinary` to allow navigation to the flavor for this binary.
 - When resolving the dependencies of a binary `b`, for a dependency on library `l`, select the binary of `l` with the same flavor as `b`, if present, otherwise
   select the binary of `l` with flavor `default`, if present, otherwise fail (will need to rework `NativeDependencySet` to make this work)
-- Running `gradle assemble` should build all binaries for an executable or library
-- Running `gradle uploadArchives` should build and publish all binaries for an executable or library
+- Add an `assemble` lifecycle task for each component.
+- Running `gradle assemble` should build all binaries for the main executable or library
+- Running `gradle uploadArchives` should build and publish all binaries for the main executable or library
 
 ### User visible changes
 
@@ -463,6 +459,8 @@ This will define 4 binaries:
 
 ### Open issues
 
+- Add a 'development' assemble task, which chooses a single binary for each component.
+- Need to make standard 'build', 'check' lifecycle tasks available too.
 - Formalise the concept of a naming scheme for binary names, tasks and file paths.
 - Add a convention to give each binary a separate output directory (as the name of each variant binary can be the same).
 - Add a convention to give each binary a separate object file directory.
@@ -622,21 +620,6 @@ This story adds support for using assembler source files as inputs to a native b
 - Mixed C/C++/ASM binary, for each kind of binary.
 - A project can have all C, C++ source and header files and assembly source files in the same source directory.
 
-## Story: Allow all binaries to be built
-
-- Change the native model to use deferred configuration:
-    - Configure a source set completely before using it as input to a component or binary. 
-    - Configure a component completely before using it as a source set dependency or defining its binaries.
-    - Configure a binary completely before defining tasks for it.
-    - Configure a component completely before defining tasks for it.
-- Allow navigation from a `NativeComponent` to the binaries associated with the component.
-- Add an `assemble` lifecycle task for each component.
-
-### Open issues
-
-- Add a 'development' assemble task, which chooses a single binary for each component.
-- Need to make standard 'build', 'check' lifecycle tasks available too.
-
 # Milestone 2
 
 ## Story: Allow library binaries to be used as input to other libraries
@@ -650,6 +633,12 @@ Given a library `a` that uses another library `b` as input:
 - The link-time files of a static library `a`, are the link binaries for static library `a` (the `.a` or `.lib` file) and the link-time files of its direct dependencies.
 - The runtime files of a shared library `a`, are the runtime binaries for shared library `a` (the `.so` or the `.dll` file) and the runtime files of its direct dependencies.
 - The runtime files of a static library `a`, are the runtime files of its direct dependencies.
+
+- Change the native model to use deferred configuration:
+    - Configure a source set completely before using it as input to a component or binary.
+    - Configure a component completely before using it as a source set dependency or defining its binaries.
+    - Configure a binary completely before defining tasks for it.
+    - Configure a component completely before defining tasks for it.
 
 ### Open issues
 
@@ -709,6 +698,7 @@ This story defers configuration of the tasks for a binary or component until aft
 
 ### Open issues
 
+- Allow navigation from a `Binary` to the tasks associated with the binary.
 - Some way to configure the tasks for a binary and publication.
 
 ## Story: Incremental compilation for C and C++
@@ -799,6 +789,16 @@ This story adds support for cross-compilation. Add the concept of an operating s
 ## Story: Build debug and release variants of a native component 
 
 TBD
+
+## Story: Convenient configuration of compiler and linker settings
+
+### Open issues
+
+- Add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
+- Add properties to set macros and include directories for a binary, allow these to be set as toolchain specific compiler args (ie -D and -I) as well.
+- Add properties to set system libs and lib directories for a binary, allow these to be set as toolchain specific linker args (ie -l and -L) as well.
+- Add set methods for each of these properties.
+- Split the compiler and linker settings out to separate types.
 
 ## Story: Include Windows resource files in binaries
 
