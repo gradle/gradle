@@ -61,9 +61,11 @@ multiple Gradle processes are used, but please let us know if you observe a regr
 
 This change improves build script compilation by adding some caching in critical points in the ClassLoader hierarchy.
 
-### Task finalizers
+### Finalizer tasks (i)
 
-TODO
+Thanks to a contribution by Marcin Erdmann, Gradle 1.7 introduces a new task ordering rule that allows a task to _finalize_ some other task.
+
+TODO - more stuff goes here
 
 ### TestNG parameters included in test reports (i)
 
@@ -169,7 +171,7 @@ To declare the project type you have to specify a `--type` command line argument
 
     gradle setupBuild --type java-library
 
-### Added option to deal with duplicate files in archives and copy operations
+### Added option to deal with duplicate files in archives and copy operations (i)
 
 When copying files with duplicate relative paths in the target archive (or directory), you can now specify the strategy for dealing with these duplicate files by
 using `FileCopyDetails`.
@@ -193,7 +195,7 @@ Please refer to the [User Guide chapter](userguide/cpp.html) for more details.
 
 ### C++ plugins supports Cygwin (i)
 
-The C++ plugins now handle using g++ from Cygwin.
+The C++ plugins now support using g++ when running Gradle under Cygwin.
 
 ### Improved incremental build for C++ (i)
 
@@ -208,7 +210,8 @@ The incremental build support offered by the C++ plugins has been improved in th
 
 ### Specify default JVM arguments for the Application plugin (i)
 
-TODO
+Thanks to a contribution by Olaf Klischat, the application plugin now has support to specify the default JVM arguments to include in the generated
+launcher scripts.
 
 ### Customise publication identity with new publishing plugins (i)
 
@@ -354,6 +357,7 @@ We would like to thank the following community members for making contributions 
 * [Kyle Mahan](https://github.com/kylewm) - Introduce duplicateStrategy property to archive and copy operations (GRADLE-2171).
 * [Robert Kühne](https://github.com/sponiro) - Spelling correction in User Guide.
 * [Björn Kautler](https://github.com/Vampire) - Correction to Build Dashboard sample.
+* [Marcin Erdmann](https://github.com/erdi) - Added task finalizers.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
