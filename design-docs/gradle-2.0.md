@@ -41,6 +41,10 @@ for changes to behaviour.
 * Change the default result and report directory for the `Test` type to include the task's name, so that the default
   does not conflict with another `Test` task.
 
+## Gradle GUI and Open-API
+
+* Now that we have reasonable tooling support via IDE's it might be worth scrapping the Gradle GUI and open-api that it uses.
+
 ## Remove API methods that are added by the DSL decoration
 
 * Remove all methods that accept a `Closure` when an `Action` overload is available. Add missing overloads where appropriate.
