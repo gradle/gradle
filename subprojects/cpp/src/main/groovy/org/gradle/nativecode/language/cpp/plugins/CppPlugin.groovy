@@ -24,7 +24,7 @@ import org.gradle.nativecode.base.*
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.base.plugins.BinariesPlugin
 import org.gradle.nativecode.base.tasks.AbstractLinkTask
-import org.gradle.nativecode.base.tasks.CreateStaticLibrary
+import org.gradle.nativecode.base.tasks.AssembleStaticLibrary
 import org.gradle.nativecode.base.tasks.LinkExecutable
 import org.gradle.nativecode.base.tasks.LinkSharedLibrary
 import org.gradle.nativecode.language.cpp.CppSourceSet
@@ -40,7 +40,7 @@ import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin
  *     <ul>
  *         <li>Create a {@link CppCompile} task named "compile${binary-name}" to compile the C++ sources.</li>
  *         <li>Create a {@link LinkExecutable} or {@link LinkSharedLibrary} task named "link${binary-name}
- *             or a {@link CreateStaticLibrary} task name "assemble${binary-name}" to create the binary artifact.</li>
+ *             or a {@link AssembleStaticLibrary} task name "assemble${binary-name}" to create the binary artifact.</li>
  *         <li>Create an InstallTask named "install${Binary-name}" to install any {@link ExecutableBinary} artifact.
  *     </ul>
  * </p>
@@ -130,7 +130,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     private void createStaticLibraryTask(ProjectInternal project, NativeBinaryInternal binary, CppCompile compileTask) {
-        CreateStaticLibrary task = project.task(binary.namingScheme.getTaskName("assemble"), type: CreateStaticLibrary) {
+        AssembleStaticLibrary task = project.task(binary.namingScheme.getTaskName("assemble"), type: AssembleStaticLibrary) {
              description = "Creates ${binary}"
              group = BasePlugin.BUILD_GROUP
          }

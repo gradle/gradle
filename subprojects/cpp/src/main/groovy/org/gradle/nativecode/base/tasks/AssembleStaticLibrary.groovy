@@ -33,11 +33,11 @@ import javax.inject.Inject
  * Assembles a static library from object files.
  */
 @Incubating
-class CreateStaticLibrary extends DefaultTask {
+class AssembleStaticLibrary extends DefaultTask {
     private FileCollection source
 
     @Inject
-    CreateStaticLibrary() {
+    AssembleStaticLibrary() {
         source = project.files()
     }
 
