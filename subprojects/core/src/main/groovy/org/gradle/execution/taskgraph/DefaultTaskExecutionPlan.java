@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -212,11 +213,27 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 addAllReversed(finalizerTasks, taskNode.getFinalizers());
                 for (TaskInfo finalizer : finalizerTasks) {
                     if (!visitingNodes.contains(finalizer)) {
-                        nodeQueue.add(0, finalizer);
+                        nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), finalizer);
                     }
                 }
             }
         }
+    }
+
+    private int finalizerTaskPosition(TaskInfo finalizer, final List<TaskInfo> nodeQueue) {
+        if (nodeQueue.size() == 0) {
+            return 0;
+        }
+
+        ArrayList<TaskInfo> dependsOnTasks = new ArrayList<TaskInfo>();
+        dependsOnTasks.addAll(finalizer.getHardSuccessors());
+        dependsOnTasks.addAll(finalizer.getSoftSuccessors());
+        List<Integer> dependsOnTaskIndexes = CollectionUtils.collect(dependsOnTasks, new Transformer<Integer, TaskInfo>() {
+            public Integer transform(TaskInfo dependsOnTask) {
+                return nodeQueue.indexOf(dependsOnTask);
+            }
+        });
+        return Collections.max(dependsOnTaskIndexes) + 1;
     }
 
     private void onOrderingCycle() {
