@@ -43,7 +43,7 @@ for changes to behaviour.
 
 ## Gradle GUI and Open-API
 
-* Now that we have reasonable tooling support via IDE's it might be worth scrapping the Gradle GUI and open-api that it uses.
+* Now that we have reasonable tooling support via IDEs it might be worth scrapping the Gradle GUI and open-api that it uses.
 
 ## Remove API methods that are added by the DSL decoration
 
