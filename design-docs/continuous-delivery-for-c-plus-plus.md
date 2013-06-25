@@ -271,9 +271,105 @@ Later stories will add more flexible and convenient support for customisation of
 - Strongly type the compiler and linker args as `String`.
 - Need to run `ranlib` over static libraries.
 
+## Story: Allow library binaries to be used as input to executable binaries
+
+This story adds support for using another library component or binary as input to compile and/or link a given binary. Adding a library component or binary as input
+implies that the library's header files will be available at compilation time, and the appropriate binaries available at link and runtime.
+
+Some support will be added for expressing shared dependencies at the component level as well at the binary level.
+
+Later stories will build on this to unify the library dependency DSL, so that a consistent approach is used to consume libraries built by the same project, or another
+project in the same build, or from a binary repository.
+
+- Rename `NativeDependencySet.files` to `runtimeFiles`.
+- Add `NativeDependencySet.linkFiles`. Default implementation should return the runtime files. This will be improved in later stories.
+- Change `DefaultStaticLibrary` so that the output file is called `lib${library.baseName}.a` when building with GCC on Windows.
+- Add `LibraryBinary.getAsNativeDependencySet()`. The implementation depends on toolchain and binary type:
+
+<table>
+    <tr>
+        <th>Binary type</th>
+        <th>Toolchain</th>
+        <th>linkFiles</th>
+        <th>runtimeFiles</th>
+    </tr>
+    <tr><td>Shared</td><td>Visual C++</td><td>the `.lib` file</td><td>the `.dll` file</td></tr>
+    <tr><td>Static</td><td>Visual C++</td><td>the `.lib` file</td><td>empty collection</td></tr>
+    <tr><td>Shared</td><td>GCC</td><td>the `.so` or `.dll` file</td><td>the `.so` or `.dll` file</td></tr>
+    <tr><td>Static</td><td>GCC</td><td>the `.a` file</td><td>empty collection</td></tr>
+</table>
+
+- The `includeRoots` property of the `NativeDependencySet` implementation for a binary should return the set of header directories exported by the library.
+- Add `NativeBinary.libraries` property of type `DomainObjectCollection<NativeDependencySet>`.
+- Change the C++ plugin to add the dependencies of each C++ source set to this collection.
+- Change the C++ plugin to wire the inputs of the binary's compile and link tasks based on the contents of the `NativeBinary.libraries` collection.
+- Add `Library.getShared()` and `getStatic()` methods which return `NativeDependencySet` imlementations for the shared and static variants of the library.
+- Add `NativeBinary.lib(Object)` method which accepts anything that can be converted to a `NativeDependencySet`:
+    - A `NativeBinary` is converted by calling its `getAsNativeDependencySet()` method.
+    - A `NativeDependencySet` can be used as is.
+    - A `Library` is converted by calling its `getShared().getAsNativeDependencySet()` method.
+- Add `CppSourceSet.lib(Object)` method which accepts the above types.
+
+Note that this story does not include support for including the transitive dependencies of a library at link time and runtime.
+
+### User visible changes
+
+    binaries {
+        mainExecutable {
+            // Include the static variant of the given library in the executable
+            lib libraries.main.static
+            // Include the default variant of the given library in the executable
+            lib libraries.utils
+            // Include the given binary in the executable
+            lib binaries.someSharedLibrary
+        }
+    }
+
+    cpp {
+        sourceSets {
+            main {
+                lib libraries.main
+                lib libraries.util.shared
+                lib binaries.someSharedLibrary
+            }
+        }
+    }
+
+### Test cases
+
+- Install and run an executable that:
+    - Uses a mix of static and shared libraries.
+    - Uses a mix of libraries from the same project, same build and from different builds.
+    - Use a (static, shared) library that depends on another (static, shared) library.
+    - In each case, verify that only shared libraries are included in the install image.
+    - In each case, remove the original binaries before running the install image.
+- A dependency on a binary overrides a dependency on the library that produced the binary.
+
+### Open issues
+
+- Need a new name for `NativeDependencySet`.
+- Need some way to convert a `NativeDependencySet` to a read-only library.
+- Need to apply a lifecycle to the resolved libs of `CppSourceSet` and `NativeBinary`.
+- Improve consumption of libraries from other projects.
+- Some mechanism to use the static binary as default for a library.
+- Some mechanism to select static or dynamic linkage for each dependency of a binary.
+- Infer incoming libraries from component dependencies.
+- Samples that demonstrates how to link a static library into an executable.
+- Move Component and Binary interfaces to new packages.
+- Add some way to create ad hoc `NativeDependencySet` instances, for example, a library produced by another build tool.
+- Need to be able to fine-tune compile time, link time and runtime inputs.
+- Merge `CppSourceSet.libs` and `CppSourceSet.nativeDependencySets`.
+- Allow a `Binary` to be attached to a publication.
+- Update publication so that a binary's include, link and runtime files are published.
+- Need to be able to deal with the fact that only position-independent binaries can be linked into position-independent binaries
+    - Make it possible to build a position-independent variant of a static library binary
+    - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
+    - Change dependency resolution to choose the position-indepenent variant of a static library when linking into a shared library
+
 ## Story: Defer creation of binaries
 
-This story defers creation of the binaries for a native component until after the component has been fully configured. This will be used in later stories to allow different variants to be defined for a component.
+This story defers creation of the binaries for a native component until after the component has been fully configured. This will be used in later stories to allow
+different variants to be defined for a component.
 
 - Add an internal (for now) `ConfigurationActionContainer` interface, with a single `onConfigure(Runnable)` method.
 - Add a project scoped implementation of this interface. The `onConfigure()` method is invoked just before the `afterEvaluated` event.
@@ -330,65 +426,19 @@ improve this.
 - Warn when using binaries container in a way that won't work.
 - Warn when mutating component after binaries have been created.
 
-## Story: Simplify configuration of a binary based on its properties
-
-- Add a `DomainObjectCollection` sub-interface with method `all(map, action)`. This method is equivalent to calling `matching(predicate, action)`, where `predicate` is a spec that selects all objects whose property values equal those specified in the map. This method can be used to do delayed configuration of the elements of the collection.
-- Change `NativeComponent.binaries` and `BinariesContainer` to provide implementations of this interface.
-
-### User visible changes
-
-    apply plugin: 'cpp-lib'
-
-    libraries {
-        main {
-            // Defaults for all binaries for this library
-            binaries.all {
-                …
-            }
-            // Defaults for all shared library binaries for this library
-            binaries.all(type: SharedLibraryBinary) {
-                …
-            }
-            // Defaults for all binaries built by Visual C++
-            binaries.all(toolchain: toolchains.visualCpp) {
-                …
-            }
-            // Defaults for all shared library binaries built by Visual C++
-            binaries.all(toolchain: toolchains.visualCpp, type: SharedLibraryBinary) {
-                …
-            }
-        }
-    }
-
-    binaries.all(name: 'mainSharedLibrary') {
-        …
-    }
-
-    binaries.all(type: NativeBinary) {
-        …
-    }
-
-### Open issues
-
-- Roll out the predicate methods to other containers.
-- Need to deal with things like 'all versions of visual C++', 'all toolchains except visual C++', 'visual C++ 9 and later', 'gcc 3' etc.
-- Need to deal with things like 'all unix environments', 'all windows environments', etc.
-
-## Story: Convenient configuration of tasks for binaries and components
-
-This story defers configuration of the tasks for a binary or component until after the object has been fully configured.
-
-- Change the C++ plugin to create the tasks for each native binary after the binary has been configured.
-- Change the C++ plugin to create the tasks for each component after the tasks for the binary have been configured.
-- Remove the convention mappings from the C++ plugin.
-
-### Open issues
-
-- Some way to configure the tasks for a binary and publication.
-
 ## Story: Build different variants of a native component
 
 This story adds initial support for building multiple variants of a native component. For each variant of a component, a binary of the appropriate type is defined.
+
+- Add a `flavors` container to `NativeComponent`
+- If no flavors are defined, then implicity define a `default` flavor (or perhaps just always define the `default` flavor).
+- For each flavor defined for an `Executable`, create an `ExecutableBinary`.
+- For each flavor defined for a `Library`, create a `SharedLibraryBinary` and `StaticLibraryBinary`.
+- Add a property to `NativeBinary` to allow navigation to the flavor for this binary.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`, select the binary of `l` with the same flavor as `b`, if present, otherwise
+  select the binary of `l` with flavor `default`, if present, otherwise fail (will need to rework `NativeDependencySet` to make this work)
+- Running `gradle assemble` should build all binaries for an executable or library
+- Running `gradle uploadArchives` should build and publish all binaries for an executable or library
 
 ### User visible changes
 
@@ -398,7 +448,7 @@ This story adds initial support for building multiple variants of a native compo
                 main
                 withOptionalFeature
             }
-            binaries.all(flavor: flavours.main) {
+            binaries.matching { flavor == flavors.main } {
                 compilerArgs '-DSOME_FEATURE
             }
         }
@@ -421,6 +471,8 @@ This will define 4 binaries:
 - Need shared compiler, linker and assembler options for all variants.
 - Need to consume locally and between projects and between builds.
 - Need to infer the default variant.
+- Need to handle dependencies.
+- Need to publish all variants.
 
 ## Story: Additional integration test coverage for supported tool chains
 
@@ -436,99 +488,6 @@ Later stories will add further integration test coverage for particular OS and t
   the test should use a recent version of Visual C++, and for Linux, the test should use GCC.
 - Install Visual C++ 2010, Cygwin and MinGW on the Windows CI agents, as required.
 - Install GCC 3 and GCC 4 the linux CI agents, as required.
-
-## Story: Allow library binaries to be used as input to other binaries
-
-This story adds support for using another library component or binary as input to compile and/or link a given binary. Adding a library component or binary as input
-implies that the library's header files will be available at compilation time, and the appropriate binaries available at link and runtime.
-
-Some support will be added for expressing shared dependencies at the component level as well at the binary level.
-
-Later stories will build on this to unify the library dependency DSL, so that a consistent approach is used to consume libraries built by the same project, or another
-project in the same build, or from a binary repository.
-
-- Rename `NativeDependencySet.files` to `runtimeFiles`.
-- Add `NativeDependencySet.linkFiles`. Default implementation should return the runtime files. This will be improved in later stories.
-- Change `DefaultStaticLibrary` so that the output file is called `lib${library.baseName}.a` when building with GCC on Windows.
-- Add `LibraryBinary.getAsNativeDependencySet()`. The implementation depends on toolchain and binary type:
-
-<table>
-    <tr>
-        <th>Binary type</th>
-        <th>Toolchain</th>
-        <th>linkFiles</th>
-        <th>runtimeFiles</th>
-    </tr>
-    <tr><td>Shared</td><td>Visual C++</td><td>the `.lib` file</td><td>the `.dll` file</td></tr>
-    <tr><td>Static</td><td>Visual C++</td><td>the `.lib` file</td><td>empty collection</td></tr>
-    <tr><td>Shared</td><td>GCC</td><td>the `.so` or `.dll` file</td><td>the `.so` or `.dll` file</td></tr>
-    <tr><td>Static</td><td>GCC</td><td>the `.a` file</td><td>empty collection</td></tr>
-</table>
-
-- The `includeRoots` property of the `NativeDependencySet` implementation for a binary should return the set of header directories exported by the library.
-- Add `NativeBinary.libraries` property of type `DomainObjectCollection<NativeDependencySet>`.
-- Change the C++ plugin to add the dependencies of each C++ source set to this collection.
-- Change the C++ plugin to wire the inputs of the binary's compile and link tasks based on the contents of the `NativeBinary.libraries` collection.
-- Add `Library.getShared()` and `getStatic()` methods which return `NativeDependencySet` imlementations for the shared and static variants of the library.
-- Add `NativeBinary.lib(Object)` method which accepts anything that can be converted to a `NativeDependencySet`:
-    - A `NativeBinary` is converted by calling its `getAsNativeDependencySet()` method.
-    - A `NativeDependencySet` can be used as is.
-    - A `Library` is converted by calling its `getShared().getAsNativeDependencySet()` method.
-- Add `CppSourceSet.lib(Object)` method which accepts the above types.
-
-### User visible changes
-
-    binaries {
-        mainExecutable {
-            // Include the static variant of the given library in the executable
-            lib libraries.main.static
-            // Include the default variant of the given library in the executable
-            lib libraries.utils
-            // Include the given binary in the executable
-            lib binaries.someSharedLibrary
-        }
-    }
-
-    cpp {
-        sourceSets {
-            main {
-                lib libraries.main
-                lib libraries.util.shared
-                lib binaries.someSharedLibrary
-            }
-        }
-    }
-
-### Test cases
-
-- Install and run an executable that:
-    - Uses a mix of static and shared libraries.
-    - Uses a mix of libraries from the same project, same build and from different builds.
-    - Use a (static, shared) library that depends on another (static, shared) library.
-    - In each case, verify that only shared libraries are included in the install image.
-    - In each case, remove the original binaries before running the install image.
-- A dependency on a binary overrides a dependency on the library that produced the binary. 
-
-### Open issues
-
-- Need a new name for `NativeDependencySet`.
-- Need some way to convert a `NativeDependencySet` to a read-only library.
-- Need to apply a lifecycle to the resolved libs of `CppSourceSet` and `NativeBinary`.
-- Improve consumption of libraries from other projects.
-- Some mechanism to use the static binary as default for a library.
-- Some mechanism to select static or dynamic linkage for each dependency of a binary.
-- Infer incoming libraries from component dependencies.
-- Samples that demonstrates how to link a static library into an executable.
-- Move Component and Binary interfaces to new packages.
-- Add some way to create ad hoc `NativeDependencySet` instances, for example, a library produced by another build tool.
-- Need to be able to fine-tune compile time, link time and runtime inputs.
-- Merge `CppSourceSet.libs` and `CppSourceSet.nativeDependencySets`.
-- Allow a `Binary` to be attached to a publication.
-- Update publication so that a binary's include, link and runtime files are published.
-- Need to be able to deal with the fact that only relocatable binaries can be linked into relocatable binaries
-    - Make it possible to build a relocatable variant of a static library binary.
-    - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
-    - Change dependency resolution to choose the relocatable variant of a static library when linking into a shared library
 
 ## Story: Introduce native functional source sets
 
@@ -679,6 +638,78 @@ This story adds support for using assembler source files as inputs to a native b
 - Need to make standard 'build', 'check' lifecycle tasks available too.
 
 # Milestone 2
+
+## Story: Allow library binaries to be used as input to other libraries
+
+This story add support for using a library which has dependencies on other libraries.
+
+Given a library `a` that uses another library `b` as input:
+
+- When compiling a binary that uses library `a`, then include the exported headers for library `a` but not the headers for library `b`.
+- The link-time files of a shared library `a`, are the link binaries for shared library `a` only (the `.so` or the `.lib` file).
+- The link-time files of a static library `a`, are the link binaries for static library `a` (the `.a` or `.lib` file) and the link-time files of its direct dependencies.
+- The runtime files of a shared library `a`, are the runtime binaries for shared library `a` (the `.so` or the `.dll` file) and the runtime files of its direct dependencies.
+- The runtime files of a static library `a`, are the runtime files of its direct dependencies.
+
+### Open issues
+
+- Need to apply conflict resolution as we can't include the static and shared binaries for a given library at link time.
+
+## Story: Simplify configuration of a binary based on its properties
+
+- Add a `DomainObjectCollection` sub-interface with method `all(map, action)`. This method is equivalent to calling `matching(predicate, action)`, where `predicate` is a spec that selects all objects whose property values equal those specified in the map. This method can be used to do delayed configuration of the elements of the collection.
+- Change `NativeComponent.binaries` and `BinariesContainer` to provide implementations of this interface.
+
+### User visible changes
+
+    apply plugin: 'cpp-lib'
+
+    libraries {
+        main {
+            // Defaults for all binaries for this library
+            binaries.all {
+                …
+            }
+            // Defaults for all shared library binaries for this library
+            binaries.all(type: SharedLibraryBinary) {
+                …
+            }
+            // Defaults for all binaries built by Visual C++
+            binaries.all(toolchain: toolchains.visualCpp) {
+                …
+            }
+            // Defaults for all shared library binaries built by Visual C++
+            binaries.all(toolchain: toolchains.visualCpp, type: SharedLibraryBinary) {
+                …
+            }
+        }
+    }
+
+    binaries.all(name: 'mainSharedLibrary') {
+        …
+    }
+
+    binaries.all(type: NativeBinary) {
+        …
+    }
+
+### Open issues
+
+- Roll out the predicate methods to other containers.
+- Need to deal with things like 'all versions of visual C++', 'all toolchains except visual C++', 'visual C++ 9 and later', 'gcc 3' etc.
+- Need to deal with things like 'all unix environments', 'all windows environments', etc.
+
+## Story: Convenient configuration of tasks for binaries and components
+
+This story defers configuration of the tasks for a binary or component until after the object has been fully configured.
+
+- Change the C++ plugin to create the tasks for each native binary after the binary has been configured.
+- Change the C++ plugin to create the tasks for each component after the tasks for the binary have been configured.
+- Remove the convention mappings from the C++ plugin.
+
+### Open issues
+
+- Some way to configure the tasks for a binary and publication.
 
 ## Story: Incremental compilation for C and C++
 
