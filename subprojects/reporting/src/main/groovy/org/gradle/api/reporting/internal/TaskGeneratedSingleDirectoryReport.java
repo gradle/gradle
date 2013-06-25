@@ -31,9 +31,9 @@ public class TaskGeneratedSingleDirectoryReport extends TaskGeneratedReport impl
     }
 
     public File getEntryPoint() {
-        if(relativeEntryPath==null){
+        if (relativeEntryPath == null) {
             return getDestination();
-        }else{
+        } else {
             return new File(getDestination(), relativeEntryPath);
         }
     }
