@@ -38,7 +38,7 @@ public interface PomFilterContainer {
      * If at least one custom filter has been added the default filter is not used any longer.</p>
      * <p>The default for this property is {@link PublishFilter#ALWAYS_ACCEPT}.
      * If there is only one artifact you are fine with this filter. If there is more than one artifact, deployment will lead to
-     * an exception, if you don't specify a filter that selects the artifact to deploy. If you want to deploy more than one artiact you have
+     * an exception, if you don't specify a filter that selects the artifact to deploy. If you want to deploy more than one artifact you have
      * to use the (see {@link #addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)} method.</p>
      *
      * @param defaultFilter
