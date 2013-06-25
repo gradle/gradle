@@ -156,7 +156,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 binary.getSource().add(javaSourceSet);
                 binary.getSource().add(resourceSet);
 
-                binary.getClassesTask().dependsOn(sourceSet.getOutput().getDirs());
+                binary.dependsOn(sourceSet.getOutput().getDirs());
             }
         });
     }

@@ -19,9 +19,8 @@ package org.gradle.nativecode.base.internal;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.TaskNamerForBinaries;
 import org.gradle.nativecode.base.NativeComponent;
@@ -33,10 +32,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class DefaultNativeBinary implements NativeBinaryInternal {
+public abstract class DefaultNativeBinary extends AbstractBuildableModelElement implements NativeBinaryInternal {
     private final ResolvableNativeDependencySet libs = new ResolvableNativeDependencySet();
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
-    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private final ArrayList<Object> compilerArgs = new ArrayList<Object>();
     private final ArrayList<Object> linkerArgs = new ArrayList<Object>();
     private final ArrayList<Object> defines = new ArrayList<Object>();
@@ -114,14 +112,6 @@ public abstract class DefaultNativeBinary implements NativeBinaryInternal {
 
     public void lib(Object notation) {
         libs.add(notation);
-    }
-
-    public void builtBy(Object... tasks) {
-        buildDependencies.add(tasks);
-    }
-
-    public TaskDependency getBuildDependencies() {
-        return buildDependencies;
     }
 
     public abstract String getOutputFileName();

@@ -80,6 +80,16 @@ public class BinariesPlugin implements Plugin<Project> {
                 }
             }
         });
+        
+        // TODO:DAZ Move this up in to language-base project and make it work for ClassDirectoryBinary as well
+        binaries.withType(NativeBinaryInternal.class).all(new Action<NativeBinaryInternal>() {
+            public void execute(NativeBinaryInternal nativeBinary) {
+                Task binaryLifecycleTask = project.task(nativeBinary.getName());
+                binaryLifecycleTask.setGroup(BasePlugin.BUILD_GROUP);
+                binaryLifecycleTask.setDescription(String.format("builds %s", nativeBinary));
+                nativeBinary.setLifecycleTask(binaryLifecycleTask);
+            }
+        });
     }
 
     private void register(NativeBinary binary, NativeComponent component, BinaryContainer binaryContainer) {

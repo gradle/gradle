@@ -20,5 +20,4 @@ import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.nativecode.base.NativeBinary;
 
 public interface NativeBinaryInternal extends NativeBinary, BinaryInternal {
-    void builtBy(Object... tasks);
 }

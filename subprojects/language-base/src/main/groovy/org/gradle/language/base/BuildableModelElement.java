@@ -16,13 +16,24 @@
 
 package org.gradle.language.base;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.api.Task;
 
 /**
- * A physical binary artifact, which can run on a particular platform or runtime.
+ * A model element that is directly buildable.
+ * Such an element mirrors a specified lifecycle task in the DAG, and can accept dependencies which are then associated with the lifecycle task.
  */
-@Incubating @HasInternalProtocol
-public interface Binary extends BuildableModelElement, Named {
+@Incubating
+public interface BuildableModelElement extends Buildable {
+    /**
+     * Associates a 'lifecycle' task with the construction of this element.
+     */
+    void setLifecycleTask(Task lifecycleTask);
+
+    /**
+     * Adds a task that is required for the construction of this element.
+     * A task added this way is then added as a dependency of the associated lifecycle task.
+     */
+    void dependsOn(Object... tasks);
 }

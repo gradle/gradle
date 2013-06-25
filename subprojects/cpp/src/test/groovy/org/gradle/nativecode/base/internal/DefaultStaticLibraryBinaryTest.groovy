@@ -37,7 +37,9 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         given:
         def headers = Stub(SourceDirectorySet)
         library.headers >> headers
-        binary.builtBy(Stub(Task))
+        def lifecycleTask = Stub(Task)
+        binary.lifecycleTask = lifecycleTask
+        binary.dependsOn(Stub(Task))
 
         expect:
         def nativeDependency = binary.asNativeDependencySet
@@ -45,7 +47,7 @@ class DefaultStaticLibraryBinaryTest extends Specification {
 
         and:
         nativeDependency.linkFiles.files == [binary.outputFile] as Set
-        nativeDependency.linkFiles.buildDependencies == binary.buildDependencies
+        nativeDependency.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
         nativeDependency.linkFiles.toString() == "static library 'main'"
 
         and:

@@ -16,10 +16,10 @@
 
 package org.gradle.nativecode.base.internal
 
+import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.nativecode.base.Library
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.model.Task
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -40,7 +40,9 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         given:
         def binaryFile = tmpDir.createFile("binary.run")
         def linkFile = tmpDir.createFile("binary.link")
-        binary.builtBy(Stub(Task))
+        def lifecycleTask = Stub(Task)
+        binary.setLifecycleTask(lifecycleTask)
+        binary.dependsOn(Stub(Task))
         binary.outputFile = binaryFile
 
         and:
@@ -54,12 +56,12 @@ class DefaultSharedLibraryBinaryTest extends Specification {
 
         and:
         nativeDependency.linkFiles.files == [linkFile] as Set
-        nativeDependency.linkFiles.buildDependencies == binary.buildDependencies
+        nativeDependency.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
         nativeDependency.linkFiles.toString() == "shared library 'main'"
 
         and:
         nativeDependency.runtimeFiles.files == [binaryFile] as Set
-        nativeDependency.runtimeFiles.buildDependencies == binary.buildDependencies
+        nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
         nativeDependency.runtimeFiles.toString() == "shared library 'main'"
     }
 }

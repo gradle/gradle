@@ -101,6 +101,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         then:
         skipped ":compileHelloSharedLibrary"
+        skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         skipped ":compileMainExecutable"
         skipped ":mainExecutable"
@@ -124,8 +125,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         then:
         skipped ":compileHelloSharedLibrary"
+        skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
 
@@ -151,8 +154,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         then:
         executedAndNotSkipped ":compileHelloSharedLibrary"
+        executedAndNotSkipped ":linkHelloSharedLibrary"
         executedAndNotSkipped ":helloSharedLibrary"
         skipped ":compileMainExecutable"
+        executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
 
@@ -175,8 +180,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         then:
         executedAndNotSkipped ":compileHelloSharedLibrary"
+        skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
+        skipped ":linkMainExecutable"
         skipped ":mainExecutable"
         skipped ":installMainExecutable"
     }
@@ -198,8 +205,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         then:
         skipped ":compileHelloSharedLibrary"
+        skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
 
@@ -227,8 +236,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         then:
         skipped ":compileHelloSharedLibrary"
+        skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         skipped ":compileMainExecutable"
+        executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
 
@@ -256,8 +267,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         then:
         skipped ":compileHelloSharedLibrary"
+        skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         skipped ":compileMainExecutable"
+        executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
 
         and:
@@ -276,8 +289,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         then:
         skipped ":compileHelloSharedLibrary"
+        skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
+        skipped ":linkMainExecutable"
         skipped ":mainExecutable"
         skipped ":installMainExecutable"
     }
@@ -294,8 +309,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         then:
         skipped ":compileHelloSharedLibrary"
+        skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
 
         and:
@@ -325,8 +342,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         then:
         executedAndNotSkipped ":compileHelloSharedLibrary"
+        skipped ":linkHelloSharedLibrary"
         executedAndNotSkipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
 
         and:

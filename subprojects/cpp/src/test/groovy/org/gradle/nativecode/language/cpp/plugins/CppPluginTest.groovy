@@ -137,12 +137,16 @@ class CppPluginTest extends Specification {
         compile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
-        def link = project.tasks.testExecutable
+        def link = project.tasks.linkTestExecutable
         link instanceof LinkExecutable
         link.toolChain == binary.toolChain
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == project.binaries.testExecutable.outputFile
         link Matchers.dependsOn("compileTestExecutable")
+
+        and:
+        def lifecycle = project.tasks.testExecutable
+        lifecycle Matchers.dependsOn("linkTestExecutable")
 
         and:
         def install = project.tasks.installTestExecutable
@@ -151,7 +155,7 @@ class CppPluginTest extends Specification {
         install Matchers.dependsOn("testExecutable")
 
         and:
-        project.binaries.testExecutable.buildDependencies.getDependencies(null) == [link] as Set
+        project.binaries.testExecutable.buildDependencies.getDependencies(null) == [lifecycle] as Set
     }
 
     def "creates tasks for each library"() {
@@ -181,12 +185,16 @@ class CppPluginTest extends Specification {
         sharedCompile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
-        def link = project.tasks.testSharedLibrary
+        def link = project.tasks.linkTestSharedLibrary
         link instanceof LinkSharedLibrary
         link.toolChain == sharedLib.toolChain
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == sharedLib.outputFile
         link Matchers.dependsOn("compileTestSharedLibrary")
+
+        and:
+        def sharedLibraryTask = project.tasks.testSharedLibrary
+        sharedLibraryTask Matchers.dependsOn("linkTestSharedLibrary")
 
         and:
         def staticCompile = project.tasks.compileTestStaticLibrary
@@ -196,15 +204,19 @@ class CppPluginTest extends Specification {
         staticCompile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
-        def staticLink = project.tasks.testStaticLibrary
+        def staticLink = project.tasks.assembleTestStaticLibrary
         staticLink instanceof CreateStaticLibrary
         staticLink.toolChain == staticLib.toolChain
         staticLink.outputFile == staticLib.outputFile
         staticLink Matchers.dependsOn("compileTestStaticLibrary")
 
         and:
-        sharedLib.buildDependencies.getDependencies(null) == [link] as Set
-        staticLib.buildDependencies.getDependencies(null) == [staticLink] as Set
+        def staticLibraryTask = project.tasks.testStaticLibrary
+        staticLibraryTask Matchers.dependsOn("assembleTestStaticLibrary")
+
+        and:
+        sharedLib.buildDependencies.getDependencies(null) == [sharedLibraryTask] as Set
+        staticLib.buildDependencies.getDependencies(null) == [staticLibraryTask] as Set
     }
 
     def dsl(Closure closure) {

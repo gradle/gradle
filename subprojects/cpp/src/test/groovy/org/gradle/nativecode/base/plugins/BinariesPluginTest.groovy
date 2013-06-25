@@ -16,6 +16,10 @@
 
 package org.gradle.nativecode.base.plugins
 
+import org.gradle.api.Task
+import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.tasks.TaskDependency
+import org.gradle.nativecode.base.ExecutableBinary
 import org.gradle.nativecode.language.cpp.plugins.CppPlugin
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -23,7 +27,7 @@ import spock.lang.Specification
 class BinariesPluginTest extends Specification {
     final def project = HelperUtil.createRootProject()
 
-    def "creates domain objects for executable"() {
+    def "creates domain objects and lifecycle task for executable"() {
         given:
         dsl {
             apply plugin: CppPlugin
@@ -37,16 +41,22 @@ class BinariesPluginTest extends Specification {
         def executable = project.executables.test
 
         and:
-        def executableBinary = project.binaries.testExecutable
+        ExecutableBinary executableBinary = project.binaries.testExecutable
         executableBinary.component == executable
         executableBinary.toolChain
         executableBinary.outputFile == project.file("build/binaries/testExecutable/${executableBinary.toolChain.getExecutableName('test')}")
 
         and:
         executable.binaries.contains executableBinary
+
+        and:
+        with (oneTask(executableBinary.buildDependencies)) {
+            name == executableBinary.name
+            group == BasePlugin.BUILD_GROUP
+        }
     }
 
-    def "creates domain objects for library"() {
+    def "creates domain objects and lifecycle tasks for library"() {
         when:
         dsl {
             apply plugin: BinariesPlugin
@@ -76,11 +86,27 @@ class BinariesPluginTest extends Specification {
         and:
         library.binaries.contains(sharedLibraryBinary)
         library.binaries.contains(staticLibraryBinary)
+
+        and:
+        with (oneTask(sharedLibraryBinary.buildDependencies)) {
+            name == sharedLibraryBinary.name
+            group == BasePlugin.BUILD_GROUP
+        }
+        with (oneTask(staticLibraryBinary.buildDependencies)) {
+            name == staticLibraryBinary.name
+            group == BasePlugin.BUILD_GROUP
+        }
     }
 
     def dsl(Closure closure) {
         closure.delegate = project
         closure()
         project.evaluate()
+    }
+
+    Task oneTask(TaskDependency dependencies) {
+        def tasks = dependencies.getDependencies(Stub(Task))
+        assert tasks.size() == 1
+        return tasks.asList()[0]
     }
 }

@@ -89,7 +89,7 @@ public class JvmLanguagePlugin implements Plugin<Project> {
                 });
                 final Task classesTask = target.getTasks().create(namingScheme.getTaskName(null, "classes"));
                 classesTask.setDescription(String.format("Assembles %s.", binary));
-                binary.setClassesTask(classesTask);
+                binary.setLifecycleTask(classesTask);
                 binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
                     public void execute(ResourceSet resourceSet) {
                         // TODO: handle case where binary has multiple ResourceSet's
@@ -100,7 +100,7 @@ public class JvmLanguagePlugin implements Plugin<Project> {
                                 return binary.getResourcesDir();
                             }
                         });
-                        classesTask.dependsOn(resourcesTask);
+                        binary.dependsOn(resourcesTask);
                         resourcesTask.from(resourceSet.getSource());
                     }
                 });

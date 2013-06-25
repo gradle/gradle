@@ -17,7 +17,6 @@ package org.gradle.language.jvm;
 
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Incubating;
-import org.gradle.api.Task;
 import org.gradle.language.base.Binary;
 import org.gradle.language.base.LanguageSourceSet;
 
@@ -38,6 +37,4 @@ public interface ClassDirectoryBinary extends Binary {
     File getResourcesDir();
     void setResourcesDir(File dir);
     DomainObjectCollection<LanguageSourceSet> getSource();
-    Task getClassesTask();
-    void setClassesTask(Task task);
 }

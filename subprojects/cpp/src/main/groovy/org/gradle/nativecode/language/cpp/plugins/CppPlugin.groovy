@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.cpp.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
-import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.Sync
@@ -33,7 +31,6 @@ import org.gradle.nativecode.language.cpp.CppSourceSet
 import org.gradle.nativecode.language.cpp.tasks.CppCompile
 import org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin
 import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin
-
 /**
  * A plugin for projects wishing to build custom components from C++ sources.
  * <p>Automatically includes {@link MicrosoftVisualCppPlugin} and {@link GppCompilerPlugin} for core toolchain support.</p>
@@ -41,8 +38,9 @@ import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin
  * <p>
  *     For each {@link NativeBinary} found, this plugin will:
  *     <ul>
- *         <li>Create a {@link CppCompile} task named "${binary-name}Compile" to compile the C++ sources.</li>
- *         <li>Create a {@link LinkExecutable}, {@link LinkSharedLibrary} or {@link CreateStaticLibrary} task name "${binary-name}" to create the binary artifact.</li>
+ *         <li>Create a {@link CppCompile} task named "compile${binary-name}" to compile the C++ sources.</li>
+ *         <li>Create a {@link LinkExecutable} or {@link LinkSharedLibrary} task named "link${binary-name}
+ *             or a {@link CreateStaticLibrary} task name "assemble${binary-name}" to create the binary artifact.</li>
  *         <li>Create an InstallTask named "install${Binary-name}" to install any {@link ExecutableBinary} artifact.
  *     </ul>
  * </p>
@@ -81,8 +79,8 @@ class CppPlugin implements Plugin<ProjectInternal> {
         } else if (binary instanceof SharedLibraryBinary) {
             createLinkTask(project, binary, compileTask)
         } else { // ExecutableBinary
-            AbstractLinkTask linkTask = createLinkTask(project, binary, compileTask)
-            createInstallTask(project, binary, linkTask)
+            createLinkTask(project, binary, compileTask)
+            createInstallTask(project, (ExecutableBinary) binary)
         }
     }
 
@@ -111,8 +109,8 @@ class CppPlugin implements Plugin<ProjectInternal> {
         compileTask
     }
 
-    private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinaryInternal binary, CppCompile compileTask) {
-        AbstractLinkTask linkTask = project.task(binary.namingScheme.getTaskName(null), type: linkTaskType(binary)) {
+    private void createLinkTask(ProjectInternal project, NativeBinaryInternal binary, CppCompile compileTask) {
+        AbstractLinkTask linkTask = project.task(binary.namingScheme.getTaskName("link"), type: linkTaskType(binary)) {
              description = "Links ${binary}"
              group = BasePlugin.BUILD_GROUP
          }
@@ -128,12 +126,11 @@ class CppPlugin implements Plugin<ProjectInternal> {
         linkTask.conventionMapping.outputFile = { binary.outputFile }
         linkTask.conventionMapping.linkerArgs = { binary.linkerArgs }
 
-        binary.builtBy(linkTask)
-        linkTask
+        binary.dependsOn(linkTask)
     }
 
     private void createStaticLibraryTask(ProjectInternal project, NativeBinaryInternal binary, CppCompile compileTask) {
-        CreateStaticLibrary task = project.task(binary.namingScheme.getTaskName(null), type: CreateStaticLibrary) {
+        CreateStaticLibrary task = project.task(binary.namingScheme.getTaskName("assemble"), type: CreateStaticLibrary) {
              description = "Creates ${binary}"
              group = BasePlugin.BUILD_GROUP
          }
@@ -144,7 +141,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         task.conventionMapping.outputFile = { binary.outputFile }
 
-        binary.builtBy(task)
+        binary.dependsOn(task)
     }
 
     private static Class<? extends AbstractLinkTask> linkTaskType(NativeBinary binary) {
@@ -154,12 +151,11 @@ class CppPlugin implements Plugin<ProjectInternal> {
         return LinkExecutable
     }
 
-    def createInstallTask(ProjectInternal project, NativeBinaryInternal executable, Task linkTask) {
-        project.task(executable.namingScheme.getTaskName("install"), type: Sync) {
+    def createInstallTask(ProjectInternal project, NativeBinaryInternal executable) {
+        def installTask = project.task(executable.namingScheme.getTaskName("install"), type: Sync) {
             description = "Installs a development image of $executable"
             group = BasePlugin.BUILD_GROUP
             into { project.file("${project.buildDir}/install/$executable.name") }
-            dependsOn linkTask
             if (OperatingSystem.current().windows) {
                 from { executable.outputFile }
                 from { executable.libs*.runtimeFiles }
@@ -181,5 +177,7 @@ exec "\$APP_BASE_NAME/lib/${executable.outputFile.name}" \"\$@\"
                 }
             }
         }
+
+        installTask.dependsOn(executable)
     }
 }

@@ -16,10 +16,9 @@
 package org.gradle.language.jvm.internal;
 
 import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.Task;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.TaskNamerForBinaries;
@@ -27,13 +26,12 @@ import org.gradle.language.jvm.ClassDirectoryBinary;
 
 import java.io.File;
 
-public class DefaultClassDirectoryBinary implements ClassDirectoryBinary, BinaryInternal {
+public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement implements ClassDirectoryBinary, BinaryInternal {
     private final String name;
     private final String baseName;
     private File classesDir;
     private File resourcesDir;
     private final DomainObjectCollection<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
-    private Task classesTask;
 
     public DefaultClassDirectoryBinary(String name) {
         this.name = name;
@@ -73,18 +71,6 @@ public class DefaultClassDirectoryBinary implements ClassDirectoryBinary, Binary
 
     public DomainObjectCollection<LanguageSourceSet> getSource() {
         return source;
-    }
-
-    public TaskDependency getBuildDependencies() {
-        return null;  //TODO
-    }
-
-    public Task getClassesTask() {
-        return classesTask;
-    }
-
-    public void setClassesTask(Task classesTask) {
-        this.classesTask = classesTask;
     }
 
     public String toString() {
