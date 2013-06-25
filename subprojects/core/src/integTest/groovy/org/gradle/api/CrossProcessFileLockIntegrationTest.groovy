@@ -53,7 +53,7 @@ public class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec
         """
 
         then:
-        def handle1 = executer.withArguments(':a:build', '-i').start()
+        def handle1 = executer.withArguments(':a:build', '-is').start()
         poll(120) {
             assert handle1.standardOutput.contains('waiting for file...')
         }
