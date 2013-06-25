@@ -30,6 +30,17 @@ for changes to behaviour.
 * Change the `Ear` type so that the generated descriptor takes precedence over a descriptor in the main content, similar to the manifest for `Jar` and the
   web XML for `War`.
 
+## Archive tasks + base plugin
+
+* Move defaults for output directory to the tasks and remove from base plugin.
+* Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with another
+  archive task.
+
+## Test output
+
+* Change the default result and report directory for the `Test` type to include the task's name, so that the default
+  does not conflict with another `Test` task.
+
 ## Remove API methods that are added by the DSL decoration
 
 * Remove all methods that accept a `Closure` when an `Action` overload is available. Add missing overloads where appropriate.
