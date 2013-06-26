@@ -43,15 +43,13 @@ binaries.all {
     define "NDEBUG"
 
     // Define toolchain-specific compiler and linker options
-    switch (toolChain) {
-        case toolChains.gcc:
-            compilerArgs "-O2", "-fno-access-control"
-            linkerArgs "-S"
-            break;
-        case toolChains.visualCpp:
-            compilerArgs "/Z7"
-            linkerArgs "/INTEGRITYCHECK:NO"
-            break;
+    if (toolChain == toolChains.gcc) {
+        compilerArgs "-O2", "-fno-access-control"
+        linkerArgs "-S"
+    }
+    if (toolChain == toolChains.visualCpp) {
+        compilerArgs "/Z7"
+        linkerArgs "/INTEGRITYCHECK:NO"
     }
 }
 // END SNIPPET all-binaries

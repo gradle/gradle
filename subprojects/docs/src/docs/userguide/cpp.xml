@@ -82,13 +82,7 @@
     </section>
 
     <section>
-        <title>The cpp model</title>
-        <para>
-            All build scripts DSLs, model elements and tasks used to manage C++ projects are added by the <literal>cpp</literal> plugin.
-        </para>
-        <sample id="cppLibraries" dir="cpp/cpp" title="Applying the 'cpp' plugin">
-            <sourcefile file="build.gradle" snippet="apply-plugin"/>
-        </sample>
+        <title>Component model</title>
         <para>
             A C++ project defines a set of <apilink class="org.gradle.nativecode.base.Executable"/> and <apilink class="org.gradle.nativecode.base.Library"/> components,
             each of which Gradle maps to a number of <apilink class="org.gradle.nativecode.base.NativeBinary"/> outputs.
@@ -124,7 +118,35 @@
     </section>
 
     <section>
-        <title>Cpp tasks</title>
+        <title>Plugins</title>
+        <para>
+            All build scripts DSLs, model elements and tasks used to manage C++ projects are added by the <literal>cpp</literal> plugin.
+        </para>
+        <sample id="cppLibraries" dir="cpp/cpp" title="Applying the 'cpp' plugin">
+            <sourcefile file="build.gradle" snippet="apply-plugin"/>
+        </sample>
+        <para>
+            The <literal>cpp</literal> plugin allows you to configure any number of <literal>libraries</literal> and <literal>executables</literal> for your project.
+            However, at times it is more convenient to use either the <literal>cpp-lib</literal> or <literal>cpp-exe</literal> plugins that sit on top of the <literal>cpp</literal>
+            plugin and pre-configure the project to build a single native library or executable respectively.
+        </para>
+        <sample id="useCppExePlugin" dir="cpp/cpp-exe" title="Using the 'cpp-exe' plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+        <sample id="useCppLibPlugin" dir="cpp/cpp-lib" title="Using the 'cpp-lib' plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+        <para>
+            The <literal>cpp-exe</literal> plugin configures the project to build a single executable named <literal>main</literal>,
+            and the <literal>cpp-lib</literal> plugin configures the project to build a shared and static version of a single library named <literal>main</literal>.
+        </para>
+        <para>
+            In both cases, a single source set (<literal>src/main</literal>) containing C++ sources is assumed to exist.
+        </para>
+    </section>
+
+    <section>
+        <title>Tasks</title>
         <para>
             For each <apilink class="org.gradle.nativecode.base.NativeBinary"/> that can be produced by a build, the <literal>cpp</literal> plugin
             creates a single <literal>lifecycle task</literal> that can be used to create that binary, together with a set of sub-tasks that do the actual
@@ -144,29 +166,6 @@
                 <td><apilink class="org.gradle.nativecode.base.Library"/></td><td><apilink class="org.gradle.nativecode.base.StaticLibraryBinary"/></td><td><literal>mainStaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable>.a</filename></td>
             </tr>
         </table>
-    </section>
-
-    <section>
-        <title>The cpp convention plugins</title>
-        <para>
-            The <literal>cpp</literal> plugin allows you to configure any number of <literal>libraries</literal> and <literal>executables</literal> for your project.
-            However, at times it is more convenient to use either the <literal>cpp-lib</literal> or <literal>cpp-exe</literal> plugins that sit on top of the <literal>cpp</literal>
-            plugin and pre-configure the project to build a single native library or executable respectively.
-        </para>
-        <sample id="useCppExePlugin" dir="cpp/cpp-exe" title="Using the 'cpp-exe' plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-        <sample id="useCppLibPlugin" dir="cpp/cpp-lib" title="Using the 'cpp-lib' plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-        <para>
-            The <literal>cpp-exe</literal> plugin configures the project to build a single executable named <literal>main</literal>,
-            and the <literal>cpp-lib</literal> plugin configures the project to build a shared and static version of a single library named <literal>main</literal>.
-        </para>
-        <para>
-            In both cases, a single source set (<literal>src/main</literal>) containing C++ sources is assumed to exist.
-        </para>
-
     </section>
 
     <section>

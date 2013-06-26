@@ -187,19 +187,69 @@ using `FileCopyDetails`.
 
 TODO - include info on spec level setting
 
-### Can build static libraries from C++ sources (i)
+### Major improvements to C++ project support (i)
+
+Gradle has had basic support for C++ projects for some time. We're now excited to be starting on the process of expanding this support to make Gradle the best build
+system available for native code projects. By leveraging the flexibility of Gradle, we'll be introducing support for:
+
+- Creating and linking to static libraries
+- Building with different C++ toolchains (Visual C++, GCC, etc)
+- Building multiple variants of a single binary with different target architectures, build types (debug vs release), operating systems etc.
+- Variant-aware dependency resolution
+- Much more: see [https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md](https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md)
+
+Some of these features are included in Gradle 1.7 (see below), while others can be expected in the upcoming releases.
+
+#### Improved native component model
+
+A key part of improving C++ support is an [improved component model](userguide/cpp.html#N15643) which supports building multiple binary outputs for
+a single defined [native component](dsl/org.gradle.nativecode.base.NativeComponent.html).
+Using this model Gradle can now produce both a static and shared version of any [library component](dsl/org.gradle.nativecode.base.Library.html).
+
+#### Can build static libraries from C++ sources
 
 For any library declared in your C++ build, it is now possible to either compile and link the object files into a shared library,
 or compile and archive the object files into a static library (or both). For any library 'lib' added to your project,
 Gradle will create a 'libSharedLibrary' task to link the shared library, as well as a 'libStaticLibrary' task to create the static library.
 
-Please refer to the [User Guide chapter](userguide/cpp.html) for more details.
+Please refer to the [User Guide chapter](userguide/cpp.html) and the included C++ samples for more details.
 
-### C++ plugins supports Cygwin (i)
+#### Can specify defines, compilerArgs and linkerArgs for each C++ binary produced
+
+Each binary to be produced from a C++ project is associated with a set of compiler and linker command-line arguments, as well as macro definitions.
+These settings can be applied to all binaries, an individual binary, or selectively to a group of binaries based on some criteria.
+
+    binaries.all {
+        // Define a preprocessor macro for every binary
+        define "NDEBUG"
+
+        compilerArgs "-fconserve-space"
+        linkerArgs "--export-dynamic"
+    }
+    binaries.withType(SharedLibraryBinary) {
+        define "DLL_EXPORT"
+    }
+
+Each binary is associated with a particular C++ [tool chain](dsl/org.gradle.nativecode.base.ToolChain.html), allowing settings to be targeted based on this value.
+
+    binaries.all {
+        if (toolChain == toolChains.gcc) {
+            compilerArgs "-O2", "-fno-access-control"
+            linkerArgs "-S"
+        }
+        if (toolChain == toolChains.visualCpp) {
+            compilerArgs "/Z7"
+            linkerArgs "/INTEGRITYCHECK:NO"
+        }
+    }
+
+More examples of how binary-specific settings can be provided are in the [user guide](userguide/cpp.html#N15789).
+
+#### Can build C++ project with Cygwin/g++
 
 The C++ plugins now support using g++ when running Gradle under Cygwin.
 
-### Improved incremental build for C++ (i)
+#### Improved incremental build for C++
 
 The incremental build support offered by the C++ plugins has been improved in this release, making incremental build very accurate:
 
@@ -330,16 +380,7 @@ which has now the type`SetupBuild` task.
 
 ### Major changes to C++ support
 
-Gradle has had basic support for C++ projects for some time. We're now excited to be starting on the process of expanding this support to make Gradle the best build
-system available for native code projects. By leveraging the flexibility of Gradle, we'll be introducing support for:
-
-- Creating and linking to static libraries
-- Building with different C++ toolchains (Visual C++, GCC, etc)
-- Building multiple variants of a single binary with different target architectures, build types (debug vs release), operating systems etc.
-- Variant-aware dependency resolution
-- Much more: see [https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md](https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md)
-
-In order to make these changes, the incubating C++ support in Gradle is undergoing a major update. Many existing plugins, tasks, API classes and the DSL have been being given an overhaul.
+The incubating C++ support in Gradle is undergoing a major update. Many existing plugins, tasks, API classes and the DSL have been being given an overhaul.
 It's likely that all but the simplest existing C++ builds will need to be updated to accommodate these changes.
 
 If you want your existing C++ build to continue working with Gradle, you have 2 options.
