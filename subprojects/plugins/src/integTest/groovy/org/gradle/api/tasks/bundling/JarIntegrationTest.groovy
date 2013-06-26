@@ -262,7 +262,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
             from 'dir1'
             from 'dir2'
             duplicatesStrategy = 'exclude'
-            matching ('META-INF/services/**') {
+            filesMatching ('META-INF/services/**') {
                 duplicatesStrategy = 'include'
             }
         }
