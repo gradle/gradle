@@ -64,6 +64,11 @@ class TransformersTest extends Specification {
         name(namer).transform(3) == "3"
     }
 
+    def "by type"() {
+        expect:
+        type().transform("foo") == String
+    }
+
     Named named(String name) {
         new Named() {
             String getName() {
