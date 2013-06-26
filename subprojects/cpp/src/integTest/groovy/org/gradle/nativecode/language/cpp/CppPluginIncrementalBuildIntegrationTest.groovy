@@ -342,7 +342,6 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
         then:
         executedAndNotSkipped ":compileHelloSharedLibrary"
-        skipped ":linkHelloSharedLibrary"
         executedAndNotSkipped ":helloSharedLibrary"
         executedAndNotSkipped ":compileMainExecutable"
         executedAndNotSkipped ":linkMainExecutable"
