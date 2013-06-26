@@ -28,7 +28,7 @@ import java.util.Map;
  * A {@link DynamicObject} which uses groovy reflection to provide access to the properties and methods of a bean.
  */
 public class BeanDynamicObject extends AbstractDynamicObject {
-    
+
     private final Object bean;
     private final boolean includeProperties;
     private final DynamicObject delegate;
@@ -56,7 +56,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return new GroovyObjectAdapter();
         }
     }
-    
+
     public BeanDynamicObject withNoProperties() {
         return new BeanDynamicObject(bean, false);
     }
@@ -94,7 +94,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     @Override
     public boolean hasProperty(String name) {
-        return delegate.hasProperty(name);    
+        return delegate.hasProperty(name);
     }
 
     @Override
@@ -104,22 +104,22 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     @Override
     public void setProperty(final String name, Object value) throws MissingPropertyException {
-        delegate.setProperty(name, value); 
+        delegate.setProperty(name, value);
     }
 
     @Override
     public Map<String, ?> getProperties() {
-        return delegate.getProperties();        
+        return delegate.getProperties();
     }
 
     @Override
     public boolean hasMethod(String name, Object... arguments) {
-        return delegate.hasMethod(name, arguments);                        
+        return delegate.hasMethod(name, arguments);
     }
 
     @Override
     public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
-        return delegate.invokeMethod(name, arguments);        
+        return delegate.invokeMethod(name, arguments);
     }
 
     private class MetaClassAdapter implements DynamicObject {
@@ -160,9 +160,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             MetaClass metaClass = getMetaClass();
             MetaProperty property = metaClass.hasProperty(bean, name);
             if (property == null) {
-                if (property == null) {
-                    getMetaClass().invokeMissingProperty(bean, name, null, false);
-                }
+                getMetaClass().invokeMissingProperty(bean, name, null, false);
             }
 
             if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getSetter() == null) {
@@ -242,7 +240,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
        So in this case we use these methods directly on the GroovyObject in case it does implement logic at this level.
      */
     private class GroovyObjectAdapter extends MetaClassAdapter {
-        private final GroovyObject groovyObject = (GroovyObject)bean;
+        private final GroovyObject groovyObject = (GroovyObject) bean;
 
 
         @Override
