@@ -29,11 +29,18 @@ public class JarUtil {
     public static boolean extractZipEntry(File jarFile, String entryName, File extractToFile) throws IOException {
         boolean entryExtracted = false;
 
-        ZipInputStream zipStream = null;
-        BufferedOutputStream extractTargetStream = null;
+        InputStream in;
+        ZipInputStream zipStream;
+        OutputStream out;
+        BufferedOutputStream extractTargetStream;
+
+        final CloserFlusher cf = new CloserFlusher();
+
         try {
-            zipStream = new ZipInputStream(new FileInputStream(jarFile));
-            extractTargetStream = new BufferedOutputStream(new FileOutputStream(extractToFile));
+            in = cf.add(new FileInputStream(jarFile));
+            zipStream = cf.add(new ZipInputStream(in));
+            out = cf.add(new FileOutputStream(extractToFile));
+            extractTargetStream = cf.add(new BufferedOutputStream(out));
 
             boolean classFileExtracted = false;
             boolean zipStreamEndReached = false;
@@ -51,8 +58,7 @@ public class JarUtil {
                 }
             }
         } finally {
-            IOUtils.closeQuietly(zipStream);
-            IOUtils.closeQuietly(extractTargetStream);
+            cf.closeQuietly();
         }
 
         return entryExtracted;
