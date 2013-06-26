@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.configuration;
+package org.gradle.initialization.layout;
 
 import java.util.Set;
 
@@ -39,5 +39,10 @@ public class GradleProperties {
 
     public static boolean isTrue(Object propertyValue) {
         return propertyValue != null && propertyValue.toString().equalsIgnoreCase("true");
+    }
+
+    public static boolean isIncubatingMode(String incubatingMode) {
+        assert ALL.contains(incubatingMode);
+        return incubatingMode.equals(PARALLEL_PROPERTY) || incubatingMode.equals(CONFIGURE_ON_DEMAND_PROPERTY);
     }
 }
