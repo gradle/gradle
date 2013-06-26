@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class MavenJcenterDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -23,6 +24,9 @@ class MavenJcenterDependencyResolveIntegrationTest extends AbstractDependencyRes
         buildFile << """
 repositories {
     jcenter()
+    jcenter { // just test this syntax works.
+        name = "otherJcenter"
+    }
 }
 
 configurations {
@@ -51,9 +55,16 @@ task check << {
         'slf4j-api-1.7.5.jar'
     ]
 }
+
+task repoNames << {
+    println repositories*.name
+}
 """
 
         expect:
-        succeeds "check"
+        succeeds "check", "repoNames"
+
+        and:
+        output.contains([DefaultRepositoryHandler.DEFAULT_BINTRAY_JCENTER_REPO_NAME, "otherJcenter"].toString())
     }
 }

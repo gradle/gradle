@@ -76,8 +76,8 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME);
     }
 
-    public MavenArtifactRepository jcenter(Map<String, ?> args) {
-        return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME, new ConfigureByMapAction<MavenArtifactRepository>(args));
+    public MavenArtifactRepository jcenter(Action<MavenArtifactRepository> action) {
+        return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME, action);
     }
 
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
