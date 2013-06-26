@@ -25,40 +25,56 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
     void setup() {
         writeBuildFile()
-        writeCodenarcConfig()
     }
 
     private void goodCode(TestFile root = testDirectory) {
         root.file("src/main/groovy/org/gradle/Class1.groovy") << "package org.gradle; class Class1 { }"
+        buildFile << """
+            allprojects {
+                apply plugin: 'groovy'
+
+                dependencies {
+                    compile localGroovy()
+                }
+            }
+        """
     }
 
-    private void goodTests(TestFile root = testDirectory) {
-        root.file("src/test/groovy/org/gradle/Class1.groovy") << "package org.gradle; class TestClass1 { @org.junit.Test void ok() { } }"
+    private void withTests() {
         buildFile << """
-            dependencies{
-                testCompile "junit:junit:4.11"
+            allprojects {
+                dependencies{
+                    testCompile "junit:junit:4.11"
+                }
             }
 """
     }
 
-    private void badCode(TestFile root = testDirectory) {
-        root.file("src/main/groovy/org/gradle/class1.groovy") << "package org.gradle; class class1 { }"
+    private void goodTests(TestFile root = testDirectory) {
+        root.file("src/test/groovy/org/gradle/Class1.groovy") << "package org.gradle; class TestClass1 { @org.junit.Test void ok() { } }"
+        withTests()
     }
 
-    private void writeCodenarcConfig(TestFile root = testDirectory) {
+    private void badTests(TestFile root = testDirectory) {
+        root.file("src/test/groovy/org/gradle/Class1.groovy") << "package org.gradle; class TestClass1 { @org.junit.Test void broken() { throw new RuntimeException() } }"
+        withTests()
+    }
+
+    private void withCodenarc(TestFile root = testDirectory) {
         root.file("config/codenarc/rulesets.groovy") << """
             ruleset {
                 ruleset('rulesets/naming.xml')
             }
         """
-    }
+        buildFile << """
+            allprojects {
+                apply plugin: 'codenarc'
 
-    private TestFile getBuildDashboardFile() {
-        file("build/reports/buildDashboard/index.html")
-    }
-
-    private int getDashboardLinksCount() {
-        Jsoup.parse(buildDashboardFile, null).select('ul li a').size()
+                codenarc {
+                    configFile = file('config/codenarc/rulesets.groovy')
+                }
+            }
+"""
     }
 
     private void writeBuildFile() {
@@ -66,38 +82,25 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
             apply plugin: 'build-dashboard'
 
             allprojects {
-                apply plugin: 'groovy'
-                apply plugin: 'codenarc'
-
-                codenarc {
-                    configFile = file('config/codenarc/rulesets.groovy')
-                }
-
                 repositories {
                     mavenCentral()
-                }
-
-                dependencies {
-                    codenarc 'org.codenarc:CodeNarc:0.16.1'
-                    compile localGroovy()
                 }
             }
         """
     }
 
-    private void failingDependenciesForCodenarcTasks() {
+    private void failingDependenciesForTestTask() {
         buildFile << """
             task failingTask << { throw new RuntimeException() }
 
-            codenarcMain.dependsOn failingTask
-            codenarcTest.dependsOn failingTask
+            test.dependsOn failingTask
         """
     }
 
     private void setupSubproject() {
         def subprojectDir = file('subproject')
-        writeCodenarcConfig(subprojectDir)
         goodCode(subprojectDir)
+        goodTests(subprojectDir)
         file('settings.gradle') << "include 'subproject'"
     }
 
@@ -114,8 +117,9 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         run('buildDashboard')
 
         then:
-        dashboardLinksCount == 1
+        reports.size() == 1
         hasReport(':buildDashboard', 'html')
+        unavailableReports.empty
     }
 
     void 'running buildDashboard task after some report generating task generates link to it in the dashboard'() {
@@ -127,10 +131,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         run('check', 'buildDashboard')
 
         then:
-        dashboardLinksCount == 5
+        reports.size() == 3
         hasReport(':buildDashboard', 'html')
-        hasReport(':codenarcMain', 'html')
-        hasReport(':codenarcTest', 'html')
         hasReport(':test', 'html')
         hasReport(':test', 'junitXml')
     }
@@ -144,10 +146,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         run('buildDashboard', 'check')
 
         then:
-        dashboardLinksCount == 5
+        reports.size() == 3
         hasReport(':buildDashboard', 'html')
-        hasReport(':codenarcMain', 'html')
-        hasReport(':codenarcTest', 'html')
         hasReport(':test', 'html')
         hasReport(':test', 'junitXml')
     }
@@ -155,33 +155,38 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     void 'running a report generating task also runs build dashboard task'() {
         given:
         goodCode()
+        goodTests()
 
         when:
-        run('check')
+        run('test')
 
         then:
-        dashboardLinksCount == 2
+        reports.size() == 3
         hasReport(':buildDashboard', 'html')
-        hasReport(':codenarcMain', 'html')
+        hasReport(':test', 'html')
+        hasReport(':test', 'junitXml')
     }
 
     void 'build dashboard task is executed even if report generating task fails'() {
         given:
-        badCode()
+        goodCode()
+        badTests()
 
         when:
         runAndFail('check')
 
         then:
-        dashboardLinksCount == 2
+        reports.size() == 3
         hasReport(':buildDashboard', 'html')
-        hasReport(':codenarcMain', 'html')
+        hasReport(':test', 'html')
+        hasReport(':test', 'junitXml')
     }
 
     void 'build dashboard task is not executed if a dependency of the report generating task fails'() {
         given:
         goodCode()
-        failingDependenciesForCodenarcTasks()
+        goodTests()
+        failingDependenciesForTestTask()
 
         when:
         runAndFail('check')
@@ -193,11 +198,12 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     void 'build dashboard task is not executed if a dependency of the report generating task fails even with --continue'() {
         given:
         goodCode()
-        failingDependenciesForCodenarcTasks()
+        goodTests()
+        failingDependenciesForTestTask()
 
         when:
         args('--continue')
-        runAndFail('codeNarcMain')
+        runAndFail('check')
 
         then:
         !buildDashboardFile.exists()
@@ -206,6 +212,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     void 'no report is generated if it is disabled'() {
         given:
         goodCode()
+
         buildFile << """
             buildDashboard {
                 reports.html.enabled = false
@@ -237,12 +244,13 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     void 'enabling an additional report renders buildDashboard out-of-date'() {
         given:
         goodCode()
+        withCodenarc()
 
         when:
-        run('check', 'buildDashboard') && ':buildDashboard' in nonSkippedTasks
+        run('check') && ':buildDashboard' in nonSkippedTasks
 
         then:
-        dashboardLinksCount == 2
+        reports.size() == 2
         hasReport(':buildDashboard', 'html')
         hasReport(':codenarcMain', 'html')
 
@@ -254,10 +262,10 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         and:
-        run('check', 'buildDashboard') && ':buildDashboard' in nonSkippedTasks
+        run('check') && ':buildDashboard' in nonSkippedTasks
 
         then:
-        dashboardLinksCount == 3
+        reports.size() == 3
         hasReport(':buildDashboard', 'html')
         hasReport(':codenarcMain', 'html')
         hasReport(':codenarcMain', 'text')
@@ -266,20 +274,24 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     void 'reports from subprojects are aggregated'() {
         given:
         goodCode()
+        goodTests()
         setupSubproject()
 
         when:
         run('buildDashboard', 'check')
 
         then:
-        dashboardLinksCount == 3
+        reports.size() == 5
         hasReport(':buildDashboard', 'html')
-        hasReport(':codenarcMain', 'html')
-        hasReport(':subproject:codenarcMain', 'html')
+        hasReport(':test', 'html')
+        hasReport(':test', 'junitXml')
+        hasReport(':subproject:test', 'html')
+        hasReport(':subproject:test', 'junitXml')
     }
 
-    void 'dashboard lists JaCoCo reports'() {
+    void 'dashboard includes JaCoCo reports'() {
         given:
+        goodCode()
         goodTests()
         buildFile << """
             apply plugin:'jacoco'
@@ -289,23 +301,41 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         run("test", "jacocoTestReport")
 
         then:
-        dashboardLinksCount == 4
+        reports.size() == 4
         hasReport(':buildDashboard', 'html')
         hasReport(':test', 'html')
         hasReport(':test', 'junitXml')
         hasReport(':jacocoTestReport', 'html')
     }
 
-    void hasReport(String task, String name) {
-        assert links.contains("Report generated by task '$task' ($name)" as String)
+    void 'dashboard includes CodeNarc reports'() {
+        given:
+        goodCode()
+        withCodenarc()
+
+        when:
+        run("check")
+
+        then:
+        reports.size() == 2
+        hasReport(':buildDashboard', 'html')
+        hasReport(':codenarcMain', 'html')
     }
 
-    List<String> getLinks() {
+    void hasReport(String task, String name) {
+        assert reports.contains("Report generated by task '$task' ($name)" as String)
+    }
+
+    List<String> getReports() {
         dashboard.select("div#content li a")*.text()
     }
 
-    List<String> getUnavailable() {
+    List<String> getUnavailableReports() {
         dashboard.select("div#content li span.unavailable")*.text()
+    }
+
+    private TestFile getBuildDashboardFile() {
+        file("build/reports/buildDashboard/index.html")
     }
 
     private Document doc
