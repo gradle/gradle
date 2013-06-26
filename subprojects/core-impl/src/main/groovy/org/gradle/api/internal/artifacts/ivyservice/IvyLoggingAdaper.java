@@ -38,6 +38,22 @@ public class IvyLoggingAdaper extends AbstractMessageLogger {
         log(msg, level);
     }
 
+    /**
+     * Overrides the default implementation, which doesn't delegate to {@link #log(String, int)}.
+     */
+    @Override
+    public void warn(String msg) {
+        logger.warn(msg);
+    }
+
+    /**
+     * Overrides the default implementation, which doesn't delegate to {@link #log(String, int)}.
+     */
+    @Override
+    public void error(String msg) {
+        logger.error(msg);
+    }
+
     public void doProgress() {
     }
 
