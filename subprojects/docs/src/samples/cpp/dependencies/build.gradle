@@ -3,9 +3,7 @@ apply plugin: "base"
 project(":lib") {
     archivesBaseName = "some-lib"
 
-    // START SNIPPET use-plugin-lib
     apply plugin: "cpp-lib"
-    // END SNIPPET use-plugin-lib
     apply plugin: "eclipse-cdt"
     apply plugin: 'maven'
 
@@ -27,9 +25,7 @@ uploadArchives {
 }
 
 project(":exe") {
-    // START SNIPPET use-plugin-exe
     apply plugin: "cpp-exe"
-    // END SNIPPET use-plugin-exe
     apply plugin: "eclipse-cdt"
     apply plugin: "maven"
 

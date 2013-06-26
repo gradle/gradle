@@ -1,4 +1,6 @@
+// START SNIPPET use-plugin
 apply plugin: "cpp-exe"
+// END SNIPPET use-plugin
 
 // START SNIPPET args
 executables {

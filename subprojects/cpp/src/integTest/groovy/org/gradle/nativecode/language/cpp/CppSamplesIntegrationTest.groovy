@@ -24,14 +24,15 @@ import org.junit.Rule
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
-    @Rule public final Sample exewithlib = new Sample(temporaryFolder, 'cpp/exewithlib')
+    @Rule public final Sample cppExe = new Sample(temporaryFolder, 'cpp/cpp-exe')
+    @Rule public final Sample cppLib = new Sample(temporaryFolder, 'cpp/cpp-lib')
+    @Rule public final Sample multiProject = new Sample(temporaryFolder, 'cpp/multi-project')
+    @Rule public final Sample variants = new Sample(temporaryFolder, 'cpp/variants')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'cpp/dependencies')
-    @Rule public final Sample exe = new Sample(temporaryFolder, 'cpp/exe')
-    @Rule public final Sample library = new Sample(temporaryFolder, 'cpp/library')
 
-    def "exe with lib"() {
+    def multiProject() {
         given:
-        sample exewithlib
+        sample multiProject
 
         when:
         run "installMainExecutable"
@@ -40,9 +41,9 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         ":exe:mainExecutable" in executedTasks
 
         and:
-        sharedLibrary("cpp/exewithlib/lib/build/binaries/mainSharedLibrary/lib").assertExists()
-        executable("cpp/exewithlib/exe/build/binaries/mainExecutable/exe").assertExists()
-        normaliseLineSeparators(executable("cpp/exewithlib/exe/build/install/mainExecutable/exe").exec().out) == "Hello, World!\n"
+        sharedLibrary("cpp/multi-project/lib/build/binaries/mainSharedLibrary/lib").assertExists()
+        executable("cpp/multi-project/exe/build/binaries/mainExecutable/exe").assertExists()
+        normaliseLineSeparators(executable("cpp/multi-project/exe/build/install/mainExecutable/exe").exec().out) == "Hello, World!\n"
     }
 
     // Does not work on windows, due to GRADLE-2118
@@ -71,7 +72,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     
     def "exe"() {
         given:
-        sample exe
+        sample cppExe
         
         when:
         run "installMain"
@@ -80,38 +81,64 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         ":mainExecutable" in nonSkippedTasks
         
         and:
-        normaliseLineSeparators(executable("cpp/exe/build/binaries/mainExecutable/exe").exec().out) == "Hello, World!\n"
-        normaliseLineSeparators(executable("cpp/exe/build/install/mainExecutable/exe").exec().out) == "Hello, World!\n"
+        normaliseLineSeparators(executable("cpp/cpp-exe/build/binaries/mainExecutable/sampleExe").exec().out) == "Hello, World!\n"
+        normaliseLineSeparators(executable("cpp/cpp-exe/build/install/mainExecutable/sampleExe").exec().out) == "Hello, World!\n"
+    }
+    
+    def "lib"() {
+        given:
+        sample cppLib
+        
+        when:
+        run "mainSharedLibrary"
+        
+        then:
+        executedAndNotSkipped ":compileMainSharedLibrary", ":linkMainSharedLibrary", ":mainSharedLibrary"
+        
+        and:
+        sharedLibrary("cpp/cpp-lib/build/binaries/mainSharedLibrary/sampleLib").assertExists()
+        
+        when:
+        sample cppLib
+        run "mainStaticLibrary"
+        
+        then:
+        executedAndNotSkipped ":compileMainStaticLibrary", ":assembleMainStaticLibrary", ":mainStaticLibrary"
+        
+        and:
+        staticLibrary("cpp/cpp-lib/build/binaries/mainStaticLibrary/sampleLib").assertExists()
     }
 
-    def "library"() {
+    def "variants"() {
         when:
-        sample library
+        sample variants
         run "installEnglishExecutable"
 
         then:
-        executedAndNotSkipped ":compileEnglishExecutable", ":englishExecutable", ":compileHelloEnglishSharedLibrary", ":helloEnglishSharedLibrary"
+        executedAndNotSkipped ":compileHelloEnglishSharedLibrary", ":linkHelloEnglishSharedLibrary", ":helloEnglishSharedLibrary"
+        executedAndNotSkipped ":compileEnglishExecutable", ":linkEnglishExecutable", ":englishExecutable"
 
         and:
-        executable("cpp/library/build/binaries/englishExecutable/english").assertExists()
-        sharedLibrary("cpp/library/build/binaries/helloEnglishSharedLibrary/helloEnglish").assertExists()
+        executable("cpp/variants/build/binaries/englishExecutable/english").assertExists()
+        sharedLibrary("cpp/variants/build/binaries/helloEnglishSharedLibrary/helloEnglish").assertExists()
 
         and:
-        normaliseLineSeparators(executable("cpp/library/build/install/englishExecutable/english").exec().out) == "Hello world!\n"
+        normaliseLineSeparators(executable("cpp/variants/build/install/englishExecutable/english").exec().out) == "Hello world!\n"
 
         when:
-        sample library
+        sample variants
         run "installFrenchExecutable"
 
         then:
-        executedAndNotSkipped ":compileFrenchExecutable", ":frenchExecutable", ":compileHelloFrenchStaticLibrary", ":helloFrenchStaticLibrary"
+        executedAndNotSkipped ":compileHelloFrenchStaticLibrary", ":assembleHelloFrenchStaticLibrary", ":helloFrenchStaticLibrary"
+        executedAndNotSkipped ":compileFrenchExecutable", ":linkFrenchExecutable", ":frenchExecutable"
 
         and:
-        executable("cpp/library/build/binaries/frenchExecutable/french").assertExists()
-        staticLibrary("cpp/library/build/binaries/helloFrenchStaticLibrary/helloFrench").assertExists()
+        executable("cpp/variants/build/binaries/frenchExecutable/french").assertExists()
+        staticLibrary("cpp/variants/build/binaries/helloFrenchStaticLibrary/helloFrench").assertExists()
 
         and:
-        normaliseLineSeparators(executable("cpp/library/build/install/frenchExecutable/french").exec().out) == "Bonjour monde!\n"
+        normaliseLineSeparators(executable("cpp/variants/build/install/frenchExecutable/french").exec().out) == "Bonjour monde!\n"
     }
     
 }

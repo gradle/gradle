@@ -66,11 +66,11 @@
             more convenient to use either the <literal>cpp-lib</literal> or <literal>cpp-exe</literal> plugins that sit on top of the <literal>cpp</literal>
             plugin to pre-configure the project to build either a native library or executable respectively.
         </para>
-        <sample id="useCppExePlugin" dir="cpp/dependencies" title="Using the 'cpp-exe' plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin-exe"/>
+        <sample id="useCppExePlugin" dir="cpp/cpp-exe" title="Using the 'cpp-exe' plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
-        <sample id="useCppLibPlugin" dir="cpp/dependencies" title="Using the 'cpp-lib' plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin-lib"/>
+        <sample id="useCppLibPlugin" dir="cpp/cpp-lib" title="Using the 'cpp-lib' plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
         <para>
             The <literal>cpp-exe</literal> plugin configures the project to build a single executable,
@@ -127,13 +127,19 @@
     <section>
         <title>Configuring the compiler</title>
         <para>Arbitrary arguments can be provided to the compiler by using the following syntax:</para>
-        <sample id="gppArgs" dir="cpp/exe" title="Supplying arbitrary args to the compiler">
+        <sample id="gppArgs" dir="cpp/cpp-exe" title="Supplying arbitrary args to the compiler">
             <sourcefile file="build.gradle" snippet="args"/>
         </sample>
         <para>
-            The above example applies to the <literal>cpp-exe</literal> plugin, to supply arguments for the <literal>cpp-lib</literal> plugin replace
-            “<literal>executables</literal>” with “<literal>libraries</literal>”.
+            The above example will apply the supplied configuration to all <literal>executable</literal> binaries built.
         </para>
+        <para>
+            It is also possible to target compiler configuration for the production of libraries. In this case, the settings can be specified to
+            apply to all libraries produced, or can be targeted at <literal>StaticLibraryBinary</literal> or <literal>SharedLibraryBinary</literal> instances.
+        </para>
+        <sample id="sharedLibraryArgs" dir="cpp/cpp-lib" title="Settings that apply only to shared libraries">
+            <sourcefile file="build.gradle" snippet="args"/>
+        </sample>
     </section>
 
     <section>
