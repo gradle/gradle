@@ -518,10 +518,10 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
             task copy(type: Copy) {
                 from 'path'
                 into 'dest'
-                matching ('**/a*') {
+                filesMatching ('**/a*') {
                     path = path + '.template'
                 }
-                matching ('**/*.template') {
+                filesMatching ('**/*.template') {
                     expand(attr: 'some value')
                     path = path.replace('template', 'concrete')
                 }

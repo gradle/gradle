@@ -205,20 +205,20 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         root.setDuplicatesStrategy(strategy);
     }
 
-    public CopySpec matching(String pattern, Closure closure) {
-        return mainContent.matching(pattern, closure);
+    public CopySpec filesMatching(String pattern, Closure closure) {
+        return mainContent.filesMatching(pattern, closure);
     }
 
-    public CopySpec matching(String pattern, Action<? super FileCopyDetails> action) {
-        return mainContent.matching(pattern, action);
+    public CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action) {
+        return mainContent.filesMatching(pattern, action);
     }
 
-    public CopySpec notMatching(String pattern, Closure closure) {
-        return mainContent.notMatching(pattern, closure);
+    public CopySpec filesNotMatching(String pattern, Closure closure) {
+        return mainContent.filesNotMatching(pattern, closure);
     }
 
-    public CopySpec notMatching(String pattern, Action<? super FileCopyDetails> action) {
-        return mainContent.notMatching(pattern, action);
+    public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
+        return mainContent.filesNotMatching(pattern, action);
     }
 
     public CopySpec rename(Closure closure) {

@@ -366,7 +366,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testMatchingCreatesAppropriateAction() {
-        spec.matching("root/**/a*") {
+        spec.filesMatching("root/**/a*") {
         }
         assertEquals(1, spec.allCopyActions.size())
         assertThat(spec.allCopyActions[0], instanceOf(MatchingCopyAction))
@@ -381,7 +381,7 @@ public class CopySpecImplTest {
 
     @Test public void testNotMatchingCreatesAppropriateAction() {
         // no path component starting with an a
-        spec.notMatching("**/a*/**") {
+        spec.filesNotMatching("**/a*/**") {
         }
         assertEquals(1, spec.allCopyActions.size())
         assertThat(spec.allCopyActions[0], instanceOf(MatchingCopyAction))

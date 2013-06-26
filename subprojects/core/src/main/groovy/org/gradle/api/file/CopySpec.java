@@ -123,7 +123,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @return this
      */
     @Incubating
-    CopySpec matching(String pattern, Closure closure);
+    CopySpec filesMatching(String pattern, Closure closure);
 
     /**
      * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches the specified Ant-style pattern.
@@ -133,7 +133,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @return this
      */
     @Incubating
-    CopySpec matching(String pattern, Action<? super FileCopyDetails> action);
+    CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action);
 
     /**
      * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match the specified
@@ -144,7 +144,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @return this
      */
     @Incubating
-    CopySpec notMatching(String pattern, Closure closure);
+    CopySpec filesNotMatching(String pattern, Closure closure);
 
     /**
      * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match the specified
@@ -155,7 +155,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @return this
      */
     @Incubating
-    CopySpec notMatching(String pattern, Action<? super FileCopyDetails> action);
+    CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action);
 
     /**
      * Adds the given specs as a child of this spec.

@@ -45,7 +45,7 @@ class CopySpecMatchingTest extends Specification {
         matchingClosure.clone() >> matchingClosure
 
         when:
-        copySpec.matching("**/a*", matchingClosure)
+        copySpec.filesMatching("**/a*", matchingClosure)
         copySpec.allCopyActions.each { copyAction ->
             copyAction.execute(details1)
             copyAction.execute(details2)
@@ -70,7 +70,7 @@ class CopySpecMatchingTest extends Specification {
         matchingClosure.clone() >> matchingClosure
 
         when:
-        copySpec.notMatching("**/a*", matchingClosure)
+        copySpec.filesNotMatching("**/a*", matchingClosure)
         copySpec.allCopyActions.each { copyAction ->
             copyAction.execute(details1)
             copyAction.execute(details2)
@@ -85,7 +85,7 @@ class CopySpecMatchingTest extends Specification {
         given:
         CopySpecImpl childSpec = copySpec.addChild()
         when:
-        copySpec.matching("**/*.java") {}
+        copySpec.filesMatching("**/*.java") {}
         then:
         1 == childSpec.allCopyActions.size()
         childSpec.allCopyActions[0] instanceof MatchingCopyAction
