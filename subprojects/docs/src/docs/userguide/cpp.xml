@@ -263,7 +263,7 @@
             <para>
                 The notation for project dependencies is slightly different.
             </para>
-            <sample id="cppProjectDependencies" dir="cpp/exewithlib" title="Declaring project dependencies">
+            <sample id="cppProjectDependencies" dir="cpp/multi-project" title="Declaring project dependencies">
                 <sourcefile file="build.gradle" snippet="project-dependencies"/>
             </sample>
         </section>
