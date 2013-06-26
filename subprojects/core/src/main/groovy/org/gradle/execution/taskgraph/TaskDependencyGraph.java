@@ -21,31 +21,15 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class TaskDependencyGraph {
-
-    private final LinkedHashMap<Task, TaskInfo> nodes = new LinkedHashMap<Task, TaskInfo>();
+    private final Map<Task, TaskInfo> nodes = new HashMap<Task, TaskInfo>();
 
     public Set<Task> getTasks() {
         return nodes.keySet();
-    }
-
-    public boolean hasTask(Task task) {
-        return getTasks().contains(task);
-    }
-
-    public void addHardEdge(TaskInfo fromNode, Task toTask) {
-        fromNode.addHardSuccessor(addNode(toTask));
-    }
-
-    public void addSoftEdge(TaskInfo fromNode, Task toTask) {
-        fromNode.addSoftSuccessor(addNode(toTask));
-    }
-
-    public void addFinalizedByEdge(TaskInfo fromNode, Task toTask) {
-        fromNode.addFinalizer(addNode(toTask));
     }
 
     @Nullable

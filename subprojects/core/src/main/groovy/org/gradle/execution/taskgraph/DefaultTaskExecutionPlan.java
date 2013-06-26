@@ -19,6 +19,7 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -56,9 +57,11 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final List<String> runningProjects = new ArrayList<String>();
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
-        List<Task> queue = new ArrayList<Task>(tasks);
-        Collections.sort(queue);
-        for (Task task : queue) {
+        List<TaskInfo> queue = new ArrayList<TaskInfo>();
+
+        List<Task> sortedTasks = new ArrayList<Task>(tasks);
+        Collections.sort(sortedTasks);
+        for (Task task : sortedTasks) {
             TaskInfo node = graph.addNode(task);
             if (node.getMustNotRun()) {
                 requireWithDependencies(node);
@@ -66,18 +69,21 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 node.require();
             }
             entryTasks.add(node);
+            queue.add(node);
         }
-        Set<Task> visiting = new HashSet<Task>();
+
+        Set<TaskInfo> visiting = new HashSet<TaskInfo>();
         CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
 
         while (!queue.isEmpty()) {
-            Task task = queue.get(0);
-            TaskInfo node = graph.addNode(task);
+            TaskInfo node = queue.get(0);
             if (node.getDependenciesProcessed()) {
                 // Have already visited this task - skip it
                 queue.remove(0);
                 continue;
             }
+
+            TaskInternal task = node.getTask();
             boolean filtered = !filter.isSatisfiedBy(task);
             if (filtered) {
                 // Task is not required - skip it
@@ -87,24 +93,27 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 continue;
             }
 
-            if (visiting.add(task)) {
+            if (visiting.add(node)) {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
                 Set<? extends Task> dependsOnTasks = context.getDependencies(task);
                 for (Task dependsOnTask : dependsOnTasks) {
-                    graph.addHardEdge(node, dependsOnTask);
-                    if (!visiting.contains(dependsOnTask)) {
-                        queue.add(0, dependsOnTask);
+                    TaskInfo targetNode = graph.addNode(dependsOnTask);
+                    node.addHardSuccessor(targetNode);
+                    if (!visiting.contains(targetNode)) {
+                        queue.add(0, targetNode);
                     }
                 }
                 for (Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
-                    addFinalizerNode(node, finalizerTask);
-                    if (!visiting.contains(finalizerTask)) {
-                        queue.add(0, finalizerTask);
+                    TaskInfo targetNode = graph.addNode(finalizerTask);
+                    addFinalizerNode(node, targetNode);
+                    if (!visiting.contains(targetNode)) {
+                        queue.add(0, targetNode);
                     }
                 }
                 for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
-                    graph.addSoftEdge(node, mustRunAfter);
+                    TaskInfo targetNode = graph.addNode(mustRunAfter);
+                    node.addSoftSuccessor(targetNode);
                 }
                 if (node.isRequired()) {
                     for (TaskInfo hardSuccessor : node.getHardSuccessors()) {
@@ -116,7 +125,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             } else {
                 // Have visited this task's dependencies - add it to the graph
                 queue.remove(0);
-                visiting.remove(task);
+                visiting.remove(node);
                 node.dependenciesProcessed();
             }
         }
@@ -155,10 +164,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void addFinalizerNode(TaskInfo node, Task finalizerTask) {
-        if (filter.isSatisfiedBy(finalizerTask)) {
-            graph.addFinalizedByEdge(node, finalizerTask);
-            TaskInfo finalizerNode = graph.getNode(finalizerTask);
+    private void addFinalizerNode(TaskInfo node, TaskInfo finalizerNode) {
+        if (filter.isSatisfiedBy(finalizerNode.getTask())) {
+            node.addFinalizer(finalizerNode);
             if (!finalizerNode.isInKnownState()) {
                 finalizerNode.mustNotRun();
             }

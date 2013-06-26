@@ -34,18 +34,25 @@ class TaskDependencyGraphTest extends Specification {
         }
     }
 
-    void 'adding nodes'() {
+    void 'can create a node for a task'() {
+        when:
+        def node = graph.addNode(a)
+
+        then:
+        !node.inKnownState
+        node.hardPredecessors.empty
+        node.softSuccessors.empty
+        node.hardSuccessors.empty
+        node.finalizers.empty
+    }
+
+    void 'caches node for a given task'() {
         when:
         def node = graph.addNode(a)
 
         then:
         graph.getNode(a).is(node)
         graph.addNode(a).is(node)
-        !node.inKnownState
-        node.hardPredecessors.empty
-        node.softSuccessors.empty
-        node.hardSuccessors.empty
-        node.finalizers.empty
     }
 
     void 'can add multiple nodes'() {
@@ -57,69 +64,14 @@ class TaskDependencyGraphTest extends Specification {
         graph.tasks == [a, b] as Set
     }
 
-    void 'adding hard edges'() {
-        when:
-        def nodeA = graph.addNode(a)
-        graph.addHardEdge(nodeA, c)
-        graph.addHardEdge(nodeA, b)
-
-        then:
-        with graph, {
-            tasks == [a, c, b] as Set
-            getNode(a).hardSuccessors*.task == [b, c]
-            [b, c].every { getNode(it).hardPredecessors*.task == [a] }
-            [b, c].every { !getNode(it).hardSuccessors }
-        }
-    }
-
-    void 'adding soft edges'() {
-        when:
-        def nodeA = graph.addNode(a)
-        graph.addSoftEdge(nodeA, c)
-        graph.addSoftEdge(nodeA, b)
-
-        then:
-        with graph, {
-            tasks == [a, c, b] as Set
-            getNode(a).softSuccessors*.task == [b, c]
-            [b, c].every { !getNode(it).softSuccessors }
-        }
-    }
-
-    void 'adding finalized by edges'() {
-        when:
-        def nodeA = graph.addNode(a)
-        graph.addFinalizedByEdge(nodeA, c)
-        graph.addFinalizedByEdge(nodeA, b)
-
-        then:
-        with graph, {
-            tasks == [a, c, b] as Set
-            getNode(a).finalizers*.task == [b, c]
-            [b, c].every { !getNode(it).finalizers }
-        }
-    }
-
     void 'clear'() {
         when:
-        def nodeA = graph.addNode(a)
-        graph.addHardEdge(nodeA, b)
+        graph.addNode(a)
+        graph.addNode(b)
         graph.addNode(c)
         graph.clear()
 
         then:
         !graph.tasks
-    }
-
-    void 'has task'() {
-        when:
-        def nodeA = graph.addNode(a)
-        graph.addHardEdge(nodeA, b)
-        graph.addSoftEdge(nodeA, c)
-        graph.addFinalizedByEdge(nodeA, d)
-        graph.addNode(e)
-
-        then:
-        [a, b, c, d, e].every { graph.hasTask(it) }
     }
 }

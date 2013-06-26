@@ -24,7 +24,7 @@ import java.util.TreeSet;
 class TaskInfo implements Comparable<TaskInfo> {
 
     private enum TaskExecutionState {
-        UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED;
+        UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
     }
 
     private final TaskInternal task;
