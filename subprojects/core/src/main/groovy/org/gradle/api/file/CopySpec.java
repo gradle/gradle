@@ -17,6 +17,7 @@ package org.gradle.api.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 
@@ -103,6 +104,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      *
      * @return the strategy for handling duplicate file paths
      */
+    @Incubating
     DuplicatesStrategy getDuplicatesStrategy();
 
     /**
@@ -110,6 +112,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * individual files by configuring FileCopyDetails.
      * @param strategy Can be DuplicatesStrategy.inherit (default), include, or exclude
      */
+    @Incubating
     void setDuplicatesStrategy(DuplicatesStrategy strategy);
 
     /**
@@ -119,6 +122,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @param closure Configuration applied to the FileCopyDetails of each file matching pattern
      * @return this
      */
+    @Incubating
     CopySpec matching(String pattern, Closure closure);
 
     /**
@@ -128,6 +132,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @param action action called for the FileCopyDetails of each file matching pattern
      * @return this
      */
+    @Incubating
     CopySpec matching(String pattern, Action<? super FileCopyDetails> action);
 
     /**
@@ -138,6 +143,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @param closure Configuration applied to the FileCopyDetails of each file that does not match pattern
      * @return this
      */
+    @Incubating
     CopySpec notMatching(String pattern, Closure closure);
 
     /**
@@ -148,6 +154,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @param action action called for the FileCopyDetails of each file that does not match pattern
      * @return this
      */
+    @Incubating
     CopySpec notMatching(String pattern, Action<? super FileCopyDetails> action);
 
     /**
