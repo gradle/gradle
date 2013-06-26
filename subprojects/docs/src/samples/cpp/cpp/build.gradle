@@ -1,0 +1,66 @@
+// START SNIPPET apply-plugin
+apply plugin: 'cpp'
+// END SNIPPET apply-plugin
+
+// START SNIPPET sourceSets
+cpp {
+    sourceSets {
+        exe {}
+        lib {}
+    }
+}
+// END SNIPPET sourceSets
+
+// START SNIPPET libraries
+libraries {
+    hello {
+        source cpp.sourceSets.lib
+    }
+}
+// END SNIPPET libraries
+
+// START SNIPPET executables
+executables {
+    main {
+        source cpp.sourceSets.exe
+        binaries.all {
+            // Each executable binary produced uses the 'hello' shared library binary
+            lib libraries.hello.shared
+        }
+    }
+}
+// END SNIPPET executables
+
+// START SNIPPET source-library
+cpp.sourceSets.exe.lib libraries.hello
+// END SNIPPET source-library
+
+// START SNIPPET all-binaries
+binaries.all {
+    // Define a preprocessor macro for every binary
+    define "NDEBUG"
+
+    // Define toolchain-specific compiler and linker options
+    switch (toolChain) {
+        case toolChains.gcc:
+            compilerArgs "-O2", "-fno-access-control"
+            linkerArgs "-S"
+            break;
+        case toolChains.visualCpp:
+            compilerArgs "/Z7"
+            linkerArgs "/INTEGRITYCHECK:NO"
+            break;
+    }
+}
+// END SNIPPET all-binaries
+
+// START SNIPPET all-shared-libraries
+// For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
+binaries.withType(SharedLibraryBinary) {
+    if (toolChain == toolChains.visualCpp) {
+        define "DLL_EXPORT"
+    }
+}
+// END SNIPPET all-shared-libraries
+
+

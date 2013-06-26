@@ -60,11 +60,98 @@
     </para>
 
     <section>
-        <title>Usage</title>
+        <title>Source code locations</title>
         <para>
-            Everything a build scripts DSLs, model elements and tasks used to manage C++ projects are added by the <literal>cpp</literal> plugin. However, it is typically
-            more convenient to use either the <literal>cpp-lib</literal> or <literal>cpp-exe</literal> plugins that sit on top of the <literal>cpp</literal>
-            plugin to pre-configure the project to build either a native library or executable respectively.
+            A C++ project may define a number of source sets, each of which may contain source files and header files.
+            By default, a named <apilink class="org.gradle.nativecode.language.cpp.CppSourceSet"/> contains
+            <filename>.cpp</filename> and <filename>.c</filename> source files in <filename>src/${name}/cpp</filename>,
+            and header files in <filename>src/${name}/headers</filename>.
+        </para>
+        <sample id="cppSourceSets" dir="cpp/cpp" title="Defining 'cpp' source sets">
+            <sourcefile file="build.gradle" snippet="sourceSets"/>
+        </sample>
+        <para>
+            For a library named 'main', files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
+            Header files that should not be exported (but are used internally) should be placed inside the <filename>src/main/cpp</filename> directory (though be aware that
+            such header files should always be referenced in a manner relative to the file including them).
+        </para>
+        <para>
+            While the <literal>cpp</literal> plugin defines these default locations for each <apilink class="org.gradle.nativecode.language.cpp.CppSourceSet"/>,
+            it is possible to extend or override these defaults to allow for a different project layout.
+        </para>
+    </section>
+
+    <section>
+        <title>The cpp model</title>
+        <para>
+            All build scripts DSLs, model elements and tasks used to manage C++ projects are added by the <literal>cpp</literal> plugin.
+        </para>
+        <sample id="cppLibraries" dir="cpp/cpp" title="Applying the 'cpp' plugin">
+            <sourcefile file="build.gradle" snippet="apply-plugin"/>
+        </sample>
+        <para>
+            A C++ project defines a set of <apilink class="org.gradle.nativecode.base.Executable"/> and <apilink class="org.gradle.nativecode.base.Library"/> components,
+            each of which Gradle maps to a number of <apilink class="org.gradle.nativecode.base.NativeBinary"/> outputs.
+            Each <literal>executable</literal> or <literal>library</literal> is associated with a particular <literal>CppSourceSet</literal>, which contains C++ source files as well as header files.
+        </para>
+        <para>
+            To build either a static or shared native library binary,
+            a <apilink class="org.gradle.nativecode.base.Library"/> component is added to the <literal>libraries</literal>
+            container and associated with a <literal>CppSourceSet</literal>.
+            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativecode.base.SharedLibraryBinary"/> and
+            at least one <apilink class="org.gradle.nativecode.base.StaticLibraryBinary"/>.
+        </para>
+        <sample id="cppLibraries" dir="cpp/cpp" title="Defining a library component">
+            <sourcefile file="build.gradle" snippet="libraries"/>
+        </sample>
+        <para>
+            To build an executable binary,
+            an <apilink class="org.gradle.nativecode.base.Executable"/> component is added to the <literal>executables</literal> container
+            and associated with a <literal>CppSourceSet</literal>.
+        </para>
+        <para>
+            Each <literal>executable</literal> component added can produce at least one <apilink class="org.gradle.nativecode.base.ExecutableBinary"/>.
+            If the executable requires a library for compiling and/or linking, then that library can be provided directly to a <literal>binary</literal>.
+        </para>        <sample id="cppExecutables" dir="cpp/cpp" title="Defining executable components">
+            <sourcefile file="build.gradle" snippet="executables"/>
+        </sample>
+        <para>
+            Alternatively, the library dependency can be specified at the level of the the <literal>CppSourceSet</literal> associated with an <literal>executable</literal> component:
+        </para>
+        <sample id="cppSourceLibrary" dir="cpp/cpp" title="Specifying a source-level library">
+            <sourcefile file="build.gradle" snippet="source-library"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Cpp tasks</title>
+        <para>
+            For each <apilink class="org.gradle.nativecode.base.NativeBinary"/> that can be produced by a build, the <literal>cpp</literal> plugin
+            creates a single <literal>lifecycle task</literal> that can be used to create that binary, together with a set of sub-tasks that do the actual
+            work of compiling, linking or assembling the binary.
+        </para>
+        <table>
+            <thread>
+                <tr><td>Component Type</td><td>Native Binary Type</td><td>Lifecycle task</td><td>Location of created binary</td></tr>
+            </thread>
+            <tr>
+                <td><apilink class="org.gradle.nativecode.base.Executable"/></td><td><apilink class="org.gradle.nativecode.base.ExecutableBinary"/></td><td><literal>mainExecutable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable></filename></td>
+            </tr>
+            <tr>
+                <td><apilink class="org.gradle.nativecode.base.Library"/></td><td><apilink class="org.gradle.nativecode.base.SharedLibraryBinary"/></td><td><literal>mainSharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/lib<replaceable>$project.name</replaceable>.so</filename></td>
+            </tr>
+            <tr>
+                <td><apilink class="org.gradle.nativecode.base.Library"/></td><td><apilink class="org.gradle.nativecode.base.StaticLibraryBinary"/></td><td><literal>mainStaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable>.a</filename></td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>The cpp convention plugins</title>
+        <para>
+            The <literal>cpp</literal> plugin allows you to configure any number of <literal>libraries</literal> and <literal>executables</literal> for your project.
+            However, at times it is more convenient to use either the <literal>cpp-lib</literal> or <literal>cpp-exe</literal> plugins that sit on top of the <literal>cpp</literal>
+            plugin and pre-configure the project to build a single native library or executable respectively.
         </para>
         <sample id="useCppExePlugin" dir="cpp/cpp-exe" title="Using the 'cpp-exe' plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
@@ -73,37 +160,13 @@
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
         <para>
-            The <literal>cpp-exe</literal> plugin configures the project to build a single executable,
-            and the <literal>cpp-lib</literal> plugin configures the project to build a shared and static version of a single library.
-        </para>
-        <table>
-            <thread>
-                <tr><td>Plugin</td><td>Output</td><td>Task to create</td><td>Location of created binary</td></tr>
-            </thread>
-            <tr>
-                <td>cpp-exe</td><td>Executable</td><td><literal>mainExecutable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable></filename></td>
-            </tr>
-            <tr>
-                <td>cpp-lib</td><td>Shared Library</td><td><literal>mainSharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/lib<replaceable>$project.name</replaceable>.so</filename></td>
-            </tr>
-            <tr>
-                <td>cpp-lib</td><td>Static Library</td><td><literal>mainStaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable>.a</filename></td>
-            </tr>
-        </table>
-
-    </section>
-
-    <section>
-        <title>Source code locations</title>
-        <para>
-            Both plugins configure the project to look for <filename>.cpp</filename> and <filename>.c</filename> source files in <filename>src/main/cpp</filename> and use the <filename>src/main/headers</filename>
-            directory as a header include root. For a library, the header files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
-            Header files that should not be exported (but are used internally) should be placed inside the <filename>src/main/cpp</filename> directory (though be aware that
-            such header files should always be referenced in a manner relative to the file including them).
+            The <literal>cpp-exe</literal> plugin configures the project to build a single executable named <literal>main</literal>,
+            and the <literal>cpp-lib</literal> plugin configures the project to build a shared and static version of a single library named <literal>main</literal>.
         </para>
         <para>
-            The <literal>cpp</literal> plugin is also very flexible in where it looks for source and header files, and you can configure the above conventions to look however you like.
+            In both cases, a single source set (<literal>src/main</literal>) containing C++ sources is assumed to exist.
         </para>
+
     </section>
 
     <section>
@@ -125,19 +188,39 @@
     </section>
 
     <section>
-        <title>Configuring the compiler</title>
-        <para>Arbitrary arguments can be provided to the compiler by using the following syntax:</para>
-        <sample id="gppArgs" dir="cpp/cpp-exe" title="Supplying arbitrary args to the compiler">
+        <title>Configuring the compiler and linker</title>
+        <para>
+            Each binary to be produced is associated with a set of compiler and linker settings, which include command-line arguments as well as macro definitions.
+            These settings can be applied to all binaries, an individual binary, or selectively to a group of binaries based on some criteria.
+        </para>
+        <sample id="allBinarySettings" dir="cpp/cpp" title="Settings that apply to all binaries">
+            <sourcefile file="build.gradle" snippet="all-binaries"/>
+        </sample>
+        <para>
+            Each binary is associated with a particular <apilink class="org.gradle.nativecode.base.ToolChain"/>, allowing settings to be targeted based on
+            this value.
+        </para>
+        <para>
+            It is easy to apply settings to all binaries of a particular type:
+        </para>
+        <sample id="allSharedLibraryBinarySettings" dir="cpp/cpp" title="Settings that apply to all shared libraries">
+            <sourcefile file="build.gradle" snippet="all-shared-libraries"/>
+        </sample>
+        <para>
+            Furthermore, it is possible to specify settings that apply to all binaries produces for a particular <literal>executable</literal>
+            or <literal>library</literal> component:
+        </para>
+        <sample id="componentBinarySettings" dir="cpp/cpp-exe" title="Settings that apply to all binaries produced for the 'main' executable component">
             <sourcefile file="build.gradle" snippet="args"/>
         </sample>
         <para>
             The above example will apply the supplied configuration to all <literal>executable</literal> binaries built.
         </para>
         <para>
-            It is also possible to target compiler configuration for the production of libraries. In this case, the settings can be specified to
-            apply to all libraries produced, or can be targeted at <literal>StaticLibraryBinary</literal> or <literal>SharedLibraryBinary</literal> instances.
+            Similarly, settings can be specified to target binaries for a component that are of a particular type:
+            eg all <literal>shared libraries</literal> for the <literal>main library</literal> component.
         </para>
-        <sample id="sharedLibraryArgs" dir="cpp/cpp-lib" title="Settings that apply only to shared libraries">
+        <sample id="sharedLibraryArgs" dir="cpp/cpp-lib" title="Settings that apply only to shared libraries produced for the 'main' library component">
             <sourcefile file="build.gradle" snippet="args"/>
         </sample>
     </section>
@@ -145,7 +228,8 @@
     <section>
         <title>Working with shared libraries</title>
         <para>
-            The <literal>cpp-exe</literal> plugin provides an <literal>installMainExecutable</literal> task, which creates a development install of the executable, along with the shared libraries it requires.
+            For each executable binary produced, the <literal>cpp</literal> plugin provides an <literal>install${binary.name}</literal> task,
+            which creates a development install of the executable, along with the shared libraries it requires.
             This allows you to run the executable without needing to install the shared libraries in their final locations.
         </para>
     </section>

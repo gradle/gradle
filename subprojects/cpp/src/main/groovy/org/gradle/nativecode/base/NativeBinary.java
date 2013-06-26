@@ -63,7 +63,9 @@ public interface NativeBinary extends Binary {
     Collection<NativeDependencySet> getLibs();
 
     /**
-     * Adds a library as input to this binary. This method accepts the following types:
+     * Adds a library as input to this binary.
+     * <p/>
+     * This method accepts the following types:
      *
      * <ul>
      *     <li>A {@link Library}</li>
