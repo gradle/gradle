@@ -44,7 +44,7 @@ public class GroovyCompile extends AbstractCompile {
     private final CompileOptions compileOptions = new CompileOptions();
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
     private final TemporaryFileProvider tempFileProvider;
-    
+
     public GroovyCompile() {
         ProjectInternal projectInternal = (ProjectInternal) getProject();
         IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
@@ -52,7 +52,7 @@ public class GroovyCompile extends AbstractCompile {
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
         JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
         tempFileProvider = projectInternal.getServices().get(TemporaryFileProvider.class);
-        DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, tempFileProvider, antBuilderFactory, inProcessCompilerFactory);
+        DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, antBuilderFactory, inProcessCompilerFactory);
         GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, antBuilder, classPathRegistry, javaCompilerFactory);
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = new DelegatingGroovyCompiler(groovyCompilerFactory);
         compiler = new IncrementalGroovyCompiler(delegatingCompiler, getOutputs());
