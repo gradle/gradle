@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.dsl;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
@@ -105,6 +106,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param action a configuration action
      * @return the added repository
      */
+    @Incubating
     MavenArtifactRepository jcenter(Action<MavenArtifactRepository> action);
 
     /**
@@ -123,6 +125,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @see #jcenter(Action)
      */
+    @Incubating
     MavenArtifactRepository jcenter();
 
     /**
