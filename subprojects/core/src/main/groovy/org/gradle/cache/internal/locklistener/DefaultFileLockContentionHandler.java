@@ -25,23 +25,29 @@ import org.gradle.internal.concurrent.StoppableExecutor;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
  * By Szczepan Faber on 5/28/13
  */
-//TODO SF if this is ok, let's tighten up the unit test coverage
 public class DefaultFileLockContentionHandler implements FileLockContentionHandler {
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockContentionHandler.class);
     private final Lock lock = new ReentrantLock();
     private final Map<Long, Runnable> contendedActions = new HashMap<Long, Runnable>();
-    private FileLockCommunicator communicator = new FileLockCommunicator();
-    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
-    private CountDownLatch receiving;
+    private final DefaultExecutorFactory executorFactory;
+
+    private FileLockCommunicator communicator;
+    private StoppableExecutor executor;
+    private boolean stopped;
+
+    public DefaultFileLockContentionHandler() {
+        this(new DefaultExecutorFactory());
+    }
+
+    DefaultFileLockContentionHandler(DefaultExecutorFactory executorFactory) {
+        this.executorFactory = executorFactory;
+    }
 
     private Runnable listener() {
         return new Runnable() {
@@ -50,6 +56,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                     LOGGER.info("Starting file lock listener thread.");
                     doRun();
                 } catch (Throwable t) {
+                    //Logging exception here is only needed because by default Gradle does not show the stack trace
                     LOGGER.error("Problems handling incoming cache access requests.", t);
                 } finally {
                     LOGGER.info("File lock listener thread completed.");
@@ -58,55 +65,37 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
             private void doRun() {
                 while (true) {
-                    lock.lock();
-                    try {
-                        if (communicator == null) {
-                            //stopped before the thread kicked in
-                            return;
-                        }
-                        //we cannot receive inside lock
-                        //so there's a chance the communicator is stopped and nulled out
-                        // after the thread started but before we started receiving.
-                        //to avoid that, we create a latch that the stop method needs to wait for before nulling out the communicator
-                        receiving = new CountDownLatch(1);
-                    } finally {
-                        lock.unlock();
-                    }
                     long lockId;
                     try {
                         lockId = communicator.receive();
                     } catch (GracefullyStoppedException e) {
                         return;
-                    } finally {
-                        receiving.countDown();
                     }
                     lock.lock();
                     Runnable action;
                     try {
                         action = contendedActions.get(lockId);
                         if (action == null) {
+                            //received access request for lock that is already closed
                             return;
                         }
                     } finally {
                         lock.unlock();
                     }
-
                     action.run();
                 }
             }
         };
     }
 
-    private StoppableExecutor executor;
-
     public void start(long lockId, Runnable whenContended) {
         lock.lock();
         try {
-            if (contendedActions.isEmpty()) {
-                if (communicator == null) {
-                    communicator = new FileLockCommunicator();
-                }
-
+            assertNotStopped();
+            if (communicator == null) {
+                throw new IllegalStateException("Must initialize the handler by reserving the port first.");
+            }
+            if (executor == null) {
                 executor = executorFactory.create("Listen for file lock access requests from other processes");
                 executor.execute(listener());
             }
@@ -116,38 +105,46 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
+    private void assertNotStopped() {
+        if (stopped) {
+            throw new IllegalStateException(
+                    "Cannot start managing file contention because this handler has been closed.");
+        }
+    }
+
     public void stop(long lockId) {
-        StoppableExecutor stopMe = null;
         lock.lock();
         try {
             contendedActions.remove(lockId);
-            if (contendedActions.isEmpty()) {
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void stop() {
+        //Down the road this method should be used to clean up,
+        //when the Gradle process is about to complete (not gradle build).
+        //Ideally in future, this is happens during the clean-up/stopping of the global services
+        // (at the moment we never stop the global services)
+        lock.lock();
+        try {
+            stopped = true;
+            contendedActions.clear();
+            if (communicator != null) {
                 communicator.stop();
-                try {
-                    if (receiving != null) {
-                        //the communicator is either receiving or just about to start receiving
-                        // wait before nulling out the communicator
-                        receiving.await();
-                        receiving = null;
-                    }
-                } catch (InterruptedException e) {
-                    throw throwAsUncheckedException(e);
-                }
-                communicator = null;
-                stopMe = executor;
-                stopMe.requestStop();
             }
         } finally {
             lock.unlock();
         }
-        if (stopMe != null) {
-            stopMe.stop();
+        if (executor != null) {
+            executor.stop();
         }
     }
 
     public int reservePort() {
         lock.lock();
         try {
+            assertNotStopped();
             if (communicator == null) {
                 communicator = new FileLockCommunicator();
             }
