@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal
 
-import org.gradle.internal.reflect.DirectInstantiator
-import spock.lang.Specification
-import spock.lang.Issue
-import org.gradle.util.ConfigureUtil
 import org.gradle.api.Action
+import org.gradle.api.internal.coerce.TypeCoercionException
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.ConfigureUtil
+import spock.lang.Issue
+import spock.lang.Specification
 
 class AsmBackedClassGeneratorGroovyTest extends Specification {
 
@@ -136,6 +137,47 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         tester.lastArgs.size() == 2
         tester.lastArgs.first() == "1"
         tester.lastArgs.last().is(closure)
+    }
+
+    static enum TestEnum {
+        ABC, DEF
+    }
+
+    static class EnumCoerceTestSubject {
+        TestEnum enumProperty
+
+        void someEnumMethod(TestEnum testEnum) {
+            this.enumProperty = testEnum
+        }
+    }
+
+    def "can coerce enum values"() {
+        given:
+        def i = create(EnumCoerceTestSubject)
+
+        when:
+        i.enumProperty = "abc"
+
+        then:
+        i.enumProperty == TestEnum.ABC
+
+        when:
+        i.someEnumMethod("DEF")
+
+        then:
+        i.enumProperty == TestEnum.DEF
+
+        when:
+        i.enumProperty "abc"
+
+        then:
+        i.enumProperty == TestEnum.ABC
+
+        when:
+        i.enumProperty "foo"
+
+        then:
+        thrown TypeCoercionException
     }
 
     def conf(o, c) {

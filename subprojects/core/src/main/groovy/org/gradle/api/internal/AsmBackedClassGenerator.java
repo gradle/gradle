@@ -57,6 +57,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final Type dynamicObjectType = Type.getType(DynamicObject.class);
         private final Type conventionMappingType = Type.getType(ConventionMapping.class);
         private final Type groovyObjectType = Type.getType(GroovyObject.class);
+        private final Type groovyInterceptableType = Type.getType(GroovyInterceptable.class);
         private final Type conventionType = Type.getType(Convention.class);
 
         private ClassBuilderImpl(Class<T> type) {
@@ -77,6 +78,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             interfaceTypes.add(extensionAwareType.getInternalName());
             interfaceTypes.add(hasConventionType.getInternalName());
             interfaceTypes.add(groovyObjectType.getInternalName());
+            interfaceTypes.add(groovyInterceptableType.getInternalName());
 
             visitor.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, generatedType.getInternalName(), null,
                     superclassType.getInternalName(), interfaceTypes.toArray(new String[interfaceTypes.size()]));
