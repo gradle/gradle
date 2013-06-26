@@ -16,15 +16,10 @@
 
 package org.gradle.internal.reflect;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.JavaMethod;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Simple implementations of some reflection capabilities. In contrast to org.gradle.util.ReflectionUtil, this class doesn't make use of Groovy.
@@ -97,30 +92,4 @@ public class JavaReflectionUtil {
     public static <T, R> JavaMethod<T, R> method(Class<T> target, Class<R> returnType, Method method) {
         return new JavaMethod<T, R>(target, returnType, method);
     }
-
-    public static List<Method> findAllMethods(Class<?> target, Spec<Method> predicate) {
-        return findAllMethodsInternal(target, predicate, new LinkedList<Method>());
-    }
-
-    private static List<Method> findAllMethodsInternal(Class<?> target, Spec<Method> predicate, List<Method> collector) {
-        for (final Method method : target.getDeclaredMethods()) {
-            Method override = CollectionUtils.findFirst(collector, new Spec<Method>() {
-                public boolean isSatisfiedBy(Method potentionOverride) {
-                    return potentionOverride.getName().equals(method.getName())
-                        && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes());
-                }
-            });
-
-            if (override == null && predicate.isSatisfiedBy(method)) {
-                collector.add(method);
-            }
-        }
-        Class<?> parent = target.getSuperclass();
-        if (parent != null) {
-            return findAllMethodsInternal(parent, predicate, collector);
-        }
-
-        return collector;
-    }
-
 }

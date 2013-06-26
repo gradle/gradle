@@ -18,8 +18,6 @@ package org.gradle.api.internal;
 import groovy.lang.*;
 import groovy.lang.MissingMethodException;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
-import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
-import org.gradle.api.internal.coerce.TypeCoercingMethodArgumentsTransformer;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,9 +33,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     private final boolean includeProperties;
     private final DynamicObject delegate;
     private final boolean implementsMissing;
-
-    // NOTE: If this guy starts caching internally, consider sharing an instance
-    private final MethodArgumentsTransformer argsTransformer = new TypeCoercingMethodArgumentsTransformer();
 
     public BeanDynamicObject(Object bean) {
         this(bean, true);
@@ -124,8 +119,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     @Override
     public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
-        // Maybe transform the arguments before calling the method (e.g. type coercion)
-        arguments = argsTransformer.transform(bean, name, arguments);
         return delegate.invokeMethod(name, arguments);
     }
 
@@ -180,10 +173,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 };
             }
             try {
-
-                // Attempt type coercion before trying to set the property
-                value = argsTransformer.transform(bean, MetaProperty.getSetterName(name), value)[0];
-
                 metaClass.setProperty(bean, name, value);
             } catch (InvokerInvocationException e) {
                 if (e.getCause() instanceof RuntimeException) {
