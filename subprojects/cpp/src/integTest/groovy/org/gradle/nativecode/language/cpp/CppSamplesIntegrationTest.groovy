@@ -78,8 +78,8 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installMain"
         
         then:
-        ":mainExecutable" in nonSkippedTasks
-        
+        executedAndNotSkipped ":compileMainExecutable", ":linkMainExecutable", ":stripMainExecutable", ":mainExecutable"
+
         and:
         normaliseLineSeparators(executable("cpp/cpp-exe/build/binaries/mainExecutable/sampleExe").exec().out) == "Hello, World!\n"
         normaliseLineSeparators(executable("cpp/cpp-exe/build/install/mainExecutable/sampleExe").exec().out) == "Hello, World!\n"
