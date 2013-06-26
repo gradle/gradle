@@ -78,10 +78,10 @@
                 <td>eachFile</td>
             </tr>
             <tr>
-                <td>matching</td>
+                <td>filesMatching</td>
             </tr>
             <tr>
-                <td>notMatching</td>
+                <td>filesNotMatching</td>
             </tr>
         </table>
     </section>
