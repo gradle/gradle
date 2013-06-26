@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.cpp
-
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
 import org.gradle.util.Requires
@@ -24,59 +23,35 @@ import org.junit.Rule
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
+    @Rule public final Sample cpp = new Sample(temporaryFolder, 'cpp/cpp')
     @Rule public final Sample cppExe = new Sample(temporaryFolder, 'cpp/cpp-exe')
     @Rule public final Sample cppLib = new Sample(temporaryFolder, 'cpp/cpp-lib')
     @Rule public final Sample multiProject = new Sample(temporaryFolder, 'cpp/multi-project')
     @Rule public final Sample variants = new Sample(temporaryFolder, 'cpp/variants')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'cpp/dependencies')
 
-    def multiProject() {
+    def "cpp"() {
         given:
-        sample multiProject
-
+        sample cpp
+        
         when:
         run "installMainExecutable"
-
-        then:
-        ":exe:mainExecutable" in executedTasks
-
-        and:
-        sharedLibrary("cpp/multi-project/lib/build/binaries/mainSharedLibrary/lib").assertExists()
-        executable("cpp/multi-project/exe/build/binaries/mainExecutable/exe").assertExists()
-        normaliseLineSeparators(executable("cpp/multi-project/exe/build/install/mainExecutable/exe").exec().out) == "Hello, World!\n"
-    }
-
-    // Does not work on windows, due to GRADLE-2118
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def "dependencies"() {
-        when:
-        sample dependencies
-        run ":lib:uploadArchives"
-
-        then:
-        sharedLibrary("cpp/dependencies/lib/build/binaries/mainSharedLibrary/lib").assertExists()
-        file("cpp/dependencies/lib/build/repo/some-org/some-lib/1.0/some-lib-1.0-so.so").isFile()
-
-        when:
-        sample dependencies
-        run ":exe:uploadArchives"
         
         then:
-        ":exe:mainExtractHeaders" in nonSkippedTasks
-        ":exe:mainExecutable" in nonSkippedTasks
-        
+        executedAndNotSkipped ":compileHelloSharedLibrary", ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutable", ":linkMainExecutable", ":mainExecutable"
+
         and:
-        executable("cpp/dependencies/exe/build/binaries/mainExecutable/exe").assertExists()
-        file("cpp/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
+        normaliseLineSeparators(executable("cpp/cpp/build/install/mainExecutable/main").exec().out) == "Hello world!\n"
     }
-    
+
     def "exe"() {
         given:
         sample cppExe
-        
+
         when:
         run "installMain"
-        
+
         then:
         executedAndNotSkipped ":compileMainExecutable", ":linkMainExecutable", ":stripMainExecutable", ":mainExecutable"
 
@@ -84,7 +59,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         normaliseLineSeparators(executable("cpp/cpp-exe/build/binaries/mainExecutable/sampleExe").exec().out) == "Hello, World!\n"
         normaliseLineSeparators(executable("cpp/cpp-exe/build/install/mainExecutable/sampleExe").exec().out) == "Hello, World!\n"
     }
-    
+
     def "lib"() {
         given:
         sample cppLib
@@ -140,5 +115,45 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         and:
         normaliseLineSeparators(executable("cpp/variants/build/install/frenchExecutable/french").exec().out) == "Bonjour monde!\n"
     }
-    
+
+    def multiProject() {
+        given:
+        sample multiProject
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        ":exe:mainExecutable" in executedTasks
+
+        and:
+        sharedLibrary("cpp/multi-project/lib/build/binaries/mainSharedLibrary/lib").assertExists()
+        executable("cpp/multi-project/exe/build/binaries/mainExecutable/exe").assertExists()
+        normaliseLineSeparators(executable("cpp/multi-project/exe/build/install/mainExecutable/exe").exec().out) == "Hello, World!\n"
+    }
+
+    // Does not work on windows, due to GRADLE-2118
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "dependencies"() {
+        when:
+        sample dependencies
+        run ":lib:uploadArchives"
+
+        then:
+        sharedLibrary("cpp/dependencies/lib/build/binaries/mainSharedLibrary/lib").assertExists()
+        file("cpp/dependencies/lib/build/repo/some-org/some-lib/1.0/some-lib-1.0-so.so").isFile()
+
+        when:
+        sample dependencies
+        run ":exe:uploadArchives"
+
+        then:
+        ":exe:mainExtractHeaders" in nonSkippedTasks
+        ":exe:mainExecutable" in nonSkippedTasks
+
+        and:
+        executable("cpp/dependencies/exe/build/binaries/mainExecutable/exe").assertExists()
+        file("cpp/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
+    }
+
 }

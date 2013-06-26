@@ -31,9 +31,11 @@ executables {
 }
 // END SNIPPET executables
 
+/*
 // START SNIPPET source-library
 cpp.sourceSets.exe.lib libraries.hello
 // END SNIPPET source-library
+*/
 
 // START SNIPPET all-binaries
 binaries.all {
