@@ -31,8 +31,9 @@ import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomReader.PomDependencyData;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.util.Message;
 import org.gradle.util.DeprecationLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -43,6 +44,7 @@ import java.util.Map.Entry;
  * classifiers)
  */
 public class GradlePomModuleDescriptorBuilder {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GradlePomModuleDescriptorBuilder.class);
 
     private static final int DEPENDENCY_MANAGEMENT_KEY_PARTS_COUNT = 4;
 
@@ -165,9 +167,6 @@ public class GradlePomModuleDescriptorBuilder {
     private ModuleRevisionId mrid;
 
     private ParserSettings parserSettings;
-
-    private static final String WRONG_NUMBER_OF_PARTS_MSG = "what seemed to be a dependency "
-            + "management extra info exclusion had the wrong number of parts (should have 2) ";
 
 
     public GradlePomModuleDescriptorBuilder(
@@ -469,8 +468,8 @@ public class GradlePomModuleDescriptorBuilder {
                 String fullExclusion = entry.getValue();
                 String[] exclusionParts = fullExclusion.split(EXTRA_INFO_DELIMITER);
                 if (exclusionParts.length != 2) {
-                    Message.error(WRONG_NUMBER_OF_PARTS_MSG + exclusionParts.length + " : "
-                            + fullExclusion);
+                    LOGGER.error("Wrong number of parts for dependency management extra info exclusion: expect 2, found {}: {}",
+                            exclusionParts.length, fullExclusion);
                     continue;
                 }
                 exclusionIds.add(ModuleId.newInstance(exclusionParts[0], exclusionParts[1]));
@@ -489,7 +488,7 @@ public class GradlePomModuleDescriptorBuilder {
             if (key.startsWith(DEPENDENCY_MANAGEMENT)) {
                 String[] parts = key.split(EXTRA_INFO_DELIMITER);
                 if (parts.length != DEPENDENCY_MANAGEMENT_KEY_PARTS_COUNT) {
-                    Message.warn("what seem to be a dependency management extra info doesn't match expected pattern: " + key);
+                    LOGGER.warn("Dependency management extra info doesn't match expected pattern: {}", key);
                 } else {
                     String versionKey = DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + parts[1]
                             + EXTRA_INFO_DELIMITER + parts[2]

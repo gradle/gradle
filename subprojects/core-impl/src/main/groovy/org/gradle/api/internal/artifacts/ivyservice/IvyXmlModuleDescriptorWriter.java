@@ -20,7 +20,6 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.MapMatcher;
-import org.apache.ivy.util.Message;
 import org.apache.ivy.util.StringUtils;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.ExtendableItem;
@@ -28,6 +27,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.IoActions;
 import org.gradle.util.TextUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +39,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorWriter.class);
 
     public static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
 
@@ -205,8 +207,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
                 writer.write("/>");
                 writer.write(TextUtil.getPlatformLineSeparator());
             } else {
-                Message.verbose("ignoring unhandled DependencyDescriptorMediator: "
-                        + mediator.getClass());
+                LOGGER.debug("Ignoring unhandled DependencyDescriptorMediator: {}", mediator.getClass());
             }
         }
     }

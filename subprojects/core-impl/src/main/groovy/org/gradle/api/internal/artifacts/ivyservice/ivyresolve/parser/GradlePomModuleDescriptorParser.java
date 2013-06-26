@@ -31,8 +31,9 @@ import org.apache.ivy.plugins.parser.m2.PomReader;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.url.URLResource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.util.Message;
 import org.gradle.internal.UncheckedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -53,6 +54,8 @@ import java.util.Map;
  * number of remote call in half to resolve a module.
  */
 public final class GradlePomModuleDescriptorParser implements ModuleDescriptorParser {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GradlePomModuleDescriptorParser.class);
+
     public void toIvyFile(InputStream is, Resource res, File destFile, ModuleDescriptor md)
             throws ParseException, IOException {
         throw new UnsupportedOperationException();
@@ -140,12 +143,10 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                 if (groupId != null && artifactId != null
                         && artifactId.equals(relocation.getName())
                         && groupId.equals(relocation.getOrganisation())) {
-                    Message.error("Relocation to an other version number not supported in ivy : "
-                            + mdBuilder.getModuleDescriptor().getModuleRevisionId()
-                            + " relocated to " + relocation
-                            + ". Please update your dependency to directly use the right version.");
-                    Message.warn("Resolution will only pick dependencies of the relocated element."
-                            + "  Artefact and other metadata will be ignored.");
+                    LOGGER.error("POM relocation to an other version number is not fully supported in Gradle : {} relocated to {}.",
+                            mdBuilder.getModuleDescriptor().getModuleRevisionId(), relocation);
+                    LOGGER.warn("Please update your dependency to directly use the correct version '{}'.", relocation);
+                    LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
                     ResolvedModuleRevision relocatedModule = parseOtherPom(ivySettings, relocation);
                     if (relocatedModule == null) {
                         throw new ParseException("impossible to load module "
@@ -158,10 +159,10 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                         mdBuilder.addDependency(dd);
                     }
                 } else {
-                    Message.info(mdBuilder.getModuleDescriptor().getModuleRevisionId()
+                    LOGGER.info(mdBuilder.getModuleDescriptor().getModuleRevisionId()
                             + " is relocated to " + relocation
                             + ". Please update your dependencies.");
-                    Message.verbose("Relocated module will be considered as a dependency");
+                    LOGGER.debug("Relocated module will be considered as a dependency");
                     DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(mdBuilder.getModuleDescriptor(), relocation, true, false, true);
                     /* Map all public dependencies */
                     Configuration[] m2Confs = GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
@@ -272,7 +273,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
     }
 
     private ParseException newParserException(Exception e) {
-        Message.error(e.getMessage());
+        LOGGER.error(e.getMessage());
         ParseException pe = new ParseException(e.getMessage(), 0);
         pe.initCause(e);
         return pe;

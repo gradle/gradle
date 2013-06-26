@@ -30,12 +30,10 @@ import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
-import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.ChecksumHelper;
-import org.apache.ivy.util.Message;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
@@ -240,54 +238,27 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
 
     private void checkDescriptorConsistency(ModuleRevisionId mrid, ModuleDescriptor md,
                                             ResolvedResource ivyRef) throws ParseException {
-        boolean ok = true;
-        StringBuilder errors = new StringBuilder();
+        List<String> errors = new ArrayList<String>();
         if (!mrid.getOrganisation().equals(md.getModuleRevisionId().getOrganisation())) {
-            Message.error("\t" + getName() + ": bad organisation found in " + ivyRef.getResource()
-                    + ": expected='" + mrid.getOrganisation() + "' found='"
-                    + md.getModuleRevisionId().getOrganisation() + "'");
-            errors.append("bad organisation: expected='" + mrid.getOrganisation() + "' found='"
-                    + md.getModuleRevisionId().getOrganisation() + "'; ");
-            ok = false;
+            errors.add("bad organisation: expected='" + mrid.getOrganisation() + "' found='" + md.getModuleRevisionId().getOrganisation() + "'");
         }
         if (!mrid.getName().equals(md.getModuleRevisionId().getName())) {
-            Message.error("\t" + getName() + ": bad module name found in " + ivyRef.getResource()
-                    + ": expected='" + mrid.getName() + " found='"
-                    + md.getModuleRevisionId().getName() + "'");
-            errors.append("bad module name: expected='" + mrid.getName() + "' found='"
-                    + md.getModuleRevisionId().getName() + "'; ");
-            ok = false;
+            errors.add("bad module name: expected='" + mrid.getName() + "' found='" + md.getModuleRevisionId().getName() + "'");
         }
-        if (mrid.getBranch() != null
-                && !mrid.getBranch().equals(md.getModuleRevisionId().getBranch())) {
-            Message.error("\t" + getName() + ": bad branch name found in " + ivyRef.getResource()
-                    + ": expected='" + mrid.getBranch() + " found='"
-                    + md.getModuleRevisionId().getBranch() + "'");
-            errors.append("bad branch name: expected='" + mrid.getBranch() + "' found='"
-                    + md.getModuleRevisionId().getBranch() + "'; ");
-            ok = false;
+        if (mrid.getBranch() != null && !mrid.getBranch().equals(md.getModuleRevisionId().getBranch())) {
+            errors.add("bad branch name: expected='" + mrid.getBranch() + "' found='" + md.getModuleRevisionId().getBranch() + "'");
         }
         if (ivyRef.getRevision() != null && !ivyRef.getRevision().startsWith("working@")) {
-            ModuleRevisionId expectedMrid = ModuleRevisionId
-                    .newInstance(mrid, ivyRef.getRevision());
+            ModuleRevisionId expectedMrid = ModuleRevisionId.newInstance(mrid, ivyRef.getRevision());
             if (!getVersionMatcher().accept(expectedMrid, md)) {
-                Message.error("\t" + getName() + ": bad revision found in " + ivyRef.getResource()
-                        + ": expected='" + ivyRef.getRevision() + " found='"
-                        + md.getModuleRevisionId().getRevision() + "'");
-                errors.append("bad revision: expected='" + ivyRef.getRevision() + "' found='"
-                        + md.getModuleRevisionId().getRevision() + "'; ");
-                ok = false;
+                errors.add("bad revision: expected='" + ivyRef.getRevision() + "' found='" + md.getModuleRevisionId().getRevision() + "'");
             }
         }
         if (!getSettings().getStatusManager().isStatus(md.getStatus())) {
-            Message.error("\t" + getName() + ": bad status found in " + ivyRef.getResource()
-                    + ": '" + md.getStatus() + "'");
-            errors.append("bad status: '" + md.getStatus() + "'; ");
-            ok = false;
+            errors.add("bad status: '" + md.getStatus() + "'; ");
         }
-        if (!ok) {
-            throw new ParseException("inconsistent module descriptor file found in '"
-                    + ivyRef.getResource() + "': " + errors, 0);
+        if (errors.size() > 0) {
+            throw new ParseException(String.format("inconsistent module descriptor file found in '%s': %s", ivyRef.getResource(), errors.toString()), 0);
         }
     }
 
@@ -335,8 +306,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
                         return new MDResolvedResource(resource, rev, md);
                     }
                 } catch (ParseException e) {
-                    Message.warn("Failed to parse the file '" + resource + "': "
-                            + e.getMessage());
+                    LOGGER.warn("Failed to parse the file '{}': {}", resource, e.getMessage());
                     return null;
                 }
             }
@@ -549,7 +519,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
             try {
                 get(checksumResource, csFile);
                 ChecksumHelper.check(dest, csFile, algorithm);
-                Message.verbose(algorithm + " OK for " + resource);
+                LOGGER.debug("{} OK for {}", algorithm, resource);
                 return true;
             } finally {
                 csFile.delete();
@@ -647,29 +617,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     }
 
     public void setAllownomd(boolean b) {
-        Message.deprecated(
-            "allownomd is deprecated, please use descriptor=\""
-            + (b ? BasicResolver.DESCRIPTOR_OPTIONAL : BasicResolver.DESCRIPTOR_REQUIRED) + "\" instead");
         allownomd = b;
-    }
-
-    /**
-     * Sets the module descriptor presence rule.
-     * Should be one of {@link BasicResolver#DESCRIPTOR_REQUIRED} or {@link BasicResolver#DESCRIPTOR_OPTIONAL}.
-     *
-     * @param descriptorRule the descriptor rule to use with this resolver.
-     */
-    public void setDescriptor(String descriptorRule) {
-        if (BasicResolver.DESCRIPTOR_REQUIRED.equals(descriptorRule)) {
-          allownomd = false;
-        } else if (BasicResolver.DESCRIPTOR_OPTIONAL.equals(descriptorRule)) {
-          allownomd = true;
-        } else {
-            throw new IllegalArgumentException(
-                "unknown descriptor rule '" + descriptorRule
-                + "'. Allowed rules are: "
-                + Arrays.asList(new String[] {BasicResolver.DESCRIPTOR_REQUIRED, BasicResolver.DESCRIPTOR_OPTIONAL}));
-        }
     }
 
     public String[] getChecksumAlgorithms() {
@@ -710,7 +658,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
                 }
             } else {
                 latestStrategy = getSettings().getDefaultLatestStrategy();
-                Message.debug(getName() + ": no latest strategy defined: using default");
+                LOGGER.debug("{}: no latest strategy defined: using default", getName());
             }
         } else {
             throw new IllegalStateException(

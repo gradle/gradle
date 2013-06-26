@@ -31,6 +31,7 @@ import org.apache.ivy.core.search.OrganisationEntry;
 import org.apache.ivy.core.search.RevisionEntry;
 import org.apache.ivy.plugins.latest.LatestStrategy;
 import org.apache.ivy.plugins.namespace.Namespace;
+import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
@@ -39,6 +40,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -211,18 +213,21 @@ public class ExternalResourceResolverDependencyResolver implements DependencyRes
         return resolver.isAllownomd();
     }
 
-    public void setAllownomd(boolean b) {
-        resolver.setAllownomd(b);
+    public void setAllownomd(boolean allownomd) {
+        resolver.setAllownomd(allownomd);
     }
 
-    /**
-     * Sets the module descriptor presence rule.
-     * Should be one of {@link org.apache.ivy.plugins.resolver.BasicResolver#DESCRIPTOR_REQUIRED} or {@link org.apache.ivy.plugins.resolver.BasicResolver#DESCRIPTOR_OPTIONAL}.
-     *
-     * @param descriptorRule the descriptor rule to use with this resolver.
-     */
     public void setDescriptor(String descriptorRule) {
-        resolver.setDescriptor(descriptorRule);
+        if (BasicResolver.DESCRIPTOR_REQUIRED.equals(descriptorRule)) {
+            setAllownomd(false);
+        } else if (BasicResolver.DESCRIPTOR_OPTIONAL.equals(descriptorRule)) {
+            setAllownomd(true);
+        } else {
+            throw new IllegalArgumentException(
+                "unknown descriptor rule '" + descriptorRule
+                + "'. Allowed rules are: "
+                + Arrays.asList(new String[]{BasicResolver.DESCRIPTOR_REQUIRED, BasicResolver.DESCRIPTOR_OPTIONAL}));
+        }
     }
 
     public String[] getChecksumAlgorithms() {
