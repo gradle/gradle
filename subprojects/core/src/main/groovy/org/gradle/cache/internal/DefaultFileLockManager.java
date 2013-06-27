@@ -44,7 +44,7 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
  */
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockManager.class);
-    private static final int DEFAULT_LOCK_TIMEOUT = 60000;
+    private static final int DEFAULT_LOCK_TIMEOUT = 180000;
     private static final byte STATE_REGION_PROTOCOL = 1;
     private static final int STATE_REGION_SIZE = 2;
     private static final int STATE_REGION_POS = 0;
