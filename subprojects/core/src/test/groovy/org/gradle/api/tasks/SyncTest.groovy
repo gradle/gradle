@@ -14,29 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.file;
+package org.gradle.api.tasks
 
-import org.gradle.api.Incubating;
+class SyncTest extends AbstractCopyTaskContractTest {
 
-/**
- * The possible strategies for handling files with the same relative
- * path during a copy (or archive) operation.
- *
- * @author Kyle Mahan
- */
-@Incubating
-public enum DuplicatesStrategy {
+    private Sync task = project.tasks.create(TEST_TASK_NAME, Sync)
 
-    /**
-     * Files with the same relative path should be included. For Copy
-     * operations this will generate a warning.
-     */
-    INCLUDE,
-
-    /**
-     * Only the first file with a given relative path will be
-     * included.
-     */
-    EXCLUDE
-
+    @Override
+    AbstractCopyTask getTask() {
+        task
+    }
 }

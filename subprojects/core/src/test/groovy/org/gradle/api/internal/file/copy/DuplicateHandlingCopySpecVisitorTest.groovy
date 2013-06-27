@@ -17,7 +17,10 @@ package org.gradle.api.internal.file.copy
 
 import org.gradle.api.file.*
 import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.internal.reflect.Instantiator
+import spock.lang.Shared
 import spock.lang.Specification
 
 /**
@@ -31,7 +34,8 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
     def fileSystem = Mock(FileSystem)
     def delegate = Mock(FileCopySpecVisitor)
     def visitor = new DuplicateHandlingCopySpecVisitor(delegate, false)
-    def driver = new CopySpecVisitorDriver(fileSystem)
+    @Shared Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
+    def driver = new CopySpecVisitorDriver(instantiator, fileSystem)
     def copySpec = Mock(MyCopySpec)
 
     def duplicatesIncludedByDefault() {
@@ -79,7 +83,7 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
         actions {}
-        copySpec.duplicatesStrategy >> DuplicatesStrategy.exclude
+        copySpec.duplicatesStrategy >> DuplicatesStrategy.EXCLUDE
 
         when:
         visit()

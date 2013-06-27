@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.copy.CopyActionImpl
 import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecException
 import org.gradle.test.fixtures.file.TestFile
@@ -43,7 +44,8 @@ public class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock()
     private final TaskResolver taskResolver = Mock()
     private final TemporaryFileProvider temporaryFileProvider = Mock()
-    private DefaultFileOperations fileOperations = new DefaultFileOperations(resolver, taskResolver, temporaryFileProvider)
+    private final Instantiator instantiator = Mock()
+    private DefaultFileOperations fileOperations = new DefaultFileOperations(resolver, taskResolver, temporaryFileProvider, instantiator)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -240,7 +242,7 @@ public class DefaultFileOperationsTest extends Specification {
 
     def javaexec() {
         File testFile = tmpDir.file("someFile")
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
         List files = ClasspathUtil.getClasspath(getClass().classLoader)
 
         when:
@@ -256,7 +258,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def javaexecWithNonZeroExitValueShouldThrowException() {
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
 
         when:
         fileOperations.javaexec {
@@ -268,7 +270,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def javaexecWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
 
         when:
         ExecResult result = fileOperations.javaexec {
@@ -285,7 +287,7 @@ public class DefaultFileOperationsTest extends Specification {
             return
         }
 
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
         File testFile = tmpDir.file("someFile")
 
         when:
@@ -304,7 +306,7 @@ public class DefaultFileOperationsTest extends Specification {
         if (OperatingSystem.current().isWindows()) {
             return
         }
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
 
         when:
         fileOperations.exec {
@@ -321,7 +323,7 @@ public class DefaultFileOperationsTest extends Specification {
         if (OperatingSystem.current().isWindows()) {
             return
         }
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
 
         when:
         ExecResult result = fileOperations.exec {

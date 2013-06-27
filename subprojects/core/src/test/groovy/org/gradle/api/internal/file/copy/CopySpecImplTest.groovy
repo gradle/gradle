@@ -24,6 +24,7 @@ import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
@@ -43,6 +44,7 @@ public class CopySpecImplTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final FileResolver fileResolver = context.mock(FileResolver);
     private final CopySpecImpl spec = new CopySpecImpl(fileResolver)
+    private final Instantiator instantiator = context.mock(Instantiator)
 
     private List<String> getTestSourceFileNames() {
         ['first', 'second']
@@ -108,7 +110,7 @@ public class CopySpecImplTest {
     }
     
     @Test public void testWithSpecSource() {
-        CopyActionImpl source = new CopyActionImpl(fileResolver, null)
+        CopyActionImpl source = new CopyActionImpl(instantiator, fileResolver, null)
 
         spec.with source
         assertTrue(spec.sourcePaths.empty)
@@ -350,19 +352,19 @@ public class CopySpecImplTest {
 
     @Test public void testGetSetDuplicatesStrategy() {
         assertEquals(null, spec.duplicatesStrategy)
-        spec.duplicatesStrategy = 'include'
-        assertEquals(DuplicatesStrategy.include, spec.duplicatesStrategy)
-        spec.duplicatesStrategy = 'exclude'
-        assertEquals(DuplicatesStrategy.exclude, spec.duplicatesStrategy)
+        spec.duplicatesStrategy = 'INCLUDE'
+        assertEquals(DuplicatesStrategy.INCLUDE, spec.duplicatesStrategy)
+        spec.duplicatesStrategy = 'EXCLUDE'
+        assertEquals(DuplicatesStrategy.EXCLUDE, spec.duplicatesStrategy)
         spec.duplicatesStrategy = null
         assertEquals(null, spec.duplicatesStrategy)
     }
 
 
     @Test public void testDuplicatesStrategyInherited() {
-        spec.duplicatesStrategy = 'exclude'
+        spec.duplicatesStrategy = 'EXCLUDE'
         spec.with new CopySpecImpl(fileResolver, spec)
-        assertEquals(DuplicatesStrategy.exclude, spec.childSpecs[0].duplicatesStrategy)
+        assertEquals(DuplicatesStrategy.EXCLUDE, spec.childSpecs[0].duplicatesStrategy)
     }
 
     @Test public void testMatchingCreatesAppropriateAction() {

@@ -19,7 +19,9 @@ package org.gradle.api.tasks;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
+import org.gradle.internal.reflect.Instantiator;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -60,9 +62,9 @@ import java.io.File;
 public class Copy extends AbstractCopyTask {
     private FileCopyActionImpl copyAction;
 
-    public Copy() {
-        FileResolver fileResolver = getServices().get(FileResolver.class);
-        copyAction = new FileCopyActionImpl(fileResolver, new FileCopySpecVisitor());
+    @Inject
+    public Copy(Instantiator instantiator, FileResolver fileResolver) {
+        copyAction = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new FileCopySpecVisitor());
     }
 
     @Override

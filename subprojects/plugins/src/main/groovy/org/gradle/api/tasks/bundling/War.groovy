@@ -18,11 +18,15 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
+
+import javax.inject.Inject
 
 /**
  * Assembles a WAR archive.
@@ -37,7 +41,9 @@ class War extends Jar {
     private FileCollection classpath
     private final CopySpecImpl webInf
 
-    War() {
+    @Inject
+    War(Instantiator instantiator, FileResolver fileResolver) {
+        super(instantiator, fileResolver)
         extension = WAR_EXTENSION
         // Add these as separate specs, so they are not affected by the changes to the main spec
 

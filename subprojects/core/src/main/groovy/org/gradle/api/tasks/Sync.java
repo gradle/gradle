@@ -20,7 +20,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
 import org.gradle.api.internal.file.copy.SyncCopySpecVisitor;
+import org.gradle.internal.reflect.Instantiator;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -29,9 +31,9 @@ import java.io.File;
 public class Sync extends AbstractCopyTask {
     private FileCopyActionImpl action;
 
-    public Sync() {
-        FileResolver fileResolver = getServices().get(FileResolver.class);
-        action = new FileCopyActionImpl(fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
+    @Inject
+    public Sync(Instantiator instantiator, FileResolver fileResolver) {
+        action = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
     }
 
     @Override

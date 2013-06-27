@@ -31,6 +31,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -46,15 +47,17 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     private Object dir;
     private final FileResolver resolver;
     private final DefaultTaskDependency buildDependency;
+    private final Instantiator instantiator;
 
-    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver) {
-        this(Collections.singletonMap("dir", dir), resolver, taskResolver);
+    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver, Instantiator instantiator) {
+        this(Collections.singletonMap("dir", dir), resolver, taskResolver, instantiator);
     }
 
-    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver) {
+    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver, Instantiator instantiator) {
         this.resolver = resolver != null ? resolver : new IdentityFileResolver();
         ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
+        this.instantiator = instantiator;
     }
 
     public PatternSet getPatterns() {
@@ -83,7 +86,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     public WorkResult copy(Closure closure) {
-        CopyActionImpl action = new FileCopyActionImpl(resolver, new FileCopySpecVisitor());
+        CopyActionImpl action = new FileCopyActionImpl(instantiator, resolver, new FileCopySpecVisitor());
         action.from(this);
         ConfigureUtil.configure(closure, action);
         action.execute();

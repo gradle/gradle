@@ -16,14 +16,15 @@
 
 package org.gradle.configuration;
 
-import org.gradle.internal.Factory;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.groovy.scripts.internal.BuildScriptClasspathScriptTransformer;
-import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.*;
+import org.gradle.groovy.scripts.internal.BuildScriptClasspathScriptTransformer;
+import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
+import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
@@ -32,17 +33,19 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final ClassLoader defaultClassLoader;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
+    private final Instantiator instantiator;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
-                                                ImportsReader importsReader,
-                                                ScriptHandlerFactory scriptHandlerFactory,
-                                                ClassLoader defaultClassLoader,
-                                                Factory<LoggingManagerInternal> loggingManagerFactory) {
+                                      ImportsReader importsReader,
+                                      ScriptHandlerFactory scriptHandlerFactory,
+                                      ClassLoader defaultClassLoader,
+                                      Factory<LoggingManagerInternal> loggingManagerFactory, Instantiator instantiator) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.defaultClassLoader = defaultClassLoader;
         this.loggingManagerFactory = loggingManagerFactory;
+        this.instantiator = instantiator;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource) {
@@ -88,6 +91,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
+            services.add(Instantiator.class, instantiator);
 
             ScriptAware scriptAware = null;
             if (target instanceof ScriptAware) {

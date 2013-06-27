@@ -18,9 +18,11 @@ package org.gradle.plugins.ear
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
@@ -48,7 +50,8 @@ class Ear extends Jar {
 
     private CopySpec lib
 
-    Ear() {
+    Ear(Instantiator instantiator, FileResolver fileResolver) {
+        super(instantiator, fileResolver)
         extension = EAR_EXTENSION
         lib = copyAction.rootSpec.addFirst().into {
             getLibDirName()

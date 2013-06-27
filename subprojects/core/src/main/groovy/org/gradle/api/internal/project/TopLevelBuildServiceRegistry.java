@@ -185,7 +185,9 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 get(ImportsReader.class),
                 get(ScriptHandlerFactory.class),
                 get(BuildClassLoaderRegistry.class).getScriptClassLoader(),
-                getFactory(LoggingManagerInternal.class));
+                getFactory(LoggingManagerInternal.class),
+                get(Instantiator.class)
+        );
     }
 
     protected InitScriptHandler createInitScriptHandler() {

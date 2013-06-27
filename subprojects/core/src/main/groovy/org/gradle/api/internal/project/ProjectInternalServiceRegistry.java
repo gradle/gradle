@@ -89,7 +89,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected DefaultFileOperations createFileOperations() {
-        return new DefaultFileOperations(get(FileResolver.class), project.getTasks(), get(TemporaryFileProvider.class));
+        return new DefaultFileOperations(get(FileResolver.class), project.getTasks(), get(TemporaryFileProvider.class), get(Instantiator.class));
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {

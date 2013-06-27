@@ -16,9 +16,8 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.AbstractConventionTaskTest
+import org.gradle.api.tasks.AbstractCopyTaskContractTest
 import org.junit.Test
 
 import static org.junit.Assert.assertEquals
@@ -27,13 +26,13 @@ import static org.junit.Assert.assertTrue
 /**
  * @author Hans Dockter
  */
-abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
+abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
 
     FileResolver resolver = [resolve: {it as File}] as FileResolver
 
     abstract AbstractArchiveTask getArchiveTask()
 
-    ConventionTask getTask() {
+    AbstractArchiveTask getTask() {
         archiveTask
     }
 

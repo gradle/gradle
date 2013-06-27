@@ -17,13 +17,17 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.file.CopySpec
-import org.gradle.api.internal.file.collections.MapFileTree
-import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.api.java.archives.Manifest
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.MapFileTree
+import org.gradle.api.internal.file.copy.CopySpecImpl
+import org.gradle.api.java.archives.Manifest
+import org.gradle.api.java.archives.internal.DefaultManifest
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.ConfigureUtil
+
+import javax.inject.Inject
 
 /**
  * Assembles a JAR archive.
@@ -36,7 +40,9 @@ public class Jar extends Zip {
     private Manifest manifest
     private final CopySpecImpl metaInf
 
-    Jar() {
+    @Inject
+    Jar(Instantiator instantiator, FileResolver fileResolver) {
+        super(instantiator, fileResolver)
         extension = DEFAULT_EXTENSION
         manifest = new DefaultManifest(project.fileResolver)
         // Add these as separate specs, so they are not affected by the changes to the main spec

@@ -21,15 +21,17 @@ package org.gradle.groovy.scripts
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.api.logging.LoggingManager
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.StandardOutputCapture
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.junit.Assert.*
+
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
@@ -47,6 +49,8 @@ class DefaultScriptTest {
             will(returnValue(context.mock(StandardOutputCapture.class)))
             allowing(serviceRegistryMock).get(LoggingManager.class)
             will(returnValue(context.mock(LoggingManager.class)))
+            allowing(serviceRegistryMock).get(Instantiator)
+            will(returnValue(context.mock(Instantiator)))
         }
 
         DefaultScript script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)

@@ -21,6 +21,7 @@ import org.gradle.api.file.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.io.FilterReader;
 import java.util.ArrayList;
@@ -36,13 +37,15 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
     private final CopySpecVisitor visitor;
     private final CopySpecImpl root;
     private final CopySpecImpl mainContent;
+    private final Instantiator instantiator;
     private final FileResolver resolver;
 
-    public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor) {
-        this(resolver, visitor, false);
+    public CopyActionImpl(Instantiator instantiator, FileResolver resolver, CopySpecVisitor visitor) {
+        this(instantiator, resolver, visitor, false);
     }
 
-    public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
+    public CopyActionImpl(Instantiator instantiator, FileResolver resolver, CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
+        this.instantiator = instantiator;
         this.resolver = resolver;
         this.root = new CopySpecImpl(resolver);
         this.mainContent = root.addChild();
@@ -65,7 +68,7 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
     }
 
     public void execute() {
-        CopySpecVisitorDriver driver = new CopySpecVisitorDriver(FileSystems.getDefault());
+        CopySpecVisitorDriver driver = new CopySpecVisitorDriver(instantiator, FileSystems.getDefault());
         driver.visit(this, root.getAllSpecs(), visitor);
     }
 
