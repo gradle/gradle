@@ -180,6 +180,20 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         thrown TypeCoercionException
     }
 
+    def "can call methods during construction"() {
+        /*
+            We route all methods through invokeMethod, which requires fields
+            added in the subclass. We have special handling for the case where
+            methods are called before this field has been initialised; this tests that.
+         */
+        when:
+        def i = create(CallsMethodDuringConstruction)
+
+        then:
+        i.setDuringConstructor == i.class
+        i.setAtFieldInit == i.class
+    }
+
     def conf(o, c) {
         ConfigureUtil.configure(c, o)
     }
@@ -251,7 +265,14 @@ class ActionsTester {
         lastMethod = "hasClosure"
         lastArgs = [s, closure]
     }
+}
 
+class CallsMethodDuringConstruction {
 
+    Class setAtFieldInit = getClass()
+    Class setDuringConstructor
 
+    CallsMethodDuringConstruction() {
+        setDuringConstructor = getClass()
+    }
 }
