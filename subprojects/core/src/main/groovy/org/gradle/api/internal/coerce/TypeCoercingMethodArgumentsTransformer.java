@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.coerce;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,22 +43,44 @@ public class TypeCoercingMethodArgumentsTransformer implements MethodArgumentsTr
             return args;
         }
 
-        CharSequence charSequenceArg = (CharSequence) args[0];
+        final CharSequence charSequenceArg = (CharSequence) args[0];
 
-        List<Method> singleArgEnumMethods = JavaReflectionUtil.findAllMethods(target.getClass(), new Spec<Method>() {
-            public boolean isSatisfiedBy(Method method) {
-                return method.getName().equals(methodName)
-                        && method.getParameterTypes().length == 1
-                        && method.getParameterTypes()[0].isEnum();
+        final List<Method> enumMethodHolder = new ArrayList<Method>(2);
+        final List<Method> stringMethodHolder = new ArrayList<Method>(1);
+
+        JavaReflectionUtil.searchMethods(target.getClass(), new Transformer<Boolean, Method>() {
+            public Boolean transform(Method method) {
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if (method.getName().equals(methodName) && parameterTypes.length == 1) {
+                    Class<?> parameterType = parameterTypes[0];
+
+                    if (parameterType.isAssignableFrom(charSequenceArg.getClass())) {
+                        stringMethodHolder.add(method);
+                        return true; // stop searching
+                    } else if (parameterType.isEnum()) {
+                        enumMethodHolder.add(method);
+                        if (enumMethodHolder.size() > 1) {
+                            return true; // stop searching
+                        }
+                    }
+                }
+
+                return false;
             }
         });
 
-        if (singleArgEnumMethods.size() != 1) {
+        // There's a method that takes the uncoerced type
+        if (!stringMethodHolder.isEmpty()) {
+            return args;
+        }
+
+        // There's either no enum method, or more than one
+        if (enumMethodHolder.size() != 1) {
             return args;
         }
 
         // Match, we can try and coerce
-        Method match = singleArgEnumMethods.get(0);
+        Method match = enumMethodHolder.get(0);
         @SuppressWarnings("unchecked")
         Class<? extends Enum> enumType = (Class<? extends Enum>) match.getParameterTypes()[0];
         return new Object[]{toEnumValue(enumType, charSequenceArg)};
