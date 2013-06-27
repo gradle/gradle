@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 dependencies {
 	compile libraries.groovy
 	compile project(':core')
-    compile project(':plugins')
+	compile project(':plugins')
+	compile project(':wrapper')
     integTestRuntime project(':maven')
 }
 
 useTestFixtures()
+useClassycle()

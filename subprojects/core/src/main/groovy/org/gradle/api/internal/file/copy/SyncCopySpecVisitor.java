@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
@@ -41,13 +42,13 @@ public class SyncCopySpecVisitor extends DelegatingCopySpecVisitor {
     }
 
     @Override
-    public void visitDir(FileVisitDetails dirDetails) {
+    public void visitDir(FileCopyDetails dirDetails) {
         visited.add(dirDetails.getRelativePath());
         getVisitor().visitDir(dirDetails);
     }
 
     @Override
-    public void visitFile(FileVisitDetails fileDetails) {
+    public void visitFile(FileCopyDetails fileDetails) {
         visited.add(fileDetails.getRelativePath());
         getVisitor().visitFile(fileDetails);
     }

@@ -37,14 +37,6 @@ configurations {
     dists
 }
 
-integTestTasks.all {
-    if (project.hasProperty("noDistTests")) {
-        gradle.startParameter.excludedTaskNames << it.path
-    } else {
-        inputs.files buildDists
-    }
-}
-
 daemonIntegTest.enabled = false
 
 evaluationDependsOn ":docs"
@@ -132,4 +124,8 @@ task outputsZip(type: Zip) {
 
 artifacts {
     dists allZip, binZip, srcZip
+}
+
+integTest {
+    inputs.files allZip, binZip, srcZip
 }

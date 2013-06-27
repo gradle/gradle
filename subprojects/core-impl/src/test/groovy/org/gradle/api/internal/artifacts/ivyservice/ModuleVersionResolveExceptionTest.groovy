@@ -37,9 +37,9 @@ class ModuleVersionResolveExceptionTest extends Specification {
     }
 
     def "can add incoming paths to exception"() {
-        def a = newInstance("org", "a", "1.2")
-        def b = newInstance("org", "b", "5")
-        def c = newInstance("org", "c", "1.0")
+        def a = newId("org", "a", "1.2")
+        def b = newId("org", "b", "5")
+        def c = newId("org", "c", "1.0")
 
         def cause = new RuntimeException()
         def exception = new ModuleVersionResolveException(newInstance("a", "b", "c"), cause)

@@ -64,6 +64,7 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
                 publications {
                     ivy {
                         descriptor {
+                            status "custom-status"
                             withXml {
                                 asNode().info[0].appendNode('description', 'Customized descriptor')
                             }
@@ -80,6 +81,7 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
 
         and:
         module.ivy.description == "Customized descriptor"
+        module.ivy.status == "custom-status"
     }
 
     def "can generate ivy.xml without publishing"() {
@@ -87,14 +89,14 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
         def moduleName = module.module
         buildFile << """
             publishing {
-                generateIvyModuleDescriptor {
+                generateDescriptorFileForIvyPublication {
                     destination = 'generated-ivy.xml'
                 }
             }
         """
 
         when:
-        succeeds 'generateIvyModuleDescriptor'
+        succeeds 'generateDescriptorFileForIvyPublication'
 
         then:
         file('generated-ivy.xml').assertIsFile()
@@ -119,7 +121,7 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':generateIvyModuleDescriptor'.")
+        failure.assertHasDescription("Execution failed for task ':generateDescriptorFileForIvyPublication'.")
         failure.assertHasCause("Could not apply withXml() to Ivy module descriptor")
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
     }

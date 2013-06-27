@@ -15,13 +15,14 @@
  */
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.cache.Cache;
 import org.gradle.api.internal.cache.CacheAccessSerializer;
 import org.gradle.api.internal.cache.MapBackedCache;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler;
+import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -58,7 +59,7 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
     }
 
     protected FileLockManager createFileLockManager() {
-        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)));
+        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)), new NoOpFileLockContentionHandler());
     }
 
     protected DaemonRegistry createDaemonRegistry() {

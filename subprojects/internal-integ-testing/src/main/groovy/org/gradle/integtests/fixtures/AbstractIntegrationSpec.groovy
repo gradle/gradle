@@ -46,6 +46,11 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         testDirectory.file('build.gradle')
     }
 
+    protected TestFile buildScript(String script) {
+        buildFile.text = script
+        buildFile
+    }
+
     protected TestFile getSettingsFile() {
         testDirectory.file('settings.gradle')
     }
@@ -127,7 +132,14 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
             assert !skippedTasks.contains(it)
         }
     }
-    
+
+    protected void skipped(String... tasks) {
+        tasks.each {
+            assert it in executedTasks
+            assert skippedTasks.contains(it)
+        }
+    }
+
     protected void failureHasCause(String cause) {
         failure.assertHasCause(cause)
     }

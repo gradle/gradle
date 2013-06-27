@@ -19,27 +19,62 @@ package org.gradle.api.reporting.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
-
-import static org.gradle.api.reporting.plugins.BuildDashboardPlugin.BUILD_DASHBOARD_TASK_NAME
+import org.jsoup.nodes.Document
 
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
     void setup() {
         writeBuildFile()
-        writeProjectFiles(testDirectory)
     }
 
-    private void writeProjectFiles(TestFile root) {
-        root.file("src/main/groovy/org/gradle/class1.groovy") << "package org.gradle; class class1 { }"
-        root.file("config/codenarc/rulesets.groovy") << ""
+    private void goodCode(TestFile root = testDirectory) {
+        root.file("src/main/groovy/org/gradle/Class1.groovy") << "package org.gradle; class Class1 { }"
+        buildFile << """
+            allprojects {
+                apply plugin: 'groovy'
+
+                dependencies {
+                    compile localGroovy()
+                }
+            }
+        """
     }
 
-    private TestFile getBuildDashboardFile() {
-        file("build/reports/buildDashboard/index.html")
+    private void withTests() {
+        buildFile << """
+            allprojects {
+                dependencies{
+                    testCompile "junit:junit:4.11"
+                }
+            }
+"""
     }
 
-    private int getDashboardLinksCount() {
-        Jsoup.parse(buildDashboardFile, null).select('ul li a').size()
+    private void goodTests(TestFile root = testDirectory) {
+        root.file("src/test/groovy/org/gradle/Class1.groovy") << "package org.gradle; class TestClass1 { @org.junit.Test void ok() { } }"
+        withTests()
+    }
+
+    private void badTests(TestFile root = testDirectory) {
+        root.file("src/test/groovy/org/gradle/Class1.groovy") << "package org.gradle; class TestClass1 { @org.junit.Test void broken() { throw new RuntimeException() } }"
+        withTests()
+    }
+
+    private void withCodenarc(TestFile root = testDirectory) {
+        root.file("config/codenarc/rulesets.groovy") << """
+            ruleset {
+                ruleset('rulesets/naming.xml')
+            }
+        """
+        buildFile << """
+            allprojects {
+                apply plugin: 'codenarc'
+
+                codenarc {
+                    configFile = file('config/codenarc/rulesets.groovy')
+                }
+            }
+"""
     }
 
     private void writeBuildFile() {
@@ -47,27 +82,25 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
             apply plugin: 'build-dashboard'
 
             allprojects {
-                apply plugin: 'groovy'
-                apply plugin: 'codenarc'
-
-                codenarc {
-                    configFile = file('config/codenarc/rulesets.groovy')
-                }
-
                 repositories {
                     mavenCentral()
-                }
-
-                dependencies {
-                    codenarc 'org.codenarc:CodeNarc:0.16.1'
-                    compile localGroovy()
                 }
             }
         """
     }
 
+    private void failingDependenciesForTestTask() {
+        buildFile << """
+            task failingTask << { throw new RuntimeException() }
+
+            test.dependsOn failingTask
+        """
+    }
+
     private void setupSubproject() {
-        writeProjectFiles(file('subproject'))
+        def subprojectDir = file('subproject')
+        goodCode(subprojectDir)
+        goodTests(subprojectDir)
         file('settings.gradle') << "include 'subproject'"
     }
 
@@ -76,63 +109,166 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     String getMainTask() {
-        BUILD_DASHBOARD_TASK_NAME
+        'buildDashboard'
     }
 
-    void 'running buildDashboard task on its own generates a link to it in the dashboard'() {
+    void 'build dashboard for a project with no other reports lists just the dashboard'() {
         when:
-        run(BUILD_DASHBOARD_TASK_NAME)
+        run('buildDashboard')
 
         then:
-        dashboardLinksCount == 1
+        reports.size() == 1
+        hasReport(':buildDashboard', 'html')
+        unavailableReports.empty
     }
 
-    void 'running buildDashboard task after some report generating task generates link to it in the dashboard'() {
-        when:
-        run('check', BUILD_DASHBOARD_TASK_NAME)
-
-        then:
-        dashboardLinksCount == 2
-    }
-
-    void 'buildDashboard task always runs after report generating tasks'() {
-        when:
-        run(BUILD_DASHBOARD_TASK_NAME, 'check')
-
-        then:
-        dashboardLinksCount == 2
-    }
-
-    void 'no report is generated if it is disabled'() {
+    void 'build dashboard lists the enabled reports for the project'() {
         given:
+        goodCode()
+        goodTests()
+
+        when:
+        run('check', 'buildDashboard')
+
+        then:
+        reports.size() == 3
+        hasReport(':buildDashboard', 'html')
+        hasReport(':test', 'html')
+        hasReport(':test', 'junitXml')
+    }
+
+    void 'build dashboard lists the reports which have not been generated'() {
+        given:
+        goodCode()
+        goodTests()
+
+        when:
+        run('buildDashboard')
+
+        then:
+        reports.size() == 1
+        hasReport(':buildDashboard', 'html')
+        unavailableReports.size() == 2
+        hasUnavailableReport(':test', 'html')
+        hasUnavailableReport(':test', 'junitXml')
+    }
+
+    void 'build dashboard is always generated after report generating tasks have executed'() {
+        given:
+        goodCode()
+        goodTests()
+
+        when:
+        run('buildDashboard', 'check')
+
+        then:
+        reports.size() == 3
+        hasReport(':buildDashboard', 'html')
+        hasReport(':test', 'html')
+        hasReport(':test', 'junitXml')
+    }
+
+    void 'running a report generating task also generates build dashboard'() {
+        given:
+        goodCode()
+        goodTests()
+
+        when:
+        run('test')
+
+        then:
+        reports.size() == 3
+        hasReport(':buildDashboard', 'html')
+        hasReport(':test', 'html')
+        hasReport(':test', 'junitXml')
+    }
+
+    void 'build dashboard is generated even if report generating task fails'() {
+        given:
+        goodCode()
+        badTests()
+
+        when:
+        runAndFail('check')
+
+        then:
+        reports.size() == 3
+        hasReport(':buildDashboard', 'html')
+        hasReport(':test', 'html')
+        hasReport(':test', 'junitXml')
+    }
+
+    void 'build dashboard is not generated if a dependency of the report generating task fails'() {
+        given:
+        goodCode()
+        goodTests()
+        failingDependenciesForTestTask()
+
+        when:
+        runAndFail('check')
+
+        then:
+        !buildDashboardFile.exists()
+    }
+
+    void 'build dashboard is not generated if a dependency of the report generating task fails even with --continue'() {
+        given:
+        goodCode()
+        goodTests()
+        failingDependenciesForTestTask()
+
+        when:
+        args('--continue')
+        runAndFail('check')
+
+        then:
+        !buildDashboardFile.exists()
+    }
+
+    void 'dashboard is not generated if it is disabled'() {
+        given:
+        goodCode()
+
         buildFile << """
-            $BUILD_DASHBOARD_TASK_NAME {
+            buildDashboard {
                 reports.html.enabled = false
             }
         """
 
         when:
-        run(BUILD_DASHBOARD_TASK_NAME)
+        run('buildDashboard')
 
         then:
         !buildDashboardFile.exists()
     }
 
     void 'buildDashboard is incremental'() {
+        given:
+        goodCode()
+
         expect:
-        run(BUILD_DASHBOARD_TASK_NAME) && ":$BUILD_DASHBOARD_TASK_NAME".toString() in nonSkippedTasks
-        run(BUILD_DASHBOARD_TASK_NAME) && ":$BUILD_DASHBOARD_TASK_NAME".toString() in skippedTasks
+        run('buildDashboard') && ':buildDashboard' in nonSkippedTasks
+        run('buildDashboard') && ':buildDashboard' in skippedTasks
 
         when:
         buildDashboardFile.delete()
 
         then:
-        run(BUILD_DASHBOARD_TASK_NAME) && ":$BUILD_DASHBOARD_TASK_NAME".toString() in nonSkippedTasks
+        run('buildDashboard') && ':buildDashboard' in nonSkippedTasks
     }
 
     void 'enabling an additional report renders buildDashboard out-of-date'() {
-        expect:
-        run('check', BUILD_DASHBOARD_TASK_NAME) && ":$BUILD_DASHBOARD_TASK_NAME".toString() in nonSkippedTasks
+        given:
+        goodCode()
+        withCodenarc()
+
+        when:
+        run('check') && ':buildDashboard' in nonSkippedTasks
+
+        then:
+        reports.size() == 2
+        hasReport(':buildDashboard', 'html')
+        hasReport(':codenarcMain', 'html')
 
         when:
         buildFile << """
@@ -141,63 +277,125 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
             }
         """
 
+        and:
+        run('check') && ':buildDashboard' in nonSkippedTasks
+
         then:
-        run('check', BUILD_DASHBOARD_TASK_NAME) && ":$BUILD_DASHBOARD_TASK_NAME".toString() in nonSkippedTasks
-        dashboardLinksCount == 3
+        reports.size() == 3
+        hasReport(':buildDashboard', 'html')
+        hasReport(':codenarcMain', 'html')
+        hasReport(':codenarcMain', 'text')
+    }
+
+    void 'generating a report that was previously not available renders buildDashboard out-of-date'() {
+        given:
+        goodCode()
+        goodTests()
+
+        when:
+        run('buildDashboard') && ':buildDashboard' in nonSkippedTasks
+
+        then:
+        reports.size() == 1
+        hasReport(':buildDashboard', 'html')
+        unavailableReports.size() == 2
+        hasUnavailableReport(':test', 'html')
+        hasUnavailableReport(':test', 'junitXml')
+
+        when:
+        run('test') && ':buildDashboard' in nonSkippedTasks
+
+        then:
+        reports.size() == 3
+        hasReport(':buildDashboard', 'html')
+        hasReport(':test', 'html')
+        hasReport(':test', 'junitXml')
+        unavailableReports.empty
     }
 
     void 'reports from subprojects are aggregated'() {
         given:
+        goodCode()
+        goodTests()
         setupSubproject()
 
         when:
-        run(BUILD_DASHBOARD_TASK_NAME, 'check')
+        run('buildDashboard', 'check')
 
         then:
-        dashboardLinksCount == 3
+        reports.size() == 5
+        hasReport(':buildDashboard', 'html')
+        hasReport(':test', 'html')
+        hasReport(':test', 'junitXml')
+        hasReport(':subproject:test', 'html')
+        hasReport(':subproject:test', 'junitXml')
     }
 
-    void 'dashboard lists jacoco reports'() {
+    void 'dashboard includes JaCoCo reports'() {
         given:
-        writeJavaSources()
+        goodCode()
+        goodTests()
         buildFile << """
-        apply plugin:'jacoco'
-
-        dependencies{
-            testCompile "junit:junit:4.11"
-        }
+            apply plugin:'jacoco'
         """
 
         when:
-        run("test", "jacocoTestReport", BUILD_DASHBOARD_TASK_NAME, 'check')
+        run("test", "jacocoTestReport")
+
         then:
-        dashboardLinksCount == 3
-        jacocoLinks() == 1
-
+        reports.size() == 4
+        hasReport(':buildDashboard', 'html')
+        hasReport(':test', 'html')
+        hasReport(':test', 'junitXml')
+        hasReport(':jacocoTestReport', 'html')
     }
 
-    private int jacocoLinks() {
-        Jsoup.parse(buildDashboardFile, null).select("ul li a:contains(':jacocoTestReport')").size()
+    void 'dashboard includes CodeNarc reports'() {
+        given:
+        goodCode()
+        withCodenarc()
+
+        when:
+        run("check")
+
+        then:
+        reports.size() == 2
+        hasReport(':buildDashboard', 'html')
+        hasReport(':codenarcMain', 'html')
     }
 
-    private void writeJavaSources() {
-        file("src/main/java/org/gradle/test/SimpleJava.java").createFile().text = """
-    package org.gradle.test;
+    void hasReport(String task, String name) {
+        assert reports.contains("Report generated by task '$task' ($name)" as String)
+    }
 
-    public class SimpleJava {
-        public void sayhello(){
-            System.out.println("hello");
+    List<String> getReports() {
+        dashboard.select("div#content li a")*.text()
+    }
+
+    void hasUnavailableReport(String task, String name) {
+        assert unavailableReports.contains("Report generated by task '$task' ($name)" as String)
+    }
+
+    List<String> getUnavailableReports() {
+        dashboard.select("div#content li span.unavailable")*.text()
+    }
+
+    private TestFile getBuildDashboardFile() {
+        file("build/reports/buildDashboard/index.html")
+    }
+
+    private Document doc
+    private boolean attached
+
+    Document getDashboard() {
+        if (doc == null) {
+            doc = Jsoup.parse(buildDashboardFile, "utf8")
         }
-    }"""
-
-        file("src/test/java/org/gradle/test/SimpleJavaTest.java").createFile().text = """
-            package org.gradle.test;
-            import org.junit.Test;
-
-            public class SimpleJavaTest {
-                @Test public void sayhello(){
-                    new SimpleJava().sayhello();
-                }
-            }"""
+        if (!attached) {
+            executer.beforeExecute { doc = null }
+            attached = true
+        }
+        return doc
     }
+
 }

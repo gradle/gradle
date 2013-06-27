@@ -15,6 +15,8 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
+
 /**
  * <p>Provides details about a file or directory about to be copied, and allows some aspects of the destination file to
  * be modified.</p>
@@ -55,4 +57,24 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      * @param mode the Unix permissions, e.g. {@code 0644}.
      */
     void setMode(int mode);
+
+    /**
+     * Sets the strategy for handling duplicates.
+     *
+     * @param strategy the strategy used when a duplicate file is encountered.
+     * Either 'include', 'exclude', or 'inherit'
+     */
+    @Incubating
+    void setDuplicatesStrategy(DuplicatesStrategy strategy);
+
+    /**
+     * Get the strategy for handling duplicates, either
+     * DuplicatesStrategy.include if duplicate files of this type
+     * should be retained or DuplicatesStrategy.exclude otherwise.
+     *
+     * @return the duplicates strategy for this file
+     */
+    @Incubating
+    DuplicatesStrategy getDuplicatesStrategy();
+
 }

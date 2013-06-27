@@ -33,14 +33,7 @@ public class DependencyResolverIdentifier {
 
         List<String> parts = new ArrayList<String>();
         parts.add(resolver.getClass().getName());
-        if (resolver instanceof ExternalResourceResolver) {
-            ExternalResourceResolver externalResourceResolver = (ExternalResourceResolver) resolver;
-            parts.add(joinPatterns(externalResourceResolver.getIvyPatterns()));
-            parts.add(joinPatterns(externalResourceResolver.getArtifactPatterns()));
-            if (externalResourceResolver.isM2compatible()) {
-                parts.add("m2compatible");
-            }
-        } else if (resolver instanceof AbstractPatternsBasedResolver) {
+        if (resolver instanceof AbstractPatternsBasedResolver) {
             AbstractPatternsBasedResolver patternsBasedResolver = (AbstractPatternsBasedResolver) resolver;
             parts.add(joinPatterns(patternsBasedResolver.getIvyPatterns()));
             parts.add(joinPatterns(patternsBasedResolver.getArtifactPatterns()));
@@ -50,6 +43,20 @@ public class DependencyResolverIdentifier {
         } else {
             parts.add(resolver.getName());
             // TODO We should not be assuming equality between resolvers here based on name...
+        }
+
+        resolverId = calculateId(parts);
+    }
+
+    public DependencyResolverIdentifier(ExternalResourceResolver resolver) {
+        resolverName = resolver.getName();
+
+        List<String> parts = new ArrayList<String>();
+        parts.add(resolver.getClass().getName());
+        parts.add(joinPatterns(resolver.getIvyPatterns()));
+        parts.add(joinPatterns(resolver.getArtifactPatterns()));
+        if (resolver.isM2compatible()) {
+            parts.add("m2compatible");
         }
 
         resolverId = calculateId(parts);

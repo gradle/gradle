@@ -1,212 +1,336 @@
-Gradle 1.6 sees some fantastic new features contributed by the Gradle community: Task ordering rules offer you more control over the execution of tasks,
-there's now a JaCoCo plugin for test coverage, and the Junit integration supports test categories.
-
-To help get you started with Gradle, this release introduces the build setup plugin. This plugin takes care of the work of setting up
-a new build. This includes support for converting an Apache Maven POM to a Gradle build. You simply point Gradle at your current Maven build and you end
-up with a functioning Gradle build. Note that this plugin is in early stages of development and we plan to improve it in future releases.
-
-Continuing on the performance work of the last few releases, Gradle 1.6 includes support for incremental tasks. These are tasks that selectively process
-only those inputs that have changed, and avoid processing those inputs that have not changed.
-
-The Gradle team also invites you to the first ever [“Gradle Summit”](http://gradlesummit.com/) (Sponsored by [Gradleware](http://gradleware.com/)),
-held June 13th - 14th in Santa Clara, California. The summit will be two fully packed days of technical sessions given by Gradle core developers ranging from introductory
-to deep dive as well as informational sessions by several large organizations on how they get the most out of Gradle. In between sessions there'll be plenty of opportunity
-for talking to other Gradle users and the Gradle development team. This is an event not to miss.
-Registration is [now open](http://gradlesummit.com/conference/santa_clara/2013/06/gradle/event_register).
-
-Read on for more details on why you should upgrade to Gradle 1.6. As always, please share your feedback and experiences with Gradle 1.6 via the [Gradle Forums](http://forums.gradle.org).
-
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
 
-### Force a task to run after another task, without adding a dependency (i)
+### Faster Gradle builds
 
-In the past, the only way to ensure that Gradle ran one task after another was to add a dependency between those tasks. So if `Task A` must always run before `Task B`, you would
- say that `B.dependsOn(A)`. This has the added effect of forcing `Task A` to always run if `Task B` is executed.
+Gradle 1.7 is the fastest version of Gradle yet. Here are the highlights:
 
-In some cases, `dependsOn` is not the correct semantics. A simple example is “clean” must always run before “build”, but you don't always want to run “clean” whenever you run “build”.
-For this use case Gradle now has “task ordering” rules, the first of which is `Task.mustRunAfter`.
-This rule does not change which tasks will be executed, but it does influence the order in which they will be executed.
+- Dependency resolution is now faster. This affects many aspects of a build. For example, incremental build up-to-date checks almost always require dependencies
+  to be resolved. So does importing your build into an IDE. Or using the dependency reports.
+- Test execution is now faster. In some cases, up to 50% faster for tests that generate a lot of logging output.
+- Build script compilation is much faster. This affects, for example, first time users of a build, build authors, and those upgrading a build to a new Gradle version.
+  In Gradle 1.6 there was a serious regression in build script compilation time. This has been fixed in Gradle 1.7, with an added bonus that script compilation is now
+  75% faster than Gradle 1.6 and 50% faster than Gradle 1.0.
+- Parallel execution mode is now faster.
 
-    task clean { ... }
-    task build { ... }
+As always, the performance improvements that you actually see for your build depends on many factors.
 
-    build.mustRunAfter clean
+#### Faster dependency resolution due to in-memory caching of artifact meta-data
 
-In this example you can still execute `gradle clean` and `gradle build` independently, but running `gradle build clean` will cause 'clean' to be executed before 'build'.
+With this change, the dependency resolution is much faster. Typically, the larger the project is the more configurations and dependencies are resolved during the build.
+By caching the artifact meta-data in memory we avoid parsing the descriptor when the same dependency is requested multiple times in a build.
 
-Another example is a test-aggregation task that consumes the outputs of all of the test tasks.
-You want this aggregation task to run _after_ all test tasks, but you do not necessarily want to force all test tasks to run.
+An incremental build for a large project should be tangibly faster with Gradle 1.7.
+A full build may be much faster, too. The level of performance improvement depends on the build.
+If a large portion of the build time is taken by slow integration tests, the performance improvements are smaller.
+Nevertheless, some of the large builds we used for benchmarking show up to 30% speed increase.
 
-    task runUnitTests(type: Test) { ... }
-    task runIntegTests(type: Test) { ... }
-    task createTestReports { ... }
+Caching the artifact metadata in-memory is very important for local repositories, such as `mavenLocal()` and for resolution of snapshots / dynamic versions.
+Prior to Gradle 1.7, every time a local dependency was resolved, Gradle would load the dependency metadata directly from the local repository.
+With the in-memory caching of dependency metadata, this behavior now *changes*.
+During a single build, a given dependency will be loaded once only and will not be reloaded again from the repository.
 
-    createTestReports.mustRunAfter tasks.withType(Test)
+This may be a breaking change for builds that depend the on the fact that certain dependencies are reloaded from the repository during each resolution.
+Bear in mind that the vast majority of builds will enjoy faster dependency resolution offered by the in-memory caching.
+If your project requires reloading of snapshots or local dependencies during the build please let us know so that we can better understand your scenario and model it correctly.
 
-    task allTest(dependsOn: [runUnitTests, runIntegTests, createTestReports]) // This will run unit+integ tests and create the aggregated report
-    task unitTest(dependsOn: [runUnitTests, createTestReports]) // This will run unit tests only and create the report
-    task integTest(dependsOn: [runIntegTests, createTestReports]) // This will run integ tests only and create the report
+You can also turn off the in-memory dependency metadata cache via a system property:
 
-Note that it would not be suitable to use `createTestReport.dependsOn(runUnitTests)` in this case,
-since that would make it difficult to execute the integration tests and generate the report, _without_ running the unit tests.
-The `mustRunAfter` task ordering rule makes it easy to wire this logic into your build.
+    //gradle.properties
+    systemProp.org.gradle.resolution.memorycache=false
 
-See the User guide section on “[Ordering Tasks](userguide/more_about_tasks.html#sec:ordering_tasks)” for more information.
+To avoid increased heap consumption, the in-memory dependency metadata cache may clear the cached data when there is heap pressure.
 
-On behalf of the Gradle community, the Gradle development team would like to thank [Marcin Erdmann](https://github.com/erdi) for taking on this long anticipated feature.
-The design and implementation of task ordering rules involved a deep understanding and refactoring of the Gradle Task execution engine, and Marcin took this on with gusto.
+#### Improved multiprocess locking
 
-### JaCoCo Code Coverage Plugin (i)
+This change improves the mechanism that Gradle uses to coordinate multi-process access to the Gradle caches. This new mechanism means that the Gradle process now
+requires far fewer operations on the file system and can make better use of in-memory caching, even in the presence of multiple Gradle processes accessing the
+caches concurrently.
 
-Gradle now ships with a [JaCoCo](http://www.eclemma.org/jacoco/) plugin to generate code coverage reports. JaCoCo is a free code coverage library for Java.
+The caches used for dependency resolution and for incremental build up-to-date checks are affected by this change, meaning faster dependency resolution and incremental
+build checks.
 
-To gather code coverage information for your java project, just apply the JaCoCo plugin:
+Coupled with this change are some improvements to the synchronization of worker threads within a given Gradle process, which means parallel execution mode is now
+more efficient.
 
-    apply plugin: 'jacoco'
+The new mechanism is biased to the case where a single Gradle process is running on a machine. We believe that there should not be any performance regressions when
+multiple Gradle processes are used, but please let us know if you observe a regression.
 
-and run `gradle test jacocoTestReport` which generates code coverage reports for the `test` task introduced by the `java` plugin. The `JacocoReport` adds a `mustRunAfter` dependency on the
-coverage data producing task (`test` in our example). After the build has finished you find the coverage report in `build/reports/jacoco/test`.
+#### Faster build script compilation
 
-You can configure every task of type `JacocoReport` to enable other output formats than the default `HTML` report. For example, if you just want the `XML` coverage report that can be reused by your
-favourite CI server, you can simply configure this:
+This change improves build script compilation by adding some caching in critical points in the ClassLoader hierarchy.
 
-    jacocoTestReport {
+### Finalizer tasks (i)
+
+Thanks to a contribution by Marcin Erdmann, Gradle 1.7 introduces a new task ordering rule that allows a task to _finalize_ some other task.
+
+TODO - more stuff goes here
+
+### TestNG parameters included in test reports (i)
+
+TestNG supports [parameterizing test methods](http://testng.org/doc/documentation-main.html#parameters), allowing a particular test method to be executed multiple times with different inputs.
+Previously in Gradle's test reports, parameterized methods were listed multiple times (for each parameterized iteration) with no way to differentiate the executions.
+The test reports now include the `toString()` values of each parameter for each iteration, making it easy to identify the data set for a given iteration.
+
+Given a TestNG test case:
+
+    import org.testng.annotations.*;
+
+    public class ParameterizedTest {
+        @Test(dataProvider = "1")
+        public void aParameterizedTestCase(String var1, String var2) {
+            …
+        }
+
+        @DataProvider(name = "1")
+        public Object[][] provider1() {
+            return new Object[][] {
+               {"1", "2"},
+               {"3", "4"}
+            };
+        }
+    }
+
+The test report will show that the following test cases were executed:
+
+* `aParameterizedTestCase(1, 2)`
+* `aParameterizedTestCase(3, 4)`
+
+This includes Gradle's own HTML test report and the “JUnit XML” file.
+The “JUnit XML” file is typically used to convey test execution information to the CI server running the automated build, which means the parameter info is also visible via the CI server.
+
+### `Test` task implements standard `Reporting` interface
+
+The `Reporting` interface provides a standardised way to control the reporting aspects of tasks that produce reports. The `Test` task type now implements this interface.
+
+    apply plugin: "java"
+    
+    test {
         reports {
             html.enabled = false
-            csv.enabled = false
-            xml.enabled = true
-        } 
-    }
-
-In some scenarios it might be desirable to compute code coverage not by running tests, but by running the application itself.
-Since the JaCoCo plugin can be used in combination with any `JavaExec` task of your build, it's quite simple to combine the `JaCoCo` plugin with the `run` task introduced by the `application` plugin:
-
-    jacoco {
-        applyTo run
-    }
-    
-    task applicationCodeCoverageReport(type: JacocoReport) {
-        executionData run
-        sourceSets sourceSets.main
-    }
-
-This plugin was contributed by [Andrew Oberstar](https://github.com/ajoberstar), an energetic member of the Gradle community, and is a long requested out-of-the-box feature that is a very welcome addition.
-
-### Build Setup Plugin (i)
-
-Gradle 1.6 introduces a `build-setup` plugin that makes initializing new Gradle builds more convenient.
-It also supports the migration of an Apache Maven build to a Gradle build by generating a `build.gradle` file from a `pom.xml`.
-
-The `build-setup` plugin is not a plugin that you would apply to your project. Instead, you use it by executing the `setupBuild` task in a directory that does not contain
-any Gradle build files. This will do the following:
-
-* If a `pom.xml` exists, a `build.gradle` and `settings.gradle` file is generated based on its content (e.g. equivalent dependency definitions).
-* If no `pom.xml` exists, a basic `build.gradle` and `settings.gradle` file is generated.
-* The [Gradle Wrapper](userguide/gradle_wrapper.html) is installed for the project.
-
-For more information please see the [User Guide chapter on this plugin](userguide/build_setup_plugin.html).
-
-This plugin is an *incubating* feature and will improve and expand in scope in future releases. 
-If you're interested in its progress and future, you can check out the [design spec](https://github.com/gradle/gradle/blob/master/design-docs/build-initialisation.md). 
-
-### Support for JUnit `@Category` (i)
-
-Thanks to a contribution by [Uladzimir Mihura](https://github.com/trnl), Gradle now supports [JUnit categories](https://github.com/junit-team/junit/wiki/Categories). 
-Categories are a mechanism to label and group JUnit tests by using annotations. 
-
-Given the following JUnit test code:
-
-    public interface FastTests { /* category marker interface */ }
-    public interface SlowTests { /* category marker interface */ }
-
-    public class MyTestClass {
-        @Category(SlowTests.class)
-        @Test public void testA() {
-	        …
-        }
-
-        @Category(FastTests.class)
-        @Test public void testB() {
-	        …
+            junitXml.destination = file("$buildDir/junit-xml")
         }
     }
 
-You can now easily configure your test task to run only specific categories:
+The `Test` task provides a [`ReportContainer`](javadoc/org/gradle/api/reporting/ReportContainer.html) of type [`TestReports`](javadoc/org/gradle/api/tasks/testing/TestReports.html),
+giving control over both the HTML report and the JUnit XML result files (these files are typically used to communicate test results to CI servers and other tools).
 
-    test { // run fast unit test only
-        useJUnit {
-            includeCategories 'org.gradle.categories.FastTests'
-            excludeCategories 'org.gradle.categories.SlowTests'
+This brings the `Test` task into line with other tasks that produce reports in terms of API. It also allows you to completely disable the JUnit XML file generation 
+(if you don't need it).
+
+### Build dashboard improvements (i)
+
+The above test change means that the test reports now appear in the [build dashboard](userguide/buildDashboard_plugin.html).
+
+Also, the `buildDashboard` task is automatically executed if when any reporting task is executed.
+
+### Record test output per test case in JUnit XML result files (i)
+
+This change facilitates better reporting of test execution on CI servers, notably [Jenkins](http://jenkins-ci.org/).
+
+The JUnit XML file format is a de-facto standard for communicating test execution results between systems. 
+CI servers typically use this file as the source of test execution information. 
+It was originally conceived by the “JUnit Ant Tasks” that quickly appeared after the introduction of JUnit and became widely used, without a specification ever forming.
+
+This file also captures the system output (`System.out` and `System.err`) that occurs during test execution. Traditionally, the output has been recorded at the _class level_.
+That is, output is not associated with the individual test cases (i.e. methods) within the class but with the class as a whole.
+You can now enable “output per test case” mode in Gradle to get better reporting.
+
+    test {
+        reports {
+            junitXml.outputPerTestCase = true
         }
     }
 
-The `includeCategories` and `excludeCategories` are methods of the [JUnitOptions](groovydoc/org/gradle/api/tasks/testing/junit/JUnitOptions.html) object and take 
-the full class names of one or more category annotations to include or exclude.
+With this mode enabled, the XML report will associate output to the particular test case that created it. 
+The Jenkins CI server provides a UI for inspecting the result of a particular test case of class. 
+With `outputPerTestCase = true`, output from that test case will be shown on that screen.
 
-### Incremental Tasks (i)
+This is also necessary for effective use of the Jenkins [JUnit Attachments Plugin](https://wiki.jenkins-ci.org/display/JENKINS/JUnit+Attachments+Plugin) that allows
+associating test attachments (e.g. Selenium screen shots) with test execution in the Jenkins UI.
 
-One of Gradle's most prized features is its ability to build a project incrementally. 
-If tasks [declare their inputs and outputs](userguide/more_about_tasks.html#sec:task_inputs_outputs), Gradle can optimize the build by skipping the execution of each task 
-whose inputs and outputs are unchanged since the previous execution (because the work would be completely redundant). This is known as “Incremental Build”. 
-Gradle 1.6 introduces a related, [incubating](userguide/feature_lifecycle.html), feature that takes build optimization to the next level: “Incremental Tasks”.
+### Generate Gradle wrapper files without touching your build script (i)
 
-An “incremental task” is able to selectively process inputs that have changed, avoiding processing inputs that have not changed and do not need reprocessing. 
-Gradle provides information about changes to inputs to the task implementation for this purpose. 
+In Gradle 1.7 all files necessary to run your build with the Gradle Wrapper can be generated without explicitly declaring a task of type `Wrapper` in your build scripts.
+By just running
 
-To implement an incremental task, you add a `@TaskAction` method that takes a single parameter of type [IncrementalTaskInputs](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html).
-You can then supply an action to execute for every input file that is out of date, and another action to execute for every input file that has been removed.
+    gradle wrapper
 
-    @TaskAction
-    void execute(IncrementalTaskInputs inputs) {
-        inputs.outOfDate { change ->
-            println "File ${change.file.name} is out of date"
+The Gradle Wrapper files are generated pointing to the gradle version used to generate the wrapper files. To customize the wrapper task you can easily modify the task in your build script:
+
+    wrapper{
+        gradleVersion = '1.6'
+    }
+
+If you already defined a task of type `Wrapper` in your build script, this task will be used when running `gradle wrapper`; otherwise the implicit default task will be used.
+
+### Generate a Gradle project from scratch (i)
+
+The `build-setup` plugin now supports declaring a project type when setting up a build. With version 1.7 Gradle, now supports `java-library` as a setup project type
+which generates a simple build file with the java plugin applied, a sample junit test class and a sample production code class if no sources already exist.
+To declare the project type you have to specify a `--type` command line argument:
+
+    gradle setupBuild --type java-library
+
+### Added option to deal with duplicate files in archives and copy operations (i)
+
+When copying files with duplicate relative paths in the target archive (or directory), you can now specify the strategy for dealing with these duplicate files by
+using `FileCopyDetails`.
+
+    task zip(type: Zip) {
+        from 'dir1'
+        from 'dir2'
+        archiveName = 'MyZip.zip'
+        eachFile { it.duplicatesStrategy = 'exclude' }
+    }
+
+TODO - include info on spec level setting
+
+### Major improvements to C++ project support (i)
+
+Gradle has had basic support for C++ projects for some time. We're now excited to be starting on the process of expanding this support to make Gradle the best build
+system available for native code projects. By leveraging the flexibility of Gradle, we'll be introducing support for:
+
+- Creating and linking to static libraries
+- Building with different C++ toolchains (Visual C++, GCC, etc)
+- Building multiple variants of a single binary with different target architectures, build types (debug vs release), operating systems etc.
+- Variant-aware dependency resolution
+- Much more: see [https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md](https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md)
+
+Some of these features are included in Gradle 1.7 (see below), while others can be expected in the upcoming releases.
+
+#### Improved native component model
+
+A key part of improving C++ support is an [improved component model](userguide/cpp.html#N15643) which supports building multiple binary outputs for
+a single defined [native component](dsl/org.gradle.nativecode.base.NativeComponent.html).
+Using this model Gradle can now produce both a static and shared version of any [library component](dsl/org.gradle.nativecode.base.Library.html).
+
+#### Can build static libraries from C++ sources
+
+For any library declared in your C++ build, it is now possible to either compile and link the object files into a shared library,
+or compile and archive the object files into a static library (or both). For any library 'lib' added to your project,
+Gradle will create a 'libSharedLibrary' task to link the shared library, as well as a 'libStaticLibrary' task to create the static library.
+
+Please refer to the [User Guide chapter](userguide/cpp.html) and the included C++ samples for more details.
+
+#### Can specify defines, compilerArgs and linkerArgs for each C++ binary produced
+
+Each binary to be produced from a C++ project is associated with a set of compiler and linker command-line arguments, as well as macro definitions.
+These settings can be applied to all binaries, an individual binary, or selectively to a group of binaries based on some criteria.
+
+    binaries.all {
+        // Define a preprocessor macro for every binary
+        define "NDEBUG"
+
+        compilerArgs "-fconserve-space"
+        linkerArgs "--export-dynamic"
+    }
+    binaries.withType(SharedLibraryBinary) {
+        define "DLL_EXPORT"
+    }
+
+Each binary is associated with a particular C++ [tool chain](dsl/org.gradle.nativecode.base.ToolChain.html), allowing settings to be targeted based on this value.
+
+    binaries.all {
+        if (toolChain == toolChains.gcc) {
+            compilerArgs "-O2", "-fno-access-control"
+            linkerArgs "-S"
         }
-
-        inputs.removed { change ->
-            println "File ${change.file.name} has been removed"
+        if (toolChain == toolChains.visualCpp) {
+            compilerArgs "/Z7"
+            linkerArgs "/INTEGRITYCHECK:NO"
         }
     }
 
-**Note:** Incremental task support is a complicated and challenging feature to support. Since the introduction of the implementation described above (early in the Gradle 1.6 release cycle),
-discussions within the Gradle community have produced superior ideas for exposing the information about changes to task implementors. As such, the API for this feature will almost certainly
-change in upcoming releases. However, please do experiment with the current implementation and share your experiences with the Gradle community. 
-The feature incubation process (which is part of the Gradle [feature lifecyle](userguide/feature_lifecycle.html)) exists for this purpose of ensuring high quality 
-final implementation through incorporation of early user feedback.
+More examples of how binary-specific settings can be provided are in the [user guide](userguide/cpp.html#N15789).
 
-Be sure to check out the [User Guide chapter](userguide/incremental_tasks.html) and [DSL reference](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html) for
-more details on implementing incremental tasks.
+#### Can build C++ project with Cygwin/g++
 
-### Installation via Gradle Wrapper is now multi process safe
+The C++ plugins now support using g++ when running Gradle under Cygwin.
 
-In previous versions of Gradle it was possible for a Gradle distribution installed implicitly via the [Gradle Wrapper](userguide/gradle_wrapper.html) to be corrupted,
-or to fail to install, if more than one process was trying to do this at the same time. This was more likely to occur on a continuous build server than a developer workstation.
-This no longer occurs as the installation performed by the wrapper is now multi process safe.
+#### Improved incremental build for C++
 
-**Important:** leveraging the new multi process safe wrapper requires updating the `gradle-wrapper.jar` that is checked in to your project.
-This requires an extra step to the usual wrapper upgrade process.
+The incremental build support offered by the C++ plugins has been improved in this release, making incremental build very accurate:
 
-First, update your wrapper as per usual by updating the `gradleVersion` property of the wrapper task in the build…
+- Detects changes to compiler and linker settings, in addition to changes in source and header files.
+- No longer recompiles source files when linker settings change.
+- Detects changes to dependencies of a binary and recompiles or relinks as appropriate.
+- Detects changes to the toolchain used to build a binary and recompiles and relinks.
+- Removes stale object files when source files are removed or renamed.
+- Removes stale output files when compiler and linker settings change. For example, removes stale debug files when debug is disabled.
 
-    task wrapper(type: Wrapper) {
-        gradleVersion = "1.6"
+### Specify default JVM arguments for the Application plugin (i)
+
+Thanks to a contribution by Olaf Klischat, the application plugin now has support to specify the default JVM arguments to include in the generated
+launcher scripts.
+
+### Customise publication identity with new publishing plugins (i)
+
+In Gradle 1.7 the new publishing plugins got a lot more powerful with the ability to directly specify the complete coordinates (or GAV) that will be used to publish.
+
+For a `MavenPublication` you can specify the `groupId`, `artifactId` and `version` used for publishing. You can also set the `packaging` value on the `MavenPom`.
+
+    publications {
+        mavenPub(MavenPublication) {
+            from components.java
+
+            groupId "my.group.id"
+            artifactId "my-publication"
+            version "3.1"
+            pom.packaging "pom"
+        }
     }
 
-Then run `./gradlew wrapper` to update the wrapper definition. This will configure the wrapper to use and download Gradle 1.6 for future builds,
-but it has not updated the `gradle-wrapper.jar` that is checked in to your project. To do this, simply run `./gradlew wrapper` again. This is necessary as the wrapper
-jar is sourced from the Gradle environment that is running the build.
+For an `IvyPublication` you can set the `organisation`, `module` and `revision`. You can also set the `status` value on the `IvyModuleDescriptor`.
 
-If you are seeding a new project using an installation of Gradle 1.6 or higher, you do not need to run the wrapper task twice. It is only necessary when upgrading the
-wrapper from an older version.
+    publications {
+        ivyPub(IvyPublication) {
+            from components.java
 
-### Apply plugins from init and settings scripts (i)
+            organisation "my.org"
+            module "my-module"
+            revision "3"
+            descriptor.status "milestone"
+        }
+    }
 
-The `Gradle` type, which is configured by init scripts, and the `Settings` type, which is configured by settings scripts, now accept plugins.
-Previously, you could apply scripts to these types, but not binary plugins.
+This ability is particularly useful when publishing with a different `module` or `artifactId`, since these values default to the `project.name`
+which cannot be modified from within the Gradle build script itself.
 
-This change means that you can now package up init or settings logic in a binary plugin and apply this plugin from the appropriate script, in exactly
-the same way you do for projects. And this means that you can reuse and share these plugins in exactly the same way.
+### Publish multiple modules from a single Gradle project (i)
+
+Building on the ability to tweak the identity of a publication, the publishing plugins now allow you to
+publish multiple modules from a single Gradle project. While this was quite tricky to achieve in the past, the `ivy-publish` and `maven-publish`
+plugins now make it easy.
+
+    project.group "org.cool.library"
+
+    publications {
+        implJar(MavenPublication) {
+            artifactId "cool-library"
+            version "3.1"
+
+            artifact jar
+        }
+        apiJar(MavenPublication) {
+            artifactId "cool-library-api"
+            version "3"
+
+            artifact apiJar
+        }
+    }
+
+## Promoted features
+
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+
+The following are the features that have been promoted in this Gradle release.
+
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 
@@ -217,105 +341,70 @@ in the next major Gradle version (Gradle 2.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
-### `groovy` configuration is deprecated
-
-Since Gradle 1.4, the preferred way to specify the Groovy library is to add it to the `compile` (or `testCompile`) configuration, rather than the `groovy` configuration.
-Therefore, the `groovy` configuration is now deprecated. Simply replace `groovy` with `compile` in the `dependencies` block:
-
-    dependencies {
-        compile "org.codehaus.groovy:groovy-all:2.0.6"
-    }
-
-In some cases (for example if a renamed Groovy Jar is used), it may be necessary to additionally configure the `groovyClasspath` of `GroovyCompile` and `Groovydoc` tasks.
-
-For additional background information about this change, see the [Groovy chapter](userguide/groovy_plugin.html) of the Gradle user guide.
-
-### `scalaTools` configuration is deprecated
-
-Since Gradle 1.4, the Scala compiler to be used is inferred from the `scala-library` dependency added to the `compile` (or `testCompile`) configuration.
-Therefore, the `scalaTools` configuration is now deprecated. Simply remove any `scalaTools` dependency declaration and just declare a `scala-library`
-compile (or `testCompile`) dependency:
-
-    dependencies {
-        compile "org.scala-lang:scala-library:2.10.1"
-    }
-
-In some cases (for example if the inferred `scala-compiler` dependency isn't available from any of the declared repositories),
-it may be necessary to additionally configure the `scalaClasspath` of `ScalaCompile` and `ScalaDoc` tasks.
-
-For additional background information about this change, see the [Scala chapter](userguide/scala_plugin.html) of the Gradle user guide.
-
-### Renamed several `add()` methods
-
-To improve consistency in the Gradle API, we've replaced the container `add()` methods with a `create()` method. Since well before Gradle 1.0, every container type
-has had a number of `create()` methods which both create a new object and add it to the container. Some older container types also define an `add()`
-method which does the same thing, but also conflicts with the `add()` method inherited from `java.util.Collection` which simply adds an object rather than
-creating it. To simplify this, these `add()` methods have now been deprecated and will be removed in Gradle 2.0.
-
-The methods in question are:
-
-- `ConfigurationContainer.add()`
-- `SourceSetContainer.add()`
-- `TaskContainer.add()`
-
-### `StartParameter.getMergedSystemProperties()` method is deprecated
-
-This method was used internally and was not intended to form part of the public API. It has now been deprecated and will be removed in Gradle 2.0.
+<!--
+### Example deprecation
+-->
 
 ## Potential breaking changes
 
-### Renamed `add()` method on incubating `PublicationContainer`
+### Caching dependency metadata in memory
 
-The incubating [org.gradle.api.publish.PublicationContainer](javadoc/org/gradle/api/publish/PublicationContainer.html) introduced by the new publish plugins leverages the new support for
-polymorphic domain object containers in Gradle. This change involved switching from the custom `add`() methods to the standard `create()`, as described above.
-The semantics of the replacement methods is identical to those replaced.
+Local-repo dependencies and expired snapshots are not loaded from the repository with each resolve.
+During a single build, a resolved dependency is not loaded again from the repository.
+For more details, please refer to the section about the in-memory dependency metadata cache.
 
-This change does not effect publications added to the PublicationContainer using [a configuration block](javadoc/org/gradle/api/publish/PublishingExtension.html#publications),
-but will impact publications added directly using the `add()` method.
+### Incubating JaCoCo plugin changes
 
-### `ProjectDependency` and `ExtensionContainer` now have an internal protocol
+- `JacocoTaskExtension.destPath` renamed to `destinationFile`
+- `JacocoTaskExtension.classDumpPath` renamed to `classDumpFile`
+- `JacocoMerge.destFile` renamed to `destinationFile`
 
-This means that the users should not create their own implementations of `org.gradle.api.artifacts.ProjectDependency` or `org.gradle.api.plugins.ExtensionContainer`.
-This change should not affect any builds because there are no known use cases supporting custom instances of these API classes.
+### Incubating BuildSetup plugin changes
 
-### Changes to exceptions thrown on project evaluation
+- `ConvertMaven2Gradle`, `GenerateBuildScript` and `GenerateSettingsScript` have been removed. The according logic is now part of the `buildSetup` task
+which has now the type`SetupBuild` task.
+- The plugin creates different set of tasks, with different types and names depending on the build-setup type
+- The `setupWrapper` task is now called `wrapper`.
 
-The exception thrown by Gradle when on build script error or other configuration problem has changed. All such exceptions are now chained in a `ProjectConfigurationException`.
-This change will only impact code that explicitly catches and processes an exception thrown by Gradle when configuring a project.
+### Changed task name in incubating ivy-publish plugin
 
-### Incubating `StartParameter.isParallelThreadCountConfigured()` method removed
+- For consistency with the maven-publish plugin, the task for generating the ivy.xml file for an IvyPublication has changed.
+  This task is now named `generateDescriptorFileFor${publication.name}Publication`.
 
-This incubating method was used internally and was not intended to form part of the public API. It has now been removed.
+### Default 'status' value of IvyPublication is 'integration' and no longer defaults to 'project.status' (i)
 
-### Upper bound removed from Tooling API `ModelBuilder`
+- In order to continue decoupling the Gradle project model from the Ivy publication model, the 'project.status' value is no longer used
+  when publishing an IvyPublication with the `ivy-publish` plugin.
+- If no status value is set on the `IvyModuleDescriptor` of an `IvyPublication`, then the default ivy status ('integration') will be used.
+  Previously, 'release' was used, being the default value for 'project.status'.
 
-In Gradle 1.6, we've started work to allow plugins to provide custom tooling API models. A consequence of this work is that the tooling API models are no longer required
-to extend the `org.gradle.tooling.model.Model` marker interface. The upper bound `extends Model` has been removed from the type parameter of `ModelBuilder`. This change
-should be both source and binary compatible.
+### Major changes to C++ support
 
-### Tooling API `ProjectConnection.model()` no longer throws `UnknownModelException`
+The incubating C++ support in Gradle is undergoing a major update. Many existing plugins, tasks, API classes and the DSL have been being given an overhaul.
+It's likely that all but the simplest existing C++ builds will need to be updated to accommodate these changes.
 
-To support for custom tooling API models, it is no longer possible to determine whether a model is supported without configuring the target build. This exception is now
-thrown when the result is requested, rather than when the builder is created.
+If you want your existing C++ build to continue working with Gradle, you have 2 options.
+- Remain on Gradle 1.6 for the next few releases until the C++ support stabilises, and then perform a single migration.
+- Keep your build updated for the latest changes, being aware that further changes will be required for subsequent releases.
 
-### Wrapper environment variable `GRADLE_WRAPPER_ALWAYS_UNPACK` and `GRADLE_WRAPPER_ALWAYS_DOWNLOAD` no longer supported
+### `ConfigureableReport` renamed to `ConfigurableReport`
 
-The Gradle wrapper no longer supports the `GRADLE_WRAPPER_ALWAYS_UNPACK` and `GRADLE_WRAPPER_ALWAYS_DOWNLOAD` environment variables.
-Instead, the wrapper is now much better at recovering from failures to download or unpack the distribution.
-
-### More packages included in default imports
-
-The set of default imports is now generated directly from the Gradle API. This means that the default imports now includes a number of additional packages
-that were not previously imported by default. These packages may contain classes that conflict with other imports present in your build scripts.
+The (incubating) class `org.gradle.api.reporting.ConfigureableReport` was renamed to `org.gradle.api.reporting.ConfigurableReport` as the original name was misspelled.
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Marcin Erdmann](https://github.com/erdi) - added the ability to schedule one task to always run after another, without adding a hard dependency.
-* [Andrew Oberstar](https://github.com/ajoberstar) - added the JaCoCo code coverage plugin.
-* [Uladzimir Mihura](https://github.com/trnl) - provide first-class support for JUnit @Category (GRADLE-2111).
-* [Xavier Ducrohet](https://github.com/ducrohet) - fix Success Rate display in test report overview page (GRADLE-2729).
+* [Marcin Erdmann](https://github.com/erdi) - Added finalizer tasks.
+* [Dan Stine](https://github.com/dstine)
+    - Added `maxPriorityViolations` setting to the CodeNarc plugin (GRADLE-1742).
+    - Correction in User Guide.
+* [Olaf Klischat](https://github.com/multi-io) - Added support for specifying the default JVM arguments for the Application plugin (GRADLE-1456).
+* [Kyle Mahan](https://github.com/kylewm) - Introduce duplicateStrategy property to archive and copy operations (GRADLE-2171).
+* [Robert Kühne](https://github.com/sponiro) - Spelling correction in User Guide.
+* [Björn Kautler](https://github.com/Vampire) - Correction to Build Dashboard sample.
+* [Seth Goings](https://github.com/sgoings) - Correction in User Guide.
+* [Scott Bennett-McLeish](https://github.com/sbennettmcleish) - Correction in User Guide.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

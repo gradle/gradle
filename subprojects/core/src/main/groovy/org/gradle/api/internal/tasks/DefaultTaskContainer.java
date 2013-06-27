@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.internal.graph.CachingDirectedGraphWalker;
-import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.graph.CachingDirectedGraphWalker;
+import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -32,11 +32,13 @@ import org.gradle.util.GUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
+    private Map<String, Runnable> placeholders = new HashMap<String, Runnable>();
 
     public DefaultTaskContainer(ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
         super(Task.class, instantiator, project);
@@ -159,7 +161,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
-        if(!(path instanceof CharSequence)) {
+        if (!(path instanceof CharSequence)) {
             DeprecationLogger.nagUserOfDeprecated(
                     String.format("Converting class %s to a task dependency using toString()", path.getClass().getName()),
                     "Please use org.gradle.api.Task, java.lang.String, org.gradle.api.Buildable, org.gradle.tasks.TaskDependency or a Closure to declare your task dependencies"
@@ -195,5 +197,34 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 connectedNodes.addAll(node.getTaskDependencies().getDependencies(node));
             }
         }).add(this).findValues();
+
+
+        final HashSet<String> placeholderNames = new HashSet<String>(placeholders.keySet());
+        for (String placeholder : placeholderNames) {
+            maybeMaterializePlaceholder(placeholder);
+        }
+
+    }
+
+    public Task findByName(String name) {
+        Task task = super.findByName(name);
+        if(task!=null){
+            return task;
+        }
+        maybeMaterializePlaceholder(name);
+        return super.findByName(name);
+    }
+
+    private void maybeMaterializePlaceholder(String name) {
+        if (placeholders.containsKey(name)) {
+            if (super.findByName(name) == null) {
+                final Runnable placeholderAction = placeholders.remove(name);
+                placeholderAction.run();
+            }
+        }
+    }
+
+    public void addPlaceholderAction(String placeholderName, Runnable runnable) {
+        placeholders.put(placeholderName, runnable);
     }
 }

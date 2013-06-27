@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.os;
 
+import org.gradle.api.Nullable;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,9 +84,12 @@ public abstract class OperatingSystem {
 
     public abstract String getSharedLibraryName(String libraryName);
 
+    public abstract String getStaticLibraryName(String libraryName);
+
     /**
      * Locates the given executable in the system path. Returns null if not found.
      */
+    @Nullable
     public File findInPath(String name) {
         String exeName = getExecutableName(name);
         if (exeName.contains(File.separator)) {
@@ -137,10 +142,7 @@ public abstract class OperatingSystem {
 
         @Override
         public String getScriptName(String scriptPath) {
-            if (scriptPath.toLowerCase().endsWith(".bat")) {
-                return scriptPath;
-            }
-            return scriptPath + ".bat";
+            return withSuffix(scriptPath, ".bat");
         }
 
         @Override
@@ -151,6 +153,11 @@ public abstract class OperatingSystem {
         @Override
         public String getSharedLibraryName(String libraryPath) {
             return withSuffix(libraryPath, ".dll");
+        }
+
+        @Override
+        public String getStaticLibraryName(String libraryName) {
+            return withSuffix(libraryName, ".lib");
         }
 
         @Override
@@ -183,7 +190,10 @@ public abstract class OperatingSystem {
 
         @Override
         public String getSharedLibraryName(String libraryName) {
-            String suffix = getSharedLibSuffix();
+            return getLibraryName(libraryName, getSharedLibSuffix());
+        }
+
+        private String getLibraryName(String libraryName, String suffix) {
             if (libraryName.endsWith(suffix)) {
                 return libraryName;
             }
@@ -197,6 +207,11 @@ public abstract class OperatingSystem {
 
         protected String getSharedLibSuffix() {
             return ".so";
+        }
+
+        @Override
+        public String getStaticLibraryName(String libraryName) {
+            return getLibraryName(libraryName, ".a");
         }
 
         @Override

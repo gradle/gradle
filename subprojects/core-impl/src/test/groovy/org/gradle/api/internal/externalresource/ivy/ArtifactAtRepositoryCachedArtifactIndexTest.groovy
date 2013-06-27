@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.externalresource.ivy
 
+import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.CachingModuleVersionRepository
 import org.gradle.api.internal.externalresource.cached.CachedArtifact
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
 import org.gradle.cache.PersistentIndexedCache
@@ -32,8 +32,6 @@ class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
     TimeProvider timeProvider = Mock()
     ArtifactAtRepositoryKey key = Mock()
     ExternalResourceMetaData metaData = Mock()
-    CachingModuleVersionRepository moduleVersionRepository = Mock()
-
     @Rule TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider();
 
     PersistentIndexedCache persistentIndexedCache = Mock()
@@ -67,9 +65,8 @@ class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
 
     def "stored artifact is put into persistentIndexedCache"() {
         setup:
-        1 * moduleVersionRepository.getId() >> "RepoID"
         1 * cacheLockingManager.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
-        def key = new ArtifactAtRepositoryKey(moduleVersionRepository, "artifactId");
+        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ArtifactIdentifier));
         def testFile = folder.createFile("aTestFile");
         when:
         index.store(key, testFile, BigInteger.TEN)
@@ -122,10 +119,9 @@ class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
     }
 
     def createEntryInPersistentCache() {
-        1 * moduleVersionRepository.getId() >> "RepoID"
         1 * cacheLockingManager.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
         1 * cacheLockingManager.useCache("lookup from artifact resolution cache \'cacheFile\'", _) >> {descr, factory -> factory.create()}
-        def key = new ArtifactAtRepositoryKey(moduleVersionRepository, "artifactId");
+        def key = new ArtifactAtRepositoryKey("RepoID", Stub(ArtifactIdentifier));
         1 * persistentIndexedCache.get(key) >> cachedArtifact;
         key
     }

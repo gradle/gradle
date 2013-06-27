@@ -18,6 +18,8 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -44,6 +46,7 @@ import java.util.concurrent.locks.ReentrantLock;
 class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
+    private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
@@ -54,53 +57,120 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final List<String> runningProjects = new ArrayList<String>();
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
-        List<Task> queue = new ArrayList<Task>(tasks);
-        Collections.sort(queue);
-        for (Task task : queue) {
-            entryTasks.add(graph.addNode(task));
+        List<TaskInfo> queue = new ArrayList<TaskInfo>();
+
+        List<Task> sortedTasks = new ArrayList<Task>(tasks);
+        Collections.sort(sortedTasks);
+        for (Task task : sortedTasks) {
+            TaskInfo node = graph.addNode(task);
+            if (node.getMustNotRun()) {
+                requireWithDependencies(node);
+            } else {
+                node.require();
+            }
+            entryTasks.add(node);
+            queue.add(node);
         }
-        Set<Task> visiting = new HashSet<Task>();
+
+        Set<TaskInfo> visiting = new HashSet<TaskInfo>();
         CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
 
         while (!queue.isEmpty()) {
-            Task task = queue.get(0);
-            TaskInfo node = graph.addNode(task);
-            if (node.getRequired()) {
+            TaskInfo node = queue.get(0);
+            if (node.getDependenciesProcessed()) {
                 // Have already visited this task - skip it
                 queue.remove(0);
                 continue;
             }
+
+            TaskInternal task = node.getTask();
             boolean filtered = !filter.isSatisfiedBy(task);
             if (filtered) {
                 // Task is not required - skip it
+                queue.remove(0);
+                node.dependenciesProcessed();
+                node.doNotRequire();
+                continue;
+            }
+
+            if (visiting.add(node)) {
+                // Have not seen this task before - add its dependencies to the head of the queue and leave this
+                // task in the queue
+                Set<? extends Task> dependsOnTasks = context.getDependencies(task);
+                for (Task dependsOnTask : dependsOnTasks) {
+                    TaskInfo targetNode = graph.addNode(dependsOnTask);
+                    node.addHardSuccessor(targetNode);
+                    if (!visiting.contains(targetNode)) {
+                        queue.add(0, targetNode);
+                    }
+                }
+                for (Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
+                    TaskInfo targetNode = graph.addNode(finalizerTask);
+                    addFinalizerNode(node, targetNode);
+                    if (!visiting.contains(targetNode)) {
+                        queue.add(0, targetNode);
+                    }
+                }
+                for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
+                    TaskInfo targetNode = graph.addNode(mustRunAfter);
+                    node.addSoftSuccessor(targetNode);
+                }
+                if (node.isRequired()) {
+                    for (TaskInfo hardSuccessor : node.getHardSuccessors()) {
+                        hardSuccessor.require();
+                    }
+                } else {
+                    tasksInUnknownState.add(node);
+                }
+            } else {
+                // Have visited this task's dependencies - add it to the graph
+                queue.remove(0);
+                visiting.remove(node);
+                node.dependenciesProcessed();
+            }
+        }
+        resolveTasksInUnknownState();
+    }
+
+    private void resolveTasksInUnknownState() {
+        List<TaskInfo> queue = new ArrayList<TaskInfo>(tasksInUnknownState);
+        Set<TaskInfo> visiting = new HashSet<TaskInfo>();
+
+        while (!queue.isEmpty()) {
+            TaskInfo task = queue.get(0);
+            if (task.isInKnownState()) {
                 queue.remove(0);
                 continue;
             }
 
             if (visiting.add(task)) {
-                // Have not seen this task before - add its dependencies to the head of the queue and leave this
-                // task in the queue
-                Set<? extends Task> dependsOnTasks = context.getDependencies(task);
-                for (Task dependsOnTask : dependsOnTasks) {
-                    if (visiting.contains(dependsOnTask)) {
-                        // A cycle - skip the task and keep building the graph. The cycle is reported later (with more detail)
-                        continue;
+                for (TaskInfo hardPredecessor : task.getHardPredecessors()) {
+                    if (!visiting.contains(hardPredecessor)) {
+                        queue.add(0, hardPredecessor);
                     }
-                    queue.add(0, dependsOnTask);
                 }
             } else {
-                // Have visited this task's dependencies - add it to the graph
                 queue.remove(0);
                 visiting.remove(task);
-                node.setRequired(true);
-                Set<? extends Task> dependencies = context.getDependencies(task);
-                for (Task dependency : dependencies) {
-                    graph.addHardEdge(node, dependency);
-                }
-                for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
-                    graph.addSoftEdge(node, mustRunAfter);
+                task.mustNotRun();
+                for (TaskInfo predecessor : task.getHardPredecessors()) {
+                    assert predecessor.isRequired() || predecessor.getMustNotRun();
+                    if (predecessor.isRequired()) {
+                        task.require();
+                        break;
+                    }
                 }
             }
+        }
+    }
+
+    private void addFinalizerNode(TaskInfo node, TaskInfo finalizerNode) {
+        if (filter.isSatisfiedBy(finalizerNode.getTask())) {
+            node.addFinalizer(finalizerNode);
+            if (!finalizerNode.isInKnownState()) {
+                finalizerNode.mustNotRun();
+            }
+            finalizerNode.addSoftSuccessor(node);
         }
     }
 
@@ -110,14 +180,22 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         list.addAll(elements);
     }
 
+    private void requireWithDependencies(TaskInfo taskInfo) {
+        if (taskInfo.getMustNotRun() && filter.isSatisfiedBy(taskInfo.getTask())) {
+            taskInfo.require();
+            for (TaskInfo dependency : taskInfo.getHardSuccessors()) {
+                requireWithDependencies(dependency);
+            }
+        }
+    }
+
     public void determineExecutionPlan() {
         List<TaskInfo> nodeQueue = new ArrayList<TaskInfo>(entryTasks);
-
         Set<TaskInfo> visitingNodes = new HashSet<TaskInfo>();
         while (!nodeQueue.isEmpty()) {
             TaskInfo taskNode = nodeQueue.get(0);
 
-            if (!taskNode.getRequired() || executionPlan.containsKey(taskNode.getTask())) {
+            if (taskNode.isNotRequired() || executionPlan.containsKey(taskNode.getTask())) {
                 nodeQueue.remove(0);
                 continue;
             }
@@ -139,8 +217,31 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 nodeQueue.remove(0);
                 visitingNodes.remove(taskNode);
                 executionPlan.put(taskNode.getTask(), taskNode);
+                ArrayList<TaskInfo> finalizerTasks = new ArrayList<TaskInfo>();
+                addAllReversed(finalizerTasks, taskNode.getFinalizers());
+                for (TaskInfo finalizer : finalizerTasks) {
+                    if (!visitingNodes.contains(finalizer)) {
+                        nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), finalizer);
+                    }
+                }
             }
         }
+    }
+
+    private int finalizerTaskPosition(TaskInfo finalizer, final List<TaskInfo> nodeQueue) {
+        if (nodeQueue.size() == 0) {
+            return 0;
+        }
+
+        ArrayList<TaskInfo> dependsOnTasks = new ArrayList<TaskInfo>();
+        dependsOnTasks.addAll(finalizer.getHardSuccessors());
+        dependsOnTasks.addAll(finalizer.getSoftSuccessors());
+        List<Integer> dependsOnTaskIndexes = CollectionUtils.collect(dependsOnTasks, new Transformer<Integer, TaskInfo>() {
+            public Integer transform(TaskInfo dependsOnTask) {
+                return nodeQueue.indexOf(dependsOnTask);
+            }
+        });
+        return Collections.max(dependsOnTaskIndexes) + 1;
     }
 
     private void onOrderingCycle() {
@@ -238,6 +339,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void taskComplete(TaskInfo taskInfo) {
         lock.lock();
         try {
+            enforceFinalizerTasks(taskInfo);
             if (taskInfo.isFailed()) {
                 handleFailure(taskInfo);
             }
@@ -247,6 +349,23 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             condition.signalAll();
         } finally {
             lock.unlock();
+        }
+    }
+
+    private void enforceFinalizerTasks(TaskInfo taskInfo) {
+        for (TaskInfo finalizerNode : taskInfo.getFinalizers()) {
+            if (finalizerNode.isRequired() || finalizerNode.getMustNotRun()) {
+                enforceWithDependencies(finalizerNode);
+            }
+        }
+    }
+
+    private void enforceWithDependencies(TaskInfo node) {
+        for (TaskInfo dependencyNode : node.getHardSuccessors()) {
+            enforceWithDependencies(dependencyNode);
+        }
+        if (node.getMustNotRun() || node.isRequired()) {
+            node.enforceRun();
         }
     }
 
@@ -271,9 +390,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void abortExecution() {
-        // Allow currently executing tasks to complete, but skip everything else.
+        // Allow currently executing and enforced tasks to complete, but skip everything else.
         for (TaskInfo taskInfo : executionPlan.values()) {
-            if (taskInfo.isReady()) {
+            if (taskInfo.isRequired()) {
                 taskInfo.skipExecution();
             }
         }

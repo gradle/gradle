@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.adapter;
 
+import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.tooling.model.DomainObjectSet;
@@ -33,7 +34,8 @@ import java.util.regex.Pattern;
  */
 public class ProtocolToModelAdapter implements Serializable {
     private static final MethodInvoker NO_OP_HANDLER = new NoOpMethodInvoker();
-    public static final TargetTypeProvider IDENTITY_TYPE_PROVIDER = new TargetTypeProvider() {
+    private static final Action<SourceObjectMapping> NO_OP_MAPPER = new NoOpMapping();
+    private static final TargetTypeProvider IDENTITY_TYPE_PROVIDER = new TargetTypeProvider() {
         public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {
             return initialTargetType;
         }
@@ -53,20 +55,8 @@ public class ProtocolToModelAdapter implements Serializable {
         this.targetTypeProvider = targetTypeProvider;
     }
 
-    public <T, S> T adapt(Class<T> targetType, S protocolObject) {
-        return adapt(targetType, protocolObject, NO_OP_HANDLER);
-    }
-
-    public <T, S> T adapt(Class<T> targetType, S protocolObject, MethodInvoker overrideMethodInvoker) {
-        if (protocolObject == null) {
-            return null;
-        }
-        Class<? extends T> target = targetTypeProvider.getTargetType(targetType, protocolObject);
-        if (target.isInstance(protocolObject)) {
-            return target.cast(protocolObject);
-        }
-        Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(protocolObject, overrideMethodInvoker));
-        return target.cast(proxy);
+    public <T, S> T adapt(Class<T> targetType, S sourceObject) {
+        return adapt(targetType, sourceObject, NO_OP_MAPPER);
     }
 
     /**
@@ -74,23 +64,106 @@ public class ProtocolToModelAdapter implements Serializable {
      *
      * @param mixInClass A bean that provides implementations for methods of the target type. If this bean implements the given method, it is preferred over the source object's implementation.
      */
-    public <T, S> T adapt(Class<T> targetType, S protocolObject, Class<?> mixInClass) {
-        MixInMethodInvoker mixInMethodInvoker = new MixInMethodInvoker(mixInClass, new ReflectionMethodInvoker(NO_OP_HANDLER));
-        T proxy = adapt(targetType, protocolObject, mixInMethodInvoker);
-        mixInMethodInvoker.setProxy(proxy);
-        return proxy;
+    public <T, S> T adapt(Class<T> targetType, final S sourceObject, final Class<?> mixInClass) {
+        return adapt(targetType, sourceObject, new Action<SourceObjectMapping>() {
+            public void execute(SourceObjectMapping mapping) {
+                if (mapping.getSourceObject() == sourceObject) {
+                    mapping.mixIn(mixInClass);
+                }
+            }
+        });
+    }
+
+    /**
+     * Adapts the source object.
+     *
+     * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided
+     * {@link SourceObjectMapping}.
+     */
+    public <T, S> T adapt(Class<T> targetType, S sourceObject, Action<? super SourceObjectMapping> mapper) {
+        if (sourceObject == null) {
+            return null;
+        }
+        Class<? extends T> wrapperType = targetTypeProvider.getTargetType(targetType, sourceObject);
+        DefaultSourceObjectMapping mapping = new DefaultSourceObjectMapping(sourceObject, targetType, wrapperType);
+        mapper.execute(mapping);
+        wrapperType = mapping.wrapperType.asSubclass(targetType);
+        if (wrapperType.isInstance(sourceObject)) {
+            return wrapperType.cast(sourceObject);
+        }
+        MethodInvoker overrideMethodInvoker = mapping.overrideInvoker;
+        MixInMethodInvoker mixInMethodInvoker = null;
+        if (mapping.mixInType != null) {
+            mixInMethodInvoker = new MixInMethodInvoker(mapping.mixInType, new ReflectionMethodInvoker(mapper));
+            overrideMethodInvoker = mixInMethodInvoker;
+        }
+        Object proxy = Proxy.newProxyInstance(wrapperType.getClassLoader(), new Class<?>[]{wrapperType}, new InvocationHandlerImpl(sourceObject, overrideMethodInvoker, mapper));
+        if (mixInMethodInvoker != null) {
+            mixInMethodInvoker.setProxy(proxy);
+        }
+        return wrapperType.cast(proxy);
+    }
+
+    private static class DefaultSourceObjectMapping implements SourceObjectMapping {
+        private final Object protocolObject;
+        private final Class<?> targetType;
+        private Class<?> wrapperType;
+        private Class<?> mixInType;
+        private MethodInvoker overrideInvoker = NO_OP_HANDLER;
+
+        public DefaultSourceObjectMapping(Object protocolObject, Class<?> targetType, Class<?> wrapperType) {
+            this.protocolObject = protocolObject;
+            this.targetType = targetType;
+            this.wrapperType = wrapperType;
+        }
+
+        public Object getSourceObject() {
+            return protocolObject;
+        }
+
+        public Class<?> getTargetType() {
+            return targetType;
+        }
+
+        public void mapToType(Class<?> type) {
+            if (!targetType.isAssignableFrom(type)) {
+                throw new IllegalArgumentException(String.format("requested wrapper type '%s' is not assignable to target type '%s'.", type.getSimpleName(), targetType.getSimpleName()));
+            }
+            wrapperType = type;
+        }
+
+        public void mixIn(Class<?> mixInBeanType) {
+            if (mixInType != null) {
+                throw new UnsupportedOperationException("Mixing in multiple beans is currently not supported.");
+            }
+            mixInType = mixInBeanType;
+        }
+
+        public void mixIn(MethodInvoker invoker) {
+            if (overrideInvoker != NO_OP_HANDLER) {
+                throw new UnsupportedOperationException("Mixing in multiple invokers is currently not supported.");
+            }
+            overrideInvoker = invoker;
+        }
+    }
+
+    private static class NoOpMapping implements Action<SourceObjectMapping>, Serializable {
+        public void execute(SourceObjectMapping mapping) {
+        }
     }
 
     private class InvocationHandlerImpl implements InvocationHandler, Serializable {
         private final Object delegate;
         private final MethodInvoker overrideMethodInvoker;
+        private final Action<? super SourceObjectMapping> mapper;
         private transient Method equalsMethod;
         private transient Method hashCodeMethod;
         private transient MethodInvoker invoker;
 
-        public InvocationHandlerImpl(Object delegate, MethodInvoker overrideMethodInvoker) {
+        public InvocationHandlerImpl(Object delegate, MethodInvoker overrideMethodInvoker, Action<? super SourceObjectMapping> mapper) {
             this.delegate = delegate;
             this.overrideMethodInvoker = overrideMethodInvoker;
+            this.mapper = mapper;
             setup();
         }
 
@@ -106,7 +179,7 @@ public class ProtocolToModelAdapter implements Serializable {
                             new PropertyCachingMethodInvoker(
                                     new ChainedMethodInvoker(
                                             overrideMethodInvoker,
-                                            new ReflectionMethodInvoker(overrideMethodInvoker)))));
+                                            new ReflectionMethodInvoker(mapper)))));
             try {
                 equalsMethod = Object.class.getMethod("equals", Object.class);
                 hashCodeMethod = Object.class.getMethod("hashCode");
@@ -171,10 +244,10 @@ public class ProtocolToModelAdapter implements Serializable {
     }
 
     private class ReflectionMethodInvoker implements MethodInvoker {
-        private final MethodInvoker override;
+        private final Action<? super SourceObjectMapping> mapping;
 
-        private ReflectionMethodInvoker(MethodInvoker override) {
-            this.override = override;
+        private ReflectionMethodInvoker(Action<? super SourceObjectMapping> mapping) {
+            this.mapping = mapping;
         }
 
         public void invoke(MethodInvocation invocation) throws Throwable {
@@ -260,7 +333,7 @@ public class ProtocolToModelAdapter implements Serializable {
                 if (((Class) targetType).isPrimitive()) {
                     return value;
                 }
-                return adapt((Class) targetType, value, override);
+                return adapt((Class) targetType, value, mapping);
             }
             throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", value.getClass(), targetType));
         }

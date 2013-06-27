@@ -17,11 +17,12 @@ package org.gradle.api.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.Incubating;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternFilterable;
 
-import java.util.Map;
 import java.io.FilterReader;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -94,6 +95,67 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @param includeEmptyDirs <tt>true</tt> if empty target directories should be included in the copy, <tt>false</tt> otherwise
      */
     void setIncludeEmptyDirs(boolean includeEmptyDirs);
+
+    /**
+     * The strategy for handling more than one file with the same path name. The exclude strategy will
+     * skip subsequent files with a path that has already been encountered. This is set to inherit by default,
+     * which will use the behavior of the parent spec. If no parent spec is explicitly set, then inherit will
+     * act as include. Also accepts strings in the form 'include', 'exclude', or 'inherit'.
+     *
+     * @return the strategy for handling duplicate file paths
+     */
+    @Incubating
+    DuplicatesStrategy getDuplicatesStrategy();
+
+    /**
+     * Sets the default strategy for handling files with duplicate path names. This strategy can be overridden for
+     * individual files by configuring FileCopyDetails.
+     * @param strategy Can be DuplicatesStrategy.inherit (default), include, or exclude
+     */
+    @Incubating
+    void setDuplicatesStrategy(DuplicatesStrategy strategy);
+
+    /**
+     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches the specified Ant-style pattern.
+     * This is equivalent to using eachFile() and selectively applying a configuration based on the file's path.
+     * @param pattern Ant-style pattern used to match against files' relative paths
+     * @param closure Configuration applied to the FileCopyDetails of each file matching pattern
+     * @return this
+     */
+    @Incubating
+    CopySpec filesMatching(String pattern, Closure closure);
+
+    /**
+     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches the specified Ant-style pattern.
+     * This is equivalent to using eachFile() and selectively applying a configuration based on the file's path.
+     * @param pattern Ant-style pattern used to match against files' relative paths
+     * @param action action called for the FileCopyDetails of each file matching pattern
+     * @return this
+     */
+    @Incubating
+    CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action);
+
+    /**
+     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match the specified
+     * Ant-style pattern. This is equivalent to using eachFile() and selectively applying a configuration based on the
+     * file's path.
+     * @param pattern Ant-style pattern used to match against files' relative paths
+     * @param closure Configuration applied to the FileCopyDetails of each file that does not match pattern
+     * @return this
+     */
+    @Incubating
+    CopySpec filesNotMatching(String pattern, Closure closure);
+
+    /**
+     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match the specified
+     * Ant-style pattern. This is equivalent to using eachFile() and selectively applying a configuration based on the
+     * file's path.
+     * @param pattern Ant-style pattern used to match against files' relative paths
+     * @param action action called for the FileCopyDetails of each file that does not match pattern
+     * @return this
+     */
+    @Incubating
+    CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action);
 
     /**
      * Adds the given specs as a child of this spec.

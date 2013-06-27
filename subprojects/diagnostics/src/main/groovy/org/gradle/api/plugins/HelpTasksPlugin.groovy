@@ -42,7 +42,11 @@ class HelpTasksPlugin implements Plugin<ProjectInternal> {
         }
 
         project.implicitTasks.create(name: TASKS_TASK, type: TaskReportTask) {
-            description = "Displays the tasks runnable from $project (some of the displayed tasks may belong to subprojects)."
+            if (project.subprojects.empty) {
+                description = "Displays the tasks runnable from $project."
+            } else {
+                description = "Displays the tasks runnable from $project (some of the displayed tasks may belong to subprojects)."
+            }
             group = HELP_GROUP
         }
 

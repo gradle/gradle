@@ -19,22 +19,31 @@ package org.gradle.performance.fixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.performance.measure.Amount
+import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.Duration
+import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.util.GradleVersion
 
 public class PerformanceTestRunner {
-    def testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def current = new UnderDevelopmentGradleDistribution()
-    def buildContext = new IntegrationTestBuildContext()
+    TestDirectoryProvider testDirectoryProvider
+    GradleDistribution current
+    IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+    DataReporter reporter
+    OperationTimer timer = new OperationTimer()
+    TestProjectLocator testProjectLocator = new TestProjectLocator()
 
+    String testId
     String testProject
     int runs
     int warmUpRuns
 
     List<String> tasksToRun = []
     DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
-    DataReporter  reporter = new TextFileDataReporter()
     List<String> args = []
 
     List<String> targetVersions = []
@@ -45,21 +54,27 @@ public class PerformanceTestRunner {
 
     PerformanceResults run() {
         assert !targetVersions.empty
-
-        def mostRecentFinalRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
-        def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()
-        def baselineVersions = []
-        allVersions.each { it ->
-            baselineVersions << new BaselineVersion(version: it,
-                    maxExecutionTimeRegression: maxExecutionTimeRegression,
-                    maxMemoryRegression: maxMemoryRegression,
-                    results: new MeasuredOperationList(name: "Gradle $it")
-            )
-        }
+        assert testId
 
         results = new PerformanceResults(
-                baselineVersions: baselineVersions,
-                displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
+                testId: testId,
+                testProject: testProject,
+                tasks: tasksToRun,
+                args: args,
+                jvm: Jvm.current().toString(),
+                operatingSystem: OperatingSystem.current().toString(),
+                versionUnderTest: GradleVersion.current().getVersion(),
+                testTime: System.currentTimeMillis())
+
+        def mostRecentFinalRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
+        def currentBaseVersion = GradleVersion.current().versionBase
+        def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()
+        allVersions.remove(currentBaseVersion)
+        allVersions.each { it ->
+            def baselineVersion = results.baseline(it)
+            baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
+            baselineVersion.maxMemoryRegression = maxMemoryRegression
+        }
 
         println "Running performance tests for test project '$testProject', no. of runs: $runs"
         warmUpRuns.times {
@@ -76,8 +91,8 @@ public class PerformanceTestRunner {
     }
 
     void runOnce() {
-        File projectDir = new TestProjectLocator().findProjectDir(testProject)
-        results.baselineVersions.reverse().each {
+        File projectDir = testProjectLocator.findProjectDir(testProject)
+        results.baselineVersions.each {
             println "Gradle ${it.version}..."
             runOnce(buildContext.distribution(it.version), projectDir, it.results)
         }
@@ -88,7 +103,7 @@ public class PerformanceTestRunner {
 
     void runOnce(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
         def executer = this.executer(dist, projectDir)
-        def operation = MeasuredOperation.measure { MeasuredOperation operation ->
+        def operation = timer.measure { MeasuredOperation operation ->
             executer.run()
         }
         dataCollector.collect(projectDir, operation)

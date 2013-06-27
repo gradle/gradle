@@ -24,8 +24,9 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 
-public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
+public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Serializable {
     private final Factory<File> baseDirFactory;
 
     public DefaultTemporaryFileProvider(final Factory<File> fileFactory) {

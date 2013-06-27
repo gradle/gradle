@@ -49,6 +49,9 @@ public class MethodInvocation {
         return genericReturnType;
     }
 
+    /**
+     * Marks the method as handled.
+     */
     public void setResult(Object result) {
         found = true;
         this.result = result;

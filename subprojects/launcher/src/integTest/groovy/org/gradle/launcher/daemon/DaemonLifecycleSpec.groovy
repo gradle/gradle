@@ -95,7 +95,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             """)
             builds << executer.start()
         }
-        //TODO SF - rewrite the lifecycle spec so that it uses the TestableDaemon
+        //TODO - rewrite the lifecycle spec so that it uses the TestableDaemon
     }
 
     void completeBuild(buildNum = 0) {

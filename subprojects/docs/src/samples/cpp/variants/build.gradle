@@ -1,0 +1,43 @@
+apply plugin: 'cpp'
+
+cpp {
+    sourceSets {
+        exe {}
+        lib {}
+    }
+}
+
+libraries {
+    // Define some common settings for all shared library binaries
+    all {
+        binaries.withType(SharedLibraryBinary) {
+            define "DLL_EXPORT"
+        }
+    }
+    helloEnglish {
+        source cpp.sourceSets.lib
+    }
+    helloFrench {
+        source cpp.sourceSets.lib
+        binaries.all {
+            define "FRENCH"
+        }
+    }
+}
+
+executables {
+    english {
+        source cpp.sourceSets.exe
+        binaries.all {
+            // Wire the 'helloEnglish' shared library binary into the 'english' executable binary
+            lib libraries.helloEnglish.shared
+        }
+    }
+    french {
+        source cpp.sourceSets.exe
+        binaries.all {
+            // Wire the 'helloFrench' static library binary into the 'french' executable binary
+            lib libraries.helloFrench.static
+        }
+    }
+}

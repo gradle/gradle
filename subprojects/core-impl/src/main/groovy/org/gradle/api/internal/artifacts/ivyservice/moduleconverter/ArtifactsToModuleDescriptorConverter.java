@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData;
 
 /**
  * @author Hans Dockter
  */
 public interface ArtifactsToModuleDescriptorConverter {
-    void addArtifacts(DefaultModuleDescriptor moduleDescriptor, Iterable<? extends Configuration> configurations);
+    void addArtifacts(BuildableModuleVersionPublishMetaData metaData, Iterable<? extends Configuration> configurations);
 }

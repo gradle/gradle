@@ -19,8 +19,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
-import org.gradle.api.internal.changedetection.state.TaskCacheLockHandlingBuildExecuter;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
@@ -31,6 +29,7 @@ import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.listener.ListenerManager;
 
 import java.util.LinkedList;
@@ -62,8 +61,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
         return new DefaultBuildExecuter(
                 configs,
                 asList(new DryRunBuildExecutionAction(),
-                        new TaskCacheLockHandlingBuildExecuter(get(TaskArtifactStateCacheAccess.class)),
-                        new SelectedTaskExecutionAction()));
+                       new SelectedTaskExecutionAction()));
     }
 
     protected ProjectFinder createProjectFinder() {
@@ -94,7 +92,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(gradle.getScriptClassLoader(), new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(get(BuildClassLoaderRegistry.class).getScriptClassLoader(), new DependencyInjectingInstantiator(this));
     }
 
     protected PluginContainer createPluginContainer() {

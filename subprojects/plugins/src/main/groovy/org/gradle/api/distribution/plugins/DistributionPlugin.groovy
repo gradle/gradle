@@ -21,79 +21,75 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.distribution.Distribution
-import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.distribution.internal.DefaultDistributionContainer
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.Sync
-import org.gradle.api.tasks.bundling.Zip
-import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.reflect.Instantiator
 
 import javax.inject.Inject
-import org.gradle.api.plugins.BasePlugin
 
 /**
- * <p>A {@link Plugin} to package project as a distribution.</p>
+ * Adds the ability to create distributions of the project.
  *
  * @author scogneau
- *
  */
 @Incubating
 class DistributionPlugin implements Plugin<Project> {
-    /**
-     * Name of the main distribution
-     */
-    static final String MAIN_DISTRIBUTION_NAME = "main"
 
-    static final String DISTRIBUTION_GROUP = "distribution"
-    static final String TASK_DIST_ZIP_NAME = "distZip"
-    static final String TASK_DIST_TAR_NAME = "distTar"
-    static final String TASK_INSTALL_NAME = "installDist"
+    private static final String MAIN_DISTRIBUTION_NAME = "main"
+    private static final String DISTRIBUTION_GROUP = "distribution"
+    private static final String TASK_DIST_ZIP_NAME = "distZip"
+    private static final String TASK_DIST_TAR_NAME = "distTar"
+    private static final String TASK_INSTALL_NAME = "installDist"
 
-    private DistributionContainer extension
-    private Project project
-    private Instantiator instantiator
+    private final Instantiator instantiator
+    private final FileResolver fileResolver
 
     @Inject
-    public DistributionPlugin(Instantiator instantiator) {
-        this.instantiator = instantiator;
+    DistributionPlugin(Instantiator instantiator, FileResolver fileResolver) {
+        this.fileResolver = fileResolver
+        this.instantiator = instantiator
     }
 
-    public void apply(Project project) {
-        this.project = project
+    void apply(Project project) {
         project.plugins.apply(BasePlugin)
-        addPluginExtension()
-    }
 
-    void addPluginExtension() {
-        extension = project.extensions.create("distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, project.fileResolver)
-        extension.all { dist ->
+        def distributions = project.extensions.create("distributions", DefaultDistributionContainer, Distribution, instantiator, fileResolver)
+
+        // TODO - refactor this action out so it can be unit tested
+        distributions.all { dist ->
             dist.baseName = dist.name == MAIN_DISTRIBUTION_NAME ? project.name : String.format("%s-%s", project.name, dist.name)
-            dist.contents.from("src/${dist.name}/dist")
-            addZipTask(dist)
-            addTarTask(dist)
-            addInstallTask(dist)
+            dist.contents.from("src/$dist.name/dist")
+
+            addZipTask(project, dist)
+            addTarTask(project, dist)
+            addInstallTask(project, dist)
         }
-        extension.create(DistributionPlugin.MAIN_DISTRIBUTION_NAME)
+
+        distributions.create(MAIN_DISTRIBUTION_NAME)
     }
 
-    void addZipTask(Distribution distribution) {
+    void addZipTask(Project project, Distribution distribution) {
         def taskName = TASK_DIST_ZIP_NAME
-        if (!MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
+        if (MAIN_DISTRIBUTION_NAME != distribution.name) {
             taskName = distribution.name + "DistZip"
         }
-        configureArchiveTask(taskName, distribution, Zip)
+        configureArchiveTask(project, taskName, distribution, Zip)
     }
 
-    void addTarTask(Distribution distribution) {
+    void addTarTask(Project project, Distribution distribution) {
         def taskName = TASK_DIST_TAR_NAME
-        if (!MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
+        if (MAIN_DISTRIBUTION_NAME != distribution.name) {
             taskName = distribution.name + "DistTar"
         }
-        configureArchiveTask(taskName, distribution, Tar)
+        configureArchiveTask(project, taskName, distribution, Tar)
     }
 
-    private <T extends AbstractArchiveTask> void configureArchiveTask(String taskName, Distribution distribution, Class<T> type) {
+    private <T extends AbstractArchiveTask> void configureArchiveTask(Project project, String taskName, Distribution distribution, Class<T> type) {
         def archiveTask = project.tasks.create(taskName, type)
         archiveTask.description = "Bundles the project as a distribution."
         archiveTask.group = DISTRIBUTION_GROUP
@@ -109,9 +105,9 @@ class DistributionPlugin implements Plugin<Project> {
         }
     }
 
-    private void addInstallTask(Distribution distribution) {
+    private void addInstallTask(Project project, Distribution distribution) {
         def taskName = TASK_INSTALL_NAME
-        if (!MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
+        if (MAIN_DISTRIBUTION_NAME != distribution.name) {
             taskName = "install"+ distribution.name.capitalize() + "Dist"
         }
         def installTask = project.tasks.create(taskName, Sync)

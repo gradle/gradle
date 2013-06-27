@@ -14,6 +14,7 @@ libs - Builds the JAR
 Build Setup tasks
 -----------------
 setupBuild - Initializes a new Gradle build. [incubating]
+wrapper - Generates Gradle wrapper files. [incubating]
 
 Help tasks
 ----------

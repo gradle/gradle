@@ -28,10 +28,10 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
  * by Szczepan Faber, created at: 8/22/12
  */
 class DependencyResultSorterSpec extends Specification {
-    def "sorts by requested version and prefers exact matching selected version over inexact"() {
+    def "sorts by requested version"() {
         def d1 = newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0"))
 
-        def d2 = newDependency(newSelector("org.gradle", "core", "2.0"), newId("org.gradle", "core", "2.0"))
+        def d2 = newDependency(newSelector("org.gradle", "core", "0.8"), newId("org.gradle", "core", "2.0"))
         def d3 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"))
         def d4 = newDependency(newSelector("org.gradle", "core", "1.5"), newId("org.gradle", "core", "2.0"))
 
@@ -47,15 +47,53 @@ class DependencyResultSorterSpec extends Specification {
         sorted == [d1, d2, d3, d4, d5, d6, d7]
     }
 
-    def "semantically compares versions"() {
-        def d1 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"))
-        def d2 = newDependency(newSelector("org.gradle", "core", "1.0-alpha"), newId("org.gradle", "core", "2.0"))
+    def "for a given module prefers dependency where selected exactly matches requested"() {
+        def d1 = newDependency(newSelector("org.gradle", "core", "2.0"), newId("org.gradle", "core", "2.0"))
+        def d2 = newDependency(newSelector("org.gradle", "core", "2.2"), newId("org.gradle", "core", "2.2"))
+        def d3 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"))
+        def d4 = newDependency(newSelector("org.gradle", "core", "1.5"), newId("org.gradle", "core", "2.0"))
+        def d5 = newDependency(newSelector("org.gradle", "core", "3.0"), newId("org.gradle", "core", "2.2"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d1, d2])
+        def sorted = DependencyResultSorter.sort([d3, d1, d5, d2, d4])
 
         then:
-        sorted == [d2, d1]
+        sorted == [d1, d2, d3, d4, d5]
+    }
+
+    def "semantically compares versions"() {
+        def d1 = newDependency(newSelector("org.gradle", "core", "0.8"), newId("org.gradle", "core", "2.0"))
+        def d2 = newDependency(newSelector("org.gradle", "core", "1.0-alpha"), newId("org.gradle", "core", "2.0"))
+        def d3 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"))
+        def d4 = newDependency(newSelector("org.gradle", "core", "1.2"), newId("org.gradle", "core", "2.0"))
+        def d5 = newDependency(newSelector("org.gradle", "core", "1.11"), newId("org.gradle", "core", "2.0"))
+        def d6 = newDependency(newSelector("org.gradle", "core", "1.11.2"), newId("org.gradle", "core", "2.0"))
+        def d7 = newDependency(newSelector("org.gradle", "core", "1.11.11"), newId("org.gradle", "core", "2.0"))
+        def d8 = newDependency(newSelector("org.gradle", "core", "2"), newId("org.gradle", "core", "2.0"))
+
+        when:
+        def sorted = DependencyResultSorter.sort([d4, d7, d1, d6, d8, d5, d3, d2])
+
+        then:
+        sorted == [d1, d2, d3, d4, d5, d6, d7, d8]
+    }
+
+    def "orders a mix of dynamic and static versions"() {
+        def d1 = newDependency(newSelector("org.gradle", "core", "2.0"), newId("org.gradle", "core", "2.0"))
+        def d2 = newDependency(newSelector("org.gradle", "core", "not-a-dynamic-selector"), newId("org.gradle", "core", "2.0"))
+        def d3 = newDependency(newSelector("org.gradle", "core", "0.8"), newId("org.gradle", "core", "2.0"))
+        def d4 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"))
+        def d5 = newDependency(newSelector("org.gradle", "core", "(,2.0]"), newId("org.gradle", "core", "2.0"))
+        def d6 = newDependency(newSelector("org.gradle", "core", "1.2+"), newId("org.gradle", "core", "2.0"))
+        def d7 = newDependency(newSelector("org.gradle", "core", "[1.2,)"), newId("org.gradle", "core", "2.0"))
+        def d8 = newDependency(newSelector("org.gradle", "core", "latest.integration"), newId("org.gradle", "core", "2.0"))
+        def d9 = newDependency(newSelector("org.gradle", "core", "latest.zzz"), newId("org.gradle", "core", "2.0"))
+
+        when:
+        def sorted = DependencyResultSorter.sort([d4, d7, d1, d6, d8, d5, d3, d9, d2])
+
+        then:
+        sorted == [d1, d2, d3, d4, d5, d6, d7, d8, d9]
     }
 
     def "sorts by from when requested version is the same"() {
@@ -78,6 +116,7 @@ class DependencyResultSorterSpec extends Specification {
 
     private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected, ModuleVersionIdentifier from = newId("org", "a", "1.0")) {
         return Stub(DependencyEdge) {
+            toString() >> "$requested -> $selected"
             getRequested() >> requested
             getActual() >> selected
             getFrom() >> from

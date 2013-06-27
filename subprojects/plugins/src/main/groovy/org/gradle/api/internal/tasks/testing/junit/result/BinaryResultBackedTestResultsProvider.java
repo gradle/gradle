@@ -40,6 +40,10 @@ public class BinaryResultBackedTestResultsProvider implements TestResultsProvide
         outputSerializer.writeOutputs(className, destination, writer);
     }
 
+    public void writeOutputs(String className, String testCaseName, TestOutputEvent.Destination destination, Writer writer) {
+        outputSerializer.writeOutputs(className, testCaseName, destination, writer);
+    }
+
     public void visitClasses(final Action<? super TestClassResult> visitor) {
         resultSerializer.read(resultsDir, visitor);
     }

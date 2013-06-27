@@ -15,7 +15,9 @@
  */
 package org.gradle.language.jvm;
 
-import org.gradle.api.*;
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.Incubating;
+import org.gradle.language.base.Binary;
 import org.gradle.language.base.LanguageSourceSet;
 
 import java.io.File;
@@ -29,14 +31,10 @@ import java.io.File;
 // As far as generated resources are concerned, it might be better to model
 // them as an additional (Buildable) ResourceSet.
 @Incubating
-public interface ClassDirectoryBinary extends Named, Buildable {
+public interface ClassDirectoryBinary extends Binary {
     File getClassesDir();
     void setClassesDir(File dir);
     File getResourcesDir();
     void setResourcesDir(File dir);
     DomainObjectCollection<LanguageSourceSet> getSource();
-    Task getClassesTask();
-    void setClassesTask(Task task);
-    String getTaskName(String verb, String target);
-    String getTaskBaseName();
 }

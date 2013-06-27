@@ -28,23 +28,23 @@ buildTypes {
     sanityCheck "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
 
     // The minimum to be run before check-in
-    preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test", noDistTests: true
-    quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test", noDistTests: true
+    preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
+    quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
 
     // A full (in-process) test
     developerBuild "check"
 
     // Used by the first phase of the build pipeline
-    quickTest "test", "integTest", noDistTests: true, noDocsTests: true
+    quickTest "runtimeTests", "runtimeIntegTests"
 
     // Used for builds to test the code on certain platforms
-    platformTest "test", "forkingIntegTest", noDistTests: true, noDocsTests: true, useIncomingDistributions: true
+    platformTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
 
     // Tests using the daemon mode
-    daemonTest "daemonIntegTest", noDistTests: true, noDocsTests: true, useIncomingDistributions: true
+    daemonTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "daemon"
 
     // Run the integration tests using the parallel executer
-    parallelTest "parallelIntegTest", noDistTests: true, noDocsTests: true, useIncomingDistributions: true
+    parallelTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "parallel"
 
     // Run the performance tests
     performanceTest "performance:integTest", useIncomingDistributions: true
@@ -53,7 +53,7 @@ buildTypes {
     localPerformanceTest "performance:integTest"
 
     // Used for cross version tests on CI
-    crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
+    crossVersionTest "runtimeIntegTests", crossVersionTestsOnly: "", testAllVersions: "", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
 
     // Used to build production distros and smoke test them
     packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
@@ -87,7 +87,7 @@ ext {
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
         'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear', 'javascript', 'buildComparison',
-        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildSetup', 'languageJvm', 'languageBase'
+        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildSetup', 'languageJvm', 'languageBase', 'buildSetup'
     ].collect {
         project(it)
     }
@@ -102,6 +102,7 @@ apply from: "gradle/idea.gradle"
 apply from: "gradle/eclipse.gradle"
 apply from: "gradle/classycle.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
+apply from: "gradle/testGroupings.gradle"
 
 allprojects {
     group = 'org.gradle'
@@ -192,5 +193,6 @@ task installAll(type: Install) {
     with project(":distributions").allDistImage
     installDirPropertyName = 'gradle_installPath'
 }
+
 
 apply from: "gradle/intTestImage.gradle"

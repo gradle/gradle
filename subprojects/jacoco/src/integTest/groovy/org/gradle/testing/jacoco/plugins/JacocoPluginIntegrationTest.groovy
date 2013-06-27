@@ -57,7 +57,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
     public void canConfigureReportsInJacocoTestReport() {
         given:
         buildFile << """
-            jacocoTestReport{
+            jacocoTestReport {
                 reports {
                     xml.enabled true
                     csv.enabled true
@@ -77,7 +77,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
     public void respectsReportingBaseDir() {
         given:
         buildFile << """
-            jacocoTestReport{
+            jacocoTestReport {
                 reports.xml.enabled = true
                 reports.csv.enabled = true
             }
@@ -97,7 +97,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         given:
         def customReportDirectory = "customJacocoReportDir"
         buildFile << """
-            jacocoTestReport{
+            jacocoTestReport {
                 reports.xml.enabled = true
                 reports.csv.enabled = true
             }

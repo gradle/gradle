@@ -17,17 +17,17 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.ContextualTaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 
 /**
- * A {@link ContextualTaskExecuter} which marks tasks as up-to-date if they did no work.
+ * A {@link TaskExecuter} which marks tasks as up-to-date if they did no work.
  */
-public class PostExecutionAnalysisTaskExecuter implements ContextualTaskExecuter {
-    private final ContextualTaskExecuter executer;
+public class PostExecutionAnalysisTaskExecuter implements TaskExecuter {
+    private final TaskExecuter executer;
 
-    public PostExecutionAnalysisTaskExecuter(ContextualTaskExecuter executer) {
+    public PostExecutionAnalysisTaskExecuter(TaskExecuter executer) {
         this.executer = executer;
     }
 

@@ -10,6 +10,21 @@
             <tr>
                 <td>descriptor</td>
             </tr>
+            <tr>
+                <td>artifacts</td>
+            </tr>
+            <tr>
+                <td>configurations</td>
+            </tr>
+            <tr>
+                <td>organisation</td>
+            </tr>
+            <tr>
+                <td>module</td>
+            </tr>
+            <tr>
+                <td>revision</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -21,7 +36,16 @@
                 </tr>
             </thead>
             <tr>
+                <td>from</td>
+            </tr>
+            <tr>
                 <td>descriptor</td>
+            </tr>
+            <tr>
+                <td>artifact</td>
+            </tr>
+            <tr>
+                <td>configurations</td>
             </tr>
         </table>
     </section>

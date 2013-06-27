@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.BuildListener;
-import org.gradle.util.MultiParentClassLoader;
 
 /**
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
@@ -43,11 +44,6 @@ public interface GradleInternal extends Gradle {
     ProjectInternal getDefaultProject();
 
     ProjectRegistry<ProjectInternal> getProjectRegistry();
-
-    /**
-     * Returns the root {@code ClassLoader} to use for the scripts of this build.
-     */
-    MultiParentClassLoader getScriptClassLoader();
 
     /**
      * Returns the broadcaster for {@link ProjectEvaluationListener} events for this build

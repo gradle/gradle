@@ -58,7 +58,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @IgnoreIf({ OperatingSystem.current().isWindows() })
-    def "can use long paths for workindDir"() {
+    def "can use long paths for working directory"() {
         given:
         // windows can handle a path up to 260 characters
         // we create a path that is 260 +1 (offset + "/" + randompath)
@@ -84,11 +84,8 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        run "test"
-
-        then:
-        ":test" in nonSkippedTasks
+        expect:
+        succeeds "test"
     }
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2313")

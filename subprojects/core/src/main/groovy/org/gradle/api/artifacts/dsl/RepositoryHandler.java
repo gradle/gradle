@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.dsl;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
@@ -82,6 +83,50 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return The repository.
      */
     FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action);
+
+    /**
+     * Adds a repository which looks in Bintray's JCenter repository for dependencies. The URL used to access this repository is
+     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#BINTRAY_JCENTER_URL}. The behavior of this resolver
+     * is otherwise the same as the ones added by {@link #maven(org.gradle.api.Action)}.
+     *
+     * <p>Examples:
+     * <pre>
+     * repositories {
+     *   jcenter {
+     *     artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
+     *   }
+     *   jcenter {
+     *     name = "nonDefaultName"
+     *     artifactUrls = ["http://www.mycompany.com/artifacts1"]
+     *   }
+     * }
+     * </pre>
+     * </p>
+     *
+     * @param action a configuration action
+     * @return the added repository
+     */
+    @Incubating
+    MavenArtifactRepository jcenter(Action<MavenArtifactRepository> action);
+
+    /**
+     * Adds a repository which looks in Bintray's JCenter repository for dependencies. The URL used to access this repository is {@value
+     * org.gradle.api.artifacts.ArtifactRepositoryContainer#BINTRAY_JCENTER_URL}. The name of the repository is {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_BINTRAY_JCENTER_REPO_NAME}.
+     * The behavior of this resolver is otherwise the same as the ones added by {@link #mavenCentral()}.
+     *
+     * <p>Examples:
+     * <pre>
+     * repositories {
+     *     jcenter()
+     * }
+     * </pre>
+     * </p>
+     *
+     * @return the added resolver
+     * @see #jcenter(Action)
+     */
+    @Incubating
+    MavenArtifactRepository jcenter();
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
@@ -203,7 +248,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which is Maven compatible.
-     * 
+     *
      * @param args The argument to create the repository
      * @param configClosure Further configuration of the dependency resolver
      * @return The created dependency resolver

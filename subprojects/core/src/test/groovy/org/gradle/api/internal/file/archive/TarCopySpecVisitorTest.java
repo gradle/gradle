@@ -17,7 +17,7 @@ package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.FileResource;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
@@ -142,11 +142,11 @@ public class TarCopySpecVisitorTest {
         return tarFile;
     }
 
-    private void tar(FileVisitDetails... files) {
+    private void tar(FileCopyDetails... files) {
         visitor.startVisit(copyAction);
         visitor.visitSpec(copySpec);
 
-        for (FileVisitDetails f : files) {
+        for (FileCopyDetails f : files) {
             if (f.isDirectory()) {
                 visitor.visitDir(f);
             } else {
@@ -157,8 +157,8 @@ public class TarCopySpecVisitorTest {
         visitor.endVisit();
     }
 
-    private FileVisitDetails file(final String path) {
-        final FileVisitDetails details = context.mock(FileVisitDetails.class, path);
+    private FileCopyDetails file(final String path) {
+        final FileCopyDetails details = context.mock(FileCopyDetails.class, path);
         final String content = String.format("contents of %s", path);
 
         context.checking(new Expectations() {{
@@ -193,8 +193,8 @@ public class TarCopySpecVisitorTest {
         return details;
     }
 
-    private FileVisitDetails dir(final String path) {
-        final FileVisitDetails details = context.mock(FileVisitDetails.class, path);
+    private FileCopyDetails dir(final String path) {
+        final FileCopyDetails details = context.mock(FileCopyDetails.class, path);
 
         context.checking(new Expectations() {{
             allowing(details).getRelativePath();
@@ -213,8 +213,8 @@ public class TarCopySpecVisitorTest {
         return details;
     }
 
-    private FileVisitDetails brokenFile(final String path, final Throwable failure) {
-        final FileVisitDetails details = context.mock(FileVisitDetails.class, String.format("[%s]", path));
+    private FileCopyDetails brokenFile(final String path, final Throwable failure) {
+        final FileCopyDetails details = context.mock(FileCopyDetails.class, String.format("[%s]", path));
 
         context.checking(new Expectations() {{
             allowing(details).getRelativePath();

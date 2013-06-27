@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskInputs
 import spock.lang.Specification
@@ -26,6 +27,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final TaskExecuter target = Mock()
     final TaskInternal task = Mock()
     final TaskStateInternal state = Mock()
+    final TaskExecutionContext executionContext = Mock()
     final TaskInputs taskInputs = Mock()
     final FileCollection sourceFiles = Mock()
     final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(target)
@@ -41,7 +43,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         sourceFiles.empty >> true
 
         when:
-        executer.execute(task, state)
+        executer.execute(task, state, executionContext)
 
         then:
         1 * state.upToDate()
@@ -55,10 +57,10 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         sourceFiles.empty >> false
 
         when:
-        executer.execute(task, state)
+        executer.execute(task, state, executionContext)
 
         then:
-        1 * target.execute(task, state)
+        1 * target.execute(task, state, executionContext)
         0 * target._
         0 * state._
     }
@@ -68,10 +70,10 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         taskInputs.hasSourceFiles >> false
 
         when:
-        executer.execute(task, state)
+        executer.execute(task, state, executionContext)
 
         then:
-        1 * target.execute(task, state)
+        1 * target.execute(task, state, executionContext)
         0 * target._
         0 * state._
     }

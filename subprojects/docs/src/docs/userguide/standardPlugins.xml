@@ -317,30 +317,30 @@
                 </tr>
             </thead>
             <tr>
-                <tr>
-                    <td>
-                        <link linkend='announce_plugin'>
-                            <literal>announce</literal>
-                        </link>
-                    </td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>
-                        <para>Publish messages to your favourite platforms, such as Twitter or Growl.</para>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <link linkend='build_announcements_plugin'>
-                            <literal>build-announcements</literal>
-                        </link>
-                    </td>
-                    <td>announce</td>
-                    <td>-</td>
-                    <td>
-                        <para>Sends local announcements to your desktop about interesting events in the build lifecycle.</para>
-                    </td>
-                </tr>
+                <td>
+                    <link linkend='announce_plugin'>
+                        <literal>announce</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Publish messages to your favourite platforms, such as Twitter or Growl.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='build_announcements_plugin'>
+                        <literal>build-announcements</literal>
+                    </link>
+                </td>
+                <td>announce</td>
+                <td>-</td>
+                <td>
+                    <para>Sends local announcements to your desktop about interesting events in the build lifecycle.</para>
+                </td>
+            </tr>
+            <tr>
                 <td>
                     <link linkend='checkstyle_plugin'>
                         <literal>checkstyle</literal>
@@ -551,7 +551,7 @@
                         <literal>build-setup</literal>
                     </link>
                 </td>
-                <td>-</td>
+                <td>wrapper</td>
                 <td>-</td>
                 <td>
                     <para>Adds support for initializing a new Gradle build. Handles converting a Maven build to a Gradle build.
@@ -585,6 +585,19 @@
                     <para>Provides integration with the
                         <ulink url="http://www.sonarsource.org">Sonar</ulink>
                         code quality platform. Superceeds the <link linkend='sonar_plugin'><literal>sonar</literal></link> plugin.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="wrapper_plugin">
+                        <literal>wrapper</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Adds a <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/> task for generating Gradle wrapper files.
                     </para>
                 </td>
             </tr>

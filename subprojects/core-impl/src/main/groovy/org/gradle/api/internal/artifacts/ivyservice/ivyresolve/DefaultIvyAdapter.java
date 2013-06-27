@@ -16,13 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.resolve.ResolveData;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 
 class DefaultIvyAdapter implements IvyAdapter {
     private final ResolveData resolveData;
-    private final DependencyToModuleResolver userResolver;
+    private final DependencyToModuleVersionResolver userResolver;
 
-    public DefaultIvyAdapter(ResolveData resolveData, DependencyToModuleResolver userResolverChain) {
+    public DefaultIvyAdapter(ResolveData resolveData, DependencyToModuleVersionResolver userResolverChain) {
         this.resolveData = resolveData;
         userResolver = userResolverChain;
     }
@@ -31,7 +31,7 @@ class DefaultIvyAdapter implements IvyAdapter {
         return resolveData;
     }
 
-    public DependencyToModuleResolver getDependencyToModuleResolver() {
+    public DependencyToModuleVersionResolver getDependencyToModuleResolver() {
         return userResolver;
     }
 }

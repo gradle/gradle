@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.messaging.serialize.LongSerializer;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 import org.gradle.util.NoOpChangeListener;
@@ -40,41 +41,49 @@ import java.util.*;
 public class OutputFilesSnapshotter implements FileSnapshotter {
     private final FileSnapshotter snapshotter;
     private final IdGenerator<Long> idGenerator;
+    private TaskArtifactStateCacheAccess cacheAccess;
     private final PersistentIndexedCache<String, Long> dirIdentiferCache;
 
     public OutputFilesSnapshotter(FileSnapshotter snapshotter, IdGenerator<Long> idGenerator,
                                   TaskArtifactStateCacheAccess cacheAccess) {
         this.snapshotter = snapshotter;
         this.idGenerator = idGenerator;
-        dirIdentiferCache = cacheAccess.createCache("outputFileStates", String.class, Long.class);
+        this.cacheAccess = cacheAccess;
+        dirIdentiferCache = cacheAccess.createCache("outputFileStates", String.class, Long.class, new LongSerializer());
     }
 
     public FileCollectionSnapshot emptySnapshot() {
         return new OutputFilesSnapshot(new HashMap<String, Long>(), snapshotter.emptySnapshot());
     }
 
-    public FileCollectionSnapshot snapshot(FileCollection files) {
-        Map<String, Long> snapshotDirIds = new HashMap<String, Long>();
-        for (File file : files) {
-            Long dirId;
-            if (file.exists()) {
-                dirId = dirIdentiferCache.get(file.getAbsolutePath());
-                if (dirId == null) {
-                    dirId = idGenerator.generateId();
-                    dirIdentiferCache.put(file.getAbsolutePath(), dirId);
+    public OutputFilesSnapshot snapshot(final FileCollection files) {
+        final Map<String, Long> snapshotDirIds = new HashMap<String, Long>();
+        final Set<File> theFiles = files.getFiles();
+        cacheAccess.useCache("create dir snapshots", new Runnable() {
+            public void run() {
+                for (File file : theFiles) {
+                    Long dirId;
+                    if (file.exists()) {
+                        dirId = dirIdentiferCache.get(file.getAbsolutePath());
+                        if (dirId == null) {
+                            dirId = idGenerator.generateId();
+                            dirIdentiferCache.put(file.getAbsolutePath(), dirId);
+                        }
+                    } else {
+                        dirIdentiferCache.remove(file.getAbsolutePath());
+                        dirId = null;
+                    }
+                    snapshotDirIds.put(file.getAbsolutePath(), dirId);
                 }
-            } else {
-                dirIdentiferCache.remove(file.getAbsolutePath());
-                dirId = null;
+
             }
-            snapshotDirIds.put(file.getAbsolutePath(), dirId);
-        }
+        });
         return new OutputFilesSnapshot(snapshotDirIds, snapshotter.snapshot(files));
     }
 
-    private static class OutputFilesSnapshot implements FileCollectionSnapshot {
-        private final Map<String, Long> rootFileIds;
-        private final FileCollectionSnapshot filesSnapshot;
+    static class OutputFilesSnapshot implements FileCollectionSnapshot {
+        final Map<String, Long> rootFileIds;
+        final FileCollectionSnapshot filesSnapshot;
 
         public OutputFilesSnapshot(Map<String, Long> rootFileIds, FileCollectionSnapshot filesSnapshot) {
             this.rootFileIds = rootFileIds;
@@ -205,4 +214,5 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
             return applyTo(snapshot, new NoOpChangeListener<FileCollectionSnapshot.Merge>());
         }
     }
+
 }

@@ -15,9 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.api.GradleException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -532,22 +530,60 @@ parentFirst
      \\--- org:x:2.0 FAILED"""))
     }
 
+    @Issue("GRADLE-2752")
+    void "does not replace root module when earlier version of root module is requested"() {
+        mavenRepo.module("org", "test", "1.2").publish()
+        mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "1.2").publish()
+
+        settingsFile << "rootProject.name= 'test'"
+
+        buildFile << """
+apply plugin: 'java'
+
+group "org"
+version "1.3"
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+dependencies {
+    compile "org:other:1.7"
+}
+
+task checkDeps(dependsOn: configurations.compile) << {
+    assert configurations.compile*.name == ['other-1.7.jar', 'test-1.3.jar']
+
+    def result = configurations.compile.incoming.resolutionResult
+    assert result.allModuleVersions.size() == 2
+
+    def root = result.root
+    assert root.id.version == '1.3'
+
+    def other = result.allModuleVersions.find { it.id.name == 'other' }
+
+    assert root.dependencies*.selected == [other]
+    assert other.dependencies*.selected == [root]
+}
+"""
+
+        expect:
+        run("checkDeps")
+    }
+
     @Issue("GRADLE-2738")
-    @Ignore("Not yet implemented")
-    def "incorrect resolution of dynamic versions"() {
+    def "resolution fails when any selector cannot be resolved"() {
         given:
         //only 1.5 published:
         mavenRepo.module("org", "leaf", "1.5").publish()
 
-        //problematic dynamic constraint:
         mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "2.0+").publish()
-
-        //other participants of conflict resolution. Commenting one of them makes Gradle behave correctly for this scenario (!).
         mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "1.0").publish()
         mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[1.5,1.9]").publish()
 
-
-        file("build.gradle") << """
+        settingsFile << "rootProject.name = 'broken'"
+        buildFile << """
+            version = 12
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -563,10 +599,9 @@ parentFirst
         """
 
         when:
-        run "resolve"
+        runAndFail "resolve"
 
         then:
-        //needs more assertions. This should fail with resolution failure but it passes.
-        thrown(GradleException)
+        failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy(":broken:12 > org:c:1.0")
     }
 }

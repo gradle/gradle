@@ -18,45 +18,20 @@ package org.gradle.api.internal;
 
 import org.gradle.util.GradleVersion;
 
-import java.io.File;
-
 /**
  * Locates documentation for various features.
  */
 public class DocumentationRegistry {
-    private final GradleDistributionLocator locator;
     private final GradleVersion gradleVersion;
 
-    public DocumentationRegistry(GradleDistributionLocator locator) {
-        this(locator, GradleVersion.current());
-    }
-
-    public DocumentationRegistry(GradleDistributionLocator locator, GradleVersion gradleVersion) {
-        this.locator = locator;
-        this.gradleVersion = gradleVersion;
+    public DocumentationRegistry() {
+        this.gradleVersion = GradleVersion.current();
     }
 
     /**
      * Returns the location the documentation for the given feature, referenced by id. The location may be local or remote.
      */
     public String getDocumentationFor(String id) {
-        if (locator.getGradleHome() != null) {
-            File pageLocation = new File(locator.getGradleHome(), String.format("docs/userguide/%s.html", id));
-            File userGuideLocation = new File(locator.getGradleHome(), "docs/userguide/userguide.html");
-            if (pageLocation.isFile() && userGuideLocation.isFile()) {
-                return pageLocation.getAbsolutePath();
-            }
-            if (!pageLocation.isFile() && userGuideLocation.isFile()) {
-                throw new IllegalArgumentException(String.format("User guide page '%s' not found.", pageLocation));
-            }
-            if (pageLocation.isFile() && !userGuideLocation.isFile()) {
-                throw new IllegalArgumentException(String.format("User guide page '%s' not found.", userGuideLocation));
-            }
-        }
         return String.format("http://gradle.org/docs/%s/userguide/%s.html", gradleVersion.getVersion(), id);
-    }
-
-    public String getFeatureLifecycle() {
-        return getDocumentationFor("feature_lifecycle");
     }
 }

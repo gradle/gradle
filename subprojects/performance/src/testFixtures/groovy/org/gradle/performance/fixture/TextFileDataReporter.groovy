@@ -17,14 +17,19 @@
 package org.gradle.performance.fixture
 
 class TextFileDataReporter implements DataReporter {
+    private final File outputFile
+
+    TextFileDataReporter(File outputFile) {
+        this.outputFile = outputFile
+    }
+
     void report(PerformanceResults results) {
-        File outFile = new File("build/performance-tests/results.txt")
-        outFile.parentFile.mkdirs()
+        outputFile.parentFile.mkdirs()
         results.baselineVersions.each {
-            outFile << it.getSpeedStatsAgainst(results.displayName, results.current)
+            outputFile << it.getSpeedStatsAgainst(results.displayName, results.current)
         }
         results.baselineVersions.each {
-            outFile << it.getMemoryStatsAgainst(results.displayName, results.current)
+            outputFile << it.getMemoryStatsAgainst(results.displayName, results.current)
         }
     }
 }

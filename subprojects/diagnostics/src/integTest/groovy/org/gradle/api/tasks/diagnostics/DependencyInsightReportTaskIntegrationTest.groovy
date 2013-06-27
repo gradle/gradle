@@ -260,6 +260,94 @@ org:leaf:2.0 -> 1.0
 """))
     }
 
+    def "shows substituted modules"() {
+        given:
+        mavenRepo.module("org", "new-leaf", 77).publish()
+
+        mavenRepo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    resolutionStrategy.eachDependency { if (it.requested.name == 'leaf') { it.useTarget('org:new-leaf:77') } }
+                }
+            }
+            dependencies {
+                conf 'org:foo:1.0', 'org:bar:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                configuration = configurations.conf
+                setDependencySpec { it.requested.name == 'leaf' }
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:new-leaf:77 (selected by rule)
+
+org:leaf:1.0 -> org:new-leaf:77
+\\--- org:foo:1.0
+     \\--- conf
+
+org:leaf:2.0 -> org:new-leaf:77
+\\--- org:bar:1.0
+     \\--- conf
+"""))
+    }
+
+    def "shows version resolved from dynamic selectors"() {
+        given:
+        mavenRepo.module("org", "leaf", "1.6").publish()
+        mavenRepo.module("org", "top", "1.0")
+                .dependsOn("org", "leaf", "[1.5,1.9]")
+                .dependsOn("org", "leaf", "latest.integration")
+                .dependsOn("org", "leaf", "1.+")
+                .publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                setDependencySpec { it.requested.name == 'leaf' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf:1.6
+
+org:leaf:1.+ -> 1.6
+\\--- org:top:1.0
+     \\--- conf
+
+org:leaf:[1.5,1.9] -> 1.6
+\\--- org:top:1.0
+     \\--- conf
+
+org:leaf:latest.integration -> 1.6
+\\--- org:top:1.0
+     \\--- conf
+"""))
+    }
+
     def "forced version matches the conflict resolution"() {
         given:
         mavenRepo.module("org", "leaf", 1.0).publish()
@@ -588,8 +676,8 @@ org:middle:1.0 -> 2.0+ FAILED
 """))
     }
 
-    @Ignore //TODO SF make the order deterministic
-    def "shows version resolved from a range"() {
+    @Ignore
+    def "shows version resolved from a range where some selectors did not match anything"() {
         given:
         mavenRepo.module("org", "leaf", "1.5").publish()
         mavenRepo.module("org", "top", "1.0")
@@ -621,11 +709,11 @@ org:middle:1.0 -> 2.0+ FAILED
         output.contains(toPlatformLineSeparators("""
 org:leaf:1.5 (conflict resolution)
 
-org:leaf:0.8+ -> 1.5
+org:leaf:1.0 -> 1.5
 \\--- org:top:1.0
      \\--- conf
 
-org:leaf:1.0 -> 1.5
+org:leaf:0.8+ -> 1.5
 \\--- org:top:1.0
      \\--- conf
 
@@ -663,18 +751,15 @@ org:leaf:[1.5,1.9] -> 1.5
         run "insight"
 
         then:
-        // TODO - need to use a fixed ordering for dynamic requested versions
         output.contains(toPlatformLineSeparators("""
 org:leaf:1.0 FAILED
 \\--- org:top:1.0
      \\--- conf
-"""))
-        output.contains(toPlatformLineSeparators("""
+
 org:leaf:1.6+ FAILED
 \\--- org:top:1.0
      \\--- conf
-"""))
-        output.contains(toPlatformLineSeparators("""
+
 org:leaf:[1.5,2.0] FAILED
 \\--- org:top:1.0
      \\--- conf

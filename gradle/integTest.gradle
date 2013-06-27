@@ -29,7 +29,7 @@ integTestTasks.all { Test task ->
     testSrcDirs = []
     jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
 
-    testResultsDir = file("${project.testResultsDir}/$name")
+    reports.junitXml.destination = file("${project.testResultsDir}/$name")
 
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty("testAllVersions") ? 'all' : 'latest'
     if (project.hasProperty('crossVersionTestsOnly')) {
@@ -39,7 +39,7 @@ integTestTasks.all { Test task ->
 
     dependsOn project.task("configure${task.name.capitalize()}") << {
         configure(task) {
-            testReportDir = file("${project.reporting.baseDir}/$name")
+            reports.html.destination = file("${project.reporting.baseDir}/$name")
             systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
             systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
             systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
@@ -63,7 +63,7 @@ check.dependsOn(integTest)
 
 ['embedded', 'forking', 'daemon', 'embeddedDaemon', 'parallel'].each { mode ->
     def taskName = "${mode}IntegTest"
-    tasks.add(taskName, Test).configure {
+    tasks.create(taskName, Test).configure {
         systemProperties['org.gradle.integtest.executer'] = mode
     }
 }

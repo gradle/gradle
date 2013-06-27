@@ -42,7 +42,6 @@ class DefaultBuildConfigurerTest extends Specification {
         configurer.configure(gradle)
 
         then:
-        1 * gradle.addProjectEvaluationListener(_ as ProjectDependencies2TaskResolver);
         1 * rootProject.evaluate()
         1 * child1.evaluate()
         1 * child2.evaluate()
@@ -56,8 +55,5 @@ class DefaultBuildConfigurerTest extends Specification {
         1 * startParameter.isConfigureOnDemand() >> true
         1 * rootProject.evaluate()
         0 * rootProject._
-
-        and:
-        1 * gradle.addProjectEvaluationListener(_ as ProjectDependencies2TaskResolver);
     }
 }

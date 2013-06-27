@@ -13,6 +13,15 @@
             <tr>
                 <td>artifacts</td>
             </tr>
+            <tr>
+                <td>groupId</td>
+            </tr>
+            <tr>
+                <td>artifactId</td>
+            </tr>
+            <tr>
+                <td>version</td>
+            </tr>
         </table>
     </section>
     <section>

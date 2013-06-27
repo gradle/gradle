@@ -15,18 +15,17 @@
  */
 package org.gradle.api.plugins.sonar
 
-import org.gradle.api.plugins.sonar.model.SonarRootModel
-import org.gradle.api.plugins.sonar.model.SonarProjectModel
-import org.gradle.api.plugins.sonar.model.SonarProject
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.sonar.model.SonarProject
+import org.gradle.api.plugins.sonar.model.SonarProjectModel
+import org.gradle.api.plugins.sonar.model.SonarRootModel
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.HelperUtil
-import org.gradle.internal.jvm.Jvm
-
-import spock.lang.Specification
 import spock.lang.Issue
+import spock.lang.Specification
 
 class SonarPluginTest extends Specification {
     def "adds model and task to root project"() {
@@ -110,7 +109,7 @@ class SonarPluginTest extends Specification {
         sonarProject.binaryDirs == [project.sourceSets.main.output.classesDir]
         sonarProject.libraries.files as List == [Jvm.current().runtimeJar]
 
-        sonarProject.testReportPath == project.test.testResultsDir
+        sonarProject.testReportPath == project.test.reports.junitXml.destination
         sonarProject.language == "java"
 
         where:

@@ -73,18 +73,18 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         factories.put(type, factory);
     }
 
-    public <U extends T, V extends U> void registerFactory(Class<U> type, final Closure<V> factory) {
-        registerFactory(type, new NamedDomainObjectFactory<V>() {
-            public V create(String name) {
+    public <U extends T> void registerFactory(Class<U> type, final Closure<? extends U> factory) {
+        registerFactory(type, new NamedDomainObjectFactory<U>() {
+            public U create(String name) {
                 return factory.call(name);
             }
         });
     }
 
-    public <U extends T, V extends U> void registerBinding(Class<U> type, final Class<V> implementationType) {
-        registerFactory(type, new NamedDomainObjectFactory<V>() {
+    public <U extends T> void registerBinding(Class<U> type, final Class<? extends U> implementationType) {
+        registerFactory(type, new NamedDomainObjectFactory<U>() {
             boolean named = Named.class.isAssignableFrom(implementationType);
-            public V create(String name) {
+            public U create(String name) {
                 return named ? getInstantiator().newInstance(implementationType, name)
                         : getInstantiator().newInstance(implementationType);
             }

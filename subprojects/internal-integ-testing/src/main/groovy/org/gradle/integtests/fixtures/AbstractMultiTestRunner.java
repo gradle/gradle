@@ -74,9 +74,13 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
 
     private void initExecutions() {
         if (executions.isEmpty()) {
-            createExecutions();
-            for (Execution execution : executions) {
-                execution.init(target);
+            try {
+                createExecutions();
+                for (Execution execution : executions) {
+                    execution.init(target);
+                }
+            } finally {
+                executionsCreated();
             }
         }
     }
@@ -96,6 +100,8 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
     }
 
     protected abstract void createExecutions();
+
+    protected void executionsCreated() {}
 
     protected void add(Execution execution) {
         executions.add(execution);

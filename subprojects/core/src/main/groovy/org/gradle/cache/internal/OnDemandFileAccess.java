@@ -39,6 +39,10 @@ public class OnDemandFileAccess extends AbstractFileAccess {
         }
     }
 
+    private Runnable doNothing() {
+        return new Runnable() { public void run() {} };
+    }
+
     public void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException {
         FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Exclusive, displayName);
         try {

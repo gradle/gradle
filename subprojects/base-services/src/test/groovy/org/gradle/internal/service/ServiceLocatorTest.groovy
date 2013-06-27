@@ -72,6 +72,20 @@ class ServiceLocatorTest extends Specification {
         1 * classLoader.loadClass('org.gradle.ImplClass') >> String
     }
 
+    def "can locate multiple service implementations from one resource file"() {
+        def serviceFile = stream("""org.gradle.ImplClass1
+org.gradle.ImplClass2""")
+
+        when:
+        def result = serviceLocator.getAll(String.class)
+
+        then:
+        result.size() == 2
+        1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
+        1 * classLoader.loadClass('org.gradle.ImplClass1') >> String
+        1 * classLoader.loadClass('org.gradle.ImplClass2') >> String
+    }
+
     def "findFactory() fails when no implementation class specified in service meta data resource"() {
         def serviceFile = stream('#empty!')
 
@@ -209,12 +223,28 @@ class ServiceLocatorTest extends Specification {
         1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([])
     }
 
+    def "servicelocator uses utf-8 encoding for reading serviceFile"() {
+        def serviceFile = stream(className)
+
+        when:
+        def result = serviceLocator.get(String.class)
+
+        then:
+        result instanceof String
+        1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
+        1 * classLoader.loadClass(className) >> String
+
+        where:
+        className << ['org.gradle.κόσμε']
+    }
+
+
     def stream(String contents) {
         URLStreamHandler handler = Mock()
         URLConnection connection = Mock()
         URL url = new URL("custom", "host", 12, "file", handler)
         _ * handler.openConnection(url) >> connection
-        _ * connection.getInputStream() >> new ByteArrayInputStream(contents.bytes)
+        _ * connection.getInputStream() >> new ByteArrayInputStream(contents.getBytes("UTF-8"))
         return url
     }
 

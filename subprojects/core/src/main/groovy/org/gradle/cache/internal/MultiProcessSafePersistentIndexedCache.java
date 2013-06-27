@@ -15,9 +15,9 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.internal.Factory;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
+import org.gradle.internal.Factory;
 
 import java.io.Closeable;
 

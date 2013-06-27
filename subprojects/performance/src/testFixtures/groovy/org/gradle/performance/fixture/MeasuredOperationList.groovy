@@ -16,6 +16,11 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.performance.measure.Amount
+import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.Duration
+import org.gradle.performance.measure.MeasuredOperation
+
 import static org.gradle.performance.fixture.PrettyCalculator.prettyBytes
 import static org.gradle.performance.fixture.PrettyCalculator.prettyTime
 

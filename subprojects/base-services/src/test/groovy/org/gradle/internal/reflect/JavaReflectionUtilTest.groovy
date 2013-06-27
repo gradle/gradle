@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect;
+package org.gradle.internal.reflect
 
-import spock.lang.Specification
 import org.gradle.internal.UncheckedException
+import spock.lang.Specification
+
+import static org.gradle.internal.reflect.JavaReflectionUtil.method
 
 class JavaReflectionUtilTest extends Specification {
-    def myProperties = new MyProperties()
+    JavaTestSubject myProperties = new JavaTestSubject()
 
     def "read property"() {
         expect:
@@ -66,15 +68,30 @@ class JavaReflectionUtilTest extends Specification {
         e.cause instanceof NoSuchMethodException
     }
 
-    static class MyProperties {
-        private String myProp = "myValue"
-        private boolean myBooleanProp = true
+    def "call methods successfully reflectively"() {
+        expect:
+        method(myProperties.class, String, "getMyProperty").invoke(myProperties) == myProperties.myProp
 
-        String getMyProperty() {  myProp }
-        void setMyProperty(String value) { myProp = value }
+        when:
+        method(myProperties.class, Void, "setMyProperty", String).invoke(myProperties, "foo")
 
-        boolean isMyBooleanProperty() { myBooleanProp }
-        void setMyBooleanProperty(boolean value) { myBooleanProp = value }
+        then:
+        method(myProperties.class, String, "getMyProperty").invoke(myProperties) == "foo"
     }
+
+    def "call failing methods reflectively"() {
+        when:
+        method(myProperties.class, Void, "throwsException").invoke(myProperties)
+
+        then:
+        thrown IllegalStateException
+    }
+
+    def "call declared method that may not be public"() {
+        expect:
+        method(JavaTestSubjectSubclass, String, "protectedMethod").invoke(new JavaTestSubjectSubclass()) == "parent"
+        method(JavaTestSubjectSubclass, String, "overridden").invoke(new JavaTestSubjectSubclass()) == "subclass"
+    }
+
 }
 

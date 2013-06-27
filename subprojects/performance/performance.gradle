@@ -2,14 +2,17 @@ apply from: 'src/generator.groovy'
 
 configurations {
     junit
-    plugin
 }
 
 dependencies {
     junit 'junit:junit:4.11'
     compile libraries.groovy
     testFixturesCompile project(':internalIntegTesting')
-    plugin gradleApi()
+    testFixturesCompile 'com.googlecode.jatl:jatl:0.2.2'
+
+    testFixturesRuntime 'com.h2database:h2:1.3.171'
+
+    testCompile libraries.jsoup
 }
 
 useTestFixtures()
@@ -92,73 +95,28 @@ task lotDependencies(type: ProjectGeneratorTask, description: 'Generates a small
 }
 
 task manyProjects(type: ProjectGeneratorTask) {
-    projects = 500
+    projects = 100
     sourceFiles = 0
 }
 
-task singleProjectNoBuildScript(type: ProjectGeneratorTask) {
-    projects = 1
-    sourceFiles = 0
-    rootProjectTemplates = []
-    subProjectTemplates = []
-}
-
-task manyProjectNoBuildScript(type: ProjectGeneratorTask) {
-    projects = 500
-    sourceFiles = 0
-    rootProjectTemplates = []
-    subProjectTemplates = []
-}
-
-task manyProjectMinimalBuildScript(type: ProjectGeneratorTask) {
-    projects = 500
-    sourceFiles = 0
-    rootProjectTemplates = ['minimal']
-    subProjectTemplates = ['minimal']
-}
-
-task manyProjectConfigInject(type: ProjectGeneratorTask) {
-    projects = 500
-    sourceFiles = 0
-    rootProjectTemplates = ['config-inject']
-    subProjectTemplates = []
-}
-
-task compilePlugin(type: JavaCompile) {
-    source 'src/configPlugin'
-    destinationDir file("$buildDir/configPlugin")
-    classpath = configurations.plugin
-}
-
-task manyProjectJavaConfig(type: ProjectGeneratorTask, dependsOn: compilePlugin) {
-    projects = 500
-    sourceFiles = 0
-    rootProjectTemplates = ['java-config']
-    subProjectTemplates = []
-}
-
-def generators = tasks.withType(ProjectGeneratorTask)
-generators.all {
+def generators = tasks.withType(ProjectGeneratorTask) {
     group = 'Project setup'
     testDependencies = configurations.junit
 }
+
 task all(dependsOn: generators)
 
-task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit])
+task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects])
 
 integTestTasks.all {
-    if (buildTypes.isActive('performanceTest') || buildTypes.isActive('localPerformanceTest')) {
-        dependsOn prepareSamples
-    } else {
-        gradle.startParameter.excludedTaskNames << it.path
-    }
+    dependsOn prepareSamples
     maxParallelForks = 1
-}
 
-tasks.integTest.testLogging {
-    showStandardStreams = true
-    lifecycle {
-        exceptionFormat 'full'
+    testLogging {
+        showStandardStreams = true
+        lifecycle {
+            exceptionFormat 'full'
+        }
     }
 }
 

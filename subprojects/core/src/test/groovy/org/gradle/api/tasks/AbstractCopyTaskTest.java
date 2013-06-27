@@ -95,5 +95,10 @@ public class AbstractCopyTaskTest extends AbstractTaskTest {
         public FileCollection getDefaultSource() {
             return defaultSource;
         }
+
+        @Override
+        protected void postCopyCleanup() {
+
+        }
     }
 }

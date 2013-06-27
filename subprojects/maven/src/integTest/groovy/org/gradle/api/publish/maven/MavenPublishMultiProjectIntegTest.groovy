@@ -16,8 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import spock.lang.Ignore
-
 class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
     def project1 = mavenRepo.module("org.gradle.test", "project1", "1.0")
     def project2 = mavenRepo.module("org.gradle.test", "project2", "2.0")
@@ -31,6 +29,62 @@ class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         projectsCorrectlyPublished()
+    }
+
+    def "project dependencies reference publication identity of dependent project"() {
+        def project3 = mavenRepo.module("changed.group", "changed-artifact-id", "changed")
+
+        createBuildScripts("""
+project(":project3") {
+    publishing {
+        publications.maven {
+            groupId "changed.group"
+            artifactId "changed-artifact-id"
+            version "changed"
+        }
+    }
+}
+""")
+
+        when:
+        run "publish"
+
+        then:
+        project1.assertPublishedAsJavaModule()
+        project1.parsedPom.scopes.runtime.assertDependsOn("changed.group:changed-artifact-id:changed", "org.gradle.test:project2:2.0")
+
+        project2.assertPublishedAsJavaModule()
+        project2.parsedPom.scopes.runtime.assertDependsOn("changed.group:changed-artifact-id:changed")
+
+        project3.assertPublishedAsJavaModule()
+        project3.parsedPom.scopes.runtime == null
+
+        and:
+        resolveArtifacts(project1) == ['changed-artifact-id-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar']
+    }
+
+    def "reports failure when project dependency references a project with multiple publications"() {
+        createBuildScripts("""
+project(":project3") {
+    publishing {
+        publications {
+            extraMaven(MavenPublication) {
+                from components.java
+                groupId "extra.group"
+                artifactId "extra-artifact"
+                version "extra"
+            }
+        }
+    }
+}
+""")
+
+        when:
+        fails "publish"
+
+        then:
+        failure.assertHasDescription "A problem occurred configuring project ':project1'."
+        failure.assertHasCause "Publishing is not yet able to resolve a dependency on a project with multiple different publications."
     }
 
     def "maven-publish plugin does not take archivesBaseName into account when publishing"() {
@@ -130,36 +184,6 @@ project(":project2") {
 
         project1.assertPublishedAsJavaModule()
         project1.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test:project2:2.0")
-    }
-
-    @Ignore("This does not work: fix this as part of making the project coordinates customisable via DSL (using new mechanism to set artifactId")
-    def "project dependency correctly reflected in POM if dependency publication pom is changed"() {
-        createBuildScripts("""
-project(":project1") {
-    dependencies {
-        compile project(":project2")
-    }
-}
-
-project(":project2") {
-    publishing {
-        publications {
-            maven {
-                pom.withXml {
-                    asNode().artifactId[0].value = "changed"
-                }
-            }
-        }
-    }
-}
-        """)
-
-        when:
-        run ":project1:publish"
-
-        then:
-        def pom = project1.parsedPom
-        pom.scopes.runtime.assertDependsOn("org.gradle.test:changed:1.9")
     }
 
     private void createBuildScripts(String append = "") {

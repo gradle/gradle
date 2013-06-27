@@ -87,7 +87,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
                 }
 
-                File artifactFile = downloadArtifactFile(artifact, resourceDownloader, artifactRef);
+                File artifactFile = downloadAndCacheArtifactFile(artifact, resourceDownloader, artifactRef.getResource());
 
                 adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
                 adr.setSize(artifactFile.length());
@@ -109,26 +109,29 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         return adr;
     }
 
-    private File downloadArtifactFile(final Artifact artifact, final ResourceDownloader resourceDownloader, final ResolvedResource artifactRef) throws IOException {
-        final Resource resource = artifactRef.getResource();
+    public File downloadAndCacheArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, Resource resource) throws IOException {
         final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             resourceDownloader.download(artifact, resource, tmpFile);
-            return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<File>() {
-                public File create() {
-                    FileStoreEntry fileStoreEntry = fileStore.move(artifact.getId(), tmpFile);
-                    File fileInFileStore = fileStoreEntry.getFile();
-                    if (resource instanceof ExternalResource) {
-                        ExternalResource externalResource = (ExternalResource) resource;
-                        ExternalResourceMetaData metaData = externalResource.getMetaData();
-                        artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
-                    }
-                    return fileInFileStore;
-                }
-            });
+            return cacheDownloadedFile(artifact, resource, tmpFile);
         } finally {
             tmpFile.delete();
         }
+    }
+
+    private File cacheDownloadedFile(final Artifact artifact, final Resource resource, final File tmpFile) {
+        return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<File>() {
+            public File create() {
+                FileStoreEntry fileStoreEntry = fileStore.move(artifact.getId(), tmpFile);
+                File fileInFileStore = fileStoreEntry.getFile();
+                if (resource instanceof ExternalResource) {
+                    ExternalResource externalResource = (ExternalResource) resource;
+                    ExternalResourceMetaData metaData = externalResource.getMetaData();
+                    artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
+                }
+                return fileInFileStore;
+            }
+        });
     }
 
     public ResolvedModuleRevision cacheModuleDescriptor(DependencyResolver resolver, final ResolvedResource resolvedResource, DependencyDescriptor dd, Artifact moduleArtifact, ResourceDownloader downloader, CacheMetadataOptions options) throws ParseException {

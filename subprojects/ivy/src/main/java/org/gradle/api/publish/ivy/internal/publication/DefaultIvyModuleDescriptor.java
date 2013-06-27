@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -31,7 +32,7 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
 
     private final ActionBroadcast<XmlProvider> xmlActions = new ActionBroadcast<XmlProvider>();
     private final IvyPublicationInternal ivyPublication;
-    private String status;
+    private String status = Module.DEFAULT_STATUS;
 
     public DefaultIvyModuleDescriptor(IvyPublicationInternal ivyPublication) {
         this.ivyPublication = ivyPublication;

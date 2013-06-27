@@ -49,14 +49,9 @@ public class Configurations {
         return allConfigurations;
     }
 
-    public static String uploadInternalTaskName(String configurationName) {
-        return String.format("upload%sInternal", getCapitalName(configurationName));
-    }
-
     public static String uploadTaskName(String configurationName) {
         return String.format("upload%s", getCapitalName(configurationName));
     }
-
 
     private static String getCapitalName(String configurationName) {
         return configurationName.substring(0, 1).toUpperCase() + configurationName.substring(1);

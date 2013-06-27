@@ -32,6 +32,8 @@ public interface BaseRepositoryFactory {
 
     MavenArtifactRepository createMavenLocalRepository();
 
+    MavenArtifactRepository createJCenterRepository();
+
     MavenArtifactRepository createMavenCentralRepository();
 
     IvyArtifactRepository createIvyRepository();

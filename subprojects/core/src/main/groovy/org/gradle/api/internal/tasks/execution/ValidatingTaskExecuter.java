@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskValidationException;
 
@@ -34,7 +35,7 @@ public class ValidatingTaskExecuter implements TaskExecuter {
         this.executer = executer;
     }
 
-    public void execute(TaskInternal task, TaskStateInternal state) {
+    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         List<String> messages = new ArrayList<String>();
         for (TaskValidator validator : task.getValidators()) {
             validator.validate(task, messages);
@@ -54,6 +55,6 @@ public class ValidatingTaskExecuter implements TaskExecuter {
             state.executed(new TaskValidationException(errorMessage, causes));
             return;
         }
-        executer.execute(task, state);
+        executer.execute(task, state, context);
     }
 }

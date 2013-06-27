@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
@@ -24,18 +25,19 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
 
+import java.io.File;
+import java.io.Serializable;
+
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final static Logger LOGGER = Logging.getLogger(DefaultJavaCompilerFactory.class);
 
     private final ProjectInternal project;
-    private final TemporaryFileProvider tempFileProvider;
     private final Factory<AntBuilder> antBuilderFactory;
     private final JavaCompilerFactory inProcessCompilerFactory;
     private boolean jointCompilation;
 
-    public DefaultJavaCompilerFactory(ProjectInternal project, TemporaryFileProvider tempFileProvider, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory){
+    public DefaultJavaCompilerFactory(ProjectInternal project, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory){
         this.project = project;
-        this.tempFileProvider = tempFileProvider;
         this.antBuilderFactory = antBuilderFactory;
         this.inProcessCompilerFactory = inProcessCompilerFactory;
     }
@@ -74,7 +76,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
 
     private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options) {
         if (options.isFork() && options.getForkOptions().getExecutable() != null) {
-            return new CommandLineJavaCompiler(tempFileProvider, project.getProjectDir());
+            return new CommandLineJavaCompiler(createSerializableTempFileProvider(), project.getProjectDir());
         }
 
         Compiler<JavaCompileSpec> compiler = inProcessCompilerFactory.create(options);
@@ -83,5 +85,21 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         return compiler;
+    }
+
+    private TemporaryFileProvider createSerializableTempFileProvider() {
+        return new DefaultTemporaryFileProvider(new FileFactory(project.getBuildDir()));
+    }
+
+    private static class FileFactory implements Factory<File>, Serializable {
+        private final File file;
+
+        private FileFactory(File file) {
+            this.file = file;
+        }
+
+        public File create() {
+            return file;
+        }
     }
 }

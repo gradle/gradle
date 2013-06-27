@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
-
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -43,8 +42,8 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void doesNotVisitADirectoryWhichHasBeenVisitedBefore() {
-        final FileVisitDetails details = file("dir");
-        final FileVisitDetails file = file("dir/file");
+        final FileCopyDetails details = file("dir");
+        final FileCopyDetails file = file("dir/file");
 
         allowGetIncludeEmptyDirs();
 
@@ -62,8 +61,8 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void doesNotVisitADirectoryUntilAChildFileIsVisited() {
-        final FileVisitDetails dir = file("dir");
-        final FileVisitDetails file = file("dir/file");
+        final FileCopyDetails dir = file("dir");
+        final FileCopyDetails file = file("dir/file");
 
         allowGetIncludeEmptyDirs();
 
@@ -84,9 +83,9 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void doesNotVisitADirectoryUntilAChildDirIsVisited() {
-        final FileVisitDetails dir = file("dir");
-        final FileVisitDetails subdir = file("dir/sub");
-        final FileVisitDetails file = file("dir/sub/file");
+        final FileCopyDetails dir = file("dir");
+        final FileCopyDetails subdir = file("dir/sub");
+        final FileCopyDetails file = file("dir/sub/file");
 
         allowGetIncludeEmptyDirs();
 
@@ -109,8 +108,8 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void visitsDirectoryAncestorsWhichHaveNotBeenVisited() {
-        final FileVisitDetails dir1 = file("a/b/c");
-        final FileVisitDetails file1 = file("a/b/c/file");
+        final FileCopyDetails dir1 = file("a/b/c");
+        final FileCopyDetails file1 = file("a/b/c/file");
 
         allowGetIncludeEmptyDirs();
 
@@ -126,8 +125,8 @@ public class NormalizingCopySpecVisitorTest {
         visitor.visitDir(dir1);
         visitor.visitFile(file1);
 
-        final FileVisitDetails dir2 = file("a/b/d/e");
-        final FileVisitDetails file2 = file("a/b/d/e/file");
+        final FileCopyDetails dir2 = file("a/b/d/e");
+        final FileCopyDetails file2 = file("a/b/d/e/file");
 
         context.checking(new Expectations() {{
             one(delegate).visitSpec(spec);
@@ -143,7 +142,7 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void visitsFileAncestorsWhichHaveNotBeenVisited() {
-        final FileVisitDetails details = file("a/b/c");
+        final FileCopyDetails details = file("a/b/c");
 
         allowGetIncludeEmptyDirs();
 
@@ -171,7 +170,7 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void visitsAnEmptyDirectoryIfCorrespondingOptionIsOn() {
-        final FileVisitDetails dir = file("dir");
+        final FileCopyDetails dir = file("dir");
 
         context.checking(new Expectations() {{
             one(spec).getIncludeEmptyDirs();
@@ -188,7 +187,7 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void doesNotVisitAnEmptyDirectoryIfCorrespondingOptionIsOff() {
-        FileVisitDetails dir = file("dir");
+        FileCopyDetails dir = file("dir");
 
         context.checking(new Expectations() {{
             one(spec).getIncludeEmptyDirs();
@@ -202,8 +201,8 @@ public class NormalizingCopySpecVisitorTest {
         visitor.endVisit();
     }
 
-    private FileVisitDetails file(final String path) {
-        final FileVisitDetails details = context.mock(FileVisitDetails.class, path);
+    private FileCopyDetails file(final String path) {
+        final FileCopyDetails details = context.mock(FileCopyDetails.class, path);
         context.checking(new Expectations() {{
             allowing(details).getRelativePath();
             will(returnValue(RelativePath.parse(false, path)));
@@ -211,14 +210,14 @@ public class NormalizingCopySpecVisitorTest {
         return details;
     }
 
-    private Matcher<FileVisitDetails> hasPath(final String path) {
-        return new BaseMatcher<FileVisitDetails>() {
+    private Matcher<FileCopyDetails> hasPath(final String path) {
+        return new BaseMatcher<FileCopyDetails>() {
             public void describeTo(Description description) {
                 description.appendText("has path ").appendValue(path);
             }
 
             public boolean matches(Object o) {
-                FileVisitDetails details = (FileVisitDetails) o;
+                FileCopyDetails details = (FileCopyDetails) o;
                 return details.getRelativePath().getPathString().equals(path);
             }
         };

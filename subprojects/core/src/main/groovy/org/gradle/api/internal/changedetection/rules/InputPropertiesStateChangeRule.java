@@ -49,9 +49,6 @@ class InputPropertiesStateChangeRule {
                     }
                 });
             }
-
-            public void snapshotAfterTask() {
-            }
         };
     }
 }

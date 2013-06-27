@@ -636,7 +636,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 setDefaultConf(defaultConf);
             }
             String defaultConfMapping = substitute(attributes.getValue("defaultconfmapping"));
-            if (defaultConf != null) {
+            if (defaultConfMapping != null) {
                 setDefaultConfMapping(defaultConfMapping);
             }
             String confMappingOverride = substitute(attributes.getValue("confmappingoverride"));

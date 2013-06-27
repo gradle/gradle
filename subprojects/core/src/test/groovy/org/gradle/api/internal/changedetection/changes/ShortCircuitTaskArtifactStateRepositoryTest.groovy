@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
+import org.gradle.api.specs.Spec
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
@@ -30,8 +31,11 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
     TaskArtifactState taskArtifactState = Mock(TaskArtifactState)
     TaskInternal task = Mock(TaskInternal)
     TaskOutputsInternal outputs = Mock(TaskOutputsInternal)
+    Spec upToDateSpec = Mock(Spec)
 
     def doesNotLoadHistoryWhenTaskHasNoDeclaredOutputs() {
+        def messages = []
+
         when:
         TaskArtifactState state = repository.getStateFor(task);
 
@@ -42,9 +46,8 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
 
         and:
         state instanceof NoHistoryArtifactState
-        !state.upToDate
-        !state.executionHistory.hasHistory()
-
+        !state.isUpToDate(messages)
+        !messages.empty
     }
 
     def delegatesDirectToBackingRepositoryWithoutRerunTasks() {
@@ -52,13 +55,19 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         TaskArtifactState state = repository.getStateFor(task);
 
         then:
-        1 * task.getOutputs() >> outputs
+        2 * task.getOutputs() >> outputs
         1 * outputs.getHasOutput() >> true
+        1 * outputs.getUpToDateSpec() >> upToDateSpec
+        1 * upToDateSpec.isSatisfiedBy(task) >> true
+
+        and:
         1 * delegate.getStateFor(task) >> taskArtifactState
         state == taskArtifactState
     }
 
     def taskArtifactsAreAlwaysOutOfDateWithRerunTasks() {
+        def messages = []
+
         when:
         startParameter.setRerunTasks(true);
         def state = repository.getStateFor(task)
@@ -70,7 +79,32 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         0 * taskArtifactState._
 
         and:
-        !state.upToDate
+        !state.isUpToDate(messages)
+        !messages.empty
+
+        and:
+        !state.inputChanges.incremental
+    }
+
+    def taskArtifactsAreAlwaysOutOfDateWhenUpToDateSpecReturnsFalse() {
+        def messages = []
+
+        when:
+        def state = repository.getStateFor(task)
+
+        then:
+        2 * task.getOutputs() >> outputs
+        1 * outputs.getHasOutput() >> true
+        1 * outputs.getUpToDateSpec() >> upToDateSpec
+        1 * upToDateSpec.isSatisfiedBy(task) >> false
+
+        and:
+        1 * delegate.getStateFor(task) >> taskArtifactState
+        0 * taskArtifactState._
+
+        and:
+        !state.isUpToDate(messages)
+        !messages.empty
 
         and:
         !state.inputChanges.incremental

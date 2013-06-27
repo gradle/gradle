@@ -39,6 +39,15 @@ public interface FileLockManager {
      */
     FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName) throws LockTimeoutException;
 
+    /**
+     * Enables other processes to request access to the provided lock. Provided action runs when the lock access request is received
+     * (it means that the lock is contended).
+     *
+     * @param fileLock the lock
+     * @param whenContended will be called asynchronously by the thread that listens for cache access requests, when such request is received
+     */
+    void allowContention(FileLock fileLock, Runnable whenContended);
+
     enum LockMode {
         /**
          * No synchronisation is done.

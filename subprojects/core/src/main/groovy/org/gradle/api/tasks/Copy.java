@@ -65,6 +65,11 @@ public class Copy extends AbstractCopyTask {
         copyAction = new FileCopyActionImpl(fileResolver, new FileCopySpecVisitor());
     }
 
+    @Override
+    protected void postCopyCleanup() {
+        copyAction = null;
+    }
+
     protected void configureRootSpec() {
         super.configureRootSpec();
         if (getCopyAction().getDestinationDir() == null) {

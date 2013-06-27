@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class MavenDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "dependency includes main artifact and runtime dependencies of referenced module"() {
@@ -100,6 +102,7 @@ task check << {
         succeeds "check"
     }
 
+    @Requires(TestPrecondition.ONLINE)
     def "resolves dependencies on real projects"() {
         // Hibernate core brings in conflicts, exclusions and parent poms
         // Add a direct dependency on an earlier version of commons-collection than required by hibernate core

@@ -37,10 +37,10 @@ class JacocoTaskExtension {
     /**
      * The path for the execution data to be written to.
      */
-    File destPath
+    File destinationFile
 
     /**
-     * Whether or not data should be appended if the {@code destFile}
+     * Whether or not data should be appended if the {@code destinationFile}
      * already exists. Defaults to {@code true}.
      */
     boolean append = true
@@ -95,7 +95,7 @@ class JacocoTaskExtension {
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
      */
-    File classDumpPath
+    File classDumpFile
 
     /**
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}.
@@ -151,7 +151,7 @@ class JacocoTaskExtension {
 
         builder << GFileUtils.relativePath(task.getWorkingDir(), agent.jar)
         builder << '='
-        arg 'destfile', getDestPath()
+        arg 'destfile', getDestinationFile()
         arg 'append', getAppend()
         arg 'includes', getIncludes()
         arg 'excludes', getExcludes()
@@ -161,7 +161,7 @@ class JacocoTaskExtension {
         arg 'output', getOutput().asArg
         arg 'address', getAddress()
         arg 'port', getPort()
-        arg 'classdumpdir', classDumpPath
+        arg 'classdumpdir', classDumpFile
 
         if (agent.supportsJmx()) {
             arg 'jmx', getJmx()

@@ -70,7 +70,9 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
         TestDescriptorInternal testInternal;
         Object parentId;
         synchronized (lock) {
-            testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(), iTestResult.getName());
+            String name = calculateTestCaseName(iTestResult);
+
+            testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(), name);
             Object oldTestId = tests.put(iTestResult, testInternal.getId());
             assert oldTestId == null : "Apparently some other test has started but it hasn't finished. "
                     + "Expect the resultProcessor to break. "
@@ -80,6 +82,44 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
             assert parentId != null;
         }
         resultProcessor.started(testInternal, new TestStartEvent(iTestResult.getStartMillis(), parentId));
+
+        if (iTestResult.getThrowable() instanceof UnrepresentableParameterException) {
+            throw (UnrepresentableParameterException) iTestResult.getThrowable();
+        }
+    }
+
+    private String calculateTestCaseName(ITestResult iTestResult) {
+        Object[] parameters = iTestResult.getParameters();
+        String name = iTestResult.getName();
+        if (parameters != null && parameters.length > 0) {
+            StringBuilder builder = new StringBuilder(name).
+                    append("[").
+                    append(iTestResult.getMethod().getCurrentInvocationCount()).
+                    append("]");
+
+            StringBuilder paramsListBuilder = new StringBuilder("(");
+            int i = 0;
+            for (Object parameter : parameters) {
+                if (parameter == null) {
+                    paramsListBuilder.append("null");
+                } else {
+                    try {
+                        paramsListBuilder.append(parameter.toString());
+                    } catch (Exception e) {
+                        // This may be thrown by the caller of this method at a later time
+                        iTestResult.setThrowable(new UnrepresentableParameterException(iTestResult, i, e));
+                        return builder.toString();
+                    }
+                }
+                if (++i < parameters.length) {
+                    paramsListBuilder.append(", ");
+                }
+            }
+            paramsListBuilder.append(")");
+            return builder.append(paramsListBuilder.toString()).toString();
+        } else {
+            return name;
+        }
     }
 
     public void onTestSuccess(ITestResult iTestResult) {

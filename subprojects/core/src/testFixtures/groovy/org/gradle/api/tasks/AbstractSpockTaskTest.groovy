@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFacto
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.internal.reflect.DirectInstantiator
@@ -164,7 +165,7 @@ public abstract class AbstractSpockTaskTest extends Specification {
         task.execute()
 
         then:
-        1 * executer.execute(task, _ as TaskStateInternal)
+        1 * executer.execute(task, _ as TaskStateInternal, _ as TaskExecutionContext)
 
     }
 

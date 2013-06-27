@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import static org.hamcrest.Matchers.equalTo
 
 class WarTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -148,5 +149,106 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                 'META-INF/MANIFEST.MF',
                 'WEB-INF/webinf1/file1.txt',
                 'WEB-INF/dir2/file2.txt')
+    }
+
+    def "exclude duplicates: webXml precedence over webInf"() {
+        given:
+        createDir('bad') {
+            file('web.xml')
+        }
+        file('good.xml')
+
+        file('bad/web.xml').text = 'bad'
+        file('good.xml').text = 'good'
+
+        buildFile << '''
+        task war(type: War) {
+            webInf {
+                from 'bad'
+            }
+            webXml = file('good.xml')
+            destinationDir = buildDir
+            archiveName = 'test.war'
+            duplicatesStrategy = 'exclude'
+        }
+        '''
+        when:
+        run "war"
+        def war = file('build/test.war')
+        def expandDir = file('expanded')
+        war.unzipTo(expandDir)
+        then:
+        expandDir.assertHasDescendants('WEB-INF/web.xml', 'META-INF/MANIFEST.MF')
+        file('expanded/WEB-INF/web.xml').text == 'good'
+    }
+
+    def "exclude duplicates: classpath precedence over webInf"() {
+        given:
+        createDir('bad') {
+            lib {
+                file('file.txt')
+            }
+        }
+        createDir('good') {
+            file('file.txt')
+        }
+
+        file('bad/lib/file.txt').text = 'bad'
+        file('good/file.txt').text = 'good'
+
+        buildFile << '''
+        task war(type: War) {
+            webInf {
+                from 'bad'
+            }
+            classpath 'good/file.txt'
+            destinationDir = buildDir
+            archiveName = 'test.war'
+            duplicatesStrategy = 'exclude'
+        }
+        '''
+        when:
+        run "war"
+        def war = file('build/test.war')
+        def expandDir = file('expanded')
+        war.unzipTo(expandDir)
+        then:
+        expandDir.assertHasDescendants('WEB-INF/lib/file.txt', 'META-INF/MANIFEST.MF')
+        file('expanded/WEB-INF/lib/file.txt').text == 'good'
+    }
+
+    def "exclude duplicates: webInf over normal files"() {
+        given:
+        createDir('bad') {
+            file('file.txt')
+        }
+        createDir('good') {
+            file('file.txt')
+        }
+
+        file('bad/file.txt').text = 'bad'
+        file('good/file.txt').text = 'good'
+
+        buildFile << '''
+        task war(type: War) {
+            into('WEB-INF') {
+                from 'bad'
+            }
+            webInf {
+                from 'good'
+            }
+            destinationDir = buildDir
+            archiveName = 'test.war'
+            duplicatesStrategy = 'exclude'
+        }
+        '''
+        when:
+        run "war"
+        def war = file('build/test.war')
+        def expandDir = file('expanded')
+        war.unzipTo(expandDir)
+        then:
+        expandDir.assertHasDescendants('WEB-INF/file.txt', 'META-INF/MANIFEST.MF')
+        file('expanded/WEB-INF/file.txt').text == 'good'
     }
 }

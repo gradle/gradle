@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler
 import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.internal.Factory
 
 import spock.lang.Specification
@@ -26,7 +25,7 @@ import spock.lang.Specification
 class DefaultJavaCompilerFactoryTest extends Specification {
     def inProcessCompiler = Mock(Compiler)
     def inProcessCompilerFactory = Mock(JavaCompilerFactory)
-    def factory = new DefaultJavaCompilerFactory(Mock(ProjectInternal), Mock(TemporaryFileProvider), Mock(Factory), inProcessCompilerFactory)
+    def factory = new DefaultJavaCompilerFactory(Mock(ProjectInternal), Mock(Factory), inProcessCompilerFactory)
     def options = new CompileOptions()
     
     def setup() {
@@ -66,7 +65,6 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         options.fork = true
         options.forkOptions.executable = "/path/to/javac"
 
-        expect:
         expect:
         def compiler = factory.create(options)
         compiler instanceof NormalizingJavaCompiler

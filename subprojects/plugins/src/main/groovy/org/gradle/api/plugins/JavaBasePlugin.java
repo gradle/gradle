@@ -23,12 +23,9 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultJavaSourceSet;
-import org.gradle.language.base.BinariesContainer;
-import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -37,12 +34,14 @@ import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.Classpath;
+import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.jvm.ResourceSet;
+import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.jvm.ClassDirectoryBinary;
-import org.gradle.language.jvm.JvmBinaryContainer;
+import org.gradle.language.jvm.Classpath;
+import org.gradle.language.jvm.ResourceSet;
+import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -140,8 +139,8 @@ public class JavaBasePlugin implements Plugin<Project> {
                 ResourceSet resourceSet = instantiator.newInstance(DefaultResourceSet.class, "resources", sourceSet.getResources(), functionalSourceSet);
                 functionalSourceSet.add(resourceSet);
 
-                JvmBinaryContainer jvmBinaryContainer = (JvmBinaryContainer) project.getExtensions().getByType(BinariesContainer.class).getByName("jvm");
-                ClassDirectoryBinary binary = jvmBinaryContainer.create(sourceSet.getName(), ClassDirectoryBinary.class);
+                BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);
+                ClassDirectoryBinary binary = binaryContainer.create(String.format("%sClasses", sourceSet.getName()), ClassDirectoryBinary.class);
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {
@@ -157,7 +156,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 binary.getSource().add(javaSourceSet);
                 binary.getSource().add(resourceSet);
 
-                binary.getClassesTask().dependsOn(sourceSet.getOutput().getDirs());
+                binary.dependsOn(sourceSet.getOutput().getDirs());
             }
         });
     }
@@ -262,7 +261,7 @@ public class JavaBasePlugin implements Plugin<Project> {
             public void execute(Project project) {
                 project.getTasks().withType(Test.class, new Action<Test>() {
                     public void execute(Test test) {
-                        overwriteIncludesIfSinglePropertyIsSet(test);
+                        configureBasedOnSingleProperty(test);
                         overwriteDebugIfDebugPropertyIsSet(test);
                     }
                 });
@@ -282,9 +281,13 @@ public class JavaBasePlugin implements Plugin<Project> {
         }
     }
 
-    private void overwriteIncludesIfSinglePropertyIsSet(final Test test) {
+    private void configureBasedOnSingleProperty(final Test test) {
         String singleTest = getTaskPrefixedProperty(test, "single");
         if (singleTest == null) {
+            //configure inputs so that the test task is skipped when there are no source files.
+            //unfortunately, this only applies when 'test.single' is *not* applied
+            //We should fix this distinction, the behavior with 'test.single' or without it should be the same
+            test.getInputs().source(test.getCandidateClassFiles());
             return;
         }
         test.doFirst(new Action<Task>() {
@@ -328,12 +331,15 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureTestDefaults(final Test test, Project project, final JavaPluginConvention convention) {
-        test.getConventionMapping().map("testResultsDir", new Callable<Object>() {
+        DslObject htmlReport = new DslObject(test.getReports().getHtml());
+        DslObject xmlReport = new DslObject(test.getReports().getJunitXml());
+
+        xmlReport.getConventionMapping().map("destination", new Callable<Object>() {
             public Object call() throws Exception {
                 return convention.getTestResultsDir();
             }
         });
-        test.getConventionMapping().map("testReportDir", new Callable<Object>() {
+        htmlReport.getConventionMapping().map("destination", new Callable<Object>() {
             public Object call() throws Exception {
                 return convention.getTestReportDir();
             }

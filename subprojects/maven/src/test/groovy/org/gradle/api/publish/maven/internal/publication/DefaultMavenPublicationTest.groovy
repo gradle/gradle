@@ -16,15 +16,21 @@
 package org.gradle.api.publish.maven.internal.publication
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.internal.DefaultPublicationContainer
+import org.gradle.api.publish.internal.PublicationCoordinates
+import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity
 import org.gradle.api.tasks.TaskDependency
@@ -61,7 +67,40 @@ public class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.name == "pub-name"
-        publication.mavenProjectIdentity == module
+        publication.mavenProjectIdentity.groupId == "group"
+        publication.mavenProjectIdentity.artifactId == "name"
+        publication.mavenProjectIdentity.version == "version"
+    }
+
+    def "changing publication coordinates does not effect those provided"() {
+        when:
+        module.artifactId >> "name"
+        module.groupId >> "group"
+        module.version >> "version"
+
+        and:
+        def publication = createPublication()
+
+        and:
+        publication.groupId = "group2"
+        publication.artifactId = "name2"
+        publication.version = "version2"
+
+        then:
+        module.groupId == "group"
+        module.artifactId == "name"
+        module.version == "version"
+
+        and:
+        publication.groupId == "group2"
+        publication.artifactId == "name2"
+        publication.version == "version2"
+
+        and:
+        publication.mavenProjectIdentity.groupId == "group2"
+        publication.mavenProjectIdentity.artifactId == "name2"
+        publication.mavenProjectIdentity.version == "version2"
+
     }
 
     def "packaging is taken from first added artifact without extension"() {
@@ -88,32 +127,25 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.runtimeDependencies.empty
     }
 
-    def "artifacts and dependencies are taken from added component"() {
+    def "artifacts are taken from added component"() {
         given:
         def publication = createPublication()
-        def component = Mock(SoftwareComponentInternal)
-        def usage = Mock(Usage)
         def artifact = Mock(PublishArtifact)
-        def dependency = Mock(ModuleDependency)
         def publishArtifactDependencies = Mock(TaskDependency)
 
         def mavenArtifact = Mock(MavenArtifact)
 
         when:
-        component.usages >> [usage]
-        usage.artifacts >> [artifact]
-        usage.dependencies >> [dependency]
-
         notationParser.parseNotation(artifact) >> mavenArtifact
         mavenArtifact.file >> artifactFile
 
         and:
-        publication.from(component)
+        publication.from(componentWithArtifact(artifact))
 
         then:
         publication.publishableFiles.files == [pomFile, artifactFile] as Set
         publication.artifacts == [mavenArtifact] as Set
-        publication.runtimeDependencies == [dependency] as Set
+        publication.runtimeDependencies.empty
 
         when:
         def task = Mock(Task)
@@ -124,25 +156,96 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.publishableFiles.buildDependencies.getDependencies(task) == [task] as Set
     }
 
+    def "adopts module dependency from added component"() {
+        given:
+        def publication = createPublication()
+        def moduleDependency = Mock(ModuleDependency)
+        def artifact = Mock(DependencyArtifact)
+
+        when:
+        moduleDependency.group >> "group"
+        moduleDependency.name >> "name"
+        moduleDependency.version >> "version"
+        moduleDependency.artifacts >> [artifact]
+
+        and:
+        publication.from(componentWithDependency(moduleDependency))
+
+        then:
+        publication.runtimeDependencies.size() == 1
+        with (publication.runtimeDependencies.asList().first()) {
+            groupId == "group"
+            artifactId == "name"
+            version == "version"
+            artifacts == [artifact]
+        }
+    }
+
+    def "adopts dependency on project with single publications"() {
+        given:
+        def publication = createPublication()
+        def projectDependency = Mock(ProjectDependency)
+        def extensionContainer = Mock(ExtensionContainer)
+        def publishingExtension = Mock(PublishingExtension)
+        def publications = new DefaultPublicationContainer(new DirectInstantiator())
+        publications.add(otherPublication("otherPub1", "pub-group", "pub-name", "pub-version"))
+
+        when:
+        projectDependency.artifacts >> []
+        projectDependency.dependencyProject >> Stub(Project) {
+            getExtensions() >> extensionContainer
+        }
+        extensionContainer.findByType(PublishingExtension) >> publishingExtension
+        publishingExtension.publications >> publications
+
+        and:
+        publication.from(componentWithDependency(projectDependency))
+
+        then:
+        publication.runtimeDependencies.size() == 1
+        with (publication.runtimeDependencies.asList().first()) {
+            groupId == "pub-group"
+            artifactId == "pub-name"
+            version == "pub-version"
+            artifacts == []
+        }
+    }
+
+    def "adopts dependency on project without publishing extension"() {
+        given:
+        def publication = createPublication()
+        def projectDependency = Mock(ProjectDependency)
+        def extensionContainer = Mock(ExtensionContainer)
+
+        when:
+        projectDependency.group >> "dep-group"
+        projectDependency.name >> "dep-name-1"
+        projectDependency.version >> "dep-version"
+        projectDependency.dependencyProject >> Stub(Project) {
+            getExtensions() >> extensionContainer
+            getName() >> "project-name"
+        }
+        projectDependency.artifacts >> []
+        extensionContainer.findByType(PublishingExtension) >> null
+
+        and:
+        publication.from(componentWithDependency(projectDependency))
+
+        then:
+        publication.runtimeDependencies.size() == 1
+        with (publication.runtimeDependencies.asList().first()) {
+            groupId == "dep-group"
+            artifactId == "project-name"
+            version == "dep-version"
+            artifacts == []
+        }
+    }
     def "cannot add multiple components"() {
         given:
         def publication = createPublication()
-        def component = Mock(SoftwareComponentInternal)
-        def usage = Mock(Usage)
-        def publishArtifactSet = Mock(PublishArtifactSet)
-        def dependencySet = Mock(DependencySet)
 
         when:
-        publication.from(component)
-
-        then:
-        component.usages >> [usage]
-        usage.artifacts >> publishArtifactSet
-        publishArtifactSet.iterator() >> [].iterator()
-        usage.dependencies >> dependencySet
-        dependencySet.iterator() >> [].iterator()
-
-        when:
+        publication.from(createComponent([], []))
         publication.from(Mock(SoftwareComponentInternal))
 
         then:
@@ -229,5 +332,32 @@ public class DefaultMavenPublicationTest extends Specification {
             getFile() >> artifactFile
         }
         return artifact
+    }
+
+    def componentWithDependency(ModuleDependency dependency) {
+        return createComponent([], [dependency])
+    }
+
+    def componentWithArtifact(def artifact) {
+        return createComponent([artifact], [])
+    }
+
+    def createComponent(def artifacts, def dependencies) {
+        def usage = Stub(Usage) {
+            getName() >> "runtime"
+            getArtifacts() >> artifacts
+            getDependencies() >> dependencies
+        }
+        def component = Stub(SoftwareComponentInternal) {
+            getUsages() >> [usage]
+        }
+        return component
+    }
+
+    def otherPublication(String name, String group, String artifactId, String version) {
+        def pub = Mock(PublicationInternal)
+        pub.name >> name
+        pub.coordinates >> new PublicationCoordinates(group, artifactId, version)
+        return pub
     }
 }

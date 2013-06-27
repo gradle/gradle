@@ -19,12 +19,11 @@ package org.gradle.api.reporting.internal;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.internal.ConfigureDelegate;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.SortedMap;
@@ -54,7 +53,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
     }
 
     public ReportContainer<T> configure(Closure cl) {
-        ConfigureUtil.configure(cl, new ConfigureDelegate(cl.getOwner(), this), false);
+        ConfigureUtil.configure(cl, this, false);
         return this;
     }
     

@@ -39,12 +39,12 @@ class JacocoMerge extends JacocoBase {
      * File to write merged execution data to.
      */
     @OutputFile
-    File destFile
+    File destinationFile
 
     @TaskAction
     void merge() {
         getAnt().taskdef(name: 'jacocoMerge', classname: 'org.jacoco.ant.MergeTask', classpath: getJacocoClasspath().asPath)
-        getAnt().jacocoMerge(destfile: getDestFile()) {
+        getAnt().jacocoMerge(destfile: getDestinationFile()) {
             getExecutionData().addToAntBuilder(ant, 'resources')
         }
     }
@@ -72,7 +72,7 @@ class JacocoMerge extends JacocoBase {
         tasks.each { task ->
             JacocoTaskExtension extension = task.extensions.findByType(JacocoTaskExtension)
             if (extension != null) {
-                executionData({ extension.destFile })
+                executionData({ extension.destinationFile })
                 this.executionData.builtBy task
             }
         }

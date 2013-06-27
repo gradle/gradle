@@ -20,7 +20,7 @@ import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
@@ -55,7 +55,7 @@ public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
         }
     }
 
-    public void visitFile(FileVisitDetails fileDetails) {
+    public void visitFile(FileCopyDetails fileDetails) {
         try {
             TarEntry archiveEntry = new TarEntry(fileDetails.getRelativePath().getPathString());
             archiveEntry.setModTime(fileDetails.getLastModified());
@@ -69,7 +69,7 @@ public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
         }
     }
 
-    public void visitDir(FileVisitDetails dirDetails) {
+    public void visitDir(FileCopyDetails dirDetails) {
         try {
             // Trailing slash on name indicates entry is a directory
             TarEntry archiveEntry = new TarEntry(dirDetails.getRelativePath().getPathString() + '/');

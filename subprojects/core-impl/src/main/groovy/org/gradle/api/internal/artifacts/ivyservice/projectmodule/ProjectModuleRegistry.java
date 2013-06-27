@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 
 /**
  * TODO - this probably should lookup a project by id, much like ClientModuleRegistry. Then, there would be no dependency on ivy DependencyDescriptor.
  */
 public interface ProjectModuleRegistry {
-    ModuleDescriptor findProject(ProjectDependencyDescriptor descriptor);
+    ModuleVersionPublishMetaData findProject(ProjectDependencyDescriptor descriptor);
 }

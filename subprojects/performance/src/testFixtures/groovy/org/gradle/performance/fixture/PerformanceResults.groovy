@@ -18,26 +18,55 @@ package org.gradle.performance.fixture
 
 import org.gradle.api.logging.Logging
 
-import static org.gradle.performance.fixture.BaselineVersion.baseline
-
 public class PerformanceResults {
+    private final static LOGGER = Logging.getLogger(PerformanceResults.class)
 
-    private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
+    String testId
+    String testProject
+    String[] args
+    String[] tasks
+    String jvm
+    String operatingSystem
+    long testTime
+    String versionUnderTest
 
-    List<BaselineVersion> baselineVersions = [ baseline("1.x")]
-    String displayName
-
-    final MeasuredOperationList current = new MeasuredOperationList(name:  "Current G.")
+    private final Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()
+    final MeasuredOperationList current = new MeasuredOperationList(name:  "Current Gradle")
 
     def clear() {
-        baselineVersions.each { it.clearResults() }
+        baselineVersions.values()each { it.clearResults() }
         current.clear()
+    }
+
+    @Override
+    String toString() {
+        return displayName
+    }
+
+    String getDisplayName() {
+        return "Results for test project '$testProject' with tasks ${tasks.join(', ')}"
+    }
+
+    Collection<BaselineVersion> getBaselineVersions() {
+        return baselineVersions.values()
+    }
+
+    /**
+     * Locates the given baseline version, adding it if not present.
+     */
+    BaselineVersion baseline(String version) {
+        def baselineVersion = baselineVersions[version]
+        if (baselineVersion == null) {
+            baselineVersion = new BaselineVersion(version)
+            baselineVersions[version] = baselineVersion
+        }
+        return baselineVersion
     }
 
     void assertEveryBuildSucceeds() {
         LOGGER.info("Asserting all builds have succeeded...");
         def failures = []
-        baselineVersions.each {
+        baselineVersions.values().each {
             failures.addAll it.results.findAll { it.exception }
         }
         failures.addAll current.findAll { it.exception }
@@ -63,7 +92,7 @@ public class PerformanceResults {
     private String checkBaselineVersion(Closure fails, Closure provideMessage) {
         def failed = false
         def failure = new StringBuilder()
-        baselineVersions.each {
+        baselineVersions.values().each {
             String message = provideMessage(it)
             if (fails(it)) {
                 failed = true

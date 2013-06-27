@@ -16,11 +16,11 @@
 
 package org.gradle.buildsetup.plugins
 
+import org.gradle.buildsetup.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -38,8 +38,9 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         run 'setupBuild'
 
         then:
-        file("settings.gradle").exists()
-        file("build.gradle").exists()
+        settingsFile.exists()
+        buildFile.exists()
+        wrapperFilesGenerated()
 
         when:
         run 'clean', 'build'
@@ -48,7 +49,6 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
         file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
         file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
-        file('webinar-impl/build/reports/tests/index.html').exists()
 
         new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
@@ -62,8 +62,6 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """))
-        and:
-        wrapperFilesGenerated()
     }
 
     def "flatmultimodule"() {
@@ -74,6 +72,7 @@ Root project 'webinar-parent'
         then:
         file("webinar-parent/settings.gradle").exists()
         file("webinar-parent/build.gradle").exists()
+        wrapperFilesGenerated(file("webinar-parent"))
 
         when:
         executer.inDirectory(file("webinar-parent"))
@@ -83,7 +82,6 @@ Root project 'webinar-parent'
         file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
         file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
         file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
-        file('webinar-impl/build/reports/tests/index.html').exists()
 
         new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
@@ -98,7 +96,6 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """))
-        wrapperFilesGenerated(file("webinar-parent"))
     }
 
     def "singleModule"() {
@@ -106,17 +103,18 @@ Root project 'webinar-parent'
         run 'setupBuild'
 
         then:
-        noExceptionThrown()
+        buildFile.exists()
+        settingsFile.exists()
+        wrapperFilesGenerated()
 
         when:
-        //TODO SF this build should fail because the TestNG test is failing
+        //TODO this build should fail because the TestNG test is failing
         //however the plugin does not generate testNG for single module project atm (bug)
         //def failure = runAndFail('clean', 'build')  //assert if fails for the right reason
         run 'clean', 'build'
 
         then:
         file("build/libs/util-2.5.jar").exists()
-        wrapperFilesGenerated()
     }
 
     def "testjar"() {
@@ -124,7 +122,9 @@ Root project 'webinar-parent'
         run 'setupBuild'
 
         then:
-        noExceptionThrown()
+        settingsFile.exists()
+        settingsFile.exists()
+        wrapperFilesGenerated()
 
         when:
         run 'clean', 'build'
@@ -132,7 +132,6 @@ Root project 'webinar-parent'
         then:
         file("build/libs/testjar-2.5.jar").exists()
         file("build/libs/testjar-2.5-tests.jar").exists()
-        wrapperFilesGenerated()
     }
 
     def "enforcerplugin"() {
@@ -140,7 +139,10 @@ Root project 'webinar-parent'
         run 'setupBuild'
 
         then:
-        noExceptionThrown()
+        settingsFile.exists()
+        buildFile.exists()
+        wrapperFilesGenerated()
+
         and:
         buildFile.text.contains("""configurations.all {
 it.exclude group: 'org.apache.maven'
@@ -152,28 +154,52 @@ it.exclude group: '*', module: 'badArtifact'
 
         then:
         file("build/libs/enforcerExample-1.0.jar").exists()
-        wrapperFilesGenerated()
     }
 
     def "providedNotWar"() {
-      when:
-      run 'setupBuild'
+        when:
+        run 'setupBuild'
 
-      then:
-      noExceptionThrown()
-      when:
-      run 'clean', 'build'
+        then:
+        settingsFile.exists()
+        buildFile.exists()
+        wrapperFilesGenerated()
 
-      then:
-      file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
+        when:
+        run 'clean', 'build'
+
+        then:
+        file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
+    }
+
+    def "provides decent error message when POM is invalid"() {
+        setup:
+        def pom = file("pom.xml")
+        pom << "<project>someInvalid pom content</project>"
+
+        when:
+        fails 'setupBuild'
+
+        then:
+        failure.assertHasCause("Could not convert Maven POM $pom to a Gradle build.")
+    }
+
+    def "mavenExtensions"() {
+        when:
+        run 'setupBuild'
+        then:
+        settingsFile.exists()
+        buildFile.exists()
+        wrapperFilesGenerated()
+
+        when:
+        run 'clean', 'build'
+
+        then:
+        file("build/libs/testApp-1.0.jar").exists()
     }
 
     void wrapperFilesGenerated(TestFile parentFolder = file(".")) {
-        parentFolder.file("gradlew").assertExists()
-        parentFolder.file("gradlew.bat").assertExists()
-        parentFolder.file("gradle/wrapper/gradle-wrapper.jar").assertExists()
-        def wrapperPropertiesFile = parentFolder.file("gradle/wrapper/gradle-wrapper.properties")
-        wrapperPropertiesFile.assertExists()
-        assert wrapperPropertiesFile.text.contains("${GradleVersion.current().getVersion()}-bin.zip")
+        new WrapperTestFixture(parentFolder).generated()
     }
 }

@@ -17,8 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Module
+import org.gradle.api.internal.artifacts.DefaultModuleVersionPublishMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
 import spock.lang.Specification
 
@@ -37,20 +39,23 @@ public class ResolveModuleDescriptorConverterTest extends Specification {
         def dependenciesConverter = Mock(DependenciesToModuleDescriptorConverter)
 
         ResolveModuleDescriptorConverter resolveModuleDescriptorConverter = new ResolveModuleDescriptorConverter(
-                moduleDescriptorFactory
-                ,
+                moduleDescriptorFactory,
                 configurationsConverter,
                 dependenciesConverter);
 
-        moduleDescriptorFactory.createModuleDescriptor(module) >> moduleDescriptor
+        and:
+        moduleDescriptor.moduleRevisionId >> ModuleRevisionId.newInstance("group", "module", "version")
 
         when:
         def actualDescriptor = resolveModuleDescriptorConverter.convert(configurations, module);
 
         then:
+        1 * moduleDescriptorFactory.createModuleDescriptor(module) >> moduleDescriptor
         1 * configurationsConverter.addConfigurations(moduleDescriptor, configurations)
         1 * dependenciesConverter.addDependencyDescriptors(moduleDescriptor, configurations)
 
-        actualDescriptor == moduleDescriptor
+        and:
+        actualDescriptor instanceof DefaultModuleVersionPublishMetaData
+        actualDescriptor.moduleDescriptor == moduleDescriptor
     }
 }

@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='multi_project_builds' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='multi_project_builds'>
     <title>Multi-project Builds</title>
     <para>The powerful support for multi-project builds is one of Gradle's unique selling points. This topic is also the
         most intellectually challenging.
@@ -465,7 +465,7 @@
                 distribution out of them.
                 <footnote>
                     <para>The real use case we had, was using <ulink url='http://lucene.apache.org/solr'/>, where you
-                        need a separate war for each index your are accessing. That was one reason why we have created a
+                        need a separate war for each index you are accessing. That was one reason why we have created a
                         distribution of webapps. The Resin servlet container allows us, to let such a distribution point
                         to a base installation of the servlet container.
                     </para>

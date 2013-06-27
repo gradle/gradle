@@ -23,6 +23,8 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
@@ -72,7 +74,7 @@ public class IvyDependencyResolverAdapter implements IvyAwareModuleVersionReposi
         return false;
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         ResolveData resolveData = IvyContextualiser.getIvyContext().getResolveData();
         try {
             ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);
@@ -88,14 +90,15 @@ public class IvyDependencyResolverAdapter implements IvyAwareModuleVersionReposi
         }
     }
 
-    public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{artifact}, downloadOptions).getArtifactReport(artifact);
+    public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+        Artifact ivyArtifact = DefaultArtifactIdentifier.toArtifact(artifact);
+        ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
                 EnhancedArtifactDownloadReport enhancedReport = (EnhancedArtifactDownloadReport) artifactDownloadReport;
-                result.failed(new ArtifactResolveException(artifactDownloadReport.getArtifact(), enhancedReport.getFailure()));
+                result.failed(new ArtifactResolveException(artifact, enhancedReport.getFailure()));
             } else {
-                result.failed(new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getDownloadDetails()));
+                result.failed(new ArtifactResolveException(artifact, artifactDownloadReport.getDownloadDetails()));
             }
             return;
         }

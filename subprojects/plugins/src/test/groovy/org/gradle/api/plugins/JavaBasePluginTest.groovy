@@ -14,27 +14,25 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
-import org.gradle.language.jvm.ClassDirectoryBinary
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.jvm.ClassDirectoryBinary
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.sameCollection
 import static org.gradle.util.WrapUtil.toLinkedSet
-
 /**
  * @author Hans Dockter
  */
@@ -62,11 +60,10 @@ class JavaBasePluginTest extends Specification {
         project.sourceSets.create('custom')
         
         then:
-        def set = project.sourceSets.custom
+        SourceSet set = project.sourceSets.custom
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
         set.output.classesDir == new File(project.buildDir, 'classes/custom')
-        Matchers.builtBy('customClasses').matches(set.output)
 
         def processResources = project.tasks['processCustomResources']
         processResources.description == "Processes source set 'custom:resources'."
@@ -87,10 +84,10 @@ class JavaBasePluginTest extends Specification {
         sources sameCollection(project.sourceSets.custom.java)
 
         def classes = project.tasks['customClasses']
-        classes.description == "Assembles binary 'custom'."
+        classes.description == "Assembles classes 'custom'."
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
-        classes.dependsOn.contains project.sourceSets.custom.output.dirs
+        Matchers.builtBy('customClasses').matches(project.sourceSets.custom.output)
     }
 
     void "wires generated resources task into classes task for sourceset"() {
@@ -226,7 +223,7 @@ class JavaBasePluginTest extends Specification {
         task.debug
     }
 
-    def configuresTestTaskWhenSingleTestSystemPropertyIsSet() {
+    def "configures test task when test.single is used"() {
         javaBasePlugin.apply(project)
         def task = project.tasks.create('test', Test.class)
         task.include 'ignoreme'
@@ -237,6 +234,7 @@ class JavaBasePluginTest extends Specification {
 
         then:
         task.includes == ['**/pattern*.class'] as Set
+        task.inputs.getSourceFiles().empty
     }
 
     def "adds functional and language source sets for each source set added to the 'sourceSets' container"() {
@@ -283,7 +281,7 @@ class JavaBasePluginTest extends Specification {
         }
 
         then:
-        def binary = project.binaries.jvm.findByName("custom")
+        def binary = project.binaries.findByName("customClasses")
         binary instanceof ClassDirectoryBinary
         binary.classesDir == project.file("classes")
         binary.resourcesDir == project.file("resources")

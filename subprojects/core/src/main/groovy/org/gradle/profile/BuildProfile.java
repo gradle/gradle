@@ -109,7 +109,7 @@ public class BuildProfile {
      * @return list
      */
     public List<ProjectProfile> getProjects() {
-        return CollectionUtils.sort(projects.values(), Operation.comparator());
+        return CollectionUtils.sort(projects.values(), Operation.slowestFirst());
     }
 
     public CompositeOperation<Operation> getProjectConfiguration() {
@@ -117,7 +117,7 @@ public class BuildProfile {
         for (ProjectProfile projectProfile : projects.values()) {
             operations.add(projectProfile.getConfigurationOperation());
         }
-        operations = CollectionUtils.sort(operations, Operation.comparator());
+        operations = CollectionUtils.sort(operations, Operation.slowestFirst());
         return new CompositeOperation<Operation>(operations);
     }
 
@@ -131,7 +131,7 @@ public class BuildProfile {
     }
 
     public CompositeOperation<ContinuousOperation> getDependencySets() {
-        final List<ContinuousOperation> profiles = CollectionUtils.sort(dependencySets.values(), Operation.comparator());
+        final List<ContinuousOperation> profiles = CollectionUtils.sort(dependencySets.values(), Operation.slowestFirst());
         return new CompositeOperation<ContinuousOperation>(profiles);
     }
 

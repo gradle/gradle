@@ -81,6 +81,15 @@ class OperatingSystemTest extends Specification {
         os.getSharedLibraryName("a") == "a.dll"
     }
 
+    def "windows transforms static library names"() {
+        def os = new OperatingSystem.Windows()
+
+        expect:
+        os.getStaticLibraryName("a.lib") == "a.lib"
+        os.getStaticLibraryName("a.LIB") == "a.LIB"
+        os.getStaticLibraryName("a") == "a.lib"
+    }
+
     def "windows searches for executable in path"() {
         def exe = tmpDir.createFile("bin/a.exe")
         tmpDir.createFile("bin2/a.exe")
@@ -176,6 +185,18 @@ class OperatingSystemTest extends Specification {
         os.getSharedLibraryName("lib1") == "liblib1.so"
         os.getSharedLibraryName("path/liba.so") == "path/liba.so"
         os.getSharedLibraryName("path/a") == "path/liba.so"
+    }
+
+    def "UNIX transforms static library names"() {
+        def os = new OperatingSystem.Unix()
+
+        expect:
+        os.getStaticLibraryName("a.a") == "a.a"
+        os.getStaticLibraryName("liba.a") == "liba.a"
+        os.getStaticLibraryName("a") == "liba.a"
+        os.getStaticLibraryName("lib1") == "liblib1.a"
+        os.getStaticLibraryName("path/liba.a") == "path/liba.a"
+        os.getStaticLibraryName("path/a") == "path/liba.a"
     }
 
     def "UNIX searches for executable in path"() {

@@ -27,6 +27,11 @@ public class ContinuousOperation extends Operation {
         this.description = description;
     }
 
+    @Override
+    public String toString() {
+        return description;
+    }
+
     public ContinuousOperation setStart(long start) {
         this.start = start;
         return this;

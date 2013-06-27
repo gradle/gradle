@@ -21,8 +21,11 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
+import java.util.Collection;
+
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
-    public boolean isUpToDate() {
+    public boolean isUpToDate(Collection<String> messages) {
+        messages.add("Task has not declared any outputs.");
         return false;
     }
 
@@ -41,10 +44,6 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     public void finished() {
-    }
-
-    public boolean hasHistory() {
-        return false;
     }
 
     public FileCollection getOutputFiles() {

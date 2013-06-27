@@ -44,8 +44,7 @@ class WrapperHttpIntegrationTest extends AbstractIntegrationSpec {
 
     private prepareWrapper(String baseUrl) {
         file("build.gradle") << """
-    import org.gradle.api.tasks.wrapper.Wrapper
-    task wrapper(type: Wrapper) {
+    wrapper {
         distributionUrl = '${baseUrl}/gradlew/dist'
     }
 

@@ -4,11 +4,12 @@
 
 ### User visible changes
 
-Faster builds, especially with hot daemon
+-Faster builds, especially with hot daemon
+-Create a property that allows turning off this feature
 
 ### Sad day cases
 
-In what ways can things go wrong? What will the user see when things do go wrong?
+-someone tinkers with the artifact cache (deletes file, etc) while the daemon has hot cache
 
 ### Test coverage
 
@@ -22,8 +23,9 @@ In what ways can things go wrong? What will the user see when things do go wrong
 
 -Cache should use soft maps (see guava map maker)
 -Use ModuleVersionRepository
--For cache state we need to have static DependencyManagementServices. Currently all services from GlobalServicesRegistry are static in the daemon
--compatible with internal cache control dsl
+-Cache's state should be based on TopLevelProjectRegistry
+-Document the breaking changes: we no longer check local repos with every resolve. The remote repo cache may no longer expire in the middle of the build.
+-For descriptor caching we should cache states like: missing(), probablyMissing(), resolved()
 
 ### Questions
 
@@ -35,6 +37,12 @@ Potential spikes/stories:
 
 1. improve our locking implementation so that we can hold the lock across long running operations and release it only if it is required by another process.
 The potential downside is that we will make it more expensive to acquire the lock when it's contented. Mostly this would affect the artefact cache, but we can offset this by caching stuff in memory. Or use a different lock implementations for those things that are likely to be shared by multiple processes and for those things that are unlikely to be shared.
+
+Potential implementation plan:
+    -first process takes lock, writes address, hangs on to the lock
+    -other process reads the address and sends a message 'I may need the lock'
+    -after receiving this message, the first process enters 'share lock' mode
+
 2. Switch the btree implementation so that it is append-only, so that we can read from multiple threads and processes without locking. We'd only need to serialise the writes (and the periodic garbage collection). We can get rid of the free space tracking from the implementation, which will make writing faster.
 3. Make our locking implementation more efficient for the btrees, so that we can avoid an additional read and write on open and on close. We might look at some native synchronisation primitives, too, now that we can.
 
@@ -47,6 +55,11 @@ Tasks selected for execution also determine the model.
 We'd need to start watching for changes to the files that are inputs to the model.
 This includes external classpath dependencies that can change remotely, all the source files of buildSrc and its dependencies (and its model inputs),
 the build environment settings in various places, and so on.
+
+Implementation notes
+    -projects can declare inputs for model caching
+    -the feature is not enabled by default (can be turned on)
+
 2. Cache some or all of the task history in memory across builds
 
 # Task history

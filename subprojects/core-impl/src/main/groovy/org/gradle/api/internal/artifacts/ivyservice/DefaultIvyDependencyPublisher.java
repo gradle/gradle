@@ -16,10 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.MDArtifact;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.util.ConfigurationUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
@@ -27,67 +28,55 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
-    public static final String FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE = "filePath";
-
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyPublisher.class);
 
     public void publish(Set<String> configurations,
                         List<ModuleVersionPublisher> publishResolvers,
-                        ModuleDescriptor moduleDescriptor,
+                        ModuleVersionPublishMetaData publishMetaData,
                         File descriptorDestination) {
         try {
-            Publication publication = new Publication(moduleDescriptor, configurations, descriptorDestination);
+            Publication publication = new Publication(publishMetaData, descriptorDestination);
             for (ModuleVersionPublisher publisher : publishResolvers) {
                 logger.info("Publishing to {}", publisher);
-                publication.publishTo(publisher);
+                publisher.publish(publication);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private static class Publication {
-        private final ModuleDescriptor moduleDescriptor;
-        private final Set<String> configurations;
+    private static class Publication extends DefaultModuleVersionPublishMetaData {
         private final File descriptorFile;
 
-        private Publication(ModuleDescriptor moduleDescriptor, Set<String> configurations, File descriptorFile) {
-            this.moduleDescriptor = moduleDescriptor;
-            this.configurations = configurations;
+        private Publication(ModuleVersionPublishMetaData metaData, File descriptorFile) {
+            super((DefaultModuleDescriptor) metaData.getModuleDescriptor());
             this.descriptorFile = descriptorFile;
-        }
-
-        public void publishTo(ModuleVersionPublisher publisher) throws IOException {
-            Set<Artifact> allArtifacts = getAllArtifacts(moduleDescriptor);
-
-            Map<Artifact, File> artifactsFiles = new LinkedHashMap<Artifact, File>();
-            for (Artifact artifact : allArtifacts) {
-                addPublishedArtifact(artifact, artifactsFiles);
+            for (Map.Entry<Artifact, File> entry : metaData.getArtifacts().entrySet()) {
+                addPublishedArtifact(entry.getKey(), entry.getValue());
             }
             if (descriptorFile != null) {
-                addPublishedDescriptor(artifactsFiles);
+                addPublishedDescriptor();
             }
-
-            publisher.publish(moduleDescriptor.getModuleRevisionId(), artifactsFiles);
         }
 
-        private void addPublishedDescriptor(Map<Artifact, File> artifactsFiles) {
-            Artifact artifact = MDArtifact.newIvyArtifact(moduleDescriptor);
+        private void addPublishedDescriptor() {
+            Artifact artifact = MDArtifact.newIvyArtifact(getModuleDescriptor());
             if (checkArtifactFileExists(artifact, descriptorFile)) {
-                artifactsFiles.put(artifact, descriptorFile);
+                addArtifact(artifact, descriptorFile);
             }
         }
 
-        private void addPublishedArtifact(Artifact artifact, Map<Artifact, File> artifactsFiles) {
-            File artifactFile = new File(artifact.getExtraAttribute(FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE));
+        private void addPublishedArtifact(Artifact artifact, File artifactFile) {
             if (checkArtifactFileExists(artifact, artifactFile)) {
-                artifactsFiles.put(artifact, artifactFile);
+                addArtifact(artifact, artifactFile);
             }
         }
 
@@ -106,15 +95,5 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
         private boolean isSigningArtifact(Artifact artifact) {
             return artifact.getType().endsWith(".asc") || artifact.getType().endsWith(".sig");
         }
-
-        private Set<Artifact> getAllArtifacts(ModuleDescriptor moduleDescriptor) {
-            Set<Artifact> allArtifacts = new LinkedHashSet<Artifact>();
-            String[] trueConfigurations = ConfigurationUtils.replaceWildcards(configurations.toArray(new String[configurations.size()]), moduleDescriptor);
-            for (String configuration : trueConfigurations) {
-                Collections.addAll(allArtifacts, moduleDescriptor.getArtifacts(configuration));
-            }
-            return allArtifacts;
-        }
     }
-
 }

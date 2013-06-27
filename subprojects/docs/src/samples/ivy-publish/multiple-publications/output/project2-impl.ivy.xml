@@ -1,0 +1,16 @@
+<!-- This file is an example of the Ivy module descriptor that this build will produce -->
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0">
+  <info organisation="org.gradle.sample.impl" module="project2-impl" revision="2.3" status="integration" publication="«PUBLICATION-TIME-STAMP»"/>
+  <configurations>
+    <conf name="default" visibility="public" extends="runtime"/>
+    <conf name="runtime" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="project2-impl" type="jar" ext="jar" conf="runtime"/>
+  </publications>
+  <dependencies>
+    <dependency org="commons-collections" name="commons-collections" rev="3.1" conf="runtime-&gt;default"/>
+    <dependency org="org.gradle.sample" name="project1-sample" rev="1.1" conf="runtime-&gt;default"/>
+  </dependencies>
+</ivy-module>

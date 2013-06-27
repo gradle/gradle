@@ -1,0 +1,69 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    repositories {
+        mavenCentral()
+    }
+
+    publishing {
+        repositories {
+            maven {
+                url "file://${rootProject.buildDir}/repo" // change to point to your repo, e.g. http://my.org/repo
+            }
+        }
+    }
+}
+
+project(":project1") {
+    dependencies {
+       compile 'org.slf4j:slf4j-api:1.7.5'
+    }
+
+    // START SNIPPET customise-identity
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId 'org.gradle.sample'
+                artifactId 'project1-sample'
+                version '1.1'
+
+                from components.java
+            }
+        }
+    }
+    // END SNIPPET customise-identity
+}
+
+project(":project2") {
+    dependencies {
+       compile 'commons-collections:commons-collections:3.1', project(':project1')
+    }
+
+    // START SNIPPET multiple-publications
+    task apiJar(type: Jar) {
+        baseName "publishing-api"
+        from sourceSets.main.output
+        exclude '**/impl/**'
+    }
+
+    publishing {
+        publications {
+            impl(MavenPublication) {
+                groupId 'org.gradle.sample.impl'
+                artifactId 'project2-impl'
+                version '2.3'
+
+                from components.java
+            }
+            api(MavenPublication) {
+                groupId 'org.gradle.sample'
+                artifactId 'project2-api'
+                version '2'
+
+                artifact apiJar
+            }
+        }
+    }
+    // END SNIPPET multiple-publications
+}

@@ -22,7 +22,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.IvyResolverBackedModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
@@ -77,7 +76,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     public ModuleVersionPublisher createPublisher() {
-        return new IvyResolverBackedModuleVersionPublisher(createRealResolver());
+        return createRealResolver();
     }
 
     public DependencyResolver createLegacyDslObject() {

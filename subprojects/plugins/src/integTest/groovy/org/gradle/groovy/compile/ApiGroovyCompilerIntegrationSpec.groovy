@@ -17,6 +17,7 @@
 package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.internal.jvm.Jvm
 
 abstract class ApiGroovyCompilerIntegrationSpec extends GroovyCompilerIntegrationSpec {
     def canEnableAndDisableIntegerOptimization() {
@@ -56,5 +57,15 @@ abstract class ApiGroovyCompilerIntegrationSpec extends GroovyCompilerIntegratio
         def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("Person")
         result.testClass("Person").assertTestPassed("testMe")
+    }
+
+    def canJointCompileWithJavaCompilerExecutable() {
+        args("-PjdkHome=${Jvm.current().getExecutable('javac')}")
+
+        expect:
+        succeeds("compileGroovy")
+        !errorOutput
+        file("build/classes/main/GroovyCode.class").exists()
+        file("build/classes/main/JavaCode.class").exists()
     }
 }

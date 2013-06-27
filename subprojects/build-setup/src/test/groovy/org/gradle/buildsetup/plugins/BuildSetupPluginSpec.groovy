@@ -19,8 +19,6 @@ package org.gradle.buildsetup.plugins
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.api.tasks.wrapper.Wrapper
-import org.gradle.buildsetup.tasks.ConvertMaven2Gradle
-import org.gradle.buildsetup.tasks.GenerateBuildFile
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import spock.lang.Specification
@@ -31,36 +29,14 @@ class BuildSetupPluginSpec extends Specification {
     def "applies plugin"() {
         when:
         project.plugins.apply BuildSetupPlugin
-
+        and:
+        project.evaluate()
         then:
-        project.tasks.setupWrapper instanceof Wrapper
-        Matchers.dependsOn("setupWrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
+        project.tasks.wrapper instanceof Wrapper
+        Matchers.dependsOn("wrapper").matches(project.tasks.setupBuild)
     }
 
-    def "adds maven2Gradle task if pom exists"() {
-        setup:
-        project.file("pom.xml").createNewFile()
-
-        when:
-        project.plugins.apply BuildSetupPlugin
-
-        then:
-        project.tasks.maven2Gradle instanceof ConvertMaven2Gradle
-        project.tasks.setupWrapper instanceof Wrapper
-        Matchers.dependsOn("setupWrapper", "maven2Gradle").matches(project.tasks.setupBuild)
-    }
-
-    def "adds generateBuildFile task if no pom and no gradle build file exists"() {
-        when:
-        project.plugins.apply BuildSetupPlugin
-
-        then:
-        project.tasks.generateBuildFile instanceof GenerateBuildFile
-        project.tasks.setupWrapper instanceof Wrapper
-        Matchers.dependsOn("setupWrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
-    }
-
-    def "no build file generation if build file already exists"() {
+    def "no wrapper task configured if build file already exists"() {
         setup:
         TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
         File projectDir = temporaryFileProvider.createTemporaryDirectory("gradle", "projectDir");

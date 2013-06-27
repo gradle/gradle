@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleDescriptorCache;
@@ -98,7 +99,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected PublishModuleDescriptorConverter createPublishModuleDescriptorConverter() {
         return new PublishModuleDescriptorConverter(
                 get(ResolveModuleDescriptorConverter.class),
-                new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.RESOLVE_STRATEGY));
+                new DefaultArtifactsToModuleDescriptorConverter());
     }
 
     protected ModuleDescriptorFactory createModuleDescriptorFactory() {
@@ -263,7 +264,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(ArtifactAtRepositoryCachedArtifactIndex.class),
                 get(CacheLockingManager.class),
                 startParameterResolutionOverride,
-                get(BuildCommencedTimeProvider.class));
+                get(BuildCommencedTimeProvider.class),
+                get(TopLevelDependencyManagementServices.class).get(InMemoryDependencyMetadataCache.class));
     }
 
     protected ArtifactDependencyResolver createArtifactDependencyResolver() {
@@ -377,10 +379,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(SettingsConverter.class),
                     get(PublishModuleDescriptorConverter.class),
                     get(IvyFactory.class),
-                    new DefaultIvyDependencyPublisher()
+                    new DefaultIvyDependencyPublisher(),
+                    new IvyXmlModuleDescriptorWriter()
             );
         }
-
     }
 
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {
@@ -392,16 +394,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         public DefaultRepositoryHandler createRepositoryHandler() {
             return dependencyResolutionServices.createRepositoryHandler();
-        }
-
-        public ModuleDescriptorConverter getDescriptorFileModuleConverter() {
-            return new PublishModuleDescriptorConverter(
-                    dependencyResolutionServices.parent.get(ResolveModuleDescriptorConverter.class),
-                    new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
-        }
-
-        public IvyModuleDescriptorWriter getIvyModuleDescriptorWriter() {
-            return new IvyXmlModuleDescriptorWriter();
         }
 
         public ArtifactPublisher createArtifactPublisher() {

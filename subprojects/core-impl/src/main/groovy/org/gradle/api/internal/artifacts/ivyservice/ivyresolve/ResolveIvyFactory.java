@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
@@ -40,12 +41,13 @@ public class ResolveIvyFactory {
     private final CacheLockingManager cacheLockingManager;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final TimeProvider timeProvider;
+    private InMemoryDependencyMetadataCache inMemoryCache;
 
     public ResolveIvyFactory(IvyFactory ivyFactory, SettingsConverter settingsConverter,
                              ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
                              CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                              CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride,
-                             TimeProvider timeProvider) {
+                             TimeProvider timeProvider, InMemoryDependencyMetadataCache inMemoryCache) {
         this.ivyFactory = ivyFactory;
         this.settingsConverter = settingsConverter;
         this.moduleResolutionCache = moduleResolutionCache;
@@ -54,6 +56,7 @@ public class ResolveIvyFactory {
         this.cacheLockingManager = cacheLockingManager;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.timeProvider = timeProvider;
+        this.inMemoryCache = inMemoryCache;
     }
 
     public IvyAdapter create(ConfigurationInternal configuration, Iterable<? extends ResolutionAwareRepository> repositories) {
@@ -87,6 +90,7 @@ public class ResolveIvyFactory {
                 localAwareRepository = new IvyDynamicResolveModuleVersionRepository(localAwareRepository);
             }
             localAwareRepository = contextualiser.contextualise(LocalAwareModuleVersionRepository.class, localAwareRepository);
+            localAwareRepository = inMemoryCache.cached(localAwareRepository);
             userResolverChain.add(localAwareRepository);
         }
 

@@ -107,7 +107,7 @@ task check << {
         expect:
         fails 'check'
         failureHasCause("Could not download artifact 'group:module:1.2@jar'")
-        failureHasCause("invalid sha1: expected=1234 computed=5b253435f362abf1a12197966e332df7d2b153f5")
+        failureHasCause("invalid sha1: expected=1234 computed=2ee22701c9bd9af023ed20917897da5ce77336bc")
     }
 
     def "can configure resolver to fail when descriptor is not present"() {

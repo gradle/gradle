@@ -63,4 +63,15 @@ public interface MavenPom {
      */
     void withXml(Action<? super XmlProvider> action);
 
+    /**
+     * Returns the packaging for this publication.
+     */
+    String getPackaging();
+
+    /**
+     * Sets the packaging for this publication.
+     */
+    void setPackaging(String packaging);
+
+
 }

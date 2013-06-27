@@ -15,12 +15,10 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.cachemanager
-
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.plugins.repository.Resource
 import org.apache.ivy.plugins.repository.ResourceDownloader
-import org.apache.ivy.plugins.resolver.util.ResolvedResource
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 import org.gradle.api.internal.file.TemporaryFileProvider
@@ -38,26 +36,24 @@ class DownloadingRepositoryCacheManagerTest extends Specification {
     ArtifactRevisionId artifactId = Mock()
     Artifact artifact = Mock()
     ResourceDownloader resourceDownloader = Mock()
-    ResolvedResource artifactRef = Mock()
     Resource resource = Mock();
     FileStoreEntry fileStoreEntry = Mock()
     DownloadingRepositoryCacheManager downloadingRepositoryCacheManager = new DownloadingRepositoryCacheManager("TestCacheManager", fileStore, artifactUrlCachedResolutionIndex, tmpFileProvider, lockingManager)
 
     @Rule TestNameTestDirectoryProvider temporaryFolder;
 
-    void "downloadArtifactFile downloads artifact to temporary file and then moves it into the file store"() {
+    void "downloads artifact to temporary file and then moves it into the file store"() {
         setup:
 
         def downloadFile = temporaryFolder.createFile("download")
         def storeFile = temporaryFolder.createFile("store")
 
         _ * artifact.id >> artifactId
-        _ * artifactRef.resource >> resource
         _ * fileStoreEntry.file >> storeFile;
         _ * tmpFileProvider._ >> downloadFile
 
         when:
-        downloadingRepositoryCacheManager.downloadArtifactFile(artifact, resourceDownloader, artifactRef)
+        downloadingRepositoryCacheManager.downloadAndCacheArtifactFile(artifact, resourceDownloader, resource)
 
         then:
         1 * lockingManager.useCache(_, _) >> {name, action ->

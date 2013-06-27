@@ -12,6 +12,7 @@ dependencies {
 
     // lots of integTest errors otherwise
     integTestRuntime project(':ide')
+    integTestRuntime project(':buildSetup')
     integTestRuntime project(':buildComparison')
 }
 

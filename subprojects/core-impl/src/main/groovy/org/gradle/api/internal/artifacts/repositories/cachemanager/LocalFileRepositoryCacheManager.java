@@ -26,11 +26,13 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
+import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 
 /**
@@ -47,9 +49,9 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
     }
 
     public EnhancedArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver, ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
+        ResolvedResource resolvedResource = resourceResolver.resolve(artifact);
         long start = System.currentTimeMillis();
         EnhancedArtifactDownloadReport report = new EnhancedArtifactDownloadReport(artifact);
-        ResolvedResource resolvedResource = resourceResolver.resolve(artifact);
         if (resolvedResource == null) {
             report.setDownloadStatus(DownloadStatus.FAILED);
             report.setDownloadDetails(ArtifactDownloadReport.MISSING_ARTIFACT);
@@ -88,5 +90,13 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
 
         ModuleDescriptor descriptor = parseModuleDescriptor(resolver, moduleArtifact, options, file, resolvedResource.getResource());
         return new ResolvedModuleRevision(resolver, resolver, descriptor, report);
+    }
+
+    public File downloadAndCacheArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, Resource resource) throws IOException {
+        // Does not download, copy or cache local files.
+        assert resource.isLocal();
+        File file = new File(resource.getName());
+        assert file.isFile();
+        return file;
     }
 }

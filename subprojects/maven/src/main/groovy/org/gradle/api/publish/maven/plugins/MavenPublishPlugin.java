@@ -65,7 +65,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         final Task publishLifecycleTask = tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
         final Task publishLocalLifecycleTask = tasks.create(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
         publishLocalLifecycleTask.setDescription("Publishes all Maven publications produced by this project to the local Maven cache.");
-        publishLocalLifecycleTask.setGroup("publishing");
+        publishLocalLifecycleTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
 
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             public void execute(PublishingExtension extension) {

@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
 public class DefaultBuildableModuleVersionResolveResult implements BuildableModuleVersionResolveResult {
@@ -38,7 +38,7 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
     }
 
     public void resolved(ModuleVersionIdentifier moduleVersionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {
-        DefaultBuildableModuleVersionMetaData metaData = new DefaultBuildableModuleVersionMetaData();
+        DefaultBuildableModuleVersionMetaDataResolveResult metaData = new DefaultBuildableModuleVersionMetaDataResolveResult();
         metaData.resolved(moduleVersionId, descriptor, false, null);
         resolved(metaData, artifactResolver);
     }
@@ -50,7 +50,7 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
 
     public void setMetaData(ModuleDescriptor descriptor) {
         assertResolved();
-        DefaultBuildableModuleVersionMetaData newMetaData = new DefaultBuildableModuleVersionMetaData();
+        DefaultBuildableModuleVersionMetaDataResolveResult newMetaData = new DefaultBuildableModuleVersionMetaDataResolveResult();
         newMetaData.resolved(metaData.getId(), descriptor, metaData.isChanging(), null);
         this.metaData = newMetaData;
     }

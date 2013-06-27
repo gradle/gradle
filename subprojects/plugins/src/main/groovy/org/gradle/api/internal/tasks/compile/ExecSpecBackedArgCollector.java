@@ -29,4 +29,9 @@ public class ExecSpecBackedArgCollector implements ArgCollector {
         action.args(args);
         return this;
     }
+
+    public ArgCollector args(Iterable<?> args) {
+        action.args(args);
+        return this;
+    }
 }

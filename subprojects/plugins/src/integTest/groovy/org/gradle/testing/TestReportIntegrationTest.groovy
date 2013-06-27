@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.contains
 import static org.hamcrest.Matchers.equalTo
@@ -31,9 +32,7 @@ class TestReportIntegrationTest extends AbstractIntegrationSpec {
     def "report includes results of each invocation"() {
         given:
         buildFile << """
-apply plugin: 'java'
-repositories { mavenCentral() }
-dependencies { testCompile 'junit:junit:4.11' }
+$junitSetup
 test { systemProperty 'LogLessStuff', System.getProperty('LogLessStuff') }
 """
 
@@ -82,5 +81,106 @@ public class LoggingTest {
         def htmlReport = new HtmlTestExecutionResult(sample.dir, "allTests")
         htmlReport.testClass("org.gradle.sample.CoreTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(contains("hello from CoreTest."))
         htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(contains("hello from UtilTest."))
+    }
+
+
+    @Unroll
+    "#type report files are considered outputs"() {
+        given:
+        buildScript """
+            $junitSetup
+        """
+
+        and:
+        testClass "SomeTest"
+
+        when:
+        run "test"
+
+        then:
+        ":test" in nonSkippedTasks
+        file(reportsDir).exists()
+
+        when:
+        run "test"
+
+        then:
+        ":test" in skippedTasks
+        file(reportsDir).exists()
+
+        when:
+        file(reportsDir).deleteDir()
+        run "test"
+
+        then:
+        ":test" in nonSkippedTasks
+        file(reportsDir).exists()
+
+        where:
+        type   | reportsDir
+        "xml"  | "build/test-results"
+        "html" | "build/reports/tests"
+    }
+
+    def "results or reports are linked to in error output"() {
+        given:
+        buildScript """
+            $junitSetup
+            test {
+                reports.all { it.enabled = true }
+            }
+        """
+
+        and:
+        failingTestClass "SomeTest"
+
+        when:
+        fails "test"
+
+        then:
+        ":test" in nonSkippedTasks
+        errorOutput.contains("See the report at: ")
+
+        when:
+        buildFile << "\ntest.reports.html.enabled = false\n"
+        fails "test"
+
+        then:
+        ":test" in nonSkippedTasks
+        errorOutput.contains("See the results at: ")
+
+        when:
+        buildFile << "\ntest.reports.junitXml.enabled = false\n"
+        fails "test"
+
+        then:
+        ":test" in nonSkippedTasks
+        errorOutput.contains("There were failing tests")
+        !errorOutput.contains("See the")
+    }
+
+
+
+    String getJunitSetup() {
+        """
+        apply plugin: 'java'
+        repositories { mavenCentral() }
+        dependencies { testCompile 'junit:junit:4.11' }
+        """
+    }
+
+    void failingTestClass(String name) {
+        testClass(name, true)
+    }
+
+    void testClass(String name, boolean failing = false) {
+        file("src/test/java/${name}.java") << """
+            public class $name {
+                @org.junit.Test
+                public void test() {
+                    assert false == ${failing};
+                }
+            }
+        """
     }
 }

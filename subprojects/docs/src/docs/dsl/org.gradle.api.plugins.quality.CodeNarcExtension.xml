@@ -25,6 +25,21 @@
                 <td><literal>project.codeNarcConfigFile</literal></td>
             </tr>
             <tr>
+                <td>maxPriority1Violations</td>
+                <td><literal>0</literal></td>
+                <td><literal>0</literal></td>
+            </tr>
+            <tr>
+                <td>maxPriority2Violations</td>
+                <td><literal>0</literal></td>
+                <td><literal>0</literal></td>
+            </tr>
+            <tr>
+                <td>maxPriority3Violations</td>
+                <td><literal>0</literal></td>
+                <td><literal>0</literal></td>
+            </tr>
+            <tr>
                 <td>reportFormat</td>
                 <td><literal>html</literal></td>
                 <td><literal>project.codeNarcReportsFormat</literal></td>

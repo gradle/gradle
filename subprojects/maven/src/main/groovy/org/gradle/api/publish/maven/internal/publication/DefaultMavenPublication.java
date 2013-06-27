@@ -18,7 +18,8 @@ package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
@@ -26,10 +27,14 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
+import org.gradle.api.publish.internal.PublicationCoordinates;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
+import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.reflect.Instantiator;
@@ -45,7 +50,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
     private final DefaultMavenArtifactSet mavenArtifacts;
-    private final Set<Dependency> runtimeDependencies = new LinkedHashSet<Dependency>();
+    private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private FileCollection pomFile;
     private SoftwareComponentInternal component;
 
@@ -53,7 +58,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             String name, MavenProjectIdentity projectIdentity, NotationParser<MavenArtifact> mavenArtifactParser, Instantiator instantiator
     ) {
         this.name = name;
-        this.projectIdentity = projectIdentity;
+        this.projectIdentity = new DefaultMavenProjectIdentity(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
     }
@@ -88,9 +93,24 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
 
             // TODO Need a smarter way to map usage to scope
-            runtimeDependencies.addAll(usage.getDependencies());
+            for (ModuleDependency dependency : usage.getDependencies()) {
+                if (dependency instanceof ProjectDependency) {
+                    addProjectDependency((ProjectDependency) dependency);
+                } else {
+                    addModuleDependency(dependency);
+                }
+            }
         }
     }
+
+    private void addProjectDependency(ProjectDependency dependency) {
+        PublicationCoordinates coordinates = new ProjectDependencyPublicationResolver().resolve(dependency);
+        runtimeDependencies.add(new DefaultMavenDependency(coordinates.getGroup(), coordinates.getName(), coordinates.getVersion()));
+    }
+
+    private void addModuleDependency(ModuleDependency dependency) {
+        runtimeDependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts()));
+     }
 
     public MavenArtifact artifact(Object source) {
         return mavenArtifacts.artifact(source);
@@ -111,6 +131,30 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
     }
 
+    public String getGroupId() {
+        return projectIdentity.getGroupId();
+    }
+
+    public void setGroupId(String groupId) {
+        projectIdentity.setGroupId(groupId);
+    }
+
+    public String getArtifactId() {
+        return projectIdentity.getArtifactId();
+    }
+
+    public void setArtifactId(String artifactId) {
+        projectIdentity.setArtifactId(artifactId);
+    }
+
+    public String getVersion() {
+        return projectIdentity.getVersion();
+    }
+
+    public void setVersion(String version) {
+        projectIdentity.setVersion(version);
+    }
+
     public FileCollection getPublishableFiles() {
         return new UnionFileCollection(mavenArtifacts.getFiles(), pomFile);
     }
@@ -119,7 +163,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return projectIdentity;
     }
 
-    public Set<Dependency> getRuntimeDependencies() {
+    public Set<MavenDependencyInternal> getRuntimeDependencies() {
         return runtimeDependencies;
     }
 
@@ -141,5 +185,9 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
         }
         return "pom";
+    }
+
+    public PublicationCoordinates getCoordinates() {
+        return new PublicationCoordinates(getGroupId(), getArtifactId(), getVersion());
     }
 }

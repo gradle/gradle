@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 
 public class ArtifactNotFoundException extends ArtifactResolveException {
-    public ArtifactNotFoundException(Artifact artifact) {
+    public ArtifactNotFoundException(ArtifactIdentifier artifact) {
         super(format(artifact));
     }
 
-    private static String format(Artifact artifact) {
+    private static String format(ArtifactIdentifier artifact) {
         StringBuilder builder = new StringBuilder();
         builder.append("Artifact '");
         formatTo(artifact, builder);

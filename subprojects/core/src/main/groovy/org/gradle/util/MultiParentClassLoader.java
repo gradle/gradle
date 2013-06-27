@@ -15,13 +15,18 @@
  */
 package org.gradle.util;
 
-import java.util.*;
-import java.net.URL;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+
 import java.io.IOException;
+import java.net.URL;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A {@code ClassLoader} which delegates to multiple parent ClassLoaders.
+ *
+ * Note: It's usually a good idea to add a {@link CachingClassLoader} between this ClassLoader and any
+ * ClassLoaders that use it as a parent, to prevent every path in the ClassLoader graph being searched.
  */
 public class MultiParentClassLoader extends ClassLoader implements ClasspathSource {
     private final List<ClassLoader> parents;
@@ -31,8 +36,8 @@ public class MultiParentClassLoader extends ClassLoader implements ClasspathSour
     public MultiParentClassLoader(ClassLoader... parents) {
         super(null);
         this.parents = new CopyOnWriteArrayList<ClassLoader>(Arrays.asList(parents));
-        getPackagesMethod = JavaMethod.create(ClassLoader.class, Package[].class, "getPackages");
-        getPackageMethod = JavaMethod.create(ClassLoader.class, Package.class, "getPackage", String.class);
+        getPackagesMethod = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
+        getPackageMethod = JavaReflectionUtil.method(ClassLoader.class, Package.class, "getPackage", String.class);
     }
 
     public void addParent(ClassLoader parent) {

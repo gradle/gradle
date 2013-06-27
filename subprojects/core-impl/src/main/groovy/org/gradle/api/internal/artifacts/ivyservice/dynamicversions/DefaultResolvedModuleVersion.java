@@ -15,19 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 public class DefaultResolvedModuleVersion implements ResolvedModuleVersion {
-    private final ModuleRevisionId moduleRevisionId;
+    private final ModuleVersionIdentifier identifier;
 
-    public DefaultResolvedModuleVersion(ModuleRevisionId moduleRevisionId) {
-        this.moduleRevisionId = moduleRevisionId;
+    public DefaultResolvedModuleVersion(ModuleVersionIdentifier identifier) {
+        this.identifier = identifier;
     }
 
     public ModuleVersionIdentifier getId() {
-        return new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+        return identifier;
     }
 }

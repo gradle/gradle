@@ -91,7 +91,7 @@ For all builds:
   We cannot have the converter using one mapping and the importer using a different mapping.
   Plus this means the converter can make use of any type of import (see below).
 
-# Story: Build initialisation generates the Gradle wrapper files
+# Story: Build initialisation generates the Gradle wrapper files (DONE)
 
 This story adds support for generating the Gradle wrapper files, and changes the existing plugin so that it is more
 general purpose:
@@ -120,7 +120,7 @@ general purpose:
 * Verify that when `setupBuild` is run in a directory that does not contain a `pom.xml` then an empty `build.gradle` file,
   plus a `settings.gradle` and the wrapper files are generated.
 
-# Story: User initializes a Gradle build without writing a stub build script
+# Story: User initializes a Gradle build without writing a stub build script (DONE)
 
 This story adds support for automatically applying the `build-setup` plugin when `gradle setupBuild` is run:
 
@@ -186,7 +186,27 @@ From the command-line:
 
 1. User downloads and installs a Gradle distribution.
 2. User runs `gradle setupBuild --type java-library` from an empty directory.
-3. User modifies generated build scripts and source, as appropriate.
+3. User edits generated build scripts and source, as appropriate.
+
+## Test coverage
+
+* Running `gradle setupBuild --type java-library` in an empty directory generates the build files. Running `gradle build` for this project assembles a jar
+  and runs the sample test.
+* The POM is ignored when `gradle setupBuild --type java-library` is used.
+* Decent error message when an unknown type is given.
+* Update existing test coverage to verify that every generated `settings.gradle` sets the root project name.
+
+# Story: Build setup tasks can be referenced using camel-case abbreviations
+
+* Improve the tasks selection mechanism so that it takes placeholders into account. The implementation must not trigger creation of the tasks,
+  unless the task is actually selected.
+
+## Test coverage
+
+* Can run `gradle setB` or `gradle wrap`
+* When a build script defines a `wrap` task, then calling `gradle wrap` does not apply the `wrapper` plugin.
+* Decent error message when a POM cannot be parsed (this is adding more coverage for a previous story).
+* Running `gradle setupBuild` in an empty directory generates build files that do not blow up when `gradle help` is run (this is adding more coverage for a previous story).
 
 # Story: Update the user guide Java tutorial to use the `setupBuild` task
 
@@ -224,6 +244,10 @@ This story adds the ability for the user to easily update the build to use the m
 * Running `gradle useNightly` uses a nightly build
 * Running `gradle useReleaseCandidate` uses the most recent release candidate, if any.
 * Running `gradle useRelease` uses the most recent release.
+
+# Story: Users updates wrapper
+
+* Make it convenient to update the wrapper (as opposed to the Gradle runtime that the wrapper uses). Currently, you need to run the `wrapper` task twice.
 
 # Story: Handle existing Gradle build files
 

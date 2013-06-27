@@ -49,14 +49,11 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
                         new SkipTaskWithNoActionsExecuter(
                                 new SkipEmptySourceFilesTaskExecuter(
                                         new ValidatingTaskExecuter(
-                                                new CacheLockAcquiringTaskExecuter(cacheAccess,
-                                                        new ContextualisingTaskExecuter(
-                                                                new SkipUpToDateTaskExecuter(repository,
-                                                                        new CacheLockReleasingTaskExecuter(cacheAccess,
-                                                                                new PostExecutionAnalysisTaskExecuter(
-                                                                                        new ExecuteActionsTaskExecuter(
-                                                                                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class)
-                                                                                        )))))))))));
+                                                new SkipUpToDateTaskExecuter(repository,
+                                                        new PostExecutionAnalysisTaskExecuter(
+                                                                new ExecuteActionsTaskExecuter(
+                                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class)
+                                                                ))))))));
     }
 
     protected TaskArtifactStateCacheAccess createCacheAccess() {
@@ -69,11 +66,11 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
         FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(
                 new CachingHasher(
                         new DefaultHasher(),
-                        cacheAccess));
+                        cacheAccess), cacheAccess);
 
         FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheAccess);
 
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess));
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, new RandomLongIdGenerator()));
 
         Instantiator instantiator = get(Instantiator.class);
         return new ShortCircuitTaskArtifactStateRepository(

@@ -24,34 +24,59 @@ import java.util.TreeSet;
 class TaskInfo implements Comparable<TaskInfo> {
 
     private enum TaskExecutionState {
-        NOT_REQUIRED, READY, EXECUTING, EXECUTED, SKIPPED
+        UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
     }
 
     private final TaskInternal task;
     private TaskExecutionState state;
     private Throwable executionFailure;
+    private boolean dependenciesProcessed;
+    private final TreeSet<TaskInfo> hardPredecessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> hardSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> softSuccessors = new TreeSet<TaskInfo>();
+    private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
 
     public TaskInfo(TaskInternal task) {
         this.task = task;
-        this.state = TaskExecutionState.NOT_REQUIRED;
+        this.state = TaskExecutionState.UNKNOWN;
     }
 
     public TaskInternal getTask() {
         return task;
     }
 
+    public boolean isRequired() {
+        return state == TaskExecutionState.SHOULD_RUN;
+    }
+
+    public boolean getMustNotRun() {
+        return state == TaskExecutionState.MUST_NOT_RUN;
+    }
+
+    public boolean isNotRequired() {
+        return state == TaskExecutionState.NOT_REQUIRED;
+    }
+
     public boolean isReady() {
-        return state == TaskExecutionState.READY;
+        return state == TaskExecutionState.SHOULD_RUN || state == TaskExecutionState.MUST_RUN;
+    }
+
+    public boolean isInKnownState() {
+        return state != TaskExecutionState.UNKNOWN;
     }
 
     public boolean isComplete() {
-        return state == TaskExecutionState.EXECUTED || state == TaskExecutionState.SKIPPED || state == TaskExecutionState.NOT_REQUIRED;
+        return state == TaskExecutionState.EXECUTED
+                || state == TaskExecutionState.SKIPPED
+                || state == TaskExecutionState.UNKNOWN
+                || state == TaskExecutionState.NOT_REQUIRED
+                || state == TaskExecutionState.MUST_NOT_RUN;
     }
 
     public boolean isSuccessful() {
-        return (state == TaskExecutionState.EXECUTED && !isFailed()) || state == TaskExecutionState.NOT_REQUIRED;
+        return (state == TaskExecutionState.EXECUTED && !isFailed())
+                || state == TaskExecutionState.NOT_REQUIRED
+                || state == TaskExecutionState.MUST_NOT_RUN;
     }
 
     public boolean isFailed() {
@@ -59,7 +84,7 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public void startExecution() {
-        assert state == TaskExecutionState.READY;
+        assert isReady();
         state = TaskExecutionState.EXECUTING;
     }
 
@@ -69,8 +94,25 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public void skipExecution() {
-        assert state == TaskExecutionState.READY;
+        assert state == TaskExecutionState.SHOULD_RUN;
         state = TaskExecutionState.SKIPPED;
+    }
+
+    public void require() {
+        state = TaskExecutionState.SHOULD_RUN;
+    }
+
+    public void doNotRequire() {
+        state = TaskExecutionState.NOT_REQUIRED;
+    }
+
+    public void mustNotRun() {
+        state = TaskExecutionState.MUST_NOT_RUN;
+    }
+
+    public void enforceRun() {
+        assert state == TaskExecutionState.SHOULD_RUN || state == TaskExecutionState.MUST_NOT_RUN || state == TaskExecutionState.MUST_RUN;
+        state = TaskExecutionState.MUST_RUN;
     }
 
     public void setExecutionFailure(Throwable failure) {
@@ -104,6 +146,10 @@ class TaskInfo implements Comparable<TaskInfo> {
         return true;
     }
 
+    public TreeSet<TaskInfo> getHardPredecessors() {
+        return hardPredecessors;
+    }
+
     public TreeSet<TaskInfo> getHardSuccessors() {
         return hardSuccessors;
     }
@@ -112,20 +158,29 @@ class TaskInfo implements Comparable<TaskInfo> {
         return softSuccessors;
     }
 
-    public boolean getRequired() {
-        return state != TaskExecutionState.NOT_REQUIRED;
+    public TreeSet<TaskInfo> getFinalizers() {
+        return finalizers;
     }
 
-    public void setRequired(boolean required) {
-        state = required ? TaskExecutionState.READY : TaskExecutionState.NOT_REQUIRED;
+    public boolean getDependenciesProcessed() {
+        return dependenciesProcessed;
+    }
+
+    public void dependenciesProcessed() {
+        dependenciesProcessed = true;
     }
 
     public void addHardSuccessor(TaskInfo toNode) {
         hardSuccessors.add(toNode);
+        toNode.hardPredecessors.add(this);
     }
 
     public void addSoftSuccessor(TaskInfo toNode) {
         softSuccessors.add(toNode);
+    }
+
+    public void addFinalizer(TaskInfo finalizerNode) {
+        finalizers.add(finalizerNode);
     }
 
     public int compareTo(TaskInfo otherInfo) {

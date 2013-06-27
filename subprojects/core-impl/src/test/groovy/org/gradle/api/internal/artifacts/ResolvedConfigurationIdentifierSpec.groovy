@@ -21,15 +21,17 @@ package org.gradle.api.internal.artifacts
 import spock.lang.Specification
 import org.gradle.util.Matchers
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.*
+
 class ResolvedConfigurationIdentifierSpec extends Specification {
     def equalsAndHashCode() {
         when:
-        ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier('group', 'name', 'version', 'config')
-        ResolvedConfigurationIdentifier same = new ResolvedConfigurationIdentifier('group', 'name', 'version', 'config')
-        ResolvedConfigurationIdentifier differentGroup = new ResolvedConfigurationIdentifier('other', 'name', 'version', 'config')
-        ResolvedConfigurationIdentifier differentName = new ResolvedConfigurationIdentifier('group', 'other', 'version', 'config')
-        ResolvedConfigurationIdentifier differentVersion = new ResolvedConfigurationIdentifier('group', 'name', 'other', 'config')
-        ResolvedConfigurationIdentifier differentConfig = new ResolvedConfigurationIdentifier('group', 'name', 'version', 'other')
+        ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(newId('group', 'name', 'version'), 'config')
+        ResolvedConfigurationIdentifier same = new ResolvedConfigurationIdentifier(newId('group', 'name', 'version'), 'config')
+        ResolvedConfigurationIdentifier differentGroup = new ResolvedConfigurationIdentifier(newId('other', 'name', 'version'), 'config')
+        ResolvedConfigurationIdentifier differentName = new ResolvedConfigurationIdentifier(newId('group', 'other', 'version'), 'config')
+        ResolvedConfigurationIdentifier differentVersion = new ResolvedConfigurationIdentifier(newId('group', 'name', 'other'), 'config')
+        ResolvedConfigurationIdentifier differentConfig = new ResolvedConfigurationIdentifier(newId('group', 'name', 'version'), 'other')
 
         then:
         Matchers.strictlyEquals(id, same)

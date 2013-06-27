@@ -23,6 +23,7 @@ import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.cache.internal.*;
+import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
@@ -68,7 +69,7 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     }
 
     protected DocumentationRegistry createDocumentationRegistry() {
-        return new DocumentationRegistry(get(GradleDistributionLocator.class));
+        return new DocumentationRegistry();
     }
 
     protected PluginModuleRegistry createPluginModuleRegistry() {
@@ -108,6 +109,6 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     }
 
     protected FileLockManager createFileLockManager() {
-        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)));
+        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)), new DefaultFileLockContentionHandler());
     }
 }

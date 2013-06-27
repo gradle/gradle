@@ -21,6 +21,8 @@ import org.gradle.api.file.*;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
+import org.gradle.api.specs.NotSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
@@ -46,6 +48,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
     private PathNotationParser<String> pathNotationParser;
+    private DuplicatesStrategy duplicatesStrategy;
 
     private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec) {
         this.parentSpec = parentSpec;
@@ -54,6 +57,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<ReadableCopySpec>();
         patternSet = new PatternSet();
+        duplicatesStrategy = null; //inherit from parent
     }
 
     public CopySpecImpl(FileResolver resolver) {
@@ -202,6 +206,37 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
 
     public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
         this.includeEmptyDirs = includeEmptyDirs;
+    }
+
+    public DuplicatesStrategy getDuplicatesStrategy() {
+        if (parentSpec != null && duplicatesStrategy == null) {
+            return parentSpec.getDuplicatesStrategy();
+        }
+        return duplicatesStrategy;
+    }
+
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+        this.duplicatesStrategy = strategy;
+    }
+
+    public CopySpec filesMatching(String pattern, Closure closure) {
+        return filesMatching(pattern, new ClosureBackedAction<FileCopyDetails>(closure));
+    }
+
+    public CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action) {
+        Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
+        return eachFile(
+                new MatchingCopyAction(matcher, action));
+    }
+
+    public CopySpec filesNotMatching(String pattern, Closure closure) {
+        return filesNotMatching(pattern, new ClosureBackedAction<FileCopyDetails>(closure));
+    }
+
+    public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
+        Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
+        return eachFile(
+                new MatchingCopyAction(new NotSpec<RelativePath>(matcher), action));
     }
 
     public CopySpec include(String... includes) {
@@ -456,6 +491,10 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
 
         public boolean getIncludeEmptyDirs() {
             return spec.getIncludeEmptyDirs();
+        }
+
+        public DuplicatesStrategy getDuplicatesStrategy() {
+            return spec.getDuplicatesStrategy();
         }
     }
 }

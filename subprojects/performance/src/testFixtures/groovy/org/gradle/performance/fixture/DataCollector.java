@@ -16,6 +16,8 @@
 
 package org.gradle.performance.fixture;
 
+import org.gradle.performance.measure.MeasuredOperation;
+
 import java.io.File;
 
 /**

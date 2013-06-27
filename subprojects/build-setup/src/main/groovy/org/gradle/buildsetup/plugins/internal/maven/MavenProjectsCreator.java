@@ -17,8 +17,8 @@
 package org.gradle.buildsetup.plugins.internal.maven;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Transformer;
 import org.gradle.mvn3.org.apache.maven.execution.*;
-import org.gradle.mvn3.org.apache.maven.model.building.ModelBuildingRequest;
 import org.gradle.mvn3.org.apache.maven.project.*;
 import org.gradle.mvn3.org.apache.maven.settings.Settings;
 import org.gradle.mvn3.org.codehaus.plexus.ContainerConfiguration;
@@ -30,8 +30,6 @@ import org.gradle.mvn3.org.codehaus.plexus.component.repository.exception.Compon
 import org.gradle.mvn3.org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.gradle.mvn3.org.sonatype.aether.RepositorySystemSession;
 import org.gradle.mvn3.org.sonatype.aether.util.DefaultRepositorySystemSession;
-import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -39,19 +37,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 9/11/12
- */
 public class MavenProjectsCreator {
 
     public Set<MavenProject> create(Settings mavenSettings, File pomFile) {
         if (!pomFile.exists()) {
-            throw new GradleException("Unable to create Maven project model. The input POM file does not exist: " + pomFile);
+            throw new MavenConversionException(String.format("Unable to create Maven project model. The POM file %s does not exist.", pomFile));
         }
         try {
             return createNow(mavenSettings, pomFile);
         } catch (Exception e) {
-            throw new GradleException("Unable to create Maven project model using POM file: " + pomFile.getAbsolutePath(), e);
+            throw new MavenConversionException(String.format("Unable to create Maven project model using POM %s.", pomFile), e);
         }
     }
 
@@ -70,9 +65,8 @@ public class MavenProjectsCreator {
         populator.populateFromSettings(executionRequest, settings);
         populator.populateDefaults(executionRequest);
         ProjectBuildingRequest buildingRequest = executionRequest.getProjectBuildingRequest();
-        buildingRequest.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
+        buildingRequest.setProcessPlugins(false);
         MavenProject mavenProject = builder.build(pomFile, buildingRequest).getProject();
-
         Set<MavenProject> reactorProjects = new LinkedHashSet<MavenProject>();
 
         //TODO adding the parent project first because the converter needs it this way ATM. This is oversimplified.

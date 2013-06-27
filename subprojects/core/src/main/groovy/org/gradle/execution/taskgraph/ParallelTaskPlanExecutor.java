@@ -31,30 +31,29 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.util.Clock.prettyTime;
-
-class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
+class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(ParallelTaskPlanExecutor.class);
-
-    private final TaskArtifactStateCacheAccess stateCacheAccess;
     private final int executorCount;
+    private final TaskArtifactStateCacheAccess cacheAccess;
 
     public ParallelTaskPlanExecutor(TaskArtifactStateCacheAccess cacheAccess, int numberOfParallelExecutors) {
+        super(cacheAccess);
+        this.cacheAccess = cacheAccess;
         if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
         }
 
-        this.stateCacheAccess = cacheAccess;
         this.executorCount = numberOfParallelExecutors;
     }
 
     public void process(final TaskExecutionPlan taskExecutionPlan, final TaskExecutionListener taskListener) {
-        stateCacheAccess.longRunningOperation("Executing all tasks", new Runnable() {
+        // The main thread holds the lock for the task cache. Need to release the lock while executing the tasks.
+        // This locking needs to be pushed down closer to the things that need the lock and removed from here.
+        cacheAccess.longRunningOperation("Executing all tasks", new Runnable() {
             public void run() {
                 DefaultExecutorFactory factory = new DefaultExecutorFactory();
                 try {
                     doProcess(taskExecutionPlan, taskListener, factory);
-                    // TODO This needs to wait until all tasks have been executed, not just started....
                     taskExecutionPlan.awaitCompletion();
                 } finally {
                     factory.stop();
@@ -66,12 +65,11 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
     private void doProcess(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener, ExecutorFactory factory) {
         List<Project> projects = getAllProjects(taskExecutionPlan);
         int numExecutors = Math.min(executorCount, projects.size());
-        numExecutors = Math.min(numExecutors, 4);
 
         LOGGER.info("Using {} parallel executor threads", numExecutors);
 
         for (int i = 0; i < numExecutors; i++) {
-            TaskExecutorWorker worker = new TaskExecutorWorker(taskExecutionPlan, taskListener);
+            Runnable worker = taskWorker(taskExecutionPlan, taskListener);
             StoppableExecutor executor = factory.create("Task worker " + (i+1));
             // TODO A bunch more stuff to contextualise the thread
             executor.execute(worker);
@@ -84,42 +82,5 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
             uniqueProjects.add(task.getProject());
         }
         return new ArrayList<Project>(uniqueProjects);
-    }
-
-    private class TaskExecutorWorker implements Runnable {
-        private final TaskExecutionPlan taskExecutionPlan;
-        private final TaskExecutionListener taskListener;
-        private long busyMs;
-        private long waitedForCacheMs;
-
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
-            this.taskExecutionPlan = taskExecutionPlan;
-            this.taskListener = taskListener;
-        }
-
-        public void run() {
-            long start = System.currentTimeMillis();
-            TaskInfo task;
-            while((task = taskExecutionPlan.getTaskToExecute()) != null) {
-                executeTaskWithCacheLock(task);
-            }
-            long total = System.currentTimeMillis() - start;
-            LOGGER.info("Parallel worker [{}] stopped, busy: {}, idle: {}, waited for cache: {}", Thread.currentThread(), prettyTime(busyMs), prettyTime(total - busyMs), prettyTime(waitedForCacheMs));
-        }
-
-        private void executeTaskWithCacheLock(final TaskInfo taskInfo) {
-            final String taskPath = taskInfo.getTask().getPath();
-            LOGGER.info(taskPath + " (" + Thread.currentThread() + " - start");
-            final long start = System.currentTimeMillis();
-            stateCacheAccess.useCache("Executing " + taskPath, new Runnable() {
-                public void run() {
-                    waitedForCacheMs += System.currentTimeMillis() - start;
-                    processTask(taskInfo, taskExecutionPlan, taskListener);
-                }
-            });
-            busyMs += System.currentTimeMillis() - start;
-
-            LOGGER.info(taskPath + " (" + Thread.currentThread() + ") - complete");
-        }
     }
 }

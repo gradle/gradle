@@ -22,8 +22,7 @@ import org.gradle.util.TextUtil
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
-            import org.gradle.api.tasks.wrapper.Wrapper
-            task wrapper(type: Wrapper) {
+            wrapper {
                 distributionUrl = 'http://localhost:8080/gradlew/dist'
             }
         """

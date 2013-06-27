@@ -104,4 +104,8 @@ public class ParsedCommandLine {
         presentOptions.addAll(option.getOptions());
         return parsedOption;
     }
+
+    void removeOption(CommandLineOption option) {
+        presentOptions.removeAll(option.getOptions());
+    }
 }

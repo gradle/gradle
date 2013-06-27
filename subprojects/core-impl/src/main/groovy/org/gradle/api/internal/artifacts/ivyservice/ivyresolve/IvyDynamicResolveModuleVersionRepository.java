@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 
 import java.util.ArrayList;
@@ -37,29 +37,29 @@ public class IvyDynamicResolveModuleVersionRepository implements LocalAwareModul
         return repository.getName();
     }
 
-    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         repository.getLocalDependency(dependency, result);
-        if (result.getState() == BuildableModuleVersionMetaData.State.Resolved) {
+        if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
             transformDependencies(result);
         }
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         repository.getDependency(dependency, result);
-        if (result.getState() == BuildableModuleVersionMetaData.State.Resolved) {
+        if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
             transformDependencies(result);
         }
     }
 
-    private void transformDependencies(BuildableModuleVersionMetaData result) {
+    private void transformDependencies(BuildableModuleVersionMetaDataResolveResult result) {
         List<DependencyMetaData> transformed = new ArrayList<DependencyMetaData>();
-        for (DependencyMetaData dependency : result.getDependencies()) {
+        for (DependencyMetaData dependency : result.getMetaData().getDependencies()) {
             transformed.add(dependency.withRequestedVersion(dependency.getDescriptor().getDynamicConstraintDependencyRevisionId().getRevision()));
         }
         result.setDependencies(transformed);
     }
 
-    public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+    public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
         repository.resolve(artifact, result, moduleSource);
     }
 }

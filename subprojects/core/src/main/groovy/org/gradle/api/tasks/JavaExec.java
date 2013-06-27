@@ -46,7 +46,8 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
 
     @TaskAction
     public void exec() {
-        setMain(getMain()); // make convention mapping work (at least for 'main')
+        setMain(getMain()); // make convention mapping work (at least for 'main'...
+        setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
         javaExecHandleBuilder.execute();
     }
 

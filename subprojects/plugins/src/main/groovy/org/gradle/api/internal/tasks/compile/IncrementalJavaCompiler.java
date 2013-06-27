@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.AntBuilder;
 import org.gradle.internal.Factory;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.language.jvm.tasks.SimpleStaleClassCleaner;
-import org.gradle.language.jvm.tasks.StaleClassCleaner;
+import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
+import org.gradle.language.jvm.internal.StaleClassCleaner;
 
 public class IncrementalJavaCompiler extends IncrementalJavaCompilerSupport<JavaCompileSpec> implements Compiler<JavaCompileSpec> {
     private final Compiler<JavaCompileSpec> compiler;

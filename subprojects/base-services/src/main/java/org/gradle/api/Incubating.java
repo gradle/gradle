@@ -17,6 +17,7 @@
 package org.gradle.api;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -25,6 +26,7 @@ import java.lang.annotation.RetentionPolicy;
  * change at any time.
  */
 @Documented
+@Inherited
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Incubating {
 }

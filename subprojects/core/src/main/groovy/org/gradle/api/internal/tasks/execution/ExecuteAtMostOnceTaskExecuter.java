@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -33,13 +34,13 @@ public class ExecuteAtMostOnceTaskExecuter implements TaskExecuter {
         this.executer = executer;
     }
 
-    public void execute(TaskInternal task, TaskStateInternal state) {
+    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         if (state.getExecuted()) {
             return;
         }
         LOGGER.debug("Starting to execute {}", task);
         try {
-            executer.execute(task, state);
+            executer.execute(task, state, context);
         } finally {
             state.executed();
             LOGGER.debug("Finished executing {}", task);

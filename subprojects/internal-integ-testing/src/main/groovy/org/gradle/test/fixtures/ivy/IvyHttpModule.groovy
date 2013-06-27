@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.mortbay.jetty.HttpStatus
 
-class IvyHttpModule extends AbstractIvyModule {
+class IvyHttpModule implements IvyModule {
     private final IvyFileModule backingModule
     private final HttpServer server
     private final String prefix
@@ -29,6 +29,10 @@ class IvyHttpModule extends AbstractIvyModule {
         this.prefix = prefix
         this.server = server
         this.backingModule = backingModule
+    }
+
+    IvyDescriptor getIvy() {
+        return backingModule.ivy
     }
 
     IvyHttpModule publish() {
@@ -123,11 +127,11 @@ class IvyHttpModule extends AbstractIvyModule {
     }
 
     void expectIvySha1Put(int status = HttpStatus.ORDINAL_200_OK) {
-        server.expectPut("$prefix/${ivyFile.name}.sha1", backingModule.sha1File(ivyFile), status)
+        server.expectPut("$prefix/${ivyFile.name}.sha1", backingModule.getSha1File(ivyFile), status)
     }
 
     void expectIvySha1Put(String userName, String password) {
-        server.expectPut("$prefix/${ivyFile.name}.sha1", userName, password, backingModule.sha1File(ivyFile))
+        server.expectPut("$prefix/${ivyFile.name}.sha1", userName, password, backingModule.getSha1File(ivyFile))
     }
 
     void expectJarGet() {
@@ -167,11 +171,11 @@ class IvyHttpModule extends AbstractIvyModule {
     }
 
     void expectJarSha1Put() {
-        server.expectPut("$prefix/${jarFile.name}.sha1", backingModule.sha1File(jarFile))
+        server.expectPut("$prefix/${jarFile.name}.sha1", backingModule.getSha1File(jarFile))
     }
 
     void expectJarSha1Put(String userName, String password) {
-        server.expectPut("$prefix/${jarFile.name}.sha1", userName, password, backingModule.sha1File(jarFile))
+        server.expectPut("$prefix/${jarFile.name}.sha1", userName, password, backingModule.getSha1File(jarFile))
     }
 
     void expectArtifactGet(String name) {

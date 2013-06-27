@@ -29,7 +29,7 @@
                 <td/>
             </tr>
             <tr>
-                <td>destFile</td>
+                <td>destinationFile</td>
                 <td><filename><replaceable>buildDir</replaceable>/jacoco/<replaceable>task.name</replaceable>.exec</filename></td>
             </tr>
         </table>

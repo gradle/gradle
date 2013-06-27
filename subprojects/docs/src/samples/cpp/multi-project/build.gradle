@@ -1,0 +1,18 @@
+// START SNIPPET project-dependencies
+project(":lib") {
+    apply plugin: "cpp-lib"
+}
+
+project(":exe") {
+    apply plugin: "cpp-exe"
+    evaluationDependsOn(":lib")
+
+    cpp {
+        sourceSets {
+            main {
+                lib project(":lib").libraries.main
+            }
+        }
+    }
+}
+// END SNIPPET project-dependencies

@@ -330,4 +330,53 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         then:
         file('libs').assertHasDescendants('projectA-1.1.jar')
     }
+
+    def "can resolve dynamic versions with multiple ivy patterns"() {
+        given:
+        def repo1 = ivyRepo("ivyRepo1")
+        repo1.module('org.test', 'projectA', '1.1').withStatus("integration").publish()
+        repo1.module('org.test', 'projectA', '1.2').withStatus("milestone").publish()
+        def repo2 = ivyRepo("ivyRepo2")
+        repo2.module('org.test', 'projectA', '1.1').withStatus("milestone").publish()
+        repo2.module('org.test', 'projectA', '1.3').withStatus("integration").publish()
+
+        and:
+        buildFile << """
+repositories {
+    ivy {
+        url "${repo1.uri}"
+        ivyPattern "${repo2.uri}/[organisation]/[module]/[revision]/ivy-[revision].xml"
+        artifactPattern "${repo2.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+    }
+}
+configurations {
+    milestone
+    dynamic
+}
+dependencies {
+  milestone 'org.test:projectA:latest.milestone'
+  dynamic 'org.test:projectA:1.+'
+}
+task retrieveDynamic(type: Sync) {
+  from configurations.dynamic
+  into 'dynamic'
+}
+task retrieveMilestone(type: Sync) {
+  from configurations.milestone
+  into 'milestone'
+}
+"""
+
+        when:
+        run 'retrieveDynamic'
+
+        then:
+        file('dynamic').assertHasDescendants('projectA-1.3.jar')
+
+        when:
+        run 'retrieveMilestone'
+
+        then:
+        file('milestone').assertHasDescendants('projectA-1.2.jar')
+    }
 }

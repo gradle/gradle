@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
  * incubating feature and under development.
  *
  * <p>
- * The PublishingExtension is a {@link org.gradle.api.plugins.DeferredConfigurable} model element, meaning that extension will not be configured as late as possible in the build.
+ * The PublishingExtension is a {@link org.gradle.api.plugins.DeferredConfigurable} model element, meaning that extension will be configured as late as possible in the build.
  * So any 'publishing' configuration blocks are not evaluated until either:
  * <ol>
  *     <li>The project is about to execute, or</li>

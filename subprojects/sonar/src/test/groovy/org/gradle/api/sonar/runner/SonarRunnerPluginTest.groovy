@@ -58,6 +58,8 @@ class SonarRunnerPluginTest extends Specification {
     def "adds a sonarRunner task to the target project"() {
         expect:
         parentProject.tasks.findByName("sonarRunner") instanceof SonarRunner
+        parentProject.tasks.sonarRunner.description == "Analyzes project ':parent' and its subprojects with Sonar Runner."
+
         childProject.tasks.findByName("sonarRunner") == null
     }
 

@@ -39,10 +39,17 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
     private final FileResolver resolver;
 
     public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor) {
+        this(resolver, visitor, false);
+    }
+
+    public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
         this.resolver = resolver;
-        root = new CopySpecImpl(resolver);
-        mainContent = root.addChild();
-        this.visitor = new MappingCopySpecVisitor(new NormalizingCopySpecVisitor(visitor), FileSystems.getDefault());
+        this.root = new CopySpecImpl(resolver);
+        this.mainContent = root.addChild();
+        this.visitor = new DuplicateHandlingCopySpecVisitor(
+                new NormalizingCopySpecVisitor(visitor),
+                warnOnIncludeDuplicate
+        );
     }
 
     public FileResolver getResolver() {
@@ -58,12 +65,8 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
     }
 
     public void execute() {
-        visitor.startVisit(this);
-        for (ReadableCopySpec spec : root.getAllSpecs()) {
-            visitor.visitSpec(spec);
-            spec.getSource().visit(visitor);
-        }
-        visitor.endVisit();
+        CopySpecVisitorDriver driver = new CopySpecVisitorDriver(FileSystems.getDefault());
+        driver.visit(this, root.getAllSpecs(), visitor);
     }
 
     public boolean getDidWork() {
@@ -189,6 +192,33 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
 
     public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
         mainContent.setIncludeEmptyDirs(includeEmptyDirs);
+    }
+
+    public DuplicatesStrategy getDuplicatesStrategy() {
+        // see note below for why this is root and not mainContent
+        return root.getDuplicatesStrategy();
+    }
+
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+        // this is root and not mainContent because eg, Jar.metaInf extends from root,
+        // and we want it to inherit the duplicates strategy too
+        root.setDuplicatesStrategy(strategy);
+    }
+
+    public CopySpec filesMatching(String pattern, Closure closure) {
+        return mainContent.filesMatching(pattern, closure);
+    }
+
+    public CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action) {
+        return mainContent.filesMatching(pattern, action);
+    }
+
+    public CopySpec filesNotMatching(String pattern, Closure closure) {
+        return mainContent.filesNotMatching(pattern, closure);
+    }
+
+    public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
+        return mainContent.filesNotMatching(pattern, action);
     }
 
     public CopySpec rename(Closure closure) {

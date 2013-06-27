@@ -17,12 +17,12 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.JavaMethod;
 
 import java.lang.reflect.Method;
 
 /**
- * Simple implementations of some reflection capabilities. In contrast to org.gradle.util.ReflectionUtil,
- * this class doesn't make use of Groovy.
+ * Simple implementations of some reflection capabilities. In contrast to org.gradle.util.ReflectionUtil, this class doesn't make use of Groovy.
  */
 public class JavaReflectionUtil {
     public static Object readProperty(Object target, String property) {
@@ -46,9 +46,13 @@ public class JavaReflectionUtil {
     public static void writeProperty(Object target, String property, Object value) {
         try {
             String setterName = toMethodName("set", property);
-            for (Method method: target.getClass().getMethods()) {
-                if (!method.getName().equals(setterName)) { continue; }
-                if (method.getParameterTypes().length != 1) { continue; }
+            for (Method method : target.getClass().getMethods()) {
+                if (!method.getName().equals(setterName)) {
+                    continue;
+                }
+                if (method.getParameterTypes().length != 1) {
+                    continue;
+                }
                 method.invoke(target, value);
                 return;
             }
@@ -79,5 +83,13 @@ public class JavaReflectionUtil {
             return Double.class;
         }
         throw new IllegalArgumentException(String.format("Don't know how wrapper type for primitive type %s.", type));
+    }
+
+    public static <T, R> JavaMethod<T, R> method(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) {
+        return new JavaMethod<T, R>(target, returnType, name, paramTypes);
+    }
+
+    public static <T, R> JavaMethod<T, R> method(Class<T> target, Class<R> returnType, Method method) {
+        return new JavaMethod<T, R>(target, returnType, method);
     }
 }

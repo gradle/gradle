@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -26,18 +28,16 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initFile);
     }
 
-    def "can apply pluginClass from InitScript"() {
+    def "can apply binary plugin from init script"() {
         when:
         initFile << """
         apply plugin:SimpleGradlePlugin
 
         class SimpleGradlePlugin implements Plugin<Gradle> {
             void apply(Gradle aGradle) {
-                aGradle.addBuildListener(new BuildAdapter(){
-                    public void buildFinished(BuildResult result) {
-                        println "Gradle Plugin received build finished!"
-                    }
-                });
+                aGradle.buildFinished {
+                    println "Gradle Plugin received build finished!"
+                }
             }
         }
         """
@@ -48,13 +48,11 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "can apply script with relative path"() {
         setup:
-        def externalInitFile = temporaryFolder.createDir("initscripts/somePath").createFile("anInit.gradle")
+        def externalInitFile = temporaryFolder.createFile("initscripts/somePath/anInit.gradle")
         externalInitFile << """
-        gradle.addBuildListener(new BuildAdapter(){
-            public void buildFinished(BuildResult result) {
-                println "Gradle Plugin received build finished!"
-            }
-        });
+        buildFinished {
+            println "Gradle Plugin received build finished!"
+        }
         """
         when:
         initFile << """
@@ -65,43 +63,32 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executed.output.contains("Gradle Plugin received build finished!")
     }
 
-    def "cannot apply script with relative path on Gradle"() {
-        setup:
-        def externalInitFile = temporaryFolder.createDir("somePath").createFile("anInit.gradle")
-        externalInitFile << """
-            gradle.addBuildListener(new BuildAdapter(){
-                public void buildFinished(BuildResult result) {
-                    println "Gradle Plugin received build finished!"
-                }
-            });
-            """
+    def "cannot apply script with relative path on Gradle instance"() {
         when:
         initFile << """
             gradle.apply(from: "somePath/anInit.gradle")
             """
         then:
         fails('tasks')
-        errorOutput.contains("Cannot convert relative path somePath${File.separator}anInit.gradle to an absolute file")
+        failure.assertHasCause("Cannot convert relative path somePath${File.separator}anInit.gradle to an absolute file")
     }
 
-    def "applied script can apply scripts with relative path"() {
+    def "path to script is interpreted relative to the applying script"() {
         setup:
-        def externalInitFile = temporaryFolder.createFile("initscripts/somePath/anInit.gradle")
+        def externalInitFile = temporaryFolder.createFile("initscripts/path1/anInit.gradle")
         externalInitFile << """
-            gradle.addBuildListener(new BuildAdapter(){
-                public void buildFinished(BuildResult result) {
-                    println "Gradle Plugin received build finished!"
-                }
-            });
-                        """
-        def anotherExternalInitFile = temporaryFolder.createFile("initscripts/anotherInit.gradle")
+            buildFinished {
+                println "Gradle Plugin received build finished!"
+            }
+        """
+        def anotherExternalInitFile = temporaryFolder.createFile("initscripts/path2/anotherInit.gradle")
         anotherExternalInitFile << """
-            apply from: 'somePath/anInit.gradle'
+            apply from: '../path1/anInit.gradle'
             """
 
         when:
         initFile << """
-            apply from: "anotherInit.gradle"
+            apply from: "path2/anotherInit.gradle"
             """
         then:
         def executed = succeeds('tasks')

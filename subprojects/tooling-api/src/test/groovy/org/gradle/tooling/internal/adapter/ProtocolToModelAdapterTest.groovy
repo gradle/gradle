@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.adapter
 
+import org.gradle.api.Action
 import org.gradle.messaging.remote.internal.Message
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.UnsupportedMethodException
@@ -220,16 +221,20 @@ class ProtocolToModelAdapterTest extends Specification {
         model.getConfig("default") == "default"
     }
 
-    def methodInvokerCanOverrideGetterMethod() {
-        MethodInvoker propertyHandler = Mock()
+    def "mapper can override getter method"() {
+        MethodInvoker methodInvoker = Mock()
+        Action mapper = Mock()
         TestProtocolModel protocolModel = Mock()
         TestProject project = Mock()
 
         given:
-        propertyHandler.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
+        mapper.execute(_) >> { SourceObjectMapping mapping ->
+            mapping.mixIn(methodInvoker)
+        }
+        methodInvoker.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
 
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
 
         then:
         model.project == project
@@ -238,16 +243,20 @@ class ProtocolToModelAdapterTest extends Specification {
         0 * protocolModel._
     }
 
-    def methodInvokerCanProvideGetterMethodImplementation() {
-        MethodInvoker propertyHandler = Mock()
+    def "mapper can provider getter method implementation"() {
+        MethodInvoker methodInvoker = Mock()
+        Action mapper = Mock()
         PartialTestProtocolModel protocolModel = Mock()
         TestProject project = Mock()
 
         given:
-        propertyHandler.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
+        mapper.execute(_) >> { SourceObjectMapping mapping ->
+            mapping.mixIn(methodInvoker)
+        }
+        methodInvoker.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
 
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
 
         then:
         model.project == project
@@ -257,18 +266,24 @@ class ProtocolToModelAdapterTest extends Specification {
     }
 
     def methodInvokerPropertiesAreCached() {
-        MethodInvoker propertyHandler = Mock()
+        MethodInvoker methodInvoker = Mock()
+        Action mapper = Mock()
         PartialTestProtocolModel protocolModel = Mock()
         TestProject project = Mock()
 
+        given:
+        mapper.execute(_) >> { SourceObjectMapping mapping ->
+            mapping.mixIn(methodInvoker)
+        }
+
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
         model.project
         model.project
 
         then:
-        1 * propertyHandler.invoke(!null) >> { MethodInvocation method -> method.result = project }
-        0 * propertyHandler._
+        1 * methodInvoker.invoke(!null) >> { MethodInvocation method -> method.result = project }
+        0 * methodInvoker._
         0 * protocolModel._
     }
 
@@ -286,6 +301,26 @@ class ProtocolToModelAdapterTest extends Specification {
         model.getConfig('default') == "[default]"
     }
 
+    def "mapper can mix in methods from another bean"() {
+        def mapper = Mock(Action)
+        def protocolModel = Mock(PartialTestProtocolModel)
+
+        given:
+        protocolModel.name >> 'name'
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
+
+        then:
+        1 * mapper.execute({it.sourceObject == protocolModel}) >> { SourceObjectMapping mapping ->
+            mapping.mixIn(ConfigMixin)
+        }
+
+        and:
+        model.name == "[name]"
+        model.getConfig('default') == "[default]"
+    }
+
     def "delegates to type provider to determine type to wrap an object in"() {
         def typeProvider = Mock(TargetTypeProvider)
         def adapter = new ProtocolToModelAdapter(typeProvider)
@@ -299,6 +334,33 @@ class ProtocolToModelAdapterTest extends Specification {
 
         then:
         result instanceof ByteChannel
+    }
+
+    def "mapper can specify the type to wrap an object in"() {
+        def mapper = Mock(Action)
+        def sourceObject = Mock(TestProtocolModel)
+        def sourceProject = Mock(TestProtocolProject)
+        def adapter = new ProtocolToModelAdapter()
+
+        given:
+        sourceObject.project >> sourceProject
+
+        when:
+        def result = adapter.adapt(TestModel.class, sourceObject, mapper)
+
+        then:
+        1 * mapper.execute({it.sourceObject == sourceObject})
+
+        when:
+        def project = result.project
+
+        then:
+        project instanceof TestExtendedProject
+
+        and:
+        1 * mapper.execute({it.sourceObject == sourceProject}) >> { SourceObjectMapping mapping ->
+            mapping.mapToType(TestExtendedProject)
+        }
     }
 
     def "wrapper objects can be serialized"() {
@@ -335,6 +397,9 @@ interface TestModel {
 
 interface TestProject {
     String getName()
+}
+
+interface TestExtendedProject extends TestProject {
 }
 
 interface TestProtocolModel {

@@ -20,14 +20,11 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.Collections;
 import java.util.List;
 
-public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToArguments<JavaCompileSpec> {
+public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToArguments<JavaCompileSpec>, Serializable {
     private final TemporaryFileProvider tempFileProvider;
 
     public CommandLineJavaCompilerArgumentsGenerator(TemporaryFileProvider tempFileProvider) {

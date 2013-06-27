@@ -125,4 +125,8 @@ public class DependencyResolverIdentifierTest extends Specification {
     def id(DependencyResolver resolver) {
         return new DependencyResolverIdentifier(resolver).uniqueId
     }
+
+    def id(ExternalResourceResolver resolver) {
+        return new DependencyResolverIdentifier(resolver).uniqueId
+    }
 }

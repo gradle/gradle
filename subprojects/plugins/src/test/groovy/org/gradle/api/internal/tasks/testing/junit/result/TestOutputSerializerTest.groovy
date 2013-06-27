@@ -33,10 +33,10 @@ class TestOutputSerializerTest extends Specification {
 
     def "flushes all output when output finishes"() {
         when:
-        serializer.onOutput("Class1", StdOut, "[out]")
-        serializer.onOutput("Class2", StdErr, "[err]")
-        serializer.onOutput("Class1", StdErr, "[err]")
-        serializer.onOutput("Class1", StdOut, "[out2]")
+        serializer.onOutput("Class1", "method1", StdOut, "[out]")
+        serializer.onOutput("Class2", "method1", StdErr, "[err]")
+        serializer.onOutput("Class1", "method1", StdErr, "[err]")
+        serializer.onOutput("Class1", "method1", StdOut, "[out2]")
         serializer.finishOutputs()
 
         then:
@@ -55,7 +55,7 @@ class TestOutputSerializerTest extends Specification {
 
     def "can query whether output is available for a test class"() {
         when:
-        serializer.onOutput("Class1", StdOut, "[out]")
+        serializer.onOutput("Class1", "method1", StdOut, "[out]")
         serializer.finishOutputs()
 
         then:

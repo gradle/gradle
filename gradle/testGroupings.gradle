@@ -1,0 +1,13 @@
+// only the projects that contribute runtime code
+def runtimeProjects = subprojects - [':docs', ':distributions', ':performance'].collect { project(it) }
+
+def runtimeProjectTasks = { String taskName ->
+    runtimeProjects.collect { it.tasks.findByPath(taskName) }.findAll { it != null }
+}
+task runtimeTests {
+    dependsOn { runtimeProjectTasks("test") }
+}
+
+task runtimeIntegTests {
+    dependsOn { runtimeProjectTasks("integTest") }
+}

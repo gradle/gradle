@@ -1,0 +1,14 @@
+// START SNIPPET use-plugin
+apply plugin: "cpp-lib"
+// END SNIPPET use-plugin
+
+// START SNIPPET args
+libraries {
+    main {
+        binaries.withType(SharedLibraryBinary) {
+            // Define a preprocessor macro that only applies to shared libraries
+            define "DLL_EXPORT"
+        }
+    }
+}
+// END SNIPPET args

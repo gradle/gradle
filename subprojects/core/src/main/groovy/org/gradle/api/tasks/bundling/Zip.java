@@ -19,8 +19,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.archive.ZipCopySpecVisitor;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
-import org.gradle.api.internal.file.copy.ZipDeflatedCompressor;
 import org.gradle.api.internal.file.copy.ZipCompressor;
+import org.gradle.api.internal.file.copy.ZipDeflatedCompressor;
 import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 
 import java.io.File;
@@ -34,12 +34,17 @@ import java.io.File;
  */
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
-    private final ZipCopyActionImpl action;
+    private ZipCopyActionImpl action;
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
         action = new ZipCopyActionImpl(getServices().get(FileResolver.class));
+    }
+
+    @Override
+    protected void postCopyCleanup() {
+        action = null;
     }
 
     /**

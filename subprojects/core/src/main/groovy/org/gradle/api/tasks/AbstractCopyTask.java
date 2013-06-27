@@ -43,6 +43,11 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         setDidWork(getCopyAction().getDidWork());
     }
 
+    /**
+     * Release resources used during copy
+     */
+    protected abstract void postCopyCleanup();
+
     protected void configureRootSpec() {
         if (!getCopyAction().hasSource()) {
             Object srcDirs = getDefaultSource();
@@ -124,8 +129,54 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+        getMainSpec().setDuplicatesStrategy(strategy);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public DuplicatesStrategy getDuplicatesStrategy() {
+        return getMainSpec().getDuplicatesStrategy();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public AbstractCopyTask from(Object... sourcePaths) {
         getMainSpec().from(sourcePaths);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask filesMatching(String pattern, Closure closure) {
+        getMainSpec().filesMatching(pattern, closure);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask filesMatching(String pattern, Action<? super FileCopyDetails> action) {
+        getMainSpec().filesMatching(pattern, action);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask filesNotMatching(String pattern, Closure closure) {
+        getMainSpec().filesNotMatching(pattern, closure);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
+        getMainSpec().filesNotMatching(pattern, action);
         return this;
     }
 

@@ -47,8 +47,9 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
 
     // BuildListener
     public void buildStarted(Gradle gradle) {
+        long now = timeProvider.getCurrentTime();
         buildProfile = new BuildProfile(gradle.getStartParameter());
-        buildProfile.setBuildStarted(timeProvider.getCurrentTime());
+        buildProfile.setBuildStarted(now);
         buildProfile.setProfilingStarted(buildMetaData.getBuildTimeClock().getStartTime());
     }
 
@@ -74,38 +75,42 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
 
     // ProjectEvaluationListener
     public void beforeEvaluate(Project project) {
-        buildProfile.getProjectProfile(project.getPath()).getConfigurationOperation().setStart(System.currentTimeMillis());
+        long now = timeProvider.getCurrentTime();
+        buildProfile.getProjectProfile(project.getPath()).getConfigurationOperation().setStart(now);
     }
 
     public void afterEvaluate(Project project, ProjectState state) {
+        long now = timeProvider.getCurrentTime();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
-        projectProfile.getConfigurationOperation().setFinish(timeProvider.getCurrentTime());
+        projectProfile.getConfigurationOperation().setFinish(now);
     }
 
     // TaskExecutionListener
     public void beforeExecute(Task task) {
+        long now = timeProvider.getCurrentTime();
         Project project = task.getProject();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
-        projectProfile.getTaskProfile(task.getPath()).setStart(timeProvider.getCurrentTime());
+        projectProfile.getTaskProfile(task.getPath()).setStart(now);
     }
 
     public void afterExecute(Task task, TaskState state) {
+        long now = timeProvider.getCurrentTime();
         Project project = task.getProject();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
         TaskExecution taskExecution = projectProfile.getTaskProfile(task.getPath());
-        taskExecution.setFinish(timeProvider.getCurrentTime());
+        taskExecution.setFinish(now);
         taskExecution.completed(state);
     }
 
     // DependencyResolutionListener
     public void beforeResolve(ResolvableDependencies dependencies) {
-        ContinuousOperation profile = buildProfile.getDependencySetProfile(dependencies.getPath());
-        profile.setStart(timeProvider.getCurrentTime());
+        long now = timeProvider.getCurrentTime();
+        buildProfile.getDependencySetProfile(dependencies.getPath()).setStart(now);
     }
 
     public void afterResolve(ResolvableDependencies dependencies) {
-        ContinuousOperation profile = buildProfile.getDependencySetProfile(dependencies.getPath());
-        profile.setFinish(timeProvider.getCurrentTime());
+        long now = timeProvider.getCurrentTime();
+        buildProfile.getDependencySetProfile(dependencies.getPath()).setFinish(now);
     }
 }
 

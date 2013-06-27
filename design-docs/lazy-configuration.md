@@ -1,4 +1,3 @@
-
 # Introduction
 
 In almost every build, there are dependencies between the build logic that defines the Gradle model and the build logic
@@ -126,6 +125,8 @@ Once the publishing extension has been configured, it will be an error to make f
 - A reasonable error message is given when the configuration of an extension fails.
 - A reasonable error message is given when attempting to access an extension whose configuration has previously failed.
 
+## Prevent `object.properties` triggering configuration of any deferred configurable properties (GRADLE-2754)
+
 ## Allow the project version to be determined early in the build configuration
 
 This story introduces a replacement for calculating the project version based on the contents of the task graph, so that the version is
@@ -157,6 +158,8 @@ Conditional configuration based on build type:
 Running `gradle ci` performs a clean build and includes the code coverage report.
 
 Running `gradle tasks` includes a listing of the available build types.
+
+TBD - change command-line handling so that custom command-line options can be attached to build types.
 
 TBD - need to figure out how this should interact with camel-case task name matching on the command-line.
 

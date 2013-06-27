@@ -15,9 +15,9 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
-
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.apache.ivy.plugins.latest.LatestRevisionStrategy
 import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.resource.ResourceException
@@ -34,7 +34,7 @@ class MavenVersionListerTest extends Specification {
     def pattern = pattern("localhost:8081/testRepo/" + MavenPattern.M2_PATTERN)
     String metaDataResource = 'localhost:8081/testRepo/org/acme/testproject/maven-metadata.xml'
 
-    final org.gradle.api.internal.artifacts.repositories.resolver.MavenVersionLister lister = new org.gradle.api.internal.artifacts.repositories.resolver.MavenVersionLister(repository)
+    final MavenVersionLister lister = new MavenVersionLister(repository)
 
     def "visit parses maven-metadata.xml"() {
         ExternalResource resource = Mock()
@@ -44,7 +44,7 @@ class MavenVersionListerTest extends Specification {
         versionList.visit(pattern, artifact)
 
         then:
-        versionList.versionStrings == ['1.1', '1.2'] as Set
+        sort(versionList).collect {it.version} == ['1.2', '1.1']
 
         and:
         1 * repository.getResource(metaDataResource) >> resource
@@ -68,11 +68,14 @@ class MavenVersionListerTest extends Specification {
 
         when:
         def versionList = lister.getVersionList(moduleRevisionId)
-        versionList.visit(pattern("prefix1/" + MavenPattern.M2_PATTERN), artifact)
-        versionList.visit(pattern("prefix2/" + MavenPattern.M2_PATTERN), artifact)
+        final pattern1 = pattern("prefix1/" + MavenPattern.M2_PATTERN)
+        versionList.visit(pattern1, artifact)
+        final pattern2 = pattern("prefix2/" + MavenPattern.M2_PATTERN)
+        versionList.visit(pattern2, artifact)
 
         then:
-        versionList.versionStrings == ['1.1', '1.2', '1.3'] as Set
+        sort(versionList).collect {it.version} == ['1.3', '1.2', '1.1']
+        sort(versionList).collect {it.pattern} == [pattern2, pattern1, pattern1]
 
         and:
         1 * repository.getResource('prefix1/org/acme/testproject/maven-metadata.xml') >> resource1
@@ -106,7 +109,7 @@ class MavenVersionListerTest extends Specification {
         versionList.visit(pattern, artifact)
 
         then:
-        versionList.versionStrings == ['1.1', '1.2'] as Set
+        sort(versionList).collect {it.version} == ['1.2', '1.1']
 
         and:
         1 * repository.getResource(metaDataResource) >> resource
@@ -122,6 +125,10 @@ class MavenVersionListerTest extends Specification {
         1 * resource.close()
         0 * repository._
         0 * resource._
+    }
+
+    private static List<VersionList.ListedVersion> sort(VersionList versionList) {
+        versionList.sortLatestFirst(new LatestRevisionStrategy())
     }
 
     def "visit throws ResourceNotFoundException when maven-metadata not available"() {
@@ -169,6 +176,6 @@ class MavenVersionListerTest extends Specification {
     }
 
     def pattern(String pattern) {
-        return new org.gradle.api.internal.artifacts.repositories.resolver.M2ResourcePattern(pattern)
+        return new M2ResourcePattern(pattern)
     }
 }

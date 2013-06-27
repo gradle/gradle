@@ -22,8 +22,9 @@ import spock.lang.Specification
 
 class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
     final target = Mock(LocalAwareModuleVersionRepository)
+    final metaData = Mock(ModuleVersionMetaData)
     final requestedDependency = Mock(DependencyMetaData)
-    final result = Mock(BuildableModuleVersionMetaData)
+    final result = Mock(BuildableModuleVersionMetaDataResolveResult)
     final repository = new IvyDynamicResolveModuleVersionRepository(target)
 
     def "replaces each dependency version with revConstraint"() {
@@ -31,7 +32,8 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
         def transformed = dependency()
 
         given:
-        result.state >> BuildableModuleVersionMetaData.State.Resolved
+        result.state >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
+        result.metaData >> metaData
 
         when:
         repository.getLocalDependency(requestedDependency, result)
@@ -40,7 +42,7 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
         1 * target.getLocalDependency(requestedDependency, result)
 
         and:
-        1 * result.dependencies >> [original]
+        1 * metaData.dependencies >> [original]
         1 * original.withRequestedVersion('1.2+') >> transformed
         1 * result.setDependencies([transformed])
     }
@@ -51,7 +53,7 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
 
         then:
         1 * target.getLocalDependency(requestedDependency, result)
-        _ * result.state >> BuildableModuleVersionMetaData.State.Missing
+        _ * result.state >> BuildableModuleVersionMetaDataResolveResult.State.Missing
         0 * result._
     }
 

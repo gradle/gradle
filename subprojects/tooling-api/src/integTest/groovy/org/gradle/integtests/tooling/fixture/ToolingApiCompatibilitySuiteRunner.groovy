@@ -23,6 +23,7 @@ import org.gradle.util.*
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
+    private ToolingApiDistributionResolver resolver
 
     ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
         super(target, includesAllPermutations(target))
@@ -38,7 +39,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
     @Override
     protected void createExecutions() {
-        ToolingApiDistributionResolver resolver = new ToolingApiDistributionResolver().withDefaultRepository()
+        resolver = new ToolingApiDistributionResolver().withDefaultRepository()
 
         add(new Permutation(resolver.resolve(current.version.version), current))
         previous.each {
@@ -46,6 +47,13 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
                 add(new Permutation(resolver.resolve(current.version.version), it))
                 add(new Permutation(resolver.resolve(it.version.version), current))
             }
+        }
+    }
+
+    @Override
+    protected void executionsCreated() {
+        if (resolver != null) {
+            resolver.stop()
         }
     }
 

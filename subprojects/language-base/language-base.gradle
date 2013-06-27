@@ -4,3 +4,4 @@ dependencies {
 }
 
 useClassycle()
+useTestFixtures()

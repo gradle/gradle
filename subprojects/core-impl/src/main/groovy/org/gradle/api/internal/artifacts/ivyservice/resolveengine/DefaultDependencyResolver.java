@@ -56,9 +56,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         IvyAdapter ivyAdapter = ivyFactory.create(configuration, repositories);
 
-        DependencyToModuleResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver();
+        DependencyToModuleVersionResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver();
         dependencyResolver = new ClientModuleResolver(dependencyResolver);
-        dependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver);
+        ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver, moduleDescriptorConverter);
+        dependencyResolver = projectDependencyResolver;
         DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, ivyAdapter.getResolveData().getSettings().getVersionMatcher());
         idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getDependencyResolveRule());
 
@@ -70,9 +71,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
         ModuleConflictResolver actualResolver = new VersionSelectionReasonResolver(conflictResolver);
 
-        DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, idResolver, actualResolver, cacheLockingManager);
+        DependencyGraphBuilder builder = new DependencyGraphBuilder(resolvedArtifactFactory, idResolver, projectDependencyResolver, actualResolver, cacheLockingManager, new DefaultDependencyToConfigurationResolver());
         ResolutionResultBuilder resultBuilder = new ResolutionResultBuilder();
-        DefaultLenientConfiguration result = builder.resolve(configuration, ivyAdapter.getResolveData(), resultBuilder);
+        DefaultLenientConfiguration result = builder.resolve(configuration, resultBuilder);
         return new ResolverResults(new DefaultResolvedConfiguration(result), resultBuilder.getResult());
     }
 }

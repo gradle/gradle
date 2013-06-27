@@ -46,6 +46,24 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     File configFile
 
     /**
+     * The maximum number of priority 1 violations allowed before failing the build.
+     */
+    @Input
+    int maxPriority1Violations
+
+    /**
+     * The maximum number of priority 2 violations allowed before failing the build.
+     */
+    @Input
+    int maxPriority2Violations
+
+    /**
+     * The maximum number of priority 3 violations allowed before failing the build.
+     */
+    @Input
+    int maxPriority3Violations
+
+    /**
      * The format type of the CodeNarc report.
      *
      * @deprecated Use {@code reports.<report-type>.enabled} instead.
@@ -109,7 +127,7 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
         antBuilder.withClasspath(getCodenarcClasspath()).execute {
             ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask')
             try {
-                ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: 0, maxPriority2Violations: 0, maxPriority3Violations: 0) {
+                ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: getMaxPriority1Violations(), maxPriority2Violations: getMaxPriority2Violations(), maxPriority3Violations: getMaxPriority3Violations()) {
                     reports.enabled.each { Report r ->
                         report(type: r.name) {
                             option(name: 'outputFile', value: r.destination)

@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.externalresource.ivy;
 
+import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.externalresource.cached.CachedArtifact;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
@@ -56,17 +60,45 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
     }
 
     private static class ArtifactAtRepositoryKeySerializer extends DataStreamBackedSerializer<ArtifactAtRepositoryKey> {
+        private final ModuleVersionIdentifierSerializer modIdSerializer = new ModuleVersionIdentifierSerializer();
+
         @Override
         public void write(DataOutput dataOutput, ArtifactAtRepositoryKey value) throws IOException {
             dataOutput.writeUTF(value.getRepositoryId());
-            dataOutput.writeUTF(value.getArtifactId());
+            ArtifactIdentifier artifact = value.getArtifactId();
+            modIdSerializer.write(dataOutput, artifact.getModuleVersionIdentifier());
+            dataOutput.writeUTF(artifact.getName());
+            writeNullable(dataOutput, artifact.getExtension());
+            writeNullable(dataOutput, artifact.getClassifier());
+            writeNullable(dataOutput, artifact.getType());
         }
 
         @Override
         public ArtifactAtRepositoryKey read(DataInput dataInput) throws IOException {
             String repositoryId = dataInput.readUTF();
-            String artifactId = dataInput.readUTF();
-            return new ArtifactAtRepositoryKey(repositoryId, artifactId);
+            ModuleVersionIdentifier moduleVersionIdentifier = modIdSerializer.read(dataInput);
+            String artifactName = dataInput.readUTF();
+            String extension = readNullable(dataInput);
+            String classifier = readNullable(dataInput);
+            String type = readNullable(dataInput);
+            return new ArtifactAtRepositoryKey(repositoryId, new DefaultArtifactIdentifier(moduleVersionIdentifier, artifactName, type, extension, classifier));
+        }
+
+        String readNullable(DataInput dataInput) throws IOException {
+            if (dataInput.readBoolean()) {
+                return dataInput.readUTF();
+            } else {
+                return null;
+            }
+        }
+
+        void writeNullable(DataOutput dataOutput, String value) throws IOException {
+            if (value == null) {
+                dataOutput.writeBoolean(false);
+            } else {
+                dataOutput.writeBoolean(true);
+                dataOutput.writeUTF(value);
+            }
         }
     }
 

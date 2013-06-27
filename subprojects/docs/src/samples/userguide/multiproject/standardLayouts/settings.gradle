@@ -1,5 +1,5 @@
 //START SNIPPET hierarchical-layout
-include 'project1', 'project2', 'project2:child1'
+include 'project1', 'project2:child', 'project3:child1'
 //END SNIPPET hierarchical-layout
 
 //START SNIPPET flat-layout

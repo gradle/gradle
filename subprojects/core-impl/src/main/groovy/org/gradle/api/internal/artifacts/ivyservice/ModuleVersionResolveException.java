@@ -30,7 +30,7 @@ import java.util.List;
 
 @Contextual
 public class ModuleVersionResolveException extends AbstractMultiCauseException {
-    private final List<List<ModuleRevisionId>> paths = new ArrayList<List<ModuleRevisionId>>();
+    private final List<List<ModuleVersionIdentifier>> paths = new ArrayList<List<ModuleVersionIdentifier>>();
     private final String messageFormat;
     private final ModuleVersionSelector selector;
 
@@ -81,7 +81,7 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
     /**
      * Creates a copy of this exception, with the given incoming paths.
      */
-    public ModuleVersionResolveException withIncomingPaths(Collection<? extends List<ModuleRevisionId>> paths) {
+    public ModuleVersionResolveException withIncomingPaths(Collection<? extends List<ModuleVersionIdentifier>> paths) {
         ModuleVersionResolveException copy = createCopy();
         copy.paths.addAll(paths);
         copy.initCauses(getCauses());
@@ -96,7 +96,7 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
         }
         Formatter formatter = new Formatter();
         formatter.format("%s%nRequired by:", super.getMessage());
-        for (List<ModuleRevisionId> path : paths) {
+        for (List<ModuleVersionIdentifier> path : paths) {
             formatter.format("%n    %s", toString(path.get(0)));
             for (int i = 1; i < path.size(); i++) {
                 formatter.format(" > %s", toString(path.get(i)));
@@ -105,8 +105,8 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
         return formatter.toString();
     }
 
-    private String toString(ModuleRevisionId moduleRevisionId) {
-        return String.format("%s:%s:%s", moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+    private String toString(ModuleVersionIdentifier identifier) {
+        return identifier.toString();
     }
 
     protected ModuleVersionResolveException createCopy() {

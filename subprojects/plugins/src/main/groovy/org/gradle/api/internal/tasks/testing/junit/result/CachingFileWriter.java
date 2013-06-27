@@ -16,11 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import com.esotericsoftware.kryo.io.Output;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -34,30 +38,33 @@ public class CachingFileWriter {
 
     private final static Logger LOG = Logging.getLogger(CachingFileWriter.class);
 
-    final LinkedHashMap<File, Writer> openFiles = new LinkedHashMap<File, Writer>();
+    final LinkedHashMap<File, Output> openFiles = new LinkedHashMap<File, Output>();
     private final int maxOpenFiles;
 
     public CachingFileWriter(int maxOpenFiles) {
         this.maxOpenFiles = maxOpenFiles;
     }
 
-    public void write(File file, String text) {
-        Writer out;
+    public void write(File file, String methodName, String message) {
+        Output out;
         try {
             try {
                 if (openFiles.containsKey(file)) {
                     out = openFiles.get(file);
                 } else {
-                    out = new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(file, true)), "UTF-8");
+                    out = new Output(new FileOutputStream(file, true));
                     openFiles.put(file, out);
                     if (openFiles.size() > maxOpenFiles) {
                         //remove first
-                        Iterator<Map.Entry<File, Writer>> iterator = openFiles.entrySet().iterator();
+                        Iterator<Map.Entry<File, Output>> iterator = openFiles.entrySet().iterator();
                         close(iterator.next().getValue(), file.toString());
                         iterator.remove();
                     }
                 }
-                out.write(text);
+                out.writeString(methodName);
+                // If we want to be able to selectively read messages for certain methods
+                // we should write the length of the message next so that we can skip it
+                out.writeString(message);
             } catch (IOException e) {
                 throw new UncheckedIOException("Problems writing to file: " + file, e);
             }
@@ -69,7 +76,7 @@ public class CachingFileWriter {
 
     public void closeAll() {
         try {
-            for (Map.Entry<File, Writer> entry : openFiles.entrySet()) {
+            for (Map.Entry<File, Output> entry : openFiles.entrySet()) {
                 close(entry.getValue(), entry.getKey().toString());
             }
         } catch (UncheckedIOException e) {

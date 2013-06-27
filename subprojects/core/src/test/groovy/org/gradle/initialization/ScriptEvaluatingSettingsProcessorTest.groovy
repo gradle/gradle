@@ -16,7 +16,6 @@
 
 package org.gradle.initialization
 
-import groovy.mock.interceptor.MockFor
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -26,6 +25,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Before
 import org.junit.Test
+
 import static org.junit.Assert.assertSame
 
 /**
@@ -33,18 +33,16 @@ import static org.junit.Assert.assertSame
  */
 class ScriptEvaluatingSettingsProcessorTest {
     static final File TEST_ROOT_DIR = new File('rootDir')
-    static final File TEST_CURRENT_DIR = new File('currentDir')
     ScriptEvaluatingSettingsProcessor settingsProcessor
     DefaultSettingsFinder expectedSettingsFinder
     SettingsFactory settingsFactory
     StartParameter expectedStartParameter
     SettingsInternal expectedSettings
-    MockFor settingsFactoryMocker
     ScriptSource scriptSourceMock
     IGradlePropertiesLoader propertiesLoaderMock
     ScriptPluginFactory configurerFactoryMock
     Map expectedGradleProperties
-    URLClassLoader urlClassLoader
+    ClassLoader urlClassLoader
     GradleInternal gradleMock
     SettingsLocation settingsLocation
 
@@ -70,7 +68,10 @@ class ScriptEvaluatingSettingsProcessorTest {
         context.checking {
             one(settingsFactory).createSettings(gradleMock, TEST_ROOT_DIR, scriptSourceMock, expectedGradleProperties, expectedStartParameter, urlClassLoader)
             will(returnValue(expectedSettings))
-            
+
+            allowing(expectedSettings).getClassLoader()
+            will(returnValue(urlClassLoader))
+
             one(settingsLocation).getSettingsDir()
             will(returnValue(TEST_ROOT_DIR))
             allowing(settingsLocation).getSettingsScriptSource()

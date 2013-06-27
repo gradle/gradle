@@ -717,6 +717,39 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertResolutionFailure(":conf").assertHasCause("Invalid format: 'foobar'")
     }
 
+    def "substituted module version participates in conflict resolution"()
+    {
+        mavenRepo.module("org", "a", "2.0").dependsOn("org", "b", "2.0").publish()
+        mavenRepo.module("org", "b", "2.0").dependsOn("org", "c", "2.0").publish()
+        mavenRepo.module("org", "c", "2.0").publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org:a:1.0', 'org:a:2.0'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                if (it.requested.name == 'a' && it.requested.version == '1.0') {
+                    it.useTarget group: 'org', name: 'c', version: '1.1'
+                }
+	        }
+"""
+
+        when:
+        run("dependencies")
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+conf
++--- org:a:1.0 -> org:c:2.0
+\\--- org:a:2.0
+     \\--- org:b:2.0
+          \\--- org:c:2.0
+"""))
+    }
+
     def "module selected by conflict resolution can be selected again in a another pass of conflict resolution"()
     {
         mavenRepo.module("org", "a", "1.0").publish()

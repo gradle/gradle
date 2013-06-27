@@ -1,3 +1,113 @@
+# Expiring of changing module artifacts from cache is inadequate in some cases, overly aggressive in others
+
+* GRADLE-2175: Snapshot dependencies with sources/test classifier are not considered 'changing'
+* GRADLE-2364: Cannot run build with --offline after attempting build with a broken repository
+
+### Description
+
+When it's time to update a changing module, we expire the module descriptor and all artifact entries from the cache. The mechanism to do so it quite naive:
+
+1. We lookup the module descriptor in the cache for the repository, and determine if it needs updating (should be expired)
+2. If so, we iterate over all artifacts declared by the module descriptor and remove the cache entry for each artifact. The artifact files remain, but the repository reference is removed.
+3. When resolving artifacts we do not consider if the owning module is changing or not, we assume if the artifact is available then it is up-to-date.
+
+This leads to a couple of issues:
+* Sometimes the module descriptor does not declare all of the artifacts that have been cached (eg source/javadoc artifacts). These are then not expired, and will never be updated (GRADLE-2175).
+* If we fail to resolve the changing module (eg broken repository) then we have already removed the module+artifacts from the cache, so they are not available for --offline builds. (GRADLE-2364)
+
+### Implementation approach
+
+The goal is to never remove information from the meta-data stores, but instead to replace out-of-date information with its newer equivalent. To achieve
+this, we will introduce a synthetic version for changing modules.
+
+1. Increment the cache layout version in `DefaultCacheLockingManager`. Will need to update `LocallyAvailableResourceFinderFactory` for this change.
+2. Change `ModuleDescriptorCache.CachedModuleDescriptor` to add a `descriptorHash` property.
+3. Change `DefaultModuleDescriptorCache` to store the hash of the module descriptor from the `ModuleDescriptorStore` as part of the `ModuleDescriptorCacheEntry`.
+4. Split CachedArtifactIndex/CachedArtifact from CachedExternalResourceIndex/CachedExternalResource to handle cached Artifacts. Let ArtifactAtRepositoryCachedExternalResourceIndex implement CachedArtifactIndex.
+5. Change `CachedArtifact` to add a `descriptorHash` property.
+6. Change `CachingModuleVersionRepository.resolve()` to use the owning module version's descriptorHash as the artifact's descriptorHash when storing.
+   The final implementation should avoid loading the module descriptor multiple times. It should be possible to attach the module version descriptorHash,
+   when resolving the module metadata, to the `Artifact that will later be passed to `resolve()`.
+7. Change `CachePolicy.mustRefreshArtifact()` to expire a cached artifact if its descriptorHash != its owning module version's descriptorHash, except
+   when offline.
+8. Change `CachingModuleVersionRepository.lookupModuleInCache()` so that it no longer calls `expireArtifactsForChangingModule()`.
+9. Change `BuildableModuleVersionDescriptor.resolved()` so that an optional "module source" can be provided. Add a corresponding property. All callers
+   will use `null` for now.
+10. Change `CacheModuleVersionRepository` to use a "module source" that contains the information that it will later need to resolve the artifacts of
+    the module - the module descriptor and whether the module is changing or not.
+11. Change `ModuleVersionRepository.resolve()` to accept an additional "module source" parameter. Change all callers to use `null`. This will mean that
+    `ModuleVersionRepository` can no longer extend `ArtifactResolver` and that `UserResolverChain` will need to create an adapter.
+12. Change `UserResolverChain` to call `resolve()` with the "module source" specified in the resolve result.
+13. Change `CachingModuleVersionRepository.resolve()` to use the "module source" instead of loading the module descriptor.
+
+### User-visible changes and backward-compatibility issues
+
+* Beside the bugfixes for changing module caching, no user-visible change to cache behaviour.
+* New cached module format means updated cache version, requiring artifacts to be re-downloaded where no SHA1 keys are published.
+* Since org.apache.ivy.ModuleDescriptor is not part of our public API (except via ivy DependencyResolver), any change to using this internally should not impact users.
+
+### Integration test coverage
+
+* Will download changed version of ${name}-${classifier}.${ext} of changing module referenced with classifier.
+* Will download changed version of source jar of changing module referenced with type="source"
+    * Verify that we will not download unchanged version of changing module
+* Verify that we recover from failed resolution of module after initial successful resolution
+    * Failure cases are authorization error (401), server error (500) and connection exception
+    * Will re-attempt download on subsequent resolve and recover
+    * Will use previously cached version if run with --offline after failure
+
+# Download and parse `maven-metadata.xml` at most once when resolving Maven snapshot versions
+
+* GRADLE-2585.
+
+### Description
+
+Currently, the `maven-metadata.xml` for a version is downloaded and parsed:
+
+* Once when checking for a `pom.xml`
+* Once when checking for a JAR, in the case where the POM is missing.
+* Once for each artifact download.
+
+This a performance issue, in particular for IDE import, when a snapshot version is resolved multiple times, and multiple artifacts are downloaded. This
+is also a correctness issue, as `maven-metadata.xml` may be changed while resolving, meaning that mismatched POM and artifacts may be used.
+
+The goal is to parse the `maven-metadata.xml` exactly once per resolve, mapping the snapshot version to a timestamp version, then use this timestamp
+version internally to refer to the resolved version.
+
+### Implementation approach
+
+1. Change `MavenResolver` to override `getDependency()`.
+2. In `MavenResolver.getDependency()`, if the requested version is a snapshot:
+    1. Attempt to map the requested version to a timestamp version:
+        1. Attempt to download `maven-metadata.xml`.
+        2. If present, clone the dependency descriptor to add a `timestamp` extra property to the descriptor's `dependencyRevisionId`.
+3. Call `super.getDependency()` and return the result.
+4. Change `M2ResourcePattern.toPath()` to check for the `timestamp` extra property when building the artifact path, and substitute it into the pattern
+   if present.
+5. Change `MavenResolver.findIvyFileRef()` and`getArtifactRef()` so that they no longer does any special behaviour for snapshot versions.
+
+In theory, the `timestamp` property added in `getDependency()` will travel back to `getArtifactRef()` at this point.
+
+Some additional refactoring will be done to continue to move away from the Ivy contracts and domain objects:
+
+6. Increment the cache layout version in `DefaultCacheLockingManager`.
+7. Change `CachingModuleVersionRepository` so that when resolving the module meta-data, it takes the "module source" returned by
+   its delegate repository and stores it in the cached module descriptor entry.
+8. Change `CachingModuleVersionRepository` so that when resolving an artifact, it passes the "module source" to its delegate repository.
+9. Change `ExternalResourceResolver` to add `getDependency()` and `resolve()` methods that match those of `ModuleVersionRepository`. Change
+   `ExternalResourceResolverAdapter` to simply call these methods.
+10. Change `MavenResolver.getDependency()` to return a "module source" that includes the timestamp, when known, and to use this when resolving the
+    aritfacts.
+
+### User-visible changes and backward-compatibility issues
+
+None, except faster builds for those using snapshots.
+
+### Integration test coverage
+
+* Mostly removing a bunch of `expectMetaDataGet()` calls from various integration tests.
+* Check `maven-metadata.xml` is downloaded no more than once per build.
+
 # File stores recover from process crash while adding file to store
 
 When Gradle crashes after writing to a `FileStore` implementation, it can leave a partially written file behind. Subsequent invocations of Gradle

@@ -16,25 +16,28 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.performance.measure.Amount
+import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.Duration
+
 import static org.gradle.performance.fixture.PrettyCalculator.*
 
 /**
  * by Szczepan Faber, created at: 11/20/12
  */
 class BaselineVersion {
-
-    String version
+    final String version
+    final MeasuredOperationList results = new MeasuredOperationList()
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
-    MeasuredOperationList results
+    BaselineVersion(String version) {
+        this.version = version
+        results.name = "Gradle $version"
+    }
 
     void clearResults() {
         results.clear()
-    }
-
-    static BaselineVersion baseline(String version) {
-        new BaselineVersion(version: version, results: new MeasuredOperationList(name: "Gradle $version"))
     }
 
     String getSpeedStatsAgainst(String displayName, MeasuredOperationList current) {

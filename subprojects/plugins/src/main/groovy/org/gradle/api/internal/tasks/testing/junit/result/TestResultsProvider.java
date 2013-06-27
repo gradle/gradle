@@ -27,8 +27,17 @@ import java.io.Writer;
 public interface TestResultsProvider {
     /**
      * Writes the output of the given test to the given writer. This method must be called only after {@link #visitClasses(org.gradle.api.Action)}.
+     *
+     * Writes all output for the test class.
      */
     void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer);
+
+    /**
+     * Writes the output of the given test to the given writer. This method must be called only after {@link #visitClasses(org.gradle.api.Action)}.
+     *
+     * Write all output for the given test case name of the test class.
+     */
+    void writeOutputs(String className, String testCaseName, TestOutputEvent.Destination destination, Writer writer);
 
     /**
      * Visits the results of each test class, in no specific order. Each class is visited exactly once.

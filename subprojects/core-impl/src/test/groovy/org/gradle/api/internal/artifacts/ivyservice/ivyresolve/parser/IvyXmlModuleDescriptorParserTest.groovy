@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
 import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
@@ -24,15 +25,16 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.hamcrest.Matchers
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.text.ParseException
 
-import static junit.framework.Assert.*
-import static org.junit.Assert.assertThat
+import static org.junit.Assert.*
 
 class IvyXmlModuleDescriptorParserTest extends Specification {
-    @Rule public final Resources resources = new Resources()
+    @Rule
+    public final Resources resources = new Resources()
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
@@ -134,6 +136,128 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
                 .getConfigurations()))
         assertEquals(Arrays.asList("myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"), Arrays.asList(rules[1].getConfigurations()))
         true
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2766")
+    def "defaultconfmapping is respected"() {
+        given:
+        def file = temporaryFolder.createFile("ivy.xml")
+        file.text = """
+           <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+                <info organisation="myorg"
+                      module="mymodule"
+                      revision="myrev"
+                      status="integration"
+                      publication="20041101110000">
+                </info>
+                <configurations>
+                    <conf name="myconf" />
+                </configurations>
+                <publications/>
+                <dependencies defaultconfmapping="myconf->default">
+                    <dependency name="mymodule2"/>
+                </dependencies>
+            </ivy-module>
+        """
+
+        when:
+        def descriptor = parser.parseDescriptor(settings, file.toURI().toURL(), false)
+        def dependency = descriptor.dependencies.first()
+
+        then:
+        dependency.moduleConfigurations == ["myconf"]
+    }
+
+    def "parses dependency config mappings"() {
+        given:
+        def file = temporaryFolder.createFile("ivy.xml")
+        file.text = """
+           <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+                <info organisation="myorg"
+                      module="mymodule"
+                      revision="myrev">
+                </info>
+                <configurations>
+                    <conf name="a" />
+                    <conf name="b" />
+                    <conf name="c" />
+                </configurations>
+                <publications/>
+                <dependencies>
+                    <dependency name="mymodule2" conf="a"/>
+                    <dependency name="mymodule2" conf="a->other"/>
+                    <dependency name="mymodule2" conf="*->@"/>
+                    <dependency name="mymodule2" conf="a->other;%->@"/>
+                    <dependency name="mymodule2" conf="*,!a->@"/>
+                    <dependency name="mymodule2" conf="a->*"/>
+                    <dependency name="mymodule2" conf="a->one,two;a,b->three;*->four;%->none"/>
+                    <dependency name="mymodule2" conf="a->#"/>
+                    <dependency name="mymodule2" conf="a->a;%->@"/>
+                    <dependency name="mymodule2" conf="a->a;*,!a->b"/>
+                </dependencies>
+            </ivy-module>
+        """
+
+        when:
+        def descriptor = parser.parseDescriptor(settings, file.toURI().toURL(), false)
+
+        then:
+        def dependency1 = descriptor.dependencies[0]
+        dependency1.moduleConfigurations == ["a"]
+        dependency1.getDependencyConfigurations("a") == ["a"]
+        dependency1.getDependencyConfigurations("a", "requested") == ["a"]
+
+        def dependency2 = descriptor.dependencies[1]
+        dependency2.moduleConfigurations == ["a"]
+        dependency2.getDependencyConfigurations("a") == ["other"]
+        dependency2.getDependencyConfigurations("a", "requested") == ["other"]
+
+        def dependency3 = descriptor.dependencies[2]
+        dependency3.moduleConfigurations == ["*"]
+        dependency3.getDependencyConfigurations("a") == ["a"]
+        dependency3.getDependencyConfigurations("a", "requested") == ["a"]
+
+        def dependency4 = descriptor.dependencies[3]
+        dependency4.moduleConfigurations == ["a", "%"]
+        dependency4.getDependencyConfigurations("a") == ["other"]
+        dependency4.getDependencyConfigurations("a", "requested") == ["other"]
+        dependency4.getDependencyConfigurations("b") == ["b"]
+        dependency4.getDependencyConfigurations("b", "requested") == ["b"]
+
+        def dependency5 = descriptor.dependencies[4]
+        dependency5.moduleConfigurations == ["*", "!a"]
+        dependency5.getDependencyConfigurations("a") == ["a"]
+        dependency5.getDependencyConfigurations("a", "requested") == ["a"]
+
+        def dependency6 = descriptor.dependencies[5]
+        dependency6.moduleConfigurations == ["a"]
+        dependency6.getDependencyConfigurations("a") == ["*"]
+        dependency6.getDependencyConfigurations("a", "requested") == ["*"]
+
+        def dependency7 = descriptor.dependencies[6]
+        dependency7.moduleConfigurations == ["a", "b", "*", "%"]
+        dependency7.getDependencyConfigurations("a") == ["one", "two", "three", "four"]
+        dependency7.getDependencyConfigurations("b") == ["three", "four"]
+        dependency7.getDependencyConfigurations("c") == ["none", "four"]
+
+        def dependency8 = descriptor.dependencies[7]
+        dependency8.moduleConfigurations == ["a"]
+        dependency8.getDependencyConfigurations("a") == ["a"]
+        dependency8.getDependencyConfigurations("a", "requested") == ["requested"]
+
+        def dependency9 = descriptor.dependencies[8]
+        dependency9.moduleConfigurations == ["a", "%"]
+        dependency9.getDependencyConfigurations("a") == ["a"]
+        dependency9.getDependencyConfigurations("a", "requested") == ["a"]
+        dependency9.getDependencyConfigurations("b") == ["b"]
+        dependency9.getDependencyConfigurations("b", "requested") == ["b"]
+
+        def dependency10 = descriptor.dependencies[9]
+        dependency10.moduleConfigurations == ["a", "*", "!a"]
+        dependency10.getDependencyConfigurations("a") == ["a", "b"]
+        dependency10.getDependencyConfigurations("a", "requested") == ["a", "b"]
+        dependency10.getDependencyConfigurations("b") == ["b"]
+        dependency10.getDependencyConfigurations("b", "requested") == ["b"]
     }
 
     def verifyFullDependencies(DependencyDescriptor[] dependencies) {

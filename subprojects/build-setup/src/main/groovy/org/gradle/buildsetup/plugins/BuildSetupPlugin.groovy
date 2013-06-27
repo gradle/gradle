@@ -14,84 +14,74 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.buildsetup.plugins
 
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.wrapper.Wrapper
-import org.gradle.buildsetup.tasks.ConvertMaven2Gradle
-import org.gradle.buildsetup.tasks.GenerateBuildFile
-import org.gradle.buildsetup.tasks.GenerateSettingsFile
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.artifacts.DependencyManagementServices
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
+import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistryFactory
+import org.gradle.buildsetup.tasks.SetupBuild
+
+import javax.inject.Inject
 
 @Incubating
 class BuildSetupPlugin implements Plugin<Project> {
     public static final String SETUP_BUILD_TASK_NAME = "setupBuild"
     public static final String GROUP = 'Build Setup'
 
+    private final MavenSettingsProvider mavenSettingsProvider
+    private final DocumentationRegistry documentationRegistry
+    private final FileResolver fileResolver
+
+    @Inject
+    BuildSetupPlugin(DependencyManagementServices dependencyManagementServices, DocumentationRegistry documentationRegistry, FileResolver fileResolver) {
+        this.fileResolver = fileResolver
+        this.documentationRegistry = documentationRegistry
+        this.mavenSettingsProvider = dependencyManagementServices.get(MavenSettingsProvider)
+    }
+
     void apply(Project project) {
-        Task setupBuild = project.getTasks().create(SETUP_BUILD_TASK_NAME);
+        ProjectLayoutSetupRegistryFactory projectLayoutRegistryFactory = new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider,
+                documentationRegistry,
+                fileResolver);
+
+        Task setupBuild = project.getTasks().create(SETUP_BUILD_TASK_NAME, SetupBuild);
+        ProjectLayoutSetupRegistry projectLayoutRegistry = projectLayoutRegistryFactory.createProjectLayoutSetupRegistry()
+        setupBuild.projectLayoutRegistry = projectLayoutRegistry
         setupBuild.group = GROUP
         setupBuild.description = "Initializes a new Gradle build. [incubating]"
-        boolean furtherTasksRequired = configureBuildSetupTask(project, setupBuild)
-        if (furtherTasksRequired) {
-            configureFurtherSetupActions(project, setupBuild)
+        Closure setupCanBeSkipped = {
+            if (project.file("build.gradle").exists()) {
+                return ("The build file 'build.gradle' already exists. Skipping build initialization.")
+            }
+            if (project.buildFile?.exists()) {
+                return ("The build file '$project.buildFile.name' already exists. Skipping build initialization.")
+            }
+            if (project.file("settings.gradle").exists()) {
+                return ("The settings file 'settings.gradle' already exists. Skipping build initialization.")
+            }
+            if (project.subprojects.size() > 0) {
+                return ("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
+            }
+            return null
         }
-    }
+        setupBuild.onlyIf {
+            def skippedMsg = setupCanBeSkipped()
+            if (skippedMsg) {
+                project.logger.warn skippedMsg
+                return false
+            }
+            return true
+        }
 
-    boolean configureBuildSetupTask(Project project, Task setupBuildTask) {
-        if (project.file("build.gradle").exists()) {
-            setupBuildTask.doLast {
-                logger.warn("The build file 'build.gradle' already exists. Skipping build initialization.")
-            }
-            return false
+        if (!setupCanBeSkipped()) {
+            setupBuild.dependsOn("wrapper")
         }
-        if (project.buildFile?.exists()) {
-            setupBuildTask.doLast {
-                logger.warn("The build file '$project.buildFile.name' already exists. Skipping build initialization.")
-            }
-            return false
-        }
-        if (project.file("settings.gradle").exists()) {
-            setupBuildTask.doLast {
-                logger.warn("The settings file 'settings.gradle' already exists. Skipping build initialization.")
-            }
-            return false
-        }
-        if (project.subprojects.size() > 0) {
-            setupBuildTask.doLast {
-                logger.warn("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
-            }
-            return false
-        }
-        return true
-    }
-
-    def configureFurtherSetupActions(Project project, Task setupBuild) {
-        if (project.file("pom.xml").exists()) {
-            def maven2Gradle = project.task("maven2Gradle", type: ConvertMaven2Gradle) {
-                description = 'Generates a Gradle build from a Maven POM. [incubating]'
-            }
-            setupBuild.dependsOn(maven2Gradle)
-        } else {
-            // generate empty gradle build file
-            GenerateBuildFile generateBuildFile = project.task("generateBuildFile", type: GenerateBuildFile) {
-                description = 'Generates a Gradle build file. [incubating]'
-                buildFile = project.file("build.gradle")
-            }
-            // generate empty gradle settings file
-            GenerateSettingsFile generateSettingsFile = project.task("generateSettingsFile", type: GenerateSettingsFile) {
-                description = 'Generates a Gradle settings file. [incubating]'
-                settingsFile = project.file("settings.gradle")
-            }
-            setupBuild.dependsOn(generateSettingsFile)
-            setupBuild.dependsOn(generateBuildFile)
-        }
-        Task wrapper = project.task("setupWrapper", type: Wrapper)
-        wrapper.description = "Generates Gradle wrapper files. [incubating]"
-        setupBuild.dependsOn(wrapper)
     }
 }

@@ -42,7 +42,9 @@ public class MavenVersionLister implements VersionLister {
                     return;
                 }
                 MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
-                add(mavenMetaData.versions);
+                for (String version : mavenMetaData.versions) {
+                    add(new ListedVersion(version, resourcePattern));
+                }
             }
         };
     }

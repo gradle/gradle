@@ -18,11 +18,11 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.file.copy.CopySpecImpl
 
 /**
  * Assembles a WAR archive.
@@ -40,7 +40,8 @@ class War extends Jar {
     War() {
         extension = WAR_EXTENSION
         // Add these as separate specs, so they are not affected by the changes to the main spec
-        webInf = copyAction.rootSpec.addChild().into('WEB-INF')
+
+        webInf = copyAction.rootSpec.addFirst().into('WEB-INF')
         webInf.into('classes') {
             from {
                 def classpath = getClasspath()

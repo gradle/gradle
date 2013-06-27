@@ -22,15 +22,16 @@ import org.gradle.util.ChangeListener;
 import org.gradle.util.NoOpChangeListener;
 
 import java.io.File;
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.*;
 
 public class DefaultFileSnapshotter implements FileSnapshotter {
     private final Hasher hasher;
+    private TaskArtifactStateCacheAccess cacheAccess;
 
-    public DefaultFileSnapshotter(Hasher hasher) {
+    public DefaultFileSnapshotter(Hasher hasher, TaskArtifactStateCacheAccess cacheAccess) {
         this.hasher = hasher;
+        this.cacheAccess = cacheAccess;
     }
 
     public FileCollectionSnapshot emptySnapshot() {
@@ -38,25 +39,30 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
     }
 
     public FileCollectionSnapshot snapshot(FileCollection sourceFiles) {
-        Map<String, FileSnapshot> snapshots = new HashMap<String, FileSnapshot>();
-        for (File file : sourceFiles.getAsFileTree()) {
-            if (file.isFile()) {
-                snapshots.put(file.getAbsolutePath(), new FileHashSnapshot(hasher.hash(file)));
-            } else if (file.isDirectory()) {
-                snapshots.put(file.getAbsolutePath(), new DirSnapshot());
-            } else {
-                snapshots.put(file.getAbsolutePath(), new MissingFileSnapshot());
+        final Map<String, FileSnapshot> snapshots = new HashMap<String, FileSnapshot>();
+        final Set<File> theFiles = sourceFiles.getAsFileTree().getFiles();
+        cacheAccess.useCache("Create file snapshot", new Runnable() {
+            public void run() {
+                for (File file : theFiles) {
+                    if (file.isFile()) {
+                        snapshots.put(file.getAbsolutePath(), new FileHashSnapshot(hasher.hash(file)));
+                    } else if (file.isDirectory()) {
+                        snapshots.put(file.getAbsolutePath(), new DirSnapshot());
+                    } else {
+                        snapshots.put(file.getAbsolutePath(), new MissingFileSnapshot());
+                    }
+                }
             }
-        }
+        });
         return new FileCollectionSnapshotImpl(snapshots);
     }
 
-    private interface FileSnapshot extends Serializable {
+    static interface FileSnapshot {
         boolean isUpToDate(FileSnapshot snapshot);
     }
 
-    private static class FileHashSnapshot implements FileSnapshot {
-        private final byte[] hash;
+    static class FileHashSnapshot implements FileSnapshot {
+        final byte[] hash;
 
         public FileHashSnapshot(byte[] hash) {
             this.hash = hash;
@@ -77,20 +83,20 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
         }
     }
 
-    private static class DirSnapshot implements FileSnapshot {
+    static class DirSnapshot implements FileSnapshot {
         public boolean isUpToDate(FileSnapshot snapshot) {
             return snapshot instanceof DirSnapshot;
         }
     }
 
-    private static class MissingFileSnapshot implements FileSnapshot {
+    static class MissingFileSnapshot implements FileSnapshot {
         public boolean isUpToDate(FileSnapshot snapshot) {
             return snapshot instanceof MissingFileSnapshot;
         }
     }
 
-    private static class FileCollectionSnapshotImpl implements FileCollectionSnapshot {
-        private final Map<String, FileSnapshot> snapshots;
+    static class FileCollectionSnapshotImpl implements FileCollectionSnapshot {
+        final Map<String, FileSnapshot> snapshots;
 
         public FileCollectionSnapshotImpl(Map<String, FileSnapshot> snapshots) {
             this.snapshots = snapshots;

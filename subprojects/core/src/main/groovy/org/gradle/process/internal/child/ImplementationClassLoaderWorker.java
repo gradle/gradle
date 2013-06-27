@@ -86,6 +86,6 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
     }
 
     MutableURLClassLoader createImplementationClassLoader(ClassLoader system, ClassLoader application) {
-        return new MutableURLClassLoader(new MultiParentClassLoader(application, system));
+        return new MutableURLClassLoader(new CachingClassLoader(new MultiParentClassLoader(application, system)));
     }
 }

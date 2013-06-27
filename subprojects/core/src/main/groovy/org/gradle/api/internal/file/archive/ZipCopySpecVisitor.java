@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import org.apache.tools.zip.*;
+import org.apache.tools.zip.UnixStat;
+import org.apache.tools.zip.ZipEntry;
+import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.copy.CopyAction;
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
 
 import java.io.File;
@@ -49,7 +51,7 @@ public class ZipCopySpecVisitor extends EmptyCopySpecVisitor {
         }
     }
 
-    public void visitFile(FileVisitDetails fileDetails) {
+    public void visitFile(FileCopyDetails fileDetails) {
         try {
             ZipEntry archiveEntry = new ZipEntry(fileDetails.getRelativePath().getPathString());
             archiveEntry.setTime(fileDetails.getLastModified());
@@ -62,7 +64,7 @@ public class ZipCopySpecVisitor extends EmptyCopySpecVisitor {
         }
     }
 
-    public void visitDir(FileVisitDetails dirDetails) {
+    public void visitDir(FileCopyDetails dirDetails) {
         try {
             // Trailing slash in name indicates that entry is a directory
             ZipEntry archiveEntry = new ZipEntry(dirDetails.getRelativePath().getPathString() + '/');

@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.buildsetup.plugins
 
+import org.gradle.buildsetup.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.test.fixtures.file.TestFile
+import org.hamcrest.Matcher
+
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
 
 class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
+    final wrapper = new WrapperTestFixture(testDirectory)
 
     @Override
     String getMainTask() {
@@ -32,43 +41,59 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
 
     def "setupBuild shows up on tasks overview "() {
         when:
-        def executed = run 'tasks'
+        run 'tasks'
+
         then:
-        executed.output.contains "setupBuild - Initializes a new Gradle build."
+        result.output.contains "setupBuild - Initializes a new Gradle build."
     }
 
-    def "can be executed without existing pom"() {
+    def "creates a simple project when no pom file present and no type specified"() {
         given:
         assert !buildFile.exists()
+        assert !settingsFile.exists()
+
         when:
         run 'setupBuild'
-        then:
-        wrapperIsGenerated()
-    }
 
+        then:
+        wrapper.generated()
+        buildFile.exists()
+        settingsFile.exists()
+
+        expect:
+        succeeds 'tasks'
+    }
 
     def "build file generation is skipped when build file already exists"() {
         given:
-        assert buildFile.createFile()
+        buildFile.createFile()
 
         when:
-        def executed = run('setupBuild')
+        run('setupBuild')
 
         then:
-        executed.assertTasksExecuted(":setupBuild")
-        executed.output.contains("The build file 'build.gradle' already exists. Skipping build initialization.")
+        result.assertTasksExecuted(":setupBuild")
+        result.output.contains("The build file 'build.gradle' already exists. Skipping build initialization.")
+
+        and:
+        !settingsFile.exists()
+        wrapper.notGenerated()
     }
 
     def "build file generation is skipped when settings file already exists"() {
         given:
-        assert settingsFile.createFile()
+        settingsFile.createFile()
 
         when:
-        def executed = run('setupBuild')
+        run('setupBuild')
 
         then:
-        executed.assertTasksExecuted(":setupBuild")
-        executed.output.contains("The settings file 'settings.gradle' already exists. Skipping build initialization.")
+        result.assertTasksExecuted(":setupBuild")
+        result.output.contains("The settings file 'settings.gradle' already exists. Skipping build initialization.")
+
+        and:
+        !buildFile.exists()
+        wrapper.notGenerated()
     }
 
     def "build file generation is skipped when custom build file exists"() {
@@ -77,11 +102,16 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
 
         when:
         executer.usingBuildScript(customBuildScript)
-        def executed = run('setupBuild')
+        run('setupBuild')
 
         then:
-        executed.assertTasksExecuted(":setupBuild")
-        executed.output.contains("The build file 'customBuild.gradle' already exists. Skipping build initialization.")
+        result.assertTasksExecuted(":setupBuild")
+        result.output.contains("The build file 'customBuild.gradle' already exists. Skipping build initialization.")
+
+        and:
+        !buildFile.exists()
+        !settingsFile.exists()
+        wrapper.notGenerated()
     }
 
     def "build file generation is skipped when part of a multi-project build with non-standard settings file location"() {
@@ -93,17 +123,82 @@ include 'child'
 
         when:
         executer.usingSettingsFile(customSettings)
-        def executed = run('setupBuild')
+        run('setupBuild')
 
         then:
-        executed.assertTasksExecuted(":setupBuild")
-        executed.output.contains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
+        result.assertTasksExecuted(":setupBuild")
+        result.output.contains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
+
+        and:
+        !buildFile.exists()
+        !settingsFile.exists()
+        wrapper.notGenerated()
     }
 
-    private def wrapperIsGenerated() {
-        file("gradlew").assertExists()
-        file("gradlew.bat").assertExists()
-        file("gradle/wrapper/gradle-wrapper.jar").assertExists()
-        file("gradle/wrapper/gradle-wrapper.properties").assertExists()
+    def "pom conversion is triggered when pom and no gradle file found"() {
+        given:
+        pom()
+
+        when:
+        run('setupBuild')
+
+        then:
+        pomValuesUsed()
     }
+
+    def "pom conversion not triggered when build type is specified"() {
+        given:
+        pom()
+
+        when:
+        succeeds('setupBuild', '--type', 'java-library')
+
+        then:
+        pomValuesNotUsed()
+    }
+
+    def "gives decent error message when triggered with unknown setupBuild-type"() {
+        when:
+        fails('setupBuild', '--type', 'some-unknown-library')
+
+        then:
+        failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")
+    }
+
+    private TestFile pom() {
+        file("pom.xml") << """
+      <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>util</groupId>
+        <artifactId>util</artifactId>
+        <version>2.5</version>
+        <packaging>jar</packaging>
+      </project>"""
+    }
+
+    private pomValuesUsed() {
+        buildFile.assertContents(containsPomGroup())
+        buildFile.assertContents(containsPomVersion())
+        settingsFile.assertContents(containsPomArtifactId())
+    }
+
+    private pomValuesNotUsed() {
+        buildFile.assertContents(not(containsPomGroup()))
+        buildFile.assertContents(not(containsPomVersion()))
+        settingsFile.assertContents(not(containsPomArtifactId()))
+    }
+
+    private Matcher<String> containsPomGroup() {
+        containsString("group = 'util'")
+    }
+
+    private Matcher<String> containsPomVersion() {
+        containsString("version = '2.5'")
+    }
+
+    private Matcher<String> containsPomArtifactId() {
+        containsString("rootProject.name = 'util'")
+    }
+
 }

@@ -18,19 +18,17 @@ package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.maven.MavenPom;
-import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
+import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
-import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Set;
 
 /**
  * Generates an Ivy XML Module Descriptor file.
@@ -90,25 +88,16 @@ public class GenerateMavenPom extends DefaultTask {
     public void doGenerate() {
         MavenPomInternal pomInternal = (MavenPomInternal) getPom();
 
-        MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator();
-        copyIdentity(pomInternal, pomGenerator);
-        copyDependencies(pomInternal.getRuntimeDependencies(), pomGenerator);
+        MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator(pomInternal.getProjectIdentity());
+        pomGenerator.setPackaging(pomInternal.getPackaging());
+
+        for (MavenDependencyInternal runtimeDependency : pomInternal.getRuntimeDependencies()) {
+            pomGenerator.addRuntimeDependency(runtimeDependency);
+        }
+
         pomGenerator.withXml(pomInternal.getXmlAction());
 
         pomGenerator.writeTo(getDestination());
     }
 
-    private void copyIdentity(MavenPomInternal pomInternal, MavenPomFileGenerator pom) {
-        MavenProjectIdentity projectIdentity = pomInternal.getProjectIdentity();
-        pom.setArtifactId(projectIdentity.getArtifactId());
-        pom.setGroupId(projectIdentity.getGroupId());
-        pom.setVersion(projectIdentity.getVersion());
-        pom.setPackaging(pomInternal.getPackaging());
-    }
-
-    private void copyDependencies(Set<Dependency> runtimeDependencies, MavenPomFileGenerator pom) {
-        for (Dependency runtimeDependency : runtimeDependencies) {
-            pom.addRuntimeDependency(runtimeDependency);
-        }
-    }
 }

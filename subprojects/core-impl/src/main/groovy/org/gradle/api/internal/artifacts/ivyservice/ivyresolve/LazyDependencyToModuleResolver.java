@@ -31,10 +31,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
  * required.
  */
 public class LazyDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
-    private final DependencyToModuleResolver dependencyResolver;
+    private final DependencyToModuleVersionResolver dependencyResolver;
     private final VersionMatcher versionMatcher;
 
-    public LazyDependencyToModuleResolver(DependencyToModuleResolver dependencyResolver, VersionMatcher versionMatcher) {
+    public LazyDependencyToModuleResolver(DependencyToModuleVersionResolver dependencyResolver, VersionMatcher versionMatcher) {
         this.dependencyResolver = dependencyResolver;
         this.versionMatcher = versionMatcher;
     }

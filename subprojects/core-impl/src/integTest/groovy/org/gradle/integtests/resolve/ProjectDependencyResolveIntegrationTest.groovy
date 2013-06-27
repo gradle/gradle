@@ -148,17 +148,18 @@ allprojects {
 project(":a") {
     configurations { 'default' {} }
     dependencies { 'default' 'group:externalA:1.5' }
-    task aJar(type: Jar) { }
-    artifacts { 'default' aJar }
+    task aJar(type: Jar) { baseName='a' }
+    task bJar(type: Jar) { baseName='b' }
+    artifacts { 'default' aJar, bJar }
 }
 
 project(":b") {
     configurations { compile }
-    dependencies { compile(project(':a')) { artifact { name = 'a'; type = 'jar' } } }
+    dependencies { compile(project(':a')) { artifact { name = 'b'; type = 'jar' } } }
     task test {
         inputs.files configurations.compile
         doFirst {
-            assert configurations.compile.files.collect { it.name } == ['a.jar', 'externalA-1.5.jar']
+            assert configurations.compile.files.collect { it.name } == ['b.jar', 'externalA-1.5.jar']
         }
     }
 }
@@ -166,6 +167,38 @@ project(":b") {
 
         expect:
         succeeds 'test'
+    }
+
+    public void "reports project dependency that refers to an unknown artifact"() {
+        given:
+        file('settings.gradle') << """
+include 'a', 'b'
+"""
+
+        and:
+        buildFile << """
+allprojects { group = 'test' }
+project(":a") {
+    configurations { 'default' {} }
+}
+
+project(":b") {
+    configurations { compile }
+    dependencies { compile(project(':a')) { artifact { name = 'b'; type = 'jar' } } }
+    task test {
+        inputs.files configurations.compile
+        doFirst {
+            assert configurations.compile.files.collect { it.name } == ['a-b.jar', 'externalA-1.5.jar']
+        }
+    }
+}
+"""
+
+        expect:
+        fails 'test'
+
+        and:
+        failure.assertResolutionFailure(":b:compile").assertHasCause("Artifact 'test:a:unspecified@jar' not found.")
     }
 
     public void "non-transitive project dependency includes only the artifacts of the target configuration"() {

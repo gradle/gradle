@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.io.ByteStreams;
 import org.codehaus.groovy.transform.GroovyASTTransformationClass;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.GradleException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.util.MutableURLClassLoader;
 import org.objectweb.asm.*;
@@ -46,13 +46,14 @@ class TransformingClassLoader extends MutableURLClassLoader {
         if (resource == null) {
             throw new ClassNotFoundException(name);
         }
+        byte[] bytes;
         try {
-            byte[] bytes = loadBytecode(resource);
+            bytes = loadBytecode(resource);
             bytes = transform(bytes);
-            return super.defineClass(name, bytes, 0, bytes.length);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not load class '%s' from %s.", name, resource), e);
         }
+        return super.defineClass(name, bytes, 0, bytes.length);
     }
 
     private byte[] loadBytecode(URL resource) throws IOException {

@@ -77,4 +77,11 @@
         <extends targetClass="org.gradle.api.Project" id="jacoco" extensionClass="org.gradle.testing.jacoco.plugins.JacocoPluginExtension"/>
         <extends targetClass="org.gradle.api.tasks.testing.Test" id="jacoco" extensionClass="org.gradle.testing.jacoco.plugins.JacocoTaskExtension"/>
     </plugin>
+    <plugin id="cpp" description="C++ Plugin">
+        <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativecode.base.ToolChainRegistry"/>
+        <extends targetClass="org.gradle.api.Project" id="executables" extensionClass="org.gradle.nativecode.base.ExecutableContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="libraries" extensionClass="org.gradle.nativecode.base.LibraryContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.language.base.BinaryContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="cpp" extensionClass="org.gradle.nativecode.language.cpp.plugins.CppExtension"/>
+    </plugin>
 </plugins>

@@ -16,22 +16,48 @@
 
 package org.gradle.api.publish.ivy.internal.dependency;
 
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.DependencyArtifact;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class DefaultIvyDependency implements IvyDependencyInternal {
-    private ModuleDependency dependency;
-    private String confMapping;
+    private final String organisation;
+    private final String module;
+    private final String revision;
+    private final String confMapping;
+    private final List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
 
-    public DefaultIvyDependency(ModuleDependency dependency, String confMapping) {
-        this.dependency = dependency;
+    public DefaultIvyDependency(String organisation, String module, String revision, String confMapping) {
+        this.organisation = organisation;
+        this.module = module;
+        this.revision = revision;
         this.confMapping = confMapping;
     }
 
-    public ModuleDependency getModuleDependency() {
-        return dependency;
+    public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, Collection<DependencyArtifact> artifacts) {
+        this(organisation, module, revision, confMapping);
+        this.artifacts.addAll(artifacts);
+    }
+
+    public String getOrganisation() {
+        return organisation;
+    }
+
+    public String getModule() {
+        return module;
+    }
+
+    public String getRevision() {
+        return revision;
     }
 
     public String getConfMapping() {
         return confMapping;
+    }
+
+    public Iterable<DependencyArtifact> getArtifacts() {
+        return artifacts;
     }
 }

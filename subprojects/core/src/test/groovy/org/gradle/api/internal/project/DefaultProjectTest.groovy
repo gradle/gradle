@@ -25,7 +25,6 @@ import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
@@ -33,7 +32,8 @@ import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.Directory
-import org.gradle.configuration.ProjectEvaluator
+import org.gradle.configuration.project.ProjectConfigurationActionContainer
+import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
@@ -66,11 +66,7 @@ import static org.junit.Assert.*
 class DefaultProjectTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
-    static final String TEST_PROJECT_NAME = 'testproject'
-
     static final String TEST_BUILD_FILE_NAME = 'build.gradle'
-
-    static final String TEST_TASK_NAME = 'testtask'
 
     Task testTask;
 
@@ -94,7 +90,6 @@ class DefaultProjectTest {
 
     ConfigurationContainerInternal configurationContainerMock = context.mock(ConfigurationContainerInternal.class)
     RepositoryHandler repositoryHandlerMock = context.mock(RepositoryHandler.class)
-    DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory.class)
     DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
     PluginContainer pluginContainerMock = context.mock(PluginContainer)
     ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
@@ -105,6 +100,7 @@ class DefaultProjectTest {
     LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class)
     Instantiator instantiatorMock = context.mock(Instantiator)
     SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
+    ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
 
     @Before
     void setUp() {
@@ -150,6 +146,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(FileOperations); will(returnValue(fileOperationsMock))
             allowing(serviceRegistryMock).get(ProcessOperations); will(returnValue(processOperationsMock))
             allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
+            allowing(serviceRegistryMock).get(ProjectConfigurationActionContainer); will(returnValue(configureActions))
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
             allowing(build).getProjectEvaluationBroadcaster();

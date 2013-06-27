@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 
 /**
  * A repository of module versions.
  *
- * The plan is to sync this with {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver} and rename it
+ * The plan is to sync this with {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver} and rename it
  * to have 'resolver' instead of 'repository' in its name.
  */
 public interface ModuleVersionRepository {
@@ -29,10 +29,13 @@ public interface ModuleVersionRepository {
 
     String getName();
 
-    void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result);
+    /**
+     * Resolves the given dependency to the corresponding module version meta-data.
+     */
+    void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result);
 
     /**
-     * Downloads the given artifact. Any failures are packaged up in the result.
+     * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource);
+    void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource);
 }

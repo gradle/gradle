@@ -15,9 +15,10 @@
  */
 
 package org.gradle.api.publish.ivy.internal.artifact
-
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.publish.ivy.IvyArtifact
@@ -30,7 +31,7 @@ import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 public class IvyArtifactNotationParserFactoryTest extends Specification {
-    Instantiator instantiator = new DirectInstantiator()
+    Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     def fileNotationParser = Mock(NotationParser)
     def taskDependency = Mock(TaskDependency)
     def publishArtifact = Stub(PublishArtifact) {

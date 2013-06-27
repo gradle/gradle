@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileCopyDetails;
 
 public class EmptyCopySpecVisitor implements CopySpecVisitor {
     public boolean getDidWork() {
@@ -25,13 +25,13 @@ public class EmptyCopySpecVisitor implements CopySpecVisitor {
     public void startVisit(CopyAction action) {
     }
 
-    public void visitDir(FileVisitDetails dirDetails) {
+    public void visitDir(FileCopyDetails dirDetails) {
     }
 
     public void endVisit() {
     }
 
-    public void visitFile(FileVisitDetails fileDetails) {
+    public void visitFile(FileCopyDetails fileDetails) {
     }
 
     public void visitSpec(ReadableCopySpec spec) {

@@ -35,6 +35,11 @@ public class Sync extends AbstractCopyTask {
     }
 
     @Override
+    protected void postCopyCleanup() {
+        action = null;
+    }
+
+    @Override
     protected FileCopyActionImpl getCopyAction() {
         return action;
     }

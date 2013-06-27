@@ -143,12 +143,12 @@ class SonarPlugin implements Plugin<ProjectInternal> {
                     }
                     libraries
                 }
-                testReportPath = { project.test.testResultsDir }
+                testReportPath = { project.test.reports.junitXml.destination }
                 language = { "java" }
             }
             project.plugins.withType(JacocoPlugin) {
                 sonarProject.withProjectProperties { props ->
-                    props['sonar.jacoco.reportPath'] = project.test.jacoco.destPath
+                    props['sonar.jacoco.reportPath'] = project.test.jacoco.destinationFile
                 }
             }
         }

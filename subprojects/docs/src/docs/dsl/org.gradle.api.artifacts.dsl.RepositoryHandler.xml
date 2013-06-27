@@ -46,6 +46,9 @@
                 <td>mavenCentral</td>
             </tr>
             <tr>
+                <td>jcenter</td>
+            </tr>
+            <tr>
                 <td>mavenLocal</td>
             </tr>
             <tr>

@@ -22,10 +22,8 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
@@ -35,6 +33,8 @@ import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 
@@ -69,7 +69,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         updatePatterns();
     }
 
-    public void getDependency(DependencyDescriptor dd, BuildableModuleVersionMetaData result) {
+    public void getDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
         if (isSnapshotVersion(dd)) {
             getSnapshotDependency(dd, result);
         } else {
@@ -77,13 +77,13 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         }
     }
 
-    private void getSnapshotDependency(DependencyDescriptor dd, BuildableModuleVersionMetaData result) {
+    private void getSnapshotDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
         final ModuleRevisionId dependencyRevisionId = dd.getDependencyRevisionId();
         final String uniqueSnapshotVersion = findUniqueSnapshotVersion(dependencyRevisionId);
         if (uniqueSnapshotVersion != null) {
             DependencyDescriptor enrichedDependencyDescriptor = enrichDependencyDescriptorWithSnapshotVersionInfo(dd, dependencyRevisionId, uniqueSnapshotVersion);
             super.getDependency(enrichedDependencyDescriptor, result);
-            if (result.getState() == BuildableModuleVersionMetaData.State.Resolved) {
+            if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
                 result.setModuleSource(new TimestampedModuleSource(uniqueSnapshotVersion));
             }
         } else {
@@ -102,20 +102,17 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return dd.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT");
     }
 
-    protected EnhancedArtifactDownloadReport download(Artifact artifact, ModuleSource moduleSource) {
-        EnhancedArtifactDownloadReport artifactDownloadReport;
-
+    protected File download(Artifact artifact, ModuleSource moduleSource) throws IOException {
         if (moduleSource instanceof TimestampedModuleSource) {
             TimestampedModuleSource timestampedModuleSource = (TimestampedModuleSource) moduleSource;
             String timestampedVersion = timestampedModuleSource.getTimestampedVersion();
-            artifactDownloadReport = downloadTimestampedVersion(artifact, timestampedVersion);
+            return downloadTimestampedVersion(artifact, timestampedVersion);
         } else {
-            artifactDownloadReport = download(artifact);
+            return download(artifact);
         }
-        return artifactDownloadReport;
     }
 
-    private EnhancedArtifactDownloadReport downloadTimestampedVersion(Artifact artifact, String timestampedVersion) {
+    private File downloadTimestampedVersion(Artifact artifact, String timestampedVersion) throws IOException {
         final ModuleRevisionId artifactModuleRevisionId = artifact.getModuleRevisionId();
         final ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(artifactModuleRevisionId.getOrganisation(),
                 artifactModuleRevisionId.getName(),
@@ -157,7 +154,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         setArtifactPatterns(artifactPatterns);
     }
 
-    public ResolvedResource findIvyFileRef(DependencyDescriptor dd) {
+    protected ResolvedResource findIvyFileRef(DependencyDescriptor dd) {
         if (isUsepoms()) {
             ModuleRevisionId moduleRevisionId = dd.getDependencyRevisionId();
             //we might need a own implementation of DefaultArtifact here as there is no way to pass extraAttributes AND isMetaData to DefaultArtifact

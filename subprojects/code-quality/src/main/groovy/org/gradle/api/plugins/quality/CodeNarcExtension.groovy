@@ -24,6 +24,22 @@ class CodeNarcExtension extends CodeQualityExtension {
     File configFile
 
     /**
+     * The maximum number of priority 1 violations allowed before failing the build.
+     */
+    int maxPriority1Violations
+
+    /**
+     * The maximum number of priority 2 violations allowed before failing the build.
+     */
+    int maxPriority2Violations
+
+    /**
+     * The maximum number of priority 3 violations allowed before failing the build.
+     */
+    int maxPriority3Violations
+
+
+    /**
      * The format type of the CodeNarc report. One of <tt>html</tt>, <tt>xml</tt>, <tt>text</tt>, <tt>console</tt>.
      */
     String reportFormat
