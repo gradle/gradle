@@ -283,6 +283,17 @@ class CollectionUtilsTest extends Specification {
         sort([] as Set, naturalComparator) == []
     }
 
+    def "scoring"() {
+        expect:
+        score([1,2,3], transformer { it.toString() }) == [
+                new ScoredItem(1, "1"),
+                new ScoredItem(2, "2"),
+                new ScoredItem(3, "3")
+        ]
+
+        score([], transformer {}) == []
+    }
+
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }

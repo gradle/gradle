@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal
 
-import org.gradle.internal.reflect.DirectInstantiator
-import spock.lang.Specification
-import spock.lang.Issue
-import org.gradle.util.ConfigureUtil
 import org.gradle.api.Action
+import org.gradle.api.internal.coerce.TypeCoercionException
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.ConfigureUtil
+import spock.lang.Issue
+import spock.lang.Specification
 
 class AsmBackedClassGeneratorGroovyTest extends Specification {
 
@@ -138,6 +139,93 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         tester.lastArgs.last().is(closure)
     }
 
+    static enum TestEnum {
+        ABC, DEF
+    }
+
+    static class EnumCoerceTestSubject {
+        TestEnum enumProperty
+
+        void someEnumMethod(TestEnum testEnum) {
+            this.enumProperty = testEnum
+        }
+    }
+
+    def "can coerce enum values"() {
+        given:
+        def i = create(EnumCoerceTestSubject)
+
+        when:
+        i.enumProperty = "abc"
+
+        then:
+        i.enumProperty == TestEnum.ABC
+
+        when:
+        i.someEnumMethod("DEF")
+
+        then:
+        i.enumProperty == TestEnum.DEF
+
+        when:
+        i.enumProperty "abc"
+
+        then:
+        i.enumProperty == TestEnum.ABC
+
+        when:
+        i.enumProperty "foo"
+
+        then:
+        thrown TypeCoercionException
+    }
+
+    def "can call methods during construction"() {
+        /*
+            We route all methods through invokeMethod, which requires fields
+            added in the subclass. We have special handling for the case where
+            methods are called before this field has been initialised; this tests that.
+         */
+        when:
+        def i = create(CallsMethodDuringConstruction)
+
+        then:
+        i.setDuringConstructor == i.class
+        i.setAtFieldInit == i.class
+    }
+
+    def "can call private methods internally"() {
+        /*
+            We have to specially handle private methods in our dynamic protocol.
+         */
+        given:
+        def i = create(CallsPrivateMethods)
+
+        when:
+        i.flagCalled("a")
+
+        then:
+        i.calledWith == String
+
+        when:
+        i.flagCalled(1.2)
+
+        then:
+        i.calledWith == Number
+
+        when:
+        i.flagCalled([])
+
+        then:
+        i.calledWith == Object
+
+        when:
+        i.flagCalled(1)
+
+        then:
+        i.calledWith == Integer
+    }
+
     def conf(o, c) {
         ConfigureUtil.configure(c, o)
     }
@@ -209,7 +297,39 @@ class ActionsTester {
         lastMethod = "hasClosure"
         lastArgs = [s, closure]
     }
+}
 
+class CallsMethodDuringConstruction {
 
+    Class setAtFieldInit = getClass()
+    Class setDuringConstructor
 
+    CallsMethodDuringConstruction() {
+        setDuringConstructor = getClass()
+    }
+}
+
+class CallsPrivateMethods {
+
+    Class calledWith
+
+    void flagCalled(arg) {
+        doFlagCalled(arg)
+    }
+
+    private doFlagCalled(String s) {
+        calledWith = String
+    }
+
+    private doFlagCalled(Number s) {
+        calledWith = Number
+    }
+
+    private doFlagCalled(Integer s) {
+        calledWith = Integer
+    }
+
+    private doFlagCalled(Object s) {
+        calledWith = Object
+    }
 }

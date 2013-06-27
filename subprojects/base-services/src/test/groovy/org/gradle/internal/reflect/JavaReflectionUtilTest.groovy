@@ -16,10 +16,12 @@
 
 package org.gradle.internal.reflect
 
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
 import org.gradle.internal.UncheckedException
 import spock.lang.Specification
 
-import static org.gradle.internal.reflect.JavaReflectionUtil.method
+import static org.gradle.internal.reflect.JavaReflectionUtil.*
 
 class JavaReflectionUtilTest extends Specification {
     JavaTestSubject myProperties = new JavaTestSubject()
@@ -91,6 +93,25 @@ class JavaReflectionUtilTest extends Specification {
         expect:
         method(JavaTestSubjectSubclass, String, "protectedMethod").invoke(new JavaTestSubjectSubclass()) == "parent"
         method(JavaTestSubjectSubclass, String, "overridden").invoke(new JavaTestSubjectSubclass()) == "subclass"
+    }
+
+    def "find all methods"() {
+        given:
+        def stringMethods = String.getDeclaredMethods().toList()
+        def objectMethods = Object.getDeclaredMethods().toList()
+        def allMethods = stringMethods + objectMethods - objectMethods.findAll { objMeth ->
+            stringMethods.find { it.name == objMeth.name && it.parameterTypes == objMeth.parameterTypes }
+        }
+
+        expect:
+        findAllMethods(String, Specs.satisfyAll()) == allMethods
+        findAllMethods(String, { it.name == "toString" } as Spec) == stringMethods.findAll { it.name == "toString" }
+    }
+
+    def "find method"() {
+        expect:
+        findMethod(String, { it.name == "toString" } as Spec) == String.declaredMethods.find { it.name == "toString" }
+        findMethod(String, { it.name == "getClass" } as Spec) == Object.declaredMethods.find { it.name == "getClass" }
     }
 
 }
