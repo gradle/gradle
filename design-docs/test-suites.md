@@ -13,6 +13,8 @@ This spec decribes an approach to making test execution in Gradle more flexible
 - My functional tests require some environment setup and tear down.
 - I have a set of test fixtures which are shared by different groups of tests.
 - I use several different test frameworks in my unit tests.
+- I want to measure code coverage for my integration tests.
+- I want int test code coverage to be included in sonarRunner analysis.
 
 # Implementation plan
 
