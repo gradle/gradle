@@ -17,8 +17,10 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 /**
  * by Szczepan Faber, created at: 11/21/12
@@ -31,6 +33,32 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         file("gradle.properties") << "org.gradle.configureondemand=true"
     }
 
+    @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
+    def "presents incubating message"() {
+        file("gradle.properties") << "org.gradle.configureondemand=false"
+        buildFile << "task foo"
+
+        when:
+        run("foo", "--configure-on-demand")
+
+        then:
+        fixture.assertProjectsConfigured(":")
+        output.count("Configuration on demand is incubating") == 1
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
+    def "presents incubating message with parallel mode"() {
+        file("gradle.properties") << "org.gradle.configureondemand=false"
+        buildFile << "task foo"
+
+        when:
+        run("foo", "--configure-on-demand", "--parallel")
+
+        then:
+        fixture.assertProjectsConfigured(":")
+        output.count("Parallel execution with configuration on demand is incubating") == 1
+    }
+
     def "can be enabled from command line for a single module build"() {
         file("gradle.properties") << "org.gradle.configureondemand=false"
         buildFile << "task foo"
@@ -40,7 +68,6 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.assertProjectsConfigured(":")
-        assert output.count("Configuration on demand is incubating") == 1
     }
 
     def "evaluates only project referenced in the task list"() {
@@ -59,7 +86,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         when:
         run()
         then:
-        assert !output.contains("Configuration on demand is incubating")
+        !output.contains("Configuration on demand is incubating")
     }
 
     def "follows java project dependencies"() {
