@@ -52,7 +52,7 @@ class DefaultBuildConfigurerTest extends Specification {
         configurer.configure(gradle)
 
         then:
-        1 * startParameter.isConfigureOnDemand() >> true
+        startParameter.isConfigureOnDemand() >> true
         1 * rootProject.evaluate()
         0 * rootProject._
     }
