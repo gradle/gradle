@@ -49,7 +49,7 @@ binaries.all {
     }
     if (toolChain == toolChains.visualCpp) {
         compilerArgs "/Z7"
-        linkerArgs "/INTEGRITYCHECK:NO"
+        linkerArgs "/DEBUG"
     }
 }
 // END SNIPPET all-binaries
