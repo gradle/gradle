@@ -194,6 +194,38 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         i.setAtFieldInit == i.class
     }
 
+    def "can call private methods internally"() {
+        /*
+            We have to specially handle private methods in our dynamic protocol.
+         */
+        given:
+        def i = create(CallsPrivateMethods)
+
+        when:
+        i.flagCalled("a")
+
+        then:
+        i.calledWith == String
+
+        when:
+        i.flagCalled(1.2)
+
+        then:
+        i.calledWith == Number
+
+        when:
+        i.flagCalled([])
+
+        then:
+        i.calledWith == Object
+
+        when:
+        i.flagCalled(1)
+
+        then:
+        i.calledWith == Integer
+    }
+
     def conf(o, c) {
         ConfigureUtil.configure(c, o)
     }
@@ -274,5 +306,30 @@ class CallsMethodDuringConstruction {
 
     CallsMethodDuringConstruction() {
         setDuringConstructor = getClass()
+    }
+}
+
+class CallsPrivateMethods {
+
+    Class calledWith
+
+    void flagCalled(arg) {
+        doFlagCalled(arg)
+    }
+
+    private doFlagCalled(String s) {
+        calledWith = String
+    }
+
+    private doFlagCalled(Number s) {
+        calledWith = Number
+    }
+
+    private doFlagCalled(Integer s) {
+        calledWith = Integer
+    }
+
+    private doFlagCalled(Object s) {
+        calledWith = Object
     }
 }

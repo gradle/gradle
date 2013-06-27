@@ -17,14 +17,21 @@ package org.gradle.api.internal;
 
 import groovy.lang.*;
 import groovy.lang.MissingMethodException;
+import org.codehaus.groovy.reflection.ParameterTypes;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.codehaus.groovy.runtime.MetaClassHelper;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.TypeCoercingMethodArgumentsTransformer;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.util.JavaMethod;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
+
+import static org.gradle.util.CollectionUtils.*;
 
 /**
  * A {@link DynamicObject} which uses groovy reflection to provide access to the properties and methods of a bean.
@@ -216,11 +223,27 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return properties;
         }
 
-        public boolean hasMethod(String name, Object... arguments) {
-            return !getMetaClass().respondsTo(bean, name, arguments).isEmpty();
+        public boolean hasMethod(final String name, final Object... arguments) {
+            boolean respondsTo = !getMetaClass().respondsTo(bean, name, arguments).isEmpty();
+            if (respondsTo) {
+                return true;
+            } else {
+                Method method = JavaReflectionUtil.findMethod(bean.getClass(), new Spec<Method>() {
+                    public boolean isSatisfiedBy(Method potentialMethod) {
+                        if (Modifier.isPrivate(potentialMethod.getModifiers()) && potentialMethod.getName().equals(name)) {
+                            ParameterTypes parameterTypes = new ParameterTypes(potentialMethod.getParameterTypes());
+                            return parameterTypes.isValidMethod(arguments);
+                        } else {
+                            return false;
+                        }
+                    }
+                });
+
+                return method != null;
+            }
         }
 
-        public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
+        public Object invokeMethod(final String name, final Object... arguments) throws MissingMethodException {
             try {
                 return getMetaClass().invokeMethod(bean, name, arguments);
             } catch (InvokerInvocationException e) {
@@ -229,7 +252,47 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 }
                 throw e;
             } catch (MissingMethodException e) {
-                throw methodMissingException(name, arguments);
+                // The method may be private, in which case getMetaClass().invokeMethod won't find it.
+                // We have to do this ourselves.
+                // We tried the "groovy" way first as it's likely to be faster than us at dispatch.
+
+                List<Method> methods = JavaReflectionUtil.findAllMethods(bean.getClass(), new Spec<Method>() {
+                    public boolean isSatisfiedBy(Method potentialMethod) {
+                        if (Modifier.isPrivate(potentialMethod.getModifiers()) && potentialMethod.getName().equals(name)) {
+                            ParameterTypes parameterTypes = new ParameterTypes(potentialMethod.getParameterTypes());
+                            return parameterTypes.isValidMethod(arguments);
+                        } else {
+                            return false;
+                        }
+                    }
+                });
+
+                if (methods.size() == 0) {
+                    throw methodMissingException(name, arguments);
+                }
+
+                Method theMethod;
+                if (methods.size() == 1) {
+                    theMethod = methods.get(0);
+                } else {
+                    final Class[] argTypes = collectArray(arguments, Class.class, Transformers.type());
+                    List<ScoredItem<Method, Long>> scoredByParamDistance = score(methods, new Transformer<Long, Method>() {
+                        public Long transform(Method method) {
+                            return MetaClassHelper.calculateParameterDistance(argTypes, new ParameterTypes(method.getParameterTypes()));
+                        }
+                    });
+
+                    Collections.sort(scoredByParamDistance, new Comparator<ScoredItem<Method, Long>>() {
+                        public int compare(ScoredItem<Method, Long> o1, ScoredItem<Method, Long> o2) {
+                            return o1.getScore().compareTo(o2.getScore());
+                        }
+                    });
+
+                    theMethod = scoredByParamDistance.get(0).getItem();
+                }
+
+                @SuppressWarnings("unchecked") JavaMethod<Object, Object> method = (JavaMethod<Object, Object>) JavaReflectionUtil.method(bean.getClass(), Object.class, theMethod);
+                return method.invoke(bean, arguments);
             }
         }
 
