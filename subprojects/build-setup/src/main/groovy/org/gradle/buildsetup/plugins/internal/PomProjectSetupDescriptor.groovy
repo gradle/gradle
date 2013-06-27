@@ -38,7 +38,7 @@ class PomProjectSetupDescriptor implements ProjectSetupDescriptor {
     }
 
     void generateProject() {
-        SingleMessageLogger.incubatingFeatureUsed("Maven to Gradle conversion")
+        SingleMessageLogger.informAboutIncubating("Maven to Gradle conversion")
         def pom = fileResolver.resolve("pom.xml")
         try {
             def settings = settingsProvider.buildSettings()

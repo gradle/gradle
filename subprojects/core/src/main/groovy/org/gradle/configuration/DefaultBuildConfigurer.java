@@ -18,13 +18,12 @@ package org.gradle.configuration;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.initialization.layout.GradleProperties;
 import org.gradle.util.SingleMessageLogger;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
     public void configure(GradleInternal gradle) {
         if (gradle.getStartParameter().isConfigureOnDemand()) {
-            SingleMessageLogger.incubatingModeUsed("Configuration on demand", GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY);
+            SingleMessageLogger.informAboutIncubating("Configuration on demand");
             gradle.getRootProject().evaluate();
         } else {
             for (Project project : gradle.getRootProject().getAllprojects()) {

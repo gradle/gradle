@@ -25,7 +25,7 @@ import org.gradle.process.internal.JvmOptions;
 import java.io.File;
 import java.util.Map;
 
-import static org.gradle.initialization.layout.GradleProperties.*;
+import static org.gradle.launcher.daemon.configuration.GradleProperties.*;
 
 /**
  * by Szczepan Faber, created at: 2/18/13

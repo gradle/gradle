@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.layout.GradleProperties;
 import org.gradle.internal.Factory;
 
 import java.util.Collections;
@@ -34,7 +33,6 @@ public class SingleMessageLogger {
     private static final Set<String> DYNAMIC_PROPERTIES = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> MESSAGES = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> FEATURES = Collections.synchronizedSet(new HashSet<String>());
-    private static final Set<String> CONFIGURED_INCUBATING_MODES = Collections.synchronizedSet(new HashSet<String>());
 
     private static final ThreadLocal<Boolean> ENABLED = new ThreadLocal<Boolean>() {
         @Override
@@ -86,7 +84,6 @@ public class SingleMessageLogger {
         DYNAMIC_PROPERTIES.clear();
         MESSAGES.clear();
         FEATURES.clear();
-        CONFIGURED_INCUBATING_MODES.clear();
     }
 
     public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
@@ -216,30 +213,9 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void incubatingFeatureUsed(String incubatingFeatureDisplayName) {
-        if (FEATURES.add(incubatingFeatureDisplayName)) {
-            LOGGER.lifecycle(String.format(INCUBATION_MESSAGE, incubatingFeatureDisplayName));
+    public static void informAboutIncubating(String incubatingFeature) {
+        if (FEATURES.add(incubatingFeature)) {
+            LOGGER.lifecycle(String.format(INCUBATION_MESSAGE, incubatingFeature));
         }
-    }
-
-    /**
-     * Inform that particular incubating mode is used.
-     *
-     * @param incubatingModeDisplayName the incubating mode display name
-     * @param incubatingMode mode
-     */
-    public static void incubatingModeUsed(String incubatingModeDisplayName, String incubatingMode) {
-        assert GradleProperties.ALL.contains(incubatingMode);
-        if (FEATURES.add(incubatingModeDisplayName) && !CONFIGURED_INCUBATING_MODES.contains(incubatingMode)) {
-            LOGGER.lifecycle(String.format(INCUBATION_MESSAGE, incubatingModeDisplayName));
-        }
-    }
-
-    /**
-     * Inform that a particular incubating mode is explicitly configured and we should avoid emitting the incubating message for it.
-     */
-    public static void incubatingModeConfiguredExplicitly(String incubatingMode) {
-        assert GradleProperties.ALL.contains(incubatingMode);
-        CONFIGURED_INCUBATING_MODES.add(incubatingMode);
     }
 }

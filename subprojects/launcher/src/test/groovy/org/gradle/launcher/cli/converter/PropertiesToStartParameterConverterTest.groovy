@@ -19,8 +19,8 @@ package org.gradle.launcher.cli.converter
 import org.gradle.StartParameter
 import spock.lang.Specification
 
-import static org.gradle.initialization.layout.GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY
-import static org.gradle.initialization.layout.GradleProperties.PARALLEL_PROPERTY
+import static org.gradle.launcher.daemon.configuration.GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY
+import static org.gradle.launcher.daemon.configuration.GradleProperties.PARALLEL_PROPERTY
 
 /**
  * by Szczepan Faber, created at: 3/11/13

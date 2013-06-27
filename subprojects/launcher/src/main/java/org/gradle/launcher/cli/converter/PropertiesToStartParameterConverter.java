@@ -17,11 +17,11 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
-import org.gradle.initialization.layout.GradleProperties;
+import org.gradle.launcher.daemon.configuration.GradleProperties;
 
 import java.util.Map;
 
-import static org.gradle.initialization.layout.GradleProperties.isTrue;
+import static org.gradle.launcher.daemon.configuration.GradleProperties.isTrue;
 
 /**
  * by Szczepan Faber, created at: 2/18/13
