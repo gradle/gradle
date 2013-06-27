@@ -47,7 +47,7 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
     public CopyActionImpl(Instantiator instantiator, FileResolver resolver, CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
         this.instantiator = instantiator;
         this.resolver = resolver;
-        this.root = new CopySpecImpl(resolver);
+        this.root = instantiator.newInstance(CopySpecImpl.class, resolver, instantiator);
         this.mainContent = root.addChild();
         this.visitor = new DuplicateHandlingCopySpecVisitor(
                 new NormalizingCopySpecVisitor(visitor),

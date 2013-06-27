@@ -139,7 +139,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public CopySpec copySpec(Closure closure) {
-        return configure(closure, instantiator.newInstance(CopySpecImpl.class, fileResolver));
+        return configure(closure, instantiator.newInstance(CopySpecImpl.class, fileResolver, instantiator));
     }
 
     public FileResolver getFileResolver() {

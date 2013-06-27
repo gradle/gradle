@@ -17,7 +17,6 @@
 package org.gradle.api.file
 
 import org.gradle.api.Project
-import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -42,10 +41,6 @@ class ProjectCopySpecTest extends Specification {
         testDirectoryProvider.testDirectory.createDir("dest")
     }
 
-    boolean isEnhanced(obj) {
-        assert obj instanceof DynamicObjectAware
-        true
-    }
 
     def "copy spec is enhanced"() {
         given:
@@ -59,41 +54,44 @@ class ProjectCopySpecTest extends Specification {
         copySource.createFile("file")
         def copySpec = project.copySpec {
             copySpecRootCalled = true
-            isEnhanced delegate
+            delegate.duplicatesStrategy "include"
             from copySource
 
             from copySource, {
-                eachFile {
+                delegate.duplicatesStrategy "include"
+                delegate.eachFile {
                     copySpecNestedEachFileCalled = true
-                    isEnhanced delegate
+                    delegate.duplicatesStrategy "include"
                 }
             }
 
             eachFile {
                 copySpecEachFileCalled = true
-                isEnhanced delegate
+                delegate.duplicatesStrategy "include"
             }
         }
 
         expect:
-        isEnhanced copySpec
         project.copy {
             copyRootCalled = true
             into copyDest
             with copySpec
             from copySource
             from copySource, {
+                delegate.duplicatesStrategy "include"
                 eachFile {
                     copyNestedEachFileCalled = true
-                    isEnhanced delegate
+                    delegate.duplicatesStrategy "include"
                 }
             }
-            isEnhanced delegate
+            delegate.duplicatesStrategy "include"
 
             eachFile {
-                isEnhanced delegate
+                delegate.duplicatesStrategy "include"
                 copyEachFileCalled = true
             }
+
+            rootSpec.duplicatesStrategy "include"
         }
 
         and:

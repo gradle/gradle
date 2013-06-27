@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.NotSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -41,6 +42,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private Object destDir;
     private final PatternSet patternSet;
     private final List<ReadableCopySpec> childSpecs;
+    private final Instantiator instantiator;
     private final CopySpecImpl parentSpec;
     private final List<Action<? super FileCopyDetails>> actions = new ArrayList<Action<? super FileCopyDetails>>();
     private Integer dirMode;
@@ -50,9 +52,10 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private PathNotationParser<String> pathNotationParser;
     private DuplicatesStrategy duplicatesStrategy;
 
-    private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec) {
+    public CopySpecImpl(FileResolver resolver, Instantiator instantiator, CopySpecImpl parentSpec) {
         this.parentSpec = parentSpec;
         this.resolver = resolver;
+        this.instantiator = instantiator;
         this.pathNotationParser = new PathNotationParser<String>();
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<ReadableCopySpec>();
@@ -60,8 +63,8 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         duplicatesStrategy = null; //inherit from parent
     }
 
-    public CopySpecImpl(FileResolver resolver) {
-        this(resolver, null);
+    public CopySpecImpl(FileResolver resolver, Instantiator instantiator) {
+        this(resolver, instantiator, null);
     }
 
     protected FileResolver getResolver() {
@@ -102,13 +105,13 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     }
 
     public CopySpecImpl addFirst() {
-        CopySpecImpl child = new CopySpecImpl(resolver, this);
+        CopySpecImpl child = instantiator.newInstance(CopySpecImpl.class, resolver, instantiator, this);
         childSpecs.add(0, child);
         return child;
     }
 
     public CopySpecImpl addChild() {
-        CopySpecImpl child = new CopySpecImpl(resolver, this);
+        CopySpecImpl child = instantiator.newInstance(CopySpecImpl.class, resolver, instantiator, this);
         childSpecs.add(child);
         return child;
     }
