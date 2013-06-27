@@ -21,7 +21,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.launcher.daemon.configuration.GradleProperties;
+import org.gradle.initialization.layout.GradleProperties;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,6 +38,7 @@ public class LayoutToPropertiesConverter {
         configureFromBuildDir(layout.getProjectDir(), layout.getSearchUpwards(), properties);
         configureFromGradleUserHome(layout.getGradleUserHomeDir(), properties);
         properties.putAll((Map) System.getProperties());
+
         return properties;
     }
 
@@ -69,7 +71,11 @@ public class LayoutToPropertiesConverter {
 
         for (Object key : properties.keySet()) {
             if (GradleProperties.ALL.contains(key.toString())) {
-                result.put(key.toString(), properties.get(key).toString());
+                Object value = properties.get(key);
+                result.put(key.toString(), value.toString());
+                if (GradleProperties.isIncubatingMode(key.toString()) && GradleProperties.isTrue(value)) {
+                    SingleMessageLogger.incubatingModeConfiguredExplicitly(key.toString());
+                }
             }
         }
     }

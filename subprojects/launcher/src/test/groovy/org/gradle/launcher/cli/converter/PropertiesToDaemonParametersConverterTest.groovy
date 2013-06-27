@@ -18,14 +18,14 @@ package org.gradle.launcher.cli.converter
 
 import org.gradle.api.GradleException
 import org.gradle.initialization.BuildLayoutParameters
+import org.gradle.initialization.layout.GradleProperties
 import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.configuration.DaemonParameters
-import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.configuration.GradleProperties.*
+import static org.gradle.initialization.layout.GradleProperties.*
 
 /**
  * by Szczepan Faber, created at: 3/11/13
