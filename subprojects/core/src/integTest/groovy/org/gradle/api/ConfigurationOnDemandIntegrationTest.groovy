@@ -31,16 +31,13 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         file("gradle.properties") << "org.gradle.configureondemand=true"
     }
 
-    def "can be enabled from command line for a single module build"() {
-        file("gradle.properties") << "org.gradle.configureondemand=false"
+    def "works with single-module project"() {
         buildFile << "task foo"
-
         when:
-        run("foo", "--configure-on-demand")
-
+        run("foo")
         then:
         fixture.assertProjectsConfigured(":")
-        assert output.count("Configuration on demand is an incubating feature") == 1
+        assert output.contains("Configuration on demand is an incubating feature")
     }
 
     def "evaluates only project referenced in the task list"() {
@@ -52,9 +49,10 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.assertProjectsConfigured(":", ":util:impl")
+        assert output.contains("Configuration on demand is an incubating feature")
     }
 
-    def "does not show configuration on demand incubating message in a regular mode"() {
+    def "does not show configuration on demand message in a regular mode"() {
         file("gradle.properties").text = "org.gradle.configureondemand=false"
         when:
         run()
