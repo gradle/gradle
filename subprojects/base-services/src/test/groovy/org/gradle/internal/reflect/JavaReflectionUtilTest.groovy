@@ -21,8 +21,7 @@ import org.gradle.api.specs.Specs
 import org.gradle.internal.UncheckedException
 import spock.lang.Specification
 
-import static org.gradle.internal.reflect.JavaReflectionUtil.findAllMethods
-import static org.gradle.internal.reflect.JavaReflectionUtil.method
+import static org.gradle.internal.reflect.JavaReflectionUtil.*
 
 class JavaReflectionUtilTest extends Specification {
     JavaTestSubject myProperties = new JavaTestSubject()
@@ -107,6 +106,12 @@ class JavaReflectionUtilTest extends Specification {
         expect:
         findAllMethods(String, Specs.satisfyAll()) == allMethods
         findAllMethods(String, { it.name == "toString" } as Spec) == stringMethods.findAll { it.name == "toString" }
+    }
+
+    def "find method"() {
+        expect:
+        findMethod(String, { it.name == "toString" } as Spec) == String.declaredMethods.find { it.name == "toString" }
+        findMethod(String, { it.name == "getClass" } as Spec) == Object.declaredMethods.find { it.name == "getClass" }
     }
 
 }

@@ -99,10 +99,15 @@ public class JavaReflectionUtil {
     }
 
     public static List<Method> findAllMethods(Class<?> target, Spec<Method> predicate) {
-        return findAllMethodsInternal(target, predicate, new LinkedList<Method>());
+        return findAllMethodsInternal(target, predicate, new LinkedList<Method>(), false);
     }
 
-    private static List<Method> findAllMethodsInternal(Class<?> target, Spec<Method> predicate, List<Method> collector) {
+    public static Method findMethod(Class<?> target, Spec<Method> predicate) {
+        List<Method> methods = findAllMethodsInternal(target, predicate, new LinkedList<Method>(), true);
+        return methods.isEmpty() ? null : methods.get(0);
+    }
+
+    private static List<Method> findAllMethodsInternal(Class<?> target, Spec<Method> predicate, List<Method> collector, boolean stopAtFirst) {
         for (final Method method : target.getDeclaredMethods()) {
             Method override = CollectionUtils.findFirst(collector, new Spec<Method>() {
                 public boolean isSatisfiedBy(Method potentionOverride) {
@@ -113,11 +118,14 @@ public class JavaReflectionUtil {
 
             if (override == null && predicate.isSatisfiedBy(method)) {
                 collector.add(method);
+                if (stopAtFirst) {
+                    return collector;
+                }
             }
         }
         Class<?> parent = target.getSuperclass();
         if (parent != null) {
-            return findAllMethodsInternal(parent, predicate, collector);
+            return findAllMethodsInternal(parent, predicate, collector, stopAtFirst);
         }
 
         return collector;
