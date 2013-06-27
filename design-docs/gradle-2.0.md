@@ -52,6 +52,20 @@ for changes to behaviour.
 
 ## Remove references to internal classes from API
 
+## Remove support for convention objects
+
+Extension objects have been available for over 2 years and are now an established pattern.
+
+Support for convention objects cannot be removed until all the core plugins have migrated to using extensions.
+
+## Decorate classes at load time instead of subclassing
+
+Decorating classes at load time is generally a more reliable approach and offers a few new interesting use cases we can support. For example, by decorating classes
+at load time we can support expressions such as `new MyDslType()`, rather than requiring that Gradle control the instantiation of decorated objects.
+
+Switching to decoration at load time should generally be transparent to most things, except for clients of `ProjectBuilder` that refer to types
+which are not loaded by Gradle, such as the classes under test.
+
 ## Restructure plugin package heirarchy
 
 ## buildNeeded and buildDependents
