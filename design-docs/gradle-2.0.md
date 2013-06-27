@@ -45,6 +45,11 @@ for changes to behaviour.
 
 * Now that we have reasonable tooling support via IDEs it might be worth scrapping the Gradle GUI and open-api that it uses.
 
+## Remove old dependency result graph
+
+* Remove methods that use `ResolvedDependency` and `UnresolvedDependency`
+* Possibly keep methods that use `ResolveArtifact` if no replacement has been added
+
 ## Remove API methods that are added by the DSL decoration
 
 * Remove all methods that accept a `Closure` when an `Action` overload is available. Add missing overloads where appropriate.
