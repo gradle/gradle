@@ -16,15 +16,14 @@
 
 package org.gradle.internal.reflect;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.JavaMethod;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Simple implementations of some reflection capabilities. In contrast to org.gradle.util.ReflectionUtil, this class doesn't make use of Groovy.
@@ -98,34 +97,65 @@ public class JavaReflectionUtil {
         return new JavaMethod<T, R>(target, returnType, method);
     }
 
+    /**
+     * Search methods in an inheritance aware fashion, stopping when stopIndicator returns true.
+     */
+    public static void searchMethods(Class<?> target, final Transformer<Boolean, Method> stopIndicator) {
+        Spec<Method> stopIndicatorAsSpec = new Spec<Method>() {
+            public boolean isSatisfiedBy(Method element) {
+                return stopIndicator.transform(element);
+            }
+        };
+
+        findAllMethodsInternal(target, stopIndicatorAsSpec, new MultiMap<String, Method>(), new ArrayList<Method>(1), true);
+    }
+
     public static List<Method> findAllMethods(Class<?> target, Spec<Method> predicate) {
-        return findAllMethodsInternal(target, predicate, new LinkedList<Method>(), false);
+        return findAllMethodsInternal(target, predicate, new MultiMap<String, Method>(), new LinkedList<Method>(), false);
     }
 
     public static Method findMethod(Class<?> target, Spec<Method> predicate) {
-        List<Method> methods = findAllMethodsInternal(target, predicate, new LinkedList<Method>(), true);
+        List<Method> methods = findAllMethodsInternal(target, predicate, new MultiMap<String, Method>(), new ArrayList<Method>(1), true);
         return methods.isEmpty() ? null : methods.get(0);
     }
 
-    private static List<Method> findAllMethodsInternal(Class<?> target, Spec<Method> predicate, List<Method> collector, boolean stopAtFirst) {
+    private static class MultiMap<K, V> extends HashMap<K, List<V>> {
+        @Override
+        public List<V> get(Object key) {
+            if (!containsKey(key)) {
+                @SuppressWarnings("unchecked") K keyCast = (K) key;
+                put(keyCast, new LinkedList<V>());
+            }
+
+            return super.get(key);
+        }
+    }
+
+    private static List<Method> findAllMethodsInternal(Class<?> target, Spec<Method> predicate, MultiMap<String, Method> seen, List<Method> collector, boolean stopAtFirst) {
         for (final Method method : target.getDeclaredMethods()) {
-            Method override = CollectionUtils.findFirst(collector, new Spec<Method>() {
+            List<Method> seenWithName = seen.get(method.getName());
+            Method override = CollectionUtils.findFirst(seenWithName, new Spec<Method>() {
                 public boolean isSatisfiedBy(Method potentionOverride) {
                     return potentionOverride.getName().equals(method.getName())
-                        && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes());
+                            && Arrays.equals(potentionOverride.getParameterTypes(), method.getParameterTypes());
                 }
             });
 
-            if (override == null && predicate.isSatisfiedBy(method)) {
-                collector.add(method);
-                if (stopAtFirst) {
-                    return collector;
+
+            if (override == null) {
+                seenWithName.add(method);
+                if (predicate.isSatisfiedBy(method)) {
+                    collector.add(method);
+                    if (stopAtFirst) {
+                        return collector;
+                    }
                 }
             }
         }
+
         Class<?> parent = target.getSuperclass();
         if (parent != null) {
-            return findAllMethodsInternal(parent, predicate, collector, stopAtFirst);
+            return findAllMethodsInternal(parent, predicate, seen, collector, stopAtFirst);
         }
 
         return collector;
