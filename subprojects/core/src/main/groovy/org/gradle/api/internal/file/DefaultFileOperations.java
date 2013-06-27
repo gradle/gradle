@@ -133,13 +133,13 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public WorkResult copy(Closure closure) {
-        CopyActionImpl action = configure(closure, new FileCopyActionImpl(instantiator, fileResolver, new FileCopySpecVisitor()));
+        CopyActionImpl action = configure(closure, instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new FileCopySpecVisitor()));
         action.execute();
         return action;
     }
 
     public CopySpec copySpec(Closure closure) {
-        return configure(closure, new CopySpecImpl(fileResolver));
+        return configure(closure, instantiator.newInstance(CopySpecImpl.class, fileResolver));
     }
 
     public FileResolver getFileResolver() {
