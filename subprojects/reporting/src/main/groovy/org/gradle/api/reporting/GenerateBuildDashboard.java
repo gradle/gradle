@@ -31,7 +31,9 @@ import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -51,18 +53,17 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
         reports.getHtml().setEnabled(true);
     }
 
-    /**
-     * A set of report files that will be aggregated by the generated report.
-     *
-     * @return A set of input report files.
-     */
     @Input
-    public Set<File> getInputReportsFiles() {
-        return CollectionUtils.collect(getEnabledInputReports(), new Transformer<File, Report>() {
-            public File transform(Report original) {
-                return original.getDestination();
+    public Set<ReportState> getInputReports() {
+        Set<ReportState> inputs = new HashSet<ReportState>();
+        for (Report report : getEnabledInputReports()) {
+            if (getReports().contains(report)) {
+                // A report to be generated, ignore
+                continue;
             }
-        });
+            inputs.add(new ReportState(report.getDisplayName(), report.getDestination(), report.getDestination().exists()));
+        }
+        return inputs;
     }
 
     private Set<Report> getEnabledInputReports() {
@@ -127,6 +128,29 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
             generator.generate();
         } else {
             setDidWork(false);
+        }
+    }
+
+    private static class ReportState implements Serializable {
+        private final String name;
+        private final File destination;
+        private final boolean available;
+
+        private ReportState(String name, File destination, boolean available) {
+            this.name = name;
+            this.destination = destination;
+            this.available = available;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            ReportState other = (ReportState) obj;
+            return name.equals(other.name) && destination.equals(other.destination) && available == other.available;
+        }
+
+        @Override
+        public int hashCode() {
+            return name.hashCode() ^ destination.hashCode();
         }
     }
 }

@@ -24,9 +24,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>inputReportsFiles</td>
-            </tr>
-            <tr>
                 <td>reports</td>
             </tr>
         </table>

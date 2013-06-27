@@ -287,6 +287,32 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':codenarcMain', 'text')
     }
 
+    void 'generating a report that was previously not available renders buildDashboard out-of-date'() {
+        given:
+        goodCode()
+        goodTests()
+
+        when:
+        run('buildDashboard') && ':buildDashboard' in nonSkippedTasks
+
+        then:
+        reports.size() == 1
+        hasReport(':buildDashboard', 'html')
+        unavailableReports.size() == 2
+        hasUnavailableReport(':test', 'html')
+        hasUnavailableReport(':test', 'junitXml')
+
+        when:
+        run('test') && ':buildDashboard' in nonSkippedTasks
+
+        then:
+        reports.size() == 3
+        hasReport(':buildDashboard', 'html')
+        hasReport(':test', 'html')
+        hasReport(':test', 'junitXml')
+        unavailableReports.empty
+    }
+
     void 'reports from subprojects are aggregated'() {
         given:
         goodCode()
