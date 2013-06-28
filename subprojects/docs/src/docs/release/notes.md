@@ -1,3 +1,5 @@
+
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -6,12 +8,9 @@ Here are the new features introduced in this Gradle release.
 
 Gradle 1.7 is the fastest version of Gradle yet. Here are the highlights:
 
-- Dependency resolution is now faster. This affects many aspects of a build. For example, incremental build up-to-date checks almost always require dependencies
-  to be resolved. So does importing your build into an IDE. Or using the dependency reports.
-- Test execution is now faster. In some cases, up to 50% faster for tests that generate a lot of logging output.
-- Build script compilation is much faster. This affects, for example, first time users of a build, build authors, and those upgrading a build to a new Gradle version.
-  In Gradle 1.6 there was a serious regression in build script compilation time. This has been fixed in Gradle 1.7, with an added bonus that script compilation is now
-  75% faster than Gradle 1.6 and 50% faster than Gradle 1.0.
+- Dependency resolution is now faster (improving many aspects of most builds).
+- Test execution is now faster (particularly for tests that generate a lot of logging output).
+- Build script compilation is much faster (75% faster than Gradle 1.6).
 - Parallel execution mode is now faster.
 
 As always, the performance improvements that you actually see for your build depends on many factors.
@@ -19,12 +18,12 @@ As always, the performance improvements that you actually see for your build dep
 #### Faster dependency resolution due to in-memory caching of artifact meta-data
 
 With this change, the dependency resolution is much faster. Typically, the larger the project is the more configurations and dependencies are resolved during the build.
-By caching the artifact meta-data in memory we avoid parsing the descriptor when the same dependency is requested multiple times in a build.
+By caching the artifact meta-data in memory Gradle avoids parsing the descriptor when the same dependency is requested multiple times in a build.
 
 An incremental build for a large project should be tangibly faster with Gradle 1.7.
 A full build may be much faster, too. The level of performance improvement depends on the build.
 If a large portion of the build time is taken by slow integration tests, the performance improvements are smaller.
-Nevertheless, some of the large builds we used for benchmarking show up to 30% speed increase.
+Nevertheless, some of the large builds that were used for benchmarking show up to 30% speed increase.
 
 Caching the artifact metadata in-memory is very important for local repositories, such as `mavenLocal()` and for resolution of snapshots / dynamic versions.
 Prior to Gradle 1.7, every time a local dependency was resolved, Gradle would load the dependency metadata directly from the local repository.
@@ -33,7 +32,7 @@ During a single build, a given dependency will be loaded once only and will not 
 
 This may be a breaking change for builds that depend the on the fact that certain dependencies are reloaded from the repository during each resolution.
 Bear in mind that the vast majority of builds will enjoy faster dependency resolution offered by the in-memory caching.
-If your project requires reloading of snapshots or local dependencies during the build please let us know so that we can better understand your scenario and model it correctly.
+If your project requires reloading of snapshots or local dependencies during the build please let us know so that Gradle can better understand your scenario and model it correctly.
 
 You can also turn off the in-memory dependency metadata cache via a system property:
 
@@ -54,12 +53,12 @@ build checks.
 Coupled with this change are some improvements to the synchronization of worker threads within a given Gradle process, which means parallel execution mode is now
 more efficient.
 
-The new mechanism is biased to the case where a single Gradle process is running on a machine. We believe that there should not be any performance regressions when
-multiple Gradle processes are used, but please let us know if you observe a regression.
+The new mechanism is biased to the case where a single Gradle process is running on a machine. There should not be any performance regressions when
+multiple Gradle processes are used, but please raise a problem report via the [Gradle Forums](http://forums.gradle.org) if you observe a regression.
 
 #### Faster build script compilation
 
-This change improves build script compilation by adding some caching in critical points in the ClassLoader hierarchy.
+This change improves build script compilation by adding some caching in critical points in the classloader hierarchy. This affects, for example, first time users of a build, build authors, and those upgrading a build to a new Gradle version.
 
 ### Finalizer tasks (i)
 
@@ -117,14 +116,14 @@ The `Test` task provides a [`ReportContainer`](javadoc/org/gradle/api/reporting/
 giving control over both the HTML report and the JUnit XML result files (these files are typically used to communicate test results to CI servers and other tools).
 
 This brings the `Test` task into line with other tasks that produce reports in terms of API. It also allows you to completely disable the JUnit XML file generation 
-(if you don't need it).
+if you don't need it.
 
 ### Build dashboard improvements (i)
 
-The above test change means that the test reports now appear in the [build dashboard](userguide/buildDashboard_plugin.html).
+The above change (`Test` task implements standard `Reporting` interface) means that the test reports now appear in the [build dashboard](userguide/buildDashboard_plugin.html).
 
-Also, the `buildDashboard` task is automatically executed if when any reporting task is executed.
-
+Also, the `buildDashboard` task is automatically executed when any reporting task is executed (by way of the new “Finalizer Task” mechanism mentioned earlier).
+ 
 ### Record test output per test case in JUnit XML result files (i)
 
 This change facilitates better reporting of test execution on CI servers, notably [Jenkins](http://jenkins-ci.org/).
@@ -189,8 +188,10 @@ TODO - include info on spec level setting
 
 ### Major improvements to C++ project support (i)
 
-Gradle has had basic support for C++ projects for some time. We're now excited to be starting on the process of expanding this support to make Gradle the best build
-system available for native code projects. By leveraging the flexibility of Gradle, we'll be introducing support for:
+Gradle has had basic support for C++ projects for some time. This is now expanding with the goal of positioning Gradle as the best build
+system available for native code projects. 
+
+This includes:
 
 - Creating and linking to static libraries
 - Building with different C++ toolchains (Visual C++, GCC, etc)
