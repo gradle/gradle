@@ -105,6 +105,30 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         noExceptionThrown()
     }
 
+    def "can receive request for lock that is already closed"() {
+        when:
+        int port = handler.reservePort();
+        handler.start(10, { assert false } as Runnable)
+        sleep(300) //so that it starts receiving
+
+        //close the lock
+        handler.stop(10)
+
+        //receive request for lock that is already closed
+        FileLockCommunicator.pingOwner(port, 10)
+
+        then:
+        canHandleMoreRequests()
+    }
+
+    private void canHandleMoreRequests() {
+        def executed = 0
+        int port = handler.reservePort();
+        handler.start(15, { executed++ } as Runnable)
+        FileLockCommunicator.pingOwner(port, 15)
+        poll { assert executed == 1 }
+    }
+
     def "reserving port is safely reentrant"() {
         when:
         int port = handler.reservePort()

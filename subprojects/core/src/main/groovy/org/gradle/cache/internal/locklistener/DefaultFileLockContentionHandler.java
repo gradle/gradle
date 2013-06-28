@@ -77,7 +77,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                         action = contendedActions.get(lockId);
                         if (action == null) {
                             //received access request for lock that is already closed
-                            return;
+                            continue;
                         }
                     } finally {
                         lock.unlock();
