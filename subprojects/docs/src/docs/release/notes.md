@@ -152,18 +152,23 @@ associating test attachments (e.g. Selenium screen shots) with test execution in
 
 ### Generate Gradle wrapper files without touching your build script (i)
 
-In Gradle 1.7 all files necessary to run your build with the Gradle Wrapper can be generated without explicitly declaring a task of type `Wrapper` in your build scripts.
-By just running
+It is now possible to [Gradle Wrapper](userguide/gradle_wrapper.html) enable a project without having to create a `Wrapper` task in your build.
+That is, you do not need to edit a build script to enable the Wrapper.
+
+To Wrapper enable any project with Gradle 1.7, simply run:
 
     gradle wrapper
 
-The Gradle Wrapper files are generated pointing to the gradle version used to generate the wrapper files. To customize the wrapper task you can easily modify the task in your build script:
+The Wrapper files are installed and configured to use the Gradle version that was used when running the task. 
 
-    wrapper{
-        gradleVersion = '1.6'
+To customize the wrapper task you can modify the task in your build script:
+
+    wrapper {
+        gradleVersion '1.6'
     }
 
-If you already defined a task of type `Wrapper` in your build script, this task will be used when running `gradle wrapper`; otherwise the implicit default task will be used.
+If there is already an explicitly defined task of type `Wrapper` in your build script, this task will be used when running `gradle wrapper`; 
+otherwise the new implicit default task will be used.
 
 ### Generate a Gradle project from scratch (i)
 
