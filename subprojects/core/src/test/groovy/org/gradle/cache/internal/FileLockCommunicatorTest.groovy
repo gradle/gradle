@@ -65,6 +65,14 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         }
     }
 
+    def "may not receive after the stop"() {
+        communicator.stop()
+        when:
+        communicator.receive()
+        then:
+        thrown(GracefullyStoppedException)
+    }
+
     def "pinging on a port that nobody listens is safe"() {
         when:
         pingOwner(6666, 166)

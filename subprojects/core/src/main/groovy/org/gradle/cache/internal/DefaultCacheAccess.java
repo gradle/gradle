@@ -137,17 +137,21 @@ public class DefaultCacheAccess implements CacheAccess {
         }
 
         takeOwnership(operationDisplayName);
+        boolean wasStarted = false;
         try {
-            boolean wasStarted = onStartWork();
-            try {
-                return factory.create();
-            } finally {
-                if (wasStarted) {
-                    onEndWork();
-                }
-            }
+            wasStarted = onStartWork();
+            return factory.create();
         } finally {
-            releaseOwnership(operationDisplayName);
+            lock.lock();
+            try {
+                if (wasStarted) {
+                    onEndWork(operationDisplayName);
+                } else {
+                    releaseOwnership(operationDisplayName);
+                }
+            } finally {
+                lock.unlock();
+            }
         }
     }
 
@@ -197,9 +201,15 @@ public class DefaultCacheAccess implements CacheAccess {
             }
         }
 
-        checkThreadIsOwner();
-        boolean wasEnded = onEndWork();
-        parkOwner(operationDisplayName);
+        lock.lock();
+        boolean wasEnded;
+        try {
+            checkThreadIsOwner();
+            wasEnded = onEndWork();
+            parkOwner(operationDisplayName);
+        } finally {
+            lock.unlock();
+        }
         try {
             return action.create();
         } finally {
@@ -320,6 +330,14 @@ public class DefaultCacheAccess implements CacheAccess {
             closeFileLock();
         }
         return true;
+    }
+
+    private void onEndWork(String operationToRelease) {
+        try {
+            onEndWork();
+        } finally {
+            releaseOwnership(operationToRelease);
+        }
     }
 
     private FileLock getLock() {
