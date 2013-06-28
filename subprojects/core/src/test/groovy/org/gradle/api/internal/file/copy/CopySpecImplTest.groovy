@@ -24,6 +24,7 @@ import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -43,8 +44,8 @@ public class CopySpecImplTest {
     private TestFile baseFile = testDir.testDirectory
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final FileResolver fileResolver = context.mock(FileResolver);
-    private final CopySpecImpl spec = new CopySpecImpl(fileResolver)
-    private final Instantiator instantiator = context.mock(Instantiator)
+    private final Instantiator instantiator = new DirectInstantiator()
+    private final CopySpecImpl spec = new CopySpecImpl(fileResolver, instantiator)
 
     private List<String> getTestSourceFileNames() {
         ['first', 'second']
@@ -101,8 +102,8 @@ public class CopySpecImplTest {
     }
 
     @Test public void testWithSpec() {
-        CopySpecImpl other1 = new CopySpecImpl(fileResolver)
-        CopySpecImpl other2 = new CopySpecImpl(fileResolver)
+        CopySpecImpl other1 = new CopySpecImpl(fileResolver, instantiator)
+        CopySpecImpl other2 = new CopySpecImpl(fileResolver, instantiator)
 
         spec.with other1, other2
         assertTrue(spec.sourcePaths.empty)
@@ -118,7 +119,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testWithSpecInheritsDestinationPathFromParent() {
-        CopySpecImpl other = new CopySpecImpl(fileResolver)
+        CopySpecImpl other = new CopySpecImpl(fileResolver, instantiator)
         other.into 'other'
 
         spec.into 'spec'
@@ -363,7 +364,7 @@ public class CopySpecImplTest {
 
     @Test public void testDuplicatesStrategyInherited() {
         spec.duplicatesStrategy = 'EXCLUDE'
-        spec.with new CopySpecImpl(fileResolver, spec)
+        spec.with new CopySpecImpl(fileResolver, instantiator, spec)
         assertEquals(DuplicatesStrategy.EXCLUDE, spec.childSpecs[0].duplicatesStrategy)
     }
 

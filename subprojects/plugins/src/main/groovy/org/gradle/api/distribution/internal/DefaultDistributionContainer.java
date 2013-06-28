@@ -35,6 +35,6 @@ public class DefaultDistributionContainer extends AbstractNamedDomainObjectConta
     }
 
     protected Distribution doCreate(String name) {
-        return getInstantiator().newInstance(DefaultDistribution.class, name, fileResolver);
+        return getInstantiator().newInstance(DefaultDistribution.class, name, fileResolver, getInstantiator());
     }
 }

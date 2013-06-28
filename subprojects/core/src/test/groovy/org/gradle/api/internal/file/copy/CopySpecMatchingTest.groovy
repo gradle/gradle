@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
 /**
@@ -28,7 +29,7 @@ import spock.lang.Specification
  */
 class CopySpecMatchingTest extends Specification {
 
-    CopySpecImpl copySpec = new CopySpecImpl(TestFiles.resolver(), null)
+    CopySpecImpl copySpec = new CopySpecImpl(TestFiles.resolver(), new DirectInstantiator(), null)
 
     FileTree fileTree = Mock()
 
