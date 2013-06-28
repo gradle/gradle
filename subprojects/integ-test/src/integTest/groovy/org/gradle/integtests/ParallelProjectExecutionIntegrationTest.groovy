@@ -35,7 +35,7 @@ allprojects {
         if (name.startsWith("ping")) {
             tasks.create(name) {
                 doLast {
-                    URL url = new URL("http://localhost:${blockingServer.port}/" + project.path)
+                    URL url = new URL("http://localhost:${blockingServer.port}/" + path)
                     println url.openConnection().getHeaderField('RESPONSE')
                 }
             }
@@ -48,12 +48,11 @@ allprojects {
     }
 
     def "executes dependency project targets concurrently"() {
-
         projectDependency from: 'a', to: ['b', 'c', 'd']
 
         expect:
-        blockingServer.expectConcurrentExecution(':b', ':c', ':d')
-        blockingServer.expectConcurrentExecution(':a')
+        blockingServer.expectConcurrentExecution(':b:pingServer', ':c:pingServer', ':d:pingServer')
+        blockingServer.expectConcurrentExecution(':a:pingServer')
 
         run ':a:pingServer'
     }
@@ -65,9 +64,9 @@ allprojects {
         projectDependency from: 'c', to: ['d']
 
         expect:
-        blockingServer.expectConcurrentExecution(':d')
-        blockingServer.expectConcurrentExecution(':b', ':c')
-        blockingServer.expectConcurrentExecution(':a')
+        blockingServer.expectConcurrentExecution(':d:pingServer')
+        blockingServer.expectConcurrentExecution(':b:pingServer', ':c:pingServer')
+        blockingServer.expectConcurrentExecution(':a:pingServer')
 
         run ':a:pingServer'
     }
@@ -78,7 +77,7 @@ allprojects {
         failingBuild 'c'
 
         when:
-        blockingServer.expectConcurrentExecution(':b', ':c')
+        blockingServer.expectConcurrentExecution(':b:pingServer', ':c:pingServer')
 
         fails ':a:pingServer'
 
@@ -95,9 +94,9 @@ allprojects {
 
         expect:
         //project a and b are both executed even though alphabetically more important task is blocked
-        blockingServer.expectConcurrentExecution(':b', ':a')
-        blockingServer.expectConcurrentExecution(':b')
-        blockingServer.expectConcurrentExecution(':b')
+        blockingServer.expectConcurrentExecution(':b:pingB', ':a:pingA')
+        blockingServer.expectConcurrentExecution(':b:pingA')
+        blockingServer.expectConcurrentExecution(':b:pingC')
 
         run 'b:pingC'
     }
