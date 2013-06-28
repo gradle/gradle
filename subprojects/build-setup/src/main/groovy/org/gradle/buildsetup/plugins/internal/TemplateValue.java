@@ -28,7 +28,36 @@ public class TemplateValue {
     }
 
     public String getGroovyString() {
-        return value.replace("\\", "\\\\").replace("'", "\\'");
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            switch (ch) {
+                case '\\':
+                    result.append('\\').append('\\');
+                    break;
+                case '\'':
+                    result.append('\\').append('\'');
+                    break;
+                case '\n':
+                    result.append('\\').append('n');
+                    break;
+                case '\r':
+                    result.append('\\').append('r');
+                    break;
+                case '\t':
+                    result.append('\\').append('t');
+                    break;
+                case '\f':
+                    result.append('\\').append('f');
+                    break;
+                case '\b':
+                    result.append('\\').append('b');
+                    break;
+                default:
+                    result.append(ch);
+            }
+        }
+        return result.toString();
     }
 
     @Override

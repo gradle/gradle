@@ -19,30 +19,30 @@ package org.gradle.buildsetup.plugins.internal
 import spock.lang.Specification
 
 class TemplateValueTest extends Specification {
-    def "escapes value for inclusion in a Groovy comment"() {
+    def "escapes value for inclusion in a comment"() {
         expect:
         new TemplateValue(value).groovyComment == escaped
 
         where:
-        value  | escaped
-        ''     | ''
-        'abc'  | 'abc'
-        'a\n'  | 'a\n'
-        'a\\b' | 'a\\\\b'
+        value   | escaped
+        ''      | ''
+        'abc'   | 'abc'
+        'a\n\t' | 'a\n\t'
+        /a\b/   | /a\\b/
     }
 
-    def "escapes value for inclusion in a Groovy string"() {
+    def "escapes value for inclusion in a string"() {
         expect:
         new TemplateValue(value).groovyString == escaped
 
         where:
-        value  | escaped
-        ''     | ''
-        'abc'  | 'abc'
-        'a\n'  | 'a\n'
-        'a\\b' | 'a\\\\b'
-        "'"    | "\\'"
-        '"'    | '"'
-        "\\'"  | "\\\\\\'"
+        value         | escaped
+        ''            | ''
+        'abc'         | 'abc'
+        'a\n\t\r\b\f' | /a\n\t\r\b\f/
+        /a\b/         | /a\\b/
+        /'/           | /\'/
+        /"/           | /"/
+        /\'/          | /\\\'/
     }
 }
