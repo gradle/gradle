@@ -60,20 +60,20 @@ class Ear extends Jar {
             getLibDirName()
         }
         copyAction.mainSpec.eachFile { FileCopyDetails details ->
-            if (deploymentDescriptor && details.path.equalsIgnoreCase('META-INF/' + deploymentDescriptor.fileName)) {
+            if (this.deploymentDescriptor && details.path.equalsIgnoreCase('META-INF/' + this.deploymentDescriptor.fileName)) {
                 // the deployment descriptor already exists; no need to generate it
-                deploymentDescriptor = null
+                this.deploymentDescriptor = null
             }
             // since we might generate the deployment descriptor, record each top-level module
-            if (deploymentDescriptor && details.path.lastIndexOf('/') <= 0) {
+            if (this.deploymentDescriptor && details.path.lastIndexOf('/') <= 0) {
                 EarModule module
                 if (details.path.toLowerCase().endsWith(".war")) {
                     module = new DefaultEarWebModule(details.path, details.path.substring(0, details.path.lastIndexOf('.')))
                 } else {
                     module = new DefaultEarModule(details.path)
                 }
-                if (!deploymentDescriptor.modules.contains(module)) {
-                    deploymentDescriptor.modules.add module
+                if (!this.deploymentDescriptor.modules.contains(module)) {
+                    this.deploymentDescriptor.modules.add module
                 }
             }
         }
