@@ -21,6 +21,7 @@ import org.gradle.api.Action
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.Actions
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
@@ -109,7 +110,7 @@ public class CopySpecImplTest {
         assertTrue(spec.sourcePaths.empty)
         assertThat(spec.childSpecs.size(), equalTo(2))
     }
-    
+
     @Test public void testWithSpecSource() {
         CopyActionImpl source = new CopyActionImpl(instantiator, fileResolver, null)
 
@@ -369,8 +370,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testMatchingCreatesAppropriateAction() {
-        spec.filesMatching("root/**/a*") {
-        }
+        spec.filesMatching "root/**/a*", Actions.doNothing()
         assertEquals(1, spec.allCopyActions.size())
         assertThat(spec.allCopyActions[0], instanceOf(MatchingCopyAction))
 
@@ -384,8 +384,7 @@ public class CopySpecImplTest {
 
     @Test public void testNotMatchingCreatesAppropriateAction() {
         // no path component starting with an a
-        spec.filesNotMatching("**/a*/**") {
-        }
+        spec.filesNotMatching("**/a*/**", Actions.doNothing())
         assertEquals(1, spec.allCopyActions.size())
         assertThat(spec.allCopyActions[0], instanceOf(MatchingCopyAction))
 

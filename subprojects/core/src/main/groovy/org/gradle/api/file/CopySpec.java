@@ -119,32 +119,11 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches the specified Ant-style pattern.
      * This is equivalent to using eachFile() and selectively applying a configuration based on the file's path.
      * @param pattern Ant-style pattern used to match against files' relative paths
-     * @param closure Configuration applied to the FileCopyDetails of each file matching pattern
-     * @return this
-     */
-    @Incubating
-    CopySpec filesMatching(String pattern, Closure closure);
-
-    /**
-     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches the specified Ant-style pattern.
-     * This is equivalent to using eachFile() and selectively applying a configuration based on the file's path.
-     * @param pattern Ant-style pattern used to match against files' relative paths
      * @param action action called for the FileCopyDetails of each file matching pattern
      * @return this
      */
     @Incubating
     CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action);
-
-    /**
-     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match the specified
-     * Ant-style pattern. This is equivalent to using eachFile() and selectively applying a configuration based on the
-     * file's path.
-     * @param pattern Ant-style pattern used to match against files' relative paths
-     * @param closure Configuration applied to the FileCopyDetails of each file that does not match pattern
-     * @return this
-     */
-    @Incubating
-    CopySpec filesNotMatching(String pattern, Closure closure);
 
     /**
      * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match the specified

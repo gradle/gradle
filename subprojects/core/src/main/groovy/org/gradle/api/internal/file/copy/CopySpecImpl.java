@@ -222,18 +222,10 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         this.duplicatesStrategy = strategy;
     }
 
-    public CopySpec filesMatching(String pattern, Closure closure) {
-        return filesMatching(pattern, new ClosureBackedAction<FileCopyDetails>(closure));
-    }
-
     public CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action) {
         Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
         return eachFile(
                 new MatchingCopyAction(matcher, action));
-    }
-
-    public CopySpec filesNotMatching(String pattern, Closure closure) {
-        return filesNotMatching(pattern, new ClosureBackedAction<FileCopyDetails>(closure));
     }
 
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {

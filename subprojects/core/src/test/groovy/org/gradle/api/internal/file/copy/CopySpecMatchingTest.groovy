@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.file.copy
 
+import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.Actions
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
@@ -42,19 +44,17 @@ class CopySpecMatchingTest extends Specification {
         details1.relativePath >>  RelativePath.parse(true, 'path/abc.txt')
         details2.relativePath >> RelativePath.parse(true, 'path/bcd.txt')
 
-        Closure matchingClosure = Mock()
-        matchingClosure.clone() >> matchingClosure
+        Action matchingAction = Mock()
 
         when:
-        copySpec.filesMatching("**/a*", matchingClosure)
+        copySpec.filesMatching("**/a*", matchingAction)
         copySpec.allCopyActions.each { copyAction ->
             copyAction.execute(details1)
             copyAction.execute(details2)
         }
 
         then:
-        1 * matchingClosure.setDelegate(details1)
-        1 * matchingClosure.call()
+        1 * matchingAction.execute(details1)
     }
 
 
@@ -67,26 +67,24 @@ class CopySpecMatchingTest extends Specification {
         details1.relativePath >>  RelativePath.parse(true, 'path/abc.txt')
         details2.relativePath >> RelativePath.parse(true, 'path/bcd.txt')
 
-        Closure matchingClosure = Mock()
-        matchingClosure.clone() >> matchingClosure
+        Action matchingAction = Mock()
 
         when:
-        copySpec.filesNotMatching("**/a*", matchingClosure)
+        copySpec.filesNotMatching("**/a*", matchingAction)
         copySpec.allCopyActions.each { copyAction ->
             copyAction.execute(details1)
             copyAction.execute(details2)
         }
 
         then:
-        1 * matchingClosure.setDelegate(details2)
-        1 * matchingClosure.call()
+        1 * matchingAction.execute(details2)
     }
 
     def matchingSpecInherited() {
         given:
         CopySpecImpl childSpec = copySpec.addChild()
         when:
-        copySpec.filesMatching("**/*.java") {}
+        copySpec.filesMatching("**/*.java", Actions.doNothing())
         then:
         1 == childSpec.allCopyActions.size()
         childSpec.allCopyActions[0] instanceof MatchingCopyAction
