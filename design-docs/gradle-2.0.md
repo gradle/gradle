@@ -8,6 +8,9 @@ for changes to behaviour.
 
 ## Remove Ivy and Maven types from the Gradle API
 
+These types expose the implementation details of dependency management and force a certain implementation on Gradle. Removing these types from the API
+allows us to implement new features and remove some internal complexity.
+
 * Change `ArtifactRepositoryContainer` and `RepositoryHandler` to remove methods that accept an Ivy `DependencyResolver` as parameter.
 * Remove `RepositoryHandler.mavenRepo()`.
 * Change `ArtifactRepositoryContainer` to change methods that return `DependencyResolver` to return `ArtifactRepository` or remove the method.
@@ -17,6 +20,8 @@ for changes to behaviour.
 * Change `PublishFilter` so that it accepts a `PublishArtifact` instead of an `Artifact`.
 
 ## Copy tasks
+
+There are serveral inconsitencies and confusing behaviours in the copy tasks and copy spec:
 
 * Change copy tasks so that they no longer implement `CopySpec`. Instead, they should have a `content` property which is a `CopySpec` that contains the main content.
   Leave behind some methods which operate on the file tree as a whole, eg `eachFile()`, `duplicatesStrategy`, `matching()`.
@@ -38,22 +43,45 @@ for changes to behaviour.
 
 ## Test output
 
+The current defaults for the outputs of tasks of type `Test` conflict with each other:
+
 * Change the default result and report directory for the `Test` type to include the task's name, so that the default
   does not conflict with another `Test` task.
 
 ## Gradle GUI and Open-API
 
-* Now that we have reasonable tooling support via IDEs it might be worth scrapping the Gradle GUI and open-api that it uses.
+Now that we have reasonable tooling support via IDEs, remove the open API.
 
 ## Remove old dependency result graph
 
-* Remove methods that use `ResolvedDependency` and `UnresolvedDependency`
-* Possibly keep methods that use `ResolveArtifact` if no replacement has been added
+The old dependency result graph is expensive in terms of heap usage. We should remove it.
+
+* Promote (un-incubate) the new dependency graph types.
+* Remove methods that use `ResolvedDependency` and `UnresolvedDependency` and remove these types.
+* Possibly keep methods that use `ResolvedArtifact` if no replacement has been added.
 
 ## Remove API methods that are added by the DSL decoration
 
+Some model types hand-code the DSL conventions in their API. We should remove these and let the DSL decoration take care of this, to simplify these
+types and to offer a more consistent DSL.
+
 * Remove all methods that accept a `Closure` when an `Action` overload is available. Add missing overloads where appropriate.
+* Remove all methods that accept a `String` or `Object` when a enum overload is available. Add missing overloads where appropriate.
 * Remove all set methods that contain no custom logic.
+
+## Remove GradleLauncher
+
+The public APIs for launching Gradle is now the tooling API. The `GradleBuild` task can also be used.
+
+## Remove tooling API support for some older versions
+
+* Change the provider so that it refuses to work with a consumer earlier than Gradle 1.2 (we can't tell the difference between clients from 1.0-milestone-8 and 1.1).
+  This means that a Gradle 1.2 or later tooling API client will be required to run builds for Gradle 2.0 and later.
+* Change the consumer so that it refuses to work with a provider earlier than Gradle 1.0 (or any version earlier than 1.0-milestone-8).
+
+## Replace StartParameter with several interfaces
+
+Or at least remove the public constructor of `StartParameter` so that it can later be made abstract and interfaces extracted.
 
 ## Remove references to internal classes from API
 
