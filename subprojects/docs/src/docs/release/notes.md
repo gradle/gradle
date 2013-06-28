@@ -187,19 +187,42 @@ To create a new Java library project, you can execute the following in a directo
     
 See the chapter on the [Build Setup plugin](userguide/build_setup_plugin.html) for more info, including future directions.
 
-### Added option to deal with duplicate files in archives and copy operations (i)
+### Duplicate file handling for copy and archive operations (i)
 
-When copying files with duplicate relative paths in the target archive (or directory), you can now specify the strategy for dealing with these duplicate files by
-using `FileCopyDetails`.
+When copying files or creating archives, it is possible to do so in such a way that effectively creates duplicates at the destination.
+It is now possible to specify a strategy to use when this occurs to avoid duplicates.
 
     task zip(type: Zip) {
         from 'dir1'
         from 'dir2'
-        archiveName = 'MyZip.zip'
-        eachFile { it.duplicatesStrategy = 'exclude' }
+        duplicatesStrategy 'exclude'
     }
 
-TODO - include info on spec level setting
+There are two possible strategies: `include` and `exclude`. 
+
+The `include` strategy is equivalent to Gradle's existing behaviour. 
+For copy operations, the last file copied to the duplicated destination is used. However, a warning is now issued when this occurs. 
+For archive creation (e.g. zip, jar), duplicate entries will be created in the archive.
+
+The `exclude` strategy effectively ignores duplicates. 
+The first thing copied to a location is used and all subsequent attempts to copy something to the same location are ignored.
+This means that for copy operations, the first file copied into place is always used. 
+For archive operations, the same is true and duplicate entries will _not_ be created.
+
+It is also possible to specify the duplicates strategy on a very fine grained level using the flexibility of the Gradle API for 
+specifying copy operations (incl. archive operations).
+
+    task zip(type: Zip) {
+        duplicatesStrategy 'exclude' // default strategy
+        from ('dir1') {
+            filesMatching("**/*.xml") {
+                duplicatesStrategy 'include'
+            }
+        } 
+        from ('dir2') {
+            duplicatesStrategy 'include'
+        }
+    }
 
 ### Major improvements to C++ project support (i)
 
