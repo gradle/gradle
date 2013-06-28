@@ -170,13 +170,22 @@ To customize the wrapper task you can modify the task in your build script:
 If there is already an explicitly defined task of type `Wrapper` in your build script, this task will be used when running `gradle wrapper`; 
 otherwise the new implicit default task will be used.
 
-### Generate a Gradle project from scratch (i)
+### Generate a Java library Gradle project skeleton (i)
 
-The `build-setup` plugin now supports declaring a project type when setting up a build. With version 1.7 Gradle, now supports `java-library` as a setup project type
-which generates a simple build file with the java plugin applied, a sample junit test class and a sample production code class if no sources already exist.
-To declare the project type you have to specify a `--type` command line argument:
+The `build-setup` plugin now supports declaring a project type when setting up a build, 
+laying the foundations for creating different types of project starting points conveniently. 
+Gradle 1.7 comes with the `java-library` type, which generates:
+
+* A simple build file with the java plugin applied
+* A sample production class (and directories)
+* A sample JUnit test class (and directories)
+* Gradle Wrapper files
+
+To create a new Java library project, you can execute the following in a directory (no `build.gradle` needed):
 
     gradle setupBuild --type java-library
+    
+See the chapter on the [Build Setup plugin](userguide/build_setup_plugin.html) for more info, including future directions.
 
 ### Added option to deal with duplicate files in archives and copy operations (i)
 
