@@ -144,7 +144,8 @@ You can now enable “output per test case” mode in Gradle to get better repor
 
 With this mode enabled, the XML report will associate output to the particular test case that created it. 
 The Jenkins CI server provides a UI for inspecting the result of a particular test case of class. 
-With `outputPerTestCase = true`, output from that test case will be shown on that screen.
+With `outputPerTestCase = true`, output from that test case will be shown on that screen. 
+Previously it was only visible on the page for the test _class_.
 
 This is also necessary for effective use of the Jenkins [JUnit Attachments Plugin](https://wiki.jenkins-ci.org/display/JENKINS/JUnit+Attachments+Plugin) that allows
 associating test attachments (e.g. Selenium screen shots) with test execution in the Jenkins UI.
