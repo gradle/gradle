@@ -472,7 +472,7 @@ This will define 4 binaries:
 - Need to handle dependencies.
 - Need to publish all variants.
 
-## Story: Additional integration test coverage for supported tool chains
+## Story: Ensure CI builds exercise test coverage for supported tool chains
 
 The CI builds include coverage for each supported tool chain. However, the coverage silently ignores tool chains which are not
 available on the current machine. Instead, the CI builds should asert that every expected tool chain is avilable on the current
@@ -484,8 +484,9 @@ Later stories will add further integration test coverage for particular OS and t
   runnning as part of a CI coverage build.
 - Change `AbstractBinariesIntegrationSpec` to use a single tool chain for each machine as part of a CI commit build. For Windows,
   the test should use a recent version of Visual C++, and for Linux, the test should use GCC.
-- Install Visual C++ 2010, Cygwin and MinGW on the Windows CI agents, as required.
+- Install Visual C++ 2010 express, Cygwin and MinGW on the Windows CI agents, as required.
 - Install GCC 3 and GCC 4 the linux CI agents, as required.
+- Update the server wiki pages to describe the installation steps required for each machine.
 
 ## Story: Introduce native functional source sets
 
