@@ -30,6 +30,8 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule
 import org.gradle.util.ConfigureUtil
 
+import javax.inject.Inject
+
 /**
  * Assembles an EAR archive.
  *
@@ -50,6 +52,7 @@ class Ear extends Jar {
 
     private CopySpec lib
 
+    @Inject
     Ear(Instantiator instantiator, FileResolver fileResolver) {
         super(instantiator, fileResolver)
         extension = EAR_EXTENSION
