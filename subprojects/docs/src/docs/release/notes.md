@@ -187,6 +187,25 @@ To create a new Java library project, you can execute the following in a directo
     
 See the chapter on the [Build Setup plugin](userguide/build_setup_plugin.html) for more info, including future directions.
 
+### Pattern based file copy configuration (i)
+
+Gradle 1.7 adds the ability to specify fine grained configuration of _how_ certain files should be copied by targeting configuration with “Ant Patterns”.
+
+Gradle has a unified API for file copying operations, by way of [`CopySpec`](javadoc/org/gradle/api/file/CopySpec.html), which includes creating archives.
+This new feature makes this API more powerful.
+
+    task copyFiles(type: Copy) {
+        from "src/files"
+        into "$buildDir/copied-files"
+        
+        // Replace the version number variable in only the text files
+        filesMatching("**/*.txt") {
+            expand version: "1.0"
+        }
+    }
+
+TODO - more needed
+    
 ### Duplicate file handling for copy and archive operations (i)
 
 When copying files or creating archives, it is possible to do so in such a way that effectively creates duplicates at the destination.
