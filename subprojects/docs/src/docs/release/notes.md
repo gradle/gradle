@@ -58,7 +58,8 @@ multiple Gradle processes are used, but please raise a problem report via the [G
 
 #### Faster build script compilation
 
-This change improves build script compilation by adding some caching in critical points in the classloader hierarchy. This affects, for example, first time users of a build, build authors, and those upgrading a build to a new Gradle version.
+This change improves build script compilation by adding some caching in critical points in the classloader hierarchy.
+This affects, for example, first time users of a build, build authors, and those upgrading a build to a new Gradle version.
 
 ### Finalizer tasks (i)
 
