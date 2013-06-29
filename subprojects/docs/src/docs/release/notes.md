@@ -34,11 +34,6 @@ This may be a breaking change for builds that depend the on the fact that certai
 Bear in mind that the vast majority of builds will enjoy faster dependency resolution offered by the in-memory caching.
 If your project requires reloading of snapshots or local dependencies during the build please let us know so that Gradle can better understand your scenario and model it correctly.
 
-You can also turn off the in-memory dependency metadata cache via a system property:
-
-    //gradle.properties
-    systemProp.org.gradle.resolution.memorycache=false
-
 To avoid increased heap consumption, the in-memory dependency metadata cache may clear the cached data when there is heap pressure.
 
 #### Improved multiprocess locking
@@ -406,10 +401,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Caching dependency metadata in memory
+### dependencies are checked once per build, now that dependency metadata is cached in memory
 
-Local-repo dependencies and expired snapshots are not loaded from the repository with each resolve.
-During a single build, a resolved dependency is not loaded again from the repository.
+Local-repo dependencies and expired snapshots are no longer loaded from the repository with each resolve.
+During a single build, a resolved dependency is loaded from a given repository once (regardless of how many subprojects or configurations the build has).
 For more details, please refer to the section of 'Faster Gradle builds' that describes the in-memory dependency metadata cache.
 
 ### Incubating JaCoCo plugin changes
