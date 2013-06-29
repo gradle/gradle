@@ -410,7 +410,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 Local-repo dependencies and expired snapshots are not loaded from the repository with each resolve.
 During a single build, a resolved dependency is not loaded again from the repository.
-For more details, please refer to the section about the in-memory dependency metadata cache.
+For more details, please refer to the section of 'Faster Gradle builds' that describes the in-memory dependency metadata cache.
 
 ### Incubating JaCoCo plugin changes
 
@@ -449,6 +449,13 @@ If you want your existing C++ build to continue working with Gradle, you have 2 
 ### `ConfigureableReport` renamed to `ConfigurableReport`
 
 The (incubating) class `org.gradle.api.reporting.ConfigureableReport` was renamed to `org.gradle.api.reporting.ConfigurableReport` as the original name was misspelled.
+
+### Test task is skipped when there are no tests
+
+GRADLE-2702 is fixed and now the test task behavior is more correct: it is skipped when there are no inputs (no tests).
+Previously, in the no-tests scenario, the test task was still executed, testCompile and testRuntime configurations were resolved and an empty html report was generated.
+This change affects the end users only in a good way (faster builds!) but nevertheless it needs to be mentioned as a potentially breaking change
+(no more empty reports, task skipped when no inputs).
 
 ## External contributions
 
