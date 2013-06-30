@@ -3,8 +3,14 @@
 Gradle 2.0 is the next major Gradle release that offers the opportunity to make breaking changes to the public interface of Gradle. This document captures a laundry
 list of ideas to consider before shipping Gradle 2.0.
 
-Note: for these changes, the old behaviour or feature to be removed should be deprecated in a Gradle 1.x release, probably no later than Gradle 1.8. Similarly
+Note: for the change listed below, the old behaviour or feature to be removed should be deprecated in a Gradle 1.x release, probably no later than Gradle 1.8. Similarly
 for changes to behaviour.
+
+## Remove all features deprecated as at Gradle 1.8
+
+In the Gradle 2.0-rc-1 release, remove all features that are deprecated as at Gradle 1.8 or earlier:
+
+* Search for usages of `DeprecationLogger`, `@Deprecated`, `@deprecated` and remove associated feature.
 
 ## Remove Ivy and Maven types from the Gradle API
 
@@ -17,6 +23,7 @@ allows us to implement new features and remove some internal complexity.
 * Change `MavenResolver` so that it no longer extends `DependencyResolver`
 * Remove `MavenResolver.settings`
 * Change `MavenDeployer.repository` and `snapshotRepository` and remove `addProtocolProviderJars()`.
+* Change `MavenPom.dependencies`.
 * Change `PublishFilter` so that it accepts a `PublishArtifact` instead of an `Artifact`.
 
 ## Copy tasks
@@ -83,13 +90,62 @@ The public APIs for launching Gradle is now the tooling API. The `GradleBuild` t
 
 Or at least remove the public constructor of `StartParameter` so that it can later be made abstract and interfaces extracted.
 
+## Clean up `DefaultTask` hierarchy
+
+* Inline `ConventionTask` and `AbstractTask` into `DefaultTask`.
+* Remove `Task.dependsOnTaskDidWork()`.
+* Mix `TaskInternal` in during decoration.
+* Remove references to internal types.
+
 ## Remove references to internal classes from API
+
+* Remove `Configurable` from public API types.
+* Remove `PomFilterContainer.getActivePomFilters()`.
+* Move `ConflictResolution` from public API (it's only used internally).
+* Move `Module` from public API (it's only used internally).
+* Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API.
+* Move `AntGroovydoc` and `AntScalaDoc` from public API.
+* Move `BuildExceptionReporter`, `BuildResultLogger`, `TaskExecutionLogger` and `BuildLogger` from public API.
+
+## Tooling API tidy-ups
+
+* Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `o.g.tooling`, to remove
+  package cycle from API.
 
 ## Remove support for convention objects
 
 Extension objects have been available for over 2 years and are now an established pattern.
 
-Support for convention objects cannot be removed until all the core plugins have migrated to using extensions.
+* Migrate core plugins to use extensions.
+* Remove `Convention` type.
+
+## Container API tidy-ups
+
+* Remove the specialised subclasses of `UnknownDomainObjectException` and the overridden methods that exist simply to declare this from `PluginContainer`, `ArtifactRepositoryContainer`,
+  `ConfigurationContainer`, `TaskCollection`.
+* Remove the specialised methods such as `whenTaskAdded()` from `PluginCollection`, `TaskCollection`
+* Remove the `extends T` upper bound on the type variable of `DomainObjectCollection.withType()`.
+* Remove the type varable from `ReportContainer`
+* Remove unused constants from `ArtifactRepositoryContainer`
+* Move `ReportContainer.ImmutableViolationException` to make top level.
+
+## Dependency API tidy-ups
+
+* Remove equals() implementations from `Dependency` subclasses.
+* Remove `ExternalDependency.force`. Use resolution strategy instead.
+* Remove `SelfResolvingDependency.resolve()` methods. These should be internal and invoked only as part of resolution.
+
+## Misc API tidy-ups
+
+* Rename `IllegalDependencyNotation` to add `Exception` to the end of its name.
+* Remove unused `IllegalOperationAtExecutionTimeException`.
+* Remove unused `AntJavadoc`.
+* Remove `ConventionProperty`, replace it with documentation.
+* Remove `Settings.startParameter`. Can use `gradle.startParameter` instead.
+
+## Remove `sonar` plugin
+
+Promote the `sonar-runner` plugin and remove the `sonar` plugin.
 
 ## Decorate classes at load time instead of subclassing
 
