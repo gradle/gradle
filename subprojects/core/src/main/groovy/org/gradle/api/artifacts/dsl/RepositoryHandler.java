@@ -242,8 +242,10 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @param args The argument to create the repository
      * @return the added repository
+     * @deprecated Use {@link #maven(groovy.lang.Closure)} instead.
      */
     @SuppressWarnings("JavadocReference")
+    @Deprecated
     DependencyResolver mavenRepo(Map<String, ?> args);
 
     /**
@@ -253,7 +255,9 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param configClosure Further configuration of the dependency resolver
      * @return The created dependency resolver
      * @see #mavenRepo(java.util.Map)
+     * @deprecated Use {@link #maven(groovy.lang.Closure)} instead.
      */
+    @Deprecated
     DependencyResolver mavenRepo(Map<String, ?> args, Closure configClosure);
 
     /**

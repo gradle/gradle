@@ -2,6 +2,17 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Preparing for Gradle 2.0
+
+We've started some initial preparations for a Gradle 2.0 release early next year. At this stage, we're cleaning up the API and marking a
+number of features as deprecated, for removal in Gradle 2.0. You'll find more details below.
+
+Removing unwanted features allows us to reduce the complexity of Gradle, and this means fewer bugs, more features and faster builds for you.
+
+Please be aware that we'll be following our usual feature lifecycle for removing features. Almost every deprecated feature has a non-deprecated replacement
+and this is documented in the deprecation descriptions below. However, some deprecated features do not have a replacement. If you find a feature that
+you use has been deprecated, and there doesn't seem to be a replacement for it, please let us know as soon as possible via the [forums](http://forums.gradle.org).
+
 <!--
 ### Example new and noteworthy
 -->
@@ -25,6 +36,28 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 2.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
+
+### `RepositoryHandler.mavenRepo()`
+
+The `RepositoryHandler.mavenRepo()` method has been deprecated. You should use the `maven()` method instead:
+
+<table>
+    <tr><th>Gradle 1.7</th><th>Gradle 1.8</th></tr>
+    <tr>
+    <td>
+        <pre>repositories {
+    mavenRepo url: 'http://my.server/'
+}</pre>
+    </td>
+    <td>
+        <pre>repositories {
+    maven {
+        url 'http://my.server/'
+    }
+}</pre>
+    </td>
+    </tr>
+</table>
 
 <!--
 ### Example deprecation
