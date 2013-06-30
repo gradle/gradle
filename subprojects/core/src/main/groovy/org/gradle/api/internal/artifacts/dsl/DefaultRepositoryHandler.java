@@ -76,7 +76,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME);
     }
 
-    public MavenArtifactRepository jcenter(Action<MavenArtifactRepository> action) {
+    public MavenArtifactRepository jcenter(Action<? super MavenArtifactRepository> action) {
         return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME, action);
     }
 

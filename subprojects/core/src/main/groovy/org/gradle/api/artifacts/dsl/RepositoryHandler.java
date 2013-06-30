@@ -107,7 +107,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added repository
      */
     @Incubating
-    MavenArtifactRepository jcenter(Action<MavenArtifactRepository> action);
+    MavenArtifactRepository jcenter(Action<? super MavenArtifactRepository> action);
 
     /**
      * Adds a repository which looks in Bintray's JCenter repository for dependencies. The URL used to access this repository is {@value
