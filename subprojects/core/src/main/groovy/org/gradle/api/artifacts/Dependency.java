@@ -24,7 +24,6 @@ package org.gradle.api.artifacts;
 public interface Dependency {
     String DEFAULT_CONFIGURATION = "default";
     String ARCHIVES_CONFIGURATION = "archives";
-    // todo Remove to ivy layer in 1.0
     String CLASSIFIER = "m:classifier";
 
     /**

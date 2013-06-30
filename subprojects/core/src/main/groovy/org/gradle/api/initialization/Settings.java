@@ -63,7 +63,7 @@ import java.io.File;
  *
  * @author Hans Dockter
  */
-public interface Settings extends PluginAware{
+public interface Settings extends PluginAware {
     /**
      * <p>The default name for the settings file.</p>
      */

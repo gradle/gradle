@@ -19,8 +19,7 @@ package org.gradle.api.reporting;
 import org.gradle.api.Incubating;
 
 /**
- * A file based report to be created with
- * a configurable destination.
+ * A file based report to be created with a configurable destination.
  */
 @Incubating
 public interface ConfigurableReport extends Report {
