@@ -410,6 +410,17 @@ The version used has changed from `1.50.0` to `2.1.0` with this release.
 
 The most significant improvement obtained through this upgrade is the improved accuracy of generated manifests for Java code that uses the “invokedynamic” byte code instruction.
 
+### JCenter repository support
+
+It is now even easier to obtain JVM dependencies from [Bintray's JCenter Repository](https://bintray.com/bintray/jcenter), with the `jcenter()` repo notation.
+JCenter is a community repository, that is free to publish to via [Bintray](https://bintray.com).
+
+    repositories {
+        jcenter()
+    }
+
+This will add [`http://jcenter.bintray.com`](http://jcenter.bintray.com) to your repository list, as an Apache Maven repository.
+
 ## Fixed issues
 
 ## Deprecations
@@ -522,6 +533,7 @@ On behalf of the Gradle community, the Gradle development team would like to tha
 * [Scott Bennett-McLeish](https://github.com/sbennettmcleish) - Correction in User Guide.
 * [Wujek Srujek](https://github.com/wujek-srujek) - Handling of -g command line option for wrapper install location (GRADLE-2802).
 * [Guillaume Laforge](https://github.com/glaforge) - Update of Bnd library used by OSGi plugin (GRADLE-2802).
+* [Yoav Landman](https://github.com/yoav) - `jcenter()` repo notation for [Bintray's JCenter repository](https://bintray.com/bintray/jcenter). 
 
 Contributions are an important part of the continuous improvement of Gradle. 
 
