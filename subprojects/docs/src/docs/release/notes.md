@@ -219,7 +219,7 @@ It is now possible to specify a strategy to use when this occurs to avoid duplic
 
 There are two possible strategies: `include` and `exclude`. 
 
-The `include` strategy is equivalent to Gradle's existing behaviour. 
+The `include` strategy is equivalent to Gradle's existing behavior. 
 For copy operations, the last file copied to the duplicated destination is used. However, a warning is now issued when this occurs. 
 For archive creation (e.g. zip, jar), duplicate entries will be created in the archive.
 
