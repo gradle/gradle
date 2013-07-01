@@ -321,8 +321,12 @@ The incremental build support offered by the C++ plugins has been improved in th
 
 ### Specify default JVM arguments for the Application plugin (i)
 
-Thanks to a contribution by Olaf Klischat, the application plugin now has support to specify the default JVM arguments to include in the generated
-launcher scripts.
+Thanks to a contribution by [Olaf Klischat](https://github.com/multi-io), the [Application Plugin](userguide/application_plugin.html) now provides the ability to specify 
+default JVM arguments to include in the generated launcher scripts.
+
+    apply plugin: "application"
+    
+    applicationDefaultJvmArgs = ["-Dfile.encoding=UTF=8"]
 
 ### Customise publication identity with new publishing plugins (i)
 
