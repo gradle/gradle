@@ -160,6 +160,26 @@ public class LoggingTest {
     }
 
 
+    def "output per test case flag invalidates outputs"() {
+        when:
+        buildScript """
+            $junitSetup
+            test.reports.junitXml.outputPerTestCase = false
+        """
+        testClass "SomeTest"
+        succeeds "test"
+
+        then:
+        ":test" in nonSkippedTasks
+
+        when:
+        buildFile << "\ntest.reports.junitXml.outputPerTestCase = true\n"
+        succeeds "test"
+
+        then:
+        ":test" in nonSkippedTasks
+    }
+
 
     String getJunitSetup() {
         """
