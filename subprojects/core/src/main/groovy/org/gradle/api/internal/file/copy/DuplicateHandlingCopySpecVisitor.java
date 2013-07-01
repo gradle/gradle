@@ -49,7 +49,7 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
         DuplicatesStrategy strategy = determineStrategy(details);
 
         if (!visitedFiles.add(details.getRelativePath())) {
-            if (strategy == DuplicatesStrategy.exclude) {
+            if (strategy == DuplicatesStrategy.EXCLUDE) {
                 return;
             }
             if (warnOnIncludeDuplicate) {

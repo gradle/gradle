@@ -38,6 +38,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import spock.lang.Issue;
 
 import java.io.File;
 import java.util.*;
@@ -591,6 +592,13 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
+    @Issue("http://issues.gradle.org/browse/GRADLE-2815")
+    public void registersSpecifiedBooleanInputValue() {
+        TaskWithBooleanInput task = expectTaskCreated(TaskWithBooleanInput.class, true);
+        assertThat(task.getInputs().getProperties().get("inputValue"), equalTo((Object) true));
+    }
+
+    @Test
     public void validationActionSucceedsWhenPropertyMarkedWithOptionalAnnotationNotSpecified() {
         TaskWithOptionalInputFile task = expectTaskCreated(TaskWithOptionalInputFile.class);
         task.execute();
@@ -829,6 +837,19 @@ public class AnnotationProcessingTaskFactoryTest {
 
         @Input
         public String getInputValue() {
+            return inputValue;
+        }
+    }
+
+    public static class TaskWithBooleanInput extends DefaultTask {
+        boolean inputValue;
+
+        public TaskWithBooleanInput(boolean inputValue) {
+            this.inputValue = inputValue;
+        }
+
+        @Input
+        public boolean isInputValue() {
             return inputValue;
         }
     }

@@ -18,15 +18,19 @@ package org.gradle.plugins.ear
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule
 import org.gradle.util.ConfigureUtil
+
+import javax.inject.Inject
 
 /**
  * Assembles an EAR archive.
@@ -48,26 +52,28 @@ class Ear extends Jar {
 
     private CopySpec lib
 
-    Ear() {
+    @Inject
+    Ear(Instantiator instantiator, FileResolver fileResolver) {
+        super(instantiator, fileResolver)
         extension = EAR_EXTENSION
         lib = copyAction.rootSpec.addFirst().into {
             getLibDirName()
         }
         copyAction.mainSpec.eachFile { FileCopyDetails details ->
-            if (deploymentDescriptor && details.path.equalsIgnoreCase('META-INF/' + deploymentDescriptor.fileName)) {
+            if (this.deploymentDescriptor && details.path.equalsIgnoreCase('META-INF/' + this.deploymentDescriptor.fileName)) {
                 // the deployment descriptor already exists; no need to generate it
-                deploymentDescriptor = null
+                this.deploymentDescriptor = null
             }
             // since we might generate the deployment descriptor, record each top-level module
-            if (deploymentDescriptor && details.path.lastIndexOf('/') <= 0) {
+            if (this.deploymentDescriptor && details.path.lastIndexOf('/') <= 0) {
                 EarModule module
                 if (details.path.toLowerCase().endsWith(".war")) {
                     module = new DefaultEarWebModule(details.path, details.path.substring(0, details.path.lastIndexOf('.')))
                 } else {
                     module = new DefaultEarModule(details.path)
                 }
-                if (!deploymentDescriptor.modules.contains(module)) {
-                    deploymentDescriptor.modules.add module
+                if (!this.deploymentDescriptor.modules.contains(module)) {
+                    this.deploymentDescriptor.modules.add module
                 }
             }
         }

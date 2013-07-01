@@ -34,6 +34,7 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.util.ConfigureUtil;
@@ -54,14 +55,15 @@ public abstract class DefaultScript extends BasicScript {
         super.init(target, services);
         this.services = services;
         loggingManager = services.get(LoggingManager.class);
+        Instantiator instantiator = services.get(Instantiator.class);
         if (target instanceof FileOperations) {
             fileOperations = (FileOperations) target;
         } else if (getScriptSource().getResource().getFile() != null) {
             fileOperations = new DefaultFileOperations(
-                    new BaseDirFileResolver(FileSystems.getDefault(), getScriptSource().getResource().getFile().getParentFile()), null, null
-            );
+                    new BaseDirFileResolver(FileSystems.getDefault(), getScriptSource().getResource().getFile().getParentFile()), null, null,
+                    instantiator);
         } else {
-            fileOperations = new DefaultFileOperations(new IdentityFileResolver(), null, null);
+            fileOperations = new DefaultFileOperations(new IdentityFileResolver(), null, null, instantiator);
         }
 
         processOperations = (ProcessOperations) fileOperations;

@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.Instantiator;
+
 /**
  * Copies resources from their source to their target directory, potentially processing them.
  * Makes sure no stale resources remain in the target directory.
@@ -22,4 +25,8 @@ package org.gradle.api.internal.plugins;
  * @deprecated use {@link org.gradle.language.jvm.tasks.ProcessResources} instead
  */
 @Deprecated
-public class ProcessResources extends org.gradle.language.jvm.tasks.ProcessResources {}
+public class ProcessResources extends org.gradle.language.jvm.tasks.ProcessResources {
+    public ProcessResources(Instantiator instantiator, FileResolver fileResolver) {
+        super(instantiator, fileResolver);
+    }
+}

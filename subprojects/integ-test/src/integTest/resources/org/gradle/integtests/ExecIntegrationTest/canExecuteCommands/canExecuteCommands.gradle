@@ -19,7 +19,7 @@ task execByMethod {
     ext.testFile = file("$buildDir/$name")
     doFirst {
         exec {
-            executable = Jvm.current().getJavaExecutable()
+            executable Jvm.current().getJavaExecutable()
             args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
         }
     }

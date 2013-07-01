@@ -146,8 +146,18 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
     static class EnumCoerceTestSubject {
         TestEnum enumProperty
 
+        String stringValue
+
         void someEnumMethod(TestEnum testEnum) {
             this.enumProperty = testEnum
+        }
+
+        void enumMethodWithStringOverload(TestEnum testEnum) {
+            enumProperty = testEnum
+        }
+
+        void enumMethodWithStringOverload(String stringValue) {
+            this.stringValue = stringValue
         }
     }
 
@@ -178,6 +188,18 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
 
         then:
         thrown TypeCoercionException
+
+        when:
+        i.enumMethodWithStringOverload("foo")
+
+        then:
+        i.stringValue == "foo"
+
+        when:
+        i.enumMethodWithStringOverload(TestEnum.DEF)
+
+        then:
+        i.enumProperty == TestEnum.DEF
     }
 
     def "can call methods during construction"() {

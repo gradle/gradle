@@ -31,12 +31,12 @@ public enum DuplicatesStrategy {
      * Files with the same relative path should be included. For Copy
      * operations this will generate a warning.
      */
-    include,
+    INCLUDE,
 
     /**
      * Only the first file with a given relative path will be
      * included.
      */
-    exclude
+    EXCLUDE
 
 }

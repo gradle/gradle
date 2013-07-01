@@ -30,6 +30,7 @@ import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.DefaultJavaExecAction;
@@ -49,13 +50,15 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
     private final TemporaryFileProvider temporaryFileProvider;
+    private final Instantiator instantiator;
     private DeleteAction deleteAction;
     private final DefaultResourceHandler resourceHandler;
 
-    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider) {
+    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
+        this.instantiator = instantiator;
         this.deleteAction = new DeleteActionImpl(fileResolver);
         this.resourceHandler = new DefaultResourceHandler(fileResolver);
     }
@@ -81,7 +84,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public ConfigurableFileTree fileTree(Object baseDir) {
-        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver);
+        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver, instantiator);
     }
 
     public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
@@ -89,12 +92,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
-        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver);
+        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver, instantiator);
     }
 
     public ConfigurableFileTree fileTree(Closure closure) {
         // This method is deprecated, but the deprecation warning is added on public classes that delegate to this. 
-        return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver));
+        return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver, instantiator));
     }
 
     public FileTree zipTree(Object zipPath) {
@@ -130,13 +133,13 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public WorkResult copy(Closure closure) {
-        CopyActionImpl action = configure(closure, new FileCopyActionImpl(fileResolver, new FileCopySpecVisitor()));
+        CopyActionImpl action = configure(closure, instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new FileCopySpecVisitor()));
         action.execute();
         return action;
     }
 
     public CopySpec copySpec(Closure closure) {
-        return configure(closure, new CopySpecImpl(fileResolver));
+        return configure(closure, instantiator.newInstance(CopySpecImpl.class, fileResolver, instantiator));
     }
 
     public FileResolver getFileResolver() {
@@ -152,12 +155,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public ExecResult javaexec(Closure cl) {
-        JavaExecAction javaExecAction = ConfigureUtil.configure(cl, new DefaultJavaExecAction(fileResolver));
+        JavaExecAction javaExecAction = ConfigureUtil.configure(cl, instantiator.newInstance(DefaultJavaExecAction.class, fileResolver));
         return javaExecAction.execute();
     }
 
     public ExecResult exec(Closure cl) {
-        ExecAction execAction = ConfigureUtil.configure(cl, new DefaultExecAction(fileResolver));
+        ExecAction execAction = ConfigureUtil.configure(cl, instantiator.newInstance(DefaultExecAction.class, fileResolver));
         return execAction.execute();
     }
 

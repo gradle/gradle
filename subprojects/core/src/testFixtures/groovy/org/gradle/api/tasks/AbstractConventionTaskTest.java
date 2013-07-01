@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks;
 
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionAwareHelper;
 import org.gradle.api.internal.ConventionTask;
 import org.junit.Test;
@@ -29,11 +30,11 @@ import static org.junit.Assert.assertThat;
  */
 public abstract class AbstractConventionTaskTest extends AbstractTaskTest {
 
-    public abstract ConventionTask getTask();
-    
+    public abstract AbstractTask getTask();
+
     @Test
     public void testConventionAwareness() {
-        ConventionTask task = getTask();
+        ConventionTask task = (ConventionTask) getTask();
         assertThat(task.getConventionMapping(), instanceOf(ConventionAwareHelper.class));
         ConventionAwareHelper conventionMapping = (ConventionAwareHelper) task.getConventionMapping();
         assertThat(conventionMapping.getConvention(), sameInstance(getProject().getConvention()));

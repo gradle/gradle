@@ -15,12 +15,13 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.internal.Factory;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.groovy.scripts.internal.ClasspathScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.*;
+import org.gradle.groovy.scripts.internal.ClasspathScriptTransformer;
+import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -33,7 +34,8 @@ import org.junit.runner.RunWith;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.sameInstance;
 
 @RunWith(JMock.class)
 public class DefaultScriptPluginFactoryTest {
@@ -46,6 +48,7 @@ public class DefaultScriptPluginFactoryTest {
     private final ScriptSource scriptSourceMock = context.mock(ScriptSource.class);
     private final ScriptRunner scriptRunnerMock = context.mock(ScriptRunner.class, "scriptRunner");
     private final BasicScript scriptMock = context.mock(BasicScript.class);
+    private final Instantiator instantiatorMock = context.mock(Instantiator.class);
     private final URLClassLoader parentClassLoader = new URLClassLoader(new URL[0]);
     private final URLClassLoader scriptClassLoader = new URLClassLoader(new URL[0]);
     private final ScriptHandlerFactory scriptHandlerFactoryMock = context.mock(ScriptHandlerFactory.class);
@@ -53,7 +56,7 @@ public class DefaultScriptPluginFactoryTest {
     private final ScriptRunner classPathScriptRunnerMock = context.mock(ScriptRunner.class, "classpathScriptRunner");
     private final BasicScript classPathScriptMock = context.mock(BasicScript.class, "classpathScript");
     private final Factory<LoggingManagerInternal> loggingManagerFactoryMock = context.mock(Factory.class);
-    private final DefaultScriptPluginFactory factory = new DefaultScriptPluginFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock, parentClassLoader, loggingManagerFactoryMock);
+    private final DefaultScriptPluginFactory factory = new DefaultScriptPluginFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock, parentClassLoader, loggingManagerFactoryMock, instantiatorMock);
 
     @Test
     public void configuresATargetObjectUsingScript() {

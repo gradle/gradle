@@ -21,12 +21,15 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.reflect.Instantiator;
 
 public class CopySpecVisitorDriver {
 
+    private final Instantiator instantiator;
     private final FileSystem fileSystem;
 
-    public CopySpecVisitorDriver(FileSystem fileSystem) {
+    public CopySpecVisitorDriver(Instantiator instantiator, FileSystem fileSystem) {
+        this.instantiator = instantiator;
         this.fileSystem = fileSystem;
     }
 
@@ -41,7 +44,7 @@ public class CopySpecVisitorDriver {
                 }
 
                 public void visitFile(FileVisitDetails fileDetails) {
-                    DefaultFileCopyDetails details = new DefaultFileCopyDetails(fileDetails, spec, fileSystem);
+                    DefaultFileCopyDetails details = instantiator.newInstance(DefaultFileCopyDetails.class, fileDetails, spec, fileSystem);
                     for (Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
                         action.execute(details);
                         if (details.isExcluded()) {

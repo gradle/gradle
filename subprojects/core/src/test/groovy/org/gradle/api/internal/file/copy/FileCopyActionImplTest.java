@@ -16,6 +16,8 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -32,7 +34,8 @@ import static org.junit.Assert.assertThat;
 public class FileCopyActionImplTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final FileResolver fileResolver = context.mock(FileResolver.class);
-    private final FileCopyActionImpl spec = new FileCopyActionImpl(fileResolver, context.mock(CopySpecVisitor.class));
+    private final Instantiator instantiator = new DirectInstantiator();
+    private final FileCopyActionImpl spec = new FileCopyActionImpl(instantiator, fileResolver, context.mock(CopySpecVisitor.class));
 
     @Test public void testRootSpecResolvesItsIntoArgAsDestinationDir() {
         final File file = new File("base dir");
