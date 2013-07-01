@@ -187,7 +187,7 @@ See the chapter on the [Build Setup plugin](userguide/build_setup_plugin.html) f
 
 Gradle 1.7 adds the ability to specify fine grained configuration of _how_ certain files should be copied by targeting configuration with “Ant Patterns”.
 
-Gradle has a unified API for file copying operations, by way of [`CopySpec`](javadoc/org/gradle/api/file/CopySpec.html), which includes creating archives.
+Gradle has a unified API for file copying operations, by way of [`CopySpec`](javadoc/org/gradle/api/file/CopySpec.html), which includes creating archives (e.g. zips).
 This new feature makes this API more powerful.
 
     task copyFiles(type: Copy) {
@@ -200,8 +200,12 @@ This new feature makes this API more powerful.
         }
     }
 
-TODO - more needed
-    
+The [`filesMatching()`](javadoc/org/gradle/api/file/CopySpec.html#filesMatching%28java.lang.String%2C%20org.gradle.api.Action%29) method can be 
+called with a closure and configures an instance of [`FileCopyDetails`](javadoc/org/gradle/api/file/FileCopyDetails.html).
+There is also an inverse variation, 
+[`filesNotMatching()`](javadoc/org/gradle/api/file/CopySpec.html#filesNotMatching%28java.lang.String%2C%20org.gradle.api.Action%29), that allows
+configuration to be specified for all files that do not match the given pattern. 
+
 ### Duplicate file handling for copy and archive operations (i)
 
 When copying files or creating archives, it is possible to do so in such a way that effectively creates duplicates at the destination.
