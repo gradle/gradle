@@ -402,9 +402,22 @@ in the next major Gradle version (Gradle 2.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
-<!--
-### Example deprecation
--->
+### Test report properties 
+
+The `Test` task has been updated to implement the standard [`Reporting`](dsl/org.gradle.api.tasks.testing.Test.html) interface.
+The existing API for configuring reporting and results has now been deprecated. 
+This includes the following methods:
+
+- `disableTestReport()`
+- `enableTestReport()`
+- `isTestReport()`
+- `setTestReport()`
+- `getTestReportDir()`
+- `setTestReportDir()`
+- `getTestResultsDir()`
+- `setTestResultsDir()`
+
+All of the deprecated functionality is still available via the new `Reporting` mechanism.
 
 ## Potential breaking changes
 
