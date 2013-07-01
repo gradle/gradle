@@ -393,17 +393,6 @@ The version used has changed from `1.50.0` to `2.1.0` with this release.
 
 The most significant improvement obtained through this upgrade is the improved accuracy of generated manifests for Java code that uses the “invokedynamic” byte code instruction.
 
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
-
 ## Fixed issues
 
 ## Deprecations
