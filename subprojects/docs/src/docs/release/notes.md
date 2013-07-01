@@ -58,7 +58,7 @@ This affects, for example, first time users of a build, build authors, and those
 
 ### Finalizer tasks (i)
 
-Thanks to a contribution by Marcin Erdmann, Gradle 1.7 introduces a new task ordering rule that allows a task to _finalize_ some other task.
+Thanks to a contribution by [Marcin Erdmann](https://github.com/erdi), Gradle 1.7 introduces a new task ordering rule that allows a task to _finalize_ some other task.
 
 TODO - more stuff goes here
 
@@ -186,6 +186,7 @@ See the chapter on the [Build Setup plugin](userguide/build_setup_plugin.html) f
 ### Pattern based file copy configuration (i)
 
 Gradle 1.7 adds the ability to specify fine grained configuration of _how_ certain files should be copied by targeting configuration with “Ant Patterns”.
+This feature was contributed by [Kyle Mahan](https://github.com/kylewm).
 
 Gradle has a unified API for file copying operations, by way of [`CopySpec`](javadoc/org/gradle/api/file/CopySpec.html), which includes creating archives (e.g. zips).
 This new feature makes this API more powerful.
@@ -209,7 +210,8 @@ configuration to be specified for all files that do not match the given pattern.
 ### Duplicate file handling for copy and archive operations (i)
 
 When copying files or creating archives, it is possible to do so in such a way that effectively creates duplicates at the destination.
-It is now possible to specify a strategy to use when this occurs to avoid duplicates.
+It is now possible to specify a strategy to use when this occurs to avoid duplicates. 
+This feature was contributed by [Kyle Mahan](https://github.com/kylewm).
 
     task zip(type: Zip) {
         from 'dir1'
@@ -487,16 +489,18 @@ The version used has changed from `1.50.0` to `2.1.0` with the 1.7 release.
 
 While this should be completely backwards compatible, it is a significant upgrade.
  
-## External contributions
+## Contributors
 
-We would like to thank the following community members for making contributions to this release of Gradle.
+On behalf of the Gradle community, the Gradle development team would like to thank the following people who contributed to this version of Gradle:
 
-* [Marcin Erdmann](https://github.com/erdi) - Added finalizer tasks.
+* [Marcin Erdmann](https://github.com/erdi) - Finalizer tasks.
 * [Dan Stine](https://github.com/dstine)
-    - Added `maxPriorityViolations` setting to the CodeNarc plugin (GRADLE-1742).
-    - Correction in User Guide.
-* [Olaf Klischat](https://github.com/multi-io) - Added support for specifying the default JVM arguments for the Application plugin (GRADLE-1456).
-* [Kyle Mahan](https://github.com/kylewm) - Introduce duplicateStrategy property to archive and copy operations (GRADLE-2171).
+    - `maxPriorityViolations` setting for the CodeNarc plugin (GRADLE-1742).
+    - User Guide corrections.
+* [Olaf Klischat](https://github.com/multi-io) - Support for specifying the default JVM arguments for the Application plugin (GRADLE-1456).
+* [Kyle Mahan](https://github.com/kylewm) 
+    - Duplicate handling for archive and copy operations (GRADLE-2171).
+    - Pattern based file copy configuration.
 * [Robert Kühne](https://github.com/sponiro) - Spelling correction in User Guide.
 * [Björn Kautler](https://github.com/Vampire) - Correction to Build Dashboard sample.
 * [Seth Goings](https://github.com/sgoings) - Correction in User Guide.
@@ -504,7 +508,9 @@ We would like to thank the following community members for making contributions 
 * [Wujek Srujek](https://github.com/wujek-srujek) - Handling of -g command line option for wrapper install location (GRADLE-2802).
 * [Guillaume Laforge](https://github.com/glaforge) - Update of Bnd library used by OSGi plugin (GRADLE-2802).
 
-We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
+Contributions are an important part of the continuous improvement of Gradle. 
+
+If you would like to contribute to Gradle, please see [gradle.org/contribute](http://gradle.org/contribute) for how to start.
 
 ## Known issues
 
