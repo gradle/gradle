@@ -16,10 +16,9 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
-import org.gradle.api.GradleException;
-import org.gradle.api.Task;
-import org.gradle.api.Transformer;
+import org.gradle.api.*;
+import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -277,9 +276,15 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         public void attachActions(PropertyInfo parent, Class<?> type) {
-            if (type.getSuperclass() != null) {
-                attachActions(parent, type.getSuperclass());
+            Class<?> superclass = type.getSuperclass();
+            if (!(superclass == null
+                    // Avoid reflecting on classes we know we don't need to look at
+                    || superclass.equals(ConventionTask.class) || superclass.equals(DefaultTask.class)
+                    || superclass.equals(AbstractTask.class) || superclass.equals(Object.class)
+            )) {
+                attachActions(parent, superclass);
             }
+
             for (Method method : type.getDeclaredMethods()) {
                 if (!isGetter(method)) {
                     continue;
