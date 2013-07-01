@@ -16,29 +16,29 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.wrapper.PathAssembler
 import org.gradle.wrapper.WrapperConfiguration
 import spock.lang.Issue
 
 class WrapperUserHomeIntegrationTest extends AbstractIntegrationSpec {
+
     void setup() {
-        assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :distributions:binZip task"
-        executer.beforeExecute { it.requireIsolatedDaemons() } as Action
+        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :distributions:binZip task"
+        executer.requireIsolatedDaemons()
     }
 
     private prepareWrapper() {
         file("build.gradle") << """
-    wrapper {
-        distributionUrl = '${distribution.binDistribution.toURI()}'
-    }
-"""
+            wrapper {
+                distributionUrl = '${distribution.binDistribution.toURI()}'
+            }
+        """
         executer.withTasks('wrapper').run()
         executer.usingExecutable('gradlew').inDirectory(testDirectory).withGradleUserHomeDir(null)
     }
 
-    private installationIn(String gradleUserHomePath) {
+    private     installationIn(String gradleUserHomePath) {
         def config = new WrapperConfiguration(distribution: distribution.binDistribution.toURI())
         File distDir = new PathAssembler(new File(gradleUserHomePath)).getDistribution(config).distributionDir
         new File(distDir, "gradle-$distribution.version.version/bin/gradle")
