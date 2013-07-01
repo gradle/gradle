@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.plugins.osgi
 
-import aQute.lib.osgi.Analyzer
+import aQute.bnd.osgi.Analyzer
 import java.util.jar.Manifest
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
