@@ -330,7 +330,8 @@ default JVM arguments to include in the generated launcher scripts.
 
 ### Customise publication identity with new publishing plugins (i)
 
-In Gradle 1.7 the new publishing plugins got a lot more powerful with the ability to directly specify the complete coordinates (or GAV) that will be used to publish.
+It is now possible to explicitly set the identity of a publication with the new publishing plugins. 
+Previously the identity was assumed to be the same of the project.
 
 For a `MavenPublication` you can specify the `groupId`, `artifactId` and `version` used for publishing. You can also set the `packaging` value on the `MavenPom`.
 
