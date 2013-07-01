@@ -23,7 +23,6 @@ class WrapperSetup implements Action<GradleExecuter> {
     void execute(GradleExecuter executer) {
         executer.requireOwnGradleUserHomeDir()
         executer.requireIsolatedDaemons()
-        // Wrapper doesn't handle -g or -Dgradle.user.home, have to use an environment variable
         executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir)
     }
 }
