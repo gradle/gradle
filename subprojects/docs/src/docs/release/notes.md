@@ -254,7 +254,7 @@ This includes:
 - Building with different C++ toolchains (Visual C++, GCC, etc)
 - Building multiple variants of a single binary with different target architectures, build types (debug vs release), operating systems etc.
 - Variant-aware dependency resolution
-- Much more: see [https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md](https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md)
+- Much more … (read the [design spec](https://github.com/gradle/gradle/blob/master/design-docs/continuous-delivery-for-c-plus-plus.md) for more info) 
 
 Some of these features are included in Gradle 1.7 (see below), while others can be expected in the upcoming releases.
 
@@ -264,7 +264,7 @@ A key part of improving C++ support is an [improved component model](userguide/c
 a single defined [native component](dsl/org.gradle.nativecode.base.NativeComponent.html).
 Using this model Gradle can now produce both a static and shared version of any [library component](dsl/org.gradle.nativecode.base.Library.html).
 
-#### Can build static libraries from C++ sources
+#### Static libraries from C++ sources
 
 For any library declared in your C++ build, it is now possible to either compile and link the object files into a shared library,
 or compile and archive the object files into a static library (or both). For any library 'lib' added to your project,
@@ -272,7 +272,7 @@ Gradle will create a 'libSharedLibrary' task to link the shared library, as well
 
 Please refer to the [User Guide chapter](userguide/cpp.html) and the included C++ samples for more details.
 
-#### Can specify defines, compilerArgs and linkerArgs for each C++ binary produced
+#### Per binary configuration
 
 Each binary to be produced from a C++ project is associated with a set of compiler and linker command-line arguments, as well as macro definitions.
 These settings can be applied to all binaries, an individual binary, or selectively to a group of binaries based on some criteria.
@@ -284,6 +284,7 @@ These settings can be applied to all binaries, an individual binary, or selectiv
         compilerArgs "-fconserve-space"
         linkerArgs "--export-dynamic"
     }
+    
     binaries.withType(SharedLibraryBinary) {
         define "DLL_EXPORT"
     }
@@ -303,11 +304,11 @@ Each binary is associated with a particular C++ [tool chain](dsl/org.gradle.nati
 
 More examples of how binary-specific settings can be provided are in the [user guide](userguide/cpp.html#N15789).
 
-#### Can build C++ project with Cygwin/g++
+#### Cygwin support
 
 The C++ plugins now support using g++ when running Gradle under Cygwin.
 
-#### Improved incremental build for C++
+#### Improved incremental build
 
 The incremental build support offered by the C++ plugins has been improved in this release, making incremental build very accurate:
 
