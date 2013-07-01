@@ -364,9 +364,7 @@ which cannot be modified from within the Gradle build script itself.
 
 ### Publish multiple modules from a single Gradle project (i)
 
-Building on the ability to tweak the identity of a publication, the publishing plugins now allow you to
-publish multiple modules from a single Gradle project. While this was quite tricky to achieve in the past, the `ivy-publish` and `maven-publish`
-plugins now make it easy.
+The publishing plugins now allow you to publish multiple publications from a single Gradle project. 
 
     project.group "org.cool.library"
 
@@ -384,6 +382,9 @@ plugins now make it easy.
             artifact apiJar
         }
     }
+
+While possible, it is not trivial to do the same with the old publishing support. 
+The new `ivy-publish` and `maven-publish` plugins now make it easy.
 
 ### Improved OSGi support through Bnd library update
 
