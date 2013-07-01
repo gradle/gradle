@@ -97,6 +97,12 @@ public class JavaReflectionUtil {
         return new JavaMethod<T, R>(target, returnType, method);
     }
 
+    public static <T, R> JavaMethod<T, R> method(T target, Class<R> returnType, Method method) {
+        @SuppressWarnings("unchecked")
+        Class<T> targetClass = (Class<T>) target.getClass();
+        return new JavaMethod<T, R>(targetClass, returnType, method);
+    }
+
     /**
      * Search methods in an inheritance aware fashion, stopping when stopIndicator returns true.
      */
