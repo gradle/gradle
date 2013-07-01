@@ -58,9 +58,24 @@ This affects, for example, first time users of a build, build authors, and those
 
 ### Finalizer tasks (i)
 
-Thanks to a contribution by [Marcin Erdmann](https://github.com/erdi), Gradle 1.7 introduces a new task ordering rule that allows a task to _finalize_ some other task.
+Gradle 1.7 introduces a new task ordering rule that allows a task to _finalize_ some other task.
+This feature was contributed by [Marcin Erdmann](https://github.com/erdi).
 
-TODO - more stuff goes here
+[Finalizer tasks](userguide/more_about_tasks.html#N10F84) execute after the task they finalize, and always run regardless of whether the finalized task succeeds or fails.
+Tasks declare the tasks that finalize them.
+
+    configure([integTest1, integTest2]) {
+        dependsOn startAppServer
+        finalizedBy stopAppServer
+    }
+
+In this example, it is declared that the `integTest1` and `integTest2` tasks are finalized by the `stopAppServer` task.
+If either of these tasks are executed during a build, the declared finalizer task will be automatically executed after this.
+If both tasks are executed during a build, the finalizer task will be executed after both tasks have been executed.
+The finalizer task, `stopAppServer`, does not need to be declared as a task to be run when invoking Gradle.
+
+Finalizer tasks can be used to clean up resources, produce reports, or perform any other mandatory function after a task executes regardless
+of whether it succeeds or fails. 
 
 ### TestNG parameters included in test reports (i)
 
