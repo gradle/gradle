@@ -1,4 +1,26 @@
+Gradle 1.7 is the fastest Gradle ever. 
+Significant performance optimizations have been made, particularly in the areas of dependency resolution and build script compilation.
+All users of Gradle will benefit from these improvements, while large builds stand to gain the most.
+Improving performance and scalability continues to be a pervasive theme in the evolution of Gradle and 1.7 delivers on this.
 
+In addition to these behind the scenes improvements, Gradle 1.7 is also packed with many exciting new features.
+The new finalizer task mechanism makes it possible to run a task after another task, regardless of its outcome.
+This is extremely useful for integration testing where resources (such as application servers) must be shutdown after (possibly failing) tests.
+Another long awaited feature, the ability to control processing of duplicate files in copy and archive creation operations, has also been added in this release.
+
+The improvements to the Build Setup plugin in Gradle 1.7 build upon the existing functionality (i.e. converting Maven projects to Gradle) to add support for
+generating projects from a template. 
+Over time this mechanism will be expanded to include custom templates, easing the process of creating a new Gradle project of a certain type.
+
+This release of Gradle also includes major steps forward for building native binaries from C++ source.
+Support for native binaries in general is an area under heavy development.
+Expect to see Gradle's capabilities in this area continue to improve in upcoming releases.
+
+Excitingly, Gradle 1.7 contains more contributions from developers outside of the core development team than any other release.
+This is a steadily increasing trend release on release and is adding significant value to Gradle for all Gradle users. 
+Thank you to all who contributed to Gradle 1.7.
+
+For more information on what's new in Gradle 1.7, please read on.
 
 ## New and noteworthy
 
