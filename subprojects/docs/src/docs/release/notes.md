@@ -466,6 +466,7 @@ We would like to thank the following community members for making contributions 
 * [Björn Kautler](https://github.com/Vampire) - Correction to Build Dashboard sample.
 * [Seth Goings](https://github.com/sgoings) - Correction in User Guide.
 * [Scott Bennett-McLeish](https://github.com/sbennettmcleish) - Correction in User Guide.
+* [Wujek Srujek](https://github.com/wujek-srujek) - Handling of -g command line option for wrapper install location (GRADLE-2802).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
