@@ -421,13 +421,17 @@ All of the deprecated functionality is still available via the new `Reporting` m
 
 ## Potential breaking changes
 
-### dependencies are checked once per build, now that dependency metadata is cached in memory
+### In memory dependency metadata caching
 
-Local-repo dependencies and expired snapshots are no longer loaded from the repository with each resolve.
-During a single build, a resolved dependency is loaded from a given repository once (regardless of how many subprojects or configurations the build has).
-For more details, please refer to the section of 'Faster Gradle builds' that describes the in-memory dependency metadata cache.
+As a significant performance optimization, Gradle now caches dependency descriptors in memory across the _entire build_.
+This means that if that dependency metadata changes during the build, the changes may not be seen by Gradle.
+There are no identified usage patterns where this would occur, but it is theoretically possible.
 
+Please see the section on “[Faster Gradle Builds](#faster-gradle-builds)” for more information.
+ 
 ### Incubating JaCoCo plugin changes
+
+Some properties of classes introduced by the [JaCoCo code coverage plugin](userguide/jacoco_plugin.html) have been renamed with better names.
 
 - `JacocoTaskExtension.destPath` renamed to `destinationFile`
 - `JacocoTaskExtension.classDumpPath` renamed to `classDumpFile`
@@ -435,31 +439,35 @@ For more details, please refer to the section of 'Faster Gradle builds' that des
 
 ### Incubating BuildSetup plugin changes
 
-- `ConvertMaven2Gradle`, `GenerateBuildScript` and `GenerateSettingsScript` have been removed. The according logic is now part of the `buildSetup` task
-which has now the type`SetupBuild` task.
-- The plugin creates different set of tasks, with different types and names depending on the build-setup type
-- The `setupWrapper` task is now called `wrapper`.
+The `ConvertMaven2Gradle`, `GenerateBuildScript` and `GenerateSettingsScript` classes have been removed. 
+The respective logic is now part of the `buildSetup` task which has now the type `SetupBuild`.
+
+The plugin creates different set of tasks, with different types and names depending on the build-setup type.
+
+The `setupWrapper` task is now called `wrapper`.
 
 ### Changed task name in incubating ivy-publish plugin
 
-- For consistency with the maven-publish plugin, the task for generating the ivy.xml file for an IvyPublication has changed.
-  This task is now named `generateDescriptorFileFor${publication.name}Publication`.
+For consistency with the maven-publish plugin, the task for generating the ivy.xml file for an IvyPublication has changed.
+This task is now named `generateDescriptorFileFor${publication.name}Publication`.
 
 ### Default 'status' value of IvyPublication is 'integration' and no longer defaults to 'project.status' (i)
 
-- In order to continue decoupling the Gradle project model from the Ivy publication model, the 'project.status' value is no longer used
-  when publishing an IvyPublication with the `ivy-publish` plugin.
-- If no status value is set on the `IvyModuleDescriptor` of an `IvyPublication`, then the default ivy status ('integration') will be used.
-  Previously, 'release' was used, being the default value for 'project.status'.
+In order to continue decoupling the Gradle project model from the Ivy publication model, the '`project.status`' value is no longer used
+when publishing with the `ivy-publish` plugin.
+
+If no status value is set on the `IvyModuleDescriptor` of an `IvyPublication`, then the default ivy status ('`integration`') will be used.
+Previously, '`release`' was used, being the default value for '`project.status`'.
 
 ### Major changes to C++ support
 
 The incubating C++ support in Gradle is undergoing a major update. Many existing plugins, tasks, API classes and the DSL have been being given an overhaul.
 It's likely that all but the simplest existing C++ builds will need to be updated to accommodate these changes.
 
-If you want your existing C++ build to continue working with Gradle, you have 2 options.
-- Remain on Gradle 1.6 for the next few releases until the C++ support stabilises, and then perform a single migration.
-- Keep your build updated for the latest changes, being aware that further changes will be required for subsequent releases.
+If you want your existing C++ build to continue working with Gradle, you have 2 options:
+
+1. Remain on Gradle 1.6 for the next few releases until the C++ support stabilises, and then perform a single migration.
+2. Keep your build updated for the latest changes, being aware that further changes will be required for subsequent releases.
 
 ### `ConfigureableReport` renamed to `ConfigurableReport`
 
@@ -467,15 +475,16 @@ The (incubating) class `org.gradle.api.reporting.ConfigureableReport` was rename
 
 ### Test task is skipped when there are no tests
 
-GRADLE-2702 is fixed and now the test task behavior is more correct: it is skipped when there are no inputs (no tests).
-Previously, in the no-tests scenario, the test task was still executed, testCompile and testRuntime configurations were resolved and an empty html report was generated.
-This change affects the end users only in a good way (faster builds!) but nevertheless it needs to be mentioned as a potentially breaking change
-(no more empty reports, task skipped when no inputs).
+The test task is now _skipped_ when there are no tests to execute (GRADLE-2702).
+
+Previously, in the no-tests scenario, the test task was still executed. This meant that dependency resolution would occur and an empty html report was generated.
+This new behavior results in faster builds when there are no tests. No negative impacts on existing builds are expected.
 
 ### Bnd library used by OSGi plugin updated
 
 The [OSGi plugin](userguide/osgi_plugin.html) uses the [Bnd](http://www.aqute.biz/Bnd/Bnd) tool to generate bundle manifests.
 The version used has changed from `1.50.0` to `2.1.0` with the 1.7 release. 
+
 While this should be completely backwards compatible, it is a significant upgrade.
  
 ## External contributions
