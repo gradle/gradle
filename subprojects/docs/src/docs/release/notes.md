@@ -375,6 +375,13 @@ plugins now make it easy.
         }
     }
 
+### Improved OSGi support through Bnd library update
+
+The [OSGi plugin](userguide/osgi_plugin.html) uses the [Bnd](http://www.aqute.biz/Bnd/Bnd) tool to generate bundle manifests.
+The version used has changed from `1.50.0` to `2.1.0` with this release.
+
+The most significant improvement obtained through this upgrade is the improved accuracy of generated manifests for Java code that uses the “invokedynamic” byte code instruction.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -452,6 +459,12 @@ Previously, in the no-tests scenario, the test task was still executed, testComp
 This change affects the end users only in a good way (faster builds!) but nevertheless it needs to be mentioned as a potentially breaking change
 (no more empty reports, task skipped when no inputs).
 
+### Bnd library used by OSGi plugin updated
+
+The [OSGi plugin](userguide/osgi_plugin.html) uses the [Bnd](http://www.aqute.biz/Bnd/Bnd) tool to generate bundle manifests.
+The version used has changed from `1.50.0` to `2.1.0` with the 1.7 release. 
+While this should be completely backwards compatible, it is a significant upgrade.
+ 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -467,6 +480,7 @@ We would like to thank the following community members for making contributions 
 * [Seth Goings](https://github.com/sgoings) - Correction in User Guide.
 * [Scott Bennett-McLeish](https://github.com/sbennettmcleish) - Correction in User Guide.
 * [Wujek Srujek](https://github.com/wujek-srujek) - Handling of -g command line option for wrapper install location (GRADLE-2802).
+* [Guillaume Laforge](https://github.com/glaforge) - Update of Bnd library used by OSGi plugin (GRADLE-2802).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
