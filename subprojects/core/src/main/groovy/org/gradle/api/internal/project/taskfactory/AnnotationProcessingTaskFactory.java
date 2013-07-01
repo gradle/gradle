@@ -30,6 +30,7 @@ import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.ReflectionUtil;
 
 import java.io.File;
@@ -446,7 +447,12 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 bean = parentValue.getValue();
             }
 
-            final Object value = ReflectionUtil.invoke(bean, method.getName());
+            final Object finalBean = bean;
+            final Object value = DeprecationLogger.whileDisabled(new Factory<Object>() {
+                public Object create() {
+                    return ReflectionUtil.invoke(finalBean, method.getName());
+                }
+            });
 
             return new PropertyValue() {
                 public Object getValue() {
