@@ -155,12 +155,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public ExecResult javaexec(Closure cl) {
-        JavaExecAction javaExecAction = ConfigureUtil.configure(cl, new DefaultJavaExecAction(fileResolver));
+        JavaExecAction javaExecAction = ConfigureUtil.configure(cl, instantiator.newInstance(DefaultJavaExecAction.class, fileResolver));
         return javaExecAction.execute();
     }
 
     public ExecResult exec(Closure cl) {
-        ExecAction execAction = ConfigureUtil.configure(cl, new DefaultExecAction(fileResolver));
+        ExecAction execAction = ConfigureUtil.configure(cl, instantiator.newInstance(DefaultExecAction.class, fileResolver));
         return execAction.execute();
     }
 

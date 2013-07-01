@@ -17,7 +17,7 @@ task javaexecByMethod(dependsOn: classes) {
     doFirst {
         javaexec {
             classpath(sourceSets.main.output.classesDir)
-            main = 'org.gradle.TestMain'
+            main 'org.gradle.TestMain'
             args projectDir, testFile
         }
     }
