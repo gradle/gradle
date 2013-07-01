@@ -23,7 +23,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.*;
+import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
@@ -47,7 +48,7 @@ import java.util.concurrent.Callable;
 public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private final ITaskFactory taskFactory;
     private final Map<Class, TaskClassInfo> classInfos;
-    
+
     private final Transformer<Iterable<File>, Object> filePropertyTransformer = new Transformer<Iterable<File>, Object>() {
         public Iterable<File> transform(Object original) {
             File file = (File) original;
@@ -61,7 +62,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             return original != null ? (Iterable<File>) original : Collections.<File>emptyList();
         }
     };
-    
+
     private final List<? extends PropertyAnnotationHandler> handlers = Arrays.asList(
             new InputFilePropertyAnnotationHandler(),
             new InputDirectoryPropertyAnnotationHandler(),
@@ -192,7 +193,8 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
     }
 
     private static boolean isGetter(Method method) {
-        return method.getName().startsWith("get") && method.getReturnType() != Void.TYPE
+        return ((method.getName().startsWith("get") && method.getReturnType() != Void.TYPE)
+                || (method.getName().startsWith("is") && method.getReturnType().equals(boolean.class)))
                 && method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers());
     }
 
@@ -283,7 +285,9 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                     continue;
                 }
 
-                String fieldName = StringUtils.uncapitalize(method.getName().substring(3));
+                String name = method.getName();
+                int prefixLength = name.startsWith("is") ? 2 : 3; // it's 'get' if not 'is'.
+                String fieldName = StringUtils.uncapitalize(name.substring(prefixLength));
                 String propertyName = fieldName;
                 if (parent != null) {
                     propertyName = parent.getName() + '.' + propertyName;
@@ -378,7 +382,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             this.validator = validator;
             this.parent = parent;
             this.propertyName = propertyName;
-            this.method = method;   
+            this.method = method;
         }
 
         @Override
