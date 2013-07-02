@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -73,7 +74,8 @@ public class ForwardClientInput implements DaemonCommandAction {
                 });
             } finally {
                 execution.getConnection().onStdin(null);
-                replacementStdin.close();
+                IOUtils.closeQuietly(replacementStdin);
+                IOUtils.closeQuietly(inputSource);
             }
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
