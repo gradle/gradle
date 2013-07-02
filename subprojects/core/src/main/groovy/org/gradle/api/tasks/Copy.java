@@ -60,6 +60,7 @@ import java.io.File;
  */
 public class Copy extends AbstractCopyTask {
     private FileCopyActionImpl copyAction;
+    private File destinationDir;
 
     public Copy() {
         Instantiator instantiator = getServices().get(Instantiator.class);
@@ -69,6 +70,8 @@ public class Copy extends AbstractCopyTask {
 
     @Override
     protected void postCopyCleanup() {
+        // TODO - refactor this so that this is not derived from the copy action so we don't need to do this dance
+        destinationDir = getCopyAction().getDestinationDir();
         copyAction = null;
     }
 
@@ -97,7 +100,7 @@ public class Copy extends AbstractCopyTask {
      */
     @OutputDirectory
     public File getDestinationDir() {
-        return getCopyAction().getDestinationDir();
+        return destinationDir != null ? destinationDir : getCopyAction().getDestinationDir();
     }
 
     /**
