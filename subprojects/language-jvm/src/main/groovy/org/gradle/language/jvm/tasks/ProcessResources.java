@@ -15,24 +15,15 @@
  */
 package org.gradle.language.jvm.tasks;
 
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.Copy;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
 import org.gradle.language.jvm.internal.StaleClassCleaner;
-
-import javax.inject.Inject;
 
 /**
  * Copies resources from their source to their target directory, potentially processing them.
  * Makes sure no stale resources remain in the target directory.
  */
 public class ProcessResources extends Copy {
-
-    @Inject
-    public ProcessResources(Instantiator instantiator, FileResolver fileResolver) {
-        super(instantiator, fileResolver);
-    }
 
     @Override
     protected void copy() {
