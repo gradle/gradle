@@ -45,7 +45,7 @@ public class CopyTest extends AbstractTaskTest {
     @Test public void executesActionOnExecute() {
         context.checking {
             one(action).hasSource(); will(returnValue(true))
-            exactly(2).of(action).getDestinationDir(); will(returnValue(new File('dest')))
+            one(action).getDestinationDir(); will(returnValue(new File('dest')))
             one(action).execute()
             one(action).getDidWork()
         }
