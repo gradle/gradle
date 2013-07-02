@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.internal.reflect.Instantiator;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -39,19 +38,15 @@ public class Tar extends AbstractArchiveTask {
     private CopyActionImpl action;
     private Compression compression = Compression.NONE;
 
-    @Inject
-    public Tar(Instantiator instantiator, FileResolver fileResolver) {
+    public Tar() {
+        Instantiator instantiator = getServices().get(Instantiator.class);
+        FileResolver fileResolver = getServices().get(FileResolver.class);
         action = instantiator.newInstance(TarCopyActionImpl.class, this, instantiator, fileResolver);
         getConventionMapping().map("extension", new Callable<Object>(){
             public Object call() throws Exception {
                 return getCompression().getDefaultExtension();
             }
         });
-    }
-
-    @Override
-    protected void postCopyCleanup() {
-        action = null;
     }
 
     protected CopyActionImpl getCopyAction() {

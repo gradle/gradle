@@ -96,9 +96,5 @@ public class AbstractCopyTaskTest extends AbstractTaskTest {
             return defaultSource;
         }
 
-        @Override
-        protected void postCopyCleanup() {
-
-        }
     }
 }
