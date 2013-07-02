@@ -49,11 +49,6 @@ public class Tar extends AbstractArchiveTask {
         });
     }
 
-    @Override
-    protected void postCopyCleanup() {
-        action = null;
-    }
-
     protected CopyActionImpl getCopyAction() {
         return action;
     }

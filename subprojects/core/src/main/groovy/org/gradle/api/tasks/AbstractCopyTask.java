@@ -41,13 +41,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         configureRootSpec();
         getCopyAction().execute();
         setDidWork(getCopyAction().getDidWork());
-        postCopyCleanup();
     }
-
-    /**
-     * Release resources used during copy
-     */
-    protected abstract void postCopyCleanup();
 
     protected void configureRootSpec() {
         if (!getCopyAction().hasSource()) {

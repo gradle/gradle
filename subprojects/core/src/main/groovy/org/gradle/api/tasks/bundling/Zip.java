@@ -45,11 +45,6 @@ public class Zip extends AbstractArchiveTask {
         action = instantiator.newInstance(ZipCopyActionImpl.class, this, instantiator, fileResolver);
     }
 
-    @Override
-    protected void postCopyCleanup() {
-        action = null;
-    }
-
     /**
      * Returns the compression level of the entries of the archive. If set to {@link ZipEntryCompression#DEFLATED} (the default), each entry is
      * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.

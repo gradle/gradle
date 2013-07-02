@@ -29,19 +29,11 @@ import java.io.File;
  */
 public class Sync extends AbstractCopyTask {
     private FileCopyActionImpl action;
-    private File destinationDir;
 
     public Sync() {
         Instantiator instantiator = getServices().get(Instantiator.class);
         FileResolver fileResolver = getServices().get(FileResolver.class);
         action = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
-    }
-
-    @Override
-    protected void postCopyCleanup() {
-        // TODO - refactor this so that this is not derived from the copy action so we don't need to do this dance
-        destinationDir = getCopyAction().getDestinationDir();
-        action = null;
     }
 
     @Override
@@ -56,7 +48,7 @@ public class Sync extends AbstractCopyTask {
      */
     @OutputDirectory
     public File getDestinationDir() {
-        return destinationDir != null ? destinationDir : getCopyAction().getDestinationDir();
+        return getCopyAction().getDestinationDir();
     }
 
     /**
