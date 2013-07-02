@@ -41,6 +41,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         configureRootSpec();
         getCopyAction().execute();
         setDidWork(getCopyAction().getDidWork());
+        postCopyCleanup();
     }
 
     /**

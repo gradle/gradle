@@ -23,16 +23,17 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
+
 import static org.gradle.util.Matchers.dependsOn
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.plugins.JavaBasePlugin
 
 /**
  * @author David Gileadi
@@ -200,8 +201,6 @@ class EarPluginTest {
         childProject.file("src/main/resources/test.txt").createNewFile()
         JavaPlugin javaPlugin = new JavaPlugin()
         javaPlugin.apply(childProject)
-
-        execute childProject.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
 
         project.plugins.apply(EarPlugin)
         project.convention.plugins.ear.libDirName = "APP-INF/lib"
