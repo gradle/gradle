@@ -17,7 +17,6 @@
 package org.gradle.process.internal;
 
 import com.google.common.base.Joiner;
-
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -200,7 +199,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 }
             }
             setState(newState);
-            execResult = new ExecResultImpl(exitValue, wrappedException);
+            execResult = new ExecResultImpl(exitValue, wrappedException, displayName);
             result = execResult;
         } finally {
             lock.unlock();
@@ -344,13 +343,15 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         return timeoutMillis;
     }
 
-    private class ExecResultImpl implements ExecResult {
+    private static class ExecResultImpl implements ExecResult {
         private final int exitValue;
         private final ExecException failure;
+        private final String displayName;
 
-        public ExecResultImpl(int exitValue, ExecException failure) {
+        public ExecResultImpl(int exitValue, ExecException failure, String displayName) {
             this.exitValue = exitValue;
             this.failure = failure;
+            this.displayName = displayName;
         }
 
         public int getExitValue() {
