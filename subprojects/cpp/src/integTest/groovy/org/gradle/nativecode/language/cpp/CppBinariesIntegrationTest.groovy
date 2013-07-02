@@ -164,8 +164,12 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
 
             cpp {
                 sourceSets {
-                    main { }
-                    util { }
+                    main {
+                        exportedHeaders.srcDir "src/shared/headers"
+                    }
+                    util {
+                        exportedHeaders.srcDir "src/shared/headers"
+                    }
                 }
             }
             executables {
@@ -180,6 +184,10 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
         settingsFile << "rootProject.name = 'test'"
 
         and:
+        file("src/shared/headers/greeting.h") << """
+            void greeting();
+"""
+
         file("src/util/cpp/greeting.cpp") << """
             #include <iostream>
             #include "greeting.h"
@@ -188,10 +196,6 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
                 std::cout << "Hello!";
             }
         """
-
-        file("src/util/headers/greeting.h") << """
-            void greeting();
-"""
 
         file("src/main/cpp/helloworld.cpp") << """
             #include "greeting.h"

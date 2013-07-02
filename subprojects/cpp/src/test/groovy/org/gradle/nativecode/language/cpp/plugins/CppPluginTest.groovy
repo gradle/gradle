@@ -116,8 +116,15 @@ class CppPluginTest extends Specification {
         given:
         dsl {
             apply plugin: CppPlugin
+            cpp {
+                sourceSets {
+                    main {}
+                }
+            }
             executables {
                 test {
+                    source cpp.sourceSets.main
+
                     binaries.all {
                         define "NDEBUG"
                         compilerArgs "ARG1", "ARG2"
@@ -165,8 +172,15 @@ class CppPluginTest extends Specification {
         dsl {
             apply plugin: CppPlugin
 
+            cpp {
+                sourceSets {
+                    main {}
+                }
+            }
             libraries {
                 test {
+                    source cpp.sourceSets.main
+
                     binaries.all {
                         define "NDEBUG"
                         compilerArgs "ARG1", "ARG2"
