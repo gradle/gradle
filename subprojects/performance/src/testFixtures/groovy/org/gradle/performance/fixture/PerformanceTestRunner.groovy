@@ -74,7 +74,7 @@ public class PerformanceTestRunner {
         allVersions.remove(currentBaseVersion)
 
         // A target version may be something that is yet unreleased, so filter that out
-        allVersions.remove { !releasedVersions.contains(it) }
+        allVersions.removeAll { !releasedVersions.contains(it) }
 
         allVersions.each { it ->
             def baselineVersion = results.baseline(it)
