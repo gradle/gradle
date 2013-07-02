@@ -52,7 +52,7 @@ public class SingleMessageLogger {
 
     private static String deprecationMessage;
     private static Lock deprecationMessageLock = new ReentrantLock();
-    public static final String INCUBATION_MESSAGE = "%s is incubating. Enjoy it and share feedback.";
+    public static final String INCUBATION_MESSAGE = "%s is an incubating feature.";
 
     private static String getDeprecationMessage() {
         if (deprecationMessage == null) {

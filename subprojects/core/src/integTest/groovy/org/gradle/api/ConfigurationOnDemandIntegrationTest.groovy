@@ -43,7 +43,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.assertProjectsConfigured(":")
-        output.count("Configuration on demand is incubating") == 1
+        output.count("Configuration on demand is an incubating feature") == 1
     }
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
@@ -56,7 +56,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.assertProjectsConfigured(":")
-        output.count("Parallel execution with configuration on demand is incubating") == 1
+        output.count("Parallel execution with configuration on demand is an incubating feature") == 1
     }
 
     def "can be enabled from command line for a single module build"() {
