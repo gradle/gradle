@@ -19,6 +19,7 @@ package org.gradle.nativecode.base.internal;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryNamingScheme;
@@ -72,6 +73,14 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
         return source;
+    }
+
+    public void source(FunctionalSourceSet sourceSet) {
+        sourceSet.all(new Action<LanguageSourceSet>() {
+            public void execute(LanguageSourceSet languageSourceSet) {
+                source(languageSourceSet);
+            }
+        });
     }
 
     public void source(LanguageSourceSet sourceSet) {

@@ -12,7 +12,7 @@ sources {
 // START SNIPPET libraries
 libraries {
     hello {
-        source sources.lib.cpp
+        source sources.lib
     }
 }
 // END SNIPPET libraries
@@ -20,7 +20,7 @@ libraries {
 // START SNIPPET executables
 executables {
     main {
-        source sources.exe.cpp
+        source sources.exe
         binaries.all {
             // Each executable binary produced uses the 'hello' shared library binary
             lib libraries.hello.shared

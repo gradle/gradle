@@ -15,8 +15,10 @@
  */
 package org.gradle.nativecode.base.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativecode.base.NativeBinary;
 import org.gradle.nativecode.base.NativeComponent;
@@ -40,6 +42,14 @@ public class DefaultNativeComponent implements NativeComponent {
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
         return sourceSets;
+    }
+
+    public void source(FunctionalSourceSet sourceSet) {
+        sourceSet.all(new Action<LanguageSourceSet>() {
+            public void execute(LanguageSourceSet languageSourceSet) {
+                source(languageSourceSet);
+            }
+        });
     }
 
     public void source(LanguageSourceSet sourceSet) {

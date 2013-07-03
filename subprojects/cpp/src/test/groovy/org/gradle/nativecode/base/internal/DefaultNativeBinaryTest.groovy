@@ -16,7 +16,9 @@
 
 package org.gradle.nativecode.base.internal
 
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativecode.base.Library
 import org.gradle.nativecode.base.LibraryBinary
 import org.gradle.nativecode.base.NativeComponent
@@ -43,6 +45,31 @@ class DefaultNativeBinaryTest extends Specification {
 
         then:
         binary.source.contains(sourceSet)
+    }
+
+    def "binary uses all source sets from a functional source set"() {
+        given:
+        def binary = new TestBinary(component)
+        def functionalSourceSet = new DefaultFunctionalSourceSet("func", new DirectInstantiator())
+        def sourceSet1 = Stub(LanguageSourceSet) {
+            getName() >> "ss1"
+        }
+        def sourceSet2 = Stub(LanguageSourceSet) {
+            getName() >> "ss2"
+        }
+
+        when:
+        functionalSourceSet.add(sourceSet1)
+
+        and:
+        binary.source functionalSourceSet
+
+        and:
+        functionalSourceSet.add(sourceSet2)
+
+        then:
+        binary.source.contains(sourceSet1)
+        binary.source.contains(sourceSet2)
     }
 
     def "can add a library as a dependency of the binary"() {

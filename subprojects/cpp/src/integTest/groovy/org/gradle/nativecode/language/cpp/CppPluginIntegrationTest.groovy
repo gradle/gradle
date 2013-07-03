@@ -67,7 +67,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
             }
             executables {
                 english {
-                    source sources.main.cpp
+                    source sources.main
                 }
                 french {
                     source sources.main.cpp
@@ -155,7 +155,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
             }
             libraries {
                 hello {
-                    source sources.hello.cpp
+                    source sources.hello
                 }
             }
             sources.main.cpp.lib libraries.hello
@@ -226,7 +226,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
             }
             libraries {
                 hello {
-                    source sources.hello.cpp
+                    source sources.hello
                 }
             }
             sources.main.cpp.lib libraries.hello.static

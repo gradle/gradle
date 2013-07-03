@@ -40,12 +40,12 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
 
             executables {
                 main {
-                    source sources.main.cpp
+                    source sources.main
                 }
             }
             libraries {
                 hello {
-                    source sources.hello.cpp
+                    source sources.hello
                     binaries.withType(SharedLibraryBinary) {
                         define "DLL_EXPORT"
                     }
