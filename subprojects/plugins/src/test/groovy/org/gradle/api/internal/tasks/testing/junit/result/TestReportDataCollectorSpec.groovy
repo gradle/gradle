@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
 import spock.lang.Specification
 
 import static java.util.Arrays.asList
@@ -30,51 +27,9 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 
 class TestReportDataCollectorSpec extends Specification {
-    @Rule
-    private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    private PersistedTestOutput.Writer writer = Mock()
-    private PersistedTestOutput.Reader reader = Mock()
-    private TestResultSerializer resultSerializer = Mock()
-    private collector = new TestReportDataCollector(temp.testDirectory, writer, reader, resultSerializer)
-
-    def "closes output when root finishes"() {
-        def root = new DefaultTestSuiteDescriptor("1", "Suite")
-        def clazz = new DecoratingTestDescriptor(new DefaultTestClassDescriptor("1.1", "Class"), root)
-
-        def dummyResult = new DefaultTestResult(SUCCESS, 0, 0, 0, 0, 0, asList())
-
-        when:
-        collector.afterSuite(clazz, dummyResult)
-
-        then:
-        0 * writer.finishOutputs()
-
-        when:
-        collector.afterSuite(root, dummyResult)
-
-        then:
-        1 * writer.finishOutputs()
-    }
-
-    def "writes results when root finishes"() {
-        def root = new DefaultTestSuiteDescriptor("1", "Suite")
-        def clazz = new DecoratingTestDescriptor(new DefaultTestClassDescriptor("1.1", "Class"), root)
-
-        def dummyResult = new DefaultTestResult(SUCCESS, 0, 0, 0, 0, 0, asList())
-
-        when:
-        collector.afterSuite(clazz, dummyResult)
-
-        then:
-        0 * resultSerializer._
-
-        when:
-        collector.afterSuite(root, dummyResult)
-
-        then:
-        1 * resultSerializer.write(_, temp.testDirectory)
-        0 * resultSerializer._
-    }
+    def Map<String, TestClassResult> results = [:]
+    def PersistedTestOutput.Writer writer = Mock()
+    def collector = new TestReportDataCollector(results, writer)
 
     def "keeps track of test results"() {
         def root = new DefaultTestSuiteDescriptor("1", "Suite")
@@ -97,12 +52,9 @@ class TestReportDataCollectorSpec extends Specification {
 
         collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, asList(new RuntimeException("Boo!"))))
 
-        def results = []
-        collector.visitClasses({ results << it } as Action)
-
         then:
         results.size() == 1
-        def fooTest = results[0]
+        def fooTest = results.values().toList().first()
         fooTest.className == 'FooTest'
         fooTest.startTime == 100
         fooTest.testsCount == 2
@@ -129,13 +81,4 @@ class TestReportDataCollectorSpec extends Specification {
         0 * writer._
     }
 
-    def "provides outputs"() {
-        def writer = new StringWriter()
-
-        when:
-        collector.writeOutputs("TestClass", StdErr, writer)
-
-        then:
-        1 * reader.readTo("TestClass", StdErr, writer)
-    }
 }

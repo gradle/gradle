@@ -19,16 +19,14 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
-import java.io.File;
 import java.io.Writer;
 
-public class BinaryResultBackedTestResultsProvider implements TestResultsProvider {
-    private final File resultsDir;
+public class InMemoryTestResultsProvider implements TestResultsProvider {
+    private final Iterable<TestClassResult> results;
     private final PersistedTestOutput.Reader outputReader;
-    private final TestResultSerializer resultSerializer = new TestResultSerializer();
 
-    public BinaryResultBackedTestResultsProvider(File resultsDir, PersistedTestOutput.Reader outputReader) {
-        this.resultsDir = resultsDir;
+    public InMemoryTestResultsProvider(Iterable<TestClassResult> results, PersistedTestOutput.Reader outputReader) {
+        this.results = results;
         this.outputReader = outputReader;
     }
 
@@ -45,6 +43,8 @@ public class BinaryResultBackedTestResultsProvider implements TestResultsProvide
     }
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {
-        resultSerializer.read(resultsDir, visitor);
+        for (TestClassResult result : results) {
+            visitor.execute(result);
+        }
     }
 }

@@ -32,9 +32,7 @@ import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
-import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
-import org.gradle.api.internal.tasks.testing.junit.result.TestOutputAssociation;
-import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
+import org.gradle.api.internal.tasks.testing.junit.result.*;
 import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
@@ -65,10 +63,7 @@ import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 
@@ -444,7 +439,12 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         getProject().delete(binaryResultsDir);
         getProject().mkdir(binaryResultsDir);
 
-        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(binaryResultsDir);
+        Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
+        PersistedTestOutput persistedTestOutput = new PersistedTestOutput(binaryResultsDir);
+
+        PersistedTestOutput.Writer outputWriter = persistedTestOutput.writer();
+        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
+
         addTestListener(testReportDataCollector);
         addTestOutputListener(testReportDataCollector);
 
@@ -459,14 +459,18 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         } finally {
             testListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector, testCountLogger));
             testOutputListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector));
+            outputWriter.finishOutputs();
         }
+
+        new TestResultSerializer().write(results.values(), binaryResultsDir);
+        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), persistedTestOutput.reader());
 
         JUnitXmlReport junitXml = reports.getJunitXml();
         if (junitXml.isEnabled()) {
             TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
                     ? TestOutputAssociation.WITH_TESTCASE
                     : TestOutputAssociation.WITH_SUITE;
-            Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testReportDataCollector, outputAssociation);
+            Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation);
             binary2JUnitXmlReportGenerator.generate();
         }
 
@@ -474,7 +478,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         if (!html.isEnabled()) {
             getLogger().info("Test report disabled, omitting generation of the HTML test report.");
         } else {
-            testReporter.generateReport(testReportDataCollector, html.getDestination());
+            testReporter.generateReport(testResultsProvider, html.getDestination());
         }
 
         testFramework = null;
