@@ -494,11 +494,14 @@ This story reworks the existing C++ source set concepts to reuse the concept of 
 
 - Change `CppSourceSet` to extend `LanguageSourceSet`.
 - Add a mutable `NativeBinary.source` property of type `DomainObjectCollection<LanguageSourceSet>`.
+    - Add a `NativeBinary.source` method that accepts a `FunctionalSourceSet` as input, 
+      and adds every `LanguageSourceSet` included in that functional source set.
 - Change the C++ plugin to add a component's source sets to each of the component's binaries.
 - Change the C++ plugin to add a `CppCompile` instance for each `CppSourceSet` added to a native binary.
+- Change the `cpp` plugin to:
+    - Add a `sources.${functionalSourceSet.name}.cpp` C++ source set for every functional source set.
 - Change the `cpp-exe` and `cpp-lib` plugins to:
     - Add a `sources.main` functional source set
-    - Add a `sources.main.cpp` C++ source set.
     - Wire the `sources.main.cpp` source set into the `main` executable/library.
 - Remove `CppExtension`
 
@@ -508,7 +511,7 @@ To adjust the by-convention layout:
 
     apply plugin: 'cpp-lib'
     
-    source {
+    sources {
         main {
             cpp { 
                 source.srcDirs = 'src'
@@ -520,7 +523,7 @@ To define custom source sets and components:
 
     apply plugin: `cpp`
     
-    source {
+    sources {
         util {
         }
         app {
@@ -532,10 +535,10 @@ To define custom source sets and components:
     
     libraries {
         util {
-            source source.util
+            source sources.util
         }
         app {
-            source source.app
+            source sources.app.cpp
         }
     }
 
@@ -546,7 +549,6 @@ To define custom source sets and components:
 - Separate C++ header file source set type.
 - Need to configure each component and source set lazily.
 - Need to deal with source sets that are generated.
-- `source()` collides with `project.source`.
 - Need a `CppSourceSet.getBuildDependencies()` implementation.
 
 ## Story: Compile C source files using the C compiler
