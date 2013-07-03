@@ -17,6 +17,7 @@
 package org.gradle.nativecode.base.internal
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.nativecode.language.cpp.internal.BaseCompileSpec
 import spock.lang.Specification
 
 class DefaultToolChainRegistryTest extends Specification {
@@ -46,11 +47,11 @@ class DefaultToolChainRegistryTest extends Specification {
     }
 
     def "compilation searches adapters in the order added and uses the first available"() {
-        BinaryCompileSpec compileSpec = Mock()
+        BaseCompileSpec compileSpec = Mock()
         ToolChainInternal toolChainInternal1 = toolChainInternal("z")
         ToolChainInternal toolChainInternal2 = toolChainInternal("b")
         ToolChainInternal toolChainInternal3 = toolChainInternal("a")
-        Compiler<BinaryCompileSpec> realCompiler = Mock()
+        Compiler<BaseCompileSpec> realCompiler = Mock()
 
         given:
         registry.add(toolChainInternal1)
@@ -63,15 +64,15 @@ class DefaultToolChainRegistryTest extends Specification {
 
         when:
         def defaultToolChain = registry.getDefaultToolChain()
-        defaultToolChain.createCompiler(BinaryCompileSpec).execute(compileSpec)
+        defaultToolChain.createCCompiler().execute(compileSpec)
 
         then:
-        1 * toolChainInternal2.createCompiler(BinaryCompileSpec) >> realCompiler
+        1 * toolChainInternal2.createCCompiler() >> realCompiler
         1 * realCompiler.execute(compileSpec)
     }
 
     def "compilation fails when no adapter is available"() {
-        BinaryCompileSpec compileSpec = Mock()
+        BaseCompileSpec compileSpec = Mock()
         ToolChainInternal toolChainInternal1 = toolChainInternal("z")
         ToolChainInternal toolChainInternal2 = toolChainInternal("b")
         ToolChainInternal toolChainInternal3 = toolChainInternal("a")
@@ -93,7 +94,7 @@ class DefaultToolChainRegistryTest extends Specification {
         noExceptionThrown()
 
         when:
-        defaultToolChain.createCompiler(BinaryCompileSpec).execute(compileSpec)
+        defaultToolChain.createCppCompiler().execute(compileSpec)
 
         then:
         IllegalStateException e = thrown()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,44 +23,49 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativecode.toolchain.internal.CommandLineCppCompilerArgumentsToOptionFile;
+import org.gradle.nativecode.language.cpp.internal.CCompileSpec;
+import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
-import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-class GppCompiler implements Compiler<CppCompileSpec> {
+class CCompiler implements Compiler<CCompileSpec> {
 
-    private final CommandLineTool<CppCompileSpec> commandLineTool;
+    private final CommandLineTool<CCompileSpec> commandLineTool;
 
-    public GppCompiler(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
-        this.commandLineTool = new CommandLineTool<CppCompileSpec>(executable, execActionFactory)
+    public CCompiler(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
+        this.commandLineTool = new CommandLineTool<CCompileSpec>(executable, execActionFactory)
                 .withArguments(useCommandFile ? viaCommandFile() : withoutCommandFile());
     }
 
-    private static GppCompileSpecToArguments withoutCommandFile() {
-        return new GppCompileSpecToArguments();
+    private static GccCompileSpecToArguments withoutCommandFile() {
+        return new GccCompileSpecToArguments();
     }
 
-    private static CommandLineCppCompilerArgumentsToOptionFile<CppCompileSpec> viaCommandFile() {
-        return new CommandLineCppCompilerArgumentsToOptionFile<CppCompileSpec>(
-            ArgWriter.unixStyleFactory(), new GppCompileSpecToArguments()
+    private static CommandLineCompilerArgumentsToOptionFile<CCompileSpec> viaCommandFile() {
+        return new CommandLineCompilerArgumentsToOptionFile<CCompileSpec>(
+            ArgWriter.unixStyleFactory(), new GccCompileSpecToArguments()
         );
     }
 
-    public WorkResult execute(CppCompileSpec spec) {
+    public WorkResult execute(CCompileSpec spec) {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class GppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
-        public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
+    private static class GccCompileSpecToArguments implements CompileSpecToArguments<CCompileSpec> {
+        public void collectArguments(CCompileSpec spec, ArgCollector collector) {
+            // C-compiling options
+            collector.args("-x", "c");
+
+            // TODO:DAZ Extract common stuff out
+            // General GCC compiler options
             for (String macro : spec.getMacros()) {
                 collector.args("-D" + macro);
             }
             collector.args(spec.getArgs());
             collector.args("-c");
-            if (spec.isForDynamicLinking()) {
+            if (spec.isPositionIndependentCode()) {
                 if (!OperatingSystem.current().isWindows()) {
                     collector.args("-fPIC");
                 }

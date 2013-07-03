@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.toolchain.internal.msvcpp;
+package org.gradle.nativecode.toolchain.internal.gpp;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
@@ -29,38 +30,52 @@ import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-class VisualCppCompiler implements Compiler<CppCompileSpec> {
+class CppCompiler implements Compiler<CppCompileSpec> {
 
     private final CommandLineTool<CppCompileSpec> commandLineTool;
 
-    VisualCppCompiler(File executable, Factory<ExecAction> execActionFactory) {
+    public CppCompiler(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
         this.commandLineTool = new CommandLineTool<CppCompileSpec>(executable, execActionFactory)
-                .withArguments(new CommandLineCompilerArgumentsToOptionFile<CppCompileSpec>(
-                ArgWriter.windowsStyleFactory(), new VisualCppCompileSpecToArguments()
-        ));
+                .withArguments(useCommandFile ? viaCommandFile() : withoutCommandFile());
+    }
+
+    private static GppCompileSpecToArguments withoutCommandFile() {
+        return new GppCompileSpecToArguments();
+    }
+
+    private static CommandLineCompilerArgumentsToOptionFile<CppCompileSpec> viaCommandFile() {
+        return new CommandLineCompilerArgumentsToOptionFile<CppCompileSpec>(
+            ArgWriter.unixStyleFactory(), new GppCompileSpecToArguments()
+        );
     }
 
     public WorkResult execute(CppCompileSpec spec) {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class VisualCppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
+    private static class GppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
         public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
-            collector.args("/nologo");
+            // C-compiling options
+            collector.args("-x", "c++");
+
+            // TODO:DAZ Extract common stuff out
+            // General G++ compiler options
             for (String macro : spec.getMacros()) {
-                collector.args("/D" + macro);
+                collector.args("-D" + macro);
             }
             collector.args(spec.getArgs());
-            collector.args("/c");
-            collector.args("/EHsc");
+            collector.args("-c");
             if (spec.isPositionIndependentCode()) {
-                collector.args("/LD"); // TODO:DAZ Not sure if this has any effect at compile time
+                if (!OperatingSystem.current().isWindows()) {
+                    collector.args("-fPIC");
+                }
             }
             for (File file : spec.getIncludeRoots()) {
-                collector.args("/I", file.getAbsolutePath());
+                collector.args("-I");
+                collector.args(file.getAbsolutePath());
             }
             for (File file : spec.getSource()) {
-                collector.args(file);
+                collector.args(file.getAbsolutePath());
             }
         }
     }

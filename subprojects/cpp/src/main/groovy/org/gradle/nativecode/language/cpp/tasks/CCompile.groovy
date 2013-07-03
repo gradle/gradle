@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativecode.language.cpp.tasks
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
@@ -22,15 +23,16 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.*
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
 import org.gradle.nativecode.base.ToolChain
-import org.gradle.nativecode.language.cpp.internal.DefaultCppCompileSpec
+import org.gradle.nativecode.language.cpp.internal.DefaultCCompileSpec
 
 import javax.inject.Inject
 
+// TODO:DAZ Deal with duplication with CppCompile
 /**
  * Compiles C++ source files into object files.
  */
 @Incubating
-class CppCompile extends DefaultTask {
+class CCompile extends DefaultTask {
     private FileCollection source
 
     ToolChain toolChain
@@ -62,7 +64,7 @@ class CppCompile extends DefaultTask {
     List<String> compilerArgs
 
     @Inject
-    CppCompile() {
+    CCompile() {
         includes = project.files()
         source = project.files()
     }
@@ -73,7 +75,7 @@ class CppCompile extends DefaultTask {
         cleaner.setDestinationDir(getObjectFileDir())
         cleaner.execute()
 
-        def spec = new DefaultCppCompileSpec()
+        def spec = new DefaultCCompileSpec()
         spec.tempDir = getTemporaryDir()
 
         spec.objectFileDir = getObjectFileDir()
@@ -85,7 +87,7 @@ class CppCompile extends DefaultTask {
             spec.positionIndependentCode = true
         }
 
-        def result = toolChain.createCppCompiler().execute(spec)
+        def result = toolChain.createCCompiler().execute(spec)
         didWork = result.didWork
     }
 

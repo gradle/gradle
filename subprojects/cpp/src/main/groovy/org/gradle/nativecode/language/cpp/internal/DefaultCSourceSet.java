@@ -18,24 +18,23 @@ package org.gradle.nativecode.language.cpp.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.nativecode.language.cpp.CppSourceSet;
+import org.gradle.nativecode.language.cpp.CSourceSet;
 import org.gradle.util.ConfigureUtil;
 
-public class DefaultCppSourceSet extends BaseSourceSet implements CppSourceSet {
-    public DefaultCppSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
+public class DefaultCSourceSet extends BaseSourceSet implements CSourceSet {
+
+    public DefaultCSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
         super(name, functionalSourceSetName, project);
     }
 
-    public CppSourceSet exportedHeaders(Closure closure) {
+    public CSourceSet exportedHeaders(Closure closure) {
         ConfigureUtil.configure(closure, getExportedHeaders());
         return this;
     }
 
 
-    public CppSourceSet source(Closure closure) {
+    public CSourceSet source(Closure closure) {
         ConfigureUtil.configure(closure, getSource());
         return this;
     }
-
-
 }

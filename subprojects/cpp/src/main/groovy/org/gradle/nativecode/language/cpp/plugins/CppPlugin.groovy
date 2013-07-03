@@ -27,8 +27,11 @@ import org.gradle.nativecode.base.*
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.base.plugins.BinariesPlugin
 import org.gradle.nativecode.base.tasks.*
+import org.gradle.nativecode.language.cpp.CSourceSet
 import org.gradle.nativecode.language.cpp.CppSourceSet
+import org.gradle.nativecode.language.cpp.internal.DefaultCSourceSet
 import org.gradle.nativecode.language.cpp.internal.DefaultCppSourceSet
+import org.gradle.nativecode.language.cpp.tasks.CCompile
 import org.gradle.nativecode.language.cpp.tasks.CppCompile
 import org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin
 import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin
@@ -78,6 +81,17 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
                 // TODO:DAZ Need to split out this convention from the rest of the base language support
                 functionalSourceSet.add(instantiator.newInstance(DefaultCppSourceSet.class, "cpp", functionalSourceSet.getName(), project));
+
+                // Defaults for all c source sets
+                functionalSourceSet.withType(CSourceSet).all(new Action<CSourceSet>() {
+                    void execute(CSourceSet sourceSet) {
+                        sourceSet.exportedHeaders.srcDir "src/${functionalSourceSet.name}/headers"
+                        sourceSet.source.srcDir "src/${functionalSourceSet.name}/c"
+                    }
+                })
+
+                // TODO:DAZ Need to split out this convention from the rest of the base language support
+                functionalSourceSet.add(instantiator.newInstance(DefaultCSourceSet.class, "c", functionalSourceSet.getName(), project));
             }
         });
 
@@ -94,6 +108,11 @@ class CppPlugin implements Plugin<ProjectInternal> {
                 binary.lib lib
             }
         }
+        binary.source.withType(CSourceSet).all { CSourceSet sourceSet ->
+            sourceSet.libs.each { NativeDependencySet lib ->
+                binary.lib lib
+            }
+        }
     }
 
     def createTasks(ProjectInternal project, NativeBinaryInternal binary) {
@@ -106,7 +125,12 @@ class CppPlugin implements Plugin<ProjectInternal> {
         binary.dependsOn binaryAssembleTask
 
         binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
-            CppCompile compileTask = createCompileTask(project, binary, sourceSet)
+            def compileTask = createCompileTask(project, binary, sourceSet, CppCompile)
+            binaryAssembleTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+        }
+
+        binary.source.withType(CSourceSet).all { CSourceSet sourceSet ->
+            def compileTask = createCompileTask(project, binary, sourceSet, CCompile)
             binaryAssembleTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
         }
 
@@ -115,14 +139,13 @@ class CppPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-
-    private CppCompile createCompileTask(ProjectInternal project, NativeBinaryInternal binary, CppSourceSet sourceSet) {
-        CppCompile compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CppCompile) {
+    private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet, def taskType) {
+        def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: taskType) {
             description = "Compiles the $sourceSet sources of $binary"
         }
 
         compileTask.toolChain = binary.toolChain
-        compileTask.forDynamicLinking = binary instanceof SharedLibraryBinary
+        compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
 
         compileTask.includes sourceSet.exportedHeaders
         compileTask.source sourceSet.source
@@ -130,7 +153,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
             compileTask.includes deps.includeRoots
         }
 
-        compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}") }
+        compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
         compileTask.conventionMapping.macros = { binary.macros }
         compileTask.conventionMapping.compilerArgs = { binary.compilerArgs }
 

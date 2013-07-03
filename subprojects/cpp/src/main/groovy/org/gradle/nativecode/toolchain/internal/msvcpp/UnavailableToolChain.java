@@ -33,7 +33,11 @@ public class UnavailableToolChain implements ToolChainInternal {
         return new ToolChainAvailability().unavailable("Visual C++ is not available on this operating system.");
     }
 
-    public <T extends BinaryCompileSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCompiler(Class<T> specType) {
+    public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCppCompiler() {
+        throw new UnsupportedOperationException();
+    }
+
+    public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
         throw new UnsupportedOperationException();
     }
 

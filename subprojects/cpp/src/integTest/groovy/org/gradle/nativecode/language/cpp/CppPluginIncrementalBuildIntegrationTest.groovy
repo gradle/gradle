@@ -296,8 +296,8 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
     }
 
     def "cleans up stale object files when source file renamed"() {
-        def oldObjFile = objectFile("build/objectFiles/mainExecutable/helloworld")
-        def newObjFile = objectFile("build/objectFiles/mainExecutable/changed")
+        def oldObjFile = objectFile("build/objectFiles/mainExecutable/mainCpp/helloworld")
+        def newObjFile = objectFile("build/objectFiles/mainExecutable/mainCpp/changed")
         assert oldObjFile.file
         assert !newObjFile.file
 

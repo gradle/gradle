@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.base.internal;
+package org.gradle.nativecode.language.cpp.internal;
 
-import java.io.File;
+public interface CCompileSpec extends BaseCompileSpec {
 
-/**
- * A compile spec that will be used to produce a native artifact.
- */
-public interface BinaryCompileSpec extends BinaryToolSpec {
-    File getObjectFileDir();
+    boolean isPositionIndependentCode();
 
-    void setObjectFileDir(File objectFileDir);
+    void setPositionIndependentCode(boolean flag);
+
 }

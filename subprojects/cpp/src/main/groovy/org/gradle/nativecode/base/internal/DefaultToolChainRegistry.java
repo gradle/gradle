@@ -80,7 +80,11 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
             return new IllegalStateException(String.format("No tool chain is available: %s", messages));
         }
 
-        public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
+        public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
+            throw failure();
+        }
+
+        public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
             throw failure();
         }
 

@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.base.internal.*;
-import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
@@ -66,12 +65,13 @@ public class VisualCppToolChain extends AbstractToolChain {
         return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
     }
 
-    public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
+    public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
         checkAvailable();
-        if (CppCompileSpec.class.isAssignableFrom(specType)) {
-            return (Compiler<T>) new VisualCppCompiler(compilerExe, execActionFactory);
-        }
-        throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
+        return (Compiler<T>) new VisualCppCompiler(compilerExe, execActionFactory);
+    }
+
+    public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
+        throw new UnsupportedOperationException();
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {

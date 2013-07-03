@@ -16,72 +16,14 @@
 
 package org.gradle.nativecode.language.cpp.internal;
 
-import java.io.File;
-import java.util.ArrayList;
+public class DefaultCppCompileSpec extends AbstractBaseCompileSpec implements CppCompileSpec {
+    private boolean positionIndependentCode;
 
-public class DefaultCppCompileSpec implements CppCompileSpec {
-
-    private Iterable<File> includeRoots;
-    private Iterable<File> source;
-    private Iterable<String> macros = new ArrayList<String>();
-    private Iterable<String> args = new ArrayList<String>();
-    private File objectFileDir;
-    private File tempDir;
-    private boolean forDynamicLinking;
-
-    public Iterable<File> getIncludeRoots() {
-        return includeRoots;
+    public boolean isPositionIndependentCode() {
+        return positionIndependentCode;
     }
 
-    public void setIncludeRoots(Iterable<File> includeRoots) {
-        this.includeRoots = includeRoots;
-    }
-
-    public Iterable<File> getSource() {
-        return source;
-    }
-
-    public void setSource(Iterable<File> source) {
-        this.source = source;
-    }
-
-    public File getObjectFileDir() {
-        return objectFileDir;
-    }
-
-    public void setObjectFileDir(File objectFileDir) {
-        this.objectFileDir = objectFileDir;
-    }
-
-    public File getTempDir() {
-        return tempDir;
-    }
-
-    public void setTempDir(File tempDir) {
-        this.tempDir = tempDir;
-    }
-
-    public Iterable<String> getMacros() {
-        return macros;
-    }
-
-    public void setMacros(Iterable<String> macros) {
-        this.macros = macros;
-    }
-
-    public void setArgs(Iterable<String> args) {
-        this.args = args;
-    }
-
-    public Iterable<String> getArgs() {
-        return args;
-    }
-
-    public boolean isForDynamicLinking() {
-        return forDynamicLinking;
-    }
-
-    public void setForDynamicLinking(boolean forDynamicLinking) {
-        this.forDynamicLinking = forDynamicLinking;
+    public void setPositionIndependentCode(boolean positionIndependentCode) {
+        this.positionIndependentCode = positionIndependentCode;
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativecode.toolchain.internal.CommandLineCppCompilerArgumentsToOptionFile;
+import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.nativecode.base.internal.LinkerSpec;
 import org.gradle.nativecode.base.internal.SharedLibraryLinkerSpec;
@@ -44,8 +44,8 @@ class GppLinker implements Compiler<LinkerSpec> {
         return new GppLinkerSpecToArguments();
     }
 
-    private static CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec> viaCommandFile() {
-        return new CommandLineCppCompilerArgumentsToOptionFile<LinkerSpec>(
+    private static CommandLineCompilerArgumentsToOptionFile<LinkerSpec> viaCommandFile() {
+        return new CommandLineCompilerArgumentsToOptionFile<LinkerSpec>(
             ArgWriter.unixStyleFactory(), new GppLinkerSpecToArguments()
         );
     }

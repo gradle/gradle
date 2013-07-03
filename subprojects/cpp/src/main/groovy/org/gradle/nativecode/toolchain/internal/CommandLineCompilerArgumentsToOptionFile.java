@@ -28,12 +28,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public class CommandLineCppCompilerArgumentsToOptionFile<T extends BinaryToolSpec> implements CompileSpecToArguments<T> {
+public class CommandLineCompilerArgumentsToOptionFile<T extends BinaryToolSpec> implements CompileSpecToArguments<T> {
 
     private final Transformer<ArgWriter, PrintWriter> argWriterFactory;
     private final CompileSpecToArguments<T> toArguments;
 
-    public CommandLineCppCompilerArgumentsToOptionFile(Transformer<ArgWriter, PrintWriter> argWriterFactory, CompileSpecToArguments<T> toArguments) {
+    public CommandLineCompilerArgumentsToOptionFile(Transformer<ArgWriter, PrintWriter> argWriterFactory, CompileSpecToArguments<T> toArguments) {
         this.argWriterFactory = argWriterFactory;
         this.toArguments = toArguments;
     }

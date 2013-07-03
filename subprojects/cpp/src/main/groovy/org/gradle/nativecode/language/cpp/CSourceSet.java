@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * A representation of a unit of C++ source.
+ * A representation of a unit of C source.
  */
 @Incubating
-public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSet {
+public interface CSourceSet extends HeaderExportingSourceSet, LanguageSourceSet {
 
     // TODO:DAZ This doesn't feel right. Need some better modelling.
     /**
@@ -39,12 +39,12 @@ public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSe
     /**
      * The headers.
      */
-    CppSourceSet exportedHeaders(Closure closure);
+    CSourceSet exportedHeaders(Closure closure);
 
     /**
      * The source.
      */
-    CppSourceSet source(Closure closure);
+    CSourceSet source(Closure closure);
 
     /**
      * The libraries that this source set requires.
@@ -57,7 +57,7 @@ public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSe
      * <ul>
      *     <li>A {@link org.gradle.nativecode.base.Library}</li>
      *     <li>A {@link org.gradle.nativecode.base.LibraryBinary}</li>
-     *     <li>A {@link NativeDependencySet}</li>
+     *     <li>A {@link org.gradle.nativecode.base.NativeDependencySet}</li>
      * </ul>
      */
     void lib(Object library);

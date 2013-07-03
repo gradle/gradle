@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.base.internal.*;
-import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
 import org.gradle.process.internal.ExecAction;
 import org.slf4j.Logger;
@@ -39,9 +38,11 @@ public class GppToolChain extends AbstractToolChain {
 
     public static final String NAME = "gcc";
     private static final String GPP = "g++";
+    private static final String GCC = "gcc";
     private static final String AR = "ar";
 
     private final File gppExecutable;
+    private final File gccExecutable;
     private final File arExecutable;
     private final Factory<ExecAction> execActionFactory;
     private final Transformer<String, File> versionDeterminer;
@@ -50,19 +51,20 @@ public class GppToolChain extends AbstractToolChain {
 
     public GppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
         super(operatingSystem);
-        gppExecutable = findExecutable(operatingSystem);
+        gppExecutable = findExecutable(operatingSystem, GPP);
+        gccExecutable = findExecutable(operatingSystem, GCC);
         arExecutable = operatingSystem.findInPath(AR);
         this.execActionFactory = execActionFactory;
         this.versionDeterminer = new GppVersionDeterminer();
     }
 
-    private static File findExecutable(OperatingSystem operatingSystem) {
+    private static File findExecutable(OperatingSystem operatingSystem, String exe) {
         List<String> candidates;
         if (operatingSystem.isWindows()) {
-            // Under Cygwin, g++ is a Cygwin symlink to either g++-3 or g++-4. We can't run g++ directly
-            candidates = Arrays.asList("g++-4", "g++-3", GPP);
+            // Under Cygwin, g++/gcc is a Cygwin symlink to either g++-3 or g++-4. We can't run g++ directly
+            candidates = Arrays.asList(exe + "-4", exe + "-3", exe);
         } else {
-            candidates = Arrays.asList(GPP);
+            candidates = Arrays.asList(exe);
         }
         for (String candidate : candidates) {
             File executable = operatingSystem.findInPath(candidate);
@@ -85,6 +87,7 @@ public class GppToolChain extends AbstractToolChain {
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
         availability.mustExist(GPP, gppExecutable);
+        availability.mustExist(GCC, gccExecutable);
         availability.mustExist(AR, arExecutable);
         determineVersion();
         if (version == null) {
@@ -92,12 +95,14 @@ public class GppToolChain extends AbstractToolChain {
         }
     }
 
-    public <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType) {
+    public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
         checkAvailable();
-        if (CppCompileSpec.class.isAssignableFrom(specType)) {
-            return (Compiler<T>) new GppCompiler(gppExecutable, execActionFactory, canUseCommandFile(version));
-        }
-        throw new IllegalArgumentException(String.format("No suitable compiler available for %s.", specType));
+        return (Compiler<T>) new CppCompiler(gppExecutable, execActionFactory, canUseCommandFile(version));
+    }
+
+    public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
+        checkAvailable();
+        return (Compiler<T>) new CCompiler(gccExecutable, execActionFactory, canUseCommandFile(version));
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {

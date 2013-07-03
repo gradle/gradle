@@ -22,7 +22,9 @@ import org.gradle.nativecode.base.ToolChain;
 public interface ToolChainInternal extends ToolChain {
     ToolChainAvailability getAvailability();
 
-    <T extends BinaryCompileSpec> Compiler<T> createCompiler(Class<T> specType);
+    <T extends BinaryToolSpec> Compiler<T> createCppCompiler();
+
+    <T extends BinaryToolSpec> Compiler<T> createCCompiler();
 
     <T extends LinkerSpec> Compiler<T> createLinker();
 
