@@ -34,16 +34,22 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     private final Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
     private final TestResultSerializer resultSerializer;
     private final File resultsDir;
-    private final TestOutputSerializer outputSerializer;
+    private final PersistedTestOutput.Writer persistedTestOutputWriter;
+    private final PersistedTestOutput.Reader persistedTestOutputReader;
 
     public TestReportDataCollector(File resultsDir) {
-        this(resultsDir, new TestOutputSerializer(resultsDir), new TestResultSerializer());
+        this(resultsDir, new PersistedTestOutput(resultsDir), new TestResultSerializer());
     }
 
-    TestReportDataCollector(File resultsDir, TestOutputSerializer outputSerializer, TestResultSerializer resultSerializer) {
-        this.resultsDir = resultsDir;
-        this.outputSerializer = outputSerializer;
+    TestReportDataCollector(File resultsDir, PersistedTestOutput persistedTestOutput, TestResultSerializer resultSerializer) {
+        this(resultsDir, persistedTestOutput.writer(), persistedTestOutput.reader(), resultSerializer);
+    }
+
+    public TestReportDataCollector(File resultsDir, PersistedTestOutput.Writer persistedTestOutputWriter, PersistedTestOutput.Reader persistedTestOutputReader, TestResultSerializer resultSerializer) {
         this.resultSerializer = resultSerializer;
+        this.resultsDir = resultsDir;
+        this.persistedTestOutputWriter = persistedTestOutputWriter;
+        this.persistedTestOutputReader = persistedTestOutputReader;
     }
 
     public void beforeSuite(TestDescriptor suite) {
@@ -51,7 +57,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null) {
-            outputSerializer.finishOutputs();
+            persistedTestOutputWriter.finishOutputs();
             writeResults();
         }
     }
@@ -89,7 +95,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             classResult = new TestClassResult(className, 0);
             results.put(className, classResult);
         }
-        outputSerializer.onOutput(testDescriptorInternal, outputEvent.getDestination(), outputEvent.getMessage());
+        persistedTestOutputWriter.onOutput(testDescriptorInternal, outputEvent.getDestination(), outputEvent.getMessage());
     }
 
     public void visitClasses(Action<? super TestClassResult> visitor) {
@@ -99,14 +105,14 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     }
 
     public boolean hasOutput(String className, TestOutputEvent.Destination destination) {
-        return outputSerializer.hasOutput(className, destination);
+        return persistedTestOutputReader.hasOutput(className, destination);
     }
 
     public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
-        outputSerializer.writeOutputs(className, destination, writer);
+        persistedTestOutputReader.readTo(className, destination, writer);
     }
 
     public void writeOutputs(String className, String testCaseName, TestOutputEvent.Destination destination, Writer writer) {
-        outputSerializer.writeOutputs(className, testCaseName, destination, writer);
+        persistedTestOutputReader.readTo(className, testCaseName, destination, writer);
     }
 }

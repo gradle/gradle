@@ -24,12 +24,12 @@ import java.io.Writer;
 
 public class BinaryResultBackedTestResultsProvider implements TestResultsProvider {
     private final File resultsDir;
-    private final TestOutputSerializer outputSerializer;
+    private final PersistedTestOutput.Reader outputSerializer;
     private final TestResultSerializer resultSerializer = new TestResultSerializer();
 
     public BinaryResultBackedTestResultsProvider(File resultsDir) {
         this.resultsDir = resultsDir;
-        outputSerializer = new TestOutputSerializer(resultsDir);
+        outputSerializer = new PersistedTestOutput(resultsDir).reader();
     }
 
     public boolean hasOutput(String className, TestOutputEvent.Destination destination) {
@@ -37,11 +37,11 @@ public class BinaryResultBackedTestResultsProvider implements TestResultsProvide
     }
 
     public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
-        outputSerializer.writeOutputs(className, destination, writer);
+        outputSerializer.readTo(className, destination, writer);
     }
 
     public void writeOutputs(String className, String testCaseName, TestOutputEvent.Destination destination, Writer writer) {
-        outputSerializer.writeOutputs(className, testCaseName, destination, writer);
+        outputSerializer.readTo(className, testCaseName, destination, writer);
     }
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {

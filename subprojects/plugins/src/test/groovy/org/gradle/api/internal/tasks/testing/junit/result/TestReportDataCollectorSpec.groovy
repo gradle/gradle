@@ -29,15 +29,13 @@ import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 
-/**
- * by Szczepan Faber, created at: 11/19/12
- */
 class TestReportDataCollectorSpec extends Specification {
     @Rule
     private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    private TestOutputSerializer outputSerializer = Mock()
+    private PersistedTestOutput.Writer writer = Mock()
+    private PersistedTestOutput.Reader reader = Mock()
     private TestResultSerializer resultSerializer = Mock()
-    private collector = new TestReportDataCollector(temp.testDirectory, outputSerializer, resultSerializer)
+    private collector = new TestReportDataCollector(temp.testDirectory, writer, reader, resultSerializer)
 
     def "closes output when root finishes"() {
         def root = new DefaultTestSuiteDescriptor("1", "Suite")
@@ -49,13 +47,13 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(clazz, dummyResult)
 
         then:
-        0 * outputSerializer.finishOutputs()
+        0 * writer.finishOutputs()
 
         when:
         collector.afterSuite(root, dummyResult)
 
         then:
-        1 * outputSerializer.finishOutputs()
+        1 * writer.finishOutputs()
     }
 
     def "writes results when root finishes"() {
@@ -74,7 +72,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(root, dummyResult)
 
         then:
-        1 * resultSerializer.with(_, temp.testDirectory)
+        1 * resultSerializer.write(_, temp.testDirectory)
         0 * resultSerializer._
     }
 
@@ -126,9 +124,9 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
 
         then:
-        1 * outputSerializer.onOutput("FooTest", "testMethod", StdErr, "err")
-        1 * outputSerializer.onOutput("FooTest", "testMethod2", StdOut, "out")
-        0 * outputSerializer._
+        1 * writer.onOutput(test, StdErr, "err")
+        1 * writer.onOutput(test2, StdOut, "out")
+        0 * writer._
     }
 
     def "provides outputs"() {
@@ -138,6 +136,6 @@ class TestReportDataCollectorSpec extends Specification {
         collector.writeOutputs("TestClass", StdErr, writer)
 
         then:
-        1 * outputSerializer.writeOutputs("TestClass", StdErr, writer)
+        1 * reader.readTo("TestClass", StdErr, writer)
     }
 }

@@ -24,13 +24,12 @@ import spock.lang.Specification
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 
-/**
- * by Szczepan Faber, created at: 11/19/12
- */
-class TestOutputSerializerTest extends Specification {
+class PersistedTestOutputSpec extends Specification {
     @Rule
     private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    private serializer = new TestOutputSerializer(temp.testDirectory)
+    private output = new PersistedTestOutput(temp.testDirectory)
+    private writer = output.writer()
+    private reader = output.reader()
 
     TestDescriptorInternal descriptor(String className, String testName) {
         Stub(TestDescriptorInternal) {
@@ -41,11 +40,11 @@ class TestOutputSerializerTest extends Specification {
 
     def "flushes all output when output finishes"() {
         when:
-        serializer.onOutput(descriptor("Class1", "method1"), StdOut, "[out]")
-        serializer.onOutput(descriptor("Class2", "method1"), StdErr, "[err]")
-        serializer.onOutput(descriptor("Class1", "method1"), StdErr, "[err]")
-        serializer.onOutput(descriptor("Class1", "method1"), StdOut, "[out2]")
-        serializer.finishOutputs()
+        writer.onOutput(descriptor("Class1", "method1"), StdOut, "[out]")
+        writer.onOutput(descriptor("Class2", "method1"), StdErr, "[err]")
+        writer.onOutput(descriptor("Class1", "method1"), StdErr, "[err]")
+        writer.onOutput(descriptor("Class1", "method1"), StdOut, "[out2]")
+        writer.finishOutputs()
 
         then:
         collectOutput("Class1", StdOut) == "[out][out2]"
@@ -55,7 +54,7 @@ class TestOutputSerializerTest extends Specification {
 
     def "writes nothing for unknown test class"() {
         when:
-        serializer.finishOutputs()
+        writer.finishOutputs()
 
         then:
         collectOutput("Unknown", StdErr) == ""
@@ -63,18 +62,18 @@ class TestOutputSerializerTest extends Specification {
 
     def "can query whether output is available for a test class"() {
         when:
-        serializer.onOutput(descriptor("Class1", "method1"), StdOut, "[out]")
-        serializer.finishOutputs()
+        writer.onOutput(descriptor("Class1", "method1"), StdOut, "[out]")
+        writer.finishOutputs()
 
         then:
-        serializer.hasOutput("Class1", StdOut)
-        !serializer.hasOutput("Class1", StdErr)
-        !serializer.hasOutput("Unknown", StdErr)
+        reader.hasOutput("Class1", StdOut)
+        !reader.hasOutput("Class1", StdErr)
+        !reader.hasOutput("Unknown", StdErr)
     }
 
     String collectOutput(String className, TestOutputEvent.Destination destination) {
         def writer = new StringWriter()
-        serializer.writeOutputs(className, destination, writer)
+        reader.readTo(className, destination, writer)
         return writer.toString()
     }
 }
