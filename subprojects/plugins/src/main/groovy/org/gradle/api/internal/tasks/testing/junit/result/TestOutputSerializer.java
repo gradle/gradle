@@ -17,13 +17,12 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 
 /**
  * Assembles test results. Keeps a copy of the results in memory to provide them later and spools test output to file.
@@ -32,16 +31,15 @@ import java.io.Writer;
  */
 public class TestOutputSerializer {
     private final File resultsDir;
-    private final CachingFileWriter cachingFileWriter;
+    private final CloseableResourceCache<File, Output> outputCache;
 
     public TestOutputSerializer(File resultsDir) {
-        //TODO SF calculate number of open files based on parallel forks
-        this(resultsDir, new CachingFileWriter(10));
-    }
-
-    private TestOutputSerializer(File resultsDir, CachingFileWriter cachingFileWriter) {
         this.resultsDir = resultsDir;
-        this.cachingFileWriter = cachingFileWriter;
+        this.outputCache = new CloseableResourceCache<File, Output>(10, new CloseableResourceCache.ResourceCreator<File, Output>() {
+            public Output create(File file) throws IOException {
+                return new Output(new FileOutputStream(file, true));
+            }
+        });
     }
 
     private File outputsFile(String className, TestOutputEvent.Destination destination) {
@@ -93,10 +91,15 @@ public class TestOutputSerializer {
     }
 
     public void finishOutputs() {
-        cachingFileWriter.closeAll();
+        outputCache.closeAll();
     }
 
-    public void onOutput(String className, String testName, TestOutputEvent.Destination destination, String message) {
-        cachingFileWriter.write(outputsFile(className, destination), testName, message);
+    public void onOutput(String className, final String testName, TestOutputEvent.Destination destination, final String message) {
+        outputCache.with(outputsFile(className, destination), new Action<Output>() {
+            public void execute(Output output) {
+                output.writeString(testName);
+                output.writeString(message);
+            }
+        });
     }
 }

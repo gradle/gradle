@@ -74,7 +74,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(root, dummyResult)
 
         then:
-        1 * resultSerializer.write(_, temp.testDirectory)
+        1 * resultSerializer.with(_, temp.testDirectory)
         0 * resultSerializer._
     }
 
