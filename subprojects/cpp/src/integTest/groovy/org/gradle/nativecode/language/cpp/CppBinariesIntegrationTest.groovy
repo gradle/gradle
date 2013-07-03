@@ -99,14 +99,12 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
         buildFile << """
             apply plugin: "cpp-exe"
 
-            cpp {
-                sourceSets {
-                    hello {}
-                }
+            sources {
+                hello {}
             }
             libraries {
                 hello {
-                    source cpp.sourceSets.hello
+                    source sources.hello.cpp
                     binaries.all {
                         outputFile file('${staticLibrary("build/hello").toURI()}')
                         define 'ENABLE_GREETING'
@@ -162,21 +160,23 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
         buildFile << """
             apply plugin: "cpp"
 
-            cpp {
-                sourceSets {
-                    main {
+            sources {
+                main {
+                    cpp {
                         exportedHeaders.srcDir "src/shared/headers"
                     }
-                    util {
+                }
+                util {
+                    cpp {
                         exportedHeaders.srcDir "src/shared/headers"
                     }
                 }
             }
             executables {
                 main {
-                    source cpp.sourceSets.main
+                    source sources.main.cpp
                     binaries.all {
-                        source cpp.sourceSets.util
+                        source sources.util.cpp
                     }
                 }
             }

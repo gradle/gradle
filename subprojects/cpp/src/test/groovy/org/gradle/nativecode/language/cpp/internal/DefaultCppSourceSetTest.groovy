@@ -23,11 +23,11 @@ import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class DefaultCppSourceSetTest extends Specification {
-    def sourceSet = new DefaultCppSourceSet("main", HelperUtil.createRootProject())
+    def sourceSet = new DefaultCppSourceSet("cpp", "main", HelperUtil.createRootProject())
 
     def "has useful string representation"() {
         expect:
-        sourceSet.toString() == "C++ source 'main'"
+        sourceSet.toString() == "C++ source 'mainCpp'"
     }
 
     def "can add a library as a dependency of the source set"() {

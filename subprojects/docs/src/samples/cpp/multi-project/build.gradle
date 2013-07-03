@@ -7,9 +7,9 @@ project(":exe") {
     apply plugin: "cpp-exe"
     evaluationDependsOn(":lib")
 
-    cpp {
-        sourceSets {
-            main {
+    sources {
+        main {
+            cpp {
                 lib project(":lib").libraries.main
             }
         }

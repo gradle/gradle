@@ -47,6 +47,7 @@ public interface NativeBinary extends Binary {
      */
     DomainObjectSet<LanguageSourceSet> getSource();
 
+    // TODO:DAZ Handle FunctionalSourceSet here as well?
     /**
      * Adds a source set to use to compile this binary.
      */

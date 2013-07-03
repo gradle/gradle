@@ -62,17 +62,15 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         given:
         buildFile << """
             apply plugin: "cpp"
-            cpp {
-                sourceSets {
-                    main {}
-                }
+            sources {
+                main {}
             }
             executables {
                 english {
-                    source cpp.sourceSets.main
+                    source sources.main.cpp
                 }
                 french {
-                    source cpp.sourceSets.main
+                    source sources.main.cpp
                     binaries.all {
                         compilerArgs "-DFRENCH"
                     }
@@ -152,17 +150,15 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         buildFile << """
             apply plugin: "cpp-exe"
 
-            cpp {
-                sourceSets {
-                    hello {}
-                }
+            sources {
+                hello {}
             }
             libraries {
                 hello {
-                    source cpp.sourceSets.hello
+                    source sources.hello.cpp
                 }
             }
-            cpp.sourceSets.main.lib libraries.hello
+            sources.main.cpp.lib libraries.hello
         """
         settingsFile << "rootProject.name = 'test'"
 
@@ -225,17 +221,15 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         buildFile << """
             apply plugin: "cpp-exe"
 
-            cpp {
-                sourceSets {
-                    hello {}
-                }
+            sources {
+                hello {}
             }
             libraries {
                 hello {
-                    source cpp.sourceSets.hello
+                    source sources.hello.cpp
                 }
             }
-            cpp.sourceSets.main.lib libraries.hello.static
+            sources.main.cpp.lib libraries.hello.static
         """
         settingsFile << "rootProject.name = 'test'"
 

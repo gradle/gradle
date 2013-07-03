@@ -30,6 +30,13 @@ import java.util.Map;
  */
 @Incubating
 public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSet {
+
+    // TODO:DAZ This doesn't feel right. Need some better modelling.
+    /**
+     * A unique name for this source set across all functional source sets.
+     */
+    String getFullName();
+
     /**
      * The headers.
      */

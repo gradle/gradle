@@ -16,6 +16,7 @@
 package org.gradle.nativecode.language.cpp.internal;
 
 import groovy.lang.Closure;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -33,19 +34,21 @@ import java.util.Map;
 public class DefaultCppSourceSet implements CppSourceSet {
 
     private final String name;
+    private final String fullName;
 
     private final DefaultSourceDirectorySet exportedHeaders;
     private final DefaultSourceDirectorySet source;
     private final ResolvableNativeDependencySet libs;
     private final ConfigurationBasedNativeDependencySet configurationDependencySet;
 
-    public DefaultCppSourceSet(String name, ProjectInternal project) {
+    public DefaultCppSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
         this.name = name;
+        this.fullName = functionalSourceSetName + StringUtils.capitalize(name);
 
         this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", project.getFileResolver());
         this.source = new DefaultSourceDirectorySet("source", project.getFileResolver());
         this.libs = new ResolvableNativeDependencySet();
-        this.configurationDependencySet = new ConfigurationBasedNativeDependencySet(project, name);
+        this.configurationDependencySet = new ConfigurationBasedNativeDependencySet(project, fullName);
         
         libs.add(configurationDependencySet);
     }
@@ -54,9 +57,13 @@ public class DefaultCppSourceSet implements CppSourceSet {
         return name;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
     @Override
     public String toString() {
-        return String.format("C++ source '%s'", name);
+        return String.format("C++ source '%s'", getFullName());
     }
 
     public TaskDependency getBuildDependencies() {

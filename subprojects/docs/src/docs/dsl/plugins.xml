@@ -82,6 +82,5 @@
         <extends targetClass="org.gradle.api.Project" id="executables" extensionClass="org.gradle.nativecode.base.ExecutableContainer"/>
         <extends targetClass="org.gradle.api.Project" id="libraries" extensionClass="org.gradle.nativecode.base.LibraryContainer"/>
         <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.language.base.BinaryContainer"/>
-        <extends targetClass="org.gradle.api.Project" id="cpp" extensionClass="org.gradle.nativecode.language.cpp.plugins.CppExtension"/>
     </plugin>
 </plugins>

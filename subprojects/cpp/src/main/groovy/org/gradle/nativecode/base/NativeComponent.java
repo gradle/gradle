@@ -31,6 +31,7 @@ public interface NativeComponent extends Named {
      */
     DomainObjectSet<LanguageSourceSet> getSource();
 
+    // TODO:DAZ Handle FunctionalSourceSet here as well?
     /**
      * Adds some source to use to build this component.
      */

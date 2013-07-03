@@ -15,8 +15,8 @@
  */
 
 package org.gradle.nativecode.language.cpp.plugins
-
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.nativecode.base.tasks.AssembleStaticLibrary
 import org.gradle.nativecode.base.tasks.InstallExecutable
 import org.gradle.nativecode.base.tasks.LinkExecutable
@@ -37,7 +37,6 @@ class CppPluginTest extends Specification {
         }
 
         expect:
-        project.cpp instanceof CppExtension
         project.executables instanceof NamedDomainObjectContainer
         project.libraries instanceof NamedDomainObjectContainer
     }
@@ -57,28 +56,27 @@ class CppPluginTest extends Specification {
         given:
         dsl {
             apply plugin: CppPlugin
-            cpp {
-                sourceSets {
-                    s1 {}
-                    s2 {}
-                }
+            sources {
+                s1 {}
+                s2 {}
             }
         }
 
         expect:
-        def sourceSets = project.cpp.sourceSets
+        def sourceSets = project.sources
         sourceSets.size() == 2
         sourceSets*.name == ["s1", "s2"]
-        sourceSets.s1 instanceof CppSourceSet
+        sourceSets.s1 instanceof FunctionalSourceSet
+        sourceSets.s1.cpp instanceof CppSourceSet
     }
 
     def "configure source sets"() {
         given:
         dsl {
             apply plugin: CppPlugin
-            cpp {
-                sourceSets {
-                    ss1 {
+            sources {
+                ss1 {
+                    cpp {
                         source {
                             srcDirs "d1", "d2"
                         }
@@ -86,7 +84,9 @@ class CppPluginTest extends Specification {
                             srcDirs "h1", "h2"
                         }
                     }
-                    ss2 {
+                }
+                ss2 {
+                    cpp {
                         source {
                             srcDirs "d3"
                         }
@@ -99,9 +99,9 @@ class CppPluginTest extends Specification {
         }
 
         expect:
-        def sourceSets = project.cpp.sourceSets
-        def ss1 = sourceSets.ss1
-        def ss2 = sourceSets.ss2
+        def sourceSets = project.sources
+        def ss1 = sourceSets.ss1.cpp
+        def ss2 = sourceSets.ss2.cpp
 
         // cpp dir automatically added by convention
         ss1.source.srcDirs*.name == ["cpp", "d1", "d2"]
@@ -116,14 +116,12 @@ class CppPluginTest extends Specification {
         given:
         dsl {
             apply plugin: CppPlugin
-            cpp {
-                sourceSets {
-                    main {}
-                }
+            sources {
+                main {}
             }
             executables {
                 test {
-                    source cpp.sourceSets.main
+                    source sources.main.cpp
 
                     binaries.all {
                         define "NDEBUG"
@@ -137,7 +135,7 @@ class CppPluginTest extends Specification {
         expect:
         def binary = project.binaries.testExecutable
 
-        def compile = project.tasks.compileTestExecutable
+        def compile = project.tasks.compileTestExecutableMainCpp
         compile instanceof CppCompile
         compile.toolChain == binary.toolChain
         compile.macros == ["NDEBUG"]
@@ -149,7 +147,7 @@ class CppPluginTest extends Specification {
         link.toolChain == binary.toolChain
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == project.binaries.testExecutable.outputFile
-        link Matchers.dependsOn("compileTestExecutable")
+        link Matchers.dependsOn("compileTestExecutableMainCpp")
 
         and:
         def lifecycle = project.tasks.testExecutable
@@ -171,15 +169,12 @@ class CppPluginTest extends Specification {
         given:
         dsl {
             apply plugin: CppPlugin
-
-            cpp {
-                sourceSets {
-                    main {}
-                }
+            sources {
+                main {}
             }
             libraries {
                 test {
-                    source cpp.sourceSets.main
+                    source sources.main.cpp
 
                     binaries.all {
                         define "NDEBUG"
@@ -194,7 +189,7 @@ class CppPluginTest extends Specification {
         def sharedLib = project.binaries.testSharedLibrary
         def staticLib = project.binaries.testStaticLibrary
 
-        def sharedCompile = project.tasks.compileTestSharedLibrary
+        def sharedCompile = project.tasks.compileTestSharedLibraryMainCpp
         sharedCompile instanceof CppCompile
         sharedCompile.toolChain == sharedLib.toolChain
         sharedCompile.macros == ["NDEBUG"]
@@ -206,14 +201,14 @@ class CppPluginTest extends Specification {
         link.toolChain == sharedLib.toolChain
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == sharedLib.outputFile
-        link Matchers.dependsOn("compileTestSharedLibrary")
+        link Matchers.dependsOn("compileTestSharedLibraryMainCpp")
 
         and:
         def sharedLibraryTask = project.tasks.testSharedLibrary
         sharedLibraryTask Matchers.dependsOn("linkTestSharedLibrary")
 
         and:
-        def staticCompile = project.tasks.compileTestStaticLibrary
+        def staticCompile = project.tasks.compileTestStaticLibraryMainCpp
         staticCompile instanceof CppCompile
         staticCompile.toolChain == staticLib.toolChain
         staticCompile.macros == ["NDEBUG"]
@@ -224,7 +219,7 @@ class CppPluginTest extends Specification {
         staticLink instanceof AssembleStaticLibrary
         staticLink.toolChain == staticLib.toolChain
         staticLink.outputFile == staticLib.outputFile
-        staticLink Matchers.dependsOn("compileTestStaticLibrary")
+        staticLink Matchers.dependsOn("compileTestStaticLibraryMainCpp")
 
         and:
         def staticLibraryTask = project.tasks.testStaticLibrary

@@ -33,26 +33,25 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         buildFile << """
             apply plugin: 'cpp'
 
-            cpp {
-                sourceSets {
-                    main {}
-                    hello {}
-                }
+            sources {
+                main {}
+                hello {}
             }
+
             executables {
                 main {
-                    source cpp.sourceSets.main
+                    source sources.main.cpp
                 }
             }
             libraries {
                 hello {
-                    source cpp.sourceSets.hello
+                    source sources.hello.cpp
                     binaries.withType(SharedLibraryBinary) {
                         define "DLL_EXPORT"
                     }
                 }
             }
-            cpp.sourceSets.main.lib libraries.hello
+            sources.main.cpp.lib libraries.hello
         """
         settingsFile << "rootProject.name = 'test'"
 
@@ -100,10 +99,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "installMainExecutable"
 
         then:
-        skipped ":compileHelloSharedLibrary"
+        skipped ":compileHelloSharedLibraryHelloCpp"
         skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
-        skipped ":compileMainExecutable"
+        skipped ":compileMainExecutableMainCpp"
         skipped ":mainExecutable"
         skipped ":installMainExecutable"
     }
@@ -124,10 +123,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "installMainExecutable"
 
         then:
-        skipped ":compileHelloSharedLibrary"
+        skipped ":compileHelloSharedLibraryHelloCpp"
         skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
-        executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainCpp"
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
@@ -153,10 +152,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloSharedLibrary"
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp"
         executedAndNotSkipped ":linkHelloSharedLibrary"
         executedAndNotSkipped ":helloSharedLibrary"
-        skipped ":compileMainExecutable"
+        skipped ":compileMainExecutableMainCpp"
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
@@ -179,10 +178,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloSharedLibrary"
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp"
         skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
-        executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainCpp"
         skipped ":linkMainExecutable"
         skipped ":mainExecutable"
         skipped ":installMainExecutable"
@@ -204,10 +203,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "installMainExecutable"
 
         then:
-        skipped ":compileHelloSharedLibrary"
+        skipped ":compileHelloSharedLibraryHelloCpp"
         skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
-        executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainCpp"
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
@@ -235,10 +234,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "installMainExecutable"
 
         then:
-        skipped ":compileHelloSharedLibrary"
+        skipped ":compileHelloSharedLibraryHelloCpp"
         skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
-        skipped ":compileMainExecutable"
+        skipped ":compileMainExecutableMainCpp"
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
         executedAndNotSkipped ":installMainExecutable"
@@ -266,10 +265,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "installMainExecutable"
 
         then:
-        skipped ":compileHelloSharedLibrary"
+        skipped ":compileHelloSharedLibraryHelloCpp"
         skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
-        skipped ":compileMainExecutable"
+        skipped ":compileMainExecutableMainCpp"
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
 
@@ -279,7 +278,6 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
     }
 
     def "recompiles source but does not relink binary with source comment change"() {
-        // TODO:DAZ Better way to do this
         if (toolChain.visualCpp) {
             return // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
         }
@@ -288,10 +286,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "installMainExecutable"
 
         then:
-        skipped ":compileHelloSharedLibrary"
+        skipped ":compileHelloSharedLibraryHelloCpp"
         skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
-        executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainCpp"
         skipped ":linkMainExecutable"
         skipped ":mainExecutable"
         skipped ":installMainExecutable"
@@ -308,10 +306,10 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "mainExecutable"
 
         then:
-        skipped ":compileHelloSharedLibrary"
+        skipped ":compileHelloSharedLibraryHelloCpp"
         skipped ":linkHelloSharedLibrary"
         skipped ":helloSharedLibrary"
-        executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainCpp"
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
 
@@ -341,9 +339,9 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloSharedLibrary"
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp"
         executedAndNotSkipped ":helloSharedLibrary"
-        executedAndNotSkipped ":compileMainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainCpp"
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
 

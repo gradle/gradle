@@ -27,7 +27,7 @@ class CppLibConventionPluginTest extends Specification {
 
         expect:
         def library = project.libraries.main
-        def sourceSet = project.cpp.sourceSets.main
+        def sourceSet = project.sources.main.cpp
         library.baseName == project.name
         library.source as List == [sourceSet]
     }

@@ -38,8 +38,8 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installMainExecutable"
         
         then:
-        executedAndNotSkipped ":compileHelloSharedLibrary", ":linkHelloSharedLibrary", ":helloSharedLibrary",
-                              ":compileMainExecutable", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileHelloSharedLibraryLibCpp", ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutableExeCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
         normaliseLineSeparators(executable("cpp/cpp/build/install/mainExecutable/main").exec().out) == "Hello world!\n"
@@ -53,7 +53,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installMain"
 
         then:
-        executedAndNotSkipped ":compileMainExecutable", ":linkMainExecutable", ":stripMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainCpp", ":linkMainExecutable", ":stripMainExecutable", ":mainExecutable"
 
         and:
         normaliseLineSeparators(executable("cpp/cpp-exe/build/binaries/mainExecutable/sampleExe").exec().out) == "Hello, World!\n"
@@ -68,7 +68,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "mainSharedLibrary"
         
         then:
-        executedAndNotSkipped ":compileMainSharedLibrary", ":linkMainSharedLibrary", ":mainSharedLibrary"
+        executedAndNotSkipped ":compileMainSharedLibraryMainCpp", ":linkMainSharedLibrary", ":mainSharedLibrary"
         
         and:
         sharedLibrary("cpp/cpp-lib/build/binaries/mainSharedLibrary/sampleLib").assertExists()
@@ -78,7 +78,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "mainStaticLibrary"
         
         then:
-        executedAndNotSkipped ":compileMainStaticLibrary", ":assembleMainStaticLibrary", ":mainStaticLibrary"
+        executedAndNotSkipped ":compileMainStaticLibraryMainCpp", ":assembleMainStaticLibrary", ":mainStaticLibrary"
         
         and:
         staticLibrary("cpp/cpp-lib/build/binaries/mainStaticLibrary/sampleLib").assertExists()
@@ -90,8 +90,8 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installEnglishExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloEnglishSharedLibrary", ":linkHelloEnglishSharedLibrary", ":helloEnglishSharedLibrary"
-        executedAndNotSkipped ":compileEnglishExecutable", ":linkEnglishExecutable", ":englishExecutable"
+        executedAndNotSkipped ":compileHelloEnglishSharedLibraryLibCpp", ":linkHelloEnglishSharedLibrary", ":helloEnglishSharedLibrary"
+        executedAndNotSkipped ":compileEnglishExecutableExeCpp", ":linkEnglishExecutable", ":englishExecutable"
 
         and:
         executable("cpp/variants/build/binaries/englishExecutable/english").assertExists()
@@ -105,8 +105,8 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installFrenchExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloFrenchStaticLibrary", ":assembleHelloFrenchStaticLibrary", ":helloFrenchStaticLibrary"
-        executedAndNotSkipped ":compileFrenchExecutable", ":linkFrenchExecutable", ":frenchExecutable"
+        executedAndNotSkipped ":compileHelloFrenchStaticLibraryLibCpp", ":assembleHelloFrenchStaticLibrary", ":helloFrenchStaticLibrary"
+        executedAndNotSkipped ":compileFrenchExecutableExeCpp", ":linkFrenchExecutable", ":frenchExecutable"
 
         and:
         executable("cpp/variants/build/binaries/frenchExecutable/french").assertExists()
@@ -148,7 +148,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run ":exe:uploadArchives"
 
         then:
-        ":exe:mainExtractHeaders" in nonSkippedTasks
+        ":exe:mainCppExtractHeaders" in nonSkippedTasks
         ":exe:mainExecutable" in nonSkippedTasks
 
         and:

@@ -38,9 +38,9 @@ project(":exe") {
     }
 
 // START SNIPPET declaring-dependencies
-cpp {
-    sourceSets {
-        main {
+sources {
+    main {
+        cpp {
             dependency group: "some-org", name: "some-lib", version: "1.0"
         }
     }

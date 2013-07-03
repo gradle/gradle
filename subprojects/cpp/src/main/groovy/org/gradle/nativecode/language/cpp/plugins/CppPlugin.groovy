@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.cpp.plugins
+import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.nativecode.base.*
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.base.plugins.BinariesPlugin
 import org.gradle.nativecode.base.tasks.*
 import org.gradle.nativecode.language.cpp.CppSourceSet
+import org.gradle.nativecode.language.cpp.internal.DefaultCppSourceSet
 import org.gradle.nativecode.language.cpp.tasks.CppCompile
 import org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin
 import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin
+
+import javax.inject.Inject
 /**
  * A plugin for projects wishing to build custom components from C++ sources.
  * <p>Automatically includes {@link MicrosoftVisualCppPlugin} and {@link GppCompilerPlugin} for core toolchain support.</p>
@@ -42,18 +50,36 @@ import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin
  */
 @Incubating
 class CppPlugin implements Plugin<ProjectInternal> {
+    private final Instantiator instantiator;
+    private final FileResolver fileResolver;
+
+    @Inject
+    public CppPlugin(Instantiator instantiator, FileResolver fileResolver) {
+        this.instantiator = instantiator;
+        this.fileResolver = fileResolver;
+    }
 
     void apply(ProjectInternal project) {
         project.plugins.apply(BinariesPlugin)
         project.plugins.apply(MicrosoftVisualCppPlugin)
         project.plugins.apply(GppCompilerPlugin)
-        project.extensions.create("cpp", CppExtension, project)
 
-        // Defaults for all cpp source sets
-        project.cpp.sourceSets.all { sourceSet ->
-            sourceSet.source.srcDir "src/${sourceSet.name}/cpp"
-            sourceSet.exportedHeaders.srcDir "src/${sourceSet.name}/headers"
-        }
+        ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
+        projectSourceSet.all(new Action<FunctionalSourceSet>() {
+            public void execute(final FunctionalSourceSet functionalSourceSet) {
+
+                // Defaults for all cpp source sets
+                functionalSourceSet.withType(CppSourceSet).all(new Action<CppSourceSet>() {
+                    void execute(CppSourceSet sourceSet) {
+                        sourceSet.exportedHeaders.srcDir "src/${functionalSourceSet.name}/headers"
+                        sourceSet.source.srcDir "src/${functionalSourceSet.name}/cpp"
+                    }
+                })
+
+                // TODO:DAZ Need to split out this convention from the rest of the base language support
+                functionalSourceSet.add(instantiator.newInstance(DefaultCppSourceSet.class, "cpp", functionalSourceSet.getName(), project));
+            }
+        });
 
         project.binaries.withType(NativeBinary) { binary ->
             bindSourceSetLibsToBinary(binary)
@@ -91,7 +117,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
 
     private CppCompile createCompileTask(ProjectInternal project, NativeBinaryInternal binary, CppSourceSet sourceSet) {
-        CppCompile compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.name), type: CppCompile) {
+        CppCompile compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CppCompile) {
             description = "Compiles the $sourceSet sources of $binary"
         }
 

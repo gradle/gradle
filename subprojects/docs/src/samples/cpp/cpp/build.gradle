@@ -3,18 +3,16 @@ apply plugin: 'cpp'
 // END SNIPPET apply-plugin
 
 // START SNIPPET sourceSets
-cpp {
-    sourceSets {
-        exe {}
-        lib {}
-    }
+sources {
+    exe {}
+    lib {}
 }
 // END SNIPPET sourceSets
 
 // START SNIPPET libraries
 libraries {
     hello {
-        source cpp.sourceSets.lib
+        source sources.lib.cpp
     }
 }
 // END SNIPPET libraries
@@ -22,7 +20,7 @@ libraries {
 // START SNIPPET executables
 executables {
     main {
-        source cpp.sourceSets.exe
+        source sources.exe.cpp
         binaries.all {
             // Each executable binary produced uses the 'hello' shared library binary
             lib libraries.hello.shared
@@ -33,7 +31,7 @@ executables {
 
 /*
 // START SNIPPET source-library
-cpp.sourceSets.exe.lib libraries.hello
+sources.exe.cpp.lib libraries.hello
 // END SNIPPET source-library
 */
 
