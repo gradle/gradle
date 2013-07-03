@@ -30,6 +30,8 @@ import org.gradle.wrapper.WrapperExecutor;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -70,6 +72,9 @@ public class Wrapper extends DefaultTask {
     private GradleVersion gradleVersion;
 
     @Input
+    private List<String> defaultJvmOpts;
+
+    @Input
     private String archivePath;
 
     @Input
@@ -83,6 +88,7 @@ public class Wrapper extends DefaultTask {
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         gradleVersion = GradleVersion.current();
+        defaultJvmOpts = Collections.emptyList();
     }
 
     @TaskAction
@@ -105,6 +111,7 @@ public class Wrapper extends DefaultTask {
         generator.setMainClassName(GradleWrapperMain.class.getName());
         generator.setClasspath(WrapUtil.toList(jarFileRelativePath));
         generator.setOptsEnvironmentVar("GRADLE_OPTS");
+        generator.setDefaultJvmOpts(defaultJvmOpts);
         generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE");
         generator.setAppNameSystemProperty("org.gradle.appname");
         generator.setScriptRelPath(unixScript.getName());
@@ -200,6 +207,20 @@ public class Wrapper extends DefaultTask {
      */
     public void setGradleVersion(String gradleVersion) {
         this.gradleVersion = GradleVersion.version(gradleVersion);
+    }
+
+    /**
+     * Returns the options to pass to the JVM at startup.
+     */
+    public List<String> getDefaultJvmOpts() {
+        return defaultJvmOpts;
+    }
+
+    /**
+     * The options to pass to the JVM at startup.
+     */
+    public void setDefaultJvmOpts(List<String> defaultJvmOpts) {
+        this.defaultJvmOpts = defaultJvmOpts;
     }
 
     /**
