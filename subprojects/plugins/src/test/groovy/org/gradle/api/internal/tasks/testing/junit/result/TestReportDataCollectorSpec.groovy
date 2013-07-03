@@ -28,7 +28,7 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 
 class TestReportDataCollectorSpec extends Specification {
     def Map<String, TestClassResult> results = [:]
-    def PersistedTestOutput.Writer writer = Mock()
+    def TestOutputStore.Writer writer = Mock()
     def collector = new TestReportDataCollector(results, writer)
 
     def "keeps track of test results"() {

@@ -38,7 +38,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     public void visitClasses(final Action<? super TestClassResult> visitor) {
         classOutputProviders = new HashMap<String, TestResultsProvider>();
         for (File dir : binaryResultDirs) {
-            final BinaryResultBackedTestResultsProvider provider = new BinaryResultBackedTestResultsProvider(dir, new PersistedTestOutput(dir).reader());
+            final BinaryResultBackedTestResultsProvider provider = new BinaryResultBackedTestResultsProvider(dir, new TestOutputStore(dir).reader());
             provider.visitClasses(new Action<TestClassResult>() {
                 public void execute(TestClassResult classResult) {
                     if (classOutputProviders.containsKey(classResult.getClassName())) {

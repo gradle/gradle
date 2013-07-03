@@ -440,9 +440,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         getProject().mkdir(binaryResultsDir);
 
         Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
-        PersistedTestOutput persistedTestOutput = new PersistedTestOutput(binaryResultsDir);
+        TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir);
 
-        PersistedTestOutput.Writer outputWriter = persistedTestOutput.writer();
+        TestOutputStore.Writer outputWriter = testOutputStore.writer();
         TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
 
         addTestListener(testReportDataCollector);
@@ -463,7 +463,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         }
 
         new TestResultSerializer().write(results.values(), binaryResultsDir);
-        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), persistedTestOutput.reader());
+        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore.reader());
 
         JUnitXmlReport junitXml = reports.getJunitXml();
         if (junitXml.isEnabled()) {

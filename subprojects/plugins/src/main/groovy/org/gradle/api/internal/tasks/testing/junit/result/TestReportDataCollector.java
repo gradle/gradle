@@ -27,9 +27,9 @@ import java.util.Map;
 public class TestReportDataCollector implements TestListener, TestOutputListener {
 
     private final Map<String, TestClassResult> results;
-    private final PersistedTestOutput.Writer outputWriter;
+    private final TestOutputStore.Writer outputWriter;
 
-    public TestReportDataCollector(Map<String, TestClassResult> results, PersistedTestOutput.Writer outputWriter) {
+    public TestReportDataCollector(Map<String, TestClassResult> results, TestOutputStore.Writer outputWriter) {
         this.results = results;
         this.outputWriter = outputWriter;
     }

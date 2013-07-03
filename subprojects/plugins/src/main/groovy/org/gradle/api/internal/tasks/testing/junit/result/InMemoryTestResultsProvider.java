@@ -23,9 +23,9 @@ import java.io.Writer;
 
 public class InMemoryTestResultsProvider implements TestResultsProvider {
     private final Iterable<TestClassResult> results;
-    private final PersistedTestOutput.Reader outputReader;
+    private final TestOutputStore.Reader outputReader;
 
-    public InMemoryTestResultsProvider(Iterable<TestClassResult> results, PersistedTestOutput.Reader outputReader) {
+    public InMemoryTestResultsProvider(Iterable<TestClassResult> results, TestOutputStore.Reader outputReader) {
         this.results = results;
         this.outputReader = outputReader;
     }

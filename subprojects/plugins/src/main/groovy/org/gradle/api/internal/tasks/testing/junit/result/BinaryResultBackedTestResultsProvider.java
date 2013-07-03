@@ -24,10 +24,10 @@ import java.io.Writer;
 
 public class BinaryResultBackedTestResultsProvider implements TestResultsProvider {
     private final File resultsDir;
-    private final PersistedTestOutput.Reader outputReader;
+    private final TestOutputStore.Reader outputReader;
     private final TestResultSerializer resultSerializer = new TestResultSerializer();
 
-    public BinaryResultBackedTestResultsProvider(File resultsDir, PersistedTestOutput.Reader outputReader) {
+    public BinaryResultBackedTestResultsProvider(File resultsDir, TestOutputStore.Reader outputReader) {
         this.resultsDir = resultsDir;
         this.outputReader = outputReader;
     }

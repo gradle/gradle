@@ -27,7 +27,7 @@ import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 class PersistedTestOutputSpec extends Specification {
     @Rule
     private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    private output = new PersistedTestOutput(temp.testDirectory)
+    private output = new TestOutputStore(temp.testDirectory)
     private writer = output.writer()
     private reader = output.reader()
 

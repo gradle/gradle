@@ -28,11 +28,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class PersistedTestOutput {
+public class TestOutputStore {
 
     private final File resultsDir;
 
-    public PersistedTestOutput(File resultsDir) {
+    public TestOutputStore(File resultsDir) {
         this.resultsDir = resultsDir;
     }
 
