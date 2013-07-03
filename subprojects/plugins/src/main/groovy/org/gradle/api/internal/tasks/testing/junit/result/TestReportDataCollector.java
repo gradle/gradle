@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.tasks.testing.*;
 
 import java.io.File;
@@ -82,12 +83,13 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             //we don't have a place for such output in any of the reports so skipping.
             return;
         }
+        TestDescriptorInternal testDescriptorInternal = (TestDescriptorInternal) testDescriptor;
         TestClassResult classResult = results.get(className);
         if (classResult == null) {
             classResult = new TestClassResult(className, 0);
             results.put(className, classResult);
         }
-        outputSerializer.onOutput(className, testDescriptor.getName(), outputEvent.getDestination(), outputEvent.getMessage());
+        outputSerializer.onOutput(testDescriptorInternal, outputEvent.getDestination(), outputEvent.getMessage());
     }
 
     public void visitClasses(Action<? super TestClassResult> visitor) {

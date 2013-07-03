@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.result
 
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -31,12 +32,19 @@ class TestOutputSerializerTest extends Specification {
     private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private serializer = new TestOutputSerializer(temp.testDirectory)
 
+    TestDescriptorInternal descriptor(String className, String testName) {
+        Stub(TestDescriptorInternal) {
+            getClassName() >> className
+            getName() >> testName
+        }
+    }
+
     def "flushes all output when output finishes"() {
         when:
-        serializer.onOutput("Class1", "method1", StdOut, "[out]")
-        serializer.onOutput("Class2", "method1", StdErr, "[err]")
-        serializer.onOutput("Class1", "method1", StdErr, "[err]")
-        serializer.onOutput("Class1", "method1", StdOut, "[out2]")
+        serializer.onOutput(descriptor("Class1", "method1"), StdOut, "[out]")
+        serializer.onOutput(descriptor("Class2", "method1"), StdErr, "[err]")
+        serializer.onOutput(descriptor("Class1", "method1"), StdErr, "[err]")
+        serializer.onOutput(descriptor("Class1", "method1"), StdOut, "[out2]")
         serializer.finishOutputs()
 
         then:
@@ -55,7 +63,7 @@ class TestOutputSerializerTest extends Specification {
 
     def "can query whether output is available for a test class"() {
         when:
-        serializer.onOutput("Class1", "method1", StdOut, "[out]")
+        serializer.onOutput(descriptor("Class1", "method1"), StdOut, "[out]")
         serializer.finishOutputs()
 
         then:

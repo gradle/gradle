@@ -20,6 +20,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.*;
@@ -94,10 +95,10 @@ public class TestOutputSerializer {
         outputCache.closeAll();
     }
 
-    public void onOutput(String className, final String testName, TestOutputEvent.Destination destination, final String message) {
-        outputCache.with(outputsFile(className, destination), new Action<Output>() {
+    public void onOutput(final TestDescriptorInternal testDescriptor, TestOutputEvent.Destination destination, final String message) {
+        outputCache.with(outputsFile(testDescriptor.getClassName(), destination), new Action<Output>() {
             public void execute(Output output) {
-                output.writeString(testName);
+                output.writeString(testDescriptor.getName());
                 output.writeString(message);
             }
         });
