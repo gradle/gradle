@@ -16,10 +16,13 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.internal.HasInternalProtocol;
+
 /**
  * Describes a test. A test may be a single atomic test, such as the execution of a test method, or it may be a
  * composite test, made up of zero or more tests.
  */
+@HasInternalProtocol
 public interface TestDescriptor {
     /**
      * Returns the name of the test.  Not guaranteed to be unique.
