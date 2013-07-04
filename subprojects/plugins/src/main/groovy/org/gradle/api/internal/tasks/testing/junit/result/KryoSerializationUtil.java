@@ -69,7 +69,12 @@ public abstract class KryoSerializationUtil {
         int length = input.readInt(true);
         byte[] bytes = new byte[length];
         input.readBytes(bytes);
-        return new String(bytes, charset);
+        try {
+            return new String(bytes, charset.name());
+        } catch (UnsupportedEncodingException e) {
+            // shouldn't happen
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public static void skipNext(Input input) {
