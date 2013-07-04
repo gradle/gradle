@@ -53,8 +53,8 @@ class JUnitXmlResultWriterSpec extends Specification {
         result.add(new TestMethodResult("3", "some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
         result.add(new TestMethodResult("4", "some skipped test", new DefaultTestResult(SKIPPED, startTime + 35, startTime + 45, 1, 0, 1, asList())))
 
-        provider.writeOutputs("com.foo.FooTest", StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
-        provider.writeOutputs("com.foo.FooTest", StdErr, _) >> { args -> args[2].write("err") }
+        provider.writeAllOutput("com.foo.FooTest", StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
+        provider.writeAllOutput("com.foo.FooTest", StdErr, _) >> { args -> args[2].write("err") }
 
         when:
         def xml = getXml(result)
@@ -93,7 +93,7 @@ class JUnitXmlResultWriterSpec extends Specification {
     def "writes results with empty outputs"() {
         TestClassResult result = new TestClassResult("com.foo.FooTest", startTime)
         result.add(new TestMethodResult("1", "some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
-        _ * provider.writeOutputs(_, _, _)
+        _ * provider.writeAllOutput(_, _, _)
 
         when:
         def xml = getXml(result)
@@ -112,8 +112,8 @@ class JUnitXmlResultWriterSpec extends Specification {
     def "encodes xml"() {
         TestClassResult result = new TestClassResult("com.foo.FooTest", startTime)
         result.add(new TestMethodResult("1", "some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
-        provider.writeOutputs(_, StdErr, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
-        provider.writeOutputs(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
+        provider.writeAllOutput(_, StdErr, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
+        provider.writeAllOutput(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
 
         when:
         def xml = getXml(result)
@@ -150,6 +150,8 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         when:
         testClass.with {
+            stdout "class-out"
+            stderr "class-err"
             testcase("m1").with {
                 stderr " m1-err-1"
                 stdout " m1-out-1"
@@ -176,6 +178,8 @@ class JUnitXmlResultWriterSpec extends Specification {
     <system-out><![CDATA[ m2-out-1 m2-out-2]]></system-out>
     <system-err><![CDATA[ m2-err-1 m2-err-2]]></system-err>
   </testcase>
+  <system-out><![CDATA[class-out]]></system-out>
+  <system-err><![CDATA[class-err]]></system-err>
 </testsuite>
 """
     }

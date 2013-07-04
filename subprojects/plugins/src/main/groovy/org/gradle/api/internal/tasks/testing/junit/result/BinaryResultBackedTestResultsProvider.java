@@ -36,12 +36,16 @@ public class BinaryResultBackedTestResultsProvider implements TestResultsProvide
         return outputReader.hasOutput(className, destination);
     }
 
-    public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
-        outputReader.readTo(className, destination, writer);
+    public void writeAllOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
+        outputReader.writeAllOutput(className, destination, writer);
     }
 
-    public void writeOutputs(String className, Object testId, TestOutputEvent.Destination destination, Writer writer) {
-        outputReader.readTo(className, testId, destination, writer);
+    public void writeNonTestOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
+        outputReader.writeNonTestOutput(className, destination, writer);
+    }
+
+    public void writeTestOutput(String className, Object testId, TestOutputEvent.Destination destination, Writer writer) {
+        outputReader.writeTestOutput(className, testId, destination, writer);
     }
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {

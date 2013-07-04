@@ -16,15 +16,11 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
-import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.*
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.hamcrest.Matchers.contains
-import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.*
 
 class TestReportIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample sample = new Sample(temporaryFolder)
@@ -180,6 +176,71 @@ public class LoggingTest {
         ":test" in nonSkippedTasks
     }
 
+    def "outputs over lifecycle"() {
+        when:
+        buildScript """
+            $junitSetup
+            test.reports.junitXml.outputPerTestCase = true
+        """
+
+        file("src/test/java/OutputLifecycleTest.java") << """
+            import org.junit.*;
+
+            public class OutputLifecycleTest {
+
+                public OutputLifecycleTest() {
+                    System.out.println("constructor out");
+                    System.err.println("constructor err");
+                }
+
+                @BeforeClass
+                public static void beforeClass() {
+                    System.out.println("beforeClass out");
+                    System.err.println("beforeClass err");
+                }
+
+                @Before
+                public void beforeTest() {
+                    System.out.println("beforeTest out");
+                    System.err.println("beforeTest err");
+                }
+
+                @Test public void m1() {
+                    System.out.println("m1 out");
+                    System.err.println("m1 err");
+                }
+
+                @Test public void m2() {
+                    System.out.println("m2 out");
+                    System.err.println("m2 err");
+                }
+
+                @After
+                public void afterTest() {
+                    System.out.println("afterTest out");
+                    System.err.println("afterTest err");
+                }
+
+                @AfterClass
+                public static void afterClass() {
+                    System.out.println("afterClass out");
+                    System.err.println("afterClass err");
+                }
+            }
+        """
+
+        succeeds "test"
+
+        then:
+        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
+        def clazz = xmlReport.testClass("OutputLifecycleTest")
+        clazz.assertTestCaseStderr("m1", is("beforeTest err\nm1 err\nafterTest err\n"))
+        clazz.assertTestCaseStderr("m2", is("beforeTest err\nm2 err\nafterTest err\n"))
+        clazz.assertTestCaseStdout("m1", is("beforeTest out\nm1 out\nafterTest out\n"))
+        clazz.assertTestCaseStdout("m2", is("beforeTest out\nm2 out\nafterTest out\n"))
+        clazz.assertStderr(is("beforeClass err\nconstructor err\nconstructor err\nafterClass err\n"))
+        clazz.assertStdout(is("beforeClass out\nconstructor out\nconstructor out\nafterClass out\n"))
+    }
 
     String getJunitSetup() {
         """
@@ -203,4 +264,5 @@ public class LoggingTest {
             }
         """
     }
+
 }

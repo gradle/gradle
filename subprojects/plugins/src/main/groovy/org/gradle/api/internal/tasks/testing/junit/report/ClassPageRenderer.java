@@ -16,10 +16,10 @@
 package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.internal.ErroringAction;
+import org.gradle.api.internal.html.SimpleHtmlWriter;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.reporting.CodePanelRenderer;
-import org.gradle.api.internal.html.SimpleHtmlWriter;
 
 import java.io.IOException;
 
@@ -91,7 +91,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                     htmlWriter.startElement("span").attribute("class", "code")
                         .startElement("pre")
                         .characters("");
-                    resultsProvider.writeOutputs(className, TestOutputEvent.Destination.StdOut, htmlWriter);
+                    resultsProvider.writeAllOutput(className, TestOutputEvent.Destination.StdOut, htmlWriter);
                         htmlWriter.endElement()
                     .endElement();
                 }
@@ -104,7 +104,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                     element.startElement("span").attribute("class", "code")
                     .startElement("pre")
                         .characters("");
-                    resultsProvider.writeOutputs(className, TestOutputEvent.Destination.StdErr, element);
+                    resultsProvider.writeAllOutput(className, TestOutputEvent.Destination.StdErr, element);
                     element.endElement()
                     .endElement();
                 }

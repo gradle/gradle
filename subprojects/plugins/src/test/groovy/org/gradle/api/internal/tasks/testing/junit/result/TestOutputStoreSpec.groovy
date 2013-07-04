@@ -77,7 +77,7 @@ class TestOutputStoreSpec extends Specification {
 
     String collectOutput(TestOutputStore.Reader reader, String className, TestOutputEvent.Destination destination) {
         def writer = new StringWriter()
-        reader.readTo(className, destination, writer)
+        reader.writeAllOutput(className, destination, writer)
         return writer.toString()
     }
 }

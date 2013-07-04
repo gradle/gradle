@@ -88,12 +88,18 @@ public class TestOutputStore {
 
         public void onOutput(final TestDescriptorInternal testDescriptor, TestOutputEvent.Destination destination, final String message) {
             String className = testDescriptor.getClassName();
+            String name = testDescriptor.getName();
+
+            // This is a rather weak contract, but given the current inputs is the best we can do
+            boolean isClassLevelOutput = name.equals(className);
+
             Object testId = testDescriptor.getId();
             boolean stdout = destination == TestOutputEvent.Destination.StdOut;
 
             mark(className, testId, stdout);
 
             output.writeBoolean(stdout);
+            output.writeBoolean(isClassLevelOutput);
             writeString(className, messageStorageCharset, output);
             writeObject(testId, output);
             writeString(message, messageStorageCharset, output);
@@ -260,15 +266,19 @@ public class TestOutputStore {
             }
         }
 
-        public void readTo(String className, TestOutputEvent.Destination destination, java.io.Writer writer) {
-            doRead(className, null, destination, writer);
+        public void writeAllOutput(String className, TestOutputEvent.Destination destination, java.io.Writer writer) {
+            doRead(className, null, true, destination, writer);
         }
 
-        public void readTo(String className, Object testId, TestOutputEvent.Destination destination, java.io.Writer writer) {
-            doRead(className, testId, destination, writer);
+        public void writeNonTestOutput(String className, TestOutputEvent.Destination destination, java.io.Writer writer) {
+            doRead(className, null, false, destination, writer);
         }
 
-        protected void doRead(String className, Object testId, TestOutputEvent.Destination destination, java.io.Writer writer) {
+        public void writeTestOutput(String className, Object testId, TestOutputEvent.Destination destination, java.io.Writer writer) {
+            doRead(className, testId, false, destination, writer);
+        }
+
+        private void doRead(String className, Object testId, boolean allClassOutput, TestOutputEvent.Destination destination, java.io.Writer writer) {
 
             Index targetIndex = index.children.get(className);
             if (targetIndex != null && testId != null) {
@@ -286,6 +296,9 @@ public class TestOutputStore {
                 return;
             }
 
+            boolean ignoreClassLevel = !allClassOutput && testId != null;
+            boolean ignoreTestLevel = !allClassOutput && testId == null;
+
             final File file = getOutputsFile();
             try {
                 // NOTE: could potentially hold this stream open instead of open/close
@@ -295,7 +308,9 @@ public class TestOutputStore {
                 try {
                     while (input.total() <= region.stop) {
                         boolean readStdout = input.readBoolean();
-                        if (stdout != readStdout) {
+                        boolean isClassLevel = input.readBoolean();
+
+                        if (stdout != readStdout || (ignoreClassLevel && isClassLevel) || (ignoreTestLevel && !isClassLevel)) {
                             skipNext(input);
                             skipNext(input);
                             skipNext(input);

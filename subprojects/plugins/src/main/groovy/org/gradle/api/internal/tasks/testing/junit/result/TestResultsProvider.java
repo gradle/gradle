@@ -30,14 +30,16 @@ public interface TestResultsProvider {
      *
      * Writes all output for the test class.
      */
-    void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer);
+    void writeAllOutput(String className, TestOutputEvent.Destination destination, Writer writer);
+
+    void writeNonTestOutput(String className, TestOutputEvent.Destination destination, Writer writer);
 
     /**
      * Writes the output of the given test to the given writer. This method must be called only after {@link #visitClasses(org.gradle.api.Action)}.
      *
      * Write all output for the given test case name of the test class.
      */
-    void writeOutputs(String className, Object testId, TestOutputEvent.Destination destination, Writer writer);
+    void writeTestOutput(String className, Object testId, TestOutputEvent.Destination destination, Writer writer);
 
     /**
      * Visits the results of each test class, in no specific order. Each class is visited exactly once.
@@ -45,4 +47,5 @@ public interface TestResultsProvider {
     void visitClasses(Action<? super TestClassResult> visitor);
 
     boolean hasOutput(String className, TestOutputEvent.Destination destination);
+
 }

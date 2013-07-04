@@ -65,14 +65,12 @@ public class JUnitXmlResultWriter {
 
             writeTests(writer, result.getResults(), className);
 
-            if (outputAssociation.equals(TestOutputAssociation.WITH_SUITE)) {
-                writer.startElement("system-out");
-                writeOutputs(writer, className, TestOutputEvent.Destination.StdOut);
-                writer.endElement();
-                writer.startElement("system-err");
-                writeOutputs(writer, className, TestOutputEvent.Destination.StdErr);
-                writer.endElement();
-            }
+            writer.startElement("system-out");
+            writeOutputs(writer, className, outputAssociation.equals(TestOutputAssociation.WITH_SUITE), TestOutputEvent.Destination.StdOut);
+            writer.endElement();
+            writer.startElement("system-err");
+            writeOutputs(writer, className, outputAssociation.equals(TestOutputAssociation.WITH_SUITE), TestOutputEvent.Destination.StdErr);
+            writer.endElement();
 
             writer.endElement();
         } catch (IOException e) {
@@ -80,15 +78,19 @@ public class JUnitXmlResultWriter {
         }
     }
 
-    private void writeOutputs(SimpleXmlWriter writer, String className, TestOutputEvent.Destination destination) throws IOException {
+    private void writeOutputs(SimpleXmlWriter writer, String className, boolean allClassOutput, TestOutputEvent.Destination destination) throws IOException {
         writer.startCDATA();
-        testResultsProvider.writeOutputs(className, destination, writer);
+        if (allClassOutput) {
+            testResultsProvider.writeAllOutput(className, destination, writer);
+        } else {
+            testResultsProvider.writeNonTestOutput(className, destination, writer);
+        }
         writer.endCDATA();
     }
 
     private void writeOutputs(SimpleXmlWriter writer, String className, Object testId, TestOutputEvent.Destination destination) throws IOException {
         writer.startCDATA();
-        testResultsProvider.writeOutputs(className, testId, destination, writer);
+        testResultsProvider.writeTestOutput(className, testId, destination, writer);
         writer.endCDATA();
     }
 
@@ -127,7 +129,7 @@ public class JUnitXmlResultWriter {
         try {
             return throwable.toString();
         } catch (Throwable t) {
-            String exceptionClassName = throwable instanceof PlaceholderException ? ((PlaceholderException)throwable).getExceptionClassName() : throwable.getClass().getName();
+            String exceptionClassName = throwable instanceof PlaceholderException ? ((PlaceholderException) throwable).getExceptionClassName() : throwable.getClass().getName();
             return String.format("Could not determine failure message for exception of type %s: %s",
                     exceptionClassName, t);
         }

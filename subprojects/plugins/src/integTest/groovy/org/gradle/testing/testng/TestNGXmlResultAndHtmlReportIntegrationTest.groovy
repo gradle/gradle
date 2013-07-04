@@ -99,7 +99,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
     }
 
     def verifyTestResultWith(TestExecutionResult executionResult, TestResultOutputAssociation outputAssociation) {
-        executionResult.assertTestClassesExecuted("org.FailingTest", "org.PassingTest", "org.MixedMethodsTest", "org.NoOutputsTest", "org.EncodingTest", "org.ParameterizedTest")
+        executionResult.assertTestClassesExecuted("org.FailingTest", "org.PassingTest", "org.MixedMethodsTest", "org.NoOutputsTest", "org.EncodingTest", "org.ParameterizedTest", "org.OutputLifecycleTest")
 
         def mixedMethods = executionResult.testClass("org.MixedMethodsTest")
                 .assertTestCount(4, 2, 0)
@@ -217,6 +217,29 @@ xml entity: &amp;
                     .assertTestCaseStdout("p1[1](3, 4)", equalTo("var1 is: 3\n"))
                     .assertTestCaseStderr("p1[0](1, 2)", equalTo("var2 is: 2\n"))
                     .assertTestCaseStderr("p1[1](3, 4)", equalTo("var2 is: 4\n"))
+        }
+
+        def outputLifecycle = executionResult.testClass("org.OutputLifecycleTest")
+                .assertTestCount(2, 0, 0)
+                .assertTestsExecuted("m1", "m2")
+                .assertTestPassed("m1")
+                .assertTestPassed("m1")
+                .assertTestsSkipped()
+
+        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+            outputLifecycle
+                    .assertStdout(allOf(containsString("m1 out"), containsString("m2 out")))
+                    .assertStderr(allOf(containsString("m1 err"), containsString("m2 err")))
+
+                    // We don't capture anything outside of test methods for TestNG
+                    .assertStdout(not(anyOf(containsString("before"), containsString("after"), containsString("constructor"))))
+                    .assertStderr(not(anyOf(containsString("before"), containsString("after"), containsString("constructor"))))
+        } else {
+            outputLifecycle
+                    .assertTestCaseStdout("m1", equalTo("m1 out\n"))
+                    .assertTestCaseStderr("m1", equalTo("m1 err\n"))
+                    .assertTestCaseStdout("m2", equalTo("m2 out\n"))
+                    .assertTestCaseStderr("m2", equalTo("m2 err\n"))
         }
 
         true
@@ -350,5 +373,54 @@ public class ParameterizedTest {
 
 }
 """
+
+    file("src/test/java/org/OutputLifecycleTest.java") << """package org;
+
+import org.testng.annotations.*;
+import static org.testng.Assert.*;
+
+public class OutputLifecycleTest {
+
+    public OutputLifecycleTest() {
+        System.out.println("constructor out");
+        System.err.println("constructor err");
+    }
+
+    @BeforeClass
+    public static void beforeClass() {
+        System.out.println("beforeClass out");
+        System.err.println("beforeClass err");
+    }
+
+    @BeforeTest
+    public void beforeTest() {
+        System.out.println("beforeTest out");
+        System.err.println("beforeTest err");
+    }
+
+    @Test public void m1() {
+        System.out.println("m1 out");
+        System.err.println("m1 err");
+    }
+
+    @Test public void m2() {
+        System.out.println("m2 out");
+        System.err.println("m2 err");
+    }
+
+    @AfterTest
+    public void afterTest() {
+        System.out.println("afterTest out");
+        System.err.println("afterTest err");
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        System.out.println("afterClass out");
+        System.err.println("afterClass err");
+    }
+}
+"""
+
     }
 }

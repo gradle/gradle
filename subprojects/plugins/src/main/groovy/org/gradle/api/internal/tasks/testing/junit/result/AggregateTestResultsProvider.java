@@ -56,11 +56,15 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         return classOutputProviders.get(className).hasOutput(className, destination);
     }
 
-    public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
-        classOutputProviders.get(className).writeOutputs(className, destination, writer);
+    public void writeAllOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
+        classOutputProviders.get(className).writeAllOutput(className, destination, writer);
     }
 
-    public void writeOutputs(String className, Object testId, TestOutputEvent.Destination destination, Writer writer) {
-        classOutputProviders.get(className).writeOutputs(className, testId, destination, writer);
+    public void writeNonTestOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
+        classOutputProviders.get(className).writeNonTestOutput(className, destination, writer);
+    }
+
+    public void writeTestOutput(String className, Object testId, TestOutputEvent.Destination destination, Writer writer) {
+        classOutputProviders.get(className).writeTestOutput(className, testId, destination, writer);
     }
 }
