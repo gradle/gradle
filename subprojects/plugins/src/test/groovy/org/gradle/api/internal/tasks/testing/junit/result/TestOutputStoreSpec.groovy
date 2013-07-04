@@ -24,12 +24,10 @@ import spock.lang.Specification
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 
-class PersistedTestOutputSpec extends Specification {
+class TestOutputStoreSpec extends Specification {
     @Rule
     private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private output = new TestOutputStore(temp.testDirectory)
-    private writer = output.writer()
-    private reader = output.reader()
 
     TestDescriptorInternal descriptor(String className, String testName) {
         Stub(TestDescriptorInternal) {
@@ -40,30 +38,36 @@ class PersistedTestOutputSpec extends Specification {
 
     def "flushes all output when output finishes"() {
         when:
+        def writer = output.writer()
         writer.onOutput(descriptor("Class1", "method1"), StdOut, "[out]")
         writer.onOutput(descriptor("Class2", "method1"), StdErr, "[err]")
         writer.onOutput(descriptor("Class1", "method1"), StdErr, "[err]")
         writer.onOutput(descriptor("Class1", "method1"), StdOut, "[out2]")
         writer.finishOutputs()
+        def reader = output.reader()
 
         then:
-        collectOutput("Class1", StdOut) == "[out][out2]"
-        collectOutput("Class1", StdErr) == "[err]"
-        collectOutput("Class2", StdErr) == "[err]"
+        collectOutput(reader, "Class1", StdOut) == "[out][out2]"
+        collectOutput(reader, "Class1", StdErr) == "[err]"
+        collectOutput(reader, "Class2", StdErr) == "[err]"
     }
 
     def "writes nothing for unknown test class"() {
         when:
+        def writer = output.writer()
         writer.finishOutputs()
 
         then:
-        collectOutput("Unknown", StdErr) == ""
+        def reader = output.reader()
+        collectOutput(reader, "Unknown", StdErr) == ""
     }
 
     def "can query whether output is available for a test class"() {
         when:
+        def writer = output.writer()
         writer.onOutput(descriptor("Class1", "method1"), StdOut, "[out]")
         writer.finishOutputs()
+        def reader = output.reader()
 
         then:
         reader.hasOutput("Class1", StdOut)
@@ -71,7 +75,7 @@ class PersistedTestOutputSpec extends Specification {
         !reader.hasOutput("Unknown", StdErr)
     }
 
-    String collectOutput(String className, TestOutputEvent.Destination destination) {
+    String collectOutput(TestOutputStore.Reader reader, String className, TestOutputEvent.Destination destination) {
         def writer = new StringWriter()
         reader.readTo(className, destination, writer)
         return writer.toString()
