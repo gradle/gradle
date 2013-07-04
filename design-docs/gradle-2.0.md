@@ -6,24 +6,38 @@ list of ideas to consider before shipping Gradle 2.0.
 Note: for the change listed below, the old behaviour or feature to be removed should be deprecated in a Gradle 1.x release, probably no later than Gradle 1.8. Similarly
 for changes to behaviour.
 
+# Planned
+
+The following stories are to be included in Gradle 2.0.
+
 ## Remove all features deprecated as at Gradle 1.8
 
 In the Gradle 2.0-rc-1 release, remove all features that are deprecated as at Gradle 1.8 or earlier:
 
-* Search for usages of `DeprecationLogger`, `@Deprecated`, `@deprecated` and remove associated feature.
+* Search for usages of `DeprecationLogger`, `@Deprecated`, `@deprecated` and remove the associated feature.
 
-## Remove Ivy and Maven types from the Gradle API
+## Remove Ivy and Maven types from the Gradle repository API
 
 These types expose the implementation details of dependency management and force a certain implementation on Gradle. Removing these types from the API
 allows us to implement new features and remove some internal complexity.
 
 * Change `ArtifactRepositoryContainer` and `RepositoryHandler` to remove methods that accept an Ivy `DependencyResolver` as parameter.
+* Change `ArtifactRepositoryContainer` to remove methods that return `DependencyResolver`.
 * Remove `RepositoryHandler.mavenRepo()`.
-* Change `ArtifactRepositoryContainer` to change methods that return `DependencyResolver` to return `ArtifactRepository` or remove the method.
-* Change `MavenResolver` so that it no longer extends `DependencyResolver`
-* Remove `MavenResolver.settings`
-* Change `MavenDeployer.repository` and `snapshotRepository` and remove `addProtocolProviderJars()`.
-* Change `MavenPom.dependencies`.
+* Change the `MavenResolver` implementation so that it no longer extends `DependencyResolver`.
+* Change the `FlatDirRepository` implementation so that it no longer uses a `DependencyResolver` implementation.
+
+# Candidates
+
+The following stories are candidates to be included in Gradle 2.0.
+
+## Decouple old publishing DSL from Maven Ant tasks
+
+* Change the old publishing DSL to use the Maven 3 classes instead of Maven 2 classes. This affects:
+    * `MavenResolver.settings`
+    * `MavenDeployer.repository` and `snapshotRepository`.
+    * `MavenPom.dependencies`.
+* Remove `MavenDeployer.addProtocolProviderJars()`.
 * Change `PublishFilter` so that it accepts a `PublishArtifact` instead of an `Artifact`.
 
 ## Copy tasks
