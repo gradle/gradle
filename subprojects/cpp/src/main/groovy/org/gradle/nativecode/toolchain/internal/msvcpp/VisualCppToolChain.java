@@ -67,11 +67,12 @@ public class VisualCppToolChain extends AbstractToolChain {
 
     public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
         checkAvailable();
-        return (Compiler<T>) new VisualCppCompiler(compilerExe, execActionFactory);
+        return (Compiler<T>) new CppCompiler(compilerExe, execActionFactory);
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-        throw new UnsupportedOperationException();
+        checkAvailable();
+        return (Compiler<T>) new CCompiler(compilerExe, execActionFactory);
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {

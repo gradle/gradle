@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,37 +22,41 @@ import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
+import org.gradle.nativecode.language.cpp.internal.CCompileSpec;
 import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
-import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-class VisualCppCompiler implements Compiler<CppCompileSpec> {
+class CCompiler implements Compiler<CCompileSpec> {
 
-    private final CommandLineTool<CppCompileSpec> commandLineTool;
+    private final CommandLineTool<CCompileSpec> commandLineTool;
 
-    VisualCppCompiler(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<CppCompileSpec>(executable, execActionFactory)
-                .withArguments(new CommandLineCompilerArgumentsToOptionFile<CppCompileSpec>(
-                ArgWriter.windowsStyleFactory(), new VisualCppCompileSpecToArguments()
+    CCompiler(File executable, Factory<ExecAction> execActionFactory) {
+        this.commandLineTool = new CommandLineTool<CCompileSpec>(executable, execActionFactory)
+                .withArguments(new CommandLineCompilerArgumentsToOptionFile<CCompileSpec>(
+                ArgWriter.windowsStyleFactory(), new CCompileSpecToArguments()
         ));
     }
 
-    public WorkResult execute(CppCompileSpec spec) {
+    public WorkResult execute(CCompileSpec spec) {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class VisualCppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
-        public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
+    private static class CCompileSpecToArguments implements CompileSpecToArguments<CCompileSpec> {
+        public void collectArguments(CCompileSpec spec, ArgCollector collector) {
+            // C-compiling options
+            collector.args("/TC");
+
+            // TODO:DAZ Extract common stuff out
+            // General compiler options
             collector.args("/nologo");
             for (String macro : spec.getMacros()) {
                 collector.args("/D" + macro);
             }
             collector.args(spec.getArgs());
             collector.args("/c");
-            collector.args("/EHsc");
             if (spec.isPositionIndependentCode()) {
                 collector.args("/LD"); // TODO:DAZ Not sure if this has any effect at compile time
             }
