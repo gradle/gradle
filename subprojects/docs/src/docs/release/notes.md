@@ -39,7 +39,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Support for using Ivy `DependencyResolver` implementations
 
-Support for using Ivy `DependencyResolver` instances to define repositories will be discontinued in Gradle 2.0.
+For several years, there have been two ways that you can define an Ivy repository for Gradle to use. The first, and preferred, way is to use Gradle's
+native `repositories.ivy { }` DSL. The second way was to use an Ivy `DependencyResolver` implementation with the `repositories.add()` method.
+
+Support for using Ivy `DependencyResolver` instances to define repositories will be discontinued in Gradle 2.0. Please note that Gradle will continue to
+support Ivy repositories through its native DSL.
 
 The following methods have been deprecated and will be removed in Gradle 2.0:
 
