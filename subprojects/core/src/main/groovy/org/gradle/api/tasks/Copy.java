@@ -64,7 +64,7 @@ public class Copy extends AbstractCopyTask {
     public Copy() {
         Instantiator instantiator = getServices().get(Instantiator.class);
         FileResolver fileResolver = getServices().get(FileResolver.class);
-        copyAction = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new FileCopySpecVisitor());
+        copyAction = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new FileCopySpecVisitor(), new AbstractCopyTaskUnhandledDuplicateAction());
     }
 
     protected void configureRootSpec() {
@@ -103,4 +103,6 @@ public class Copy extends AbstractCopyTask {
     public void setDestinationDir(File destinationDir) {
         into(destinationDir);
     }
+
+
 }

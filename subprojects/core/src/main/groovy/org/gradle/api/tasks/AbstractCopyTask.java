@@ -386,4 +386,13 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         getMainSpec().eachFile(closure);
         return this;
     }
+
+    /**
+     * Unhandled duplication action.
+     */
+    class AbstractCopyTaskUnhandledDuplicateAction implements Action<FileCopyDetails> {
+        public void execute(FileCopyDetails fileCopyDetails) {
+            getLogger().info("Duplicate file at {} for task {} from {}", fileCopyDetails.getRelativePath(), getPath(), fileCopyDetails);
+        }
+    }
 }

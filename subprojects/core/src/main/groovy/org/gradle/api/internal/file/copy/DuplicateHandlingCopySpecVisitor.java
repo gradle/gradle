@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.Action;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,11 +33,11 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
 
     private final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
     private ReadableCopySpec spec;
-    private boolean warnOnIncludeDuplicate;
+    private final Action<? super FileCopyDetails> onUnhandledDuplicate;
 
-    public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
+    public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor, Action<? super FileCopyDetails> onUnhandledDuplicate) {
         super(visitor);
-        this.warnOnIncludeDuplicate = warnOnIncludeDuplicate;
+        this.onUnhandledDuplicate = onUnhandledDuplicate;
     }
 
     public void visitSpec(ReadableCopySpec spec) {
@@ -52,9 +52,8 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
             if (strategy == DuplicatesStrategy.EXCLUDE) {
                 return;
             }
-            if (warnOnIncludeDuplicate) {
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(
-                        String.format("Including duplicate file %s", details.getRelativePath()));
+            if (strategy != DuplicatesStrategy.INCLUDE) {
+                onUnhandledDuplicate.execute(details);
             }
         }
 
