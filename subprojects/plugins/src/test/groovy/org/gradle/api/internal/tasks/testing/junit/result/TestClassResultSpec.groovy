@@ -30,9 +30,9 @@ class TestClassResultSpec extends Specification {
         assert result.duration == 0
 
         when:
-        result.add(new TestMethodResult("foo",   new DefaultTestResult(TestResult.ResultType.SUCCESS, 100, 200, 1, 1, 0, [])))
-        result.add(new TestMethodResult("fail",  new DefaultTestResult(TestResult.ResultType.FAILURE, 250, 300, 1, 0, 1, [new RuntimeException("bar")])))
-        result.add(new TestMethodResult("fail2", new DefaultTestResult(TestResult.ResultType.FAILURE, 300, 450, 1, 0, 1, [new RuntimeException("foo")])))
+        result.add(new TestMethodResult("1", "foo",   new DefaultTestResult(TestResult.ResultType.SUCCESS, 100, 200, 1, 1, 0, [])))
+        result.add(new TestMethodResult("2", "fail",  new DefaultTestResult(TestResult.ResultType.FAILURE, 250, 300, 1, 0, 1, [new RuntimeException("bar")])))
+        result.add(new TestMethodResult("3", "fail2", new DefaultTestResult(TestResult.ResultType.FAILURE, 300, 450, 1, 0, 1, [new RuntimeException("foo")])))
 
         then:
         result.failuresCount == 2

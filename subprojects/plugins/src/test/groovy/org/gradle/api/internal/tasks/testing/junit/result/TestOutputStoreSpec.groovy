@@ -29,10 +29,10 @@ class TestOutputStoreSpec extends Specification {
     private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private output = new TestOutputStore(temp.testDirectory)
 
-    TestDescriptorInternal descriptor(String className, String testName) {
+    TestDescriptorInternal descriptor(String className, Object testId) {
         Stub(TestDescriptorInternal) {
             getClassName() >> className
-            getName() >> testName
+            getId() >> testId
         }
     }
 

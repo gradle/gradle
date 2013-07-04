@@ -43,8 +43,9 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         if (!testDescriptor.isComposite()) {
+            TestDescriptorInternal testDescriptorInternal = (TestDescriptorInternal) testDescriptor;
             String className = testDescriptor.getClassName();
-            TestMethodResult methodResult = new TestMethodResult(testDescriptor.getName(), result);
+            TestMethodResult methodResult = new TestMethodResult(testDescriptorInternal.getId(), testDescriptor.getName(), result);
             TestClassResult classResult = results.get(className);
             if (classResult == null) {
                 classResult = new TestClassResult(className, result.getStartTime());

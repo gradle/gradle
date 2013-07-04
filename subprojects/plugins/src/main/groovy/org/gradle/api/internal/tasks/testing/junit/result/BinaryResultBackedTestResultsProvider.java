@@ -40,8 +40,8 @@ public class BinaryResultBackedTestResultsProvider implements TestResultsProvide
         outputReader.readTo(className, destination, writer);
     }
 
-    public void writeOutputs(String className, String testCaseName, TestOutputEvent.Destination destination, Writer writer) {
-        outputReader.readTo(className, testCaseName, destination, writer);
+    public void writeOutputs(String className, Object testId, TestOutputEvent.Destination destination, Writer writer) {
+        outputReader.readTo(className, testId, destination, writer);
     }
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {

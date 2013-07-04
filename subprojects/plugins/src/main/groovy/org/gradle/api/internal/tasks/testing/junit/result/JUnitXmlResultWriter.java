@@ -86,9 +86,9 @@ public class JUnitXmlResultWriter {
         writer.endCDATA();
     }
 
-    private void writeOutputs(SimpleXmlWriter writer, String className, String methodName, TestOutputEvent.Destination destination) throws IOException {
+    private void writeOutputs(SimpleXmlWriter writer, String className, Object testId, TestOutputEvent.Destination destination) throws IOException {
         writer.startCDATA();
-        testResultsProvider.writeOutputs(className, methodName, destination, writer);
+        testResultsProvider.writeOutputs(className, testId, destination, writer);
         writer.endCDATA();
     }
 
@@ -112,10 +112,10 @@ public class JUnitXmlResultWriter {
 
             if (outputAssociation.equals(TestOutputAssociation.WITH_TESTCASE)) {
                 writer.startElement("system-out");
-                writeOutputs(writer, className, methodResult.getName(), TestOutputEvent.Destination.StdOut);
+                writeOutputs(writer, className, methodResult.getId(), TestOutputEvent.Destination.StdOut);
                 writer.endElement();
                 writer.startElement("system-err");
-                writeOutputs(writer, className, methodResult.getName(), TestOutputEvent.Destination.StdErr);
+                writeOutputs(writer, className, methodResult.getId(), TestOutputEvent.Destination.StdErr);
                 writer.endElement();
             }
 

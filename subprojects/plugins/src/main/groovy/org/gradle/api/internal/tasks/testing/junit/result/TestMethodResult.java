@@ -20,17 +20,16 @@ import org.gradle.api.tasks.testing.TestResult;
 
 import java.util.List;
 
-/**
- * by Szczepan Faber, created at: 11/13/12
- */
 public class TestMethodResult {
+    private final Object id;
     private final String name;
     private final TestResult.ResultType resultType;
     private final long duration;
     private final long endTime;
     private final List<Throwable> exceptions;
 
-    public TestMethodResult(String name, TestResult result) {
+    public TestMethodResult(Object id, String name, TestResult result) {
+        this.id = id;
         this.name = name;
         resultType = result.getResultType();
         duration = result.getEndTime() - result.getStartTime();
@@ -38,7 +37,8 @@ public class TestMethodResult {
         exceptions = result.getExceptions();
     }
 
-    public TestMethodResult(String name, TestResult.ResultType resultType, long duration, long endTime, List<Throwable> exceptions) {
+    public TestMethodResult(Object id, String name, TestResult.ResultType resultType, long duration, long endTime, List<Throwable> exceptions) {
+        this.id = id;
         this.name = name;
         this.resultType = resultType;
         this.duration = duration;
@@ -64,5 +64,9 @@ public class TestMethodResult {
 
     public long getEndTime() {
         return endTime;
+    }
+
+    public Object getId() {
+        return id;
     }
 }

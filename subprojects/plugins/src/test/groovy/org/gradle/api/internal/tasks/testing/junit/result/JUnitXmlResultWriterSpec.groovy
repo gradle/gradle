@@ -48,10 +48,10 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "writes xml JUnit result"() {
         TestClassResult result = new TestClassResult("com.foo.FooTest", startTime)
-        result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 10, startTime + 25, 1, 1, 0, emptyList())))
-        result.add(new TestMethodResult("some test two", new DefaultTestResult(SUCCESS, startTime + 15, startTime + 30, 1, 1, 0, emptyList())))
-        result.add(new TestMethodResult("some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
-        result.add(new TestMethodResult("some skipped test", new DefaultTestResult(SKIPPED, startTime + 35, startTime + 45, 1, 0, 1, asList())))
+        result.add(new TestMethodResult("1", "some test", new DefaultTestResult(SUCCESS, startTime + 10, startTime + 25, 1, 1, 0, emptyList())))
+        result.add(new TestMethodResult("2", "some test two", new DefaultTestResult(SUCCESS, startTime + 15, startTime + 30, 1, 1, 0, emptyList())))
+        result.add(new TestMethodResult("3", "some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
+        result.add(new TestMethodResult("4", "some skipped test", new DefaultTestResult(SKIPPED, startTime + 35, startTime + 45, 1, 0, 1, asList())))
 
         provider.writeOutputs("com.foo.FooTest", StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
         provider.writeOutputs("com.foo.FooTest", StdErr, _) >> { args -> args[2].write("err") }
@@ -92,7 +92,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "writes results with empty outputs"() {
         TestClassResult result = new TestClassResult("com.foo.FooTest", startTime)
-        result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
+        result.add(new TestMethodResult("1", "some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         _ * provider.writeOutputs(_, _, _)
 
         when:
@@ -111,7 +111,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "encodes xml"() {
         TestClassResult result = new TestClassResult("com.foo.FooTest", startTime)
-        result.add(new TestMethodResult("some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
+        result.add(new TestMethodResult("1", "some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
         provider.writeOutputs(_, StdErr, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
         provider.writeOutputs(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
 

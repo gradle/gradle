@@ -28,6 +28,8 @@ import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.gradle.api.internal.tasks.testing.junit.result.KryoSerializationUtil.*;
+
 public class TestOutputStore {
 
     private final File resultsDir;
@@ -47,10 +49,12 @@ public class TestOutputStore {
     }
 
     private static class Region {
-        long start = -1;
-        long stop = -1;
+        long start;
+        long stop;
 
         private Region() {
+            start = -1;
+            stop = -1;
         }
 
         private Region(long start, long stop) {
@@ -60,7 +64,6 @@ public class TestOutputStore {
     }
 
     private static class TestCaseRegion {
-        String name;
         Region stdOutRegion = new Region();
         Region stdErrRegion = new Region();
     }
@@ -68,7 +71,7 @@ public class TestOutputStore {
     public class Writer {
         private final Output output;
 
-        private final Map<String, Map<String, TestCaseRegion>> index = new LinkedHashMap<String, Map<String, TestCaseRegion>>();
+        private final Map<String, Map<Object, TestCaseRegion>> index = new LinkedHashMap<String, Map<Object, TestCaseRegion>>();
 
         public Writer() {
             try {
@@ -85,39 +88,37 @@ public class TestOutputStore {
 
         public void onOutput(final TestDescriptorInternal testDescriptor, TestOutputEvent.Destination destination, final String message) {
             String className = testDescriptor.getClassName();
-            String methodName = testDescriptor.getName();
+            Object testId = testDescriptor.getId();
             boolean stdout = destination == TestOutputEvent.Destination.StdOut;
 
-            mark(className, methodName, stdout);
+            mark(className, testId, stdout);
 
-            output.writeString(className);
-            output.writeString(methodName);
             output.writeBoolean(stdout);
-            byte[] bytes = message.getBytes(messageStorageCharset);
-            output.writeInt(bytes.length, true);
-            output.writeBytes(bytes);
+            writeString(className, messageStorageCharset, output);
+            writeObject(testId, output);
+            writeString(message, messageStorageCharset, output);
         }
 
-        private void mark(String className, String testCaseName, boolean isStdout) {
+        private void mark(String className, Object testId, boolean isStdout) {
             if (!index.containsKey(className)) {
-                index.put(className, new LinkedHashMap<String, TestCaseRegion>());
+                index.put(className, new LinkedHashMap<Object, TestCaseRegion>());
             }
 
-            Map<String, TestCaseRegion> testCaseRegions = index.get(className);
-            if (!testCaseRegions.containsKey(testCaseName)) {
+            Map<Object, TestCaseRegion> testCaseRegions = index.get(className);
+            if (!testCaseRegions.containsKey(testId)) {
                 TestCaseRegion region = new TestCaseRegion();
-                region.name = testCaseName;
-                testCaseRegions.put(testCaseName, region);
+                testCaseRegions.put(testId, region);
             }
 
-            TestCaseRegion region = testCaseRegions.get(testCaseName);
+            TestCaseRegion region = testCaseRegions.get(testId);
 
             Region streamRegion = isStdout ? region.stdOutRegion : region.stdErrRegion;
 
+            int total = output.total();
             if (streamRegion.start < 0) {
-                streamRegion.start = output.position();
+                streamRegion.start = total;
             }
-            streamRegion.stop = output.position();
+            streamRegion.stop = total;
         }
 
         private void writeIndex() {
@@ -130,17 +131,17 @@ public class TestOutputStore {
 
             indexOutput.writeInt(index.size(), true);
 
-            for (Map.Entry<String, Map<String, TestCaseRegion>> classEntry : index.entrySet()) {
+            for (Map.Entry<String, Map<Object, TestCaseRegion>> classEntry : index.entrySet()) {
                 String className = classEntry.getKey();
-                Map<String, TestCaseRegion> regions = classEntry.getValue();
+                Map<Object, TestCaseRegion> regions = classEntry.getValue();
 
                 indexOutput.writeString(className);
                 indexOutput.writeInt(regions.size(), true);
 
-                for (Map.Entry<String, TestCaseRegion> testCaseEntry : regions.entrySet()) {
+                for (Map.Entry<Object, TestCaseRegion> testCaseEntry : regions.entrySet()) {
+                    Object id = testCaseEntry.getKey();
                     TestCaseRegion region = testCaseEntry.getValue();
-
-                    indexOutput.writeString(region.name);
+                    writeObject(id, indexOutput);
                     indexOutput.writeLong(region.stdOutRegion.start);
                     indexOutput.writeLong(region.stdOutRegion.stop);
                     indexOutput.writeLong(region.stdErrRegion.start);
@@ -156,7 +157,7 @@ public class TestOutputStore {
     }
 
     private static class Index {
-        final ImmutableMap<String, Index> children;
+        final ImmutableMap<Object, Index> children;
         final Region stdOut;
         final Region stdErr;
 
@@ -170,7 +171,7 @@ public class TestOutputStore {
             this.stdErr = stdErr;
         }
 
-        private Index(ImmutableMap<String, Index> children, Region stdOut, Region stdErr) {
+        private Index(ImmutableMap<Object, Index> children, Region stdOut, Region stdErr) {
             this.children = children;
             this.stdOut = stdOut;
             this.stdErr = stdErr;
@@ -181,9 +182,9 @@ public class TestOutputStore {
         final Region stdOut = new Region();
         final Region stdErr = new Region();
 
-        private final ImmutableMap.Builder<String, Index> children = ImmutableMap.builder();
+        private final ImmutableMap.Builder<Object, Index> children = ImmutableMap.builder();
 
-        void add(String name, Index index) {
+        void add(Object name, Index index) {
             if (stdOut.start < 0) {
                 stdOut.start = index.stdOut.start;
             }
@@ -234,10 +235,10 @@ public class TestOutputStore {
 
                     int numEntries = input.readInt(true);
                     for (int entryCounter = 0; entryCounter < numEntries; ++entryCounter) {
-                        String name = input.readString();
+                        Object testId = readObject(input);
                         Region stdOut = new Region(input.readLong(), input.readLong());
                         Region stdErr = new Region(input.readLong(), input.readLong());
-                        classBuilder.add(name, new Index(stdOut, stdErr));
+                        classBuilder.add(testId, new Index(stdOut, stdErr));
                     }
 
                     rootBuilder.add(className, classBuilder.build());
@@ -263,15 +264,15 @@ public class TestOutputStore {
             doRead(className, null, destination, writer);
         }
 
-        public void readTo(String className, String testCaseName, TestOutputEvent.Destination destination, java.io.Writer writer) {
-            doRead(className, testCaseName, destination, writer);
+        public void readTo(String className, Object testId, TestOutputEvent.Destination destination, java.io.Writer writer) {
+            doRead(className, testId, destination, writer);
         }
 
-        protected void doRead(String className, String targetTestCaseName, TestOutputEvent.Destination destination, java.io.Writer writer) {
+        protected void doRead(String className, Object testId, TestOutputEvent.Destination destination, java.io.Writer writer) {
 
             Index targetIndex = index.children.get(className);
-            if (targetIndex != null && targetTestCaseName != null) {
-                targetIndex = targetIndex.children.get(targetTestCaseName);
+            if (targetIndex != null && testId != null) {
+                targetIndex = targetIndex.children.get(testId);
             }
 
             if (targetIndex == null) {
@@ -292,22 +293,36 @@ public class TestOutputStore {
                 Input input = new Input(new FileInputStream(file));
                 skip(input, region.start);
                 try {
-                    while (input.position() <= region.stop) {
-                        String readClassName = input.readString();
-                        String readTestCaseName = input.readString();
+                    while (input.total() <= region.stop) {
                         boolean readStdout = input.readBoolean();
+                        if (stdout != readStdout) {
+                            skipNext(input);
+                            skipNext(input);
+                            skipNext(input);
+                            continue;
+                        }
 
-                        int readMessageLength = input.readInt(true);
+                        String readClassName = readString(messageStorageCharset, input);
+                        if (!className.equals(readClassName)) {
+                            skipNext(input);
+                            skipNext(input);
+                            continue;
+                        }
 
-                        boolean shouldWrite = readStdout == stdout
-                                && readClassName.equals(className)
-                                && (targetTestCaseName == null || targetTestCaseName.equals(readTestCaseName));
+                        boolean shouldWrite;
+                        if (testId == null) {
+                            skipNext(input);
+                            shouldWrite = true;
+                        } else {
+                            Object readTestId = readObject(input);
+                            shouldWrite = testId.equals(readTestId);
+                        }
 
                         if (shouldWrite) {
-                            byte[] bytes = input.readBytes(readMessageLength);
-                            writer.write(new String(bytes, messageStorageCharset));
+                            String message = readString(messageStorageCharset, input);
+                            writer.write(message);
                         } else {
-                            input.skip(readMessageLength);
+                            skipNext(input);
                         }
                     }
                 } finally {

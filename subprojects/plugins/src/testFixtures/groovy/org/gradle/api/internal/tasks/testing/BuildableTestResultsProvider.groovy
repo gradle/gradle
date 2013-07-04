@@ -42,11 +42,11 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         writeOutputs(className, null, destination, writer)
     }
 
-    void writeOutputs(String className, String testCaseName, TestOutputEvent.Destination destination, Writer writer) {
+    void writeOutputs(String className, Object testId, TestOutputEvent.Destination destination, Writer writer) {
         BuildableTestClassResult testCase = testClasses[className]
 
         testCase.outputEvents.each { MethodTestOutputEvent event ->
-            if (event.testOutputEvent.destination == destination && (testCaseName == null || testCaseName == event.testMethodName)) {
+            if (event.testOutputEvent.destination == destination && (testId == null || testId == event.testMethodId)) {
                 writer.append(event.testOutputEvent.message)
             }
         }
@@ -63,11 +63,11 @@ class BuildableTestResultsProvider implements TestResultsProvider {
     }
 
     static class MethodTestOutputEvent {
-        String testMethodName
+        Object testMethodId
         TestOutputEvent testOutputEvent
 
-        MethodTestOutputEvent(String testMethodName, TestOutputEvent testOutputEvent) {
-            this.testMethodName = testMethodName
+        MethodTestOutputEvent(Object testMethodId, TestOutputEvent testOutputEvent) {
+            this.testMethodId = testMethodId
             this.testOutputEvent = testOutputEvent
         }
     }
@@ -82,7 +82,13 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         }
 
         BuildableTestMethodResult testcase(String name, Closure configClosure = {}) {
-            BuildableTestMethodResult methodResult = new BuildableTestMethodResult(name, outputEvents, new SimpleTestResult())
+            BuildableTestMethodResult methodResult = new BuildableTestMethodResult(name, name, outputEvents, new SimpleTestResult())
+            add(methodResult)
+            ConfigureUtil.configure(configClosure, methodResult)
+        }
+
+        BuildableTestMethodResult testcase(Object id, String name, Closure configClosure = {}) {
+            BuildableTestMethodResult methodResult = new BuildableTestMethodResult(id, name, outputEvents, new SimpleTestResult())
             add(methodResult)
             ConfigureUtil.configure(configClosure, methodResult)
         }
@@ -102,8 +108,8 @@ class BuildableTestResultsProvider implements TestResultsProvider {
 
         private final List<MethodTestOutputEvent> outputEvents
 
-        BuildableTestMethodResult(String name, List<MethodTestOutputEvent> outputEvents, TestResult result) {
-            super(name, result)
+        BuildableTestMethodResult(Object id, String name, List<MethodTestOutputEvent> outputEvents, TestResult result) {
+            super(id, name, result)
             this.outputEvents = outputEvents
             duration = result.endTime - result.startTime;
         }

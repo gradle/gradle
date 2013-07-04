@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.result
 
+import org.gradle.api.Action
+import org.gradle.api.tasks.testing.TestResult
+import org.gradle.messaging.remote.internal.PlaceholderException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.tasks.testing.TestResult
-import org.gradle.messaging.remote.internal.PlaceholderException
-import org.gradle.api.Action
 
 class TestResultSerializerTest extends Specification {
     @Rule
@@ -30,8 +30,8 @@ class TestResultSerializerTest extends Specification {
     def "can write and read results"() {
         def class1 = new TestClassResult('Class1', 1234)
         def failure = new RuntimeException("broken")
-        def method1 = new TestMethodResult("method1", TestResult.ResultType.SUCCESS, 100, 2300, [])
-        def method2 = new TestMethodResult("method2", TestResult.ResultType.FAILURE, 200, 2700, [failure])
+        def method1 = new TestMethodResult(id, "method1", TestResult.ResultType.SUCCESS, 100, 2300, [])
+        def method2 = new TestMethodResult(id, "method2", TestResult.ResultType.FAILURE, 200, 2700, [failure])
         class1.add(method1)
         class1.add(method2)
         def class2 = new TestClassResult('Class2', 5678)
@@ -75,7 +75,7 @@ class TestResultSerializerTest extends Specification {
         def failure = new RuntimeException("broken") {
             final Object field = new Object()
         }
-        def method1 = new TestMethodResult("method1", TestResult.ResultType.FAILURE, 200, 2700, [failure])
+        def method1 = new TestMethodResult(id, "method1", TestResult.ResultType.FAILURE, 200, 2700, [failure])
         class1.add(method1)
         def results = [class1]
 

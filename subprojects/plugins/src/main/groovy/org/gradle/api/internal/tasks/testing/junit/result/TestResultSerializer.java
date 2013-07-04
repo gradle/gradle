@@ -66,6 +66,7 @@ public class TestResultSerializer {
     }
 
     private void write(TestMethodResult methodResult, Output output) throws IOException {
+        KryoSerializationUtil.writeObject(methodResult.getId(), output);
         output.writeString(methodResult.getName());
         output.writeInt(methodResult.getResultType().ordinal(), true);
         output.writeLong(methodResult.getDuration(), true);
@@ -117,6 +118,7 @@ public class TestResultSerializer {
     }
 
     private TestMethodResult readMethodResult(Input input) throws ClassNotFoundException, IOException {
+        Object id = KryoSerializationUtil.readObject(input);
         String name = input.readString();
         TestResult.ResultType resultType = TestResult.ResultType.values()[input.readInt(true)];
         long duration = input.readLong(true);
@@ -128,6 +130,6 @@ public class TestResultSerializer {
         } else {
             failures = Collections.emptyList();
         }
-        return new TestMethodResult(name, resultType, duration, endTime, failures);
+        return new TestMethodResult(id, name, resultType, duration, endTime, failures);
     }
 }
