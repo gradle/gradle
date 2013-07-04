@@ -15,32 +15,47 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import org.apache.ivy.core.cache.RepositoryCacheManager
-import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter
+import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
+import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import spock.lang.Specification
 
 class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
-    final RepositoryCacheManager localCacheManager = Mock()
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, localCacheManager)
+    final ExternalResourceRepository resourceRepository = Mock()
+    final RepositoryTransport repositoryTransport = Mock()
+    final RepositoryTransportFactory transportFactory = Mock()
+    final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder = Mock()
+    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder)
 
     def "creates a repository with multiple root directories"() {
         given:
         def dir1 = new File('a')
         def dir2 = new File('b')
         _ * fileResolver.resolveFiles(['a', 'b']) >> new SimpleFileCollection(dir1, dir2)
+        _ * repositoryTransport.repository >> resourceRepository
 
         and:
+        repository.name = 'repo-name'
         repository.dirs('a', 'b')
 
         when:
-        def repo = repository.createLegacyDslObject()
+        def resolver = repository.createResolver()
 
         then:
-        repo instanceof FileSystemResolver
+        1 * transportFactory.createFileTransport("repo-name") >> repositoryTransport
+
+        and:
+        resolver instanceof ExternalResourceResolverAdapter
+        def repo = resolver.resolver
+        repo instanceof IvyResolver
         def expectedPatterns = [
                 "$dir1.absolutePath/[artifact]-[revision](-[classifier]).[ext]",
                 "$dir1.absolutePath/[artifact](-[classifier]).[ext]",
@@ -57,7 +72,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         _ * fileResolver.resolveFiles(_) >> new SimpleFileCollection()
 
         when:
-        repository.createLegacyDslObject()
+        repository.createResolver()
 
         then:
         InvalidUserDataException e = thrown()

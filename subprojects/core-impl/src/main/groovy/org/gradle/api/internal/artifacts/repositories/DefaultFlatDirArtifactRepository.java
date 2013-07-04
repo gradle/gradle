@@ -16,15 +16,16 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.Lists;
-import org.apache.ivy.core.cache.RepositoryCacheManager;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.IvyResolverBackedModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyDependencyResolverAdapter;
+import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
@@ -36,11 +37,13 @@ import java.util.Set;
 public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository {
     private final FileResolver fileResolver;
     private List<Object> dirs = new ArrayList<Object>();
-    private final RepositoryCacheManager localCacheManager;
+    private final RepositoryTransportFactory transportFactory;
+    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
 
-    public DefaultFlatDirArtifactRepository(FileResolver fileResolver, RepositoryCacheManager localCacheManager) {
+    public DefaultFlatDirArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory, LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder) {
         this.fileResolver = fileResolver;
-        this.localCacheManager = localCacheManager;
+        this.transportFactory = transportFactory;
+        this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
     }
 
     public Set<File> getDirs() {
@@ -60,27 +63,29 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     }
 
     public ModuleVersionPublisher createPublisher() {
-        return new IvyResolverBackedModuleVersionPublisher(createLegacyDslObject());
+        return createRealResolver();
     }
 
     public IvyAwareModuleVersionRepository createResolver() {
-        return new IvyDependencyResolverAdapter(createLegacyDslObject());
+        return new ExternalResourceResolverAdapter(createRealResolver(), false);
     }
 
     public DependencyResolver createLegacyDslObject() {
+        IvyResolver resolver = createRealResolver();
+        return new LegacyDependencyResolver(resolver, new ExternalResourceResolverAdapter(resolver, false));
+    }
+
+    private IvyResolver createRealResolver() {
         Set<File> dirs = getDirs();
         if (dirs.isEmpty()) {
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
 
-        FileSystemResolver resolver = new FileSystemResolver();
-        resolver.setName(getName());
+        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createFileTransport(getName()), locallyAvailableResourceFinder);
         for (File root : dirs) {
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");
         }
-        resolver.setValidate(false);
-        resolver.setRepositoryCacheManager(localCacheManager);
         return resolver;
     }
 
