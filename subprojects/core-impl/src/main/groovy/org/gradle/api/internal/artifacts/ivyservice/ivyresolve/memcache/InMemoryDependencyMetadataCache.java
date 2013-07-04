@@ -57,6 +57,6 @@ public class InMemoryDependencyMetadataCache implements Stoppable {
 
     public void stop() {
         cachePerRepo.clear();
-        LOG.info("In-memory dependency metadata cache closed. {}", stats);
+        LOG.debug("In-memory dependency metadata cache closed. {}", stats);
     }
 }
