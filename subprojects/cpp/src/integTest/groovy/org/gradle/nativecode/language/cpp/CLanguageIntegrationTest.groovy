@@ -191,13 +191,13 @@ class CLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
             #include "hello.h"
 
             int main (int argc, char** argv) {
-                hello("${escapeString(HELLO_WORLD)}");
                 int i;
                 for ( i = 1; i < argc; i++ ) {
                     printf("[");
                     printf("%s", argv[i]);
                     printf("]");
                 }
+                hello("${escapeString(HELLO_WORLD)}");
                 return 0;
             }
         """
