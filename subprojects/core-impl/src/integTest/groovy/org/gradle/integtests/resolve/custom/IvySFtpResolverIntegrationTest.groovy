@@ -28,7 +28,7 @@ class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
-    def "setup"() {
+    def setup() {
         requireOwnGradleUserHomeDir()
     }
 
@@ -58,7 +58,8 @@ task listJars << {
 }
 """
         when:
-        succeeds 'listJars'
+        executer.withDeprecationChecksDisabled()
+        run 'listJars'
 
         then:
         server.fileRequests == ["repos/libs/group/projectA/1.2/ivy-1.2.xml",
@@ -70,7 +71,8 @@ task listJars << {
 
         when:
         server.clearRequests()
-        succeeds 'listJars'
+        executer.withDeprecationChecksDisabled()
+        run 'listJars'
 
         then:
         server.fileRequests.empty

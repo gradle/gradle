@@ -52,6 +52,7 @@ task listJars << {
         module.expectIvyGet()
         module.expectJarHead()
         module.expectJarGet()
+        executer.withDeprecationChecksDisabled()
 
         then:
         succeeds 'listJars'
@@ -62,6 +63,7 @@ task listJars << {
 
         when:
         server.resetExpectations()
+        executer.withDeprecationChecksDisabled()
 
         // No extra calls for cached dependencies
         then:
@@ -97,6 +99,7 @@ task retrieve(type: Sync) {
         module.expectIvyGet()
         module.expectJarHead()
         module.expectJarGet()
+        executer.withDeprecationChecksDisabled()
 
         run 'retrieve'
 
@@ -114,6 +117,7 @@ task retrieve(type: Sync) {
         module.expectIvyGet()
         module.expectJarHead()
         module.expectJarGet()
+        executer.withDeprecationChecksDisabled()
 
         run 'retrieve'
 

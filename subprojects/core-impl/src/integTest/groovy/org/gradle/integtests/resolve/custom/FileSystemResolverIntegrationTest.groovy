@@ -19,9 +19,8 @@ package org.gradle.integtests.resolve.custom
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class FileSystemResolverIntegrationTest extends AbstractIntegrationSpec {
-
     def "file system resolvers use item at source by default"() {
-        when:
+        given:
         def module = ivyRepo.module("group", "projectA", "1.2")
         module.publish()
         def jar = module.jarFile
@@ -45,16 +44,21 @@ class FileSystemResolverIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        when:
+        executer.withDeprecationChecksDisabled()
+        run 'echoContent'
+
         then:
-        succeeds 'echoContent'
         scrapeValue("content") == "1"
         scrapeValue("path") == jar.canonicalPath
 
         when:
         jar.text = "2"
 
+        executer.withDeprecationChecksDisabled()
+        run 'echoContent'
+
         then:
-        succeeds 'echoContent'
         scrapeValue("content") == "2"
         scrapeValue("path") == jar.canonicalPath
     }

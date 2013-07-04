@@ -49,6 +49,7 @@ task check << {
         module.artifact.expectGet()
         module.artifact.sha1.expectGetMissing()
         module.artifact.md5.expectGet()
+        executer.withDeprecationChecksDisabled()
 
         expect:
         succeeds 'check'
@@ -68,6 +69,7 @@ task check << {
         module.artifact.expectGet()
         // TODO - shouldn't get checksum twice
         module.artifact.sha1.expectGet()
+        executer.withDeprecationChecksDisabled()
 
         then:
         executer.withArguments("--refresh-dependencies")
@@ -102,8 +104,13 @@ task check << {
         module.pom.sha1.expectGet()
         module.artifact.expectGet()
         module.artifact.sha1.expectGet()
+
         and:
         module.artifact.sha1.file.text = '1234'
+
+        and:
+        executer.withDeprecationChecksDisabled()
+
         expect:
         fails 'check'
         failureHasCause("Could not download artifact 'group:module:1.2@jar'")
@@ -136,6 +143,9 @@ task check << {
 """
         and:
         module.pom.expectGetMissing()
+
+        and:
+        executer.withDeprecationChecksDisabled()
 
         expect:
         fails 'check'
@@ -171,6 +181,9 @@ task check << {
         module.artifact.expectHead()
         module.artifact.expectGet()
 
+        and:
+        executer.withDeprecationChecksDisabled()
+
         expect:
         succeeds "check"
     }
@@ -203,8 +216,10 @@ task check << {
         module.pom.expectGet()
         module.artifact.expectGet()
 
-        expect:
+        and:
         executer.withDeprecationChecksDisabled()
+
+        expect:
         succeeds "check"
     }
 }

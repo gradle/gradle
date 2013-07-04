@@ -58,6 +58,9 @@ uploadArchives {
         module.expectJarPut();
         module.expectIvyPut();
 
+        and:
+        executer.withDeprecationChecksDisabled()
+
         when:
         run 'uploadArchives'
 
