@@ -114,7 +114,7 @@ public class DefaultCacheAccess implements CacheAccess {
                 closeFileLock();
             }
             if (cacheClosedCount != 1) {
-                LOG.info("Cache {} was closed {} times.", cacheDiplayName, cacheClosedCount);
+                LOG.debug("Cache {} was closed {} times.", cacheDiplayName, cacheClosedCount);
             }
         } finally {
             lockMode = null;
@@ -371,7 +371,7 @@ public class DefaultCacheAccess implements CacheAccess {
             public void run() {
                 lock.lock();
                 try {
-                    LOG.info("Detected file lock contention of {} (fileLock={}, contended={}, owner={})", cacheDiplayName, fileLock != null, contended, owner);
+                    LOG.debug("Detected file lock contention of {} (fileLock={}, contended={}, owner={})", cacheDiplayName, fileLock != null, contended, owner);
                     if (fileLock == null) {
                         //the lock may have been closed
                         return;
