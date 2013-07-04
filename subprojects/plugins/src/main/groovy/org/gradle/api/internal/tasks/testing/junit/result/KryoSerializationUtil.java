@@ -60,7 +60,12 @@ public abstract class KryoSerializationUtil {
     }
 
     public static void writeString(String string, Charset charset, Output output) {
-        byte[] bytes = string.getBytes(charset);
+        byte[] bytes;
+        try {
+            bytes = string.getBytes(charset.name());
+        } catch (UnsupportedEncodingException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
         output.writeInt(bytes.length, true);
         output.writeBytes(bytes);
     }
