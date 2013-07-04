@@ -17,7 +17,10 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.ONLINE)
 class MavenJcenterDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "resolves a minimal dependency from bintray's jcenter"() {
         given:
