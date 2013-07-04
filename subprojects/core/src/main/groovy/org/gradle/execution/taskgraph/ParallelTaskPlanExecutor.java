@@ -37,7 +37,6 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     private final TaskArtifactStateCacheAccess cacheAccess;
 
     public ParallelTaskPlanExecutor(TaskArtifactStateCacheAccess cacheAccess, int numberOfParallelExecutors) {
-        super(cacheAccess);
         this.cacheAccess = cacheAccess;
         if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);

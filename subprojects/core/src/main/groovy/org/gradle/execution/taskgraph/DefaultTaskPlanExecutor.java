@@ -23,7 +23,6 @@ class DefaultTaskPlanExecutor extends AbstractTaskPlanExecutor {
     private final TaskArtifactStateCacheAccess stateCacheAccess;
 
     DefaultTaskPlanExecutor(TaskArtifactStateCacheAccess stateCacheAccess) {
-        super(stateCacheAccess);
         this.stateCacheAccess = stateCacheAccess;
     }
 

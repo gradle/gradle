@@ -18,7 +18,6 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -26,11 +25,6 @@ import static org.gradle.util.Clock.prettyTime;
 
 abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(AbstractTaskPlanExecutor.class);
-    private final TaskArtifactStateCacheAccess stateCacheAccess;
-
-    AbstractTaskPlanExecutor(TaskArtifactStateCacheAccess stateCacheAccess) {
-        this.stateCacheAccess = stateCacheAccess;
-    }
 
     protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
         return new TaskExecutorWorker(taskExecutionPlan, taskListener);
@@ -40,7 +34,6 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
         private final TaskExecutionPlan taskExecutionPlan;
         private final TaskExecutionListener taskListener;
         private long busyMs;
-        private long waitedForCacheMs;
 
         private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
             this.taskExecutionPlan = taskExecutionPlan;
@@ -54,7 +47,8 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
                 executeTaskWithCacheLock(task);
             }
             long total = System.currentTimeMillis() - start;
-            LOGGER.info("Task worker [{}] finished, busy: {}, idle: {}, waited for cache: {}", Thread.currentThread(), prettyTime(busyMs), prettyTime(total - busyMs), prettyTime(waitedForCacheMs));
+            //TODO SF it would be nice to print one-line statement that concludes the utilisation of the worker threads
+            LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), prettyTime(busyMs), prettyTime(total - busyMs));
         }
 
         private void executeTaskWithCacheLock(final TaskInfo taskInfo) {
