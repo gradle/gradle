@@ -33,17 +33,17 @@ import java.util.List;
  * <p>The resolvers in a container are accessible as read-only properties of the container, using the name of the
  * resolver as the property name. For example:</p>
  *
- * <pre>
- * resolvers.addLast(name: 'myResolver')
- * resolvers.myResolver.url = 'some-url'
+ * <pre autoTested=''>
+ * repositories.maven { name 'myResolver' }
+ * repositories.myResolver.url = 'some-url'
  * </pre>
  *
  * <p>A dynamic method is added for each resolver which takes a configuration closure. This is equivalent to calling
  * {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
  *
- * <pre>
- * resolvers.addLast(name: 'myResolver')
- * resolvers.myResolver {
+ * <pre autoTested=''>
+ * repositories.maven { name 'myResolver' }
+ * repositories.myResolver {
  *     url 'some-url'
  * }
  * </pre>
@@ -89,7 +89,9 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * Adds a repository to this container, at the end of the repository sequence.
      *
      * @param resolver The repository to add, represented as an Ivy {@link DependencyResolver}.
+     * @deprecated Use one of the repository methods on {@link org.gradle.api.artifacts.dsl.RepositoryHandler} or {@link #add(ArtifactRepository)} instead.
      */
+    @Deprecated
     boolean add(DependencyResolver resolver);
 
     /**
@@ -97,7 +99,9 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      *
      * @param resolver The repository to add, represented as an Ivy {@link DependencyResolver}.
      * @param configureClosure The closure to use to configure the repository.
+     * @deprecated Use one of the repository methods on {@link org.gradle.api.artifacts.dsl.RepositoryHandler} or {@link #add(ArtifactRepository)} instead.
      */
+    @Deprecated
     boolean add(DependencyResolver resolver, Closure configureClosure);
 
     /**
@@ -111,7 +115,7 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * <li>A map. This is used to create a Maven repository. The map must contain an {@value #RESOLVER_NAME} entry and a
      * {@value #RESOLVER_URL} entry.</li>
      *
-     * <li>A {@link org.apache.ivy.plugins.resolver.DependencyResolver}.</li>
+     * <li>A {@link DependencyResolver}.</li>
      *
      * <li>A {@link ArtifactRepository}.</li>
      *
@@ -146,7 +150,9 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
      * @throws UnknownRepositoryException when the given next resolver does not exist in this container.
+     * @deprecated No replacement
      */
+    @Deprecated
     DependencyResolver addBefore(Object userDescription, String nextResolver) throws InvalidUserDataException;
 
     /**
@@ -159,7 +165,9 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
      * @throws UnknownRepositoryException when the given next resolver does not exist in this container.
+     * @deprecated No replacement
      */
+    @Deprecated
     DependencyResolver addBefore(Object userDescription, String nextResolver, Closure configureClosure)
             throws InvalidUserDataException;
 
@@ -171,7 +179,9 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
      * @throws UnknownRepositoryException when the given previous resolver does not exist in this container.
+     * @deprecated No replacement
      */
+    @Deprecated
     DependencyResolver addAfter(Object userDescription, String previousResolver) throws InvalidUserDataException;
 
     /**
@@ -184,7 +194,9 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
      * @throws UnknownRepositoryException when the given previous resolver does not exist in this container.
+     * @deprecated No replacement
      */
+    @Deprecated
     DependencyResolver addAfter(Object userDescription, String previousResolver, Closure configureClosure)
             throws InvalidUserDataException;
 
@@ -194,7 +206,9 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
+     * @deprecated Use {@link #addFirst(ArtifactRepository)} instead.
      */
+    @Deprecated
     DependencyResolver addFirst(Object userDescription) throws InvalidUserDataException;
 
     /**
@@ -205,7 +219,9 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * @param configureClosure The closure to use to configure the resolver.
      * @return The added resolver.
      * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
+     * @deprecated Use {@link #addFirst(ArtifactRepository)} instead.
      */
+    @Deprecated
     DependencyResolver addFirst(Object userDescription, Closure configureClosure) throws InvalidUserDataException;
 
     /**

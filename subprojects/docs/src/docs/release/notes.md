@@ -37,9 +37,16 @@ in the next major Gradle version (Gradle 2.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
-### `RepositoryHandler.mavenRepo()`
+### Support for using Ivy `DependencyResolver` implementations
 
-The `RepositoryHandler.mavenRepo()` method has been deprecated. You should use the `maven()` method instead:
+Support for using Ivy `DependencyResolver` instances to define repositories will be discontinued in Gradle 2.0.
+
+The following methods have been deprecated and will be removed in Gradle 2.0:
+
+* The `RepositoryHandler.mavenRepo()` method has been deprecated. You should use the `maven()` method instead:
+* The `ArtifactRepositoryContainer.add(DependencyResolver)` method. You should use one of the other repository methods instead.
+* The `ArtifactRepositoryContainer.addFirst(Object)` method. You should use the `addFirst(ArtifactRepository)` instead.
+* The `ArtifactRepositoryContainer.addBefore()` and `addAfter()` methods. There is no replacement for these methods.
 
 <table>
     <tr><th>Gradle 1.7</th><th>Gradle 1.8</th></tr>
@@ -47,12 +54,17 @@ The `RepositoryHandler.mavenRepo()` method has been deprecated. You should use t
     <td>
         <pre>repositories {
     mavenRepo url: 'http://my.server/'
+    add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+        addArtifactPattern('/some/dir/[organisation]/[module]-[revision].[ext]')
 }</pre>
     </td>
     <td>
         <pre>repositories {
     maven {
         url 'http://my.server/'
+    }
+    ivy {
+        artifactPattern '/some/dir/[organisation]/[module]-[revision].[ext]'
     }
 }</pre>
     </td>

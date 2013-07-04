@@ -85,11 +85,13 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     public boolean add(DependencyResolver resolver, Closure configureClosure) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ArtifactRepositoryContainer.add(DependencyResolver, Closure)");
         addCustomDependencyResolver(resolver, configureClosure, addLastAction);
         return true;
     }
 
     public boolean add(DependencyResolver resolver) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ArtifactRepositoryContainer.add(DependencyResolver)");
         addCustomDependencyResolver(resolver, null, addLastAction);
         return true;
     }
@@ -99,6 +101,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     public DependencyResolver addFirst(Object userDescription, Closure configureClosure) {
+        DeprecationLogger.nagUserOfReplacedMethod("ArtifactRepositoryContainer.addFirst(Object)", "addFirst(ArtifactRepository");
         return addCustomDependencyResolver(userDescription, configureClosure, addFirstAction);
     }
 
@@ -122,6 +125,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         if (!GUtil.isTrue(afterResolverName)) {
             throw new InvalidUserDataException("You must specify afterResolverName");
         }
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ArtifactRepositoryContainer.addBefore()");
         final ArtifactRepository after = getByName(afterResolverName);
         return addCustomDependencyResolver(userDescription, configureClosure, new Action<ArtifactRepository>() {
             public void execute(ArtifactRepository repository) {
@@ -138,6 +142,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         if (!GUtil.isTrue(beforeResolverName)) {
             throw new InvalidUserDataException("You must specify beforeResolverName");
         }
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ArtifactRepositoryContainer.addAfter()");
         final ArtifactRepository before = getByName(beforeResolverName);
 
         return addCustomDependencyResolver(userDescription, configureClosure, new Action<ArtifactRepository>() {
