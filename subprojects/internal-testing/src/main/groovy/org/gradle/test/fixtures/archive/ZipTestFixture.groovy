@@ -16,25 +16,55 @@
 
 package org.gradle.test.fixtures.archive
 
+import org.hamcrest.Matcher
+
 import java.util.zip.ZipFile
 
-import static org.junit.Assert.assertEquals
+import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.Matchers.hasItem
+import static org.hamcrest.Matchers.hasItems
 
 class ZipTestFixture {
 
-    //@TODO split method up like in Tar and Jar TestFixture
-    static void assertZipContainsOnly(File zipTestFile, List files, Map fileContent = [:]) {
-        ZipFile zipFile = new ZipFile(zipTestFile)
-        def entries = zipFile.entries();
-        def list = []
-        while (entries.hasMoreElements()) {
-            def entry = entries.nextElement()
-            def entryName = entry.getName()
-            list += entryName;
-            if (fileContent.containsKey(entryName)) {
-                assert fileContent[entryName] == zipFile.getInputStream(entry).text
+    Map fileContents = [:]
+
+    ZipTestFixture(File file) {
+        ZipFile zipFile = null
+        try {
+            zipFile = new ZipFile(file)
+            def entries = zipFile.entries()
+            while (entries.hasMoreElements()) {
+                def entry = entries.nextElement()
+                def content = zipFile.getInputStream(entry).text
+                if (!entry.directory) {
+                    fileContents[entry.name] = fileContents[entry.name] ? fileContents[entry.name] + content : [content]
+                }
+            }
+        } finally {
+            if (zipFile) {
+                zipFile.close();
             }
         }
-        assertEquals(files.sort(), list.sort())
+    }
+
+    def containsOnly(String... fileNames) {
+        assertThat(fileNames as List, hasItems(fileContents.keySet().toArray()))
+        this
+    }
+
+    String assertFileContent(String filepath, String fileContent) {
+        assertThat(fileContents.keySet(), hasItem(filepath))
+        assertThat(fileContents[filepath], hasItem(fileContent))
+        this
+    }
+
+    def assertFileContent(String filePath, Matcher matcher) {
+        assertThat(fileContents.keySet(), hasItem(filePath))
+        assertThat(fileContents[filePath], matcher)
+        this
+    }
+
+    Integer countFiles(String filePath) {
+        fileContents.findAll({ it == filePath }).size()
     }
 }

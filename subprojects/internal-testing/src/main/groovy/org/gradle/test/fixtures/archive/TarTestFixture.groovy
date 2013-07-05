@@ -17,12 +17,11 @@
 package org.gradle.test.fixtures.archive
 
 import org.apache.commons.collections.map.MultiValueMap
-import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.FileResource
-import org.gradle.api.internal.file.archive.TarFileTree
+import org.apache.tools.tar.TarEntry
+import org.apache.tools.tar.TarInputStream
 import org.gradle.test.fixtures.file.TestFile
-import static org.junit.Assert.*
+
+import static org.junit.Assert.assertEquals
 
 class TarTestFixture {
 
@@ -31,19 +30,18 @@ class TarTestFixture {
 
     MultiValueMap filesByRelativePath = new MultiValueMap()
 
-    FileResource readableFile = new FileResource(tarFile)
-
     public TarTestFixture(TestFile tarFile, TestFile tempDirectory) {
         this.temporaryDir = tempDirectory
         this.tarFile = tarFile
 
-        new TarFileTree(readableFile, temporaryDir).visit(new FileVisitor() {
-            void visitDir(FileVisitDetails dirDetails) {}
+        TarInputStream tarInputStream = new TarInputStream(this.tarFile.newInputStream())
 
-            void visitFile(FileVisitDetails fileDetails) {
-                filesByRelativePath[fileDetails.relativePath.toString()] = fileDetails.file
+        for (TarEntry tarEntry = tarInputStream.nextEntry; tarEntry != null; tarEntry = tarInputStream.nextEntry) {
+            if (tarEntry.directory) {
+                continue
             }
-        })
+            filesByRelativePath[tarEntry.name] = tarEntry.file
+        }
     }
 
     def assertContainsFile(String relativePath, int occurrences = 1) {

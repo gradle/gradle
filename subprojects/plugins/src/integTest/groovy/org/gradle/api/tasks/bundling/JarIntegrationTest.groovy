@@ -308,10 +308,10 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         2 == jar.countFiles('META-INF/services/org.gradle.Service')
         1 == jar.countFiles('path/test.txt')
 
-        jar.assertTextFileContent(hasItem('Content of first file'))
-        jar.assertTextFileContent(not(hasItem('Content of second file')))
-        jar.hasService('org.gradle.BetterServiceImpl')
-        jar.hasService('org.gradle.DefaultServiceImpl')
+        jar.assertFileContent('test.txt', hasItem('Content of first file'))
+        jar.assertFileContent('test.txt', not(hasItem('Content of second file')))
+        jar.hasService('org.gradle.Service', 'org.gradle.BetterServiceImpl')
+        jar.hasService('org.gradle.Service', 'org.gradle.DefaultServiceImpl')
     }
 
 }

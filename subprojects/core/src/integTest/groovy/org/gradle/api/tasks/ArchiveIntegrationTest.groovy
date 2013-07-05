@@ -23,10 +23,10 @@ import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.TarTestFixture
+import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
-import static org.gradle.test.fixtures.archive.ZipTestFixture.assertZipContainsOnly
 import static org.hamcrest.Matchers.equalTo
 
 public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
@@ -636,7 +636,9 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'zip'
 
         then:
-        assertZipContainsOnly(file('build/test.zip'), ['file1.txt', 'file2.txt'], ['file1.txt': "dir1/file1.txt"])
+        def theZip = new ZipTestFixture(file('build/test.zip'))
+        theZip.containsOnly('file1.txt', 'file2.txt')
+        theZip.assertFileContent('file1.txt', 'dir1/file1.txt')
     }
 
     def renamedFileWillBeTreatedAsDuplicateZip() {

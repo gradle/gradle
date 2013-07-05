@@ -16,53 +16,13 @@
 
 package org.gradle.test.fixtures.archive
 
-import org.hamcrest.Matcher
-
-import java.util.jar.JarFile
-
-import static org.hamcrest.MatcherAssert.assertThat
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.hasItem
-
-
-class JarTestFixture {
-    List allFiles= []
-    List services = []
-    List allNonServiceTextContent = []
+class JarTestFixture extends ZipTestFixture {
 
     JarTestFixture(File file) {
-        JarFile jarFile = null
-        try{
-            jarFile = new JarFile(file)
-            def entries = jarFile.entries()
-            while (entries.hasMoreElements()) {
-                def entry = entries.nextElement()
-                allFiles += entry.name
-                def lines = jarFile.getInputStream(entry).readLines()
-                if (entry.name.endsWith('org.gradle.Service')) {
-                    services.addAll(lines)
-                } else {
-                    allNonServiceTextContent.addAll(lines)
-                }
-            }
-        } finally {
-            if(jarFile){
-                jarFile.close();
-            }
-        }
+        super(file)
     }
 
-    int countFiles(String filePath) {
-        allFiles.findAll({ it == filePath}).size()
-    }
-
-    def assertTextFileContent(Matcher matcher) {
-        assertThat(allNonServiceTextContent, matcher)
-        this
-    }
-
-    def hasService(String serviceName) {
-        assertThat(services, hasItem(equalTo(serviceName)))
-        this
+    def hasService(String serviceName, String serviceImpl) {
+        assertFileContent("META-INF/services/$serviceName", serviceImpl)
     }
 }
