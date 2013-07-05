@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 /**
  * <p>Provides details about a file or directory about to be copied, and allows some aspects of the destination file to
@@ -59,22 +60,27 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
     void setMode(int mode);
 
     /**
-     * Sets the strategy for handling duplicates.
-     *
-     * @param strategy the strategy used when a duplicate file is encountered.
-     * Either 'include', 'exclude', or 'inherit'
+     * The strategy to use if there is already a file at this file's destination.
      */
     @Incubating
-    void setDuplicatesStrategy(DuplicatesStrategy strategy);
+    void setDuplicatesStrategy(@Nullable DuplicatesStrategy strategy);
 
     /**
-     * Get the strategy for handling duplicates, either
-     * DuplicatesStrategy.include if duplicate files of this type
-     * should be retained or DuplicatesStrategy.exclude otherwise.
+     * The strategy to use if there is already a file at this file's destination.
+     * <p>
+     * A non null value will override the value of the {@linkplain org.gradle.api.file.CopySpec#setDuplicatesStrategy(DuplicatesStrategy) same property} set on the owning copy spec.
+     * A value of {@code null} (the default) will result in the value from the owning copy spec being used.
+     * The semantics for the effective value are the same as they are for that value when used at the copy spec level.
+     * <p>
+     * The value can be set with a case insensitive string of the enum value (e.g. {@code 'exclude'} for {@link DuplicatesStrategy#EXCLUDE}).
+     * <p>
+     * Defaults to {@code null}.
      *
-     * @return the duplicates strategy for this file
+     * @see DuplicatesStrategy
+     * @return the strategy, or {@code null} if the parent copy spec strategy should be used
      */
     @Incubating
+    @Nullable
     DuplicatesStrategy getDuplicatesStrategy();
 
 }
