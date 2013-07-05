@@ -56,12 +56,18 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
     String BINTRAY_JCENTER_URL = "http://jcenter.bintray.com/";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
+    @Deprecated
     String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";
+    @Deprecated
     String DEFAULT_CACHE_ARTIFACT_PATTERN
             = "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])";
+    @Deprecated
     String DEFAULT_CACHE_IVY_PATTERN = "[organisation]/[module](/[branch])/ivy-[revision].xml";
+    @Deprecated
     String INTERNAL_REPOSITORY_NAME = "internal-repository";
+    @Deprecated
     String RESOLVER_NAME = "name";
+    @Deprecated
     String RESOLVER_URL = "url";
 
     /**

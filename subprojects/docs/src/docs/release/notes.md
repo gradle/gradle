@@ -75,6 +75,10 @@ The following methods have been deprecated and will be removed in Gradle 2.0:
     </tr>
 </table>
 
+### Unused constants on `ArtifactRepositoryContainer`
+
+A number of constants on `ArtifactRepositoryContainer` have been deprecated and will be removed in Gradle 2.0.
+
 <!--
 ### Example deprecation
 -->
