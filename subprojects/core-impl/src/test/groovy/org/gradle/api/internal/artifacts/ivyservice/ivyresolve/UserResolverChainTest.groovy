@@ -19,8 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.plugins.latest.LatestRevisionStrategy
-import org.apache.ivy.plugins.resolver.ResolverSettings
+import org.apache.ivy.plugins.latest.ComparatorLatestStrategy
 import org.apache.ivy.plugins.version.VersionMatcher
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
@@ -29,12 +28,14 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolv
 import spock.lang.Specification
 
 class UserResolverChainTest extends Specification {
-    final UserResolverChain resolver = new UserResolverChain()
     final ModuleVersionSelector dependencyId = Stub()
     final DependencyMetaData dependency = Stub()
     final DependencyDescriptor dependencyDescriptor = Stub()
     final ModuleDescriptor descriptor = descriptor("1.2")
     final ModuleVersionIdentifier resolvedId = moduleVersionIdentifier(descriptor)
+    final VersionMatcher matcher = Stub()
+    final ComparatorLatestStrategy latestStrategy = Stub()
+    final UserResolverChain resolver = new UserResolverChain(matcher, latestStrategy)
 
     ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
         def moduleRevId = moduleDescriptor.moduleRevisionId
@@ -42,7 +43,6 @@ class UserResolverChainTest extends Specification {
     }
 
     final BuildableModuleVersionResolveResult result = Mock()
-    final VersionMatcher matcher = Stub()
     final ModuleSource moduleSource = Mock()
 
     def setup() {
@@ -51,10 +51,6 @@ class UserResolverChainTest extends Specification {
         _ * dependencyId.version >> "1.0"
         _ * dependency.requested >> dependencyId
         _ * dependency.descriptor >> dependencyDescriptor
-        def settings = Stub(ResolverSettings)
-        _ * settings.versionMatcher >> matcher
-        _ * settings.defaultLatestStrategy >> new LatestRevisionStrategy();
-        resolver.settings = settings
     }
 
     def "uses local dependency when available"() {

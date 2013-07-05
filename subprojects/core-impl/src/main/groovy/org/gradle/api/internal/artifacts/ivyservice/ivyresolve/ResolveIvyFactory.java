@@ -19,6 +19,8 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
+import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -60,14 +62,18 @@ public class ResolveIvyFactory {
     }
 
     public IvyAdapter create(ConfigurationInternal configuration, Iterable<? extends ResolutionAwareRepository> repositories) {
-        UserResolverChain userResolverChain = new UserResolverChain();
         ResolutionRules resolutionRules = configuration.getResolutionStrategy().getResolutionRules();
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
-        LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
+        IvySettings ivySettings = settingsConverter.convertForResolve();
+        VersionMatcher versionMatcher = ivySettings.getVersionMatcher();
+        ComparatorLatestStrategy comparatorLatestStrategy = (ComparatorLatestStrategy) ivySettings.getDefaultLatestStrategy();
 
-        IvySettings ivySettings = settingsConverter.convertForResolve(loopbackDependencyResolver);
-        userResolverChain.setSettings(ivySettings);
+        UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, comparatorLatestStrategy);
+
+        LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
+        ivySettings.addResolver(loopbackDependencyResolver);
+        ivySettings.setDefaultResolver(loopbackDependencyResolver.getName());
 
         Ivy ivy = ivyFactory.createIvy(ivySettings);
         ResolveData resolveData = createResolveData(ivy, configuration.getName());
@@ -94,7 +100,7 @@ public class ResolveIvyFactory {
             userResolverChain.add(localAwareRepository);
         }
 
-        return new DefaultIvyAdapter(resolveData, userResolverChain);
+        return new DefaultIvyAdapter(versionMatcher, userResolverChain);
     }
 
     private ResolveData createResolveData(Ivy ivy, String configurationName) {

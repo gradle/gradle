@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
-import org.apache.ivy.plugins.resolver.ResolverSettings;
+import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
@@ -33,10 +33,12 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
 
     private final List<LocalAwareModuleVersionRepository> moduleVersionRepositories = new ArrayList<LocalAwareModuleVersionRepository>();
     private final List<String> moduleVersionRepositoryNames = new ArrayList<String>();
-    private ResolverSettings settings;
+    private final VersionMatcher versionMatcher;
+    private final ComparatorLatestStrategy comparatorLatestStrategy;
 
-    public void setSettings(ResolverSettings settings) {
-        this.settings = settings;
+    public UserResolverChain(VersionMatcher versionMatcher, ComparatorLatestStrategy comparatorLatestStrategy) {
+        this.versionMatcher = versionMatcher;
+        this.comparatorLatestStrategy = comparatorLatestStrategy;
     }
 
     public void add(LocalAwareModuleVersionRepository repository) {
@@ -85,7 +87,7 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
     }
 
     private ModuleResolution findLatestModule(DependencyMetaData dependency, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
-        boolean isStaticVersion = !settings.getVersionMatcher().isDynamic(dependency.getDescriptor().getDependencyRevisionId());
+        boolean isStaticVersion = !versionMatcher.isDynamic(dependency.getDescriptor().getDependencyRevisionId());
         ModuleResolution best = null;
         while (!queue.isEmpty()) {
             RepositoryResolveState request = queue.removeFirst();
@@ -133,7 +135,7 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
             return two.module == null ? one : two;
         }
 
-        ComparatorLatestStrategy latestStrategy = (ComparatorLatestStrategy) settings.getDefaultLatestStrategy();
+        ComparatorLatestStrategy latestStrategy = comparatorLatestStrategy;
         Comparator<ArtifactInfo> comparator = latestStrategy.getComparator();
         int comparison = comparator.compare(one, two);
 

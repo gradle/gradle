@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.Message;
 import org.gradle.internal.Factory;
 
@@ -43,16 +42,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return publishSettings;
     }
 
-    public IvySettings convertForResolve(DependencyResolver defaultResolver) {
+    public IvySettings convertForResolve() {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
         } else {
             resolveSettings.getResolvers().clear();
         }
 
-        resolveSettings.addResolver(defaultResolver);
-        resolveSettings.setDefaultResolver(defaultResolver.getName());
-        
         return resolveSettings;
     }
 
