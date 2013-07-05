@@ -31,16 +31,23 @@ import java.util.List;
 
 public class TestResultSerializer {
     private static final int RESULT_VERSION = 1;
-    private static final String RESULTS_FILE_NAME = "results.bin";
 
-    public void write(Collection<TestClassResult> results, File outputDir) {
+    private final File resultsFile;
+
+    public TestResultSerializer(File resultsDir) {
+        this.resultsFile = new File(resultsDir, "results.bin");
+    }
+
+    public void write(Collection<TestClassResult> results) {
         try {
-            OutputStream outputStream = new FileOutputStream(new File(outputDir, RESULTS_FILE_NAME));
+            OutputStream outputStream = new FileOutputStream(resultsFile);
             try {
-                Output output = new Output(outputStream);
-                output.writeInt(RESULT_VERSION, true);
-                write(results, output);
-                output.flush();
+                if (!results.isEmpty()) { // only write if we have results, otherwise truncate
+                    Output output = new Output(outputStream);
+                    output.writeInt(RESULT_VERSION, true);
+                    write(results, output);
+                    output.flush();
+                }
             } finally {
                 outputStream.close();
             }
@@ -78,14 +85,17 @@ public class TestResultSerializer {
         }
     }
 
-    public void read(File inputDir, Action<? super TestClassResult> visitor) {
+    public void read(Action<? super TestClassResult> visitor) {
+        if (!isHasResults()) {
+            return;
+        }
         try {
-            InputStream inputStream = new FileInputStream(new File(inputDir, "results.bin"));
+            InputStream inputStream = new FileInputStream(resultsFile);
             try {
                 Input input = new Input(inputStream);
                 int version = input.readInt(true);
                 if (version != RESULT_VERSION) {
-                    throw new IllegalArgumentException(String.format("Unexpected result file version %d found in %s.", version, inputDir));
+                    throw new IllegalArgumentException(String.format("Unexpected result file version %d found in %s.", version, resultsFile));
                 }
                 readResults(input, visitor);
             } finally {
@@ -94,6 +104,10 @@ public class TestResultSerializer {
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    public boolean isHasResults() {
+        return resultsFile.exists() && resultsFile.length() > 0;
     }
 
     private void readResults(Input input, Action<? super TestClassResult> visitor) throws ClassNotFoundException, IOException {
@@ -130,4 +144,5 @@ public class TestResultSerializer {
         }
         return new TestMethodResult(name, resultType, duration, endTime, failures);
     }
+
 }

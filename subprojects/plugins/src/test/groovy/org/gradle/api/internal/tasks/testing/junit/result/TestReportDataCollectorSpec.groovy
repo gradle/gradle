@@ -37,7 +37,7 @@ class TestReportDataCollectorSpec extends Specification {
     private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private TestOutputSerializer outputSerializer = Mock()
     private TestResultSerializer resultSerializer = Mock()
-    private collector = new TestReportDataCollector(temp.testDirectory, outputSerializer, resultSerializer)
+    private collector = new TestReportDataCollector(outputSerializer, resultSerializer)
 
     def "closes output when root finishes"() {
         def root = new DefaultTestSuiteDescriptor("1", "Suite")
@@ -74,7 +74,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(root, dummyResult)
 
         then:
-        1 * resultSerializer.write(_, temp.testDirectory)
+        1 * resultSerializer.write(_)
         0 * resultSerializer._
     }
 

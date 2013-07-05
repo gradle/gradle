@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.contains
@@ -83,6 +84,56 @@ public class LoggingTest {
         htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(contains("hello from UtilTest."))
     }
 
+    @Issue("http://issues.gradle.org//browse/GRADLE-2821")
+    def "test report task can handle test tasks that did not run tests"() {
+        given:
+        buildScript """
+            apply plugin: 'java'
+
+             $junitSetup
+
+            task otherTests(type: Test) {
+                binResultsDir file("bin")
+                testSrcDirs = []
+                testClassesDir = file("blah")
+            }
+
+            task testReport(type: TestReport) {
+                reportOn test, otherTests
+                destinationDir reporting.file("tr")
+            }
+        """
+
+        and:
+        testClass("Thing")
+
+        when:
+        succeeds "testReport"
+
+        then:
+        ":otherTests" in skippedTasks
+        ":test" in nonSkippedTasks
+        new HtmlTestExecutionResult(testDirectory, "tr").assertTestClassesExecuted("Thing")
+    }
+
+    def "test report task is skipped when there are no results"() {
+        given:
+        buildScript """
+            apply plugin: 'java'
+
+            task testReport(type: TestReport) {
+                reportOn test
+                destinationDir reporting.file("tr")
+            }
+        """
+
+        when:
+        succeeds "testReport"
+
+        then:
+        ":test" in skippedTasks
+        ":testReport" in skippedTasks
+    }
 
     @Unroll
     "#type report files are considered outputs"() {

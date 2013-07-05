@@ -18,11 +18,15 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
+import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -32,6 +36,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.util.CollectionUtils.collect;
+
 /**
  * Generates an HTML test report from the results of one or more {@link Test} tasks.
  */
@@ -39,6 +45,16 @@ import java.util.List;
 public class TestReport extends DefaultTask {
     private File destinationDir;
     private List<Object> results = new ArrayList<Object>();
+
+    public TestReport() {
+        // This does mean we create the aggregate provider twice, once to only if, once to exec.
+        // Can't see a way around this.
+        onlyIf(new Spec<Task>() {
+            public boolean isSatisfiedBy(Task ignore) {
+                return createAggregateProvider().isHasResults();
+            }
+        });
+    }
 
     /**
      * Returns the directory to write the HTML report to.
@@ -117,8 +133,16 @@ public class TestReport extends DefaultTask {
 
     @TaskAction
     void generateReport() {
-        TestResultsProvider resultsProvider = new AggregateTestResultsProvider(getTestResultDirs().getFiles());
+        TestResultsProvider resultsProvider = createAggregateProvider();
         DefaultTestReport testReport = new DefaultTestReport();
         testReport.generateReport(resultsProvider, getDestinationDir());
+    }
+
+    private TestResultsProvider createAggregateProvider() {
+        return new AggregateTestResultsProvider(collect(getTestResultDirs(), new Transformer<TestResultsProvider, File>() {
+            public TestResultsProvider transform(File dir) {
+                return new BinaryResultBackedTestResultsProvider(dir);
+            }
+        }));
     }
 }

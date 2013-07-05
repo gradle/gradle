@@ -23,17 +23,20 @@ import java.io.File;
 import java.io.Writer;
 
 public class BinaryResultBackedTestResultsProvider implements TestResultsProvider {
-    private final File resultsDir;
     private final TestOutputSerializer outputSerializer;
-    private final TestResultSerializer resultSerializer = new TestResultSerializer();
+    private final TestResultSerializer resultSerializer;
 
     public BinaryResultBackedTestResultsProvider(File resultsDir) {
-        this.resultsDir = resultsDir;
         outputSerializer = new TestOutputSerializer(resultsDir);
+        resultSerializer = new TestResultSerializer(resultsDir);
     }
 
     public boolean hasOutput(String className, TestOutputEvent.Destination destination) {
         return outputSerializer.hasOutput(className, destination);
+    }
+
+    public boolean isHasResults() {
+        return resultSerializer.isHasResults();
     }
 
     public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
@@ -45,6 +48,6 @@ public class BinaryResultBackedTestResultsProvider implements TestResultsProvide
     }
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {
-        resultSerializer.read(resultsDir, visitor);
+        resultSerializer.read(visitor);
     }
 }

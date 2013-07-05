@@ -17,28 +17,29 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.Action;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.util.CollectionUtils.any;
+
 public class AggregateTestResultsProvider implements TestResultsProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(AggregateTestResultsProvider.class);
-    private final Iterable<File> binaryResultDirs;
+    private final Iterable<TestResultsProvider> providers;
     private Map<String, TestResultsProvider> classOutputProviders;
 
-    public AggregateTestResultsProvider(Iterable<File> binaryResultDirs) {
-        this.binaryResultDirs = binaryResultDirs;
+    public AggregateTestResultsProvider(Iterable<TestResultsProvider> providers) {
+        this.providers = providers;
     }
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {
         classOutputProviders = new HashMap<String, TestResultsProvider>();
-        for (File dir : binaryResultDirs) {
-            final BinaryResultBackedTestResultsProvider provider = new BinaryResultBackedTestResultsProvider(dir);
+        for (final TestResultsProvider provider : providers) {
             provider.visitClasses(new Action<TestClassResult>() {
                 public void execute(TestClassResult classResult) {
                     if (classOutputProviders.containsKey(classResult.getClassName())) {
@@ -62,5 +63,13 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
 
     public void writeOutputs(String className, String testCaseName, TestOutputEvent.Destination destination, Writer writer) {
         classOutputProviders.get(className).writeOutputs(className, testCaseName, destination, writer);
+    }
+
+    public boolean isHasResults() {
+        return any(providers, new Spec<TestResultsProvider>() {
+            public boolean isSatisfiedBy(TestResultsProvider element) {
+                return element.isHasResults();
+            }
+        });
     }
 }

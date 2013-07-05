@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing
 
-import org.gradle.api.tasks.testing.TestResult
+import org.gradle.api.tasks.testing.TestOutputEvent
 
-class SimpleTestResult implements TestResult {
-    TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
-    List<Throwable> exceptions = []
-    Throwable exception = exceptions[0]
-    long startTime = 0
-    long endTime = startTime + 100
-    long testCount = 1
-    long successfulTestCount = 1
-    long failedTestCount = 0
-    long skippedTestCount = 0
+class MethodTestOutputEvent {
+    String testMethodName
+    TestOutputEvent testOutputEvent
 
-    SimpleTestResult(long endTime = 100) {
-        this.endTime = endTime
+    MethodTestOutputEvent(String testMethodName, TestOutputEvent testOutputEvent) {
+        this.testMethodName = testMethodName
+        this.testOutputEvent = testOutputEvent
     }
 }

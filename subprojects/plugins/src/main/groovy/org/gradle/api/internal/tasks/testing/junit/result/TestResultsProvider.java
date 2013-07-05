@@ -45,4 +45,6 @@ public interface TestResultsProvider {
     void visitClasses(Action<? super TestClassResult> visitor);
 
     boolean hasOutput(String className, TestOutputEvent.Destination destination);
+
+    boolean isHasResults();
 }

@@ -32,15 +32,13 @@ import java.util.Map;
 public class TestReportDataCollector implements TestListener, TestOutputListener, TestResultsProvider {
     private final Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
     private final TestResultSerializer resultSerializer;
-    private final File resultsDir;
     private final TestOutputSerializer outputSerializer;
 
     public TestReportDataCollector(File resultsDir) {
-        this(resultsDir, new TestOutputSerializer(resultsDir), new TestResultSerializer());
+        this(new TestOutputSerializer(resultsDir), new TestResultSerializer(resultsDir));
     }
 
-    TestReportDataCollector(File resultsDir, TestOutputSerializer outputSerializer, TestResultSerializer resultSerializer) {
-        this.resultsDir = resultsDir;
+    TestReportDataCollector(TestOutputSerializer outputSerializer, TestResultSerializer resultSerializer) {
         this.outputSerializer = outputSerializer;
         this.resultSerializer = resultSerializer;
     }
@@ -56,7 +54,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     }
 
     private void writeResults() {
-        resultSerializer.write(results.values(), resultsDir);
+        resultSerializer.write(results.values());
     }
 
     public void beforeTest(TestDescriptor testDescriptor) {
@@ -94,6 +92,10 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         for (TestClassResult classResult : results.values()) {
             visitor.execute(classResult);
         }
+    }
+
+    public boolean isHasResults() {
+        return resultSerializer.isHasResults();
     }
 
     public boolean hasOutput(String className, TestOutputEvent.Destination destination) {

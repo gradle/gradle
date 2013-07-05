@@ -15,32 +15,35 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.result
 
+import org.gradle.api.Action
+import org.gradle.api.internal.tasks.testing.BuildableTestClassResult
+import org.gradle.api.tasks.testing.TestResult
+import org.gradle.messaging.remote.internal.PlaceholderException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.tasks.testing.TestResult
-import org.gradle.messaging.remote.internal.PlaceholderException
-import org.gradle.api.Action
 
 class TestResultSerializerTest extends Specification {
     @Rule
     private TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
-    final TestResultSerializer serializer = new TestResultSerializer()
+    final TestResultSerializer serializer = new TestResultSerializer(tmp.createDir("results"))
 
     def "can write and read results"() {
-        def class1 = new TestClassResult('Class1', 1234)
-        def failure = new RuntimeException("broken")
-        def method1 = new TestMethodResult("method1", TestResult.ResultType.SUCCESS, 100, 2300, [])
-        def method2 = new TestMethodResult("method2", TestResult.ResultType.FAILURE, 200, 2700, [failure])
-        class1.add(method1)
-        class1.add(method2)
-        def class2 = new TestClassResult('Class2', 5678)
-        def results = [class1, class2]
+        expect:
+        !serializer.hasResults
 
         when:
-        def read = serialize(results)
+        def failure = new RuntimeException("broken")
+        def class1 = new BuildableTestClassResult('Class1', 1234)
+        class1.with {
+            testcase("method1", 200)
+            testcase("method2", 300).failure(failure)
+        }
+        def class2 = new TestClassResult('Class2', 5678)
+        def read = serialize([class1, class2])
 
         then:
+        serializer.hasResults
         read.size() == 2
         def readClass1 = read[0]
         readClass1.className == 'Class1'
@@ -50,15 +53,15 @@ class TestResultSerializerTest extends Specification {
         def readMethod1 = readClass1.results[0]
         readMethod1.name == 'method1'
         readMethod1.resultType == TestResult.ResultType.SUCCESS
-        readMethod1.duration == 100
-        readMethod1.endTime == 2300
+        readMethod1.duration == 200
+        readMethod1.endTime == 200
         readMethod1.exceptions.empty
 
         def readMethod2 = readClass1.results[1]
         readMethod2.name == 'method2'
         readMethod2.resultType == TestResult.ResultType.FAILURE
-        readMethod2.duration == 200
-        readMethod2.endTime == 2700
+        readMethod2.duration == 300
+        readMethod2.endTime == 300
         readMethod2.exceptions.size() == 1
         readMethod2.exceptions[0].class == failure.class
         readMethod2.exceptions[0].message == failure.message
@@ -68,19 +71,23 @@ class TestResultSerializerTest extends Specification {
         readClass2.className == 'Class2'
         readClass2.startTime == 5678
         readClass2.results.empty
+
+        when:
+        serializer.write([])
+
+        then:
+        !serializer.hasResults
     }
 
     def "can write and read exceptions that are not serializable"() {
-        def class1 = new TestClassResult('Class1', 1234)
         def failure = new RuntimeException("broken") {
             final Object field = new Object()
         }
-        def method1 = new TestMethodResult("method1", TestResult.ResultType.FAILURE, 200, 2700, [failure])
-        class1.add(method1)
-        def results = [class1]
+        def class1 = new BuildableTestClassResult("Foo")
+        class1.testcase("method1", 200).failure(failure)
 
         when:
-        def read = serialize(results)
+        def read = serialize([class1])
 
         then:
         read.size() == 1
@@ -94,10 +101,9 @@ class TestResultSerializerTest extends Specification {
     }
 
     List<TestClassResult> serialize(Collection<TestClassResult> results) {
-        def dir = tmp.createDir("results")
-        serializer.write(results, dir)
+        serializer.write(results)
         def result = []
-        serializer.read(dir, { result << it } as Action)
+        serializer.read({ result << it } as Action)
         return result
     }
 }
