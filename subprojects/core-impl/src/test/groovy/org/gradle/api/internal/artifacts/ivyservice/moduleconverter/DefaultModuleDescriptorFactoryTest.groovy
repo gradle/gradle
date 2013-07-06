@@ -13,52 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
+package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
-
-import org.apache.ivy.Ivy
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.status.StatusManager
-import org.apache.ivy.core.settings.IvySettings
 import org.gradle.api.artifacts.Module
 import org.gradle.api.internal.artifacts.DefaultModule
-import org.gradle.api.internal.artifacts.ivyservice.IvyFactory
-import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter
 import spock.lang.Specification
 
 /**
  * @author Hans Dockter
  */
 public class DefaultModuleDescriptorFactoryTest extends Specification {
-    final IvyFactory ivyFactory = Mock()
-    final SettingsConverter settingsConverter = Mock()
-    final DefaultModuleDescriptorFactory factory = new DefaultModuleDescriptorFactory(ivyFactory, settingsConverter)
+    final DefaultModuleDescriptorFactory factory = new DefaultModuleDescriptorFactory()
 
     public void testCreateModuleDescriptor() {
         given:
-        IvySettings ivySettings = Mock()
-        Ivy ivy = Mock()
-        StatusManager statusManager = Mock()
         Module module = new DefaultModule("org", "name", "version", "status");
 
         when:
         DefaultModuleDescriptor moduleDescriptor = factory.createModuleDescriptor(module);
 
         then:
-        1 * settingsConverter.getForResolve() >> ivySettings
-        1 * ivyFactory.createIvy(ivySettings) >> ivy
-        _ * ivy.settings >> ivySettings
-        1 * ivySettings.statusManager >> statusManager
-        1 * statusManager.defaultStatus >> "default status"
-        1 * ivySettings.getDefaultBranch(ModuleId.newInstance("org", "name")) >> "default branch"
-        0 * _._
-        
-        and:
-        moduleDescriptor.moduleRevisionId.organisation == module.group;
-        moduleDescriptor.moduleRevisionId.name == module.name;
-        moduleDescriptor.moduleRevisionId.revision == module.version;
-        moduleDescriptor.status == module.getStatus();
-        moduleDescriptor.publicationDate == null;
+        moduleDescriptor.moduleRevisionId.organisation == module.group
+        moduleDescriptor.moduleRevisionId.name == module.name
+        moduleDescriptor.moduleRevisionId.revision == module.version
+        moduleDescriptor.status == module.status
+        moduleDescriptor.publicationDate == null
     }
 }

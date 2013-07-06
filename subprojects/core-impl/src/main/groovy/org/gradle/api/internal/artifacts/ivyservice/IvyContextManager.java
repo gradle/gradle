@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import net.jcip.annotations.ThreadSafe;
 import org.apache.ivy.Ivy;
-import org.apache.ivy.core.settings.IvySettings;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 
-/**
- * @author Hans Dockter
- */
-public interface IvyFactory {
-    public Ivy createIvy(IvySettings ivySettings);
+@ThreadSafe
+public interface IvyContextManager {
+    /**
+     * Executes the given action against an Ivy instance. Sets up the Ivy context before the action and cleans up at the end.
+     */
+    void withIvy(Action<? super Ivy> action);
+
+    /**
+     * Executes the given action against an Ivy instance and returns the result. Sets up the Ivy context before the action and cleans up at the end.
+     */
+    <T> T withIvy(Transformer<? extends T, ? super Ivy> action);
 }

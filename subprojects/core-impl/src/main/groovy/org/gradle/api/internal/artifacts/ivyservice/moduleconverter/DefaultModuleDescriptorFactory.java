@@ -15,34 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.apache.ivy.Ivy;
-import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultModuleDescriptorFactory implements ModuleDescriptorFactory {
-    private final IvyFactory ivyFactory;
-    private final SettingsConverter settingsConverter;
-
-    public DefaultModuleDescriptorFactory(IvyFactory ivyFactory, SettingsConverter settingsConverter) {
-        this.ivyFactory = ivyFactory;
-        this.settingsConverter = settingsConverter;
-    }
-
     public DefaultModuleDescriptor createModuleDescriptor(Module module) {
-        IvyContext ivyContext = IvyContext.pushNewContext();
-        try {
-            Ivy ivy = ivyFactory.createIvy(settingsConverter.getForResolve());
-            ivyContext.setIvy(ivy);
-            return new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(module), module.getStatus(), null);
-        } finally {
-            IvyContext.popContext();
-        }
+        return new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(module), module.getStatus(), null);
     }
 }

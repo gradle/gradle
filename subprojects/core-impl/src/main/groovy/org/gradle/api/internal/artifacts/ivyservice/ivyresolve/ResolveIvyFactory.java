@@ -24,8 +24,6 @@ import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -35,8 +33,6 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.util.WrapUtil;
 
 public class ResolveIvyFactory {
-    private final IvyFactory ivyFactory;
-    private final SettingsConverter settingsConverter;
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
     private final CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex;
@@ -45,13 +41,10 @@ public class ResolveIvyFactory {
     private final TimeProvider timeProvider;
     private InMemoryDependencyMetadataCache inMemoryCache;
 
-    public ResolveIvyFactory(IvyFactory ivyFactory, SettingsConverter settingsConverter,
-                             ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
+    public ResolveIvyFactory(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
                              CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                              CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride,
                              TimeProvider timeProvider, InMemoryDependencyMetadataCache inMemoryCache) {
-        this.ivyFactory = ivyFactory;
-        this.settingsConverter = settingsConverter;
         this.moduleResolutionCache = moduleResolutionCache;
         this.moduleDescriptorCache = moduleDescriptorCache;
         this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
@@ -61,21 +54,20 @@ public class ResolveIvyFactory {
         this.inMemoryCache = inMemoryCache;
     }
 
-    public IvyAdapter create(ConfigurationInternal configuration, Iterable<? extends ResolutionAwareRepository> repositories) {
+    public IvyAdapter create(ConfigurationInternal configuration, Iterable<? extends ResolutionAwareRepository> repositories, Ivy ivy) {
         ResolutionRules resolutionRules = configuration.getResolutionStrategy().getResolutionRules();
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
-        IvySettings ivySettings = settingsConverter.convertForResolve();
+        IvySettings ivySettings = ivy.getSettings();
         VersionMatcher versionMatcher = ivySettings.getVersionMatcher();
         ComparatorLatestStrategy comparatorLatestStrategy = (ComparatorLatestStrategy) ivySettings.getDefaultLatestStrategy();
 
         UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, comparatorLatestStrategy);
 
-        LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
+        LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver("main", userResolverChain, cacheLockingManager);
         ivySettings.addResolver(loopbackDependencyResolver);
         ivySettings.setDefaultResolver(loopbackDependencyResolver.getName());
 
-        Ivy ivy = ivyFactory.createIvy(ivySettings);
         ResolveData resolveData = createResolveData(ivy, configuration.getName());
         IvyContextualiser contextualiser = new IvyContextualiser(ivy, resolveData);
 

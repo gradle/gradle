@@ -105,7 +105,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected ModuleDescriptorFactory createModuleDescriptorFactory() {
-        return new DefaultModuleDescriptorFactory(get(IvyFactory.class), get(SettingsConverter.class));
+        return new DefaultModuleDescriptorFactory();
     }
 
     protected ExcludeRuleConverter createExcludeRuleConverter() {
@@ -209,16 +209,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new ArtifactRevisionIdFileStore(get(PathKeyFileStore.class), new TmpDirTemporaryFileProvider());
     }
 
-    protected SettingsConverter createSettingsConverter() {
-        return new DefaultSettingsConverter(
-                new IvySettingsFactory(
-                        get(ArtifactCacheMetaData.class)
-                )
-        );
-    }
-
-    protected IvyFactory createIvyFactory() {
-        return new DefaultIvyFactory();
+    protected IvyContextManager createIvyContextManager() {
+        return new DefaultIvyContextManager();
     }
 
     protected MavenSettingsProvider createMavenSettingsProvider() {
@@ -259,8 +251,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         StartParameter startParameter = get(StartParameter.class);
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
-                get(IvyFactory.class),
-                get(SettingsConverter.class),
                 get(ModuleResolutionCache.class),
                 get(ModuleDescriptorCache.class),
                 get(ArtifactAtRepositoryCachedArtifactIndex.class),
@@ -279,7 +269,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 ),
                 new DefaultProjectModuleRegistry(
                         get(PublishModuleDescriptorConverter.class)),
-                get(CacheLockingManager.class)
+                get(CacheLockingManager.class),
+                get(IvyContextManager.class)
         );
         return new ErrorHandlingArtifactDependencyResolver(
                 new ShortcircuitEmptyConfigsArtifactDependencyResolver(
@@ -379,9 +370,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         ArtifactPublisher createArtifactPublisher() {
             return new IvyBackedArtifactPublisher(
-                    get(SettingsConverter.class),
                     get(PublishModuleDescriptorConverter.class),
-                    get(IvyFactory.class),
+                    get(IvyContextManager.class),
                     new DefaultIvyDependencyPublisher(),
                     new IvyXmlModuleDescriptorWriter()
             );
