@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
@@ -108,4 +109,15 @@ public abstract class Transformers {
         };
     }
 
+    /**
+     * Converts an {@link Action} to a {@link Transformer} that runs the action against the input value and returns {@code null}.
+     */
+    public static <R, I> Transformer<R, I> toTransformer(final Action<? super I> action) {
+        return new Transformer<R, I>() {
+            public R transform(I original) {
+                action.execute(original);
+                return null;
+            }
+        };
+    }
 }
