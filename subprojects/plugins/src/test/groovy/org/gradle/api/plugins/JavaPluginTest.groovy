@@ -27,6 +27,7 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -87,7 +88,7 @@ class JavaPluginTest {
 
     @Test public void addsJarAsPublication() {
         javaPlugin.apply(project)
-        
+
         def runtimeConfiguration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
         assertThat(runtimeConfiguration.artifacts.collect { it.archiveTask }, equalTo([project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]))
 
@@ -158,7 +159,7 @@ class JavaPluginTest {
         assertThat(task.classpath, sameInstance(project.sourceSets.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.sourceSets.main.output.classesDir))
         assertThat(task.source, sameCollection(project.sourceSets.main.java))
-        
+
         task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn(JavaPlugin.PROCESS_RESOURCES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME))
@@ -179,6 +180,34 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME))
+
+        task = project.tasks[JavaPlugin.JAVADOC_ZIP_TASK_NAME]
+        assertThat(task, instanceOf(Zip))
+        assertThat(task, dependsOn(JavaPlugin.JAVADOC_TASK_NAME))
+        assertThat(task.destinationDir, equalTo(project.distsDir))
+        assertThat(task.classifier, equalTo("javadoc"))
+        assertThat(task.copyAction.mainSpec.sourcePaths, equalTo([project.tasks[JavaPlugin.JAVADOC_TASK_NAME].outputs] as Set))
+
+        task = project.tasks[JavaPlugin.JAVADOC_JAR_TASK_NAME]
+        assertThat(task, instanceOf(Jar))
+        assertThat(task, dependsOn(JavaPlugin.JAVADOC_TASK_NAME))
+        assertThat(task.destinationDir, equalTo(project.libsDir))
+        assertThat(task.classifier, equalTo("javadoc"))
+        assertThat(task.copyAction.mainSpec.sourcePaths, equalTo([project.tasks[JavaPlugin.JAVADOC_TASK_NAME].outputs] as Set))
+
+        task = project.tasks[JavaPlugin.SOURCE_ZIP_TASK_NAME]
+        assertThat(task, instanceOf(Zip))
+        assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME))
+        assertThat(task.destinationDir, equalTo(project.distsDir))
+        assertThat(task.classifier, equalTo("source"))
+        assertThat(task.copyAction.mainSpec.sourcePaths, equalTo([project.sourceSets.main.allJava] as Set))
+
+        task = project.tasks[JavaPlugin.SOURCE_JAR_TASK_NAME]
+        assertThat(task, instanceOf(Jar))
+        assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME))
+        assertThat(task.destinationDir, equalTo(project.libsDir))
+        assertThat(task.classifier, equalTo("source"))
+        assertThat(task.copyAction.mainSpec.sourcePaths, equalTo([project.sourceSets.main.allJava] as Set))
 
         task = project.tasks[JavaPlugin.JAR_TASK_NAME]
         assertThat(task, instanceOf(Jar))
