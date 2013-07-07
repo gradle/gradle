@@ -30,7 +30,7 @@ import org.gradle.api.internal.HasInternalProtocol;
  * <p>The configurations in a container are accessible as read-only properties of the container, using the name of the
  * configuration as the property name. For example:</p>
  *
- * <pre>
+ * <pre autoTested='true'>
  * configurations.create('myConfiguration')
  * configurations.myConfiguration.transitive = false
  * </pre>
@@ -38,7 +38,7 @@ import org.gradle.api.internal.HasInternalProtocol;
  * <p>A dynamic method is added for each configuration which takes a configuration closure. This is equivalent to
  * calling {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
  *
- * <pre>
+ * <pre autoTested='true'>
  * configurations.create('myConfiguration')
  * configurations.myConfiguration {
  *     transitive = false

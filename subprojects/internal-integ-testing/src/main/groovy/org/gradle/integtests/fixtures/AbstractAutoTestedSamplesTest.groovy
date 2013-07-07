@@ -29,7 +29,7 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
             def buildFile = testFile('build.gradle')
             buildFile.text = sample
 
-            usingBuildFile(buildFile).withQuietLogging().withTasks('help').withArguments("-s").run()
+            usingBuildFile(buildFile).withTasks('help').withArguments("-s").run()
         }
     }
 
