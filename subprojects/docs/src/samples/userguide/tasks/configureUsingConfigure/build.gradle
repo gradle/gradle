@@ -1,7 +1,7 @@
 task myCopy(type: Copy)
 
 myCopy.configure {
-   from('source')
+   from('resources')
    into('target')
    include('**/*.txt', '**/*.xml', '**/*.properties')
 }
