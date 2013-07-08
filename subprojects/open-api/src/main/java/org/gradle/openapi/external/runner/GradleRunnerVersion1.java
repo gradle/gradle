@@ -19,7 +19,9 @@ package org.gradle.openapi.external.runner;
  * This executes gradle commands in an external process.
  *
  * @author mhunsicker
+ * @deprecated Use the tooling API instead
  */
+@Deprecated
 public interface GradleRunnerVersion1 {
     /**
      * Call this to execute the specified command line.

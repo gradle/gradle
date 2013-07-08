@@ -23,7 +23,9 @@ package org.gradle.openapi.external.ui;
    we'll always allow 'version1'. This is to provide backward/forward compatibility.
 
    @author mhunsicker
+   @deprecated No replacement
 */
+@Deprecated
 public interface DualPaneUIInteractionVersion1 extends GradleUIInteractionVersion1
 {
 }

@@ -26,7 +26,9 @@ import java.awt.Component;
   within gradle.
 
  @author mhunsicker
+ @deprecated No replacement
   */
+@Deprecated
 public interface GradleTabVersion1 {
    /*
       @return the name of this tab

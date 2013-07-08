@@ -26,7 +26,9 @@ import java.util.List;
  * <p>This is a mirror of FavoritesEditor inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public interface FavoritesEditorVersion1 {
 
     /**

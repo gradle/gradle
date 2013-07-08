@@ -24,7 +24,9 @@ import java.lang.reflect.Constructor;
  * This provides a simple way to execute gradle commands from an external process. call createGradleRunner to instantiate a gradle runner. You can then use that to execute commands.
  *
  * @author mhunsicker
+ * @deprecated Use the tooling API instead.
  */
+@Deprecated
 public class GradleRunnerFactory {
     /**
      * Call this to instantiate an object that you can use to execute gradle commands directly.

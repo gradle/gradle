@@ -29,7 +29,9 @@ import javax.swing.JComponent;
  located.
 
  @author mhunsicker
+ @deprecated No replacement
   */
+@Deprecated
 public interface SinglePaneUIVersion1 extends BasicGradleUIVersion1 {
    /**
    Returns this panel as a Swing object suitable for inserting in your UI.

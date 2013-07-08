@@ -23,7 +23,9 @@ package org.gradle.openapi.external.foundation;
  * changes within gradle.
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public interface TaskVersion1 {
 
     /**

@@ -20,7 +20,9 @@ package org.gradle.openapi.external.ui;
  * an init script.
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public interface CommandLineArgumentAlteringListenerVersion1 {
     /**
      * This is called when you can add additional command line arguments. Return any additional arguments to add. This doesn't modify the existing commands.

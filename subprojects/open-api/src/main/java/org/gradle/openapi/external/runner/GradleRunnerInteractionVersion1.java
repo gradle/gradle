@@ -21,7 +21,9 @@ import java.io.File;
  * .
  *
  * @author mhunsicker
+ * @deprecated Use the tooling API instead.
  */
+@Deprecated
 public interface GradleRunnerInteractionVersion1 {
     /**
      * @return The root directory of your gradle project. The same directory Where you would run gradle from the command.

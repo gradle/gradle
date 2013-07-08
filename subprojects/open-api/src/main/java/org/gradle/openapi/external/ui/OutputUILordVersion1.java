@@ -22,7 +22,9 @@ import java.awt.Font;
  * Provides access to aspects of gradle's output
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public interface OutputUILordVersion1 {
 
     public void setOutputTextFont(Font font);

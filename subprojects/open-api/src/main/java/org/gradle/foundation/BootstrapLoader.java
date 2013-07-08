@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-/*
+/**
  This handles the work of loading gradle dynamically. Due to jar version issues,
  you can't just load all jar files.
 
@@ -33,7 +33,9 @@ import java.util.List;
  Now you can get the class loader to load whatever classes you like.
 
  @author mhunsicker
+ @deprecated No replacement
   */
+@Deprecated
 public class BootstrapLoader {
     private URLClassLoader libClassLoader;
 

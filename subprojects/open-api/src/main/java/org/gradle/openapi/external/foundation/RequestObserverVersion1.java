@@ -21,7 +21,9 @@ package org.gradle.openapi.external.foundation;
  * <p>This is a mirror of GradlePluginLord.RequestObserver inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public interface RequestObserverVersion1 {
 
     /**

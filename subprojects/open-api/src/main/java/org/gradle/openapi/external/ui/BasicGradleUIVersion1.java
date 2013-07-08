@@ -28,7 +28,9 @@ import java.io.File;
  * your UI. You'll need to set the current directory (at any time) so gradle knows where your project is located.
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public interface BasicGradleUIVersion1 {
     /**
      * Call this whenever you're about to show this panel. We'll do whatever initialization is necessary.

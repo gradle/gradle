@@ -28,7 +28,9 @@ import java.net.URLStreamHandlerFactory;
  * and the plugin's owner.
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public class ParentLastClassLoader extends URLClassLoader {
     public ParentLastClassLoader(URL[] urls, ClassLoader parent) {
         super(urls, parent);

@@ -19,7 +19,10 @@ package org.gradle.openapi.external.ui;
  * <p>This interface informs you when the output pane is displaying requests. This is NOT for general output of gradle commands.
  *
  * <p>This is a mirror of OutputUILord.OutputObserver inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
+ *
+ * @deprecated No replacement
  */
+@Deprecated
 public interface OutputObserverVersion1 {
     /**
      * Notification that a request was added to the output. This means we've got some output that is useful to display. <!      Name             Description>

@@ -24,7 +24,9 @@ package org.gradle.openapi.external.foundation;
  * from direct changes within gradle.
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public interface RequestVersion1 {
 
     /**

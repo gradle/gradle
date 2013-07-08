@@ -27,7 +27,9 @@ import java.util.regex.Pattern;
  * Utility functions required by the OpenAPI
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public class ExternalUtility {
     private static final Pattern GRADLE_CORE_PATTERN = Pattern.compile("^gradle-core-\\d.*\\.jar$");
 

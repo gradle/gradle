@@ -23,7 +23,9 @@ import java.io.File;
  * This is a mirror of AlternateUIInteraction inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public interface AlternateUIInteractionVersion1 {
     /**
      * Notification that you should open the specified file and go to the specified line. Its up to the application to determine if this file should be opened for editing or simply displayed. The

@@ -29,7 +29,10 @@ This is a gradle UI that is broken into two panels: one contains a tabbed pane
  you display your UI. Call close before you hide your UI. You'll need to set
  the current directory (at any time) so gradle knows where your project is
  located.
+
+ @deprecated No replacement
  */
+@Deprecated
 public interface DualPaneUIVersion1 extends BasicGradleUIVersion1 {
    /**
       Returns a component that shows the task tree tab, favorites tab, etc.

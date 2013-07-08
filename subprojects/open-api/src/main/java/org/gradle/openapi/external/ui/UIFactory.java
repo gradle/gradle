@@ -26,7 +26,9 @@ import java.lang.reflect.Constructor;
  * version.
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public class UIFactory {
     private static final String UIWRAPPER_FACTORY_CLASS_NAME = "org.gradle.openapi.wrappers.UIWrapperFactory";
 

@@ -25,7 +25,9 @@ package org.gradle.openapi.external.foundation.favorites;
  * You should not implement this yourself. Only use an implementation coming from Gradle.
  *
  * @author mhunsicker
+ * @deprecated No replacement
  */
+@Deprecated
 public interface FavoriteTaskVersion1 {
     /**<!====== getFullCommandLine ============================================>
        @return the command line that is executed
