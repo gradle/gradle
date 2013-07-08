@@ -16,22 +16,29 @@ In the Gradle 2.0-rc-1 release, remove all features that are deprecated as at Gr
 
 * Search for usages of `DeprecationLogger`, `@Deprecated`, `@deprecated` and remove the associated feature.
 
-## Remove Ivy and Maven types from the Gradle repository API
+## Remove Ivy types from the Gradle repository API
 
 These types expose the implementation details of dependency management and force a certain implementation on Gradle. Removing these types from the API
 allows us to implement new features and remove some internal complexity.
 
-* Change `ArtifactRepositoryContainer` and `RepositoryHandler` to remove methods that accept an Ivy `DependencyResolver` as parameter.
-* Change `ArtifactRepositoryContainer` to remove methods that return `DependencyResolver`.
+* Remove methods from `ArtifactRepositoryContainer` and `RepositoryHandler` that accept an Ivy `DependencyResolver` as parameter.
+* Remove methods from `ArtifactRepositoryContainer` that return `DependencyResolver`.
 * Remove `RepositoryHandler.mavenRepo()`.
 * Change the `MavenResolver` implementation so that it no longer extends `DependencyResolver`.
 * Change the `FlatDirRepository` implementation so that it no longer uses a `DependencyResolver` implementation.
+
+## Gradle Open API
+
+Now that we have reasonable tooling support via the tooling API, remove the Open API.
+
+* Implement a stub to report a reasonable error message when attempting to use Gradle from the Open API.
+* Remove the remaining Open API classes and project.
 
 # Candidates
 
 The following stories are candidates to be included in Gradle 2.0.
 
-## Decouple old publishing DSL from Maven Ant tasks
+## Decouple publishing DSL from Maven Ant tasks
 
 * Change the old publishing DSL to use the Maven 3 classes instead of Maven 2 classes. This affects:
     * `MavenResolver.settings`
@@ -62,24 +69,20 @@ There are serveral inconsitencies and confusing behaviours in the copy tasks and
 * Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with another
   archive task.
 
-## Test output
+## Test output directories
 
 The current defaults for the outputs of tasks of type `Test` conflict with each other:
 
 * Change the default result and report directory for the `Test` type to include the task's name, so that the default
   does not conflict with another `Test` task.
 
-## Gradle GUI and Open-API
-
-Now that we have reasonable tooling support via IDEs, remove the open API.
-
 ## Remove old dependency result graph
 
 The old dependency result graph is expensive in terms of heap usage. We should remove it.
 
-* Promote (un-incubate) the new dependency graph types.
-* Remove methods that use `ResolvedDependency` and `UnresolvedDependency` and remove these types.
-* Possibly keep methods that use `ResolvedArtifact` if no replacement has been added.
+* Promote new dependency result graph to un-incubate it.
+* Remove methods that use `ResolvedDependency` and `UnresolvedDependency`.
+* Keep `ResolvedArtifact` and replace it later, as it is not terribly expensive to keep.
 
 ## Remove API methods that are added by the DSL decoration
 
@@ -123,8 +126,15 @@ Or at least remove the public constructor of `StartParameter` so that it can lat
 
 ## Tooling API tidy-ups
 
-* Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `o.g.tooling`, to remove
-  package cycle from API.
+* Remove support from the consumer for providers earlier than 1.0-milestone-8:
+    * Consumer fails with a decent error message instead of falling back to the methods on `ConnectionVersion4`.
+    * Add integration test coverage.
+* Remove support from the provider for consumers earlier than 1.2.
+    * Change the implementation of methods on `ConnectionVersion4` and `InternalConnection` to fail with a decent error message.
+    * Model implementations no longer need to implement `ProjectVersion3` or the internal protocol interfaces.
+    * Add integration test coverage.
+* Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `org.gradle.tooling`, to remove
+  package cycle from the API.
 
 ## Remove support for convention objects
 
@@ -145,7 +155,7 @@ Extension objects have been available for over 2 years and are now an establishe
 
 ## Dependency API tidy-ups
 
-* Remove equals() implementations from `Dependency` subclasses.
+* Remove `equals()` implementations from `Dependency` subclasses.
 * Remove `ExternalDependency.force`. Use resolution strategy instead.
 * Remove `SelfResolvingDependency.resolve()` methods. These should be internal and invoked only as part of resolution.
 
