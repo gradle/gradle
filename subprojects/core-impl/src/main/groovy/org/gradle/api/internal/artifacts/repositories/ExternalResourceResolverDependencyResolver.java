@@ -29,9 +29,7 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.search.ModuleEntry;
 import org.apache.ivy.core.search.OrganisationEntry;
 import org.apache.ivy.core.search.RevisionEntry;
-import org.apache.ivy.plugins.latest.LatestStrategy;
 import org.apache.ivy.plugins.namespace.Namespace;
-import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
@@ -40,8 +38,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,20 +55,20 @@ public class ExternalResourceResolverDependencyResolver implements DependencyRes
         return resolver.getName();
     }
 
-    public void setName(String name) {
-        resolver.setName(name);
-    }
-
     public String toString() {
         return resolver.toString();
     }
 
-    public void setSettings(ResolverSettings ivy) {
-        resolver.setSettings(ivy);
+    public ArtifactOrigin locate(Artifact artifact) {
+        return resolver.locate(artifact);
     }
 
-    public ResolverSettings getSettings() {
-        return resolver.getSettings();
+    public void setName(String name) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void setSettings(ResolverSettings ivy) {
+        throw new UnsupportedOperationException();
     }
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
@@ -88,10 +84,6 @@ public class ExternalResourceResolverDependencyResolver implements DependencyRes
     public boolean exists(Artifact artifact) {
         // This is never used
         throw new UnsupportedOperationException();
-    }
-
-    public ArtifactOrigin locate(Artifact artifact) {
-        return resolver.locate(artifact);
     }
 
     public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
@@ -164,113 +156,8 @@ public class ExternalResourceResolverDependencyResolver implements DependencyRes
         throw new UnsupportedOperationException();
     }
 
-    public void addIvyPattern(String pattern) {
-        resolver.addIvyPattern(pattern);
-    }
-
-    public void addArtifactPattern(String pattern) {
-        resolver.addArtifactPattern(pattern);
-    }
-
-    public List<String> getIvyPatterns() {
-        return resolver.getIvyPatterns();
-    }
-
-    public List<String> getArtifactPatterns() {
-        return resolver.getArtifactPatterns();
-    }
-
     public void dumpSettings() {
         // this is not used
-        throw new UnsupportedOperationException();
-    }
-
-    public boolean isM2compatible() {
-        return resolver.isM2compatible();
-    }
-
-    public void setM2compatible(boolean compatible) {
-        resolver.setM2compatible(compatible);
-    }
-
-    public boolean isCheckconsistency() {
-        return resolver.isCheckconsistency();
-    }
-
-    public void setCheckconsistency(boolean checkConsistency) {
-        resolver.setCheckconsistency(checkConsistency);
-    }
-
-    public void setForce(boolean force) {
-        resolver.setForce(force);
-    }
-
-    public boolean isForce() {
-        return resolver.isForce();
-    }
-
-    public boolean isAllownomd() {
-        return resolver.isAllownomd();
-    }
-
-    public void setAllownomd(boolean allownomd) {
-        resolver.setAllownomd(allownomd);
-    }
-
-    public void setDescriptor(String descriptorRule) {
-        if (BasicResolver.DESCRIPTOR_REQUIRED.equals(descriptorRule)) {
-            setAllownomd(false);
-        } else if (BasicResolver.DESCRIPTOR_OPTIONAL.equals(descriptorRule)) {
-            setAllownomd(true);
-        } else {
-            throw new IllegalArgumentException(
-                "unknown descriptor rule '" + descriptorRule
-                + "'. Allowed rules are: "
-                + Arrays.asList(new String[]{BasicResolver.DESCRIPTOR_REQUIRED, BasicResolver.DESCRIPTOR_OPTIONAL}));
-        }
-    }
-
-    public String[] getChecksumAlgorithms() {
-        return resolver.getChecksumAlgorithms();
-    }
-
-    public void setChecksums(String checksums) {
-        resolver.setChecksums(checksums);
-    }
-
-    public LatestStrategy getLatestStrategy() {
-        return resolver.getLatestStrategy();
-    }
-
-    public void setLatestStrategy(LatestStrategy latestStrategy) {
-        resolver.setLatestStrategy(latestStrategy);
-    }
-
-    public void setLatest(String strategyName) {
-        resolver.setLatest(strategyName);
-    }
-
-    public String getLatest() {
-        return resolver.getLatest();
-    }
-
-    public void setChangingMatcher(String changingMatcherName) {
-        resolver.setChangingMatcher(changingMatcherName);
-    }
-
-    protected String getChangingMatcherName() {
-        return resolver.getChangingMatcherName();
-    }
-
-    public void setChangingPattern(String changingPattern) {
-        resolver.setChangingPattern(changingPattern);
-    }
-
-    protected String getChangingPattern() {
-        return resolver.getChangingPattern();
-    }
-
-    public void setCheckmodified(boolean check) {
         throw new UnsupportedOperationException();
     }
 
