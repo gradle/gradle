@@ -20,7 +20,9 @@ package org.gradle.api;
  * which is only allowed at configuration time.
  *
  * @author Hans Dockter
+ * @deprecated No replacement
  */
+@Deprecated
 public class IllegalOperationAtExecutionTimeException extends InvalidUserDataException {
     public IllegalOperationAtExecutionTimeException(String message) {
         super(message);

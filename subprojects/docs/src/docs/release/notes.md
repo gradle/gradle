@@ -87,6 +87,13 @@ Open API were marked deprecated at that time.
 To make the deprecation of the Open API more explicit, all of the Open API classes are now marked as deprecated, in addition to the entry points. All of the
 Open API classes will be removed in Gradle 2.0.
 
+## Unused classes
+
+The following classes will be removed in Gradle 2.0. They are no longer used:
+
+* `IllegalOperationAtExecutionTimeException`
+* `AntJavadoc`
+
 <!--
 ### Example deprecation
 -->

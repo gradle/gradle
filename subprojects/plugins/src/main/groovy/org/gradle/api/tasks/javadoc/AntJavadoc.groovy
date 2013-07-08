@@ -18,7 +18,9 @@ package org.gradle.api.tasks.javadoc
 
 /**
  * @author Hans Dockter
+ * @deprecated No replacement
  */
+@Deprecated
 class AntJavadoc {
     void execute(List<File> sourceDirs, File destDir, Set<File> classpathFiles, String windowTitle, String maxMemory,
                  List<String> includes, List<String> excludes, boolean verbose, AntBuilder ant) {

@@ -31,8 +31,13 @@ allows us to implement new features and remove some internal complexity.
 
 Now that we have reasonable tooling support via the tooling API, remove the Open API.
 
-* Implement a stub to report a reasonable error message when attempting to use Gradle from the Open API.
+* Implement a stub to fail with a reasonable error message when attempting to use Gradle from the Open API.
 * Remove the remaining Open API classes and project.
+
+## Misc API tidy-ups
+
+* Remove unused `IllegalOperationAtExecutionTimeException`.
+* Remove unused `AntJavadoc`.
 
 # Candidates
 
@@ -66,7 +71,7 @@ There are serveral inconsitencies and confusing behaviours in the copy tasks and
 ## Archive tasks + base plugin
 
 * Move defaults for output directory to the tasks and remove from base plugin.
-* Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with another
+* Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with the default for another
   archive task.
 
 ## Test output directories
@@ -74,7 +79,7 @@ There are serveral inconsitencies and confusing behaviours in the copy tasks and
 The current defaults for the outputs of tasks of type `Test` conflict with each other:
 
 * Change the default result and report directory for the `Test` type to include the task's name, so that the default
-  does not conflict with another `Test` task.
+  does not conflict with the default for another `Test` task.
 
 ## Remove old dependency result graph
 
@@ -111,8 +116,7 @@ Or at least remove the public constructor of `StartParameter` so that it can lat
 
 * Inline `ConventionTask` and `AbstractTask` into `DefaultTask`.
 * Remove `Task.dependsOnTaskDidWork()`.
-* Mix `TaskInternal` in during decoration.
-* Remove references to internal types.
+* Mix `TaskInternal` in during decoration and remove references to internal types.
 
 ## Remove references to internal classes from API
 
@@ -131,7 +135,7 @@ Or at least remove the public constructor of `StartParameter` so that it can lat
     * Add integration test coverage.
 * Remove support from the provider for consumers earlier than 1.2.
     * Change the implementation of methods on `ConnectionVersion4` and `InternalConnection` to fail with a decent error message.
-    * Model implementations no longer need to implement `ProjectVersion3` or the internal protocol interfaces.
+    * Model implementations no longer need to implement `ProjectVersion3` or the protocol interfaces.
     * Add integration test coverage.
 * Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `org.gradle.tooling`, to remove
   package cycle from the API.
@@ -162,10 +166,10 @@ Extension objects have been available for over 2 years and are now an establishe
 ## Misc API tidy-ups
 
 * Rename `IllegalDependencyNotation` to add `Exception` to the end of its name.
-* Remove unused `IllegalOperationAtExecutionTimeException`.
-* Remove unused `AntJavadoc`.
 * Remove `ConventionProperty`, replace it with documentation.
 * Remove `Settings.startParameter`. Can use `gradle.startParameter` instead.
+
+## Remove `GradleLauncher`
 
 ## Remove `sonar` plugin
 
