@@ -25,12 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DependencyResolverIdentifier {
-    private final String resolverId;
-    private final String resolverName;
-
-    public DependencyResolverIdentifier(DependencyResolver resolver) {
-        resolverName = resolver.getName();
-
+    public static String forIvyResolver(DependencyResolver resolver) {
         List<String> parts = new ArrayList<String>();
         parts.add(resolver.getClass().getName());
         if (resolver instanceof AbstractPatternsBasedResolver) {
@@ -45,12 +40,11 @@ public class DependencyResolverIdentifier {
             // TODO We should not be assuming equality between resolvers here based on name...
         }
 
-        resolverId = calculateId(parts);
+        return calculateId(parts);
     }
 
-    public DependencyResolverIdentifier(ExternalResourceResolver resolver) {
-        resolverName = resolver.getName();
-
+    // TODO: Move this logic into ExternalResourceResolver, and add some transport-specific information (bumping the cache version)
+    public static String forExternalResourceResolver(ExternalResourceResolver resolver) {
         List<String> parts = new ArrayList<String>();
         parts.add(resolver.getClass().getName());
         parts.add(joinPatterns(resolver.getIvyPatterns()));
@@ -58,24 +52,15 @@ public class DependencyResolverIdentifier {
         if (resolver.isM2compatible()) {
             parts.add("m2compatible");
         }
-
-        resolverId = calculateId(parts);
+        return calculateId(parts);
     }
 
-    private String joinPatterns(List<String> patterns) {
+    private static String joinPatterns(List<String> patterns) {
         return CollectionUtils.join(",", patterns);
     }
 
-    private String calculateId(List<String> parts) {
+    private static String calculateId(List<String> parts) {
         String idString = CollectionUtils.join("::", parts);
         return HashUtil.createHash(idString, "MD5").asHexString();
-    }
-
-    public String getUniqueId() {
-        return resolverId;
-    }
-
-    public String getName() {
-        return resolverName;
     }
 }

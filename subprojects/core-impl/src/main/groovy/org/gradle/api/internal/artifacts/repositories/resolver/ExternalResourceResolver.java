@@ -40,10 +40,7 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleScopedParserSettings;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ParserRegistry;
 import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolverDependencyResolver;
@@ -72,6 +69,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final ParserRegistry parserRegistry = new ParserRegistry();
+    private final String identifier;
 
     private List<String> ivyPatterns = new ArrayList<String>();
     private List<String> artifactPatterns = new ArrayList<String>();
@@ -110,6 +108,11 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
+        this.identifier = DependencyResolverIdentifier.forExternalResourceResolver(this);
+    }
+
+    public String getId() {
+        return identifier;
     }
 
     public String getName() {

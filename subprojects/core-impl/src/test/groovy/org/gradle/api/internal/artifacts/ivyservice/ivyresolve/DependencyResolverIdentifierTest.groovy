@@ -21,15 +21,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
 import spock.lang.Specification
 
 public class DependencyResolverIdentifierTest extends Specification {
-    def "uses dependency resolver name"() {
-        given:
-        DependencyResolver resolver = Mock()
-        resolver.name >> "resolver-name"
-
-        expect:
-        new DependencyResolverIdentifier(resolver).name == "resolver-name"
-    }
-
     def "dependency resolvers of unknown type are identified by their name"() {
         given:
         DependencyResolver resolver1 = Mock()
@@ -123,10 +114,10 @@ public class DependencyResolverIdentifierTest extends Specification {
     }
 
     def id(DependencyResolver resolver) {
-        return new DependencyResolverIdentifier(resolver).uniqueId
+        return DependencyResolverIdentifier.forIvyResolver(resolver)
     }
 
     def id(ExternalResourceResolver resolver) {
-        return new DependencyResolverIdentifier(resolver).uniqueId
+        return DependencyResolverIdentifier.forExternalResourceResolver(resolver)
     }
 }

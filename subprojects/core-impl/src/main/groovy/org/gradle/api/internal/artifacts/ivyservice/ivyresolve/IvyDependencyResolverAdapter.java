@@ -41,16 +41,16 @@ import java.text.ParseException;
 public class IvyDependencyResolverAdapter implements IvyAwareModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyDependencyResolverAdapter.class);
     private final DownloadOptions downloadOptions = new DownloadOptions();
-    private final DependencyResolverIdentifier identifier;
+    private final String identifier;
     private final DependencyResolver resolver;
 
     public IvyDependencyResolverAdapter(DependencyResolver resolver) {
         this.resolver = resolver;
-        identifier = new DependencyResolverIdentifier(resolver);
+        identifier = DependencyResolverIdentifier.forIvyResolver(resolver);
     }
 
     public String getId() {
-        return identifier.getUniqueId();
+        return identifier;
     }
 
     public String getName() {

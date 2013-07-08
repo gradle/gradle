@@ -26,16 +26,14 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
 public class ExternalResourceResolverAdapter implements IvyAwareModuleVersionRepository {
     private final ExternalResourceResolver resolver;
     private final boolean dynamicResolve;
-    private final DependencyResolverIdentifier identifier;
 
     public ExternalResourceResolverAdapter(ExternalResourceResolver resolver, boolean dynamicResolve) {
         this.resolver = resolver;
         this.dynamicResolve = dynamicResolve;
-        this.identifier = new DependencyResolverIdentifier(resolver);
     }
 
     public String getId() {
-        return identifier.getUniqueId();
+        return resolver.getId();
     }
 
     public String getName() {
