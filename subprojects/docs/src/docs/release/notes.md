@@ -555,7 +555,7 @@ On behalf of the Gradle community, the Gradle development team would like to tha
 * [Seth Goings](https://github.com/sgoings) - Correction in User Guide.
 * [Scott Bennett-McLeish](https://github.com/sbennettmcleish) - Correction in User Guide.
 * [Wujek Srujek](https://github.com/wujek-srujek) - Handling of -g command line option for wrapper install location (GRADLE-2802).
-* [Guillaume Laforge](https://github.com/glaforge) - Update of Bnd library used by OSGi plugin (GRADLE-2802).
+* [Guillaume Laforge](https://github.com/glaforge) - Update of Bnd library used by OSGi plugin (GRADLE-2806).
 * [Yoav Landman](https://github.com/yoav) - `jcenter()` repo notation for [Bintray's JCenter repository](https://bintray.com/bintray/jcenter). 
 
 Contributions are an important part of the continuous improvement of Gradle. 
