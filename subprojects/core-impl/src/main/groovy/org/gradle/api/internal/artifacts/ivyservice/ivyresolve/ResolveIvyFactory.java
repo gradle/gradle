@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.Ivy;
+import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
@@ -69,7 +70,7 @@ public class ResolveIvyFactory {
         ivySettings.setDefaultResolver(loopbackDependencyResolver.getName());
 
         ResolveData resolveData = createResolveData(ivy, configuration.getName());
-        IvyContextualiser contextualiser = new IvyContextualiser(ivy, resolveData);
+        IvyContext.getContext().setResolveData(resolveData);
 
         for (ResolutionAwareRepository repository : repositories) {
             IvyAwareModuleVersionRepository moduleVersionRepository = repository.createResolver();
@@ -87,7 +88,6 @@ public class ResolveIvyFactory {
             if (moduleVersionRepository.isDynamicResolveMode()) {
                 localAwareRepository = new IvyDynamicResolveModuleVersionRepository(localAwareRepository);
             }
-            localAwareRepository = contextualiser.contextualise(LocalAwareModuleVersionRepository.class, localAwareRepository);
             localAwareRepository = inMemoryCache.cached(localAwareRepository);
             userResolverChain.add(localAwareRepository);
         }

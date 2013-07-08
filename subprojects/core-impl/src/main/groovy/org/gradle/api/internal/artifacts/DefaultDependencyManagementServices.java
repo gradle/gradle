@@ -265,7 +265,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(ResolveIvyFactory.class),
                 get(PublishModuleDescriptorConverter.class),
                 new ResolvedArtifactFactory(
-                        get(CacheLockingManager.class)
+                        get(CacheLockingManager.class),
+                        get(IvyContextManager.class)
                 ),
                 new DefaultProjectModuleRegistry(
                         get(PublishModuleDescriptorConverter.class)),

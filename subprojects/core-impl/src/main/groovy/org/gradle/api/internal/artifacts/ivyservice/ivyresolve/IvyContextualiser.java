@@ -15,43 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.Ivy;
 import org.apache.ivy.core.IvyContext;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.gradle.internal.UncheckedException;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 
 public class IvyContextualiser {
-    private final Ivy ivy;
-    private final ResolveData resolveData;
-
-    public IvyContextualiser(Ivy ivy, ResolveData resolveData) {
-        this.ivy = ivy;
-        this.resolveData = resolveData;
-    }
-    
-    public <T> T contextualise(Class<T> type, final T delegate) {
-        Object proxy = Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{type}, new InvocationHandler() {
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                IvyContext context = IvyContext.pushNewCopyContext();
-                try {
-                    context.setIvy(ivy);
-                    context.setResolveData(resolveData);
-                    return method.invoke(delegate, args);
-                } catch (InvocationTargetException e) {
-                    throw UncheckedException.throwAsUncheckedException(e.getTargetException());
-                } finally {
-                    IvyContext.popContext();
-                }
-            }
-        });
-        return type.cast(proxy);
-    }
-
     public static IvyContext getIvyContext() {
         IvyContext context = IvyContext.getContext();
         if (context.peekIvy() == null || context.getResolveData() == null) {
