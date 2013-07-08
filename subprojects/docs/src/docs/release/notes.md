@@ -79,6 +79,14 @@ The following methods have been deprecated and will be removed in Gradle 2.0:
 
 A number of constants on `ArtifactRepositoryContainer` have been deprecated and will be removed in Gradle 2.0.
 
+### Open API classes
+
+The Open API has been deprecated for over two years (since Gradle 1.0-milestone-4) and is due to be removed in Gradle 2.0. The entry points to the
+Open API were marked deprecated at that time.
+
+To make the deprecation of the Open API more explicit, all of the Open API classes are now marked as deprecated, in addition to the entry points. All of the
+Open API classes will be removed in Gradle 2.0.
+
 <!--
 ### Example deprecation
 -->

@@ -30,8 +30,10 @@ public interface GradleRunnerInteractionVersion1 {
      */
     public File getWorkingDirectory();
 
+    @Deprecated
     public enum LogLevel {Quiet, Lifecycle, Debug}
 
+    @Deprecated
     public enum StackTraceLevel {InternalExceptions, Always, AlwaysFull}
 
     /**
