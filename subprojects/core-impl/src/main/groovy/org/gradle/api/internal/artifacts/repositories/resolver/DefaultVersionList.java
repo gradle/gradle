@@ -20,23 +20,22 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultVersionList extends AbstractVersionList {
-    private final Set<ListedVersion> versions = new HashSet<ListedVersion>();
+    private final Map<String, ListedVersion> versions = new HashMap<String, ListedVersion>();
 
     public DefaultVersionList() {
     }
 
     protected void add(ListedVersion newVersion) {
-        // Only add when unique
-        for (ListedVersion existingVersion : versions) {
-            if (existingVersion.getVersion().equals(newVersion.getVersion())) {
-                return;
-            }
+        if (versions.containsKey(newVersion.getVersion())) {
+            return;
         }
-        versions.add(newVersion);
+        versions.put(newVersion.getVersion(), newVersion);
     }
 
     public void visit(ResourcePattern pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
@@ -44,6 +43,6 @@ public class DefaultVersionList extends AbstractVersionList {
     }
 
     public Set<ListedVersion> getVersions() {
-        return versions;
+        return new HashSet<ListedVersion>(versions.values());
     }
 }
