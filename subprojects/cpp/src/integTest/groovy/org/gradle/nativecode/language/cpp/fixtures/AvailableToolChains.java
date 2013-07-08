@@ -16,6 +16,9 @@
 
 package org.gradle.nativecode.language.cpp.fixtures;
 
+import com.google.common.base.Joiner;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
 import org.gradle.test.fixtures.file.TestFile;
@@ -112,9 +115,9 @@ public class AvailableToolChains {
         
         public abstract boolean isAvailable();
 
-        public abstract List<File> getPathEntries();
+        public abstract void initialiseEnvironment();
 
-        public abstract Map<String, String> getEnvironmentVars();
+        public abstract void resetEnvironment();
 
         public boolean isVisualCpp() {
             return getDisplayName().equals("visual c++");
@@ -134,13 +137,17 @@ public class AvailableToolChains {
     }
     
     public static class InstalledToolChain extends ToolChainCandidate {
+        private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
         private final List<File> pathEntries;
         private final Map<String, String> environmentVars = new HashMap<String, String>();
         private final String name;
+        private final String pathVarName;
+        private String originalPath;
 
         public InstalledToolChain(String name, File... pathEntries) {
             this.name = name;
             this.pathEntries = Arrays.asList(pathEntries);
+            this.pathVarName = !OperatingSystem.current().isWindows() ? "Path" : "PATH";
         }
 
         InstalledToolChain envVar(String key, String value) {
@@ -158,14 +165,26 @@ public class AvailableToolChains {
             return true;
         }
 
-        @Override
-        public List<File> getPathEntries() {
-            return pathEntries;
+        public void initialiseEnvironment() {
+            String compilerPath = Joiner.on(File.pathSeparator).join(pathEntries);
+
+            if (compilerPath.length() > 0) {
+                originalPath = System.getenv(pathVarName);
+                String path = compilerPath + File.pathSeparator + originalPath;
+                System.out.println(String.format("Using path %s", path));
+                PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, path);
+            }
+
+            for (Map.Entry<String, String> entry : environmentVars.entrySet()) {
+                System.out.println(String.format("Using environment var %s -> %s", entry.getKey(), entry.getValue()));
+                PROCESS_ENVIRONMENT.setEnvironmentVariable(entry.getKey(), entry.getValue());
+            }
         }
 
-        @Override
-        public Map<String, String> getEnvironmentVars() {
-            return environmentVars;
+        public void resetEnvironment() {
+            if (originalPath != null) {
+                PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, originalPath);
+            }
         }
     }
 
@@ -187,13 +206,13 @@ public class AvailableToolChains {
         }
 
         @Override
-        public List<File> getPathEntries() {
-            throw new UnsupportedOperationException("This compiler is not installed.");
+        public void initialiseEnvironment() {
+            throw new UnsupportedOperationException("Toolchain is not available");
         }
 
         @Override
-        public Map<String, String> getEnvironmentVars() {
-            throw new UnsupportedOperationException("This compiler is not installed.");
+        public void resetEnvironment() {
+            throw new UnsupportedOperationException("Toolchain is not available");
         }
     }
 }

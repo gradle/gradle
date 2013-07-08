@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.junit.internal.builders.IgnoredClassRunner;
 import org.junit.internal.runners.ErrorReportingRunner;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
@@ -115,33 +116,59 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         final void init(Class<?> target) {
             this.target = target;
             if (isEnabled()) {
-                List<? extends Class<?>> targetClasses = loadTargetClasses();
-                RunnerBuilder runnerBuilder = new RunnerBuilder() {
-                    @Override
-                    public Runner runnerForClass(Class<?> testClass) {
-                        try {
-                            for (Class<?> candidate = testClass; candidate != null; candidate = candidate.getSuperclass()) {
-                                RunWith runWith = candidate.getAnnotation(RunWith.class);
-                                if (runWith != null && !AbstractMultiTestRunner.class.isAssignableFrom(runWith.value())) {
-                                    try {
-                                        return (Runner)runWith.value().getConstructors()[0].newInstance(testClass);
-                                    } catch (Exception e) {
-                                        return new ErrorReportingRunner(testClass, e);
-                                    }
+                try {
+                    assertCanExecute();
+                    runner = createExecutionRunner();
+                } catch (Throwable t) {
+                    runner = new ErrorReportingRunner(target, t);
+                }
+            } else {
+                runner = createIgnoredExecutionRunner();
+            }
+        }
+
+        private Runner createExecutionRunner() throws InitializationError {
+            List<? extends Class<?>> targetClasses = loadTargetClasses();
+            RunnerBuilder runnerBuilder = new RunnerBuilder() {
+                @Override
+                public Runner runnerForClass(Class<?> testClass) {
+                    try {
+                        for (Class<?> candidate = testClass; candidate != null; candidate = candidate.getSuperclass()) {
+                            RunWith runWith = candidate.getAnnotation(RunWith.class);
+                            if (runWith != null && !AbstractMultiTestRunner.class.isAssignableFrom(runWith.value())) {
+                                try {
+                                    return (Runner)runWith.value().getConstructors()[0].newInstance(testClass);
+                                } catch (Exception e) {
+                                    return new ErrorReportingRunner(testClass, e);
                                 }
                             }
-                            return new BlockJUnit4ClassRunner(testClass);
-                        } catch (InitializationError initializationError) {
-                            return new ErrorReportingRunner(testClass, initializationError);
                         }
+                        return new BlockJUnit4ClassRunner(testClass);
+                    } catch (InitializationError initializationError) {
+                        return new ErrorReportingRunner(testClass, initializationError);
                     }
-                };
-                try {
-                    runner = new Suite(runnerBuilder, targetClasses.toArray(new Class<?>[targetClasses.size()]));
-                } catch (InitializationError initializationError) {
-                    runner = new ErrorReportingRunner(target, initializationError);
                 }
-            }
+            };
+            return new Suite(runnerBuilder, targetClasses.toArray(new Class<?>[targetClasses.size()])) {
+                @Override
+                public void run(RunNotifier notifier) {
+                    before();
+                    try {
+                        super.run(notifier);
+                    } finally {
+                        after();
+                    }
+                }
+            };
+        }
+
+        private Runner createIgnoredExecutionRunner() {
+            return new IgnoredClassRunner(target) {
+                @Override
+                public Description getDescription() {
+                    return Description.createSuiteDescription(String.format("%s(%s)", getDisplayName(), target.getName()));
+                }
+            };
         }
 
         final void addDescriptions(Description parent) {
@@ -151,51 +178,44 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         }
 
         final void run(final RunNotifier notifier) {
-            if (runner == null) {
-                Description description = Description.createSuiteDescription(String.format("%s(%s)", getDisplayName(), target.getName()));
-                notifier.fireTestIgnored(description);
-                return;
-            }
-
             RunNotifier nested = new RunNotifier();
             nested.addListener(new RunListener() {
                 @Override
                 public void testStarted(Description description) {
-                    Description translated = descriptionTranslations.get(description);
+                    Description translated = translateDescription(description);
                     notifier.fireTestStarted(translated);
                 }
 
                 @Override
                 public void testFailure(Failure failure) {
-                    Description translated = descriptionTranslations.get(failure.getDescription());
+                    Description translated = translateDescription(failure.getDescription());
                     notifier.fireTestFailure(new Failure(translated, failure.getException()));
                 }
 
                 @Override
                 public void testAssumptionFailure(Failure failure) {
-                    Description translated = descriptionTranslations.get(failure.getDescription());
+                    Description translated = translateDescription(failure.getDescription());
                     notifier.fireTestAssumptionFailed(new Failure(translated, failure.getException()));
                 }
 
                 @Override
                 public void testIgnored(Description description) {
-                    Description translated = descriptionTranslations.get(description);
+                    Description translated = translateDescription(description);
                     notifier.fireTestIgnored(translated);
                 }
 
                 @Override
                 public void testFinished(Description description) {
-                    Description translated = descriptionTranslations.get(description);
+                    Description translated = translateDescription(description);
                     notifier.fireTestFinished(translated);
                 }
             });
 
-            before();
-            try {
-                runner.run(nested);
-            } finally {
-                after();
-            }
+            runner.run(nested);
+        }
+
+        private Description translateDescription(Description description) {
+            return descriptionTranslations.containsKey(description) ? descriptionTranslations.get(description) : description;
         }
 
         public void filter(Filter filter) throws NoTestsRemainException {
@@ -240,6 +260,12 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
          */
         protected boolean isEnabled() {
             return true;
+        }
+
+        /**
+         * Checks that this execution can be executed, throwing an exception if not.
+         */
+        protected void assertCanExecute() {
         }
 
         /**
