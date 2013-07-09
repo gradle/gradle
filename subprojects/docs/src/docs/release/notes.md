@@ -75,6 +75,14 @@ The following methods have been deprecated and will be removed in Gradle 2.0:
     </tr>
 </table>
 
+### Using `GradleLauncher` to run Gradle builds
+
+There are currently 3 ways you can programmatically run a build. The first, and recommended, way is to use the Gradle tooling API. You can also use
+the `GradleBuild` task type. The third way is to use the `GradleLauncher` API. The `GradleLauncher` API is now deprecated and will be removed in Gradle
+2.0.
+
+* The `GradleLauncher.newInstance()` and `createStartParameter()` methods have been deprecated and will be removed in Gradle 2.0.
+
 ### Unused constants on `ArtifactRepositoryContainer`
 
 A number of constants on `ArtifactRepositoryContainer` have been deprecated and will be removed in Gradle 2.0.
@@ -87,7 +95,7 @@ Open API were marked deprecated at that time.
 To make the deprecation of the Open API more explicit, all of the Open API classes are now marked as deprecated, in addition to the entry points. All of the
 Open API classes will be removed in Gradle 2.0.
 
-## Unused classes
+### Unused classes
 
 The following classes will be removed in Gradle 2.0. They are no longer used:
 

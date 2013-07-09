@@ -41,11 +41,9 @@ task logInfo {
 }
 // END SNIPPET task-capture-stdout
 
-task nestedBuildLog << {
-    def startParam = project.gradle.startParameter.newBuild()
-    startParam.currentDir = rootProject.file('nestedBuild')
-    startParam.taskNames = ['log']
-    GradleLauncher.newInstance(startParam).run().rethrowFailure()
+task nestedBuildLog(type: GradleBuild) {
+    startParameter.currentDir = rootProject.file('nestedBuild')
+    startParameter.taskNames = ['log']
 }
 
 task log(dependsOn: [logInfo, logLifecycle, nestedBuildLog]) << {

@@ -34,6 +34,12 @@ Now that we have reasonable tooling support via the tooling API, remove the Open
 * Implement a stub to fail with a reasonable error message when attempting to use Gradle from the Open API.
 * Remove the remaining Open API classes and project.
 
+## Remove the `GradleLauncher` API
+
+* Replace internal usages of the static `GradleLauncher` methods.
+* Remove the `GradleLauncher` type from the public API.
+* Remove the public `StartParameter` constructor.
+
 ## Misc API tidy-ups
 
 * Remove unused `IllegalOperationAtExecutionTimeException`.
@@ -168,8 +174,6 @@ Extension objects have been available for over 2 years and are now an establishe
 * Rename `IllegalDependencyNotation` to add `Exception` to the end of its name.
 * Remove `ConventionProperty`, replace it with documentation.
 * Remove `Settings.startParameter`. Can use `gradle.startParameter` instead.
-
-## Remove `GradleLauncher`
 
 ## Remove `sonar` plugin
 

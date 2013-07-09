@@ -18,6 +18,7 @@ package org.gradle;
 import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.util.DeprecationLogger;
 
 /**
  * <p>{@code GradleLauncher} is mildly deprecated. It is being replaced by the Tooling API.
@@ -82,8 +83,11 @@ public abstract class GradleLauncher {
      *
      * @param startParameter The start parameter object the GradleLauncher instance is initialized with
      * @return The {@code GradleLauncher}. Never returns null.
+     * @deprecated Use the tooling API instead.
      */
+    @Deprecated
     public static GradleLauncher newInstance(final StartParameter startParameter) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GradleLauncher.newInstance()");
         return getFactory().newInstance(startParameter);
     }
 
@@ -99,9 +103,13 @@ public abstract class GradleLauncher {
      *
      * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
      * @return The {@code GradleLauncher}. Never returns null.
+     * @deprecated Use the tooling API instead.
      */
+    @Deprecated
     public static GradleLauncher newInstance(String... commandLineArgs) {
-        return newInstance(createStartParameter(commandLineArgs));
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GradleLauncher.newInstance()");
+        GradleLauncherFactory gradleLauncherFactory = getFactory();
+        return gradleLauncherFactory.newInstance(gradleLauncherFactory.createStartParameter(commandLineArgs));
     }
 
     /**
@@ -110,8 +118,11 @@ public abstract class GradleLauncher {
      *
      * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
      * @return The {@code GradleLauncher}. Never returns null.
+     * @deprecated No replacement.
      */
+    @Deprecated
     public static StartParameter createStartParameter(final String... commandLineArgs) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GradleLauncher.createStartParameter()");
         return getFactory().createStartParameter(commandLineArgs);
     }
 
