@@ -21,8 +21,8 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.util.DeprecationLogger;
 
 /**
- * <p>{@code GradleLauncher} is mildly deprecated. It is being replaced by the Tooling API.
- * If you're interested in embedding Gradle you should read the new user guide chapter on embedding Gradle.
+ * <p>{@code GradleLauncher} is deprecated. It has been replaced by the Tooling API.
+ * If you're interested in embedding Gradle you should read the user guide chapter on embedding Gradle.
  * The main entry point to the Tooling API (and embedding Gradle) is {@code org.gradle.tooling.GradleConnector}.
  *
  * <p>You should try using the Tooling API ({@code GradleConnector}) instead of {@code GradleLauncher}.
@@ -88,10 +88,16 @@ public abstract class GradleLauncher {
     @Deprecated
     public static GradleLauncher newInstance(final StartParameter startParameter) {
         DeprecationLogger.nagUserOfDiscontinuedMethod("GradleLauncher.newInstance()");
-        return getFactory().newInstance(startParameter);
+        return doGetFactory().newInstance(startParameter);
     }
 
-    public static synchronized GradleLauncherFactory getFactory() {
+    @Deprecated
+    public static GradleLauncherFactory getFactory() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GradleLauncher.getFactory()");
+        return doGetFactory();
+    }
+
+    private static synchronized GradleLauncherFactory doGetFactory() {
         if (factory == null) {
             factory = new GlobalServicesRegistry().get(GradleLauncherFactory.class);
         }
@@ -108,7 +114,7 @@ public abstract class GradleLauncher {
     @Deprecated
     public static GradleLauncher newInstance(String... commandLineArgs) {
         DeprecationLogger.nagUserOfDiscontinuedMethod("GradleLauncher.newInstance()");
-        GradleLauncherFactory gradleLauncherFactory = getFactory();
+        GradleLauncherFactory gradleLauncherFactory = doGetFactory();
         return gradleLauncherFactory.newInstance(gradleLauncherFactory.createStartParameter(commandLineArgs));
     }
 
@@ -123,9 +129,10 @@ public abstract class GradleLauncher {
     @Deprecated
     public static StartParameter createStartParameter(final String... commandLineArgs) {
         DeprecationLogger.nagUserOfDiscontinuedMethod("GradleLauncher.createStartParameter()");
-        return getFactory().createStartParameter(commandLineArgs);
+        return doGetFactory().createStartParameter(commandLineArgs);
     }
 
+    @Deprecated
     public static synchronized void injectCustomFactory(GradleLauncherFactory gradleLauncherFactory) {
         factory = gradleLauncherFactory;
     }
