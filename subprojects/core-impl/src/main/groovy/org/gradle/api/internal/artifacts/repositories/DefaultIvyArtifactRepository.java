@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
@@ -48,9 +49,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final MetaDataProvider metaDataProvider;
     private final Instantiator instantiator;
+    private final MetaDataParser metaDataParser;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, Instantiator instantiator) {
+                                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, Instantiator instantiator,
+                                        MetaDataParser metaDataParser) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -59,6 +62,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.layout = new GradleRepositoryLayout();
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiator;
+        this.metaDataParser = metaDataParser;
     }
 
     public DependencyResolver createLegacyDslObject() {
@@ -101,10 +105,10 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             throw new InvalidUserDataException("You may only specify 'file', 'http' and 'https' urls for an Ivy repository.");
         }
         if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
-            return new IvyResolver(getName(), transportFactory.createHttpTransport(getName(), getCredentials()), locallyAvailableResourceFinder);
+            return new IvyResolver(getName(), transportFactory.createHttpTransport(getName(), getCredentials()), locallyAvailableResourceFinder, metaDataParser);
         }
         if (WrapUtil.toSet("file").containsAll(schemes)) {
-            return new IvyResolver(getName(), transportFactory.createFileTransport(getName()), locallyAvailableResourceFinder);
+            return new IvyResolver(getName(), transportFactory.createFileTransport(getName()), locallyAvailableResourceFinder, metaDataParser);
         }
         throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single Ivy repository. Please declare 2 separate repositories.");
     }

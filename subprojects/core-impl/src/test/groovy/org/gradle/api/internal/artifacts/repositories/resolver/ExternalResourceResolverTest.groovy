@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import spock.lang.Specification
@@ -31,6 +32,7 @@ class ExternalResourceResolverTest extends Specification {
     VersionLister versionLister = Mock()
     LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder = Mock()
     BuildableArtifactResolveResult result = Mock()
+    MetaDataParser parser = Mock()
     ArtifactIdentifier artifact = new DefaultArtifactIdentifier(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "name", "type", "ext", "classifier")
     MavenResolver.TimestampedModuleSource moduleSource = Mock()
     File downloadedFile = Mock(File)
@@ -38,7 +40,7 @@ class ExternalResourceResolverTest extends Specification {
 
     def setup() {
         //We use a spy here to avoid dealing with all the overhead ivys basicresolver brings in here.
-        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, repository, versionLister, locallyAvailableResourceFinder])
+        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, repository, versionLister, locallyAvailableResourceFinder, parser])
     }
 
     def reportsNotFoundArtifactResolveResult() {

@@ -26,8 +26,6 @@ import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.latest.LatestStrategy;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
-import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
@@ -40,9 +38,11 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleScopedParserSettings;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ParserRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyResolverIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolverDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -53,14 +53,12 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.text.ParseException;
 import java.util.*;
 
@@ -68,8 +66,8 @@ import java.util.*;
 public class ExternalResourceResolver implements ModuleVersionPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
-    private final ParserRegistry parserRegistry = new ParserRegistry();
     private final String identifier;
+    private final MetaDataParser metaDataParser;
 
     private List<String> ivyPatterns = new ArrayList<String>();
     private List<String> artifactPatterns = new ArrayList<String>();
@@ -102,12 +100,14 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     public ExternalResourceResolver(String name,
                                     ExternalResourceRepository repository,
                                     VersionLister versionLister,
-                                    LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder
+                                    LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                                    MetaDataParser metaDataParser
     ) {
         this.name = name;
         this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
+        this.metaDataParser = metaDataParser;
         this.identifier = DependencyResolverIdentifier.forExternalResourceResolver(this);
     }
 
@@ -219,24 +219,12 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
                 return null;
             }
         }
-        return parseModuleDescriptor(dependencyRevisionId, moduleDescriptorFile, resource);
+        return metaDataParser.parseModuleDescriptor(dependencyRevisionId, moduleDescriptorFile, resource, new ExternalResourceResolverDependencyResolver(this));
     }
 
     private File downloadModuleDescriptorFile(ModuleRevisionId dependencyRevisionId, Resource resource) throws IOException {
-        ModuleDescriptorParser parser = parserRegistry.forResource(resource);
-        Artifact moduleArtifact = parser.getMetadataArtifact(dependencyRevisionId, resource);
+        Artifact moduleArtifact = metaDataParser.getMetadataArtifact(dependencyRevisionId, resource);
         return repositoryCacheManager.downloadAndCacheArtifactFile(moduleArtifact, resourceDownloader, resource);
-    }
-
-    protected ModuleDescriptor parseModuleDescriptor(ModuleRevisionId moduleRevisionId, File artifactFile, Resource resource) throws ParseException {
-        try {
-            IvySettings ivySettings = IvyContextualiser.getIvyContext().getSettings();
-            ParserSettings parserSettings = new ModuleScopedParserSettings(ivySettings, new ExternalResourceResolverDependencyResolver(this), moduleRevisionId);
-            ModuleDescriptorParser parser = parserRegistry.forResource(resource);
-            return parser.parseDescriptor(parserSettings, new URL(artifactFile.toURI().toASCIIString()), resource, false);
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 
     private void checkDescriptorConsistency(ModuleRevisionId mrid, ModuleDescriptor md,

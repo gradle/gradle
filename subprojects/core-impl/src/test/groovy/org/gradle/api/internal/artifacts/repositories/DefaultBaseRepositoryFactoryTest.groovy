@@ -15,152 +15,158 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories
-
 import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.util.JUnit4GroovyMockery
-import org.hamcrest.Matchers
-import org.jmock.integration.junit4.JMock
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-/**
- * @author Hans Dockter
- */
-@RunWith(JMock.class)
-class DefaultBaseRepositoryFactoryTest {
+import spock.lang.Specification
+
+class DefaultBaseRepositoryFactoryTest extends Specification {
     static final URI RESOLVER_URL = new URI('http://a.b.c/')
     static final String TEST_REPO = 'http://www.gradle.org'
     static final URI TEST_REPO_URL = new URI('http://www.gradle.org/')
     static final URI TEST_REPO2_URL = new URI('http://www.gradleware.com/')
 
-    final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    final LocalMavenRepositoryLocator localMavenRepoLocator = context.mock(LocalMavenRepositoryLocator.class)
-    final FileResolver fileResolver = context.mock(FileResolver.class)
-    final RepositoryTransportFactory transportFactory = context.mock(RepositoryTransportFactory.class)
-    final LocallyAvailableResourceFinder locallyAvailableResourceFinder = context.mock(LocallyAvailableResourceFinder.class)
-    final RepositoryCacheManager localCacheManager = context.mock(RepositoryCacheManager)
-    final RepositoryCacheManager downloadingCacheManager = context.mock(RepositoryCacheManager)
-    final ProgressLoggerFactory progressLoggerFactory = context.mock(ProgressLoggerFactory)
+    final LocalMavenRepositoryLocator localMavenRepoLocator = Mock(LocalMavenRepositoryLocator)
+    final FileResolver fileResolver = Mock(FileResolver)
+    final RepositoryTransportFactory transportFactory = Mock(RepositoryTransportFactory)
+    final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock(LocallyAvailableResourceFinder)
+    final RepositoryCacheManager localCacheManager = Mock(RepositoryCacheManager)
+    final RepositoryCacheManager downloadingCacheManager = Mock(RepositoryCacheManager)
+    final ProgressLoggerFactory progressLoggerFactory = Mock(ProgressLoggerFactory)
+    final MetaDataParser metaDataParser = Mock(MetaDataParser)
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
-            progressLoggerFactory, localCacheManager, downloadingCacheManager
+            progressLoggerFactory, localCacheManager, downloadingCacheManager, metaDataParser
     )
 
-    @Before public void setup() {
-        context.checking {
-            allowing(fileResolver).resolveUri('uri');
-            will(returnValue(RESOLVER_URL))
-            allowing(fileResolver).resolveUri(TEST_REPO);
-            will(returnValue(TEST_REPO_URL))
-            allowing(fileResolver).resolveUri('uri2');
-            will(returnValue(TEST_REPO2_URL))
-            allowing(fileResolver).resolveUri(withParam(Matchers.instanceOf(URI)));
-            will { uri -> return uri }
-        }
-    }
+//    @Before public void setup() {
+//        fileResolver = Stub(FileResolver) {
+//            resolveUri('uri') >> RESOLVER_URL
+//            resolveUri(TEST_REPO) >> TEST_REPO_URL
+//            resolveUri('uri2') >> TEST_REPO2_URL
+//        }
+//    }
 
-    @Test public void testCreateResolverWithStringDescription() {
+    def testCreateResolverWithStringDescription() {
+        when:
+        fileResolver.resolveUri('uri') >> RESOLVER_URL
+
+        then:
         def repository = factory.createRepository('uri')
 
-        assert repository instanceof DefaultMavenArtifactRepository
-        assert repository.url == RESOLVER_URL
-        assert repository.name == null
-        assert repository.artifactUrls.isEmpty()
+        repository instanceof DefaultMavenArtifactRepository
+        repository.name == null
+        repository.url == RESOLVER_URL
+        repository.artifactUrls.isEmpty()
     }
 
-    @Test public void testCreateResolverWithMapDescription() {
+    def testCreateResolverWithMapDescription() {
+        when:
+        fileResolver.resolveUri('uri') >> RESOLVER_URL
+
+        then:
         def repository = factory.createRepository([name: 'name', url: 'uri'])
 
-        assert repository instanceof DefaultMavenArtifactRepository
-        assert repository.url == RESOLVER_URL
-        assert repository.name == 'name'
-        assert repository.artifactUrls.isEmpty()
+        repository instanceof DefaultMavenArtifactRepository
+        repository.name == 'name'
+        repository.url == RESOLVER_URL
+        repository.artifactUrls.isEmpty()
     }
 
-    @Test public void testCreateResolverWithResolverDescription() {
-        DependencyResolver resolver = context.mock(DependencyResolver)
-        
+    def testCreateResolverWithResolverDescription() {
+        when:
+        def resolver = Mock(DependencyResolver)
+
+        then:
         ArtifactRepository repository = factory.createRepository(resolver)
 
-        assert repository instanceof FixedResolverArtifactRepository
-        assert repository.resolver == resolver
+        repository instanceof FixedResolverArtifactRepository
+        repository.resolver == resolver
     }
 
-    @Test public void testCreateResolverWithArtifactRepositoryDescription() {
-        ArtifactRepository repo = context.mock(ArtifactRepository)
+    def testCreateResolverWithArtifactRepositoryDescription() {
+        when:
+        ArtifactRepository repo = Mock(ArtifactRepository)
 
-        assert factory.createRepository(repo) == repo
+        then:
+        factory.createRepository(repo) == repo
     }
 
-    @Test(expected = InvalidUserDataException) public void testCreateResolverForUnknownDescription() {
+    def testCreateResolverForUnknownDescription() {
+        when:
         def someIllegalDescription = new NullPointerException()
+
         factory.createRepository(someIllegalDescription)
+
+        then:
+        thrown InvalidUserDataException
     }
 
-    @Test public void testCreateFlatDirResolver() {
+    def testCreateFlatDirResolver() {
+        expect:
         def repo =factory.createFlatDirRepository()
-        assert repo instanceof DefaultFlatDirArtifactRepository
+        repo instanceof DefaultFlatDirArtifactRepository
     }
 
-    @Test public void testCreateLocalMavenRepo() {
+    def testCreateLocalMavenRepo() {
+        given:
         File repoDir = new File(".m2/repository")
 
-        context.checking {
-            one(localMavenRepoLocator).getLocalMavenRepository()
-            will(returnValue(repoDir))
-            allowing(fileResolver).resolveUri(repoDir)
-            will(returnValue(repoDir.toURI()))
-        }
+        when:
+        localMavenRepoLocator.getLocalMavenRepository() >> repoDir
+        fileResolver.resolveUri(repoDir) >> repoDir.toURI()
 
+        then:
         def repo = factory.createMavenLocalRepository()
-        assert repo instanceof DefaultMavenArtifactRepository
-        assert repo.url == repoDir.toURI()
+        repo instanceof DefaultMavenArtifactRepository
+        repo.url == repoDir.toURI()
     }
 
-    @Test public void testCreateJCenterRepo() {
+    def testCreateJCenterRepo() {
+        given:
         def jcenterUrl = new URI(RepositoryHandler.BINTRAY_JCENTER_URL)
 
-        context.checking {
-            allowing(fileResolver).resolveUri(RepositoryHandler.BINTRAY_JCENTER_URL)
-            will(returnValue(jcenterUrl))
-        }
+        when:
+        fileResolver.resolveUri(RepositoryHandler.BINTRAY_JCENTER_URL) >> jcenterUrl
 
+        then:
         def repo = factory.createJCenterRepository()
-        assert repo instanceof DefaultMavenArtifactRepository
-        assert repo.url == jcenterUrl
+        repo instanceof DefaultMavenArtifactRepository
+        repo.url == jcenterUrl
     }
 
-    @Test public void testCreateMavenCentralRepo() {
+    def testCreateMavenCentralRepo() {
+        given:
         def centralUrl = new URI(RepositoryHandler.MAVEN_CENTRAL_URL)
 
-        context.checking {
-            allowing(fileResolver).resolveUri(RepositoryHandler.MAVEN_CENTRAL_URL)
-            will(returnValue(centralUrl))
-        }
+        when:
+        fileResolver.resolveUri(RepositoryHandler.MAVEN_CENTRAL_URL) >> centralUrl
 
+        then:
         def repo = factory.createMavenCentralRepository()
-        assert repo instanceof DefaultMavenArtifactRepository
-        assert repo.url == centralUrl
+        repo instanceof DefaultMavenArtifactRepository
+        repo.url == centralUrl
     }
 
-    @Test public void createIvyRepository() {
+    def createIvyRepository() {
+        expect:
         def repo = factory.createIvyRepository()
-        assert repo instanceof DefaultIvyArtifactRepository
+        repo instanceof DefaultIvyArtifactRepository
     }
 
-    @Test public void createMavenRepository() {
+    def createMavenRepository() {
+        expect:
         def repo = factory.createMavenRepository()
-        assert repo instanceof DefaultMavenArtifactRepository
+        repo instanceof DefaultMavenArtifactRepository
     }
 }
