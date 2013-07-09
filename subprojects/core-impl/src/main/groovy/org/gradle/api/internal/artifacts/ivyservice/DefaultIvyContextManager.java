@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.util.Message;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.Transformers;
@@ -30,6 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultIvyContextManager implements IvyContextManager {
     private static final int MAX_CACHED_IVY_INSTANCES = 4;
     private final Lock lock = new ReentrantLock();
+    private boolean messageAdapterAttached;
     private final LinkedList<Ivy> cached = new LinkedList<Ivy>();
 
     public void withIvy(final Action<? super Ivy> action) {
@@ -56,6 +58,10 @@ public class DefaultIvyContextManager implements IvyContextManager {
         try {
             if (!cached.isEmpty()) {
                 return cached.removeFirst();
+            }
+            if (!messageAdapterAttached) {
+                Message.setDefaultLogger(new IvyLoggingAdaper());
+                messageAdapterAttached = true;
             }
         } finally {
             lock.unlock();
