@@ -19,14 +19,12 @@ package org.gradle.launcher.cli;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.Actions;
+import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
-import org.gradle.initialization.LayoutCommandLineConverter;
+import org.gradle.initialization.*;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
@@ -153,7 +151,8 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Action<? super ExecutionListener> runBuildInProcess(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
-        InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(new DefaultGradleLauncherFactory(loggingServices));
+        GlobalServicesRegistry globalServices = new GlobalServicesRegistry(loggingServices);
+        InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(globalServices.get(GradleLauncherFactory.class));
         return daemonBuildAction(startParameter, daemonParameters, executer);
     }
 

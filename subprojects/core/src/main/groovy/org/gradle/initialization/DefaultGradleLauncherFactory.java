@@ -19,7 +19,6 @@ package org.gradle.initialization;
 import org.gradle.*;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
@@ -49,15 +48,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final NestedBuildTracker tracker;
     private CommandLineConverter<StartParameter> commandLineConverter;
 
-    public DefaultGradleLauncherFactory(ServiceRegistry loggingServices) {
-        this(new GlobalServicesRegistry(loggingServices));
-    }
-    
-    public DefaultGradleLauncherFactory() {
-        this(new GlobalServicesRegistry());
-    }
-
-    private DefaultGradleLauncherFactory(GlobalServicesRegistry globalServices) {
+    public DefaultGradleLauncherFactory(ServiceRegistry globalServices) {
         sharedServices = globalServices;
         tracker = new NestedBuildTracker();
 

@@ -17,12 +17,15 @@ package org.gradle.initialization
 
 import org.gradle.GradleLauncher
 import org.gradle.StartParameter
+import org.gradle.api.internal.project.GlobalServicesRegistry
 import org.gradle.cli.CommandLineConverter
+import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
 class DefaultGradleLauncherFactoryTest extends Specification {
     final CommandLineConverter<StartParameter> parameterConverter = Mock()
-    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory();
+    final ServiceRegistry sharedServices = new GlobalServicesRegistry()
+    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(sharedServices)
 
     def setup() {
         factory.setCommandLineConverter(parameterConverter);

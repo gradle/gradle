@@ -25,10 +25,8 @@ import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.*;
 import org.gradle.cli.CommandLineConverter;
-import org.gradle.initialization.DefaultClassLoaderRegistry;
-import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.internal.nativeplatform.*;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.listener.DefaultListenerManager;
@@ -48,6 +46,11 @@ import static org.junit.Assert.assertThat;
 
 public class GlobalServicesRegistryTest {
     private final GlobalServicesRegistry registry = new GlobalServicesRegistry();
+
+    @Test
+    public void providesAGradleLauncherFactory() {
+        assertThat(registry.get(GradleLauncherFactory.class), instanceOf(DefaultGradleLauncherFactory.class));
+    }
 
     @Test
     public void providesCommandLineArgsConverter() {
@@ -114,7 +117,7 @@ public class GlobalServicesRegistryTest {
     public void providesAClassGenerator() {
         assertThat(registry.get(ClassGenerator.class), instanceOf(AsmBackedClassGenerator.class));
     }
-    
+
     @Test
     public void providesAnInstantiator() {
         assertThat(registry.get(org.gradle.internal.reflect.Instantiator.class), instanceOf(ClassGeneratorBackedInstantiator.class));

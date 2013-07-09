@@ -15,8 +15,8 @@
  */
 package org.gradle;
 
+import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
 
 /**
@@ -89,7 +89,7 @@ public abstract class GradleLauncher {
 
     public static synchronized GradleLauncherFactory getFactory() {
         if (factory == null) {
-            factory = new DefaultGradleLauncherFactory();
+            factory = new GlobalServicesRegistry().get(GradleLauncherFactory.class);
         }
         return factory;
     }

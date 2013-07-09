@@ -167,7 +167,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
         factory.addListener(listener);
-        GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
+        GradleLauncher gradleLauncher = factory.newInstance(parameter);
         gradleLauncher.addStandardOutputListener(outputListener);
         gradleLauncher.addStandardErrorListener(errorListener);
         try {

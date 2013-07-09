@@ -25,9 +25,7 @@ import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
-import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.initialization.DefaultClassLoaderRegistry;
-import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
@@ -54,6 +52,10 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     public GlobalServicesRegistry(ServiceRegistry loggingServices) {
         super(loggingServices);
         add(NativeServices.getInstance());
+    }
+
+    protected GradleLauncherFactory createGradleLauncherFactory() {
+        return new DefaultGradleLauncherFactory(this);
     }
 
     protected CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {

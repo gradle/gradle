@@ -15,9 +15,10 @@
  */
 package org.gradle.launcher.daemon.server;
 
+import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
@@ -41,18 +42,17 @@ import java.util.UUID;
  */
 public class DaemonServices extends DefaultServiceRegistry {
     private final DaemonServerConfiguration configuration;
-    private final ServiceRegistry loggingServices;
     private final LoggingManagerInternal loggingManager;
     private final static Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
     public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices,
                           LoggingManagerInternal loggingManager) {
         this.configuration = configuration;
-        this.loggingServices = loggingServices;
         this.loggingManager = loggingManager;
 
         add(NativeServices.getInstance());
         add(new DaemonRegistryServices(configuration.getBaseDir()));
+        add(new GlobalServicesRegistry(loggingServices));
     }
 
     protected ExecutorFactory createExecutorFactory() {
@@ -86,7 +86,7 @@ public class DaemonServices extends DefaultServiceRegistry {
                 get(DaemonContext.class),
                 "password",
                 new DefaultDaemonCommandExecuter(
-                        new DefaultGradleLauncherFactory(loggingServices),
+                        get(GradleLauncherFactory.class),
                         get(ProcessEnvironment.class),
                         loggingManager,
                         getDaemonLogFile()),
