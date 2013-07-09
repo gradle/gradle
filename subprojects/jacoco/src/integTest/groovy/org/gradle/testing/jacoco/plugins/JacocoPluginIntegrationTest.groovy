@@ -19,7 +19,6 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.junit.Test
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -43,18 +42,17 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         createTestFiles()
     }
 
-    @Test
-    public void generatesHtmlReportOnlyAsDefault() {
+    void generatesHtmlReportOnlyAsDefault() {
         when:
         succeeds('test', 'jacocoTestReport')
+
         then:
         file(REPORTING_BASE).listFiles().collect { it.name } as Set == ["jacoco", "tests"] as Set
         file(REPORT_HTML_DEFAULT_PATH).exists()
         file("${REPORTING_BASE}/jacoco/test").listFiles().collect { it.name } == ["html"]
     }
 
-    @Test
-    public void canConfigureReportsInJacocoTestReport() {
+    void canConfigureReportsInJacocoTestReport() {
         given:
         buildFile << """
             jacocoTestReport {
@@ -65,16 +63,17 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             """
+
         when:
         succeeds('test', 'jacocoTestReport')
+
         then:
         file("build/jacocoHtml/index.html").exists()
         file(REPORT_XML_DEFAULT_PATH).exists()
         file(REPORT_CSV_DEFAULT_REPORT).exists()
     }
 
-    @Test
-    public void respectsReportingBaseDir() {
+    void respectsReportingBaseDir() {
         given:
         buildFile << """
             jacocoTestReport {
@@ -84,16 +83,17 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             reporting{
                 baseDir = "\$buildDir/customReports"
             }"""
+
         when:
         succeeds('test', 'jacocoTestReport')
+
         then:
         file("build/customReports/jacoco/test/html/index.html").exists()
         file("build/customReports/jacoco/test/jacocoTestReport.xml").exists()
         file("build/customReports/jacoco/test/jacocoTestReport.csv").exists()
     }
 
-    @Test
-    public void canConfigureReportDirectory() {
+    void canConfigureReportDirectory() {
         given:
         def customReportDirectory = "customJacocoReportDir"
         buildFile << """
@@ -105,23 +105,26 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 reportsDir = new File(buildDir, "$customReportDirectory")
             }
             """
+
         when:
         succeeds('test', 'jacocoTestReport')
+
         then:
         file("build/${customReportDirectory}/test/html/index.html").exists()
         file("build/${customReportDirectory}/test/jacocoTestReport.xml").exists()
         file("build/${customReportDirectory}/test/jacocoTestReport.csv").exists()
     }
 
-    @Test
-    public void jacocoReportIsIncremental() {
+    void jacocoReportIsIncremental() {
         when:
         succeeds('test', 'jacocoTestReport')
+
         then:
         file(REPORT_HTML_DEFAULT_PATH).exists()
 
         when:
         succeeds('jacocoTestReport')
+
         then:
         skippedTasks.contains(":jacocoTestReport")
         file(REPORT_HTML_DEFAULT_PATH).exists()
@@ -129,32 +132,33 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         file("${REPORTING_BASE}/jacoco/test/html/.resources").deleteDir()
         succeeds('test', 'jacocoTestReport')
+
         then:
         !skippedTasks.contains(":jacocoTestReport")
         file(REPORT_HTML_DEFAULT_PATH).exists()
     }
 
-    @Test
-    public void jacocoTestReportIsSkippedIfNoCoverageDataAvailable() {
+    void jacocoTestReportIsSkippedIfNoCoverageDataAvailable() {
         when:
         def executionResult = succeeds('jacocoTestReport')
         then:
         executionResult.assertTaskSkipped(':jacocoTestReport')
     }
 
-    @Test
-    public void canUseCoverageDataFromPreviousRunForCoverageReport() {
+    void canUseCoverageDataFromPreviousRunForCoverageReport() {
         when:
         succeeds('jacocoTestReport')
+
         then:
         skippedTasks.contains(":jacocoTestReport")
         !file(REPORT_HTML_DEFAULT_PATH).exists()
 
         when:
         succeeds('test')
-        and:
 
+        and:
         succeeds('jacocoTestReport')
+
         then:
         executedTasks.contains(":jacocoTestReport")
         file(REPORT_HTML_DEFAULT_PATH).exists()
