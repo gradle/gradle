@@ -27,6 +27,9 @@ import java.io.File;
 import java.util.*;
 
 public class AvailableToolChains {
+    /**
+     * @return A list of all tool chains for this platform, with the default tool chain listed first.
+     */
     static List<ToolChainCandidate> getToolChains() {
         List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
         if (OperatingSystem.current().isWindows()) {
@@ -34,8 +37,8 @@ public class AvailableToolChains {
             compilers.add(findMinGW());
             compilers.add(findCygwin());
         } else {
-            compilers.add(findGpp("3", "/opt/gcc/3.4.6/bin/g++"));
             compilers.add(findGpp("4", null));
+            compilers.add(findGpp("3", "/opt/gcc/3.4.6/bin/g++"));
         }
         return compilers;
     }

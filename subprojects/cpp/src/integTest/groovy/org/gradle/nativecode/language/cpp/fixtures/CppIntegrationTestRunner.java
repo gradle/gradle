@@ -21,28 +21,39 @@ import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
 import java.util.List;
 
 public class CppIntegrationTestRunner extends AbstractMultiTestRunner {
+    private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.cpp.toolChains";
+
     public CppIntegrationTestRunner(Class<? extends AbstractBinariesIntegrationSpec> target) {
         super(target);
     }
 
     @Override
     protected void createExecutions() {
+        boolean enableAllToolChains = "all".equals(System.getProperty(TOOLCHAINS_SYSPROP_NAME, "default"));
         List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
-        for (AvailableToolChains.ToolChainCandidate compiler : toolChains) {
-            add(new ToolChainExecution(compiler));
+        for (int i = 0; i < toolChains.size(); i++) {
+            boolean enabled = enableAllToolChains || i == 0;
+            add(new ToolChainExecution(toolChains.get(i), enabled));
         }
     }
 
     private static class ToolChainExecution extends Execution {
         private final AvailableToolChains.ToolChainCandidate toolChain;
+        private final boolean enabled;
 
-        public ToolChainExecution(AvailableToolChains.ToolChainCandidate toolChain) {
+        public ToolChainExecution(AvailableToolChains.ToolChainCandidate toolChain, boolean enabled) {
             this.toolChain = toolChain;
+            this.enabled = enabled;
         }
 
         @Override
         protected String getDisplayName() {
             return toolChain.getDisplayName();
+        }
+
+        @Override
+        protected boolean isEnabled() {
+            return enabled;
         }
 
         @Override

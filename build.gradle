@@ -38,7 +38,7 @@ buildTypes {
     quickTest "runtimeTests", "runtimeIntegTests"
 
     // Used for builds to test the code on certain platforms
-    platformTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
+    platformTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllPlatforms: true
 
     // Tests using the daemon mode
     daemonTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "daemon"

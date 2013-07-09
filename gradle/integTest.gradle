@@ -37,6 +37,8 @@ integTestTasks.all { Test task ->
         forkEvery = 1
     }
 
+    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") ? 'all' : 'default';
+
     dependsOn project.task("configure${task.name.capitalize()}") << {
         configure(task) {
             reports.html.destination = file("${project.reporting.baseDir}/$name")
