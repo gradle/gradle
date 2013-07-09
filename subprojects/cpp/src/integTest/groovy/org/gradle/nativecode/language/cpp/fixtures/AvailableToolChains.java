@@ -34,7 +34,7 @@ public class AvailableToolChains {
             compilers.add(findMinGW());
             compilers.add(findCygwin());
         } else {
-            compilers.add(findGpp("3", "/opt/gcc/3.4.6/g++"));
+            compilers.add(findGpp("3", "/opt/gcc/3.4.6/bin/g++"));
             compilers.add(findGpp("4", null));
         }
         return compilers;
