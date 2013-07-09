@@ -19,6 +19,7 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testing.jacoco.tasks.JacocoMerge
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -162,6 +163,30 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedTasks.contains(":jacocoTestReport")
         file(REPORT_HTML_DEFAULT_PATH).exists()
+    }
+
+    void canMergeCoverageData() {
+        given:
+        buildFile << """
+            task otherTests(type: Test) {
+                binResultsDir file("bin")
+                testSrcDirs = test.testSrcDirs
+                testClassesDir = test.testClassesDir
+                classpath = test.classpath
+            }
+
+            task jacocoMerge(type: ${JacocoMerge.name}) {
+                executionData test, otherTests
+            }
+        """
+        when:
+        succeeds 'jacocoMerge'
+
+        then:
+        ":jacocoMerge" in nonSkippedTasks
+        ":test" in nonSkippedTasks
+        ":otherTests" in nonSkippedTasks
+        file("build/jacoco/jacocoMerge.exec").exists()
     }
 
     private void createTestFiles() {
