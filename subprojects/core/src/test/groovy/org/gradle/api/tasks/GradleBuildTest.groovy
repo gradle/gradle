@@ -18,54 +18,39 @@ package org.gradle.api.tasks
 import org.gradle.BuildResult
 import org.gradle.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
-import org.gradle.api.internal.AbstractTask
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
 
-public class GradleBuildTest extends AbstractTaskTest {
-    GradleLauncherFactory launcherFactoryMock = context.mock(GradleLauncherFactory.class)
-    GradleBuild task
+public class GradleBuildTest extends Specification {
+    GradleLauncherFactory launcherFactory = Mock()
+    GradleBuild task = HelperUtil.createTask(GradleBuild, [gradleLauncherFactory: launcherFactory])
 
-    AbstractTask getTask() {
-        return task
-    }
-
-    @Before
-    void setUp() {
-        task = createTask(GradleBuild.class)
-        GradleLauncher.injectCustomFactory(launcherFactoryMock)
-    }
-
-    @After
-    void tearDown() {
-        GradleLauncher.injectCustomFactory(null)
-    }
-
-    @Test
     void usesCopyOfCurrentBuildsStartParams() {
-        def expectedStartParameter = project.gradle.startParameter.newBuild()
-        expectedStartParameter.currentDir = project.projectDir
-        assertThat(task.startParameter, equalTo(expectedStartParameter))
+        def expectedStartParameter = task.project.gradle.startParameter.newBuild()
+        expectedStartParameter.currentDir = task.project.projectDir
+
+        expect:
+        task.startParameter == expectedStartParameter
+
+        when:
         task.tasks = ['a', 'b']
-        assertThat(task.tasks, equalTo(['a', 'b']))
-        assertThat(task.startParameter.taskNames, equalTo(['a', 'b']))
+
+        then:
+        task.tasks == ['a', 'b']
+        task.startParameter.taskNames == ['a', 'b']
     }
 
-    @Test
     void executesBuild() {
-        GradleLauncher launcherMock = context.mock(GradleLauncher.class)
-        BuildResult resultMock = context.mock(BuildResult.class)
+        GradleLauncher launcher = Mock()
+        BuildResult resultMock = Mock()
 
-        context.checking {
-            one(launcherFactoryMock).newInstance(task.startParameter)
-            will(returnValue(launcherMock))
-            one(launcherMock).run()
-            will(returnValue(resultMock))
-            one(resultMock).rethrowFailure()
-        }
+        when:
         task.build()
+
+        then:
+        1 * launcherFactory.newInstance(task.startParameter) >> launcher
+        1 * launcher.run() >> resultMock
+        1 * resultMock.rethrowFailure()
+        0 * _._
     }
 }
