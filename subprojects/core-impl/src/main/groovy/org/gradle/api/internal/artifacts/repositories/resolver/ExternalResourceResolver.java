@@ -66,7 +66,6 @@ import java.util.*;
 public class ExternalResourceResolver implements ModuleVersionPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
-    private final String identifier;
     private final MetaDataParser metaDataParser;
 
     private List<String> ivyPatterns = new ArrayList<String>();
@@ -108,11 +107,10 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.metaDataParser = metaDataParser;
-        this.identifier = DependencyResolverIdentifier.forExternalResourceResolver(this);
     }
 
     public String getId() {
-        return identifier;
+        return DependencyResolverIdentifier.forExternalResourceResolver(this);
     }
 
     public String getName() {
