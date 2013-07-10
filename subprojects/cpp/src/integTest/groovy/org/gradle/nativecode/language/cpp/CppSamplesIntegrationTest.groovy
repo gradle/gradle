@@ -23,6 +23,7 @@ import org.junit.Rule
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
+    @Rule public final Sample c = new Sample(temporaryFolder, 'cpp/c')
     @Rule public final Sample cpp = new Sample(temporaryFolder, 'cpp/cpp')
     @Rule public final Sample cppExe = new Sample(temporaryFolder, 'cpp/cpp-exe')
     @Rule public final Sample cppLib = new Sample(temporaryFolder, 'cpp/cpp-lib')
@@ -30,13 +31,28 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     @Rule public final Sample variants = new Sample(temporaryFolder, 'cpp/variants')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'cpp/dependencies')
 
-    def "cpp"() {
+    def "c"() {
         given:
-        sample cpp
+        sample c
         
         when:
         run "installMainExecutable"
         
+        then:
+        executedAndNotSkipped ":compileHelloSharedLibraryLibC", ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutableExeC", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        normaliseLineSeparators(executable("cpp/c/build/install/mainExecutable/main").exec().out) == "Hello world!"
+    }
+
+    def "cpp"() {
+        given:
+        sample cpp
+
+        when:
+        run "installMainExecutable"
+
         then:
         executedAndNotSkipped ":compileHelloSharedLibraryLibCpp", ":linkHelloSharedLibrary", ":helloSharedLibrary",
                               ":compileMainExecutableExeCpp", ":linkMainExecutable", ":mainExecutable"
