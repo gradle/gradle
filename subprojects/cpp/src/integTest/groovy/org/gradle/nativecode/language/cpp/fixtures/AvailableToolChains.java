@@ -56,12 +56,14 @@ public class AvailableToolChains {
             File vcDir = binDir.getParentFile();
             File baseDir = vcDir.getParentFile();
             File sdkDir = new File(baseDir.getParentFile(), "Microsoft SDKs/Windows/v7.0A");
-            return new InstalledToolChain("visual c++",
-                    new File(baseDir, "Common7/IDE"), 
-                    binDir, 
-                    new File(baseDir, "Common7/Tools"), 
-                    new File(vcDir, "VCPackages"),
-                    new File(sdkDir, "Bin"))
+            return new InstalledToolChain("visual c++")
+                    .inPath(
+                        new File(baseDir, "Common7/IDE"),
+                        binDir,
+                        new File(baseDir, "Common7/Tools"),
+                        new File(vcDir, "VCPackages"),
+                        new File(sdkDir, "Bin")
+                    )
                     .envVar("INCLUDE", new File(vcDir, "include").getAbsolutePath())
                     .envVar("LIB", new File(vcDir, "lib").getAbsolutePath() + File.pathSeparator + new File(sdkDir, "lib").getAbsolutePath());
         }
@@ -73,7 +75,7 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/MinGW/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledToolChain("mingw", compilerExe.getParentFile());
+            return new InstalledToolChain("mingw").inPath(compilerExe.getParentFile());
         }
 
         return new UnavailableToolChain("mingw");
@@ -83,7 +85,7 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/cygwin/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledToolChain("g++ cygwin", compilerExe.getParentFile());
+            return new InstalledToolChain("g++ cygwin").inPath(compilerExe.getParentFile());
         }
 
         return new UnavailableToolChain("g++ cygwin");
@@ -92,16 +94,24 @@ public class AvailableToolChains {
     static private ToolChainCandidate findGpp(String versionPrefix, String hardcodedFallback) {
         String name = String.format("g++ %s", versionPrefix);
         GppVersionDeterminer versionDeterminer = new GppVersionDeterminer();
-        for (File candidate : OperatingSystem.current().findAllInPath("g++")) {
+
+        List<File> gppCandidates = OperatingSystem.current().findAllInPath("g++");
+        for (int i = 0; i < gppCandidates.size(); i++) {
+            File candidate = gppCandidates.get(i);
             if (versionDeterminer.transform(candidate).startsWith(versionPrefix)) {
-                return new InstalledToolChain(name, candidate.getParentFile());
+                InstalledToolChain installedToolChain = new InstalledToolChain(name);
+                if (i > 0) {
+                    // Not the first g++ in the path, needs the path variable updated
+                    installedToolChain.inPath(candidate.getParentFile());
+                }
+                return installedToolChain;
             }
         }
 
         if (hardcodedFallback != null) {
             File fallback = new File(hardcodedFallback);
             if (fallback.isFile()) {
-                return new InstalledToolChain(name, fallback.getParentFile());
+                return new InstalledToolChain(name).inPath(fallback.getParentFile());
             }
         }
 
@@ -155,6 +165,11 @@ public class AvailableToolChains {
 
         InstalledToolChain envVar(String key, String value) {
             environmentVars.put(key, value);
+            return this;
+        }
+
+        InstalledToolChain inPath(File... pathEntries) {
+            Collections.addAll(this.pathEntries, pathEntries);
             return this;
         }
 
