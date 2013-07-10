@@ -73,6 +73,8 @@ We're doing 6 reads to load the history (3 x index lookups and 3 x data chunks),
 and 7 reads and 8 writes to write the history (4 x reads and 4 x writes for the ids, 3 x index lookups, 3 x index writes and 3 x data chunk writes).
 Instead, we should stream the history, so that for reading there's 1 index lookup and one or more data chunk reads (one for most tasks)
 and for writing there's 1 index lookup, one index write and one or more data chunk writes (one for most tasks).
+3. I came across a task that had a zipTree on input and up-to-date calculation took 30 minutes.
+It's because the hashes are taken every individual file inside of the zipTree and in my case the zip was 0.5g.
 
 # Other
 
