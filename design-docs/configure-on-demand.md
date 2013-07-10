@@ -203,3 +203,23 @@ When running with `--no-rebuild`, the target project of any project dependency s
 ## Allow build and project and task lifecycle events to be received in decoupled mode
 
 - Deprecate `BuildListener` and others.
+
+## Make gradle CoD 'load' projects on demand
+
+    * Currently, CoD makes projects configured on demand. However, all project instances are created beforehand.
+    In gigantic projects this means that a lot of memory is used for projects that may not be used at all.
+    * Profiling large builds is inconvenient due the extra instances hanging around
+
+### User visible changes
+
+Faster & less memory-hungry builds when CoD is used and the user builds only a subset of projects
+
+### Coverage
+
+Not sure if this can be tested in an integ-test fashion
+
+### Implementation plan
+
+    * If we start loading projects on demand, the 'allprojects' and 'subprojects' script blocks will stop working.
+    So the prerequisite to this story might be starting with our Gradle 2.0 idea of pushing allprojects / subprojects / common settings to settings.gradle.
+    * Perhaps it's time to make projects a domain object container and allprojects can be replaced with 'projects.all'
