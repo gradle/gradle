@@ -151,15 +151,14 @@ public class AvailableToolChains {
     
     public static class InstalledToolChain extends ToolChainCandidate {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
-        private final List<File> pathEntries;
+        private final List<File> pathEntries = new ArrayList<File>();
         private final Map<String, String> environmentVars = new HashMap<String, String>();
         private final String name;
         private final String pathVarName;
         private String originalPath;
 
-        public InstalledToolChain(String name, File... pathEntries) {
+        public InstalledToolChain(String name) {
             this.name = name;
-            this.pathEntries = Arrays.asList(pathEntries);
             this.pathVarName = !OperatingSystem.current().isWindows() ? "Path" : "PATH";
         }
 
