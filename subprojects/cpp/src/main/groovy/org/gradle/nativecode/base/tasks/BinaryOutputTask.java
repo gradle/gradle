@@ -19,7 +19,7 @@ package org.gradle.nativecode.base.tasks;
 /**
  * A task that combines a set of object files into a single binary.
  */
-public interface BinaryAssembleTask {
+public interface BinaryOutputTask {
     /**
      * Adds a set of object files to be combined.
      * The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.

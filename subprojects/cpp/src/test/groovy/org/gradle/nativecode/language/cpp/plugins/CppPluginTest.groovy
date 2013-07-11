@@ -17,7 +17,7 @@
 package org.gradle.nativecode.language.cpp.plugins
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.nativecode.base.tasks.AssembleStaticLibrary
+import org.gradle.nativecode.base.tasks.CreateStaticLibrary
 import org.gradle.nativecode.base.tasks.InstallExecutable
 import org.gradle.nativecode.base.tasks.LinkExecutable
 import org.gradle.nativecode.base.tasks.LinkSharedLibrary
@@ -215,15 +215,15 @@ class CppPluginTest extends Specification {
         staticCompile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
-        def staticLink = project.tasks.assembleTestStaticLibrary
-        staticLink instanceof AssembleStaticLibrary
+        def staticLink = project.tasks.createTestStaticLibrary
+        staticLink instanceof CreateStaticLibrary
         staticLink.toolChain == staticLib.toolChain
         staticLink.outputFile == staticLib.outputFile
         staticLink Matchers.dependsOn("compileTestStaticLibraryMainCpp")
 
         and:
         def staticLibraryTask = project.tasks.testStaticLibrary
-        staticLibraryTask Matchers.dependsOn("assembleTestStaticLibrary")
+        staticLibraryTask Matchers.dependsOn("createTestStaticLibrary")
 
         and:
         sharedLib.buildDependencies.getDependencies(null) == [sharedLibraryTask] as Set

@@ -27,7 +27,7 @@ import org.gradle.nativecode.base.internal.LinkerSpec
 import javax.inject.Inject
 
 @Incubating
-abstract class AbstractLinkTask extends DefaultTask implements BinaryAssembleTask {
+abstract class AbstractLinkTask extends DefaultTask implements BinaryOutputTask {
     private FileCollection source
 
     @Inject

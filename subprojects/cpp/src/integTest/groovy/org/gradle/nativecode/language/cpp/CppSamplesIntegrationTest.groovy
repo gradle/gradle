@@ -23,6 +23,7 @@ import org.junit.Rule
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
+    @Rule public final Sample asm = new Sample(temporaryFolder, 'cpp/asm')
     @Rule public final Sample c = new Sample(temporaryFolder, 'cpp/c')
     @Rule public final Sample cpp = new Sample(temporaryFolder, 'cpp/cpp')
     @Rule public final Sample cppExe = new Sample(temporaryFolder, 'cpp/cpp-exe')
@@ -94,7 +95,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "mainStaticLibrary"
         
         then:
-        executedAndNotSkipped ":compileMainStaticLibraryMainCpp", ":assembleMainStaticLibrary", ":mainStaticLibrary"
+        executedAndNotSkipped ":compileMainStaticLibraryMainCpp", ":createMainStaticLibrary", ":mainStaticLibrary"
         
         and:
         staticLibrary("cpp/cpp-lib/build/binaries/mainStaticLibrary/sampleLib").assertExists()
@@ -121,7 +122,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installFrenchExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloFrenchStaticLibraryLibCpp", ":assembleHelloFrenchStaticLibrary", ":helloFrenchStaticLibrary"
+        executedAndNotSkipped ":compileHelloFrenchStaticLibraryLibCpp", ":createHelloFrenchStaticLibrary", ":helloFrenchStaticLibrary"
         executedAndNotSkipped ":compileFrenchExecutableExeCpp", ":linkFrenchExecutable", ":frenchExecutable"
 
         and:

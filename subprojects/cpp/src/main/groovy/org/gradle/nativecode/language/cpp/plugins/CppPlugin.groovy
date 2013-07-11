@@ -49,7 +49,7 @@ import javax.inject.Inject
  *     <ul>
  *         <li>Create a {@link CppCompile} task named "compile${binary-name}" to compile the C++ sources.</li>
  *         <li>Create a {@link LinkExecutable} or {@link LinkSharedLibrary} task named "link${binary-name}
- *             or a {@link AssembleStaticLibrary} task name "assemble${binary-name}" to create the binary artifact.</li>
+ *             or a {@link CreateStaticLibrary} task name "create${binary-name}" to create the binary artifact.</li>
  *         <li>Create an InstallTask named "install${Binary-name}" to install any {@link ExecutableBinary} artifact.
  *     </ul>
  * </p>
@@ -129,7 +129,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     def createTasks(ProjectInternal project, NativeBinaryInternal binary) {
-        BinaryAssembleTask binaryAssembleTask
+        BinaryOutputTask binaryAssembleTask
         if (binary instanceof StaticLibraryBinary) {
             binaryAssembleTask = createStaticLibraryTask(project, binary)
         } else {
@@ -218,8 +218,8 @@ class CppPlugin implements Plugin<ProjectInternal> {
         return LinkExecutable
     }
 
-    private AssembleStaticLibrary createStaticLibraryTask(ProjectInternal project, NativeBinaryInternal binary) {
-        AssembleStaticLibrary task = project.task(binary.namingScheme.getTaskName("create"), type: AssembleStaticLibrary) {
+    private CreateStaticLibrary createStaticLibraryTask(ProjectInternal project, NativeBinaryInternal binary) {
+        CreateStaticLibrary task = project.task(binary.namingScheme.getTaskName("create"), type: CreateStaticLibrary) {
              description = "Creates ${binary}"
              group = BasePlugin.BUILD_GROUP
          }

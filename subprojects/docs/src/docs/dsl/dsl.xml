@@ -512,7 +512,7 @@
                 <td>org.gradle.nativecode.language.cpp.tasks.CppCompile</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.tasks.AssembleStaticLibrary</td>
+                <td>org.gradle.nativecode.base.tasks.CreateStaticLibrary</td>
             </tr>
             <tr>
                 <td>org.gradle.nativecode.base.tasks.LinkExecutable</td>

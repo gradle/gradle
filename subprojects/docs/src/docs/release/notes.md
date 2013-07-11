@@ -32,6 +32,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Changes to incubating C++ support
+
+* Renamed task class org.gradle.nativecode.base.tasks.AssembleStaticLibrary to org.gradle.nativecode.base.tasks.CreateStaticLibrary, with the
+  default task instance also being renamed from 'assemble${StaticLibraryName}' to 'create${StaticLibraryName}'
+
 <!--
 ### Example breaking change
 -->
