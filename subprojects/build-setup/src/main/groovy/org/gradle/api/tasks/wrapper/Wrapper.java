@@ -30,6 +30,7 @@ import org.gradle.wrapper.WrapperExecutor;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -88,7 +89,7 @@ public class Wrapper extends DefaultTask {
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         gradleVersion = GradleVersion.current();
-        defaultJvmOpts = Collections.emptyList();
+        defaultJvmOpts = new ArrayList<String>();
     }
 
     @TaskAction
@@ -221,6 +222,13 @@ public class Wrapper extends DefaultTask {
      */
     public void setDefaultJvmOpts(List<String> defaultJvmOpts) {
         this.defaultJvmOpts = defaultJvmOpts;
+    }
+
+    /**
+     * Options to pass to the JVM at startup.
+     */
+    public void defaultJvmOpts(String... defaultJvmOpts) {
+        Collections.addAll(this.defaultJvmOpts, defaultJvmOpts);
     }
 
     /**
