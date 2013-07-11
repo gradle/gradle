@@ -5,16 +5,12 @@ _main:
 	pushl	%ebp
 	movl	%esp, %ebp
 	subl	$8, %esp
-	movl	$L_.str, (%esp)
-	call	_puts
+	call	_hello
+	call	_goodbye
 	xorl	%eax, %eax
 	addl	$8, %esp
 	popl	%ebp
 	ret
-
-	.section	__TEXT,__cstring,cstring_literals
-L_.str:
-	.asciz	 "Hello world!\n"
 
 
 .subsections_via_symbols

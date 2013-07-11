@@ -32,6 +32,22 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     @Rule public final Sample variants = new Sample(temporaryFolder, 'cpp/variants')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'cpp/dependencies')
 
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "asm"() {
+        given:
+        sample asm
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":assembleHelloStaticLibraryHelloAsm", ":createHelloStaticLibrary", ":helloStaticLibrary",
+                              ":assembleMainExecutableMainAsm", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        normaliseLineSeparators(executable("cpp/asm/build/install/mainExecutable/main").exec().out) == "Hello world!\nGoodbye.\n"
+    }
+
     def "c"() {
         given:
         sample c

@@ -18,15 +18,23 @@ apply plugin: 'cpp'
 
 sources {
     main {}
+    hello {}
+}
+libraries {
+    hello {
+		source sources.hello.asm
+    }
 }
 executables {
     main {
-        baseName = project.name
-        binaries.all {
+	    binaries.all {
+            lib libraries.hello.static
             source sources.main.asm
-            assemblerArgs "-arch", "i386"
-            linkerArgs "-no_pie", "-arch", "i386"
-        }
+		}
     }
+}
+binaries.all {
+    assemblerArgs "-arch", "i386"
+    linkerArgs "-no_pie", "-arch", "i386"
 }
 
