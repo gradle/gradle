@@ -46,4 +46,27 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
         file("gradle/wrapper/gradle-wrapper.jar").length() < 51 * 1024
     }
+
+    def "defaultJvmOpts are empty by default"() {
+        when:
+        run "wrapper"
+
+        then:
+        file("gradlew").text.contains("DEFAULT_JVM_OPTS=\"\"")
+    }
+
+    def "defaultJvmOpts are wired up"() {
+        given:
+        buildFile << """
+            wrapper {
+                defaultJvmOpts('-XX:MaxPermSize=256m', '-Xmx1024m')
+            }
+        """
+
+        when:
+        run "wrapper"
+
+        then:
+        file("gradlew").text.contains("DEFAULT_JVM_OPTS='\"-XX:MaxPermSize=256m\" \"-Xmx1024m\"'")
+    }
 }
