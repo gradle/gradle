@@ -17,13 +17,12 @@
 package org.gradle.nativecode.toolchain.internal.gpp;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.nativecode.language.cpp.internal.AssembleSpec;
-import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.process.internal.ExecAction;
 
@@ -33,35 +32,36 @@ class Assembler implements Compiler<AssembleSpec> {
 
     private final CommandLineTool<AssembleSpec> commandLineTool;
 
-    public Assembler(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
-        this.commandLineTool = new CommandLineTool<AssembleSpec>(executable, execActionFactory)
-                .withArguments(useCommandFile ? viaCommandFile() : withoutCommandFile());
-    }
-
-    private static GccCompileSpecToArguments withoutCommandFile() {
-        return new GccCompileSpecToArguments();
-    }
-
-    private static CommandLineCompilerArgumentsToOptionFile<AssembleSpec> viaCommandFile() {
-        return new CommandLineCompilerArgumentsToOptionFile<AssembleSpec>(
-            ArgWriter.unixStyleFactory(), new GccCompileSpecToArguments()
-        );
+    public Assembler(File executable, Factory<ExecAction> execActionFactory) {
+        this.commandLineTool = new CommandLineTool<AssembleSpec>(executable, execActionFactory);
     }
 
     public WorkResult execute(AssembleSpec spec) {
-        return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
+        boolean didWork = false;
+        CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
+        for (File sourceFile : spec.getSource()) {
+            WorkResult result = commandLineAssembler.withArguments(new GccCompileSpecToArguments(sourceFile)).execute(spec);
+            didWork = didWork || result.getDidWork();
+        }
+        return new SimpleWorkResult(didWork);
     }
 
+
     private static class GccCompileSpecToArguments implements CompileSpecToArguments<AssembleSpec> {
+        private final File inputFile;
+        private final String outputFileName;
+
+        public GccCompileSpecToArguments(File inputFile) {
+            this.inputFile = inputFile;
+            this.outputFileName = inputFile.getName() + ".o";
+        }
+
         public void collectArguments(AssembleSpec spec, ArgCollector collector) {
             for (String rawArg : spec.getArgs()) {
                 collector.args(rawArg);
             }
-            // TODO:DAZ Should run 'as' once per input file (to create individual object files).
-            collector.args("-o", new File(spec.getObjectFileDir(), "output.o").getAbsolutePath());
-            for (File file : spec.getSource()) {
-                collector.args(file.getAbsolutePath());
-            }
+            collector.args("-o", outputFileName);
+            collector.args(inputFile.getAbsolutePath());
         }
     }
 }

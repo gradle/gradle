@@ -25,6 +25,7 @@ executables {
         binaries.all {
             source sources.main.asm
             assemblerArgs "-arch", "i386"
+            linkerArgs "-no_pie", "-arch", "i386"
         }
     }
 }

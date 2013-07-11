@@ -112,7 +112,7 @@ public class GppToolChain extends AbstractToolChain {
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
         checkAvailable();
-        return (Compiler<T>) new Assembler(asExecutable, execActionFactory, false);
+        return (Compiler<T>) new Assembler(asExecutable, execActionFactory);
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {
