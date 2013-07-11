@@ -33,9 +33,9 @@ public class CopySpecVisitorDriver {
         this.fileSystem = fileSystem;
     }
 
-    void visit(CopyAction copyAction, Iterable<ReadableCopySpec> specs, final CopySpecVisitor visitor) {
+    void visit(CopyAction copyAction, Iterable<CopySpecInternal> specs, final CopySpecVisitor visitor) {
         visitor.startVisit(copyAction);
-        for (final ReadableCopySpec spec : specs) {
+        for (final CopySpecInternal spec : specs) {
             visitor.visitSpec(spec);
             FileTree source = spec.getSource();
             source.visit(new FileVisitor() {

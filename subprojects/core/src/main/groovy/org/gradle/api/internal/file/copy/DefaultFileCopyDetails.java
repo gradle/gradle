@@ -27,7 +27,7 @@ import java.util.Map;
 
 class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetails {
     private final FileVisitDetails fileDetails;
-    private final ReadableCopySpec spec;
+    private final CopySpecInternal spec;
     private FileSystem fileSystem;
     private final FilterChain filterChain = new FilterChain();
     private RelativePath relativePath;
@@ -35,7 +35,7 @@ class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisi
     private Integer mode;
     private DuplicatesStrategy duplicatesStrategy;
 
-    public DefaultFileCopyDetails(FileVisitDetails fileDetails, ReadableCopySpec spec, FileSystem fileSystem) {
+    public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecInternal spec, FileSystem fileSystem) {
         this.fileDetails = fileDetails;
         this.spec = spec;
         this.fileSystem = fileSystem;

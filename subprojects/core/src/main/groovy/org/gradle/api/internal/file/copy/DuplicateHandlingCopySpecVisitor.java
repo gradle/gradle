@@ -32,7 +32,7 @@ import java.util.Set;
 public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor {
 
     private final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
-    private ReadableCopySpec spec;
+    private CopySpecInternal spec;
     private boolean warnOnIncludeDuplicate;
 
     public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
@@ -40,7 +40,7 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
         this.warnOnIncludeDuplicate = warnOnIncludeDuplicate;
     }
 
-    public void visitSpec(ReadableCopySpec spec) {
+    public void visitSpec(CopySpecInternal spec) {
         this.spec = spec;
         super.visitSpec(spec);
     }

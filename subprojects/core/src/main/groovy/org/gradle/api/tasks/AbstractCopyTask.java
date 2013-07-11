@@ -20,8 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
+import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.CopySpecSource;
-import org.gradle.api.internal.file.copy.ReadableCopySpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
@@ -81,7 +81,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     
     protected abstract CopyActionImpl getCopyAction();
 
-    public ReadableCopySpec getRootSpec() {
+    public CopySpecInternal getRootSpec() {
         return getCopyAction().getRootSpec();
     }
 

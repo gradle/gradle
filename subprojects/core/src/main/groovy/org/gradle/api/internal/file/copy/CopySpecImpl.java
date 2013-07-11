@@ -36,12 +36,12 @@ import java.util.regex.Pattern;
 /**
  * @author Steve Appling
  */
-public class CopySpecImpl implements CopySpec, ReadableCopySpec {
+public class CopySpecImpl implements CopySpec, CopySpecInternal {
     private final FileResolver resolver;
     private final Set<Object> sourcePaths;
     private Object destDir;
     private final PatternSet patternSet;
-    private final List<ReadableCopySpec> childSpecs;
+    private final List<CopySpecInternal> childSpecs;
     private final Instantiator instantiator;
     private final CopySpecImpl parentSpec;
     private final List<Action<? super FileCopyDetails>> actions = new ArrayList<Action<? super FileCopyDetails>>();
@@ -58,7 +58,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         this.instantiator = instantiator;
         this.pathNotationParser = new PathNotationParser<String>();
         sourcePaths = new LinkedHashSet<Object>();
-        childSpecs = new ArrayList<ReadableCopySpec>();
+        childSpecs = new ArrayList<CopySpecInternal>();
         patternSet = new PatternSet();
         duplicatesStrategy = null; //inherit from parent
     }
@@ -73,14 +73,14 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
 
     public CopySpec with(CopySpec... copySpecs) {
         for (CopySpec copySpec : copySpecs) {
-            ReadableCopySpec readableCopySpec;
+            CopySpecInternal copySpecInternal;
             if (copySpec instanceof CopySpecSource) {
                 CopySpecSource copySpecSource = (CopySpecSource) copySpec;
-                readableCopySpec = copySpecSource.getRootSpec();
+                copySpecInternal = copySpecSource.getRootSpec();
             } else {
-                readableCopySpec = (ReadableCopySpec) copySpec;
+                copySpecInternal = (CopySpecInternal) copySpec;
             }
-            childSpecs.add(new WrapperCopySpec(this, readableCopySpec));
+            childSpecs.add(new WrapperCopySpec(this, copySpecInternal));
         }
         return this;
     }
@@ -124,10 +124,10 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         return resolver.resolveFilesAsTree(sourcePaths).matching(getPatternSet());
     }
 
-    public List<ReadableCopySpec> getAllSpecs() {
-        List<ReadableCopySpec> result = new ArrayList<ReadableCopySpec>();
+    public List<CopySpecInternal> getAllSpecs() {
+        List<CopySpecInternal> result = new ArrayList<CopySpecInternal>();
         result.add(this);
-        for (ReadableCopySpec childSpec : childSpecs) {
+        for (CopySpecInternal childSpec : childSpecs) {
             result.addAll(childSpec.getAllSpecs());
         }
         return result;
@@ -435,7 +435,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         if (!sourcePaths.isEmpty()) {
             return true;
         }
-        for (ReadableCopySpec spec : childSpecs) {
+        for (CopySpecInternal spec : childSpecs) {
             if (spec.hasSource()) {
                 return true;
             }
@@ -443,11 +443,11 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         return false;
     }
 
-    private static class WrapperCopySpec implements ReadableCopySpec {
-        private final ReadableCopySpec root;
-        private final ReadableCopySpec spec;
+    private static class WrapperCopySpec implements CopySpecInternal {
+        private final CopySpecInternal root;
+        private final CopySpecInternal spec;
 
-        public WrapperCopySpec(ReadableCopySpec root, ReadableCopySpec spec) {
+        public WrapperCopySpec(CopySpecInternal root, CopySpecInternal spec) {
             this.root = root;
             this.spec = spec;
         }
@@ -468,9 +468,9 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
             return spec.getSource();
         }
 
-        public Collection<? extends ReadableCopySpec> getAllSpecs() {
+        public Collection<? extends CopySpecInternal> getAllSpecs() {
             List<WrapperCopySpec> specs = new ArrayList<WrapperCopySpec>();
-            for (ReadableCopySpec child : spec.getAllSpecs()) {
+            for (CopySpecInternal child : spec.getAllSpecs()) {
                 specs.add(new WrapperCopySpec(root, child));
             }
             return specs;

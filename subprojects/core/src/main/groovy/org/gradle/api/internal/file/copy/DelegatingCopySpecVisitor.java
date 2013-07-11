@@ -36,7 +36,7 @@ public class DelegatingCopySpecVisitor implements CopySpecVisitor {
         getVisitor().endVisit();
     }
 
-    public void visitSpec(ReadableCopySpec spec) {
+    public void visitSpec(CopySpecInternal spec) {
         getVisitor().visitSpec(spec);
     }
 

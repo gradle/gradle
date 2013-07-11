@@ -29,7 +29,7 @@ import spock.lang.Specification
  */
 class DuplicateHandlingCopySpecVisitorTest extends Specification {
 
-    private static interface MyCopySpec extends CopySpec, ReadableCopySpec {}
+    private static interface MyCopySpec extends CopySpec, CopySpecInternal {}
 
     def fileSystem = Mock(FileSystem)
     def delegate = Mock(FileCopySpecVisitor)

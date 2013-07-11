@@ -78,7 +78,7 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
 
     public FileTree getAllSource() {
         List<FileTree> sources = new ArrayList<FileTree>();
-        for (ReadableCopySpec spec : root.getAllSpecs()) {
+        for (CopySpecInternal spec : root.getAllSpecs()) {
             FileTree source = spec.getSource();
             sources.add(source);
         }

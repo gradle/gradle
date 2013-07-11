@@ -23,7 +23,7 @@ import org.gradle.api.file.RelativePath;
 
 import java.util.Collection;
 
-public interface ReadableCopySpec {
+public interface CopySpecInternal {
     RelativePath getDestPath();
 
     Integer getFileMode();
@@ -32,7 +32,7 @@ public interface ReadableCopySpec {
 
     FileTree getSource();
 
-    Collection<? extends ReadableCopySpec> getAllSpecs();
+    Collection<? extends CopySpecInternal> getAllSpecs();
 
     boolean hasSource();
 

@@ -32,7 +32,7 @@ public interface CopySpecVisitor extends WorkResult {
     /**
      * Visits a spec. Called before any of the files or directories of the spec are visited.
      */
-    void visitSpec(ReadableCopySpec spec);
+    void visitSpec(CopySpecInternal spec);
 
     /**
      * Visits a directory.

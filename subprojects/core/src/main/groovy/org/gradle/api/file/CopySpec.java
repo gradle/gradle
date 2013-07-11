@@ -18,6 +18,7 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 
@@ -67,6 +68,7 @@ import java.util.regex.Pattern;
  * @see org.gradle.api.tasks.Copy Copy Task
  * @see org.gradle.api.Project#copy(groovy.lang.Closure) Project.copy()
  */
+@HasInternalProtocol
 public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFilterable {
     /**
      * Specifies whether case-sensitive pattern matching should be used.

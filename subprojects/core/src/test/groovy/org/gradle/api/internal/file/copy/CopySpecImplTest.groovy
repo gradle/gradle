@@ -126,7 +126,7 @@ public class CopySpecImplTest {
         spec.into 'spec'
         spec.with other
 
-        ReadableCopySpec child = spec.childSpecs[0]
+        CopySpecInternal child = spec.childSpecs[0]
         assertThat(child.destPath, equalTo(new RelativePath(false, 'spec', 'other')))
     }
 

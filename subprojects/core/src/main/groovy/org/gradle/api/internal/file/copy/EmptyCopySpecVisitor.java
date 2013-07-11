@@ -34,6 +34,6 @@ public class EmptyCopySpecVisitor implements CopySpecVisitor {
     public void visitFile(FileCopyDetails fileDetails) {
     }
 
-    public void visitSpec(ReadableCopySpec spec) {
+    public void visitSpec(CopySpecInternal spec) {
     }
 }

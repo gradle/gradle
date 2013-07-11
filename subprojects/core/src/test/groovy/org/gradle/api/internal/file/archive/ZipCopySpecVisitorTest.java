@@ -21,7 +21,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
-import org.gradle.api.internal.file.copy.ReadableCopySpec;
+import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.ZipDeflatedCompressor;
 import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 import org.gradle.test.fixtures.file.TestFile;
@@ -52,7 +52,7 @@ public class ZipCopySpecVisitorTest {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ArchiveCopyAction copyAction = context.mock(ZipCopyAction.class);
-    private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
+    private final CopySpecInternal copySpec = context.mock(CopySpecInternal.class);
     private final ZipCopySpecVisitor visitor = new ZipCopySpecVisitor();
     private TestFile zipFile;
 

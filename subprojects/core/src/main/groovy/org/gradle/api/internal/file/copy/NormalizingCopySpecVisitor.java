@@ -31,7 +31,7 @@ import java.util.*;
  * A {@link CopySpecVisitor} which cleans up the tree as it is visited. Removes duplicate directories and adds in missing directories. Removes empty directories if instructed to do so by copy spec.
  */
 public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
-    private ReadableCopySpec spec;
+    private CopySpecInternal spec;
     private final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
     private final Map<RelativePath, FileCopyDetails> pendingDirs = new HashMap<RelativePath, FileCopyDetails>();
 
@@ -40,7 +40,7 @@ public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
     }
 
     @Override
-    public void visitSpec(ReadableCopySpec spec) {
+    public void visitSpec(CopySpecInternal spec) {
         this.spec = spec;
         getVisitor().visitSpec(spec);
     }

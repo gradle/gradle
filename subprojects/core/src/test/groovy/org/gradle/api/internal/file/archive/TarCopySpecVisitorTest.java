@@ -25,7 +25,7 @@ import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
-import org.gradle.api.internal.file.copy.ReadableCopySpec;
+import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.hamcrest.Description;
@@ -53,7 +53,7 @@ public class TarCopySpecVisitorTest {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
-    private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
+    private final CopySpecInternal copySpec = context.mock(CopySpecInternal.class);
     private final TarCopySpecVisitor visitor = new TarCopySpecVisitor();
 
     @Test
