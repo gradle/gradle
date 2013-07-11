@@ -101,3 +101,43 @@ TBD
 # Open issues
 
 Migration strategy for removing the existing native integrations.
+
+# Story: add basic notion of progress to the command line output
+
+    * While working on very large projects I really need to know what's build progress.
+    * "Loading" is especially annoying because at lifecycle log level the user may see the "Loading" message for a long time
+    (e.g. the build may be perceived as hanging)
+    * The intention of this story is to add small and cheap improvements to the progress messages without overdoing it.
+    There are lots of things we could do to improve the progress information.
+
+## User visible changes
+
+The progress info in the console contains extra information:
+
+1. Build progress based on tasks completed:
+
+> Building 23%
+> Building 45% > :someProject:someTask > Resolving configuration
+
+2. Load progress based on projects configured:
+
+> Loading 14%
+
+3. Perhaps add project path informing which project is being configured:
+
+> Loading 44% > :someProject:foo
+
+## Coverage
+
+* unit test coverage
+* find out how this stuff is integ tested at the moment
+* make sure the feature works well in parallel build, configure on demand
+
+## Open issues / limitations
+
+    * In configure-on-demand mode the loading % progress will be slightly incorrect
+    because we don't know how many projects will be configured. So it may happen that all projects will be loaded at 4% of progress.
+    However, I think it is still useful to see what's the percentage of projects that were configured during given build run.
+    Alternatively, we can drop the % progress for "Loading".
+
+
