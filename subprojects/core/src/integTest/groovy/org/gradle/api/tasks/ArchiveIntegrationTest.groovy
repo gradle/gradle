@@ -31,25 +31,6 @@ import static org.hamcrest.Matchers.equalTo
 
 public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
-    def "require zip destination"() {
-        given:
-        file("file.txt").text = "something"
-        buildScript """
-            task zip(type: Zip) {
-                from "file.txt"
-                doLast {
-                    println archivePath
-                }
-            }
-        """
-
-        when:
-        fails "zip"
-
-        then:
-        false
-    }
-
     def canCopyFromAZip() {
         given:
         createZip('test.zip') {
