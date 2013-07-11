@@ -37,6 +37,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final ResolvableNativeDependencySet libs = new ResolvableNativeDependencySet();
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final ArrayList<Object> compilerArgs = new ArrayList<Object>();
+    private final ArrayList<Object> assemblerArgs = new ArrayList<Object>();
     private final ArrayList<Object> linkerArgs = new ArrayList<Object>();
     private final ArrayList<Object> defines = new ArrayList<Object>();
     private final TaskNamerForBinaries namer;
@@ -101,6 +102,14 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
 
     public void compilerArgs(Object... args) {
         Collections.addAll(compilerArgs, args);
+    }
+
+    public List<Object> getAssemblerArgs() {
+        return assemblerArgs;
+    }
+
+    public void assemblerArgs(Object... args) {
+        Collections.addAll(assemblerArgs, args);
     }
 
     public List<Object> getLinkerArgs() {

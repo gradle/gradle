@@ -40,10 +40,12 @@ public class GppToolChain extends AbstractToolChain {
     private static final String GPP = "g++";
     private static final String GCC = "gcc";
     private static final String AR = "ar";
+    private static final String AS = "as";
 
     private final File gppExecutable;
     private final File gccExecutable;
     private final File arExecutable;
+    private final File asExecutable;
     private final Factory<ExecAction> execActionFactory;
     private final Transformer<String, File> versionDeterminer;
 
@@ -51,9 +53,11 @@ public class GppToolChain extends AbstractToolChain {
 
     public GppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
         super(operatingSystem);
+        // TODO:DAZ Extract something here
         gppExecutable = findExecutable(operatingSystem, GPP);
         gccExecutable = findExecutable(operatingSystem, GCC);
         arExecutable = operatingSystem.findInPath(AR);
+        asExecutable = operatingSystem.findInPath(AS);
         this.execActionFactory = execActionFactory;
         this.versionDeterminer = new GppVersionDeterminer();
     }
@@ -89,6 +93,7 @@ public class GppToolChain extends AbstractToolChain {
         availability.mustExist(GPP, gppExecutable);
         availability.mustExist(GCC, gccExecutable);
         availability.mustExist(AR, arExecutable);
+        availability.mustExist(AS, asExecutable);
         determineVersion();
         if (version == null) {
             availability.unavailable("Could not determine G++ version");
@@ -103,6 +108,11 @@ public class GppToolChain extends AbstractToolChain {
     public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
         checkAvailable();
         return (Compiler<T>) new CCompiler(gccExecutable, execActionFactory, canUseCommandFile(version));
+    }
+
+    public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
+        checkAvailable();
+        return (Compiler<T>) new Assembler(asExecutable, execActionFactory, false);
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {

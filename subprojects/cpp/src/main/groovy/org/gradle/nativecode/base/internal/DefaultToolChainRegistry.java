@@ -88,6 +88,10 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
             throw failure();
         }
 
+        public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
+            throw failure();
+        }
+
         public <T extends LinkerSpec> Compiler<T> createLinker() {
             throw failure();
         }

@@ -75,6 +75,10 @@ public class VisualCppToolChain extends AbstractToolChain {
         return (Compiler<T>) new CCompiler(compilerExe, execActionFactory);
     }
 
+    public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
+        throw new UnsupportedOperationException();
+    }
+
     public <T extends LinkerSpec> Compiler<T> createLinker() {
         return (Compiler<T>) new LinkExeLinker(linkerExe, execActionFactory);
     }

@@ -27,10 +27,13 @@ import org.gradle.nativecode.base.*
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.base.plugins.BinariesPlugin
 import org.gradle.nativecode.base.tasks.*
+import org.gradle.nativecode.language.cpp.AssemblerSourceSet
 import org.gradle.nativecode.language.cpp.CSourceSet
 import org.gradle.nativecode.language.cpp.CppSourceSet
+import org.gradle.nativecode.language.cpp.internal.DefaultAssemblerSourceSet
 import org.gradle.nativecode.language.cpp.internal.DefaultCSourceSet
 import org.gradle.nativecode.language.cpp.internal.DefaultCppSourceSet
+import org.gradle.nativecode.language.cpp.tasks.Assemble
 import org.gradle.nativecode.language.cpp.tasks.CCompile
 import org.gradle.nativecode.language.cpp.tasks.CppCompile
 import org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin
@@ -92,6 +95,16 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
                 // TODO:DAZ Need to split out this convention from the rest of the base language support
                 functionalSourceSet.add(instantiator.newInstance(DefaultCSourceSet.class, "c", functionalSourceSet.getName(), project));
+
+                // Defaults for all assembler source sets
+                functionalSourceSet.withType(AssemblerSourceSet).all(new Action<AssemblerSourceSet>() {
+                    void execute(AssemblerSourceSet sourceSet) {
+                        sourceSet.source.srcDir "src/${functionalSourceSet.name}/asm"
+                    }
+                })
+
+                // TODO:DAZ Need to split out this convention from the rest of the base language support
+                functionalSourceSet.add(instantiator.newInstance(DefaultAssemblerSourceSet.class, "asm", functionalSourceSet.getName(), project));
             }
         });
 
@@ -134,6 +147,11 @@ class CppPlugin implements Plugin<ProjectInternal> {
             binaryAssembleTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
         }
 
+        binary.source.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->
+            def compileTask = createAssembleTask(project, binary, sourceSet)
+            binaryAssembleTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+        }
+
         if (binary instanceof ExecutableBinary) {
             createInstallTask(project, (NativeBinaryInternal) binary);
         }
@@ -158,6 +176,22 @@ class CppPlugin implements Plugin<ProjectInternal> {
         compileTask.conventionMapping.compilerArgs = { binary.compilerArgs }
 
         compileTask
+    }
+
+    private def createAssembleTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
+        def assembleTask = project.task(binary.namingScheme.getTaskName("assemble", sourceSet.fullName), type: Assemble) {
+            description = "Assembles the $sourceSet sources of $binary"
+        }
+
+        assembleTask.toolChain = binary.toolChain
+
+        assembleTask.source sourceSet.source
+
+        assembleTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
+        assembleTask.conventionMapping.macros = { binary.macros }
+        assembleTask.conventionMapping.assemblerArgs = { binary.assemblerArgs }
+
+        assembleTask
     }
 
     private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinaryInternal binary) {
@@ -185,7 +219,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     private AssembleStaticLibrary createStaticLibraryTask(ProjectInternal project, NativeBinaryInternal binary) {
-        AssembleStaticLibrary task = project.task(binary.namingScheme.getTaskName("assemble"), type: AssembleStaticLibrary) {
+        AssembleStaticLibrary task = project.task(binary.namingScheme.getTaskName("create"), type: AssembleStaticLibrary) {
              description = "Creates ${binary}"
              group = BasePlugin.BUILD_GROUP
          }

@@ -26,6 +26,8 @@ public interface ToolChainInternal extends ToolChain {
 
     <T extends BinaryToolSpec> Compiler<T> createCCompiler();
 
+    <T extends BinaryToolSpec> Compiler<T> createAssembler();
+
     <T extends LinkerSpec> Compiler<T> createLinker();
 
     <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver();

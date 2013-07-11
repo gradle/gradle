@@ -103,6 +103,16 @@ public interface NativeBinary extends Binary {
     void compilerArgs(Object... args);
 
     /**
+     * The arguments passed when assembling this binary.
+     */
+    List<Object> getAssemblerArgs();
+
+    /**
+     * Adds a number of arguments to be passed to the assembler.
+     */
+    void assemblerArgs(Object... args);
+
+    /**
      * The arguments passed when linking this binary.
      */
     List<Object> getLinkerArgs();

@@ -19,6 +19,7 @@ package org.gradle.nativecode.toolchain.internal.msvcpp;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.nativecode.base.internal.*;
 
+// TODO:DAZ Merge with DefaultToolChainRegistry.UnavailableToolChain
 public class UnavailableToolChain implements ToolChainInternal {
     public String getName() {
         return VisualCppToolChain.NAME;
@@ -33,11 +34,15 @@ public class UnavailableToolChain implements ToolChainInternal {
         return new ToolChainAvailability().unavailable("Visual C++ is not available on this operating system.");
     }
 
-    public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCppCompiler() {
+    public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
         throw new UnsupportedOperationException();
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
+        throw new UnsupportedOperationException();
+    }
+
+    public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
         throw new UnsupportedOperationException();
     }
 
