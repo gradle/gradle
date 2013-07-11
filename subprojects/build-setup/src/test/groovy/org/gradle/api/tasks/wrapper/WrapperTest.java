@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Properties;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -72,6 +73,7 @@ public class WrapperTest extends AbstractTaskTest {
         assertEquals(new File(getProject().getProjectDir(), "gradlew"), wrapper.getScriptFile());
         assertEquals(new File(getProject().getProjectDir(), "gradlew.bat"), wrapper.getBatchScript());
         assertEquals(GradleVersion.current().getVersion(), wrapper.getGradleVersion());
+        assertEquals(Collections.emptyList(), wrapper.getDefaultJvmOpts());
         assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getDistributionPath());
         assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getArchivePath());
         assertEquals(Wrapper.PathBase.GRADLE_USER_HOME, wrapper.getDistributionBase());
@@ -127,7 +129,7 @@ public class WrapperTest extends AbstractTaskTest {
     @Test
     public void testCheckInputs() throws IOException {
         assertThat(wrapper.getInputs().getProperties().keySet(),
-                equalTo(WrapUtil.toSet("distributionBase", "distributionPath", "distributionUrl", "archiveBase", "archivePath")));
+                equalTo(WrapUtil.toSet("distributionBase", "distributionPath", "distributionUrl", "archiveBase", "archivePath", "defaultJvmOpts")));
     }
 
     @Test
