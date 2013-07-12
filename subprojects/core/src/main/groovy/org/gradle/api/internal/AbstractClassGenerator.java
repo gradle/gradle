@@ -31,9 +31,13 @@ import org.gradle.internal.reflect.Instantiator;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Map<Class<?>, Map<Class<?>, Class<?>>> GENERATED_CLASSES = new HashMap<Class<?>, Map<Class<?>, Class<?>>>();
+    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<Class<?>, Lock>> CACHE_LOCKS = new ConcurrentHashMap<Class<?>, ConcurrentHashMap<Class<?>, Lock>>();
 
     public <T> T newInstance(Class<T> type, Object... parameters) {
         Instantiator instantiator = new DirectInstantiator();
@@ -43,12 +47,19 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     public <T> Class<? extends T> generate(Class<T> type) {
         Map<Class<?>, Class<?>> cache = GENERATED_CLASSES.get(getClass());
         if (cache == null) {
-            // WeakHashMap won't work here. It keeps a strong reference to the mapping value, which is the generated class in this case
-            // However, the generated class has a strong reference to the source class (it extends it), so the keys will always be
-            // strongly reachable while this Class is strongly reachable. Use weak references for both key and value of the mapping instead.
-            cache = new ReferenceMap(AbstractReferenceMap.WEAK, AbstractReferenceMap.WEAK);
-            GENERATED_CLASSES.put(getClass(), cache);
+            synchronized (getClass()) {
+                cache = GENERATED_CLASSES.get(getClass());
+                if (cache == null) {
+                    // WeakHashMap won't work here. It keeps a strong reference to the mapping value, which is the generated class in this case
+                    // However, the generated class has a strong reference to the source class (it extends it), so the keys will always be
+                    // strongly reachable while this Class is strongly reachable. Use weak references for both key and value of the mapping instead.
+                    cache = new ReferenceMap(AbstractReferenceMap.WEAK, AbstractReferenceMap.WEAK);
+                    GENERATED_CLASSES.put(getClass(), cache);
+                    CACHE_LOCKS.put(getClass(), new ConcurrentHashMap<Class<?>, Lock>(2));
+                }
+            }
         }
+
         Class<?> generatedClass = cache.get(type);
         if (generatedClass != null) {
             return generatedClass.asSubclass(type);
@@ -63,6 +74,32 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     type.getSimpleName()));
         }
 
+        ConcurrentHashMap<Class<?>, Lock> locks = CACHE_LOCKS.get(getClass());
+
+        Lock lock = new ReentrantLock();
+        Lock existingLock = locks.putIfAbsent(type, lock);
+        if (existingLock != null) {
+            lock = existingLock;
+        }
+
+        lock.lock();
+        try {
+            Class<?> subclass = cache.get(type);
+
+            if (subclass == null) {
+                subclass = doGenerate(type);
+                cache.put(type, subclass);
+                cache.put(subclass, subclass);
+            }
+
+            return subclass.asSubclass(type);
+        } finally {
+            locks.remove(type);
+            lock.unlock();
+        }
+    }
+
+    private <T> Class<? extends T> doGenerate(Class<T> type) {
         Class<? extends T> subclass;
         try {
             ClassBuilder<T> builder = start(type);
@@ -200,9 +237,6 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         } catch (Throwable e) {
             throw new GradleException(String.format("Could not generate a proxy class for class %s.", type.getName()), e);
         }
-
-        cache.put(type, subclass);
-        cache.put(subclass, subclass);
         return subclass;
     }
 
