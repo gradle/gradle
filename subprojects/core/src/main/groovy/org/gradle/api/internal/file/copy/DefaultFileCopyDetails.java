@@ -25,7 +25,7 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import java.io.*;
 import java.util.Map;
 
-class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetails {
+public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetails {
     private final FileVisitDetails fileDetails;
     private final CopySpecInternal spec;
     private FileSystem fileSystem;
