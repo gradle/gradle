@@ -45,7 +45,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
                               ":assembleMainExecutableMainAsm", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        normaliseLineSeparators(executable("cpp/asm/build/install/mainExecutable/main").exec().out) == "Hello world!\nGoodbye.\n"
+        normaliseLineSeparators(executable("cpp/asm/build/install/mainExecutable/main").exec().out) == "Hello!\nGoodbye.\n"
     }
 
     def "c"() {

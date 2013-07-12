@@ -13,7 +13,7 @@ _hello:
 
 	.section	__TEXT,__cstring,cstring_literals
 L_.str:
-	.asciz	 "Hello world!\n"
+	.asciz	 "Hello!\n"
 
 
 .subsections_via_symbols
