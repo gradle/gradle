@@ -21,7 +21,7 @@ import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
-import org.gradle.api.internal.file.copy.CopySpecImpl
+import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.util.ConfigureUtil
@@ -35,7 +35,7 @@ public class Jar extends Zip {
     public static final String DEFAULT_EXTENSION = 'jar'
 
     private Manifest manifest
-    private final CopySpecImpl metaInf
+    private final DefaultCopySpec metaInf
 
     Jar() {
         extension = DEFAULT_EXTENSION

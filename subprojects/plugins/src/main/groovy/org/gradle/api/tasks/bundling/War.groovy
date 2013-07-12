@@ -18,7 +18,7 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.copy.CopySpecImpl
+import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
@@ -35,7 +35,7 @@ class War extends Jar {
     private File webXml
 
     private FileCollection classpath
-    private final CopySpecImpl webInf
+    private final DefaultCopySpec webInf
 
     War() {
         extension = WAR_EXTENSION

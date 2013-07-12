@@ -19,7 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.copy.CopySpecImpl;
+import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.internal.reflect.Instantiator;
 
 /**
@@ -34,7 +34,7 @@ public class DefaultDistribution implements Distribution {
 
     public DefaultDistribution(String name, FileResolver fileResolver, Instantiator instantiator) {
         this.name = name;
-        this.contents = new CopySpecImpl(fileResolver, instantiator);
+        this.contents = new DefaultCopySpec(fileResolver, instantiator);
     }
 
     public String getName() {

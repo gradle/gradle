@@ -35,15 +35,15 @@ import java.util.regex.Pattern;
  */
 public class CopyActionImpl implements CopyAction, CopySpecSource {
     private final CopySpecVisitor visitor;
-    private final CopySpecImpl root;
-    private final CopySpecImpl mainContent;
+    private final DefaultCopySpec root;
+    private final DefaultCopySpec mainContent;
     private final Instantiator instantiator;
     private final FileResolver resolver;
 
     public CopyActionImpl(Instantiator instantiator, FileResolver resolver, CopySpecVisitor visitor, Action<? super FileCopyDetails> onUnhandledDuplicate) {
         this.instantiator = instantiator;
         this.resolver = resolver;
-        this.root = instantiator.newInstance(CopySpecImpl.class, resolver, instantiator);
+        this.root = instantiator.newInstance(DefaultCopySpec.class, resolver, instantiator);
         this.mainContent = root.addChild();
         this.visitor = new DuplicateHandlingCopySpecVisitor(new NormalizingCopySpecVisitor(visitor), onUnhandledDuplicate);
     }
@@ -52,11 +52,11 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         return resolver;
     }
 
-    public CopySpecImpl getRootSpec() {
+    public DefaultCopySpec getRootSpec() {
         return root;
     }
 
-    public CopySpecImpl getMainSpec() {
+    public DefaultCopySpec getMainSpec() {
         return mainContent;
     }
 

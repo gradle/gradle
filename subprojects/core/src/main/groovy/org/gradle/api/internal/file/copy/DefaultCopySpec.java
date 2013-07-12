@@ -36,14 +36,14 @@ import java.util.regex.Pattern;
 /**
  * @author Steve Appling
  */
-public class CopySpecImpl implements CopySpec, CopySpecInternal {
+public class DefaultCopySpec implements CopySpecInternal {
     private final FileResolver resolver;
     private final Set<Object> sourcePaths;
     private Object destDir;
     private final PatternSet patternSet;
     private final List<CopySpecInternal> childSpecs;
     private final Instantiator instantiator;
-    private final CopySpecImpl parentSpec;
+    private final DefaultCopySpec parentSpec;
     private final List<Action<? super FileCopyDetails>> actions = new ArrayList<Action<? super FileCopyDetails>>();
     private Integer dirMode;
     private Integer fileMode;
@@ -52,7 +52,7 @@ public class CopySpecImpl implements CopySpec, CopySpecInternal {
     private PathNotationParser<String> pathNotationParser;
     private DuplicatesStrategy duplicatesStrategy;
 
-    public CopySpecImpl(FileResolver resolver, Instantiator instantiator, CopySpecImpl parentSpec) {
+    public DefaultCopySpec(FileResolver resolver, Instantiator instantiator, DefaultCopySpec parentSpec) {
         this.parentSpec = parentSpec;
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -63,7 +63,7 @@ public class CopySpecImpl implements CopySpec, CopySpecInternal {
         duplicatesStrategy = null; //inherit from parent
     }
 
-    public CopySpecImpl(FileResolver resolver, Instantiator instantiator) {
+    public DefaultCopySpec(FileResolver resolver, Instantiator instantiator) {
         this(resolver, instantiator, null);
     }
 
@@ -80,7 +80,7 @@ public class CopySpecImpl implements CopySpec, CopySpecInternal {
             } else {
                 copySpecInternal = (CopySpecInternal) copySpec;
             }
-            childSpecs.add(new WrapperCopySpec(this, copySpecInternal));
+            childSpecs.add(new RelativizedCopySpec(this, copySpecInternal));
         }
         return this;
     }
@@ -97,21 +97,21 @@ public class CopySpecImpl implements CopySpec, CopySpecInternal {
             from(sourcePath);
             return this;
         } else {
-            CopySpecImpl child = addChild();
+            DefaultCopySpec child = addChild();
             child.from(sourcePath);
             ConfigureUtil.configure(c, child);
             return child;
         }
     }
 
-    public CopySpecImpl addFirst() {
-        CopySpecImpl child = instantiator.newInstance(CopySpecImpl.class, resolver, instantiator, this);
+    public DefaultCopySpec addFirst() {
+        DefaultCopySpec child = instantiator.newInstance(DefaultCopySpec.class, resolver, instantiator, this);
         childSpecs.add(0, child);
         return child;
     }
 
-    public CopySpecImpl addChild() {
-        CopySpecImpl child = instantiator.newInstance(CopySpecImpl.class, resolver, instantiator, this);
+    public DefaultCopySpec addChild() {
+        DefaultCopySpec child = instantiator.newInstance(DefaultCopySpec.class, resolver, instantiator, this);
         childSpecs.add(child);
         return child;
     }
@@ -133,17 +133,17 @@ public class CopySpecImpl implements CopySpec, CopySpecInternal {
         return result;
     }
 
-    public CopySpecImpl into(Object destDir) {
+    public DefaultCopySpec into(Object destDir) {
         this.destDir = destDir;
         return this;
     }
 
-    public CopySpecImpl into(Object destPath, Closure configureClosure) {
+    public DefaultCopySpec into(Object destPath, Closure configureClosure) {
         if (configureClosure == null) {
             into(destPath);
             return this;
         } else {
-            CopySpecImpl child = addChild();
+            DefaultCopySpec child = addChild();
             child.into(destPath);
             ConfigureUtil.configure(configureClosure, child);
             return child;
@@ -305,7 +305,7 @@ public class CopySpecImpl implements CopySpec, CopySpecInternal {
         return patternSet.getExcludes();
     }
 
-    public CopySpecImpl setExcludes(Iterable<String> excludes) {
+    public DefaultCopySpec setExcludes(Iterable<String> excludes) {
         patternSet.setExcludes(excludes);
         return this;
     }
@@ -443,53 +443,4 @@ public class CopySpecImpl implements CopySpec, CopySpecInternal {
         return false;
     }
 
-    private static class WrapperCopySpec implements CopySpecInternal {
-        private final CopySpecInternal root;
-        private final CopySpecInternal spec;
-
-        public WrapperCopySpec(CopySpecInternal root, CopySpecInternal spec) {
-            this.root = root;
-            this.spec = spec;
-        }
-
-        public RelativePath getDestPath() {
-            return root.getDestPath().append(spec.getDestPath());
-        }
-
-        public Integer getFileMode() {
-            return spec.getFileMode();
-        }
-
-        public Integer getDirMode() {
-            return spec.getDirMode();
-        }
-
-        public FileTree getSource() {
-            return spec.getSource();
-        }
-
-        public Collection<? extends CopySpecInternal> getAllSpecs() {
-            List<WrapperCopySpec> specs = new ArrayList<WrapperCopySpec>();
-            for (CopySpecInternal child : spec.getAllSpecs()) {
-                specs.add(new WrapperCopySpec(root, child));
-            }
-            return specs;
-        }
-
-        public boolean hasSource() {
-            return spec.hasSource();
-        }
-
-        public Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions() {
-            return spec.getAllCopyActions();
-        }
-
-        public boolean getIncludeEmptyDirs() {
-            return spec.getIncludeEmptyDirs();
-        }
-
-        public DuplicatesStrategy getDuplicatesStrategy() {
-            return spec.getDuplicatesStrategy();
-        }
-    }
 }

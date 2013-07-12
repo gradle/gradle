@@ -31,7 +31,7 @@ import spock.lang.Specification
  */
 class CopySpecMatchingTest extends Specification {
 
-    CopySpecImpl copySpec = new CopySpecImpl(TestFiles.resolver(), new DirectInstantiator(), null)
+    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.resolver(), new DirectInstantiator(), null)
 
     FileTree fileTree = Mock()
 
@@ -82,7 +82,7 @@ class CopySpecMatchingTest extends Specification {
 
     def matchingSpecInherited() {
         given:
-        CopySpecImpl childSpec = copySpec.addChild()
+        DefaultCopySpec childSpec = copySpec.addChild()
         when:
         copySpec.filesMatching("**/*.java", Actions.doNothing())
         then:

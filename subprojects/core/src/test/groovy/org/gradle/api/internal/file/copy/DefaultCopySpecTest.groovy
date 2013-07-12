@@ -39,14 +39,14 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 @RunWith(JMock)
-public class CopySpecImplTest {
+public class DefaultCopySpecTest {
 
     @Rule public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
     private TestFile baseFile = testDir.testDirectory
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final FileResolver fileResolver = context.mock(FileResolver);
     private final Instantiator instantiator = new DirectInstantiator()
-    private final CopySpecImpl spec = new CopySpecImpl(fileResolver, instantiator)
+    private final DefaultCopySpec spec = new DefaultCopySpec(fileResolver, instantiator)
 
     private List<String> getTestSourceFileNames() {
         ['first', 'second']
@@ -69,7 +69,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testSourceWithClosure() {
-        CopySpecImpl child = spec.from('source') {
+        DefaultCopySpec child = spec.from('source') {
         }
 
         assertThat(child, not(sameInstance(spec)))
@@ -77,7 +77,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testMultipleSourcesWithClosure() {
-        CopySpecImpl child = spec.from(['source1', 'source2']) {
+        DefaultCopySpec child = spec.from(['source1', 'source2']) {
         }
 
         assertThat(child, not(sameInstance(spec)))
@@ -103,8 +103,8 @@ public class CopySpecImplTest {
     }
 
     @Test public void testWithSpec() {
-        CopySpecImpl other1 = new CopySpecImpl(fileResolver, instantiator)
-        CopySpecImpl other2 = new CopySpecImpl(fileResolver, instantiator)
+        DefaultCopySpec other1 = new DefaultCopySpec(fileResolver, instantiator)
+        DefaultCopySpec other2 = new DefaultCopySpec(fileResolver, instantiator)
 
         spec.with other1, other2
         assertTrue(spec.sourcePaths.empty)
@@ -120,7 +120,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testWithSpecInheritsDestinationPathFromParent() {
-        CopySpecImpl other = new CopySpecImpl(fileResolver, instantiator)
+        DefaultCopySpec other = new DefaultCopySpec(fileResolver, instantiator)
         other.into 'other'
 
         spec.into 'spec'
@@ -131,7 +131,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testDestinationWithClosure() {
-        CopySpecImpl child = spec.into('target') {
+        DefaultCopySpec child = spec.into('target') {
         }
 
         assertThat(child, not(sameInstance(spec)))
@@ -139,9 +139,9 @@ public class CopySpecImplTest {
     }
 
     @Test public void testGetAllSpecsReturnsBreadthwiseTraverseOfSpecs() {
-        CopySpecImpl child = spec.into('somedir') { }
-        CopySpecImpl grandchild = child.into('somedir') { }
-        CopySpecImpl child2 = spec.into('somedir') { }
+        DefaultCopySpec child = spec.into('somedir') { }
+        DefaultCopySpec grandchild = child.into('somedir') { }
+        DefaultCopySpec child2 = spec.into('somedir') { }
 
         assertThat(spec.allSpecs, equalTo([spec, child, grandchild, child2]))
     }
@@ -151,10 +151,10 @@ public class CopySpecImplTest {
     }
 
     @Test public void testChildSpecResolvesIntoArgRelativeToParentDestinationDir() {
-        CopySpecImpl child = spec.from('somedir') { into 'child' }
+        DefaultCopySpec child = spec.from('somedir') { into 'child' }
         assertThat(child.destPath, equalTo(new RelativePath(false, 'child')))
 
-        CopySpecImpl grandchild = child.from('somedir') { into 'grandchild'}
+        DefaultCopySpec grandchild = child.from('somedir') { into 'grandchild'}
         assertThat(grandchild.destPath, equalTo(new RelativePath(false, 'child', 'grandchild')))
 
         grandchild.into '/grandchild'
@@ -162,12 +162,12 @@ public class CopySpecImplTest {
     }
 
     @Test public void testChildSpecUsesParentDestinationPathAsDefault() {
-        CopySpecImpl child = spec.from('somedir') { }
+        DefaultCopySpec child = spec.from('somedir') { }
         assertThat(child.destPath, equalTo(spec.destPath))
 
         child.into 'child'
 
-        CopySpecImpl grandchild = child.from('somedir') { }
+        DefaultCopySpec grandchild = child.from('somedir') { }
         assertThat(grandchild.destPath, equalTo(child.destPath))
     }
 
@@ -189,7 +189,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testChildUsesPatternsFromParent() {
-        CopySpecImpl child = spec.from('dir') {}
+        DefaultCopySpec child = spec.from('dir') {}
         Spec specInclude = [:] as Spec
         Spec specExclude = [:] as Spec
         Spec childInclude = [:] as Spec
@@ -212,7 +212,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testChildUsesParentPatternsAsDefault() {
-        CopySpecImpl child = spec.from('dir') {}
+        DefaultCopySpec child = spec.from('dir') {}
         Spec specInclude = [:] as Spec
         Spec specExclude = [:] as Spec
 
@@ -229,7 +229,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testChildUsesCaseSensitiveFlagFromParentAsDefault() {
-        CopySpecImpl child = spec.from('dir') {}
+        DefaultCopySpec child = spec.from('dir') {}
         assertTrue(child.caseSensitive)
         assertTrue(child.patternSet.caseSensitive)
 
@@ -317,7 +317,7 @@ public class CopySpecImplTest {
         Action childAction = context.mock(Action, 'child')
 
         spec.eachFile parentAction
-        CopySpecImpl childSpec = spec.from('src') {
+        DefaultCopySpec childSpec = spec.from('src') {
             eachFile childAction
         }
 
@@ -333,7 +333,7 @@ public class CopySpecImplTest {
         spec.fileMode = 0x1
         spec.dirMode = 0x2
 
-        CopySpecImpl child = spec.from('src') { }
+        DefaultCopySpec child = spec.from('src') { }
         org.junit.Assert.assertEquals(0x1, child.fileMode)
         org.junit.Assert.assertEquals(0x2, child.dirMode)
     }
@@ -365,7 +365,7 @@ public class CopySpecImplTest {
 
     @Test public void testDuplicatesStrategyInherited() {
         spec.duplicatesStrategy = 'EXCLUDE'
-        spec.with new CopySpecImpl(fileResolver, instantiator, spec)
+        spec.with new DefaultCopySpec(fileResolver, instantiator, spec)
         assertEquals(DuplicatesStrategy.EXCLUDE, spec.childSpecs[0].duplicatesStrategy)
     }
 

@@ -16,19 +16,16 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RelativePath;
 
 import java.util.Collection;
 
-public interface CopySpecInternal {
+public interface CopySpecInternal extends CopySpec {
+
     RelativePath getDestPath();
-
-    Integer getFileMode();
-
-    Integer getDirMode();
 
     FileTree getSource();
 
@@ -37,9 +34,5 @@ public interface CopySpecInternal {
     boolean hasSource();
 
     Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
-
-    boolean getIncludeEmptyDirs();
-
-    DuplicatesStrategy getDuplicatesStrategy();
 
 }

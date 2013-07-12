@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.CopyActionImpl
-import org.gradle.api.internal.file.copy.CopySpecImpl
+import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
@@ -219,7 +219,7 @@ public class DefaultFileOperationsTest extends Specification {
         def spec = fileOperations.copySpec { include 'pattern'}
 
         then:
-        spec instanceof CopySpecImpl
+        spec instanceof DefaultCopySpec
         spec.includes == ['pattern'] as Set
     }
 
