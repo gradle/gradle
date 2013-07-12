@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -31,6 +32,10 @@ import java.util.List;
  */
 public class BaseDirFileResolver extends AbstractFileResolver {
     private final File baseDir;
+
+    public BaseDirFileResolver(File baseDir) {
+        this(FileSystems.getDefault(), baseDir);
+    }
 
     public BaseDirFileResolver(FileSystem fileSystem, File baseDir) {
         super(fileSystem);
