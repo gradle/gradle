@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.cpp
-
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.escapeString
 
@@ -107,6 +108,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         skipped ":installMainExecutable"
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "rebuilds binary with source file change"() {
         when:
         def executable = executable("build/install/mainExecutable/main")
@@ -136,6 +138,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         executable.exec().out == "changed"
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "relinks binary with library source file change"() {
         when:
         def executable = executable("build/install/mainExecutable/main")
@@ -187,6 +190,7 @@ class CppPluginIncrementalBuildIntegrationTest extends AbstractBinariesIntegrati
         skipped ":installMainExecutable"
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "rebuilds binary with compiler option change"() {
         when:
         def executable = executable("build/install/mainExecutable/main")

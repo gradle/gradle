@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.cpp
-
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
     def "can configure the binaries of a C++ application"() {
@@ -94,6 +95,7 @@ class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
         // TODO - need to verify that the debug info ended up in the binary
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "can configure the binaries of a C++ library"() {
         given:
         buildFile << """

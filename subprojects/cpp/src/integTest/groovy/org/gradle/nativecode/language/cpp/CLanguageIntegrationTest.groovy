@@ -16,8 +16,11 @@
 package org.gradle.nativecode.language.cpp
 
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.escapeString
+
 class CLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
@@ -144,6 +147,7 @@ class CLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
         executable("build/binaries/mainExecutable/main").exec().out == HELLO_WORLD
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build, install and execute program with shared library"() {
         given:
         buildFile << """

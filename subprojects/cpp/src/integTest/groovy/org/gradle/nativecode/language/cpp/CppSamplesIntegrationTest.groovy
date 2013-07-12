@@ -22,6 +22,7 @@ import org.junit.Rule
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
+@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     @Rule public final Sample asm = new Sample(temporaryFolder, 'cpp/asm')
     @Rule public final Sample c = new Sample(temporaryFolder, 'cpp/c')

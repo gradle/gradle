@@ -16,6 +16,8 @@
 package org.gradle.nativecode.language.cpp
 
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.escapeString
 // TODO:DAZ Verify that linkerArgs are set correctly: use '-L' to choose library to link
@@ -145,6 +147,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         executable("build/binaries/mainExecutable/test").exec().out == HELLO_WORLD
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build, install and execute program with shared library"() {
         given:
         buildFile << """
@@ -216,6 +219,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         install.exec().out == HELLO_WORLD
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build, install and execute program with static library"() {
         given:
         buildFile << """

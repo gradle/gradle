@@ -103,6 +103,9 @@ enum TestPrecondition {
         } catch (IOException) {
             false
         }
+    }),
+    CAN_INSTALL_EXECUTABLE({
+        FILE_PERMISSIONS.fulfilled || WINDOWS.fulfilled
     });
 
     /**
