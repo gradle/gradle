@@ -50,8 +50,8 @@
         <para>
             The Tooling API (see <xref linkend="embedding"/>)
             uses the daemon all the time, e.g. you cannot officially use the Tooling API without the daemon.
-            This means that if you use the STS Gradle plugin for Eclipse or new Intellij IDEA plugin (IDEA>10)
-            the daemon acts behind the hood.
+            This means that whenever you are using the STS Gradle plugin for Eclipse or the Gradle support in Intellij IDEA,
+            you're already using the Gradle Daemon.
         </para>
         <para>In future the daemon will offer more features:
             <itemizedlist>
