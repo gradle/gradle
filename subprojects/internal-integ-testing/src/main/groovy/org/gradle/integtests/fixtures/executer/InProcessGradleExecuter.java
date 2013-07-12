@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
@@ -25,11 +24,9 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
@@ -165,7 +162,11 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         new PropertiesToStartParameterConverter().convert(properties, parameter);
         converter.convert(parsedCommandLine, parameter);
 
-        DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
+        DefaultGradleLauncherFactory factory = DeprecationLogger.whileDisabled(new Factory<DefaultGradleLauncherFactory>() {
+            public DefaultGradleLauncherFactory create() {
+                return (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
+            }
+        });
         factory.addListener(listener);
         GradleLauncher gradleLauncher = factory.newInstance(parameter);
         gradleLauncher.addStandardOutputListener(outputListener);
@@ -203,33 +204,13 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         assertFalse(isRequireGradleHome());
     }
 
-    private static class BuildListenerImpl implements TaskExecutionGraphListener, BuildListener {
+    private static class BuildListenerImpl implements TaskExecutionGraphListener {
         private final List<String> executedTasks = new CopyOnWriteArrayList<String>();
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<String>();
 
         public void graphPopulated(TaskExecutionGraph graph) {
             List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
             graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
-        }
-
-        public void buildStarted(Gradle gradle) {
-            DeprecationLogger.setLogTrace(true);
-        }
-
-        public void settingsEvaluated(Settings settings) {
-
-        }
-
-        public void projectsLoaded(Gradle gradle) {
-
-        }
-
-        public void projectsEvaluated(Gradle gradle) {
-
-        }
-
-        public void buildFinished(BuildResult result) {
-            DeprecationLogger.setLogTrace(false);
         }
     }
 

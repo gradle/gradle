@@ -81,6 +81,7 @@ There are currently 3 ways you can programmatically run a build. The first, and 
 the `GradleBuild` task type. The third way is to use the `GradleLauncher` API. The `GradleLauncher` API is now deprecated and will be removed in Gradle
 2.0.
 
+* The `GradleLauncher` class has been deprecated and will be removed in Gradle 2.0.
 * The `GradleLauncher.newInstance()` and `createStartParameter()` methods have been deprecated and will be removed in Gradle 2.0.
 
 ### Unused constants on `ArtifactRepositoryContainer`

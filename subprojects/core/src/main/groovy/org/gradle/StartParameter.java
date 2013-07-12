@@ -36,8 +36,10 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * <p>{@code StartParameter} defines the configuration used by a {@link GradleLauncher} instance to execute a build. The properties of {@code StartParameter} generally correspond to the command-line
- * options of Gradle. You pass a {@code StartParameter} instance to {@link GradleLauncher#newInstance(StartParameter)} when you create a new {@code Gradle} instance.</p>
+ * <p>{@code StartParameter} defines the configuration used by a Gradle instance to execute a build. The properties of {@code StartParameter} generally
+ * correspond to the command-line options of Gradle.
+ *
+ * <p>You pass a {@code StartParameter} instance to {@link GradleLauncher#newInstance(StartParameter)} when you create a new Gradle instance.</p>
  *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  *
@@ -133,7 +135,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * <p>Creates the parameters for a new build, using these parameters as a template. Copies the environmental properties from this parameter (eg gradle user home dir, etc), but does not copy the
+     * <p>Creates the parameters for a new build, using these parameters as a template. Copies the environmental properties from this parameter (eg Gradle user home dir, etc), but does not copy the
      * build specific properties (eg task names).</p>
      *
      * @return The new parameters.
