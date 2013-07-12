@@ -858,15 +858,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Specifies that JUnit should be used to execute the tests.
+     * <p>
+     * To configure TestNG specific options, see {@link #useJUnit(groovy.lang.Closure)}.
      */
     public void useJUnit() {
         useJUnit(null);
     }
 
     /**
-     * Specifies that JUnit should be used to execute the tests.
+     * Specifies that JUnit should be used to execute the tests, configuring JUnit specific options.
+     * <p>
+     * The supplied closure configures an instance of {@link org.gradle.api.tasks.testing.junit.JUnitOptions},
+     * which can be used to configure how JUnit runs.
      *
-     * @param testFrameworkConfigure A closure used to configure the JUnit options. This closure is passed an instance of type {@link org.gradle.api.tasks.testing.junit.JUnitOptions}.
+     * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
     public void useJUnit(Closure testFrameworkConfigure) {
         useTestFramework(new JUnitTestFramework(this), testFrameworkConfigure);
@@ -874,15 +879,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Specifies that TestNG should be used to execute the tests.
+     * <p>
+     * To configure TestNG specific options, see {@link #useTestNG(Closure)}.
      */
     public void useTestNG() {
         useTestNG(null);
     }
 
     /**
-     * Specifies that TestNG should be used to execute the tests.
+     * Specifies that TestNG should be used to execute the tests, configuring TestNG specific options.
+     * <p>
+     * The supplied closure configures an instance of {@link org.gradle.api.tasks.testing.testng.TestNGOptions},
+     * which can be used to configure how TestNG runs.
      *
-     * @param testFrameworkConfigure A closure used to configure the TestNG options. This closure is passed an instance of type {@link org.gradle.api.tasks.testing.testng.TestNGOptions}.
+     * @param testFrameworkConfigure A closure used to configure the TestNG options.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
         useTestFramework(new TestNGTestFramework(this), testFrameworkConfigure);
