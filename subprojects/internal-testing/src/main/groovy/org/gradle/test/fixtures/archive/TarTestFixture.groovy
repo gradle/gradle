@@ -26,12 +26,10 @@ import static org.junit.Assert.assertEquals
 class TarTestFixture {
 
     private final TestFile tarFile
-    private final TestFile temporaryDir
 
     MultiValueMap filesByRelativePath = new MultiValueMap()
 
-    public TarTestFixture(TestFile tarFile, TestFile tempDirectory) {
-        this.temporaryDir = tempDirectory
+    public TarTestFixture(TestFile tarFile) {
         this.tarFile = tarFile
 
         TarInputStream tarInputStream = new TarInputStream(this.tarFile.newInputStream())
@@ -40,7 +38,9 @@ class TarTestFixture {
             if (tarEntry.directory) {
                 continue
             }
-            filesByRelativePath[tarEntry.name] = tarEntry.file
+            ByteArrayOutputStream stream = new ByteArrayOutputStream()
+            tarInputStream.copyEntryContents(stream)
+            filesByRelativePath[tarEntry.name] = new String( stream.toByteArray(), "utf-8");
         }
     }
 
@@ -49,7 +49,7 @@ class TarTestFixture {
         this
     }
 
-    File file(String path) {
+    String content(String path) {
         List files = filesByRelativePath[path]
         assertEquals(1, files.size())
         files.get(0)

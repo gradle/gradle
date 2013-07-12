@@ -680,7 +680,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'tar'
 
         then:
-        def tar = new TarTestFixture(file("build/test.tar"), testDirectory.createDir('tmp'))
+        def tar = new TarTestFixture(file("build/test.tar"))
         tar.assertContainsFile('file1.txt', 2)
         tar.assertContainsFile('file2.txt')
     }
@@ -702,10 +702,10 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'tar'
 
         then:
-        def tar = new TarTestFixture(file("build/test.tar"), testDirectory.createDir('tmp'))
+        def tar = new TarTestFixture(file("build/test.tar"))
         tar.assertContainsFile('file1.txt')
         tar.assertContainsFile('file2.txt')
-        tar.file("file1.txt").text == "dir1/file1.txt"
+        tar.content("file1.txt") == "dir1/file1.txt"
     }
 
 
