@@ -18,10 +18,6 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.RelativePath;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 public class RelativizedCopySpec extends DelegatingCopySpec {
 
     private final CopySpecInternal parent;
@@ -39,14 +35,6 @@ public class RelativizedCopySpec extends DelegatingCopySpec {
 
     public RelativePath getDestPath() {
         return parent.getDestPath().append(child.getDestPath());
-    }
-
-    public Collection<? extends CopySpecInternal> getAllSpecs() {
-        List<RelativizedCopySpec> specs = new ArrayList<RelativizedCopySpec>();
-        for (CopySpecInternal spec : child.getAllSpecs()) {
-            specs.add(new RelativizedCopySpec(parent, spec));
-        }
-        return specs;
     }
 
 }

@@ -15,17 +15,18 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.*;
+import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.FilterReader;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -34,23 +35,23 @@ import java.util.regex.Pattern;
  * @author Steve Appling
  */
 public class CopyActionImpl implements CopyAction, CopySpecSource {
-    private final CopySpecVisitor visitor;
+    private final CopySpecContentVisitor visitor;
     private final DefaultCopySpec root;
     private final DefaultCopySpec mainContent;
     private final Instantiator instantiator;
     private final FileResolver resolver;
 
-    public CopyActionImpl(Instantiator instantiator, FileResolver resolver, CopySpecVisitor visitor) {
+    public CopyActionImpl(Instantiator instantiator, FileResolver resolver, CopySpecContentVisitor visitor) {
         this(instantiator, resolver, visitor, false);
     }
 
-    public CopyActionImpl(Instantiator instantiator, FileResolver resolver, CopySpecVisitor visitor, boolean warnOnIncludeDuplicate) {
+    public CopyActionImpl(Instantiator instantiator, FileResolver resolver, CopySpecContentVisitor visitor, boolean warnOnIncludeDuplicate) {
         this.instantiator = instantiator;
         this.resolver = resolver;
         this.root = instantiator.newInstance(DefaultCopySpec.class, resolver, instantiator);
         this.mainContent = root.addChild();
-        this.visitor = new DuplicateHandlingCopySpecVisitor(
-                new NormalizingCopySpecVisitor(visitor),
+        this.visitor = new DuplicateHandlingCopySpecContentVisitor(
+                new NormalizingCopySpecContentVisitor(visitor),
                 warnOnIncludeDuplicate
         );
     }
@@ -68,8 +69,8 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
     }
 
     public void execute() {
-        CopySpecVisitorDriver driver = new CopySpecVisitorDriver(instantiator, FileSystems.getDefault());
-        driver.visit(this, root.getAllSpecs(), visitor);
+        CopySpecContentVisitorDriver driver = new CopySpecContentVisitorDriver(instantiator, FileSystems.getDefault());
+        driver.visit(this, root, visitor);
     }
 
     public boolean getDidWork() {
@@ -77,12 +78,32 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
     }
 
     public FileTree getAllSource() {
-        List<FileTree> sources = new ArrayList<FileTree>();
-        for (CopySpecInternal spec : root.getAllSpecs()) {
-            FileTree source = spec.getSource();
-            sources.add(source);
+        final ImmutableList.Builder<FileTree> builder = ImmutableList.builder();
+        root.visit(new Action<CopySpecInternal>() {
+            public void execute(CopySpecInternal copySpecInternal) {
+                builder.add(copySpecInternal.getSource());
+            }
+        });
+
+        return new ImmutableCompositeFileTree(builder.build());
+    }
+
+    private static class ImmutableCompositeFileTree extends CompositeFileTree {
+        private final ImmutableList<FileTree> fileTrees;
+
+        private ImmutableCompositeFileTree(ImmutableList<FileTree> fileTrees) {
+            this.fileTrees = fileTrees;
         }
-        return resolver.resolveFilesAsTree(sources);
+
+        @Override
+        public void resolve(FileCollectionResolveContext context) {
+            context.add(fileTrees);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "file tree";
+        }
     }
 
     public boolean hasSource() {

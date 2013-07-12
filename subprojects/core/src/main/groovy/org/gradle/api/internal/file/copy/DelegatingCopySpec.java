@@ -39,10 +39,6 @@ abstract public class DelegatingCopySpec implements CopySpecInternal {
         return getDelegateCopySpec().getSource();
     }
 
-    public Collection<? extends CopySpecInternal> getAllSpecs() {
-        return getDelegateCopySpec().getAllSpecs();
-    }
-
     public boolean hasSource() {
         return getDelegateCopySpec().hasSource();
     }
@@ -201,5 +197,9 @@ abstract public class DelegatingCopySpec implements CopySpecInternal {
 
     public Set<String> getExcludes() {
         return getDelegateCopySpec().getExcludes();
+    }
+
+    public void visit(Action<? super CopySpecInternal> action) {
+        getDelegateCopySpec().visit(action);
     }
 }

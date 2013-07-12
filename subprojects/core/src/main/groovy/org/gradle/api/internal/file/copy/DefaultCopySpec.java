@@ -124,15 +124,6 @@ public class DefaultCopySpec implements CopySpecInternal {
         return resolver.resolveFilesAsTree(sourcePaths).matching(getPatternSet());
     }
 
-    public List<CopySpecInternal> getAllSpecs() {
-        List<CopySpecInternal> result = new ArrayList<CopySpecInternal>();
-        result.add(this);
-        for (CopySpecInternal childSpec : childSpecs) {
-            result.addAll(childSpec.getAllSpecs());
-        }
-        return result;
-    }
-
     public DefaultCopySpec into(Object destDir) {
         this.destDir = destDir;
         return this;
@@ -429,6 +420,13 @@ public class DefaultCopySpec implements CopySpecInternal {
         allActions.addAll(parentSpec.getAllCopyActions());
         allActions.addAll(actions);
         return allActions;
+    }
+
+    public void visit(Action<? super CopySpecInternal> action) {
+        action.execute(this);
+        for (CopySpecInternal child : childSpecs) {
+            child.visit(action);
+        }
     }
 
     public boolean hasSource() {

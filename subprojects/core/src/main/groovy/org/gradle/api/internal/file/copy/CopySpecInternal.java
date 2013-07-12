@@ -29,10 +29,10 @@ public interface CopySpecInternal extends CopySpec {
 
     FileTree getSource();
 
-    Collection<? extends CopySpecInternal> getAllSpecs();
-
     boolean hasSource();
 
     Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
+
+    void visit(Action<? super CopySpecInternal> action);
 
 }

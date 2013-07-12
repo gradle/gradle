@@ -33,28 +33,30 @@ public class CopySpecContentVisitorDriver {
         this.fileSystem = fileSystem;
     }
 
-    void visit(CopyAction copyAction, Iterable<CopySpecInternal> specs, final CopySpecContentVisitor visitor) {
+    void visit(CopyAction copyAction, CopySpecInternal toVisit, final CopySpecContentVisitor visitor) {
         visitor.startVisit(copyAction);
-        for (final CopySpecInternal spec : specs) {
-            visitor.visitSpec(spec);
-            FileTree source = spec.getSource();
-            source.visit(new FileVisitor() {
-                public void visitDir(FileVisitDetails dirDetails) {
-                    visitor.visitDir(new DefaultFileCopyDetails(dirDetails, spec, fileSystem));
-                }
-
-                public void visitFile(FileVisitDetails fileDetails) {
-                    DefaultFileCopyDetails details = instantiator.newInstance(DefaultFileCopyDetails.class, fileDetails, spec, fileSystem);
-                    for (Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
-                        action.execute(details);
-                        if (details.isExcluded()) {
-                            return;
-                        }
+        toVisit.visit(new Action<CopySpecInternal>() {
+            public void execute(final CopySpecInternal spec) {
+                visitor.visitSpec(spec);
+                FileTree source = spec.getSource();
+                source.visit(new FileVisitor() {
+                    public void visitDir(FileVisitDetails dirDetails) {
+                        visitor.visitDir(new DefaultFileCopyDetails(dirDetails, spec, fileSystem));
                     }
-                    visitor.visitFile(details);
-                }
-            });
-        }
+
+                    public void visitFile(FileVisitDetails fileDetails) {
+                        DefaultFileCopyDetails details = instantiator.newInstance(DefaultFileCopyDetails.class, fileDetails, spec, fileSystem);
+                        for (Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
+                            action.execute(details);
+                            if (details.isExcluded()) {
+                                return;
+                            }
+                        }
+                        visitor.visitFile(details);
+                    }
+                });
+            }
+        });
         visitor.endVisit();
     }
 
