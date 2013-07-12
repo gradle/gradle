@@ -147,6 +147,73 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         executable("build/binaries/mainExecutable/test").exec().out == HELLO_WORLD
     }
 
+    def "build and execute program with non-conventional source layout"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp-exe"
+            sources {
+                main {
+                    cpp {
+                        source {
+                            srcDirs "src"
+                            include "**/*.cpp"
+                        }
+                        exportedHeaders {
+                            srcDirs "src", "include"
+                            include "**/*.h"
+                        }
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = 'test'"
+
+        and:
+        file("src", "hello", "hello.cpp") << """
+            #include <iostream>
+
+            void hello () {
+              std::cout << "${escapeString(HELLO_WORLD)}";
+            }
+            void bonjour() {
+              std::cout << "${escapeString(HELLO_WORLD_FRENCH)}";
+            }
+        """
+
+        and:
+        file("src", "hello", "hello.h") << """
+            void hello();
+        """
+
+        and:
+        file("src", "app", "main", "main.cpp") << """
+            #include "hello.h"
+            #include "bonjour.h"
+
+            int main () {
+              hello();
+              bonjour();
+              return 0;
+            }
+        """
+
+        and:
+        file("include", "otherProject", "bonjour.h") << """
+            void bonjour();
+        """
+
+        and:
+        file("include", "otherProject", "bonjour.cpp") << """
+            THIS FILE WON'T BE INCLUDED
+        """
+
+        when:
+        run "mainExecutable"
+
+        then:
+        executable("build/binaries/mainExecutable/test").exec().out == HELLO_WORLD + HELLO_WORLD_FRENCH
+    }
+
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build, install and execute program with shared library"() {
         given:

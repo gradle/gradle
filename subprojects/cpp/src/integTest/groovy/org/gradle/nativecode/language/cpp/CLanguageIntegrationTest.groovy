@@ -99,54 +99,6 @@ class CLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
         frenchExecutable.exec().out == HELLO_WORLD_FRENCH
     }
 
-    def "build and execute program with mixed c and c++ files"() {
-        given:
-        buildFile << """
-            apply plugin: "cpp"
-            sources {
-                main {}
-            }
-            executables {
-                main {
-                    source sources.main
-                }
-            }
-        """
-
-        and:
-        file("src", "main", "headers", "hello.h") << """
-            void hello();
-        """
-
-        and:
-        file("src", "main", "c", "hello.c") << """
-            #include <stdio.h>
-            #include "hello.h"
-
-            void hello () {
-                printf("${escapeString(HELLO_WORLD)}");
-            }
-        """
-
-        and:
-        file("src", "main", "cpp", "main.cpp") << """
-            extern "C" {
-                #include "hello.h"
-            }
-
-            int main () {
-                hello();
-                return 0;
-            }
-        """
-
-        when:
-        run "mainExecutable"
-
-        then:
-        executable("build/binaries/mainExecutable/main").exec().out == HELLO_WORLD
-    }
-
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build, install and execute program with shared library"() {
         given:

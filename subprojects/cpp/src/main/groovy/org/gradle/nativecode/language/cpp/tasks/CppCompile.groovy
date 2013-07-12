@@ -90,7 +90,9 @@ class CppCompile extends DefaultTask {
     }
 
     void includes(SourceDirectorySet dirs) {
-        includes.from({dirs.srcDirs})
+        dirs.files.each {
+            includes.from(it.parentFile)
+        }
     }
 
     void includes(FileCollection includeRoots) {
