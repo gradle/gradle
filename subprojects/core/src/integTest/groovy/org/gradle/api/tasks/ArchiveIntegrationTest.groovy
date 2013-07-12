@@ -616,7 +616,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'zip'
 
         then:
-        assertZipContainsOnly(file('build/test.zip'), ['file1.txt', 'file1.txt', 'file2.txt'])
+        def theZip = new ZipTestFixture(file('build/test.zip'))
+        theZip.containsOnly('file1.txt', 'file1.txt', 'file2.txt')
     }
 
     def ensureDuplicatesCanBeExcludedFromZip() {
@@ -658,7 +659,9 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'zip'
 
         then:
-        assertZipContainsOnly(file('build/test.zip'), ['file1.txt'], ['file1.txt': "dir1/file1.txt"])
+        def theZip = new ZipTestFixture(file('build/test.zip'))
+        theZip.containsOnly('file1.txt')
+        theZip.assertFileContent('file1.txt', "dir1/file1.txt")
     }
 
     def ensureDuplicatesIncludedInTarByDefault() {
