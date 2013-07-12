@@ -32,7 +32,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     @Rule public final Sample variants = new Sample(temporaryFolder, 'cpp/variants')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'cpp/dependencies')
 
-    @Requires(TestPrecondition.MAC_OS_X)
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "asm"() {
         given:
         sample asm

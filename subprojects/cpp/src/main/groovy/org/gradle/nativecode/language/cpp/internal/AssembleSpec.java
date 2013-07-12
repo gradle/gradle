@@ -20,8 +20,6 @@ import org.gradle.nativecode.base.internal.BinaryToolSpec;
 
 import java.io.File;
 
-// TODO:DAZ This isn't a good name
-
 /**
  * A compile spec that will be used to generate object files for combining into a native binary.
  */
