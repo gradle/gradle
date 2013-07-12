@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.Action;
+package org.gradle.api.tasks.diagnostics.internal.result;
+
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.result.ResolutionResult;
 
-import java.util.Collection;
+/**
+ * By Szczepan Faber on 7/12/13
+ */
+public interface ResolutionResultConsumer {
 
-public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
-    DependencyResolutionListener getDependencyResolutionBroadcast();
-
-    ResolutionStrategyInternal getResolutionStrategy();
-
-    Collection<Action<? super ResolutionResult>> getResolutionResultActions();
+    void resolutionResult(Configuration configuration, ResolutionResult resolutionResult);
 }

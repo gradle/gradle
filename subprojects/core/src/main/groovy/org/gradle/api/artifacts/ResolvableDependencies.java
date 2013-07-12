@@ -83,12 +83,33 @@ public interface ResolvableDependencies {
     void afterResolve(Closure action);
 
     /**
-     * Returns an instance of {@link org.gradle.api.artifacts.result.ResolutionResult}
-     * that gives access to the graph of the resolved dependencies.
+     * Please use {@link #withResolutionResult(org.gradle.api.Action)}.
+     * This method does not work, it only throws a meaningful exception describing why
+     * {@link #withResolutionResult(org.gradle.api.Action)} should be used.
      *
-     * @return the resolution result
+     * @deprecated
      * @since 1.3
      */
-    @Incubating
+    @Deprecated
     ResolutionResult getResolutionResult();
+
+    /**
+     * Provides access to the graph of the resolved dependencies.
+     * Registers an action that is executed when configuration is resolved.
+     * The ResolutionResult is passed as an argument.
+     *
+     * @param action executed when configuration is resolved, the ResolutionResult is passed in as an argument.
+     * @since 1.8
+     */
+    @Incubating
+    void withResolutionResult(Action<? super ResolutionResult> action);
+
+    /**
+     * Please see {@link #withResolutionResult(org.gradle.api.Action)}.
+     *
+     * @param closure
+     * @since 1.8
+     */
+    @Incubating
+    void withResolutionResult(Closure closure);
 }

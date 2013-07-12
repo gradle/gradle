@@ -41,6 +41,7 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
         dependencies.isEmpty() >> true
         configuration.getAllDependencies() >> dependencies
         configuration.getModule() >> new DefaultModule("org", "foo", "1.0")
+        configuration.getResolutionResultActions() >> []
 
         when:
         ResolverResults results = dependencyResolver.resolve(configuration, repositories);

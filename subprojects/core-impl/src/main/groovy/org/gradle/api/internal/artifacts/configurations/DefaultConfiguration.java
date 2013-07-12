@@ -21,6 +21,7 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
@@ -69,6 +70,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private State state = State.UNRESOLVED;
     private ResolverResults cachedResolverResults;
     private final ResolutionStrategyInternal resolutionStrategy;
+    private Collection<Action<? super ResolutionResult>> resolutionResultActions = new LinkedHashSet<Action<? super ResolutionResult>>();
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -235,15 +237,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         synchronized (lock) {
             if (state == State.UNRESOLVED) {
                 DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
-                ResolvableDependencies incoming = getIncoming();
-                broadcast.beforeResolve(incoming);
+                broadcast.beforeResolve(resolvableDependencies);
                 cachedResolverResults = resolver.resolve(this);
                 if (cachedResolverResults.getResolvedConfiguration().hasError()) {
                     state = State.RESOLVED_WITH_FAILURES;
                 } else {
                     state = State.RESOLVED;
                 }
-                broadcast.afterResolve(incoming);
+                resolutionResultActions = null;
+                broadcast.afterResolve(resolvableDependencies);
             }
         }
     }
@@ -411,6 +413,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolutionStrategy;
     }
 
+    public Collection<Action<? super ResolutionResult>> getResolutionResultActions() {
+        return resolutionResultActions;
+    }
+
     public Configuration resolutionStrategy(Closure closure) {
         ConfigureUtil.configure(closure, resolutionStrategy);
         return this;
@@ -418,6 +424,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void throwExceptionIfNotInUnresolvedState() {
         if (getState() != State.UNRESOLVED) {
+            //TODO SF improve this message
             throw new InvalidUserDataException("You can't change a configuration which is not in unresolved state!");
         }
     }
@@ -561,8 +568,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public ResolutionResult getResolutionResult() {
-            DefaultConfiguration.this.resolveNow();
-            return DefaultConfiguration.this.cachedResolverResults.getResolutionResult();
+            throw new GradleException("configuration.incoming.getResolutionResult() method was replaced with withResolutionResult().\n"
+                    + "The method was an incubating API and we discovered that storing the resolution results increased the heap usage for large projects.\n"
+                    + "Hence, Gradle no longer stores the dependency graph in memory and access to the graph is event-based.");
+        }
+
+        public void withResolutionResult(Action<? super ResolutionResult> resolutionResultAction) {
+            resolutionResultActions.add(resolutionResultAction);
+        }
+
+        public void withResolutionResult(Closure action) {
+            //TODO SF fail if someone adds actions/listeners on resolved configuration
+            resolutionResultActions.add(new ClosureBackedAction<ResolutionResult>(action));
         }
     }
 }

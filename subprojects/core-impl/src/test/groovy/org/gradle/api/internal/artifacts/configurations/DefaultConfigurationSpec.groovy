@@ -58,7 +58,7 @@ class DefaultConfigurationSpec extends Specification {
     // You need to wrap this in an interaction {} block when calling it
     ResolvedConfiguration resolvedConfiguration(Configuration config, ConfigurationResolver dependencyResolver = resolver) {
         ResolvedConfiguration resolvedConfiguration = Mock()
-        1 * dependencyResolver.resolve(config) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
+        1 * dependencyResolver.resolve(config) >> new ResolverResults(resolvedConfiguration)
         resolvedConfiguration
     }
 
@@ -302,15 +302,15 @@ class DefaultConfigurationSpec extends Specification {
         copy.resolutionStrategy == strategy
     }
 
-    def "provides resolution result"() {
-        def config = conf("conf")
-        def result = Mock(ResolutionResult)
+    def "removes resolution result actions after resolution"() {
+        def conf = this.conf("conf")
+        resolver.resolve(conf) >> new ResolverResults(Mock(ResolvedConfiguration))
 
         when:
-        def out = config.incoming.resolutionResult
+        conf.incoming.withResolutionResult { /* stuff */ }
+        conf.resolvedConfiguration
 
         then:
-        1 * resolver.resolve(config) >> new ResolverResults(Mock(ResolvedConfiguration), result)
-        out == result
+        conf.resolutionResultActions == null
     }
 }

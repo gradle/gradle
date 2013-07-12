@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,16 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import java.util.Collection;
 
 /**
- * by Szczepan Faber, created at: 7/26/12
+ * By Szczepan Faber on 7/12/13
  */
-public interface ResolvedConfigurationListener {
-    ResolvedConfigurationListener start(ModuleVersionIdentifier root);
-    void resolvedModuleVersion(ModuleVersionSelection moduleVersion);
-    void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies);
-    void resolutionCompleted();
+public class NoOpResolvedConfigurationListener implements ResolvedConfigurationListener {
+    public ResolvedConfigurationListener start(ModuleVersionIdentifier root) {
+        return this;
+    }
+
+    public void resolvedModuleVersion(ModuleVersionSelection moduleVersion) {}
+
+    public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {}
+
+    public void resolutionCompleted() {}
 }

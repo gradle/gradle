@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
@@ -38,14 +40,15 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
             = new LinkedHashMap<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult>();
 
     CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
+    private Collection<Action<? super ResolutionResult>> resolutionResultActions;
+
+    public ResolutionResultBuilder(Collection<Action<? super ResolutionResult>> resolutionResultActions) {
+        this.resolutionResultActions = resolutionResultActions;
+    }
 
     public ResolutionResultBuilder start(ModuleVersionIdentifier root) {
         rootModule = createOrGet(root, VersionSelectionReasons.ROOT);
         return this;
-    }
-
-    public DefaultResolutionResult getResult() {
-        return new DefaultResolutionResult(rootModule);
     }
 
     public void resolvedModuleVersion(ModuleVersionSelection moduleVersion) {
@@ -72,5 +75,12 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
             modules.put(id, new DefaultResolvedModuleVersionResult(id, selectionReason));
         }
         return modules.get(id);
+    }
+
+    public void resolutionCompleted() { //TODO SF maybe unit test
+        DefaultResolutionResult result = new DefaultResolutionResult(rootModule);
+        for (Action<? super ResolutionResult> a : resolutionResultActions) {
+            a.execute(result);
+        }
     }
 }

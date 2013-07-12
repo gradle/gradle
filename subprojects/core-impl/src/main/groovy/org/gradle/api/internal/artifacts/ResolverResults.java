@@ -16,31 +16,18 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.result.ResolutionResult;
 
 /**
  * by Szczepan Faber, created at: 10/16/12
  */
+//TODO SF this class can go
 public class ResolverResults {
 
     private final ResolvedConfiguration resolvedConfiguration;
-    private final ResolutionResult resolutionResult;
-    private final ResolveException fatalFailure;
 
-    public ResolverResults(ResolvedConfiguration resolvedConfiguration, ResolveException fatalFailure) {
-        this(resolvedConfiguration, null, fatalFailure);
-    }
-
-    public ResolverResults(ResolvedConfiguration resolvedConfiguration, ResolutionResult resolutionResult) {
-        this(resolvedConfiguration, resolutionResult, null);
-    }
-
-    private ResolverResults(ResolvedConfiguration resolvedConfiguration, ResolutionResult resolutionResult, ResolveException fatalFailure) {
+    public ResolverResults(ResolvedConfiguration resolvedConfiguration) {
         this.resolvedConfiguration = resolvedConfiguration;
-        this.resolutionResult = resolutionResult;
-        this.fatalFailure = fatalFailure;
     }
 
     //old model, slowly being replaced by the new model
@@ -48,15 +35,7 @@ public class ResolverResults {
         return resolvedConfiguration;
     }
 
-    //new model
-    public ResolutionResult getResolutionResult() {
-        if (fatalFailure != null) {
-            throw fatalFailure;
-        }
-        return resolutionResult;
-    }
-
     public ResolverResults withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
-        return new ResolverResults(resolvedConfiguration, resolutionResult);
+        return new ResolverResults(resolvedConfiguration);
     }
 }
