@@ -23,13 +23,13 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.CopyAction;
-import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
+import org.gradle.api.internal.file.copy.EmptyCopySpecContentVisitor;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
+public class TarCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
     private TarOutputStream tarOutStr;
     private File tarFile;
 

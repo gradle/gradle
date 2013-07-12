@@ -23,17 +23,17 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
-public class CopySpecVisitorDriver {
+public class CopySpecContentVisitorDriver {
 
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
 
-    public CopySpecVisitorDriver(Instantiator instantiator, FileSystem fileSystem) {
+    public CopySpecContentVisitorDriver(Instantiator instantiator, FileSystem fileSystem) {
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
     }
 
-    void visit(CopyAction copyAction, Iterable<CopySpecInternal> specs, final CopySpecVisitor visitor) {
+    void visit(CopyAction copyAction, Iterable<CopySpecInternal> specs, final CopySpecContentVisitor visitor) {
         visitor.startVisit(copyAction);
         for (final CopySpecInternal spec : specs) {
             visitor.visitSpec(spec);

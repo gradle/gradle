@@ -29,8 +29,8 @@ import org.junit.runner.RunWith;
 @RunWith(JMock.class)
 public class NormalizingCopySpecVisitorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final CopySpecVisitor delegate = context.mock(CopySpecVisitor.class);
-    private final NormalizingCopySpecVisitor visitor = new NormalizingCopySpecVisitor(delegate);
+    private final CopySpecContentVisitor delegate = context.mock(CopySpecContentVisitor.class);
+    private final NormalizingCopySpecContentVisitor visitor = new NormalizingCopySpecContentVisitor(delegate);
     private final CopySpecInternal spec = context.mock(CopySpecInternal.class);
 
     private void allowGetIncludeEmptyDirs() {

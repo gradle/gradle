@@ -28,14 +28,14 @@ import java.io.InputStream;
 import java.util.*;
 
 /**
- * A {@link CopySpecVisitor} which cleans up the tree as it is visited. Removes duplicate directories and adds in missing directories. Removes empty directories if instructed to do so by copy spec.
+ * A {@link CopySpecContentVisitor} which cleans up the tree as it is visited. Removes duplicate directories and adds in missing directories. Removes empty directories if instructed to do so by copy spec.
  */
-public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
+public class NormalizingCopySpecContentVisitor extends DelegatingCopySpecContentVisitor {
     private CopySpecInternal spec;
     private final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
     private final Map<RelativePath, FileCopyDetails> pendingDirs = new HashMap<RelativePath, FileCopyDetails>();
 
-    public NormalizingCopySpecVisitor(CopySpecVisitor visitor) {
+    public NormalizingCopySpecContentVisitor(CopySpecContentVisitor visitor) {
         super(visitor);
     }
 

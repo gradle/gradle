@@ -54,7 +54,7 @@ public class TarCopySpecVisitorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
     private final CopySpecInternal copySpec = context.mock(CopySpecInternal.class);
-    private final TarCopySpecVisitor visitor = new TarCopySpecVisitor();
+    private final TarCopySpecContentVisitor visitor = new TarCopySpecContentVisitor();
 
     @Test
     public void createsTarFile() {

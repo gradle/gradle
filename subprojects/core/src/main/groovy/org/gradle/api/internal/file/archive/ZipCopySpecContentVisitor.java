@@ -22,12 +22,12 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.copy.CopyAction;
-import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
+import org.gradle.api.internal.file.copy.EmptyCopySpecContentVisitor;
 
 import java.io.File;
 import java.io.IOException;
 
-public class ZipCopySpecVisitor extends EmptyCopySpecVisitor {
+public class ZipCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
     private ZipOutputStream zipOutStr;
     private File zipFile;
 

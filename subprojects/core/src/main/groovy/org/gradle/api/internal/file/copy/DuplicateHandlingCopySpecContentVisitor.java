@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.HashSet;
 import java.util.Set;

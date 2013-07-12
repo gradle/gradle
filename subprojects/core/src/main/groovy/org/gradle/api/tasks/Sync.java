@@ -18,8 +18,8 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
-import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
-import org.gradle.api.internal.file.copy.SyncCopySpecVisitor;
+import org.gradle.api.internal.file.copy.FileCopySpecContentVisitor;
+import org.gradle.api.internal.file.copy.SyncCopySpecContentVisitor;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -33,7 +33,7 @@ public class Sync extends AbstractCopyTask {
     public Sync() {
         Instantiator instantiator = getServices().get(Instantiator.class);
         FileResolver fileResolver = getServices().get(FileResolver.class);
-        action = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()), new AbstractCopyTaskUnhandledDuplicateAction());
+        action = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new SyncCopySpecContentVisitor(new FileCopySpecContentVisitor()));
     }
 
     @Override

@@ -23,7 +23,7 @@ import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
 public class CopyActionImplTest extends Specification {
-    FileCopySpecVisitor visitor = Mock()
+    FileCopySpecContentVisitor visitor = Mock()
     FileResolver resolver = Mock()
     FileTree sourceFileTree = Mock()
     Instantiator instantiator = new DirectInstantiator()

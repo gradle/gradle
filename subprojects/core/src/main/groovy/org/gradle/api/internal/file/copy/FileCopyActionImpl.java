@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -28,11 +25,7 @@ public class FileCopyActionImpl extends CopyActionImpl implements FileCopyAction
     private Object destDir;
 
     public FileCopyActionImpl(Instantiator instantiator, FileResolver resolver, CopySpecVisitor visitor) {
-        this(instantiator, resolver, visitor, Actions.doNothing());
-    }
-
-    public FileCopyActionImpl(Instantiator instantiator, FileResolver resolver, CopySpecVisitor visitor, Action<? super FileCopyDetails> onUnhandledDuplicate) {
-        super(instantiator, resolver, visitor, onUnhandledDuplicate);
+        super(instantiator, resolver, visitor, true);
     }
 
     @Override

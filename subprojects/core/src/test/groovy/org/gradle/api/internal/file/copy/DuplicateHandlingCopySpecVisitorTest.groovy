@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.copy
 
 import org.gradle.api.file.*
-import org.gradle.api.internal.Actions
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
@@ -34,7 +33,7 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
 
     def fileSystem = Mock(FileSystem)
     def delegate = Mock(FileCopySpecVisitor)
-    def visitor = new DuplicateHandlingCopySpecVisitor(delegate, Actions.doNothing())
+    def visitor = new DuplicateHandlingCopySpecVisitor(delegate, false)
     @Shared Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
     def driver = new CopySpecVisitorDriver(instantiator, fileSystem)
     def copySpec = Mock(MyCopySpec)

@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.tasks.WorkResult;
 
-public interface CopySpecVisitor extends WorkResult {
+public interface CopySpecContentVisitor extends WorkResult {
     /**
      * Called at the start of the visit.
      */

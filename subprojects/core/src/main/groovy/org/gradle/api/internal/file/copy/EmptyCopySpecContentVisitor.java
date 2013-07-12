@@ -13,12 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.copy
+package org.gradle.api.internal.file.copy;
 
-import spock.lang.Specification
+import org.gradle.api.file.FileCopyDetails;
 
-class CopySpecVisitorDriverTest extends Specification {
+public class EmptyCopySpecContentVisitor implements CopySpecContentVisitor {
+    public boolean getDidWork() {
+        return false;
+    }
 
+    public void startVisit(CopyAction action) {
+    }
 
+    public void visitDir(FileCopyDetails dirDetails) {
+    }
 
+    public void endVisit() {
+    }
+
+    public void visitFile(FileCopyDetails fileDetails) {
+    }
+
+    public void visitSpec(CopySpecInternal spec) {
+    }
 }

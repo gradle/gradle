@@ -39,7 +39,7 @@ import static org.junit.Assert.fail;
 public class FileCopySpecVisitorTest {
     private File destDir;
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final FileCopySpecVisitor visitor = new FileCopySpecVisitor();
+    private final FileCopySpecContentVisitor visitor = new FileCopySpecContentVisitor();
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 

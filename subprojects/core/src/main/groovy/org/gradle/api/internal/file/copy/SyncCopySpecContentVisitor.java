@@ -27,12 +27,12 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-public class SyncCopySpecVisitor extends DelegatingCopySpecVisitor {
+public class SyncCopySpecContentVisitor extends DelegatingCopySpecContentVisitor {
     private final Set<RelativePath> visited = new HashSet<RelativePath>();
     private File baseDestDir;
     private boolean didWork;
 
-    public SyncCopySpecVisitor(CopySpecVisitor visitor) {
+    public SyncCopySpecContentVisitor(CopySpecContentVisitor visitor) {
         super(visitor);
     }
 

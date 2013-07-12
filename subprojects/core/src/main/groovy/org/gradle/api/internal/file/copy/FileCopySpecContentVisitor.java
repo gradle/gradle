@@ -24,7 +24,7 @@ import java.io.File;
 /**
  * @author Steve Appling
  */
-public class FileCopySpecVisitor extends EmptyCopySpecVisitor {
+public class FileCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
     private File baseDestDir;
     private boolean didWork;
 

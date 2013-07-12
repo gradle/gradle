@@ -35,7 +35,7 @@ public class FileCopyActionImplTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final FileResolver fileResolver = context.mock(FileResolver.class);
     private final Instantiator instantiator = new DirectInstantiator();
-    private final FileCopyActionImpl spec = new FileCopyActionImpl(instantiator, fileResolver, context.mock(CopySpecVisitor.class));
+    private final FileCopyActionImpl spec = new FileCopyActionImpl(instantiator, fileResolver, context.mock(CopySpecContentVisitor.class));
 
     @Test public void testRootSpecResolvesItsIntoArgAsDestinationDir() {
         final File file = new File("base dir");

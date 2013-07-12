@@ -43,8 +43,8 @@ public class SyncCopySpecVisitorTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final CopySpecVisitor delegate = context.mock(CopySpecVisitor.class);
-    private final SyncCopySpecVisitor visitor = new SyncCopySpecVisitor(delegate);
+    private final CopySpecContentVisitor delegate = context.mock(CopySpecContentVisitor.class);
+    private final SyncCopySpecContentVisitor visitor = new SyncCopySpecContentVisitor(delegate);
 
     @Before
     public void setUp() {
@@ -83,7 +83,7 @@ public class SyncCopySpecVisitorTest {
         visitor.visitFile(file("included.txt"));
 
         // TODO - delete these
-        Field field = SyncCopySpecVisitor.class.getDeclaredField("visited");
+        Field field = SyncCopySpecContentVisitor.class.getDeclaredField("visited");
         field.setAccessible(true);
         Set visited = (Set) field.get(visitor);
         assert visited.contains(new RelativePath(true, "included.txt"));

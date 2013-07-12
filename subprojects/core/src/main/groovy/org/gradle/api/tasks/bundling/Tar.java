@@ -76,7 +76,7 @@ public class Tar extends AbstractArchiveTask {
      */
     class TarCopyActionImpl extends CopyActionImpl implements ArchiveCopyAction  {
         public TarCopyActionImpl(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver, new TarCopySpecVisitor(), new AbstractArchiveTaskUnhandledDuplicateAction());
+            super(instantiator, fileResolver, new TarCopySpecVisitor());
         }
 
         public File getArchivePath() {

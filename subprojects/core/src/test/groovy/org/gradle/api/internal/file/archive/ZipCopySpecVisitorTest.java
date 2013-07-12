@@ -53,7 +53,7 @@ public class ZipCopySpecVisitorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ArchiveCopyAction copyAction = context.mock(ZipCopyAction.class);
     private final CopySpecInternal copySpec = context.mock(CopySpecInternal.class);
-    private final ZipCopySpecVisitor visitor = new ZipCopySpecVisitor();
+    private final ZipCopySpecContentVisitor visitor = new ZipCopySpecContentVisitor();
     private TestFile zipFile;
 
     @Before

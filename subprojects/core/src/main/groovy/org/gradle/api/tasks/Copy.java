@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
-import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -64,7 +63,7 @@ public class Copy extends AbstractCopyTask {
     public Copy() {
         Instantiator instantiator = getServices().get(Instantiator.class);
         FileResolver fileResolver = getServices().get(FileResolver.class);
-        copyAction = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new FileCopySpecVisitor(), new AbstractCopyTaskUnhandledDuplicateAction());
+        copyAction = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new FileCopySpecVisitor());
     }
 
     protected void configureRootSpec() {
@@ -103,6 +102,4 @@ public class Copy extends AbstractCopyTask {
     public void setDestinationDir(File destinationDir) {
         into(destinationDir);
     }
-
-
 }
