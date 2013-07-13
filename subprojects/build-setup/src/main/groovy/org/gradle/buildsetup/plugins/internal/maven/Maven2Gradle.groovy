@@ -22,7 +22,7 @@ import org.gradle.mvn3.org.apache.maven.project.MavenProject
 import org.gradle.util.GFileUtils
 
 /**
- * This script obtains  the effective POM of the current project, reads its dependencies
+ * This script obtains the effective POM of the current project, reads its dependencies
  * and generates build.gradle scripts. It also generates settings.gradle for multimodule builds. <br/>
  *
  * It currently supports both single-module and multi-module POMs, inheritance, dependency management, properties - everything.
@@ -46,7 +46,7 @@ class Maven2Gradle {
 
     def convert() {
         workingDir = new File('.').canonicalFile
-        println "Working path:" + workingDir.absolutePath + "\n"
+
         //For now we're building the effective POM XML from the model
         //and then we parse the XML using slurper.
         //This way we don't have to rewrite the Maven2Gradle just yet.
@@ -59,18 +59,12 @@ class Maven2Gradle {
         def multimodule = this.effectivePom.name() == "projects"
 
         if (multimodule) {
-            println "This is multi-module project.\n"
             def allProjects = this.effectivePom.project
-            print "Generating settings.gradle... "
             qualifiedNames = generateSettings(workingDir.getName(), allProjects[0].artifactId, allProjects);
-            println "Done."
-            print "Configuring Dependencies... "
             def dependencies = [:];
             allProjects.each { project ->
                 dependencies[project.artifactId.text()] = getDependencies(project, allProjects)
             }
-            println "Done."
-
 
             def commonDeps = dependencies.get(allProjects[0].artifactId.text())
             build = """allprojects  {
@@ -94,7 +88,6 @@ subprojects {
                 String moduleDependencies = dependencies.get(id)
                 boolean warPack = module.packaging.text().equals("war")
                 def hasDependencies = !(moduleDependencies == null || moduleDependencies.length() == 0)
-                print "Generating build.gradle for module ${id}... "
                 File submoduleBuildFile = new File(projectDir(module), 'build.gradle')
                 def group = ''
                 if (module.groupId != allProjects[0].groupId) {
@@ -124,7 +117,6 @@ description = '${module.name}'
                 moduleBuild += testNg(moduleDependencies)
 
                 if (submoduleBuildFile.exists()) {
-                    print "(backing up existing one)... "
                     submoduleBuildFile.renameTo(new File("build.gradle.bak"))
                 }
                 def packageTests = packageTests(module);
@@ -132,31 +124,9 @@ description = '${module.name}'
                     moduleBuild += packageTests;
                 }
                 submoduleBuildFile.text = moduleBuild
-                println "Done."
             }
             //TODO deployment
-            def uploadArchives = {
-                """
-
-
-uploadArchives {
-  group = 'Maven'
-  description = "Does a Maven deploy of archives artifacts."
-
-  repositories.mavenDeployer {
-        name = 'sshDeployer' // optional
-        repository(url: "http://repos.mycompany.com/releases") {
-            authentication(userName: "me", password: "myPassword")
-        }
-      configurePom(pom)
-    }
-}
-
-
-"""
-            }
         } else {//simple
-            println "This is single module project."
             build = """apply plugin: 'java'
 apply plugin: 'maven'
 
@@ -169,7 +139,6 @@ ${globalExclusions(this.effectivePom)}
 
 """
 
-            print "Configuring Maven repositories... "
             Set<String> repoSet = new LinkedHashSet<String>();
             getRepositoriesForModule(this.effectivePom, repoSet)
             String repos = """repositories {
@@ -179,30 +148,21 @@ ${globalExclusions(this.effectivePom)}
                 repos = "${repos} ${it}\n"
             }
             build += "${repos}}\n"
-            println "Done."
-            print "Configuring Dependencies... "
             String dependencies = getDependencies(this.effectivePom, null)
             build += dependencies
-            println "Done."
 
             String packageTests = packageTests(this.effectivePom);
             if (packageTests) {
                 build += '//packaging tests'
                 build += packageTests;
             }
-            print "Generating settings.gradle if needed... "
             generateSettings(workingDir.getName(), this.effectivePom.artifactId, null);
-            println "Done."
-
         }
-        print "Generating main build.gradle... "
         def buildFile = new File("build.gradle")
         if (buildFile.exists()) {
-            print "(backing up existing one)... "
             buildFile.renameTo(new File("build.gradle.bak"))
         }
         buildFile.text = build
-        println "Done."
     }
 
     def globalExclusions = { project ->
@@ -268,7 +228,6 @@ version = '$project.version'""";
     }
 
     private String getRepositoriesForProjects(projects) {
-        print 'Configuring Repositories... '
         String repos = """repositories {
     ${localRepoUri()}
 """
@@ -280,13 +239,12 @@ version = '$project.version'""";
             repos = "${repos}${it}\n"
         }
         repos = "${repos}  }\n"
-        println "Done."
         return repos
     }
 
     private void getRepositoriesForModule(module, repoSet) {
         module.repositories.repository.each {
-            repoSet.add("    mavenRepo url: \"${it.url}\"")
+            repoSet.add("    maven { url \"${it.url}\" }")
         }
         //No need to include plugin repos - who cares about maven plugins?
     }
@@ -417,13 +375,11 @@ classifier = 'sources'
 }
 artifacts.archives packageSources"""
         }
-        println 'Done.'
         sourceSetStr
     }
 
 
     def packageTests = { project ->
-        print 'Adding tests packaging...'
         def jarPlugin = plugin('maven-jar-plugin', project)
         pluginGoal('test-jar', jarPlugin) ? """
 task packageTests(type: Jar) {
@@ -438,7 +394,6 @@ artifacts.archives packageTests
         def sourcePlugin = plugin('maven-source-plugin', project)
         def sourceSets = []
         if (sourcePlugin) {
-            println 'Adding sources packaging...'
             if (pluginGoal('jar', sourcePlugin)) {
                 sourceSets += 'main'
             } else if (pluginGoal('test-jar', sourcePlugin)) {
@@ -499,7 +454,6 @@ artifacts.archives packageTests
         }
         File settingsFile = new File("settings.gradle")
         if (settingsFile.exists()) {
-            print "(backing up existing one)... "
             settingsFile.renameTo(new File("settings.gradle.bak"))
         }
         def settingsText = "${projectName}${modules.length() > 0 ? "include ${modules.toString()}" : ''}\n"
