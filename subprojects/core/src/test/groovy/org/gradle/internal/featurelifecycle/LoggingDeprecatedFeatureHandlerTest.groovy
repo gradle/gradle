@@ -19,6 +19,7 @@ package org.gradle.internal.featurelifecycle
 import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestAppender
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -51,6 +52,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         }
 
         and:
-        appender.toString() == '[WARN location\nfeature]'
+        appender.toString() == TextUtil.toPlatformLineSeparators('[WARN location\nfeature]')
     }
 }
