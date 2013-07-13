@@ -15,6 +15,7 @@ The following stories are to be included in Gradle 2.0.
 In the Gradle 2.0-rc-1 release, remove all features that are deprecated as at Gradle 1.8 or earlier:
 
 * Search for usages of `DeprecationLogger`, `@Deprecated`, `@deprecated` and remove the associated feature.
+* Review usages of `DeprecationLogger.whileDisabled()`.
 
 ## Remove Ivy types from the Gradle repository API
 
@@ -39,6 +40,7 @@ Now that we have reasonable tooling support via the tooling API, remove the Open
 * Replace internal usages of the static `GradleLauncher` methods.
 * Remove the `GradleLauncher` type from the public API.
 * Remove the public `StartParameter` constructor.
+* Change `StartParameter` into an interface.
 
 ## Misc API tidy-ups
 
@@ -128,6 +130,7 @@ Or at least remove the public constructor of `StartParameter` so that it can lat
 
 * Remove `Configurable` from public API types.
 * Remove `PomFilterContainer.getActivePomFilters()`.
+* Change `StartParameter` so that it no longer extends `LoggingConfiguration`.
 * Move `ConflictResolution` from public API (it's only used internally).
 * Move `Module` from public API (it's only used internally).
 * Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API.
@@ -174,10 +177,21 @@ Extension objects have been available for over 2 years and are now an establishe
 * Rename `IllegalDependencyNotation` to add `Exception` to the end of its name.
 * Remove `ConventionProperty`, replace it with documentation.
 * Remove `Settings.startParameter`. Can use `gradle.startParameter` instead.
+* Remove `org.gradle.util` from default imports.
+* Remove `AbstractOptions`.
 
 ## Remove `sonar` plugin
 
 Promote the `sonar-runner` plugin and remove the `sonar` plugin.
+
+## Remove support for JNA and JNA-Posix
+
+Replace all usages of JNA and JNA-Posix with native-platform. Currently, this means that console support and
+UNIX file permissions with JVMs earlier than Java 7 will not be supported on the following platforms:
+
+* Linux-ia64
+* Solaris-x86, -amd64, -sparc, -sparcv9
+* FreeBSD-i386, -amd64
 
 ## Decorate classes at load time instead of subclassing
 
