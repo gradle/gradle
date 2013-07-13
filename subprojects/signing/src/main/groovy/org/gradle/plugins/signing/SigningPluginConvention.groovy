@@ -22,6 +22,7 @@ import org.gradle.util.DeprecationLogger
 /**
  * @deprecated Use {@link SigningExtension}
  */
+@Deprecated
 class SigningPluginConvention {
     
     private SigningExtension extension
@@ -33,6 +34,7 @@ class SigningPluginConvention {
     /**
      * @deprecated Use {@link SigningExtension#sign(PublishArtifact...) project.signing.sign(PublishArtifact...) }
      */
+    @Deprecated
     SignOperation sign(PublishArtifact... publishArtifacts) {
         DeprecationLogger.nagUserOfReplacedMethod("sign()", "signing.sign()")
         extension.sign(publishArtifacts)
@@ -41,6 +43,7 @@ class SigningPluginConvention {
     /**
      * @deprecated Use {@link SigningExtension#sign(File...) project.signing.sign(File...) }
      */
+    @Deprecated
     SignOperation sign(File... files) {
         DeprecationLogger.nagUserOfReplacedMethod("sign()", "signing.sign()")
         extension.sign(files)
@@ -49,6 +52,7 @@ class SigningPluginConvention {
     /**
      * @deprecated Use {@link SigningExtension#sign(String, File...) project.signing.sign(String, File...)}
      */
+    @Deprecated
     SignOperation sign(String classifier, File... files) {
         DeprecationLogger.nagUserOfReplacedMethod("sign()", "signing.sign()")
         extension.sign(classifier, files)
@@ -57,6 +61,7 @@ class SigningPluginConvention {
     /**
      * @deprecated Use {@link SigningExtension#sign(Closure) project.signing.sign \{ } }
      */
+    @Deprecated
     SignOperation sign(Closure closure) {
         DeprecationLogger.nagUserOfReplacedMethod("sign()", "signing.sign()")
         extension.sign(closure)
@@ -65,10 +70,9 @@ class SigningPluginConvention {
     /**
      * @deprecated Use {@link SigningExtension#signPom() project.signing.signPom}
      */
+    @Deprecated
     Signature signPom(MavenDeployment mavenDeployment, Closure closure = null) {
         DeprecationLogger.nagUserOfReplacedMethod("signPom()", "signing.signPom()")
         extension.signPom(mavenDeployment, closure)
     }
-    
-    
 }
