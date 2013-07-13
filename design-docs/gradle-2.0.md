@@ -34,8 +34,11 @@ Now that we have reasonable tooling support via the tooling API, remove the Open
 
 * Implement a stub to fail with a reasonable error message when attempting to use Gradle from the Open API.
 * Remove the remaining Open API classes and project.
+* Add integration test coverage.
 
 ## Remove the `GradleLauncher` API
+
+The public API for launching Gradle is now the tooling API. The `GradleBuild` task can also be used.
 
 * Replace internal usages of the static `GradleLauncher` methods.
 * Remove the `GradleLauncher` type from the public API.
@@ -106,19 +109,17 @@ types and to offer a more consistent DSL.
 * Remove all methods that accept a `String` or `Object` when a enum overload is available. Add missing overloads where appropriate.
 * Remove all set methods that contain no custom logic.
 
-## Remove GradleLauncher
-
-The public APIs for launching Gradle is now the tooling API. The `GradleBuild` task can also be used.
-
 ## Remove tooling API support for some older versions
 
-* Change the provider so that it refuses to work with a consumer earlier than Gradle 1.2 (we can't tell the difference between clients from 1.0-milestone-8 and 1.1).
-  This means that a Gradle 1.2 or later tooling API client will be required to run builds for Gradle 2.0 and later.
-* Change the consumer so that it refuses to work with a provider earlier than Gradle 1.0 (or any version earlier than 1.0-milestone-8).
-
-## Replace StartParameter with several interfaces
-
-Or at least remove the public constructor of `StartParameter` so that it can later be made abstract and interfaces extracted.
+* Remove support from the consumer for providers earlier than 1.0-milestone-8:
+    * Consumer fails with a decent error message instead of falling back to the methods on `ConnectionVersion4`.
+    * Add integration test coverage.
+* Remove support from the provider for consumers earlier than 1.2 (we can't tell the difference between clients from 1.0-milestone-8 and 1.1).
+    * Change the implementation of methods on `ConnectionVersion4` and `InternalConnection` to fail with a decent error message.
+    * Model implementations no longer need to implement `ProjectVersion3` or the protocol interfaces.
+    * Add integration test coverage.
+* Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `org.gradle.tooling`, to remove
+  package cycle from the API.
 
 ## Clean up `DefaultTask` hierarchy
 
@@ -136,18 +137,6 @@ Or at least remove the public constructor of `StartParameter` so that it can lat
 * Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API.
 * Move `AntGroovydoc` and `AntScalaDoc` from public API.
 * Move `BuildExceptionReporter`, `BuildResultLogger`, `TaskExecutionLogger` and `BuildLogger` from public API.
-
-## Tooling API tidy-ups
-
-* Remove support from the consumer for providers earlier than 1.0-milestone-8:
-    * Consumer fails with a decent error message instead of falling back to the methods on `ConnectionVersion4`.
-    * Add integration test coverage.
-* Remove support from the provider for consumers earlier than 1.2.
-    * Change the implementation of methods on `ConnectionVersion4` and `InternalConnection` to fail with a decent error message.
-    * Model implementations no longer need to implement `ProjectVersion3` or the protocol interfaces.
-    * Add integration test coverage.
-* Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `org.gradle.tooling`, to remove
-  package cycle from the API.
 
 ## Remove support for convention objects
 
