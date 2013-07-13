@@ -22,17 +22,15 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.Cast;
+import org.gradle.api.internal.artifacts.DependencyManagementServices;
+import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.ivy.IvyPublication;
-import org.gradle.api.publish.ivy.internal.publisher.DependencyResolverIvyPublisher;
-import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
-import org.gradle.api.publish.ivy.internal.publisher.ValidatingIvyPublisher;
+import org.gradle.api.publish.ivy.internal.publisher.*;
 import org.gradle.api.tasks.TaskAction;
 
-import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 /**
@@ -46,7 +44,6 @@ public class PublishToIvyRepository extends DefaultTask {
     private IvyPublicationInternal publication;
     private IvyArtifactRepository repository;
 
-    @Inject
     public PublishToIvyRepository() {
 
         // Allow the publication to participate in incremental build
@@ -142,6 +139,7 @@ public class PublishToIvyRepository extends DefaultTask {
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
                 IvyPublisher publisher = new DependencyResolverIvyPublisher();
                 publisher = new ValidatingIvyPublisher(publisher);
+                publisher = new ContextualizingIvyPublisher(publisher, getServices().get(DependencyManagementServices.class).get(IvyContextManager.class));
                 publisher.publish(normalizedPublication, Cast.cast(PublicationAwareRepository.class, repository));
             }
         }.run();

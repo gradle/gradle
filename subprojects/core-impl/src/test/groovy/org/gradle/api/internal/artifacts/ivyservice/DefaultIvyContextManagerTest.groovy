@@ -55,6 +55,30 @@ class DefaultIvyContextManagerTest extends ConcurrentSpec {
         0 * action._
     }
 
+    def "nested actions are executed against the same Ivy instance"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def transformer = Mock(Transformer)
+        def ivy
+
+        when:
+        manager.withIvy(action1)
+
+        then:
+        1 * action1.execute(_) >> { Ivy param ->
+            ivy = param
+            manager.withIvy(transformer)
+        }
+        1 * transformer.transform(_) >> { Ivy param ->
+            assert param.is(ivy)
+            manager.withIvy(action2)
+        }
+        1 * action2.execute(_) >> { Ivy param ->
+            assert param.is(ivy)
+        }
+        0 * _._
+    }
+
     def "sets up Ivy context stack and cleans up after action"() {
         given:
         def action = Mock(Action)

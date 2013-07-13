@@ -33,20 +33,37 @@ public class DefaultIvyContextManager implements IvyContextManager {
     private final Lock lock = new ReentrantLock();
     private boolean messageAdapterAttached;
     private final LinkedList<Ivy> cached = new LinkedList<Ivy>();
+    private final ThreadLocal<Integer> depth = new ThreadLocal<Integer>();
 
     public void withIvy(final Action<? super Ivy> action) {
         withIvy(Transformers.toTransformer(action));
     }
 
     public <T> T withIvy(Transformer<? extends T, ? super Ivy> action) {
+        Integer currentDepth = depth.get();
+
+        if (currentDepth != null) {
+            depth.set(currentDepth + 1);
+            try {
+                return action.transform(IvyContext.getContext().getIvy());
+            } finally {
+                depth.set(currentDepth);
+            }
+        }
+
         IvyContext.pushNewContext();
         try {
-            Ivy ivy = getIvy();
+            depth.set(1);
             try {
-                IvyContext.getContext().setIvy(ivy);
-                return action.transform(ivy);
+                Ivy ivy = getIvy();
+                try {
+                    IvyContext.getContext().setIvy(ivy);
+                    return action.transform(ivy);
+                } finally {
+                    releaseIvy(ivy);
+                }
             } finally {
-                releaseIvy(ivy);
+                depth.set(null);
             }
         } finally {
             IvyContext.popContext();
