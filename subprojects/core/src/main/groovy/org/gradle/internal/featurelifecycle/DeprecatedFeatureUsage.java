@@ -67,6 +67,7 @@ public class DeprecatedFeatureUsage {
         while (caller < originalStack.length && originalStack[caller].getClassName().startsWith(calledFrom.getName())) {
             caller++;
         }
+        caller++;
         List<StackTraceElement> stack = new ArrayList<StackTraceElement>();
         for (; caller < originalStack.length; caller++) {
             stack.add(originalStack[caller]);

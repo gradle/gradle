@@ -21,9 +21,9 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
-import org.gradle.internal.featurelifecycle.DeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
+import org.gradle.internal.featurelifecycle.UsageLocationReporter;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,7 +48,7 @@ public class SingleMessageLogger {
     public static final String INCUBATION_MESSAGE = "%s is an incubating feature.";
 
     private static final Lock LOCK = new ReentrantLock();
-    private static DeprecatedFeatureHandler handler = new LoggingDeprecatedFeatureHandler();
+    private static LoggingDeprecatedFeatureHandler handler = new LoggingDeprecatedFeatureHandler();
     private static String deprecationMessage;
 
     private static String getDeprecationMessage() {
@@ -80,6 +80,15 @@ public class SingleMessageLogger {
         LOCK.lock();
         try {
             handler = new LoggingDeprecatedFeatureHandler();
+        } finally {
+            LOCK.unlock();
+        }
+    }
+
+    public static void useLocationReporter(UsageLocationReporter reporter) {
+        LOCK.lock();
+        try {
+            handler.setLocationReporter(reporter);
         } finally {
             LOCK.unlock();
         }

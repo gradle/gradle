@@ -26,7 +26,8 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final appender = new TestAppender()
     @Rule final ConfigureLogging logging = new ConfigureLogging(appender)
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
-    final handler = new LoggingDeprecatedFeatureHandler()
+    final locationReporter = Mock(UsageLocationReporter)
+    final handler = new LoggingDeprecatedFeatureHandler(locationReporter)
 
     def "logs each deprecation warning once only"() {
         when:
@@ -36,5 +37,20 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         then:
         appender.toString() == '[WARN feature1][WARN feature2]'
+    }
+
+    def "location reporter can prepend text"() {
+        def usage = new DeprecatedFeatureUsage("feature", LoggingDeprecatedFeatureHandlerTest)
+
+        when:
+        handler.deprecatedFeatureUsed(usage)
+
+        then:
+        1 * locationReporter.reportLocation(_, _) >> { DeprecatedFeatureUsage param1, StringBuilder message ->
+            message.append("location")
+        }
+
+        and:
+        appender.toString() == '[WARN location\nfeature]'
     }
 }

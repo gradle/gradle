@@ -18,6 +18,7 @@ package org.gradle.internal.featurelifecycle;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.SystemProperties;
 import org.gradle.util.SingleMessageLogger;
 
 import java.util.HashSet;
@@ -27,19 +28,43 @@ import java.util.Set;
 public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
     private static final Logger LOGGER = Logging.getLogger(LoggingDeprecatedFeatureHandler.class);
     private final Set<String> messages = new HashSet<String>();
+    private UsageLocationReporter locationReporter;
+
+    public LoggingDeprecatedFeatureHandler() {
+        this(new UsageLocationReporter() {
+            public void reportLocation(DeprecatedFeatureUsage usage, StringBuilder target) {
+            }
+        });
+    }
+
+    public LoggingDeprecatedFeatureHandler(UsageLocationReporter locationReporter) {
+        this.locationReporter = locationReporter;
+    }
+
+    public void setLocationReporter(UsageLocationReporter locationReporter) {
+        this.locationReporter = locationReporter;
+    }
 
     public void deprecatedFeatureUsed(DeprecatedFeatureUsage usage) {
         if (messages.add(usage.getMessage())) {
             usage = usage.withStackTrace();
-            LOGGER.warn(usage.getMessage());
-            logTraceIfNecessary(usage.getStack());
+            StringBuilder message = new StringBuilder();
+            locationReporter.reportLocation(usage, message);
+            if (message.length() > 0) {
+                message.append(SystemProperties.getLineSeparator());
+            }
+            message.append(usage.getMessage());
+            logTraceIfNecessary(usage.getStack(), message);
+            LOGGER.warn(message.toString());
         }
     }
 
-    private void logTraceIfNecessary(List<StackTraceElement> stack) {
+    private void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
         if (isTraceLoggingEnabled()) {
             for (StackTraceElement frame : stack) {
-                LOGGER.warn("    {}", frame.toString());
+                message.append(SystemProperties.getLineSeparator());
+                message.append("    ");
+                message.append(frame.toString());
             }
         }
     }

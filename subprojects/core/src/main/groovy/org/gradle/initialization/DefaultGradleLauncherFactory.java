@@ -28,6 +28,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.invocation.DefaultGradle;
@@ -37,6 +38,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Arrays;
 
@@ -114,6 +116,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         if (startParameter.isProfile()) {
             listenerManager.addListener(new ReportGeneratingProfileListener());
         }
+        ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
+        listenerManager.addListener(usageLocationReporter);
+        DeprecationLogger.useLocationReporter(usageLocationReporter);
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry);
         return new DefaultGradleLauncher(

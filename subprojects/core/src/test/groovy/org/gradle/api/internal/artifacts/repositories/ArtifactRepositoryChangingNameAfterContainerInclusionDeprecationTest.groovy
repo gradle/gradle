@@ -22,25 +22,22 @@ import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestAppender
 import org.gradle.util.DeprecationLogger
 import org.gradle.util.HelperUtil
+import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ArtifactRepositoryChangingNameAfterContainerInclusionDeprecationTest extends Specification {
 
     TestAppender appender = new TestAppender()
-    ConfigureLogging logging
+    @Rule ConfigureLogging logging = new ConfigureLogging(appender)
     Project project
 
     def setup() {
         project = HelperUtil.createRootProject()
         DeprecationLogger.reset()
-        appender = new TestAppender()
-        logging = new ConfigureLogging(appender)
-        logging.attachAppender()
     }
 
     def cleanup() {
-        logging.detachAppender()
         DeprecationLogger.reset()
     }
 
