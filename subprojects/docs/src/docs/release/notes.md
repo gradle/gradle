@@ -11,7 +11,8 @@ Removing unwanted features allows us to reduce the complexity of Gradle, and thi
 
 Please be aware that we'll be following our usual feature lifecycle for removing features. Almost every deprecated feature has a non-deprecated replacement
 and this is documented in the deprecation descriptions below. However, some deprecated features do not have a replacement. If you find a feature that
-you use has been deprecated, and there doesn't seem to be a replacement for it, please let us know as soon as possible via the [forums](http://forums.gradle.org).
+you use has been deprecated, and there doesn't seem to be a replacement for it that you can use , please let us know as soon as possible via the
+[forums](http://forums.gradle.org).
 
 <!--
 ### Example new and noteworthy
@@ -113,6 +114,15 @@ The following classes will be removed in Gradle 2.0. They are no longer used:
 
 * Renamed task class org.gradle.nativecode.base.tasks.AssembleStaticLibrary to org.gradle.nativecode.base.tasks.CreateStaticLibrary, with the
   default task instance also being renamed from 'assemble${StaticLibraryName}' to 'create${StaticLibraryName}'
+
+### Changes to handling of Ivy `DependencyResolver` implementations
+
+In order to improve performance and heap usage during dependency resolution, this release includes some internal changes to the way meta-data is
+parsed. If you use an Ivy `DependencyResolver` implementation to define repositories, meta-data parsing is now delegated to Ivy instead of
+using Gradle's parser implementations. This means that these resolvers will no longer take advantage of performance improvements in Gradle's
+meta-data handling. The changes should generally be backwards compatible, however.
+
+Note that using Ivy `DependencyResolver` implementations is deprecated, and we recommend that you use Gradle's repository implementations instead.
 
 <!--
 ### Example breaking change
