@@ -206,17 +206,14 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         }
 
         File moduleDescriptorFile;
-        if (isLocal()) {
-            moduleDescriptorFile = new File(resource.getName());
-        } else {
-            try {
-                moduleDescriptorFile = downloadModuleDescriptorFile(dependencyRevisionId, resource);
-            } catch (IOException e) {
-                // TODO:DAZ Work out if/when/why this happens
-                LOGGER.warn("Problem while downloading module descriptor: {}: {}", resource, e.getMessage());
-                return null;
-            }
+        try {
+            moduleDescriptorFile = downloadModuleDescriptorFile(dependencyRevisionId, resource);
+        } catch (IOException e) {
+            // TODO:DAZ Work out if/when/why this happens
+            LOGGER.warn("Problem while downloading module descriptor: {}: {}", resource, e.getMessage());
+            return null;
         }
+
         return metaDataParser.parseModuleDescriptor(dependencyRevisionId, moduleDescriptorFile, resource, new ExternalResourceResolverDependencyResolver(this));
     }
 
