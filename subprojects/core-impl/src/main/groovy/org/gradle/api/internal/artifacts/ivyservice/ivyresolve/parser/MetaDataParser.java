@@ -17,12 +17,12 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.externalresource.ExternalResource;
 
 import java.io.File;
 import java.text.ParseException;
 
 public interface MetaDataParser {
-    ModuleDescriptor parseModuleDescriptor(ModuleRevisionId dependencyRevisionId, File moduleDescriptorFile, Resource resource, DependencyResolver resolver) throws ParseException;
+    ModuleDescriptor parseModuleDescriptor(ModuleRevisionId dependencyRevisionId, File moduleDescriptorFile, ExternalResource resource, DependencyResolver resolver) throws ParseException;
 }

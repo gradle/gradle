@@ -192,7 +192,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         return getSettings().getVersionMatcher();
     }
 
-    private ModuleDescriptor parse(Artifact artifact, Resource resource) throws ParseException {
+    private ModuleDescriptor parse(Artifact artifact, ExternalResource resource) throws ParseException {
         ModuleRevisionId dependencyRevisionId = artifact.getModuleRevisionId();
 
         File moduleDescriptorFile;
