@@ -151,7 +151,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
                 result.missing();
                 return;
             }
-            ModuleDescriptor nsMd = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependencyDescriptor.getAllDependencyArtifacts());
+            DefaultModuleDescriptor nsMd = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependencyDescriptor.getAllDependencyArtifacts());
             ResolvedArtifact artifactRef = findFirstArtifactRef(nsMd);
             if (artifactRef == null) {
                 LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.", moduleRevisionId, getName());
@@ -159,7 +159,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
             } else {
                 long lastModified = artifactRef.resource.getLastModified();
                 if (lastModified != 0) {
-                    ((DefaultModuleDescriptor) nsMd).setLastModified(lastModified);
+                    nsMd.setLastModified(lastModified);
                 }
                 LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.", moduleRevisionId, getName());
                 if (isDynamic) {
@@ -197,7 +197,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
 
         File moduleDescriptorFile;
         try {
-            moduleDescriptorFile = downloadModuleDescriptorFile(dependencyRevisionId, resource);
+            moduleDescriptorFile = repositoryCacheManager.downloadAndCacheArtifactFile(artifact, resourceDownloader, resource);
         } catch (IOException e) {
             // TODO:DAZ Work out if/when/why this happens
             LOGGER.warn("Problem while downloading module descriptor: {}: {}", resource, e.getMessage());
@@ -205,11 +205,6 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         }
 
         return metaDataParser.parseModuleDescriptor(dependencyRevisionId, moduleDescriptorFile, resource, new ExternalResourceResolverDependencyResolver(this));
-    }
-
-    private File downloadModuleDescriptorFile(ModuleRevisionId dependencyRevisionId, Resource resource) throws IOException {
-        Artifact moduleArtifact = metaDataParser.getMetadataArtifact(dependencyRevisionId, resource);
-        return repositoryCacheManager.downloadAndCacheArtifactFile(moduleArtifact, resourceDownloader, resource);
     }
 
     private void checkDescriptorConsistency(ModuleRevisionId mrid, ModuleDescriptor md,
@@ -274,7 +269,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
 
     protected ResourceMDParser getRMDParser() {
         return new ResourceMDParser() {
-            public MDResolvedResource parse(Resource resource, Artifact artifact) {
+            public MDResolvedResource parse(ExternalResource resource, Artifact artifact) {
                 try {
                     ModuleDescriptor md = ExternalResourceResolver.this.parse(artifact, resource);
                     if (md == null) {
@@ -292,7 +287,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
 
     protected ResourceMDParser getDefaultRMDParser() {
         return new ResourceMDParser() {
-            public MDResolvedResource parse(Resource resource, Artifact artifact) {
+            public MDResolvedResource parse(ExternalResource resource, Artifact artifact) {
                 DefaultModuleDescriptor md = DefaultModuleDescriptor.newDefaultInstance(artifact.getModuleRevisionId());
                 md.setStatus("integration");
                 return new MDResolvedResource(resource, artifact, md);
@@ -314,11 +309,11 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
             ResourcePattern resourcePattern = toResourcePattern(pattern);
             String resourceName = resourcePattern.toPath(artifact);
             LOGGER.debug("Loading {}", resourceName);
-            Resource res = getResource(resourceName, artifact, forDownload);
-            if (res.exists()) {
-                return new ResolvedArtifact(res, artifact);
+            ExternalResource resource = getResource(resourceName, artifact, forDownload);
+            if (resource.exists()) {
+                return new ResolvedArtifact(resource, artifact);
             } else {
-                LOGGER.debug("Resource not reachable for {}: res={}", moduleRevision, res);
+                LOGGER.debug("Resource not reachable for {}: res={}", moduleRevision, resource);
             }
         }
         return null;
@@ -361,7 +356,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
             boolean needsModuleDescriptor = versionMatcher.needModuleDescriptor(mrid, foundMrid);
             artifact = DefaultArtifact.cloneWithAnotherMrid(artifact, foundMrid);
             String resourcePath = listedVersion.getPattern().toPath(artifact);
-            Resource resource = getResource(resourcePath, artifact, forDownload || needsModuleDescriptor);
+            ExternalResource resource = getResource(resourcePath, artifact, forDownload || needsModuleDescriptor);
             String description = version + " [" + resource + "]";
             if (!resource.exists()) {
                 LOGGER.debug(name + ": unreachable: " + description);
@@ -435,7 +430,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         return repositoryCacheManager.downloadAndCacheArtifactFile(artifact, resourceDownloader, artifactRef.resource);
     }
 
-    private Resource getResource(String source, Artifact target, boolean forDownload) {
+    private ExternalResource getResource(String source, Artifact target, boolean forDownload) {
         try {
             if (forDownload) {
                 ArtifactRevisionId arid = target.getId();
@@ -506,11 +501,11 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
 
     public void publish(ModuleVersionPublishMetaData moduleVersion) throws IOException {
         for (Map.Entry<Artifact, File> entry : moduleVersion.getArtifacts().entrySet()) {
-            publish(entry.getKey(), entry.getValue(), true);
+            publish(entry.getKey(), entry.getValue());
         }
     }
 
-    private void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
+    private void publish(Artifact artifact, File src) throws IOException {
         String destinationPattern;
         if ("ivy".equals(artifact.getType()) && !getIvyPatterns().isEmpty()) {
             destinationPattern = getIvyPatterns().get(0);
@@ -690,14 +685,14 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     }
 
     public interface ResourceMDParser {
-        MDResolvedResource parse(Resource resource, Artifact artifact);
+        MDResolvedResource parse(ExternalResource resource, Artifact artifact);
     }
 
     public static class ResolvedArtifact {
-        private final Resource resource;
+        private final ExternalResource resource;
         private final Artifact artifact;
 
-        public ResolvedArtifact(Resource resource, Artifact artifact) {
+        public ResolvedArtifact(ExternalResource resource, Artifact artifact) {
             this.resource = resource;
             this.artifact = artifact;
         }
@@ -706,7 +701,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     public static class MDResolvedResource extends ResolvedArtifact {
         private final ModuleDescriptor moduleDescriptor;
 
-        public MDResolvedResource(Resource resource, Artifact artifact, ModuleDescriptor moduleDescriptor) {
+        public MDResolvedResource(ExternalResource resource, Artifact artifact, ModuleDescriptor moduleDescriptor) {
             super(resource, artifact);
             this.moduleDescriptor = moduleDescriptor;
         }
