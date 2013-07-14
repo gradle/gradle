@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.settings.IvySettings;
 
 public interface IvyAwareModuleVersionRepository extends ModuleVersionRepository {
     void setSettings(IvySettings settings);
+
+    void setResolveData(ResolveData resolveData);
 
     // TODO - move this
     boolean isDynamicResolveMode();

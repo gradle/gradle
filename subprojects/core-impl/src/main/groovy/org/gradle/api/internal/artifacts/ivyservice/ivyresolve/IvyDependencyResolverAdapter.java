@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
@@ -43,6 +44,7 @@ public class IvyDependencyResolverAdapter implements IvyAwareModuleVersionReposi
     private final DownloadOptions downloadOptions = new DownloadOptions();
     private final String identifier;
     private final DependencyResolver resolver;
+    private ResolveData resolveData;
 
     public IvyDependencyResolverAdapter(DependencyResolver resolver) {
         this.resolver = resolver;
@@ -70,12 +72,16 @@ public class IvyDependencyResolverAdapter implements IvyAwareModuleVersionReposi
         settings.addResolver(resolver);
     }
 
+    public void setResolveData(ResolveData resolveData) {
+        this.resolveData = resolveData;
+    }
+
     public boolean isDynamicResolveMode() {
         return false;
     }
 
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        ResolveData resolveData = IvyContextualiser.getIvyContext().getResolveData();
+        IvyContext.getContext().setResolveData(resolveData);
         try {
             ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);
             if (revision == null) {

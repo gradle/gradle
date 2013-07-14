@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
@@ -51,6 +52,9 @@ public class ExternalResourceResolverAdapter implements IvyAwareModuleVersionRep
 
     public void setSettings(IvySettings settings) {
         resolver.setSettings(settings);
+    }
+
+    public void setResolveData(ResolveData resolveData) {
     }
 
     public boolean isDynamicResolveMode() {

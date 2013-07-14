@@ -20,7 +20,7 @@ import org.apache.ivy.core.IvyContext;
 public class IvyContextualiser {
     public static IvyContext getIvyContext() {
         IvyContext context = IvyContext.getContext();
-        if (context.peekIvy() == null || context.getResolveData() == null) {
+        if (context.peekIvy() == null) {
             throw new IllegalStateException("Ivy context not established");
         }
         return context;
