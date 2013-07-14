@@ -85,10 +85,6 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
         return true; // this the default parser, it thus accepts all resources
     }
 
-    public Artifact getMetadataArtifact(ModuleRevisionId mrid, Resource res) {
-        return DefaultArtifact.newIvyArtifact(mrid, new Date(res.getLastModified()));
-    }
-
     protected abstract static class AbstractParser extends DefaultHandler {
         private static final String DEFAULT_CONF_MAPPING = "*->*";
 

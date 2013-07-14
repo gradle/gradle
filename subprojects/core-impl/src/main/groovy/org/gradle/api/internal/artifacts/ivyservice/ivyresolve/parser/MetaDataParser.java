@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.repository.Resource;
@@ -25,7 +24,5 @@ import java.io.File;
 import java.text.ParseException;
 
 public interface MetaDataParser {
-    Artifact getMetadataArtifact(ModuleRevisionId dependencyRevisionId, Resource resource);
-
     ModuleDescriptor parseModuleDescriptor(ModuleRevisionId dependencyRevisionId, File moduleDescriptorFile, Resource resource, DependencyResolver resolver) throws ParseException;
 }

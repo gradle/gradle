@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.repository.Resource;
 
@@ -31,6 +29,4 @@ public interface ModuleDescriptorParser {
             Resource res, boolean validate) throws ParseException, IOException;
 
     public boolean accept(Resource res);
-
-    public Artifact getMetadataArtifact(ModuleRevisionId mrid, Resource res);
 }

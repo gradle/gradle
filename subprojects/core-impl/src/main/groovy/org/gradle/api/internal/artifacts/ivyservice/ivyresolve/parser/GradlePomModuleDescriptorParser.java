@@ -42,7 +42,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.text.ParseException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -60,10 +59,6 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
 
     public String toString() {
         return "gradle pom parser";
-    }
-
-    public Artifact getMetadataArtifact(ModuleRevisionId mrid, Resource res) {
-        return DefaultArtifact.newPomArtifact(mrid, new Date(res.getLastModified()));
     }
 
     public String getType() {
