@@ -24,7 +24,6 @@ import org.apache.ivy.core.resolve.ResolveEngine;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.namespace.NameSpaceHelper;
-import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomReader;
@@ -36,9 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -55,11 +52,6 @@ import java.util.Map;
  */
 public final class GradlePomModuleDescriptorParser implements ModuleDescriptorParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradlePomModuleDescriptorParser.class);
-
-    public void toIvyFile(InputStream is, Resource res, File destFile, ModuleDescriptor md)
-            throws ParseException, IOException {
-        throw new UnsupportedOperationException();
-    }
 
     public boolean accept(Resource res) {
         return res.getName().endsWith(".pom") || res.getName().endsWith("pom.xml")
@@ -88,7 +80,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                                             Resource resource, boolean validate) throws ParseException, IOException {
 
         Resource res = encodedUrlResource(resource, descriptorURL);
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(this, res, ivySettings);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(res, ivySettings);
 
         try {
             PomReader domReader = new PomReader(descriptorURL, res);

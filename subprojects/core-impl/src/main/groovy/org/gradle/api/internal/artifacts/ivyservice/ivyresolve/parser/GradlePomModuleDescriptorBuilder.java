@@ -24,11 +24,11 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.m2.DefaultPomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomReader.PomDependencyData;
+import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.util.DeprecationLogger;
@@ -169,9 +169,8 @@ public class GradlePomModuleDescriptorBuilder {
     private ParserSettings parserSettings;
 
 
-    public GradlePomModuleDescriptorBuilder(
-            ModuleDescriptorParser parser, Resource res, ParserSettings ivySettings) {
-        ivyModuleDescriptor = new DefaultModuleDescriptor(parser, res);
+    public GradlePomModuleDescriptorBuilder(Resource res, ParserSettings ivySettings) {
+        ivyModuleDescriptor = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
         ivyModuleDescriptor.setResolvedPublicationDate(new Date(res.getLastModified()));
         for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
             ivyModuleDescriptor.addConfiguration(maven2Configuration);
