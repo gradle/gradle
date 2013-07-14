@@ -63,7 +63,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         0 * _._
 
         and:
-        appender.toString().empty
+        appender.toString().length() == 0
     }
 
     def "does not log warning while disabled with action"() {
@@ -77,7 +77,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         0 * _._
 
         and:
-        appender.toString().empty
+        appender.toString().length() == 0
     }
 
     def "warnings are disabled for the current thread only"() {
