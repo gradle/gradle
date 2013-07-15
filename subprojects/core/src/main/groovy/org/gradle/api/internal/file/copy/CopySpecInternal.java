@@ -33,6 +33,6 @@ public interface CopySpecInternal extends CopySpec {
 
     Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
 
-    void visit(Action<? super CopySpecInternal> action);
+    Iterable<? extends CopySpecInternal> getChildren();
 
 }

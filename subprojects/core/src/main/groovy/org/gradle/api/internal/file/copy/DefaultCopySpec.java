@@ -422,11 +422,8 @@ public class DefaultCopySpec implements CopySpecInternal {
         return allActions;
     }
 
-    public void visit(Action<? super CopySpecInternal> action) {
-        action.execute(this);
-        for (CopySpecInternal child : childSpecs) {
-            child.visit(action);
-        }
+    public Iterable<? extends CopySpecInternal> getChildren() {
+        return childSpecs;
     }
 
     public boolean hasSource() {

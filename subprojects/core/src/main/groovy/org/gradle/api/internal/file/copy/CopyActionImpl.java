@@ -79,7 +79,7 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
 
     public FileTree getAllSource() {
         final ImmutableList.Builder<FileTree> builder = ImmutableList.builder();
-        root.visit(new Action<CopySpecInternal>() {
+        new CopySpecWalker().visit(root, new Action<CopySpecInternal>() {
             public void execute(CopySpecInternal copySpecInternal) {
                 builder.add(copySpecInternal.getSource());
             }

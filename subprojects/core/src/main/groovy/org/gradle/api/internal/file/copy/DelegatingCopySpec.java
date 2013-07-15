@@ -199,7 +199,7 @@ abstract public class DelegatingCopySpec implements CopySpecInternal {
         return getDelegateCopySpec().getExcludes();
     }
 
-    public void visit(Action<? super CopySpecInternal> action) {
-        getDelegateCopySpec().visit(action);
+    public Iterable<? extends CopySpecInternal> getChildren() {
+        return getDelegateCopySpec().getChildren();
     }
 }

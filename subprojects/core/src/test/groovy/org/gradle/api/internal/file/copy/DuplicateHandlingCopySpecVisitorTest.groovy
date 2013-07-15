@@ -24,7 +24,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 /**
- * Unit tests for DuplicateHandlingCopySpecVisitor
+ * Unit tests for DuplicateHandlingCopySpecContentVisitor
  * @author Kyle Mahan
  */
 class DuplicateHandlingCopySpecVisitorTest extends Specification {
@@ -32,11 +32,13 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
     private static interface MyCopySpec extends CopySpec, CopySpecInternal {}
 
     def fileSystem = Mock(FileSystem)
-    def delegate = Mock(FileCopySpecVisitor)
-    def visitor = new DuplicateHandlingCopySpecVisitor(delegate, false)
+    def delegate = Mock(FileCopySpecContentVisitor)
+    def visitor = new DuplicateHandlingCopySpecContentVisitor(delegate, false)
     @Shared Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
-    def driver = new CopySpecVisitorDriver(instantiator, fileSystem)
-    def copySpec = Mock(MyCopySpec)
+    def driver = new CopySpecContentVisitorDriver(instantiator, fileSystem)
+    def copySpec = Mock(MyCopySpec) {
+        getChildren() >> []
+    }
 
     def duplicatesIncludedByDefault() {
         given:
@@ -113,7 +115,7 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
     }
 
     void visit() {
-        driver.visit(null, [copySpec], visitor)
+        driver.visit(null, copySpec, visitor)
     }
 
 }

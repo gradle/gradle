@@ -35,7 +35,7 @@ public class CopySpecContentVisitorDriver {
 
     void visit(CopyAction copyAction, CopySpecInternal toVisit, final CopySpecContentVisitor visitor) {
         visitor.startVisit(copyAction);
-        toVisit.visit(new Action<CopySpecInternal>() {
+        new CopySpecWalker().visit(toVisit, new Action<CopySpecInternal>() {
             public void execute(final CopySpecInternal spec) {
                 visitor.visitSpec(spec);
                 FileTree source = spec.getSource();
