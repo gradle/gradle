@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -31,7 +32,6 @@ import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.internal.DefaultPublicationContainer
-import org.gradle.api.publish.internal.PublicationCoordinates
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
@@ -365,7 +365,7 @@ class DefaultIvyPublicationTest extends Specification {
     def otherPublication(String name, String org, String module, String revision) {
         def pub = Mock(PublicationInternal)
         pub.name >> name
-        pub.coordinates >> new PublicationCoordinates(org, module, revision)
+        pub.coordinates >> new DefaultModuleVersionIdentifier(org, module, revision)
         return pub
     }
 }

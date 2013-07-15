@@ -15,8 +15,9 @@
  */
 package org.gradle.api.publish.internal;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.publish.Publication;
 
 public interface PublicationInternal extends Publication {
-    PublicationCoordinates getCoordinates();
+    ModuleVersionIdentifier getCoordinates();
 }

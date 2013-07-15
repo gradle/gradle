@@ -15,7 +15,9 @@
  */
 package org.gradle.api.publish.internal
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.internal.reflect.DirectInstantiator
@@ -67,7 +69,7 @@ public class ProjectDependencyPublicationResolverTest extends Specification {
         when:
         def publication = Mock(PublicationInternal)
         publication.name >> 'mock'
-        publication.coordinates >> new PublicationCoordinates("pub-group", "pub-name", "pub-version")
+        publication.coordinates >> new DefaultModuleVersionIdentifier("pub-group", "pub-name", "pub-version")
 
         dependentProjectHasPublications(publication)
 
@@ -109,7 +111,7 @@ public class ProjectDependencyPublicationResolverTest extends Specification {
         e.message == "Publishing is not yet able to resolve a dependency on a project with multiple different publications."
     }
 
-    private PublicationCoordinates resolve() {
+    private ModuleVersionIdentifier resolve() {
         new ProjectDependencyPublicationResolver().resolve(projectDependency)
     }
 
@@ -124,7 +126,7 @@ public class ProjectDependencyPublicationResolverTest extends Specification {
     private PublicationInternal pub(def name, def group, def module, def version) {
         def publication = Mock(PublicationInternal)
         publication.name >> name
-        publication.coordinates >> new PublicationCoordinates(group, module, version)
+        publication.coordinates >> new DefaultModuleVersionIdentifier(group, module, version)
         return publication
     }
 }

@@ -19,16 +19,17 @@ package org.gradle.api.publish.maven.internal.publication;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
-import org.gradle.api.publish.internal.PublicationCoordinates;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenPom;
@@ -104,8 +105,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private void addProjectDependency(ProjectDependency dependency) {
-        PublicationCoordinates coordinates = new ProjectDependencyPublicationResolver().resolve(dependency);
-        runtimeDependencies.add(new DefaultMavenDependency(coordinates.getGroup(), coordinates.getName(), coordinates.getVersion()));
+        ModuleVersionIdentifier identifier = new ProjectDependencyPublicationResolver().resolve(dependency);
+        runtimeDependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion()));
     }
 
     private void addModuleDependency(ModuleDependency dependency) {
@@ -187,7 +188,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return "pom";
     }
 
-    public PublicationCoordinates getCoordinates() {
-        return new PublicationCoordinates(getGroupId(), getArtifactId(), getVersion());
+    public ModuleVersionIdentifier getCoordinates() {
+        return new DefaultModuleVersionIdentifier(getGroupId(), getArtifactId(), getVersion());
     }
 }

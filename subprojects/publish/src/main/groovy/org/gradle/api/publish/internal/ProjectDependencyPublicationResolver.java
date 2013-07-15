@@ -16,7 +16,9 @@
 package org.gradle.api.publish.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.publish.PublishingExtension;
 
 import java.util.Iterator;
@@ -27,21 +29,21 @@ import java.util.Set;
  * For now is a simple implementation, but at some point could utilise components in the dependency project, usage in the referencing project, etc.
  */
 public class ProjectDependencyPublicationResolver {
-    public PublicationCoordinates resolve(ProjectDependency dependency) {
+    public ModuleVersionIdentifier resolve(ProjectDependency dependency) {
         Project dependencyProject = dependency.getDependencyProject();
         PublishingExtension publishing = dependencyProject.getExtensions().findByType(PublishingExtension.class);
 
         if (publishing == null || publishing.getPublications().withType(PublicationInternal.class).isEmpty()) {
             // Project does not apply publishing (or has no publications): simply use the project name in place of the dependency name
-            return new PublicationCoordinates(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion());
+            return new DefaultModuleVersionIdentifier(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion());
         }
 
-        // See if we have a single PublicationCoordinates to reference
+        // See if all publications have the same identifier
         Set<? extends PublicationInternal> publications = publishing.getPublications().withType(PublicationInternal.class);
         Iterator<? extends PublicationInternal> iterator = publications.iterator();
-        PublicationCoordinates candidate = iterator.next().getCoordinates();
+        ModuleVersionIdentifier candidate = iterator.next().getCoordinates();
         while (iterator.hasNext()) {
-            PublicationCoordinates alternative = iterator.next().getCoordinates();
+            ModuleVersionIdentifier alternative = iterator.next().getCoordinates();
             if (!candidate.equals(alternative)) {
                 throw new UnsupportedOperationException("Publishing is not yet able to resolve a dependency on a project with multiple different publications.");
             }

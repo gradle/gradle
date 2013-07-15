@@ -19,16 +19,17 @@ package org.gradle.api.publish.ivy.internal.publication;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
-import org.gradle.api.publish.internal.PublicationCoordinates;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
@@ -111,8 +112,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private void addProjectDependency(ProjectDependency dependency, String confMapping) {
-        PublicationCoordinates coordinates = new ProjectDependencyPublicationResolver().resolve(dependency);
-        ivyDependencies.add(new DefaultIvyDependency(coordinates.getGroup(), coordinates.getName(), coordinates.getVersion(), confMapping));
+        ModuleVersionIdentifier identifier = new ProjectDependencyPublicationResolver().resolve(dependency);
+        ivyDependencies.add(new DefaultIvyDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping));
     }
 
     private void addModuleDependency(ModuleDependency dependency, String confMapping) {
@@ -193,7 +194,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return descriptorFile.getSingleFile();
     }
 
-    public PublicationCoordinates getCoordinates() {
-        return new PublicationCoordinates(getOrganisation(), getModule(), getRevision());
+    public ModuleVersionIdentifier getCoordinates() {
+        return new DefaultModuleVersionIdentifier(getOrganisation(), getModule(), getRevision());
     }
 }

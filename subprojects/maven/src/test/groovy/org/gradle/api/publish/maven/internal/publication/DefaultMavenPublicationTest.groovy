@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.publish.maven.internal.publication
+
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
@@ -22,6 +23,7 @@ import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -29,7 +31,6 @@ import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.internal.DefaultPublicationContainer
-import org.gradle.api.publish.internal.PublicationCoordinates
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity
@@ -357,7 +358,7 @@ public class DefaultMavenPublicationTest extends Specification {
     def otherPublication(String name, String group, String artifactId, String version) {
         def pub = Mock(PublicationInternal)
         pub.name >> name
-        pub.coordinates >> new PublicationCoordinates(group, artifactId, version)
+        pub.coordinates >> new DefaultModuleVersionIdentifier(group, artifactId, version)
         return pub
     }
 }
