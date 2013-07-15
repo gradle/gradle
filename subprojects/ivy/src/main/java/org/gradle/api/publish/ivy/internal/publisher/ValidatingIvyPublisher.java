@@ -37,6 +37,7 @@ import java.util.Set;
 public class ValidatingIvyPublisher implements IvyPublisher {
     private final ParserSettings parserSettings = new DisconnectedParserSettings();
     private final IvyPublisher delegate;
+    private IvyXmlModuleDescriptorParser moduleDescriptorParser = new IvyXmlModuleDescriptorParser();
 
     public ValidatingIvyPublisher(IvyPublisher delegate) {
         this.delegate = delegate;
@@ -69,10 +70,9 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     }
 
     private ModuleRevisionId parseIvyFile(IvyNormalizedPublication publication) {
-
         try {
             URL ivyFileLocation = publication.getDescriptorFile().toURI().toURL();
-            return new IvyXmlModuleDescriptorParser().parseDescriptor(parserSettings, ivyFileLocation, true).getModuleRevisionId();
+            return moduleDescriptorParser.parseDescriptor(parserSettings, ivyFileLocation, true).getModuleRevisionId();
         } catch (ParseException pe) {
             throw new InvalidIvyPublicationException(publication.getName(), pe.getLocalizedMessage(), pe);
         } catch (Exception ex) {

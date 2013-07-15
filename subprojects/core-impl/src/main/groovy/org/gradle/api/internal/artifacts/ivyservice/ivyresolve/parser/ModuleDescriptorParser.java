@@ -25,8 +25,9 @@ import java.net.URL;
 import java.text.ParseException;
 
 public interface ModuleDescriptorParser {
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL descriptorURL,
-            Resource res, boolean validate) throws ParseException, IOException;
+    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL descriptorURL, boolean validate) throws ParseException, IOException;
+
+    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL descriptorURL, Resource res, boolean validate) throws ParseException, IOException;
 
     public boolean accept(Resource res);
 }

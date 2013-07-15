@@ -16,8 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.IvyContext;
-import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveEngine;
@@ -30,14 +33,12 @@ import org.apache.ivy.plugins.parser.m2.PomReader;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.url.URLResource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
@@ -61,10 +62,6 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
         return "gradle pom parser";
     }
 
-    public String getType() {
-        return "pom";
-    }
-
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL descriptorURL,
                                             boolean validate) throws ParseException, IOException {
         URLResource resource = new URLResource(descriptorURL);
@@ -74,11 +71,11 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL descriptorURL,
                                             Resource resource, boolean validate) throws ParseException, IOException {
 
-        Resource res = encodedUrlResource(resource, descriptorURL);
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(res, ivySettings);
+        Resource encodedResource = encodedUrlResource(descriptorURL);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, ivySettings);
 
         try {
-            PomReader domReader = new PomReader(descriptorURL, res);
+            PomReader domReader = new PomReader(descriptorURL, encodedResource);
             domReader.setProperty("parent.version", domReader.getParentVersion());
             domReader.setProperty("parent.groupId", domReader.getParentGroupId());
             domReader.setProperty("project.parent.version", domReader.getParentVersion());
@@ -103,7 +100,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                 if (parentModule != null) {
                     parentDescr = parentModule.getDescriptor();
                 } else {
-                    throw new IOException("Impossible to load parent for " + res.getName() + ". Parent=" + parentModRevID);
+                    throw new IOException("Impossible to load parent for " + resource.getName() + ". Parent=" + parentModRevID);
                 }
                 if (parentDescr != null) {
                     Map parentPomProps = GradlePomModuleDescriptorBuilder.extractPomProperties(parentDescr.getExtraInfo());
@@ -204,7 +201,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                                 mdBuilder.addDependencyMgt((PomDependencyMgt) aDepMgt);
                             }
                         } else {
-                            throw new IOException("Impossible to import module for " + res.getName() + "."
+                            throw new IOException("Impossible to import module for " + resource.getName() + "."
                                     + " Import=" + importModRevID);
                         }
 
@@ -266,17 +263,13 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
         return pe;
     }
 
-    private Resource encodedUrlResource(final Resource base, final URL url) {
+    private Resource encodedUrlResource(final URL url) {
         Object proxy = Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{Resource.class}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 if ("getName".equals(method.getName())) {
                     return url.toString();
                 }
-                try {
-                    return method.invoke(base, args);
-                } catch (InvocationTargetException e) {
-                    throw UncheckedException.throwAsUncheckedException(e.getTargetException());
-                }
+                throw new UnsupportedOperationException();
             }
         });
         return (Resource) proxy;

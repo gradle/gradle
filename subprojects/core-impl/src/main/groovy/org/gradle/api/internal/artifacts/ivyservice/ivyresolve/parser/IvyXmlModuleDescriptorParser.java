@@ -50,7 +50,6 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
@@ -102,13 +101,13 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
 
         private DefaultModuleDescriptor md;
 
-        private ModuleDescriptorParser parser;
+        private IvyXmlModuleDescriptorParser parser;
 
-        protected AbstractParser(ModuleDescriptorParser parser) {
+        protected AbstractParser(IvyXmlModuleDescriptorParser parser) {
             this.parser = parser;
         }
 
-        public ModuleDescriptorParser getModuleDescriptorParser() {
+        public IvyXmlModuleDescriptorParser getModuleDescriptorParser() {
             return parser;
         }
 
@@ -430,8 +429,6 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
         private final RelativeUrlResolver relativeUrlResolver = new NormalRelativeUrlResolver();
         private boolean validate = true;
         private URL descriptorURL;
-        private InputStream descriptorInput;
-
 
         /* Parsing state */
         private int state = State.NONE;
@@ -452,13 +449,9 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
         }
         
         public Parser newParser(Resource res) {
-            Parser parser = new Parser((IvyXmlModuleDescriptorParser) getModuleDescriptorParser(), parserSettings, res);
+            Parser parser = new Parser(getModuleDescriptorParser(), parserSettings, res);
             parser.setValidate(validate);
             return parser;
-        }
-
-        public void setInput(InputStream descriptorInput) {
-            this.descriptorInput = descriptorInput;
         }
 
         public void setInput(URL descriptorURL) {
@@ -473,11 +466,7 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
                 IOException {
             try {
                 URL schemaURL = validate ? getSchemaURL() : null;
-                if (descriptorURL != null) {
-                    XMLHelper.parse(descriptorURL, schemaURL, this);
-                } else {
-                    XMLHelper.parse(descriptorInput, schemaURL, this, null);
-                }
+                XMLHelper.parse(descriptorURL, schemaURL, this);
                 checkConfigurations();
                 replaceConfigurationWildcards();
                 getMd().setModuleArtifact(DefaultArtifact.newIvyArtifact(getMd().getResolvedModuleRevisionId(), getMd().getPublicationDate()));
@@ -489,9 +478,7 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
                 }
                 getMd().check();
             } catch (ParserConfigurationException ex) {
-                IllegalStateException ise = new IllegalStateException(ex.getMessage() + " in " + descriptorURL);
-                ise.initCause(ex);
-                throw ise;
+                throw new IllegalStateException(ex.getMessage() + " in " + descriptorURL, ex);
             } catch (Exception ex) {
                 checkErrors();
                 ParseException pe = new ParseException(ex.getMessage() + " in " + descriptorURL, 0);
@@ -648,7 +635,6 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
                     mergeDescription(parent.getDescription());
                 }
             }
-
         }
 
         private void mergeAll(ModuleDescriptor parent) {
