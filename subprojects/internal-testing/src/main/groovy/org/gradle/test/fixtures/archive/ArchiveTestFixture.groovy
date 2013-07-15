@@ -18,10 +18,10 @@ package org.gradle.test.fixtures.archive
 
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
-import org.hamcrest.Matcher
 
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.hasItem
 import static org.junit.Assert.assertEquals
 
 class ArchiveTestFixture {
@@ -58,13 +58,19 @@ class ArchiveTestFixture {
         this
     }
 
+    /**
+     * Asserts that there is exactly one file present with the given path, and that this file has the given content.
+     */
     def assertFileContent(String relativePath, String fileContent) {
         assertThat(content(relativePath), equalTo(fileContent))
         this
     }
 
-    def assertFileContent(String relativePath, Matcher matcher) {
-        assertThat(content(relativePath), matcher)
+    /**
+     * Asserts that there is a file present with the given path and content.
+     */
+    def assertFilePresent(String relativePath, String fileContent) {
+        assertThat(filesByRelativePath.get(relativePath), hasItem(fileContent))
         this
     }
 }

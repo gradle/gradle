@@ -305,11 +305,10 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     private def confirmDuplicateServicesPreserved() {
         def jar = new JarTestFixture(file('test.jar'))
 
-        2 == jar.countFiles('META-INF/services/org.gradle.Service')
-        1 == jar.countFiles('path/test.txt')
+        assert 2 == jar.countFiles('META-INF/services/org.gradle.Service')
+        assert 1 == jar.countFiles('path/test.txt')
 
-        jar.assertFileContent('test.txt', hasItem('Content of first file'))
-        jar.assertFileContent('test.txt', not(hasItem('Content of second file')))
+        jar.assertFileContent('test.txt', 'Content of first file')
         jar.hasService('org.gradle.Service', 'org.gradle.BetterServiceImpl')
         jar.hasService('org.gradle.Service', 'org.gradle.DefaultServiceImpl')
     }

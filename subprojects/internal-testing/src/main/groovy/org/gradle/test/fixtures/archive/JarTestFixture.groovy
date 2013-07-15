@@ -22,7 +22,10 @@ class JarTestFixture extends ZipTestFixture {
         super(file)
     }
 
+    /**
+     * Asserts that the given service is defined in this jar file.
+     */
     def hasService(String serviceName, String serviceImpl) {
-        assertFileContent("META-INF/services/$serviceName", serviceImpl)
+        assertFilePresent("META-INF/services/$serviceName", serviceImpl)
     }
 }
