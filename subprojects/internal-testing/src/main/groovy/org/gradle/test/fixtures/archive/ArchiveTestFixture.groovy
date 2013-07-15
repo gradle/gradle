@@ -68,6 +68,7 @@ class ArchiveTestFixture {
 
     def assertFileContent(String relativePath, Matcher contentMatcher) {
         assertThat(content(relativePath), contentMatcher)
+        this
     }
 
     /**
