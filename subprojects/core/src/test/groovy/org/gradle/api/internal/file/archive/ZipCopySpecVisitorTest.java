@@ -19,10 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
-import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.internal.file.copy.ZipDeflatedCompressor;
 import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -51,37 +48,18 @@ public class ZipCopySpecVisitorTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final ArchiveCopyAction copyAction = context.mock(ZipCopyAction.class);
     private final CopySpecInternal copySpec = context.mock(CopySpecInternal.class);
-    private final ZipCopySpecContentVisitor visitor = new ZipCopySpecContentVisitor();
+    private ZipCopySpecContentVisitor visitor;
     private TestFile zipFile;
 
     @Before
     public void setup() {
         zipFile = tmpDir.getTestDirectory().file("test.zip");
-        context.checking(new Expectations() {{
-            allowing(copyAction).getArchivePath();
-            will(returnValue(zipFile));
-        }});
-        context.checking(new Expectations() {{
-            allowing(copyAction).getCompressor();
-            will(returnValue(ZipStoredCompressor.INSTANCE));
-        }});
-    }
-
-    private TestFile initializeZipFile(final TestFile testFile, final ArchiveOutputStreamFactory compressor) {
-        context.checking(new Expectations() {{
-            allowing(copyAction).getArchivePath();
-            will(returnValue(zipFile));
-            allowing(copyAction).getCompressor();
-            will(returnValue(compressor));
-        }});
-        return testFile;
+        visitor = new ZipCopySpecContentVisitor(zipFile, ZipStoredCompressor.INSTANCE);
     }
 
     @Test
     public void createsZipFile() {
-        initializeZipFile(zipFile, ZipStoredCompressor.INSTANCE);
         zip(dir("dir"), file("dir/file1"), file("file2"));
 
         TestFile expandDir = tmpDir.getTestDirectory().file("expanded");
@@ -92,7 +70,6 @@ public class ZipCopySpecVisitorTest {
 
     @Test
     public void createsDeflatedZipFile() {
-        initializeZipFile(zipFile, ZipDeflatedCompressor.INSTANCE);
         zip(dir("dir"), file("dir/file1"), file("file2"));
 
         TestFile expandDir = tmpDir.getTestDirectory().file("expanded");
@@ -115,14 +92,10 @@ public class ZipCopySpecVisitorTest {
     @Test
     public void wrapsFailureToOpenOutputFile() {
         final TestFile invalidZipFile = tmpDir.createDir("test.zip");
-
-        context.checking(new Expectations() {{
-            allowing(copyAction).getArchivePath();
-            will(returnValue(invalidZipFile));
-        }});
+        visitor = new ZipCopySpecContentVisitor(invalidZipFile, ZipStoredCompressor.INSTANCE);
 
         try {
-            visitor.startVisit(copyAction);
+            visitor.startVisit();
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo(String.format("Could not create ZIP '%s'.", zipFile)));
@@ -131,7 +104,7 @@ public class ZipCopySpecVisitorTest {
 
     @Test
     public void wrapsFailureToAddElement() {
-        visitor.startVisit(copyAction);
+        visitor.startVisit();
         visitor.visitSpec(copySpec);
 
         Throwable failure = new RuntimeException("broken");
@@ -145,7 +118,7 @@ public class ZipCopySpecVisitorTest {
     }
 
     private void zip(FileCopyDetails... files) {
-        visitor.startVisit(copyAction);
+        visitor.startVisit();
         visitor.visitSpec(copySpec);
 
         for (FileCopyDetails f : files) {

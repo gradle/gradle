@@ -22,7 +22,7 @@ public class EmptyCopySpecContentVisitor implements CopySpecContentVisitor {
         return false;
     }
 
-    public void startVisit(CopyAction action) {
+    public void startVisit() {
     }
 
     public void visitDir(FileCopyDetails dirDetails) {

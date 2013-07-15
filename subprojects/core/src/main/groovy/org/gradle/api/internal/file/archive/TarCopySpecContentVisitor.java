@@ -21,8 +21,7 @@ import org.apache.tools.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.file.copy.ArchiveCopyAction;
-import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.copy.EmptyCopySpecContentVisitor;
 
 import java.io.File;
@@ -31,13 +30,17 @@ import java.io.OutputStream;
 
 public class TarCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
     private TarOutputStream tarOutStr;
-    private File tarFile;
+    private final File tarFile;
+    private final ArchiveOutputStreamFactory compressor;
 
-    public void startVisit(CopyAction action) {
-        ArchiveCopyAction archiveAction = (ArchiveCopyAction) action;
+    public TarCopySpecContentVisitor(File tarFile, ArchiveOutputStreamFactory compressor) {
+        this.tarFile = tarFile;
+        this.compressor = compressor;
+    }
+
+    public void startVisit() {
         try {
-            tarFile = archiveAction.getArchivePath();
-            OutputStream outStr = archiveAction.getCompressor().createArchiveOutputStream(tarFile);
+            OutputStream outStr = compressor.createArchiveOutputStream(tarFile);
             tarOutStr = new TarOutputStream(outStr);
             tarOutStr.setLongFileMode(TarOutputStream.LONGFILE_GNU);
         } catch (Exception e) {

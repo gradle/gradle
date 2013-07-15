@@ -44,12 +44,12 @@ public class SyncCopySpecVisitorTest {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final CopySpecContentVisitor delegate = context.mock(CopySpecContentVisitor.class);
-    private final SyncCopySpecContentVisitor visitor = new SyncCopySpecContentVisitor(delegate);
+    private SyncCopySpecContentVisitor visitor;
 
     @Before
     public void setUp() {
         context.checking(new Expectations(){{
-            allowing(delegate).startVisit(with(notNullValue(CopyAction.class)));
+            allowing(delegate).startVisit();
             allowing(delegate).visitFile(with(notNullValue(FileCopyDetails.class)));
             allowing(delegate).visitDir(with(notNullValue(FileCopyDetails.class)));
             allowing(delegate).endVisit();
@@ -64,7 +64,8 @@ public class SyncCopySpecVisitorTest {
         destDir.createFile("included.txt");
         destDir.createFile("extra.txt");
 
-        visitor.startVisit(action(destDir));
+        visitor(destDir);
+        visitor.startVisit();
         visitor.visitDir(dir("subdir"));
         visitor.visitFile(file("subdir/included.txt"));
         visitor.visitFile(file("included.txt"));
@@ -79,7 +80,8 @@ public class SyncCopySpecVisitorTest {
         destDir.createFile("included.txt");
         destDir.createFile("extra/extra.txt");
 
-        visitor.startVisit(action(destDir));
+        visitor(destDir);
+        visitor.startVisit();
         visitor.visitFile(file("included.txt"));
 
         // TODO - delete these
@@ -111,7 +113,8 @@ public class SyncCopySpecVisitorTest {
         destDir.createFile("extra.txt");
         destDir.createFile("extra/extra.txt");
 
-        visitor.startVisit(action(destDir));
+        visitor(destDir);
+        visitor.startVisit();
         visitor.endVisit();
 
         destDir.assertHasDescendants();
@@ -119,6 +122,7 @@ public class SyncCopySpecVisitorTest {
 
     @Test
     public void didWorkWhenDelegateDidWork() {
+        visitor(tmpDir.createDir("test"));
         context.checking(new Expectations() {{
             allowing(delegate).getDidWork();
             will(returnValue(true));
@@ -132,21 +136,16 @@ public class SyncCopySpecVisitorTest {
         TestFile destDir = tmpDir.createDir("dest");
         destDir.createFile("extra.txt");
 
-        visitor.startVisit(action(destDir));
+        visitor(destDir);
+        visitor.startVisit();
         visitor.endVisit();
 
         assertTrue(visitor.getDidWork());
     }
 
-    private FileCopyAction action(final File destDir) {
-        final FileCopyAction action = context.mock(FileCopyAction.class);
-
-        context.checking(new Expectations() {{
-            allowing(action).getDestinationDir();
-            will(returnValue(destDir));
-        }});
-
-        return action;
+    private SyncCopySpecContentVisitor visitor(final File destDir) {
+        visitor = new SyncCopySpecContentVisitor(delegate, destDir);
+        return visitor;
     }
 
     private FileCopyDetails file(final String path) {

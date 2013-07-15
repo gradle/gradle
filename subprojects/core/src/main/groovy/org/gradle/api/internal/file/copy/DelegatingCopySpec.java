@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 
 abstract public class DelegatingCopySpec implements CopySpecInternal {
 
-    abstract CopySpecInternal getDelegateCopySpec();
+    abstract protected CopySpecInternal getDelegateCopySpec();
 
     public RelativePath getDestPath() {
         return getDelegateCopySpec().getDestPath();
@@ -201,5 +201,17 @@ abstract public class DelegatingCopySpec implements CopySpecInternal {
 
     public Iterable<? extends CopySpecInternal> getChildren() {
         return getDelegateCopySpec().getChildren();
+    }
+
+    public FileTree getAllSource() {
+        return getDelegateCopySpec().getAllSource();
+    }
+
+    public DefaultCopySpec addChild() {
+        return getDelegateCopySpec().addChild();
+    }
+
+    public DefaultCopySpec addFirst() {
+        return getDelegateCopySpec().addFirst();
     }
 }

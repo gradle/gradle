@@ -50,10 +50,10 @@ class Ear extends Jar {
 
     Ear() {
         extension = EAR_EXTENSION
-        lib = copyAction.rootSpec.addFirst().into {
+        lib = rootSpec.addFirst().into {
             getLibDirName()
         }
-        copyAction.mainSpec.eachFile { FileCopyDetails details ->
+        mainSpec.eachFile { FileCopyDetails details ->
             if (this.deploymentDescriptor && details.path.equalsIgnoreCase('META-INF/' + this.deploymentDescriptor.fileName)) {
                 // the deployment descriptor already exists; no need to generate it
                 this.deploymentDescriptor = null
@@ -73,7 +73,7 @@ class Ear extends Jar {
         }
         // create our own metaInf which runs after mainSpec's files
         // this allows us to generate the deployment descriptor after recording all modules it contains
-        def metaInf = copyAction.mainSpec.addChild().into('META-INF')
+        def metaInf = mainSpec.addChild().into('META-INF')
         metaInf.addChild().from {
             MapFileTree descriptorSource = new MapFileTree(temporaryDirFactory)
             final DeploymentDescriptor descriptor = deploymentDescriptor

@@ -16,17 +16,13 @@
 
 package org.gradle.api.tasks.bundling;
 
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.archive.TarCopySpecVisitor;
+import org.gradle.api.internal.file.archive.TarCopySpecContentVisitor;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
-import org.gradle.api.internal.file.copy.ArchiveCopyAction;
-import org.gradle.api.internal.file.copy.CopyActionImpl;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.internal.file.copy.CopySpecContentVisitor;
 
-import java.io.File;
 import java.util.concurrent.Callable;
 
 /**
@@ -35,13 +31,9 @@ import java.util.concurrent.Callable;
  * @author Hans Dockter
  */
 public class Tar extends AbstractArchiveTask {
-    private CopyActionImpl action;
     private Compression compression = Compression.NONE;
 
     public Tar() {
-        Instantiator instantiator = getServices().get(Instantiator.class);
-        FileResolver fileResolver = getServices().get(FileResolver.class);
-        action = instantiator.newInstance(TarCopyActionImpl.class, this, instantiator, fileResolver);
         getConventionMapping().map("extension", new Callable<Object>(){
             public Object call() throws Exception {
                 return getCompression().getDefaultExtension();
@@ -49,10 +41,18 @@ public class Tar extends AbstractArchiveTask {
         });
     }
 
-    protected CopyActionImpl getCopyAction() {
-        return action;
+    @Override
+    protected CopySpecContentVisitor createContentVisitor() {
+        return new TarCopySpecContentVisitor(getArchivePath(), getCompressor());
     }
 
+    private ArchiveOutputStreamFactory getCompressor() {
+        switch(compression) {
+            case BZIP2: return Bzip2Archiver.getCompressor();
+            case GZIP:  return GzipArchiver.getCompressor();
+            default:    return new SimpleCompressor();
+        }
+    }
     /**
      * Returns the compression that is used for this archive.
      *
@@ -71,24 +71,4 @@ public class Tar extends AbstractArchiveTask {
         this.compression = compression;
     }
 
-    /**
-     * Internal implementation (not private because of reflective instantiation)
-     */
-    class TarCopyActionImpl extends CopyActionImpl implements ArchiveCopyAction  {
-        public TarCopyActionImpl(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver, new TarCopySpecVisitor());
-        }
-
-        public File getArchivePath() {
-            return Tar.this.getArchivePath();
-        }
-
-        public ArchiveOutputStreamFactory getCompressor() {
-            switch(compression) {
-                case BZIP2: return Bzip2Archiver.getCompressor();
-                case GZIP:  return GzipArchiver.getCompressor();
-                default:    return new SimpleCompressor();
-            }
-        }
-    }
 }

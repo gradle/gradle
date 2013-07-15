@@ -32,13 +32,9 @@ public class SyncCopySpecContentVisitor extends DelegatingCopySpecContentVisitor
     private File baseDestDir;
     private boolean didWork;
 
-    public SyncCopySpecContentVisitor(CopySpecContentVisitor visitor) {
+    public SyncCopySpecContentVisitor(CopySpecContentVisitor visitor, File baseDestDir) {
         super(visitor);
-    }
-
-    public void startVisit(CopyAction action) {
-        baseDestDir = ((FileCopyAction) action).getDestinationDir();
-        getVisitor().startVisit(action);
+        this.baseDestDir = baseDestDir;
     }
 
     @Override

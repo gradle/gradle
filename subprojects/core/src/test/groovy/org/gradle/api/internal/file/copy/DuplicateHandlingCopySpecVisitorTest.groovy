@@ -115,7 +115,7 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
     }
 
     void visit() {
-        driver.visit(null, copySpec, visitor)
+        driver.visit(copySpec, visitor)
     }
 
 }

@@ -33,15 +33,22 @@ public class CopySpecContentVisitorDriver {
         this.fileSystem = fileSystem;
     }
 
-    void visit(CopyAction copyAction, CopySpecInternal toVisit, final CopySpecContentVisitor visitor) {
-        visitor.startVisit(copyAction);
+    public void visit(CopySpecInternal toVisit, CopySpecContentVisitor visitor) {
+        final CopySpecContentVisitor effectiveVisitor = new DuplicateHandlingCopySpecContentVisitor(
+                new NormalizingCopySpecContentVisitor(visitor),
+                true
+        );
+
+        // TODO - consider error recovery here. A visitor might be holding a stream open.
+
+        effectiveVisitor.startVisit();
         new CopySpecWalker().visit(toVisit, new Action<CopySpecInternal>() {
             public void execute(final CopySpecInternal spec) {
-                visitor.visitSpec(spec);
+                effectiveVisitor.visitSpec(spec);
                 FileTree source = spec.getSource();
                 source.visit(new FileVisitor() {
                     public void visitDir(FileVisitDetails dirDetails) {
-                        visitor.visitDir(new DefaultFileCopyDetails(dirDetails, spec, fileSystem));
+                        effectiveVisitor.visitDir(new DefaultFileCopyDetails(dirDetails, spec, fileSystem));
                     }
 
                     public void visitFile(FileVisitDetails fileDetails) {
@@ -52,12 +59,12 @@ public class CopySpecContentVisitorDriver {
                                 return;
                             }
                         }
-                        visitor.visitFile(details);
+                        effectiveVisitor.visitFile(details);
                     }
                 });
             }
         });
-        visitor.endVisit();
+        effectiveVisitor.endVisit();
     }
 
 }

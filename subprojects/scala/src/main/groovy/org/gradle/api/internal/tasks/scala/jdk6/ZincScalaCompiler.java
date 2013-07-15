@@ -22,13 +22,12 @@ import com.typesafe.zinc.Inputs;
 import com.typesafe.zinc.SbtJars;
 import com.typesafe.zinc.ScalaLocation;
 import com.typesafe.zinc.Setup;
-
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
-import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerArgumentsGenerator;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;

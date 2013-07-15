@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.archive;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.file.copy.ArchiveCopyAction;
-import org.gradle.api.internal.file.copy.ZipCompressor;
+import org.gradle.api.tasks.WorkResult;
 
-public interface ZipCopyAction extends ArchiveCopyAction {
+public class SimpleWorkResult implements WorkResult {
+    private final boolean didWork;
 
-    public ZipCompressor getCompressor();
+    public SimpleWorkResult(boolean didWork) {
+        this.didWork = didWork;
+    }
+
+    public boolean getDidWork() {
+        return didWork;
+    }
 }

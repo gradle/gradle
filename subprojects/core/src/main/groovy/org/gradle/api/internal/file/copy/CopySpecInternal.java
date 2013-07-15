@@ -29,10 +29,15 @@ public interface CopySpecInternal extends CopySpec {
 
     FileTree getSource();
 
+    FileTree getAllSource();
+
     boolean hasSource();
 
     Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
 
     Iterable<? extends CopySpecInternal> getChildren();
 
+    DefaultCopySpec addChild();
+
+    DefaultCopySpec addFirst();
 }

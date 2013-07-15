@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.NotSpec;
 import org.gradle.api.specs.Spec;
@@ -122,6 +125,35 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     public FileTree getSource() {
         return resolver.resolveFilesAsTree(sourcePaths).matching(getPatternSet());
+    }
+
+    public FileTree getAllSource() {
+        final ImmutableList.Builder<FileTree> builder = ImmutableList.builder();
+        new CopySpecWalker().visit(this, new Action<CopySpecInternal>() {
+            public void execute(CopySpecInternal copySpecInternal) {
+                builder.add(copySpecInternal.getSource());
+            }
+        });
+
+        return new ImmutableCompositeFileTree(builder.build());
+    }
+
+    private static class ImmutableCompositeFileTree extends CompositeFileTree {
+        private final ImmutableList<FileTree> fileTrees;
+
+        private ImmutableCompositeFileTree(ImmutableList<FileTree> fileTrees) {
+            this.fileTrees = fileTrees;
+        }
+
+        @Override
+        public void resolve(FileCollectionResolveContext context) {
+            context.add(fileTrees);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "file tree";
+        }
     }
 
     public DefaultCopySpec into(Object destDir) {

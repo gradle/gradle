@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.file.copy.CopyActionImpl
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.os.OperatingSystem
@@ -174,7 +173,6 @@ public class DefaultFileOperationsTest extends Specification {
         def result = fileOperations.copy { from 'file'; into 'dir' }
 
         then:
-        result instanceof CopyActionImpl
         !result.didWork
     }
 

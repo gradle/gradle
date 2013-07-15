@@ -90,8 +90,6 @@ class ProjectCopySpecTest extends Specification {
                 delegate.duplicatesStrategy "include"
                 copyEachFileCalled = true
             }
-
-            rootSpec.duplicatesStrategy "include"
         }
 
         and:

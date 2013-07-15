@@ -15,8 +15,51 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.internal.file.BaseDirFileResolver;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
+import org.gradle.internal.reflect.Instantiator;
+
 import java.io.File;
 
-public interface FileCopyAction extends CopyAction {
-    File getDestinationDir();
+public class FileCopyAction {
+
+    private final Instantiator instantiator;
+    private final DestinationRootCopySpec copySpec;
+
+    public FileCopyAction(Instantiator instantiator, FileResolver fileResolver) {
+        this.instantiator = instantiator;
+        DefaultCopySpec copySpec = instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
+        this.copySpec = instantiator.newInstance(DestinationRootCopySpec.class, fileResolver, copySpec);
+    }
+
+    public CopySpecInternal getCopySpec() {
+        return copySpec;
+    }
+
+    public WorkResult copy() {
+        return doCopy(getCopyVisitor(getDestination()));
+    }
+
+    public WorkResult sync() {
+        File destination = getDestination();
+        return doCopy(new SyncCopySpecContentVisitor(getCopyVisitor(destination), destination));
+    }
+
+    private FileCopySpecContentVisitor getCopyVisitor(File destination) {
+        return new FileCopySpecContentVisitor(new BaseDirFileResolver(destination));
+    }
+
+    private WorkResult doCopy(CopySpecContentVisitor visitor) {
+        CopySpecContentVisitorDriver visitorDriver = new CopySpecContentVisitorDriver(instantiator, FileSystems.getDefault());
+        visitorDriver.visit(copySpec, visitor);
+        return new SimpleWorkResult(visitor.getDidWork());
+    }
+
+    private File getDestination() {
+        return copySpec.getDestinationDir();
+    }
+
 }

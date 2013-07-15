@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
 
@@ -25,14 +25,11 @@ import java.io.File;
  * @author Steve Appling
  */
 public class FileCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
-    private File baseDestDir;
+    private final FileResolver fileResolver;
     private boolean didWork;
 
-    public void startVisit(CopyAction action) {
-        baseDestDir = ((FileCopyAction) action).getDestinationDir();
-        if (baseDestDir == null) {
-            throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
-        }
+    public FileCopySpecContentVisitor(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
     }
 
     public void visitFile(FileCopyDetails source) {
@@ -48,7 +45,7 @@ public class FileCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
     }
 
     private void visitFileOrDir(FileTreeElement source) {
-        File target = source.getRelativePath().getFile(baseDestDir);
+        File target = fileResolver.resolve(source.getRelativePath().getPathString());
         copyFile(source, target);
     }
 

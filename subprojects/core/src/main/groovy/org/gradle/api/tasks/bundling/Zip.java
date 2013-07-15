@@ -15,16 +15,11 @@
  */
 package org.gradle.api.tasks.bundling;
 
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.archive.ZipCopyAction;
-import org.gradle.api.internal.file.archive.ZipCopySpecVisitor;
-import org.gradle.api.internal.file.copy.CopyActionImpl;
+import org.gradle.api.internal.file.archive.ZipCopySpecContentVisitor;
+import org.gradle.api.internal.file.copy.CopySpecContentVisitor;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.internal.file.copy.ZipDeflatedCompressor;
 import org.gradle.api.internal.file.copy.ZipStoredCompressor;
-import org.gradle.internal.reflect.Instantiator;
-
-import java.io.File;
 
 /**
  * Assembles a ZIP archive.
@@ -35,14 +30,26 @@ import java.io.File;
  */
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
-    private ZipCopyActionImpl action;
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
 
     public Zip() {
-        FileResolver fileResolver = getServices().get(FileResolver.class);
-        Instantiator instantiator = getServices().get(Instantiator.class);
         setExtension(ZIP_EXTENSION);
-        action = instantiator.newInstance(ZipCopyActionImpl.class, this, instantiator, fileResolver);
+    }
+
+    protected ZipCompressor getCompressor() {
+        switch(entryCompression) {
+            case DEFLATED:
+                return ZipDeflatedCompressor.INSTANCE;
+            case STORED:
+                return ZipStoredCompressor.INSTANCE;
+            default:
+                throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
+        }
+    }
+
+    @Override
+    protected CopySpecContentVisitor createContentVisitor() {
+        return new ZipCopySpecContentVisitor(getArchivePath(), getCompressor());
     }
 
     /**
@@ -65,31 +72,4 @@ public class Zip extends AbstractArchiveTask {
         this.entryCompression = entryCompression;
     }
 
-    protected ZipCopyActionImpl getCopyAction() {
-        return action;
-    }
-
-    /**
-     * Zip compress action implementation.
-     */
-    protected class ZipCopyActionImpl extends CopyActionImpl implements ZipCopyAction {
-        public ZipCopyActionImpl(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver, new ZipCopySpecVisitor());
-        }
-
-        public File getArchivePath() {
-            return Zip.this.getArchivePath();
-        }
-
-        public ZipCompressor getCompressor() {
-            switch(entryCompression) {
-                case DEFLATED:
-                    return ZipDeflatedCompressor.INSTANCE;
-                case STORED:
-                    return ZipStoredCompressor.INSTANCE;
-                default:
-                    throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
-            }
-        }
-    }
 }

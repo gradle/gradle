@@ -111,14 +111,6 @@ public class DefaultCopySpecTest {
         assertThat(spec.childSpecs.size(), equalTo(2))
     }
 
-    @Test public void testWithSpecSource() {
-        CopyActionImpl source = new CopyActionImpl(instantiator, fileResolver, null, Actions.doNothing())
-
-        spec.with source
-        assertTrue(spec.sourcePaths.empty)
-        assertThat(spec.childSpecs.size(), equalTo(1))
-    }
-
     @Test public void testWithSpecInheritsDestinationPathFromParent() {
         DefaultCopySpec other = new DefaultCopySpec(fileResolver, instantiator)
         other.into 'other'
@@ -136,21 +128,6 @@ public class DefaultCopySpecTest {
 
         assertThat(child, not(sameInstance(spec)))
         assertThat(child.destPath, equalTo(new RelativePath(false, 'target')))
-    }
-
-    @Test public void testVisitVisitsBreadthwiseDepthFirst() {
-        DefaultCopySpec child = spec.into('somedir') { }
-        DefaultCopySpec grandchild = child.into('somedir') { }
-        DefaultCopySpec child2 = spec.into('somedir') { }
-
-        def specs = []
-        spec.visit(new Action<CopySpecInternal>() {
-            void execute(CopySpecInternal t) {
-                specs << t
-            }
-        })
-
-        assertThat(specs, equalTo([spec, child, grandchild, child2]))
     }
 
     @Test public void testRootSpecHasRootPathAsDestination() {

@@ -18,14 +18,20 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.DeleteAction;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.internal.file.copy.*;
+import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.internal.file.copy.DefaultCopySpec;
+import org.gradle.api.internal.file.copy.DeleteActionImpl;
+import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
@@ -133,12 +139,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public WorkResult copy(Closure closure) {
-        CopyActionImpl action = configure(closure, instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new FileCopySpecContentVisitor()));
-        action.execute();
-        return action;
+        FileCopyAction copyAction = new FileCopyAction(instantiator, fileResolver);
+        ConfigureUtil.configure(closure, copyAction.getCopySpec());
+        return copyAction.copy();
     }
 
-    public CopySpec copySpec(Closure closure) {
+    public CopySpecInternal copySpec(Closure closure) {
         return configure(closure, instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator));
     }
 

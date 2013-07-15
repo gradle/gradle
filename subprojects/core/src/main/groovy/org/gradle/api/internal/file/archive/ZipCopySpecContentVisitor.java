@@ -21,21 +21,25 @@ import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.EmptyCopySpecContentVisitor;
+import org.gradle.api.internal.file.copy.ZipCompressor;
 
 import java.io.File;
 import java.io.IOException;
 
 public class ZipCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
     private ZipOutputStream zipOutStr;
-    private File zipFile;
+    private final File zipFile;
+    private final ZipCompressor compressor;
 
-    public void startVisit(CopyAction action) {
-        ZipCopyAction archiveAction = (ZipCopyAction) action;
-        zipFile = archiveAction.getArchivePath();
+    public ZipCopySpecContentVisitor(File zipFile, ZipCompressor compressor) {
+        this.zipFile = zipFile;
+        this.compressor = compressor;
+    }
+
+    public void startVisit() {
         try {
-            zipOutStr = archiveAction.getCompressor().createArchiveOutputStream(zipFile);
+            zipOutStr = compressor.createArchiveOutputStream(zipFile);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create ZIP '%s'.", zipFile), e);
         }

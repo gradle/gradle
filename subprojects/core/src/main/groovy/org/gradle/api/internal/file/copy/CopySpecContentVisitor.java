@@ -19,33 +19,15 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.tasks.WorkResult;
 
 public interface CopySpecContentVisitor extends WorkResult {
-    /**
-     * Called at the start of the visit.
-     */
-    void startVisit(CopyAction action);
 
-    /**
-     * Called at the end of the visit.
-     */
-    void endVisit();
+    void startVisit();
 
-    /**
-     * Visits a spec. Called before any of the files or directories of the spec are visited.
-     */
     void visitSpec(CopySpecInternal spec);
 
-    /**
-     * Visits a directory.
-     *
-     * @param dirDetails Meta-info about the directory.
-     */
     public void visitDir(FileCopyDetails dirDetails);
 
-    /**
-     * Visits a file.
-     *
-     * @param fileDetails Meta-info about the file.
-     */
     public void visitFile(FileCopyDetails fileDetails);
+
+    void endVisit();
 
 }

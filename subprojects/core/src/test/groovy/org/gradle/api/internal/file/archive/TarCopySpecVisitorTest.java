@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFacto
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
-import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -52,9 +51,9 @@ public class TarCopySpecVisitorTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
     private final CopySpecInternal copySpec = context.mock(CopySpecInternal.class);
-    private final TarCopySpecContentVisitor visitor = new TarCopySpecContentVisitor();
+    private TarCopySpecContentVisitor visitor;
+
 
     @Test
     public void createsTarFile() {
@@ -107,7 +106,7 @@ public class TarCopySpecVisitorTest {
             new SimpleCompressor());
 
         try {
-            visitor.startVisit(copyAction);
+            visitor.startVisit();
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo(String.format("Could not create TAR '%s'.", tarFile)));
@@ -119,7 +118,7 @@ public class TarCopySpecVisitorTest {
         final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
             new SimpleCompressor());
 
-        visitor.startVisit(copyAction);
+        visitor.startVisit();
         visitor.visitSpec(copySpec);
 
         Throwable failure = new RuntimeException("broken");
@@ -133,17 +132,12 @@ public class TarCopySpecVisitorTest {
     }
 
     private TestFile initializeTarFile(final TestFile tarFile, final ArchiveOutputStreamFactory compressor) {
-        context.checking(new Expectations() {{
-            allowing(copyAction).getArchivePath();
-            will(returnValue(tarFile));
-            allowing(copyAction).getCompressor();
-            will(returnValue(compressor));
-        }});
+        visitor = new TarCopySpecContentVisitor(tarFile, compressor);
         return tarFile;
     }
 
     private void tar(FileCopyDetails... files) {
-        visitor.startVisit(copyAction);
+        visitor.startVisit();
         visitor.visitSpec(copySpec);
 
         for (FileCopyDetails f : files) {

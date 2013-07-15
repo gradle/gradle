@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -31,15 +31,12 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
 @RunWith(JMock.class)
 public class FileCopySpecVisitorTest {
     private File destDir;
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final FileCopySpecContentVisitor visitor = new FileCopySpecContentVisitor();
+    private FileCopySpecContentVisitor visitor;
+
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
@@ -50,33 +47,15 @@ public class FileCopySpecVisitorTest {
 
     @Test
     public void plainCopy() {
-        visitor.startVisit(action(destDir));
+        visitor = new FileCopySpecContentVisitor(new BaseDirFileResolver(destDir));
+        visitor.startVisit();
         visitor.visitFile(file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")));
         visitor.visitFile(file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt")));
     }
 
-    @Test
-    public void testThrowsExceptionWhenNoDestinationSet() {
-        try {
-            visitor.startVisit(action(null));
-            fail();
-        } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), equalTo("No copy destination directory has been specified, use 'into' to specify a target directory."));
-        }
-    }
-
-    private FileCopyAction action(final File destDir) {
-        final FileCopyAction action = context.mock(FileCopyAction.class);
-        context.checking(new Expectations(){{
-            allowing(action).getDestinationDir();
-            will(returnValue(destDir));
-        }});
-        return action;
-    }
-
     private FileCopyDetails file(final RelativePath relativePath, final File targetFile) {
         final FileCopyDetails details = context.mock(FileCopyDetails.class, relativePath.getPathString());
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(details).getRelativePath();
             will(returnValue(relativePath));
             one(details).copyTo(targetFile);

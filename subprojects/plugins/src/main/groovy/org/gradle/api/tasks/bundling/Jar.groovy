@@ -41,7 +41,7 @@ public class Jar extends Zip {
         extension = DEFAULT_EXTENSION
         manifest = new DefaultManifest(getServices().get(FileResolver))
         // Add these as separate specs, so they are not affected by the changes to the main spec
-        metaInf = copyAction.rootSpec.addFirst().into('META-INF')
+        metaInf = rootSpec.addFirst().into('META-INF')
         metaInf.addChild().from {
             MapFileTree manifestSource = new MapFileTree(temporaryDirFactory)
             manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
@@ -50,7 +50,7 @@ public class Jar extends Zip {
             }
             return new FileTreeAdapter(manifestSource)
         }
-        copyAction.mainSpec.eachFile { FileCopyDetails details ->
+        mainSpec.eachFile { FileCopyDetails details ->
             if (details.path.equalsIgnoreCase('META-INF/MANIFEST.MF')) {
                 details.exclude()
             }

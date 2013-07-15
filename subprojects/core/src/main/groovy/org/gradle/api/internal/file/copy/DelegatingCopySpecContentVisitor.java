@@ -28,8 +28,8 @@ public class DelegatingCopySpecContentVisitor implements CopySpecContentVisitor 
         return visitor;
     }
 
-    public void startVisit(CopyAction action) {
-        getVisitor().startVisit(action);
+    public void startVisit() {
+        getVisitor().startVisit();
     }
 
     public void endVisit() {

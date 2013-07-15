@@ -29,7 +29,7 @@ public class RelativizedCopySpec extends DelegatingCopySpec {
     }
 
     @Override
-    CopySpecInternal getDelegateCopySpec() {
+    protected CopySpecInternal getDelegateCopySpec() {
         return child;
     }
 
