@@ -19,7 +19,6 @@ import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.TarTestFixture
-import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
@@ -67,8 +66,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         then:
         file('build/test.tar').assertDoesNotExist()
     }
-
-
 
     def canCopyFromATar() {
         given:
@@ -596,69 +593,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         expandDir.assertHasDescendants('shared/zip.txt', 'zipdir1/file1.txt', 'shared/tar.txt', 'tardir1/file1.txt', 'shared/dir.txt', 'dir1/file1.txt')
     }
 
-    def ensureDuplicatesIncludedInZipByDefault() {
-        given:
-        createFilesStructureForDupeTests();
-        buildFile << '''
-            task zip(type: Zip) {
-                from 'dir1'
-                from 'dir2'
-                from 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
-            }
-            '''
-        when:
-        run 'zip'
-
-        then:
-        def theZip = new ZipTestFixture(file('build/test.zip'))
-        theZip.containsOnly('file1.txt', 'file1.txt', 'file2.txt')
-    }
-
-    def ensureDuplicatesCanBeExcludedFromZip() {
-        given:
-        createFilesStructureForDupeTests()
-        buildFile << '''
-                task zip(type: Zip) {
-                    from 'dir1'
-                    from 'dir2'
-                    from 'dir3'
-                    destinationDir = buildDir
-                    archiveName = 'test.zip'
-                    eachFile { it.duplicatesStrategy = 'exclude' }
-                }
-                '''
-        when:
-        run 'zip'
-
-        then:
-        def theZip = new ZipTestFixture(file('build/test.zip'))
-        theZip.containsOnly('file1.txt', 'file2.txt')
-        theZip.assertFileContent('file1.txt', 'dir1/file1.txt')
-    }
-
-    def renamedFileWillBeTreatedAsDuplicateZip() {
-        given:
-        createFilesStructureForDupeTests()
-        buildFile << '''
-                task zip(type: Zip) {
-                    from 'dir1'
-                    from 'dir2'
-                    destinationDir = buildDir
-                    rename 'file2.txt', 'file1.txt'
-                    archiveName = 'test.zip'
-                    eachFile { it.duplicatesStrategy = 'exclude' }
-                }
-                '''
-        when:
-        run 'zip'
-
-        then:
-        def theZip = new ZipTestFixture(file('build/test.zip'))
-        theZip.containsOnly('file1.txt')
-        theZip.assertFileContent('file1.txt', "dir1/file1.txt")
-    }
 
     def ensureDuplicatesIncludedInTarByDefault() {
         given:
@@ -704,8 +638,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         tar.content("file1.txt") == "dir1/file1.txt"
     }
 
-
-    def createTar(String name, Closure cl) {
+    private def createTar(String name, Closure cl) {
         TestFile tarRoot = file("${name}.root")
         TestFile tar = file(name)
         tarRoot.create(cl)

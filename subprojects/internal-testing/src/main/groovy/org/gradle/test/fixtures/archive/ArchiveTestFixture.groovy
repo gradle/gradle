@@ -46,7 +46,7 @@ class ArchiveTestFixture {
         filesByRelativePath.get(relativePath).size()
     }
 
-    def containsOnly(String... relativePaths) {
+    def hasDescendants(String... relativePaths) {
         assertThat(relativePaths as Set, equalTo(filesByRelativePath.keySet()))
         def expectedCounts = ArrayListMultimap.create()
         for (String fileName : relativePaths) {
@@ -62,8 +62,7 @@ class ArchiveTestFixture {
      * Asserts that there is exactly one file present with the given path, and that this file has the given content.
      */
     def assertFileContent(String relativePath, String fileContent) {
-        assertThat(content(relativePath), equalTo(fileContent))
-        this
+        assertFileContent(relativePath, equalTo(fileContent))
     }
 
     /**

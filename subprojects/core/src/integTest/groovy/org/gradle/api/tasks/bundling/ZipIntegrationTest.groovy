@@ -17,24 +17,13 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.archive.ZipTestFixture
 
-import java.util.zip.ZipFile
-
-import static org.junit.Assert.assertEquals;
-
-class ZipIntegrationTest  extends AbstractIntegrationSpec {
+class ZipIntegrationTest extends AbstractIntegrationSpec {
 
     def ensureDuplicatesIncludedWithoutWarning() {
         given:
-        createDir('dir1', {
-            file 'file1.txt'
-        })
-        createDir('dir2', {
-            file 'file2.txt'
-        })
-        createDir('dir3', {
-            file 'file1.txt'
-        })
+        createTestFiles()
         buildFile << '''
             task zip(type: Zip) {
                 from 'dir1'
@@ -48,20 +37,13 @@ class ZipIntegrationTest  extends AbstractIntegrationSpec {
         run 'zip'
 
         then:
-        assertZipContains('build/test.zip', [ 'file1.txt', 'file1.txt', 'file2.txt' ])
+        def theZip = new ZipTestFixture(file('build/test.zip'))
+        theZip.hasDescendants('file1.txt', 'file1.txt', 'file2.txt')
     }
 
     def ensureDuplicatesCanBeExcluded() {
         given:
-        createDir('dir1', {
-            file 'file1.txt'
-        })
-        createDir('dir2', {
-            file 'file2.txt'
-        })
-        createDir('dir3', {
-            file 'file1.txt'
-        })
+        createTestFiles()
         buildFile << '''
             task zip(type: Zip) {
                 from 'dir1'
@@ -76,19 +58,43 @@ class ZipIntegrationTest  extends AbstractIntegrationSpec {
         run 'zip'
 
         then:
-        assertZipContains('build/test.zip', [ 'file1.txt', 'file2.txt' ])
+        def theZip = new ZipTestFixture(file('build/test.zip'))
+        theZip.hasDescendants('file1.txt', 'file2.txt')
+    }
+
+    def renamedFileWillBeTreatedAsDuplicateZip() {
+        given:
+        createTestFiles()
+        buildFile << '''
+                task zip(type: Zip) {
+                    from 'dir1'
+                    from 'dir2'
+                    destinationDir = buildDir
+                    rename 'file2.txt', 'file1.txt'
+                    archiveName = 'test.zip'
+                    eachFile { it.duplicatesStrategy = 'exclude' }
+                }
+                '''
+        when:
+        run 'zip'
+
+        then:
+        def theZip = new ZipTestFixture(file('build/test.zip'))
+        theZip.hasDescendants('file1.txt')
+        theZip.assertFileContent('file1.txt', "dir1/file1.txt")
     }
 
 
-
-    def assertZipContains(zipfile, files) {
-        def entries = new ZipFile(file(zipfile)).entries();
-        def list = []
-        while (entries.hasMoreElements()) {
-            def entry = entries.nextElement()
-            list += entry.getName();
-        }
-        assertEquals(files.sort(), list.sort())
-        return this
+    private def createTestFiles() {
+        createDir('dir1', {
+            file('file1.txt').text = "dir1/file1.txt"
+        })
+        createDir('dir2', {
+            file('file2.txt').text = "dir2/file2.txt"
+        })
+        createDir('dir3', {
+            file('file1.txt').text = "dir3/file1.txt"
+        })
     }
+
 }
