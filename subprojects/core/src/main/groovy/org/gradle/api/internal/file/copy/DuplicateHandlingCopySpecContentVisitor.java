@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
@@ -30,15 +29,15 @@ import java.util.Set;
  * excludes duplicates (based on that path).
  * @author Kyle Mahan
  */
-public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor {
+public class DuplicateHandlingCopySpecContentVisitor extends DelegatingCopySpecContentVisitor {
 
     private final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
     private CopySpecInternal spec;
-    private final Action<? super FileCopyDetails> onUnhandledDuplicate;
+    private boolean warnOnIncludeDuplicate;
 
-    public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor, Action<? super FileCopyDetails> onUnhandledDuplicate) {
+    public DuplicateHandlingCopySpecContentVisitor(CopySpecContentVisitor visitor, boolean warnOnIncludeDuplicate) {
         super(visitor);
-        this.onUnhandledDuplicate = onUnhandledDuplicate;
+        this.warnOnIncludeDuplicate = warnOnIncludeDuplicate;
     }
 
     public void visitSpec(CopySpecInternal spec) {
@@ -46,21 +45,24 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
         super.visitSpec(spec);
     }
 
-    public void visitFile(FileCopyDetails details) {
-        DuplicatesStrategy strategy = determineStrategy(details);
+    @Override
+    public void visit(FileCopyDetails details) {
+        if (!details.isDirectory()) {
+            DuplicatesStrategy strategy = determineStrategy(details);
 
-        if (!visitedFiles.add(details.getRelativePath())) {
-            if (strategy == DuplicatesStrategy.EXCLUDE) {
-                return;
-            }
-            if (strategy != DuplicatesStrategy.INCLUDE) {
-                onUnhandledDuplicate.execute(details);
+            if (!visitedFiles.add(details.getRelativePath())) {
+                if (strategy == DuplicatesStrategy.EXCLUDE) {
+                    return;
+                }
+                if (warnOnIncludeDuplicate) {
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour(
+                            String.format("Including duplicate file %s", details.getRelativePath()));
+                }
             }
         }
 
-        super.visitFile(details);
+        super.visit(details);
     }
-
 
     private DuplicatesStrategy determineStrategy(FileCopyDetails details) {
         if (details.getDuplicatesStrategy() == null) {

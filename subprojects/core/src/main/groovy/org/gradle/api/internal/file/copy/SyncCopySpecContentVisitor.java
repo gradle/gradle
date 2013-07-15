@@ -38,15 +38,9 @@ public class SyncCopySpecContentVisitor extends DelegatingCopySpecContentVisitor
     }
 
     @Override
-    public void visitDir(FileCopyDetails dirDetails) {
+    public void visit(FileCopyDetails dirDetails) {
         visited.add(dirDetails.getRelativePath());
-        getVisitor().visitDir(dirDetails);
-    }
-
-    @Override
-    public void visitFile(FileCopyDetails fileDetails) {
-        visited.add(fileDetails.getRelativePath());
-        getVisitor().visitFile(fileDetails);
+        getVisitor().visit(dirDetails);
     }
 
     @Override

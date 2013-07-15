@@ -55,7 +55,16 @@ public class ZipCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
         }
     }
 
-    public void visitFile(FileCopyDetails fileDetails) {
+    @Override
+    public void visit(FileCopyDetails details) {
+        if (details.isDirectory()) {
+            visitDir(details);
+        } else {
+            visitFile(details);
+        }
+    }
+
+    private void visitFile(FileCopyDetails fileDetails) {
         try {
             ZipEntry archiveEntry = new ZipEntry(fileDetails.getRelativePath().getPathString());
             archiveEntry.setTime(fileDetails.getLastModified());
@@ -68,7 +77,7 @@ public class ZipCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
         }
     }
 
-    public void visitDir(FileCopyDetails dirDetails) {
+    private void visitDir(FileCopyDetails dirDetails) {
         try {
             // Trailing slash in name indicates that entry is a directory
             ZipEntry archiveEntry = new ZipEntry(dirDetails.getRelativePath().getPathString() + '/');

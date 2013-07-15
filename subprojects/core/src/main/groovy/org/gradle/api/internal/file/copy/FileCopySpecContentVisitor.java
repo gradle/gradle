@@ -32,19 +32,11 @@ public class FileCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
         this.fileResolver = fileResolver;
     }
 
-    public void visitFile(FileCopyDetails source) {
-        visitFileOrDir(source);
-    }
-
-    public void visitDir(FileCopyDetails source) {
-        visitFileOrDir(source);
-    }
-
     public boolean getDidWork() {
         return didWork;
     }
 
-    private void visitFileOrDir(FileTreeElement source) {
+    public void visit(FileCopyDetails source) {
         File target = fileResolver.resolve(source.getRelativePath().getPathString());
         copyFile(source, target);
     }

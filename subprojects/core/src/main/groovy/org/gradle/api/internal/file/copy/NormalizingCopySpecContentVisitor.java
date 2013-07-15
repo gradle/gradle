@@ -66,18 +66,19 @@ public class NormalizingCopySpecContentVisitor extends DelegatingCopySpecContent
             // TODO - this is pretty nasty, look at avoiding using a time bomb stub here
             dir = new FileCopyDetailsImpl(path);
         }
-        getVisitor().visitDir(dir);
+        getVisitor().visit(dir);
     }
 
-    public void visitFile(FileCopyDetails fileDetails) {
-        maybeVisit(fileDetails.getRelativePath().getParent());
-        getVisitor().visitFile(fileDetails);
-    }
-
-    public void visitDir(FileCopyDetails dirDetails) {
-        RelativePath path = dirDetails.getRelativePath();
-        if (!visitedDirs.contains(path)) {
-            pendingDirs.put(path, dirDetails);
+    @Override
+    public void visit(FileCopyDetails details) {
+        if (details.isDirectory()) {
+            RelativePath path = details.getRelativePath();
+            if (!visitedDirs.contains(path)) {
+                pendingDirs.put(path, details);
+            }
+        } else {
+            maybeVisit(details.getRelativePath().getParent());
+            getVisitor().visit(details);
         }
     }
 

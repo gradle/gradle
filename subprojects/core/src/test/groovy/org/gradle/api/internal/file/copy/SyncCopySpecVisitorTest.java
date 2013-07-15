@@ -50,8 +50,8 @@ public class SyncCopySpecVisitorTest {
     public void setUp() {
         context.checking(new Expectations(){{
             allowing(delegate).startVisit();
-            allowing(delegate).visitFile(with(notNullValue(FileCopyDetails.class)));
-            allowing(delegate).visitDir(with(notNullValue(FileCopyDetails.class)));
+            allowing(delegate).visit(with(notNullValue(FileCopyDetails.class)));
+            allowing(delegate).visit(with(notNullValue(FileCopyDetails.class)));
             allowing(delegate).endVisit();
         }});
     }
@@ -66,9 +66,9 @@ public class SyncCopySpecVisitorTest {
 
         visitor(destDir);
         visitor.startVisit();
-        visitor.visitDir(dir("subdir"));
-        visitor.visitFile(file("subdir/included.txt"));
-        visitor.visitFile(file("included.txt"));
+        visitor.visit(dir("subdir"));
+        visitor.visit(file("subdir/included.txt"));
+        visitor.visit(file("included.txt"));
         visitor.endVisit();
 
         destDir.assertHasDescendants("subdir/included.txt", "included.txt");
@@ -82,7 +82,7 @@ public class SyncCopySpecVisitorTest {
 
         visitor(destDir);
         visitor.startVisit();
-        visitor.visitFile(file("included.txt"));
+        visitor.visit(file("included.txt"));
 
         // TODO - delete these
         Field field = SyncCopySpecContentVisitor.class.getDeclaredField("visited");

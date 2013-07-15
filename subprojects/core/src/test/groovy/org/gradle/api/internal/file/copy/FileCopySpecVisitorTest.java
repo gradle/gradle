@@ -49,8 +49,8 @@ public class FileCopySpecVisitorTest {
     public void plainCopy() {
         visitor = new FileCopySpecContentVisitor(new BaseDirFileResolver(destDir));
         visitor.startVisit();
-        visitor.visitFile(file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")));
-        visitor.visitFile(file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt")));
+        visitor.visit(file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")));
+        visitor.visit(file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt")));
     }
 
     private FileCopyDetails file(final RelativePath relativePath, final File targetFile) {

@@ -49,8 +49,8 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
         visit()
 
         then:
-        2 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file2.txt' })
+        2 * delegate.visit({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
     def duplicatesExcludedByPerFileConfiguration() {
@@ -62,8 +62,8 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
         visit()
 
         then:
-        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file2.txt' })
+        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
 
@@ -77,8 +77,8 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
         visit()
 
         then:
-        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file2.txt' })
+        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
     def duplicatesExcludedByDefaultConfiguration() {
@@ -91,8 +91,8 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
         visit()
 
         then:
-        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegate.visitFile({ it.relativePath.pathString == '/root/path/file2.txt' })
+        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
     void files(String... fileNames) {

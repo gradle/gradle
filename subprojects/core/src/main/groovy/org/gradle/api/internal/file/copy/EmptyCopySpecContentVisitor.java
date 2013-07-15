@@ -25,13 +25,10 @@ public class EmptyCopySpecContentVisitor implements CopySpecContentVisitor {
     public void startVisit() {
     }
 
-    public void visitDir(FileCopyDetails dirDetails) {
+    public void visit(FileCopyDetails dirDetails) {
     }
 
     public void endVisit() {
-    }
-
-    public void visitFile(FileCopyDetails fileDetails) {
     }
 
     public void visitSpec(CopySpecInternal spec) {

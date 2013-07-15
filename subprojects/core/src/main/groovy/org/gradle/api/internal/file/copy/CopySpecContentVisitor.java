@@ -24,9 +24,7 @@ public interface CopySpecContentVisitor extends WorkResult {
 
     void visitSpec(CopySpecInternal spec);
 
-    public void visitDir(FileCopyDetails dirDetails);
-
-    public void visitFile(FileCopyDetails fileDetails);
+    public void visit(FileCopyDetails details);
 
     void endVisit();
 

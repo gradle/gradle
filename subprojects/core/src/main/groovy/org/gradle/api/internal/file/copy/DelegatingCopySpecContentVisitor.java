@@ -40,12 +40,8 @@ public class DelegatingCopySpecContentVisitor implements CopySpecContentVisitor 
         getVisitor().visitSpec(spec);
     }
 
-    public void visitDir(FileCopyDetails dirDetails) {
-        getVisitor().visitDir(dirDetails);
-    }
-
-    public void visitFile(FileCopyDetails fileDetails) {
-        getVisitor().visitFile(fileDetails);
+    public void visit(FileCopyDetails details) {
+        getVisitor().visit(details);
     }
 
     public boolean getDidWork() {

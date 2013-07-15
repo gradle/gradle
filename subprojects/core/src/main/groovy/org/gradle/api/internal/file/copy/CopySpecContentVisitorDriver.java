@@ -48,18 +48,22 @@ public class CopySpecContentVisitorDriver {
                 FileTree source = spec.getSource();
                 source.visit(new FileVisitor() {
                     public void visitDir(FileVisitDetails dirDetails) {
-                        effectiveVisitor.visitDir(new DefaultFileCopyDetails(dirDetails, spec, fileSystem));
+                        visit(dirDetails);
                     }
 
                     public void visitFile(FileVisitDetails fileDetails) {
-                        DefaultFileCopyDetails details = instantiator.newInstance(DefaultFileCopyDetails.class, fileDetails, spec, fileSystem);
+                        visit(fileDetails);
+                    }
+
+                    private void visit(FileVisitDetails visitDetails) {
+                        DefaultFileCopyDetails details = instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, spec, fileSystem);
                         for (Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
                             action.execute(details);
                             if (details.isExcluded()) {
                                 return;
                             }
                         }
-                        effectiveVisitor.visitFile(details);
+                        effectiveVisitor.visit(details);
                     }
                 });
             }

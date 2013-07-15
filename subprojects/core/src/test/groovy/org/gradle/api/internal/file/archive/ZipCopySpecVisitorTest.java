@@ -109,7 +109,7 @@ public class ZipCopySpecVisitorTest {
 
         Throwable failure = new RuntimeException("broken");
         try {
-            visitor.visitFile(brokenFile("dir/file1", failure));
+            visitor.visit(brokenFile("dir/file1", failure));
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo(String.format("Could not add [dir/file1] to ZIP '%s'.", zipFile)));
@@ -123,9 +123,9 @@ public class ZipCopySpecVisitorTest {
 
         for (FileCopyDetails f : files) {
             if (f.isDirectory()) {
-                visitor.visitDir(f);
+                visitor.visit(f);
             } else {
-                visitor.visitFile(f);
+                visitor.visit(f);
             }
         }
 
