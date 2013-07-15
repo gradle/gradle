@@ -20,6 +20,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.publish.Identifier
 import org.gradle.util.Matchers
 import org.junit.Rule
 import spock.lang.Specification
@@ -70,7 +71,7 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
         descriptor.generateProject()
         then:
         temporaryFolder.file("build.gradle").assertContents(Matchers.strictlyEqual(/C:\\Programe Files\\gradle/))
-        temporaryFolder.file("settings.gradle").assertContents(Matchers.strictlyEqual(/a\'b\\c/))
+        temporaryFolder.file("settings.gradle").assertContents(Matchers.strictlyEqual(/a\'b\\c-√æず∫ʙぴ₦ガき∆ç√∫/))
     }
 
     class TestTemplateBasedProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
@@ -95,7 +96,7 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
         }
 
         protected Map getAdditionalSettingsFileTemplateBindings() {
-            return [rootProjectName: "a\'b\\c"]
+            return [rootProjectName: "a\'b\\c-√æず∫ʙぴ₦ガき∆ç√∫"]
         }
 
         String getId() {
