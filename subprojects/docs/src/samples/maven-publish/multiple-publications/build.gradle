@@ -9,7 +9,7 @@ subprojects {
     publishing {
         repositories {
             maven {
-                url "file://${rootProject.buildDir}/repo" // change to point to your repo, e.g. http://my.org/repo
+                url "${rootProject.buildDir}/repo" // change to point to your repo, e.g. http://my.org/repo
             }
         }
     }

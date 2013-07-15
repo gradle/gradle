@@ -17,7 +17,7 @@ publishing {
 // START SNIPPET repositories
     repositories {
         maven {
-            url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
+            url "$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
         }
     }
 // END SNIPPET repositories

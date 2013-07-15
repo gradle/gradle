@@ -38,7 +38,7 @@ subprojects {
 // END SNIPPET publish-custom-artifact
         repositories {
             ivy {
-                url "file://${rootProject.buildDir}/repo" // change to point to your repo, e.g. http://my.org/repo
+                url "${rootProject.buildDir}/repo" // change to point to your repo, e.g. http://my.org/repo
             }
         }
 // START SNIPPET publish-custom-artifact

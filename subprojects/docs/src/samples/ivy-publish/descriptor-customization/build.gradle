@@ -15,7 +15,7 @@ publishing {
 // END SNIPPET customize-descriptor
     repositories {
         ivy {
-            url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
+            url "$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
         }
     }
 }
