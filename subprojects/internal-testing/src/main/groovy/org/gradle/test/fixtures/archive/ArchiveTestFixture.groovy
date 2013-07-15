@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.archive
 
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
+import org.hamcrest.Matcher
 
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.equalTo
@@ -63,6 +64,10 @@ class ArchiveTestFixture {
      */
     def assertFileContent(String relativePath, String fileContent) {
         assertFileContent(relativePath, equalTo(fileContent))
+    }
+
+    def assertFileContent(String relativePath, Matcher contentMatcher) {
+        assertThat(content(relativePath), contentMatcher)
     }
 
     /**
