@@ -16,42 +16,26 @@
 
 package org.gradle.test.fixtures.archive
 
-import org.apache.commons.collections.map.MultiValueMap
 import org.apache.tools.tar.TarEntry
 import org.apache.tools.tar.TarInputStream
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.junit.Assert.assertEquals
-
-class TarTestFixture {
-
+class TarTestFixture extends ArchiveTestFixture {
     private final TestFile tarFile
-
-    MultiValueMap filesByRelativePath = new MultiValueMap()
 
     public TarTestFixture(TestFile tarFile) {
         this.tarFile = tarFile
 
-        TarInputStream tarInputStream = new TarInputStream(this.tarFile.newInputStream())
-
-        for (TarEntry tarEntry = tarInputStream.nextEntry; tarEntry != null; tarEntry = tarInputStream.nextEntry) {
-            if (tarEntry.directory) {
-                continue
+        tarFile.withInputStream { inputStream ->
+            TarInputStream tarInputStream = new TarInputStream(inputStream)
+            for (TarEntry tarEntry = tarInputStream.nextEntry; tarEntry != null; tarEntry = tarInputStream.nextEntry) {
+                if (tarEntry.directory) {
+                    continue
+                }
+                ByteArrayOutputStream stream = new ByteArrayOutputStream()
+                tarInputStream.copyEntryContents(stream)
+                add(tarEntry.name, new String(stream.toByteArray(), "utf-8"))
             }
-            ByteArrayOutputStream stream = new ByteArrayOutputStream()
-            tarInputStream.copyEntryContents(stream)
-            filesByRelativePath[tarEntry.name] = new String( stream.toByteArray(), "utf-8");
         }
-    }
-
-    def assertContainsFile(String relativePath, int occurrences = 1) {
-        assertEquals(occurrences, filesByRelativePath.getCollection(relativePath).size())
-        this
-    }
-
-    String content(String path) {
-        List files = filesByRelativePath[path]
-        assertEquals(1, files.size())
-        files.get(0)
     }
 }

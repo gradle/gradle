@@ -22,7 +22,7 @@ dependencies {
 
     compile project(":baseServices")
     compile project(":native")
-    compile libraries.commons_collections
+    compile libraries.guava
     compile libraries.commons_lang
     compile libraries.commons_io
     compile libraries.ant

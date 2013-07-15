@@ -16,55 +16,22 @@
 
 package org.gradle.test.fixtures.archive
 
-import org.hamcrest.Matcher
-
 import java.util.zip.ZipFile
 
-import static org.hamcrest.MatcherAssert.assertThat
-import static org.hamcrest.Matchers.hasItem
-import static org.hamcrest.Matchers.hasItems
-
-class ZipTestFixture {
-
-    Map fileContents = [:]
-
+class ZipTestFixture extends ArchiveTestFixture {
     ZipTestFixture(File file) {
-        ZipFile zipFile = null
+        def zipFile = new ZipFile(file)
         try {
-            zipFile = new ZipFile(file)
             def entries = zipFile.entries()
             while (entries.hasMoreElements()) {
                 def entry = entries.nextElement()
                 def content = zipFile.getInputStream(entry).text
                 if (!entry.directory) {
-                    fileContents[entry.name] = fileContents[entry.name] ? fileContents[entry.name] + content : [content]
+                    add(entry.name, content)
                 }
             }
         } finally {
-            if (zipFile) {
-                zipFile.close();
-            }
+            zipFile.close();
         }
-    }
-
-    def containsOnly(String... fileNames) {
-        assertThat(fileNames as List, hasItems(fileContents.keySet().toArray()))
-        this
-    }
-
-    String assertFileContent(String filepath, String fileContent) {
-        assertThat(fileContents.keySet(), hasItem(filepath))
-        assertThat(fileContents[filepath], hasItem(fileContent))
-        this
-    }
-
-    def assertFileContent(String filePath, Matcher matcher) {
-        assertThat(fileContents.keySet(), hasItem(filePath))
-        assertThat(fileContents[filePath], matcher)
-        this
-    }
-
-    Integer countFiles(String filePath) {
-        fileContents.findAll({ it == filePath }).size()
     }
 }
