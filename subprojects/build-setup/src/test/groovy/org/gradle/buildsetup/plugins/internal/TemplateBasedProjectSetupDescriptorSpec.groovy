@@ -20,7 +20,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.publish.Identifier
 import org.gradle.util.Matchers
 import org.junit.Rule
 import spock.lang.Specification
