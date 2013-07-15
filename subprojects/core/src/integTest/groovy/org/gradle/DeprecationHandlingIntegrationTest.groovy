@@ -79,4 +79,47 @@ class DeprecatedTask extends DefaultTask {
         output.count("The RepositoryHandler.mavenRepo() method has been deprecated") == 0
         errorOutput == ""
     }
+
+    def "reports usage of deprecated feature from an init script"() {
+        def initScript = file("init.gradle") << """
+allprojects {
+    someFeature()
+}
+
+def someFeature() {
+    DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()")
+}
+
+"""
+
+        when:
+        executer.withDeprecationChecksDisabled().usingInitScript(initScript)
+        run()
+
+        then:
+        output.contains("Initialization script '$initScript': line 3")
+        output.count("The someFeature() method has been deprecated") == 1
+        errorOutput == ""
+    }
+
+    def "reports usage of deprecated feature from an applied script"() {
+        def script = file("project.gradle") << """
+
+def someFeature() {
+    DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()")
+}
+
+someFeature()
+"""
+        buildFile << "allprojects { apply from: 'project.gradle' }"
+
+        when:
+        executer.withDeprecationChecksDisabled()
+        run()
+
+        then:
+        output.contains("Script '$script': line 7")
+        output.count("The someFeature() method has been deprecated") == 1
+        errorOutput == ""
+    }
 }
