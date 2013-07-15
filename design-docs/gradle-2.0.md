@@ -27,6 +27,7 @@ allows us to implement new features and remove some internal complexity.
 * Remove `RepositoryHandler.mavenRepo()`.
 * Change the `MavenResolver` implementation so that it no longer extends `DependencyResolver`.
 * Change the `FlatDirRepository` implementation so that it no longer uses a `DependencyResolver` implementation.
+* Remove Ivy version from the output of `gradle -v`.
 
 ## Gradle Open API
 
