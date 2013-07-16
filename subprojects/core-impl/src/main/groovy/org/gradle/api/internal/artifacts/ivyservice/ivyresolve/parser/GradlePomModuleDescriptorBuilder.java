@@ -29,8 +29,8 @@ import org.apache.ivy.plugins.parser.m2.DefaultPomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomReader.PomDependencyData;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -169,7 +169,7 @@ public class GradlePomModuleDescriptorBuilder {
     private ParserSettings parserSettings;
 
 
-    public GradlePomModuleDescriptorBuilder(Resource res, ParserSettings ivySettings) {
+    public GradlePomModuleDescriptorBuilder(ExternalResource res, ParserSettings ivySettings) {
         ivyModuleDescriptor = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
         ivyModuleDescriptor.setResolvedPublicationDate(new Date(res.getLastModified()));
         for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {

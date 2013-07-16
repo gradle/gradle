@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.plugins.repository.Resource;
+import org.gradle.api.internal.externalresource.ExternalResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ public class ParserRegistry {
         parsers.add(new DownloadedIvyModuleDescriptorParser());
     }
 
-    public ModuleDescriptorParser forResource(Resource resource) {
+    public ModuleDescriptorParser forResource(ExternalResource resource) {
         for (ModuleDescriptorParser parser : parsers) {
             if (parser.accept(resource)) {
                 return parser;

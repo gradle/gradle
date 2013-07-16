@@ -23,8 +23,6 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.latest.LatestStrategy;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.ChecksumHelper;
@@ -59,6 +57,8 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 
+import static org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache.ExternalResourceDownloader;
+
 // TODO:DAZ Implement ModuleVersionRepository directly, or add an API
 public class ExternalResourceResolver implements ModuleVersionPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
@@ -86,8 +86,8 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     protected VersionLister versionLister;
 
     // TODO:DAZ Get rid of this
-    private final ResourceDownloader resourceDownloader = new ResourceDownloader() {
-        public void download(Artifact artifact, Resource resource, File dest) throws IOException {
+    private final ExternalResourceDownloader resourceDownloader = new ExternalResourceDownloader() {
+        public void download(Artifact artifact, ExternalResource resource, File dest) throws IOException {
             get(resource, dest);
             verifyChecksums(resource, dest);
         }
@@ -256,7 +256,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     public ArtifactOrigin locate(Artifact artifact) {
         ResolvedArtifact artifactRef = getArtifactRef(artifact, null, false);
         if (artifactRef != null && artifactRef.resource.exists()) {
-            final Resource resource = artifactRef.resource;
+            ExternalResource resource = artifactRef.resource;
             return new ArtifactOrigin(artifact, resource.isLocal(), resource.getName());
         }
         return null;
@@ -390,13 +390,11 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         return null;
     }
 
-    protected void discardResource(Resource resource) {
-        if (resource instanceof ExternalResource) {
-            try {
-                ((ExternalResource) resource).close();
-            } catch (IOException e) {
-                LOGGER.warn("Exception closing resource " + resource.getName(), e);
-            }
+    protected void discardResource(ExternalResource resource) {
+        try {
+            resource.close();
+        } catch (IOException e) {
+            LOGGER.warn("Exception closing resource " + resource.getName(), e);
         }
     }
 
@@ -448,25 +446,20 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         }
     }
 
-    private void get(Resource resource, File destination) throws IOException {
+    private void get(ExternalResource resource, File destination) throws IOException {
         LOGGER.debug("Downloading {} to {}", resource.getName(), destination);
         if (destination.getParentFile() != null) {
             GFileUtils.mkdirs(destination.getParentFile());
         }
 
-        if (!(resource instanceof ExternalResource)) {
-            throw new IllegalArgumentException("Can only download ExternalResource");
-        }
-
-        ExternalResource externalResource = (ExternalResource) resource;
         try {
-            externalResource.writeTo(destination);
+            resource.writeTo(destination);
         } finally {
-            externalResource.close();
+            resource.close();
         }
     }
 
-    private void verifyChecksums(Resource resource, File dest) throws IOException {
+    private void verifyChecksums(ExternalResource resource, File dest) throws IOException {
         String[] checksums = getChecksumAlgorithms();
         boolean checked = false;
         for (int i = 0; i < checksums.length && !checked; i++) {
@@ -474,7 +467,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         }
     }
 
-    private boolean check(Resource resource, File dest, String algorithm) throws IOException {
+    private boolean check(ExternalResource resource, File dest, String algorithm) throws IOException {
         if (!ChecksumHelper.isKnownAlgorithm(algorithm)) {
             throw new IllegalArgumentException("Unknown checksum algorithm: " + algorithm);
         }

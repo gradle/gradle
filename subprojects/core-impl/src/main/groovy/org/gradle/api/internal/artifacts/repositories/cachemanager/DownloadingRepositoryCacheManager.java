@@ -37,8 +37,8 @@ import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.internal.filestore.FileStore;
 import org.gradle.internal.Factory;
+import org.gradle.internal.filestore.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +90,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
                 }
 
-                File artifactFile = downloadAndCacheArtifactFile(artifact, resourceDownloader, artifactRef.getResource()).getFile();
+                File artifactFile = downloadAndCacheArtifactFile(artifact, resourceDownloader, artifactRef.getResource());
 
                 adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
                 adr.setSize(artifactFile.length());
@@ -112,29 +112,36 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         return adr;
     }
 
-    public LocallyAvailableResource downloadAndCacheArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, Resource resource) throws IOException {
+    private File downloadAndCacheArtifactFile(final Artifact artifact, ResourceDownloader resourceDownloader, Resource resource) throws IOException {
         final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             resourceDownloader.download(artifact, resource, tmpFile);
-            return cacheDownloadedFile(artifact, resource, tmpFile);
+            return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<File>() {
+                public File create() {
+                    return fileStore.move(artifact.getId(), tmpFile).getFile();
+                }
+            });
         } finally {
             tmpFile.delete();
         }
     }
 
-    private LocallyAvailableResource cacheDownloadedFile(final Artifact artifact, final Resource resource, final File tmpFile) {
-        return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<LocallyAvailableResource>() {
-            public LocallyAvailableResource create() {
-                LocallyAvailableResource cachedResource = fileStore.move(artifact.getId(), tmpFile);
-                File fileInFileStore = cachedResource.getFile();
-                if (resource instanceof ExternalResource) {
-                    ExternalResource externalResource = (ExternalResource) resource;
-                    ExternalResourceMetaData metaData = externalResource.getMetaData();
+    public LocallyAvailableResource downloadAndCacheArtifactFile(final Artifact artifact, ExternalResourceDownloader resourceDownloader, final ExternalResource resource) throws IOException {
+        final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
+        try {
+            resourceDownloader.download(artifact, resource, tmpFile);
+            return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<LocallyAvailableResource>() {
+                public LocallyAvailableResource create() {
+                    LocallyAvailableResource cachedResource = fileStore.move(artifact.getId(), tmpFile);
+                    File fileInFileStore = cachedResource.getFile();
+                    ExternalResourceMetaData metaData = resource.getMetaData();
                     artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
+                    return cachedResource;
                 }
-                return cachedResource;
-            }
-        });
+            });
+        } finally {
+            tmpFile.delete();
+        }
     }
 
     public ResolvedModuleRevision cacheModuleDescriptor(DependencyResolver resolver, final ResolvedResource resolvedResource, DependencyDescriptor dd, Artifact moduleArtifact, ResourceDownloader downloader, CacheMetadataOptions options) throws ParseException {

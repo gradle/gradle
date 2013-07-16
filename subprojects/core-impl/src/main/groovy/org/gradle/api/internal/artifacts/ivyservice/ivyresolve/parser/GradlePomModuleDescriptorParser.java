@@ -31,8 +31,9 @@ import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomReader;
 import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.plugins.repository.url.URLResource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.UrlExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ import java.util.Map;
 public final class GradlePomModuleDescriptorParser implements ModuleDescriptorParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradlePomModuleDescriptorParser.class);
 
-    public boolean accept(Resource res) {
+    public boolean accept(ExternalResource res) {
         return res.getName().endsWith(".pom") || res.getName().endsWith("pom.xml")
                 || res.getName().endsWith("project.xml");
     }
@@ -66,10 +67,10 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
     }
 
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, File descriptorFile, boolean validate) throws ParseException, IOException {
-        return parseDescriptor(ivySettings, new DefaultLocallyAvailableResource(descriptorFile), new URLResource(descriptorFile.toURI().toURL()), validate);
+        return parseDescriptor(ivySettings, new DefaultLocallyAvailableResource(descriptorFile), new UrlExternalResource(descriptorFile.toURI().toURL()), validate);
     }
 
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableResource localResource, Resource resource, boolean validate) throws ParseException, IOException {
+    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableResource localResource, ExternalResource resource, boolean validate) throws ParseException, IOException {
         URL descriptorURL = localResource.getFile().toURI().toURL();
         Resource encodedResource = encodedUrlResource(descriptorURL);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, ivySettings);

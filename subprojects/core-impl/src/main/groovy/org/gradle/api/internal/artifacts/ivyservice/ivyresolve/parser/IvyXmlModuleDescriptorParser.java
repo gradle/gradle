@@ -32,13 +32,13 @@ import org.apache.ivy.plugins.namespace.NameSpaceHelper;
 import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceHelper;
-import org.apache.ivy.plugins.repository.url.URLResource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.apache.ivy.util.extendable.ExtendableItemHelper;
+import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.UrlExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.DeprecationLogger;
@@ -70,7 +70,7 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
 
-    public DefaultModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableResource localResource, Resource resource, boolean validate) throws ParseException, IOException {
+    public DefaultModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableResource localResource, ExternalResource resource, boolean validate) throws ParseException, IOException {
         Parser parser = new Parser(this, ivySettings, resource);
         parser.setValidate(validate);
         parser.setInput(localResource.getFile().toURI().toURL());
@@ -79,10 +79,10 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
     }
 
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, File descriptorFile, boolean validate) throws ParseException, IOException {
-        return parseDescriptor(ivySettings, new DefaultLocallyAvailableResource(descriptorFile), new URLResource(descriptorFile.toURI().toURL()), validate);
+        return parseDescriptor(ivySettings, new DefaultLocallyAvailableResource(descriptorFile), new UrlExternalResource(descriptorFile.toURI().toURL()), validate);
     }
 
-    public boolean accept(Resource res) {
+    public boolean accept(ExternalResource res) {
         return true; // this the default parser, it thus accepts all resources
     }
 
@@ -97,7 +97,7 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
         // for guesssing right side part of a mapping
         private DefaultDependencyDescriptor defaultConfMappingDescriptor;
 
-        private Resource res;
+        private ExternalResource res;
 
         private List errors = new ArrayList();
 
@@ -119,13 +119,13 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
             }
         }
 
-        public void setResource(Resource res) {
+        public void setResource(ExternalResource res) {
             this.res = res; // used for log and date only
             md = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
             md.setLastModified(ResourceHelper.getLastModifiedOrDefault(res));
         }
 
-        protected Resource getResource() {
+        protected ExternalResource getResource() {
             return res;
         }
 
@@ -444,13 +444,13 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
         private String descriptorVersion;
         private String[] publicationsDefaultConf;
 
-        public Parser(IvyXmlModuleDescriptorParser moduleDescriptorParser, ParserSettings ivySettings, Resource res) {
+        public Parser(IvyXmlModuleDescriptorParser moduleDescriptorParser, ParserSettings ivySettings, ExternalResource res) {
             super(moduleDescriptorParser);
             parserSettings = ivySettings;
             setResource(res);
         }
         
-        public Parser newParser(Resource res) {
+        public Parser newParser(ExternalResource res) {
             Parser parser = new Parser(getModuleDescriptorParser(), parserSettings, res);
             parser.setValidate(validate);
             return parser;
@@ -710,7 +710,7 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
                 throws ParseException, IOException {
             URL url = relativeUrlResolver.getURL(descriptorURL, location);
             LOGGER.debug("Trying to load included ivy file from " + url.toString());
-            Parser parser = newParser(new URLResource(url));
+            Parser parser = newParser(new UrlExternalResource(url));
             parser.parse();
             return parser.getModuleDescriptor();
         }
@@ -766,7 +766,7 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
 
             // create a new temporary parser to read the configurations from
             // the specified file.
-            Parser parser = newParser(new URLResource(url));
+            Parser parser = newParser(new UrlExternalResource(url));
             parser.setInput(url);
             XMLHelper.parse(url , null, parser);
 

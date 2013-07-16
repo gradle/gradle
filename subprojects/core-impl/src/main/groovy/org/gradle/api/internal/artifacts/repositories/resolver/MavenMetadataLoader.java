@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -64,7 +63,7 @@ class MavenMetadataLoader {
         }
     }
 
-    private void parseMavenMetadataInto(Resource metadataResource, final MavenMetadata mavenMetadata) throws IOException, SAXException, ParserConfigurationException {
+    private void parseMavenMetadataInto(ExternalResource metadataResource, final MavenMetadata mavenMetadata) throws IOException, SAXException, ParserConfigurationException {
         LOGGER.debug("parsing maven-metadata: {}", metadataResource);
         InputStream metadataStream = metadataResource.openStream();
         XMLHelper.parse(metadataStream, null, new ContextualSAXHandler() {
