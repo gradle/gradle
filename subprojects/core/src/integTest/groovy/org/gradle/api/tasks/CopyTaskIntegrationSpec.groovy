@@ -101,4 +101,34 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         !output.contains("Duplicate file at 1.txt")
         !output.contains("Duplicate file at 2.txt")
     }
+
+    def "include empty dirs works when nested"() {
+        given:
+        file("a/a.txt") << "foo"
+        file("a/dirA").createDir()
+        file("b/b.txt") << "foo"
+        file("b/dirB").createDir()
+
+        buildScript """
+            task copyTask(type: Copy) {
+                into "out"
+                from "b", {
+                    includeEmptyDirs = false
+                }
+                from "a"
+                from "c", {}
+            }
+        """
+
+        when:
+        succeeds "copyTask"
+
+        then:
+        ":copyTask" in nonSkippedTasks
+        with(file("out")) {
+            file("a.txt").exists()
+            file("b.txt").exists()
+            file("dirA").exists()
+        }
+    }
 }

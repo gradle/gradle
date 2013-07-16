@@ -64,7 +64,7 @@ public class NormalizingCopySpecContentVisitor extends DelegatingCopySpecContent
         FileCopyDetails dir = pendingDirs.remove(path);
         if (dir == null) {
             // TODO - this is pretty nasty, look at avoiding using a time bomb stub here
-            dir = new FileCopyDetailsImpl(path);
+            dir = new StubbedFileCopyDetails(path);
         }
         getVisitor().visit(dir);
     }
@@ -82,11 +82,11 @@ public class NormalizingCopySpecContentVisitor extends DelegatingCopySpecContent
         }
     }
 
-    private static class FileCopyDetailsImpl extends AbstractFileTreeElement implements FileCopyDetails {
+    private static class StubbedFileCopyDetails extends AbstractFileTreeElement implements FileCopyDetails {
         private final RelativePath path;
         private long lastModified = System.currentTimeMillis();
 
-        private FileCopyDetailsImpl(RelativePath path) {
+        private StubbedFileCopyDetails(RelativePath path) {
             this.path = path;
         }
 
