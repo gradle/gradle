@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.Action;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -27,22 +27,17 @@ import java.util.Set;
 /**
  * Maintains a set of relative paths that has been seen and optionally
  * excludes duplicates (based on that path).
+ *
  * @author Kyle Mahan
  */
 public class DuplicateHandlingCopySpecContentVisitor extends DelegatingCopySpecContentVisitor {
 
     private final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
-    private CopySpecInternal spec;
-    private boolean warnOnIncludeDuplicate;
+    private final Action<? super FileCopyDetails> onUnhandledDuplicate;
 
-    public DuplicateHandlingCopySpecContentVisitor(CopySpecContentVisitor visitor, boolean warnOnIncludeDuplicate) {
+    public DuplicateHandlingCopySpecContentVisitor(CopySpecContentVisitor visitor, Action<? super FileCopyDetails> onUnhandledDuplicate) {
         super(visitor);
-        this.warnOnIncludeDuplicate = warnOnIncludeDuplicate;
-    }
-
-    public void visitSpec(CopySpecInternal spec) {
-        this.spec = spec;
-        super.visitSpec(spec);
+        this.onUnhandledDuplicate = onUnhandledDuplicate;
     }
 
     @Override
@@ -54,19 +49,17 @@ public class DuplicateHandlingCopySpecContentVisitor extends DelegatingCopySpecC
                 if (strategy == DuplicatesStrategy.EXCLUDE) {
                     return;
                 }
-                if (warnOnIncludeDuplicate) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(
-                            String.format("Including duplicate file %s", details.getRelativePath()));
+                if (strategy != DuplicatesStrategy.INCLUDE) {
+                    onUnhandledDuplicate.execute(details);
                 }
             }
         }
-
         super.visit(details);
     }
 
-    private DuplicatesStrategy determineStrategy(FileCopyDetails details) {
+    private DuplicatesStrategy determineStrategy(FileCopyDetailsInternal details) {
         if (details.getDuplicatesStrategy() == null) {
-            return spec.getDuplicatesStrategy();
+            return details.getCopySpec().getDuplicatesStrategy();
         }
         return details.getDuplicatesStrategy();
     }

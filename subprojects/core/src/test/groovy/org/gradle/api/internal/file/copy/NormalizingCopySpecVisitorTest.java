@@ -48,12 +48,10 @@ public class NormalizingCopySpecVisitorTest {
         allowGetIncludeEmptyDirs();
 
         context.checking(new Expectations() {{
-            one(delegate).visitSpec(spec);
             one(delegate).visit(details);
             one(delegate).visit(file);
         }});
 
-        visitor.visitSpec(spec);
         visitor.visit(details);
         visitor.visit(file);
         visitor.visit(details);
@@ -66,11 +64,6 @@ public class NormalizingCopySpecVisitorTest {
 
         allowGetIncludeEmptyDirs();
 
-        context.checking(new Expectations() {{
-            one(delegate).visitSpec(spec);
-        }});
-
-        visitor.visitSpec(spec);
         visitor.visit(dir);
 
         context.checking(new Expectations() {{
@@ -89,11 +82,6 @@ public class NormalizingCopySpecVisitorTest {
 
         allowGetIncludeEmptyDirs();
 
-        context.checking(new Expectations() {{
-            one(delegate).visitSpec(spec);
-        }});
-
-        visitor.visitSpec(spec);
         visitor.visit(dir);
         visitor.visit(subdir);
 
@@ -114,14 +102,12 @@ public class NormalizingCopySpecVisitorTest {
         allowGetIncludeEmptyDirs();
 
         context.checking(new Expectations() {{
-            one(delegate).visitSpec(spec);
             one(delegate).visit(with(hasPath("a")));
             one(delegate).visit(with(hasPath("a/b")));
             one(delegate).visit(dir1);
             one(delegate).visit(file1);
         }});
 
-        visitor.visitSpec(spec);
         visitor.visit(dir1);
         visitor.visit(file1);
 
@@ -129,13 +115,11 @@ public class NormalizingCopySpecVisitorTest {
         final FileCopyDetailsInternal file2 = file("a/b/d/e/file", false);
 
         context.checking(new Expectations() {{
-            one(delegate).visitSpec(spec);
             one(delegate).visit(with(hasPath("a/b/d")));
             one(delegate).visit(dir2);
             one(delegate).visit(file2);
         }});
 
-        visitor.visitSpec(spec);
         visitor.visit(dir2);
         visitor.visit(file2);
     }
@@ -147,25 +131,12 @@ public class NormalizingCopySpecVisitorTest {
         allowGetIncludeEmptyDirs();
 
         context.checking(new Expectations() {{
-            one(delegate).visitSpec(spec);
             one(delegate).visit(with(hasPath("a")));
             one(delegate).visit(with(hasPath("a/b")));
             one(delegate).visit(details);
         }});
 
-        visitor.visitSpec(spec);
         visitor.visit(details);
-    }
-
-    @Test
-    public void visitSpecDelegatesToVisitor() {
-        allowGetIncludeEmptyDirs();
-
-        context.checking(new Expectations() {{
-            one(delegate).visitSpec(spec);
-        }});
-
-        visitor.visitSpec(spec);
     }
 
     @Test
@@ -175,12 +146,10 @@ public class NormalizingCopySpecVisitorTest {
         context.checking(new Expectations() {{
             one(spec).getIncludeEmptyDirs();
             will(returnValue(true));
-            one(delegate).visitSpec(spec);
             one(delegate).visit(dir);
             one(delegate).endVisit();
         }});
 
-        visitor.visitSpec(spec);
         visitor.visit(dir);
         visitor.endVisit();
     }
@@ -192,11 +161,9 @@ public class NormalizingCopySpecVisitorTest {
         context.checking(new Expectations() {{
             one(spec).getIncludeEmptyDirs();
             will(returnValue(false));
-            one(delegate).visitSpec(spec);
             one(delegate).endVisit();
         }});
 
-        visitor.visitSpec(spec);
         visitor.visit(dir);
         visitor.endVisit();
     }

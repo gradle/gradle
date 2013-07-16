@@ -29,6 +29,4 @@ public class EmptyCopySpecContentVisitor implements CopySpecContentVisitor {
     public void endVisit() {
     }
 
-    public void visitSpec(CopySpecInternal spec) {
-    }
 }

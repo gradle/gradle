@@ -44,7 +44,6 @@ public class CopySpecContentVisitorDriver {
         effectiveVisitor.startVisit();
         new CopySpecWalker().visit(toVisit, new Action<CopySpecInternal>() {
             public void execute(final CopySpecInternal spec) {
-                effectiveVisitor.visitSpec(spec);
                 FileTree source = spec.getSource();
                 source.visit(new FileVisitor() {
                     public void visitDir(FileVisitDetails dirDetails) {

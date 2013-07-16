@@ -34,10 +34,6 @@ public class DelegatingCopySpecContentVisitor implements CopySpecContentVisitor 
         getVisitor().endVisit();
     }
 
-    public void visitSpec(CopySpecInternal spec) {
-        getVisitor().visitSpec(spec);
-    }
-
     public void visit(FileCopyDetailsInternal details) {
         getVisitor().visit(details);
     }

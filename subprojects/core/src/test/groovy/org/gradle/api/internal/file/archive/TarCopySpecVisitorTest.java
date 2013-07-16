@@ -119,7 +119,6 @@ public class TarCopySpecVisitorTest {
                 new SimpleCompressor());
 
         visitor.startVisit();
-        visitor.visitSpec(copySpec);
 
         Throwable failure = new RuntimeException("broken");
         try {
@@ -138,7 +137,6 @@ public class TarCopySpecVisitorTest {
 
     private void tar(FileCopyDetailsInternal... files) {
         visitor.startVisit();
-        visitor.visitSpec(copySpec);
 
         for (FileCopyDetailsInternal f : files) {
             if (f.isDirectory()) {
