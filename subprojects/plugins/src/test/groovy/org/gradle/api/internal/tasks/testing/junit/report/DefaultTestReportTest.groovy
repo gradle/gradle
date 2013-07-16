@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.ConfigureUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -48,34 +49,24 @@ class DefaultTestReportTest extends Specification {
     }
 
     TestResultsProvider buildResults(Closure closure) {
-        BuildableTestResultsProvider builder = new BuildableTestResultsProvider()
-        builder.with(closure)
-        builder;
+        ConfigureUtil.configure(closure, new BuildableTestResultsProvider())
     }
 
     def generatesReportWhichIncludesContentsOfEachTestResultFile() {
         given:
         def testTestResults = buildResults {
             testClassResult("org.gradle.Test") {
-                testcase("test1") {
-                    duration = 1
-                }
+                testcase("test1")
                 testcase("test2") {
-                    duration = 4
                     stdout "this is\nstandard output"
                     stderr "this is\nstandard error"
-
                 }
             }
             testClassResult("org.gradle.Test2") {
-                testcase("test3") {
-                    duration = 102001
-                }
+                testcase("test3")
             }
             testClassResult("org.gradle.sub.Test") {
-                testcase("test4") {
-                    duration = 12900
-                }
+                testcase("test4")
             }
         }
 
@@ -87,7 +78,7 @@ class DefaultTestReportTest extends Specification {
         index.assertHasTests(4)
         index.assertHasFailures(0)
         index.assertHasSuccessRate(100)
-        index.assertHasDuration("1m54.91s")
+        index.assertHasDuration("4.000s")
         index.assertHasLinkTo('org.gradle')
         index.assertHasLinkTo('org.gradle.sub')
         index.assertHasLinkTo('org.gradle.Test', 'org.gradle.Test')
@@ -100,7 +91,7 @@ class DefaultTestReportTest extends Specification {
         packageFile.assertHasTests(3)
         packageFile.assertHasFailures(0)
         packageFile.assertHasSuccessRate(100)
-        packageFile.assertHasDuration("1m42.01s")
+        packageFile.assertHasDuration("3.000s")
         packageFile.assertHasLinkTo('org.gradle.Test', 'Test')
         packageFile.assertHasLinkTo('org.gradle.Test2', 'Test2')
 
@@ -108,7 +99,7 @@ class DefaultTestReportTest extends Specification {
         testClassFile.assertHasTests(2)
         testClassFile.assertHasFailures(0)
         testClassFile.assertHasSuccessRate(100)
-        testClassFile.assertHasDuration("0.005s")
+        testClassFile.assertHasDuration("2.000s")
         testClassFile.assertHasTest('test1')
         testClassFile.assertHasTest('test2')
         testClassFile.assertHasStandardOutput('this is\nstandard output')
@@ -227,8 +218,7 @@ class DefaultTestReportTest extends Specification {
         given:
         def testTestResults = buildResults {
             testClassResult("org.gradle.Test") {
-                testcase("test1 < test2") {
-                    duration = 0
+                testcase("test1 < test2", 0) {
                     failure("something failed", "<a failure>")
 
                     stdout "</html> & "

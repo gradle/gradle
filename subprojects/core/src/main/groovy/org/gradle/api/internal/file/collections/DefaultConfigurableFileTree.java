@@ -111,7 +111,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         return this;
     }
 
-    public DefaultConfigurableFileTree include(String ... includes) {
+    public DefaultConfigurableFileTree include(String... includes) {
         patternSet.include(includes);
         return this;
     }
@@ -131,7 +131,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         return this;
     }
 
-    public DefaultConfigurableFileTree exclude(String ... excludes) {
+    public DefaultConfigurableFileTree exclude(String... excludes) {
         patternSet.exclude(excludes);
         return this;
     }

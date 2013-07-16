@@ -132,11 +132,20 @@ Note that using Ivy `DependencyResolver` implementations is deprecated, and we r
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+Previously, in the no-tests scenario, the test task was still executed. This meant that dependency resolution would occur and an empty html report was generated.
+This new behavior results in faster builds when there are no tests. No negative impacts on existing builds are expected.
+
+## Contributors
+
+On behalf of the Gradle community, the Gradle development team would like to thank the following people who contributed to this version of Gradle:
+
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
 
-We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
+Contributions are an important part of the continuous improvement of Gradle. 
+
+If you would like to contribute to Gradle, please see [gradle.org/contribute](http://gradle.org/contribute) for how to start.
 
 ## Known issues
 

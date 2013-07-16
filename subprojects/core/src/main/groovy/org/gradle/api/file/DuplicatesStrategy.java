@@ -19,8 +19,7 @@ package org.gradle.api.file;
 import org.gradle.api.Incubating;
 
 /**
- * The possible strategies for handling files with the same relative
- * path during a copy (or archive) operation.
+ * Strategies for dealing with the potential creation of duplicate files for or archive entries.
  *
  * @author Kyle Mahan
  */
@@ -28,14 +27,18 @@ import org.gradle.api.Incubating;
 public enum DuplicatesStrategy {
 
     /**
-     * Files with the same relative path should be included. For Copy
-     * operations this will generate a warning.
+     * Do not attempt to prevent duplicates.
+     * <p>
+     * If the destination of the operation supports duplicates (e.g. zip files) then a duplicate entry will be created.
+     * If the destination does not support duplicates, the existing destination entry will be overridden with the duplicate.
      */
     INCLUDE,
 
     /**
-     * Only the first file with a given relative path will be
-     * included.
+     * Do not allow duplicates by ignoring subsequent items to be created at the same path.
+     * <p>
+     * If an attempt is made to create a duplicate file/entry during an operation, ignore the item.
+     * This will leave the file/entry that was first copied/created in place.
      */
     EXCLUDE
 

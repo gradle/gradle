@@ -67,4 +67,38 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         then:
         file("build/resources", weirdFileName).exists()
     }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2825")
+    def "no deprecation warning on duplicate with include strategy"() {
+        given:
+        file("a/1.txt").touch()
+        file("a/2.txt").touch()
+        file("a").copyTo(file("b"))
+
+        when:
+        buildScript """
+            apply plugin: "base"
+            task c(type: Copy) {
+                into "out"
+                from "a"
+                from "b"
+            }
+        """
+        args "-i"
+
+        then:
+        succeeds "c"
+
+        and:
+        output.contains("Duplicate file at 1.txt")
+        output.contains("Duplicate file at 2.txt")
+
+        when:
+        buildFile << "c.duplicatesStrategy = 'include'"
+        succeeds "clean", "c"
+
+        then:
+        !output.contains("Duplicate file at 1.txt")
+        !output.contains("Duplicate file at 2.txt")
+    }
 }

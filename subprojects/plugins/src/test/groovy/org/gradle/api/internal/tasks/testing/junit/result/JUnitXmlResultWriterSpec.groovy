@@ -170,11 +170,11 @@ class JUnitXmlResultWriterSpec extends Specification {
         getXml(testClass) == """<?xml version="1.1" encoding="UTF-8"?>
 <testsuite name="com.Foo" tests="2" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
-  <testcase name="m1" classname="com.Foo" time="0.1">
+  <testcase name="m1" classname="com.Foo" time="1.0">
     <system-out><![CDATA[ m1-out-1 m1-out-2]]></system-out>
     <system-err><![CDATA[ m1-err-1 m1-err-2]]></system-err>
   </testcase>
-  <testcase name="m2" classname="com.Foo" time="0.1">
+  <testcase name="m2" classname="com.Foo" time="1.0">
     <system-out><![CDATA[ m2-out-1 m2-out-2]]></system-out>
     <system-err><![CDATA[ m2-err-1 m2-err-2]]></system-err>
   </testcase>

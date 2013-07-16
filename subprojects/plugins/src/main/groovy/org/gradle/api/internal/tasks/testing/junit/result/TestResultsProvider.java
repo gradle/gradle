@@ -21,9 +21,6 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.Writer;
 
-/**
- * by Szczepan Faber, created at: 11/16/12
- */
 public interface TestResultsProvider {
     /**
      * Writes the output of the given test to the given writer. This method must be called only after {@link #visitClasses(org.gradle.api.Action)}.
@@ -48,4 +45,5 @@ public interface TestResultsProvider {
 
     boolean hasOutput(String className, TestOutputEvent.Destination destination);
 
+    boolean isHasResults();
 }

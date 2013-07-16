@@ -38,7 +38,7 @@
             </tr>
 	    <tr>
 	        <td>duplicatesStrategy</td>
-	        <td><literal>DuplicatesStrategy.INHERIT</literal></td>
+	        <td><literal>null</literal></td>
 	    </tr>
         </table>
     </section>

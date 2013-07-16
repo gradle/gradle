@@ -65,6 +65,10 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         }
     }
 
+    boolean isHasResults() {
+        !testClasses.isEmpty()
+    }
+
     boolean hasOutput(String className, TestOutputEvent.Destination destination) {
         testClasses[className]?.outputEvents?.find { it.testOutputEvent.destination == destination }
     }

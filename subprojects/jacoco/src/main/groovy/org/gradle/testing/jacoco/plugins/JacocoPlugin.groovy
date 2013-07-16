@@ -86,7 +86,7 @@ class JacocoPlugin implements Plugin<Project> {
 
     def configureDefaultOutputPathForJacocoMerge() {
         project.tasks.withType(JacocoMerge) { task ->
-            task.conventionMapping.destFile = { new File(project.buildDir, "/jacoco/${task.name}.exec") }
+            task.conventionMapping.destinationFile = { new File(project.buildDir, "/jacoco/${task.name}.exec") }
         }
     }
 

@@ -39,6 +39,10 @@ public class BinaryResultBackedTestResultsProvider implements TestResultsProvide
     public void writeAllOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
         outputReader.writeAllOutput(className, destination, writer);
     }
+    
+    public boolean isHasResults() {
+        return resultSerializer.isHasResults();
+    }
 
     public void writeNonTestOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
         outputReader.writeNonTestOutput(className, destination, writer);
@@ -49,6 +53,6 @@ public class BinaryResultBackedTestResultsProvider implements TestResultsProvide
     }
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {
-        resultSerializer.read(resultsDir, visitor);
+        resultSerializer.read(visitor);
     }
 }

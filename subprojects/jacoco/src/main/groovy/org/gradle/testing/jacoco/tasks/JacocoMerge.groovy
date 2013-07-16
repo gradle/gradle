@@ -72,8 +72,9 @@ class JacocoMerge extends JacocoBase {
         tasks.each { task ->
             JacocoTaskExtension extension = task.extensions.findByType(JacocoTaskExtension)
             if (extension != null) {
-                executionData({ extension.destinationFile })
-                this.executionData.builtBy task
+                executionData(project.files(extension.destinationFile) {
+                    builtBy task
+                })
             }
         }
     }

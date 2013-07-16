@@ -37,6 +37,10 @@ public abstract class CollectionUtils {
         return null;
     }
 
+    public static <T> boolean any(Iterable<? extends T> source, Spec<? super T> filter) {
+        return findFirst(source, filter) != null;
+    }
+
     public static <T> Set<T> filter(Set<? extends T> set, Spec<? super T> filter) {
         return filter(set, new LinkedHashSet<T>(), filter);
     }
@@ -102,6 +106,10 @@ public abstract class CollectionUtils {
 
     public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<? extends R, ? super I> transformer) {
         return collect(set, new HashSet<R>(), transformer);
+    }
+
+    public static <R, I, C extends Collection<R>> List<R> collect(Iterable<? extends I> source, Transformer<? extends R, ? super I> transformer) {
+        return collect(source, new LinkedList<R>(), transformer);
     }
 
     public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Transformer<? extends R, ? super I> transformer) {

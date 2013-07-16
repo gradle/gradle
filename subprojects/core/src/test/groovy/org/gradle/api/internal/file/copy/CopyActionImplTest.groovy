@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.copy
 
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.Actions
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -26,7 +27,7 @@ public class CopyActionImplTest extends Specification {
     FileResolver resolver = Mock()
     FileTree sourceFileTree = Mock()
     Instantiator instantiator = new DirectInstantiator()
-    CopyActionImpl copyAction = new CopyActionImpl(instantiator, resolver, visitor)
+    CopyActionImpl copyAction = new CopyActionImpl(instantiator, resolver, visitor, Actions.doNothing())
 
     def delegatesToMainSpecRootSpec() {
         when:
@@ -53,7 +54,7 @@ public class CopyActionImplTest extends Specification {
         _ * source.matching(_) >> source
 
         copyAction.from('source1')
-        def child = copyAction.from('source2') { }
+        def child = copyAction.from('source2') {}
 
         when:
         copyAction.execute()
@@ -70,7 +71,7 @@ public class CopyActionImplTest extends Specification {
         0 * resolver._
         0 * visitor._
     }
-   
+
     def allSourceIncludesSourceFromAllSpecs() {
         FileTree mainSource = Mock()
         _ * mainSource.matching(_) >> mainSource
@@ -81,7 +82,7 @@ public class CopyActionImplTest extends Specification {
         FileTree allSource = Mock()
 
         copyAction.from('source1')
-        copyAction.from('source2') { }
+        copyAction.from('source2') {}
 
         when:
         def source = copyAction.allSource

@@ -94,6 +94,11 @@ class CollectionUtilsTest extends Specification {
         collect([1, 2, 3] as Object[], transformer { it * 2 }) == [2, 4, 6]
     }
 
+    def "collect iterable"() {
+        expect:
+        collect([1, 2, 3] as Iterable, transformer { it * 2 }) == [2, 4, 6]
+    }
+
     def "list stringize"() {
         expect:
         stringize([1, 2, 3]) == ["1", "2", "3"]
