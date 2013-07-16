@@ -542,6 +542,10 @@ To define custom source sets and components:
         }
     }
 
+### Test cases
+
+- Attempt to assemble a binary for a component with no source
+
 ### Open issues
 
 - Use rules to imply the type of each child of a functional source set.
@@ -550,6 +554,7 @@ To define custom source sets and components:
 - Need to configure each component and source set lazily.
 - Need to deal with source sets that are generated.
 - Need a `CppSourceSet.getBuildDependencies()` implementation.
+- Declare a dependency on another source set.
 
 ## Story: Compile C source files using the C compiler
 
