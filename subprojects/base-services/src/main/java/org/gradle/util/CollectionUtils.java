@@ -108,7 +108,7 @@ public abstract class CollectionUtils {
         return collect(set, new HashSet<R>(), transformer);
     }
 
-    public static <R, I, C extends Collection<R>> List<R> collect(Iterable<? extends I> source, Transformer<? extends R, ? super I> transformer) {
+    public static <R, I> List<R> collect(Iterable<? extends I> source, Transformer<? extends R, ? super I> transformer) {
         return collect(source, new LinkedList<R>(), transformer);
     }
 
