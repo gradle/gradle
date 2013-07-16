@@ -36,7 +36,6 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceHelper;
 import org.apache.ivy.plugins.repository.url.URLResource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.util.Message;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.apache.ivy.util.extendable.ExtendableItemHelper;
@@ -322,7 +321,7 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
         }
 
         public void warning(SAXParseException ex) {
-            Message.warn("xml parsing: " + getLocationString(ex) + ": " + ex.getMessage());
+            LOGGER.warn("xml parsing: " + getLocationString(ex) + ": " + ex.getMessage());
         }
 
         public void error(SAXParseException ex) {
