@@ -17,6 +17,7 @@
 dependencies {
     compile libraries.groovy
 
+    compile project(":resources")
     compile project(":core")
     compile project(":toolingApi")
     compile project(":reporting")

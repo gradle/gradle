@@ -1,0 +1,11 @@
+/*
+ * A set of general-purpose resource abstractions.
+ */
+dependencies {
+    compile libraries.slf4j_api
+    compile project(':baseServices')
+    testCompile libraries.groovy
+}
+
+useTestFixtures()
+useClassycle()

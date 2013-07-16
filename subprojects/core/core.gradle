@@ -28,6 +28,7 @@ dependencies {
     publishCompile project(":messaging")
 
     compile project(":baseServicesGroovy")
+    compile project(":resources")
     compile libraries.asm
     compile libraries.ant
     compile libraries.commons_collections
