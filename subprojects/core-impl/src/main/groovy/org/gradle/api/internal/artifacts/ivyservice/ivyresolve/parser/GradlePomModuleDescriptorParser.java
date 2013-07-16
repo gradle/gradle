@@ -33,10 +33,13 @@ import org.apache.ivy.plugins.parser.m2.PomReader;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.url.URLResource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -62,15 +65,12 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
         return "gradle pom parser";
     }
 
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL descriptorURL,
-                                            boolean validate) throws ParseException, IOException {
-        URLResource resource = new URLResource(descriptorURL);
-        return parseDescriptor(ivySettings, descriptorURL, resource, validate);
+    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, File descriptorFile, boolean validate) throws ParseException, IOException {
+        return parseDescriptor(ivySettings, new DefaultLocallyAvailableResource(descriptorFile), new URLResource(descriptorFile.toURI().toURL()), validate);
     }
 
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL descriptorURL,
-                                            Resource resource, boolean validate) throws ParseException, IOException {
-
+    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableResource localResource, Resource resource, boolean validate) throws ParseException, IOException {
+        URL descriptorURL = localResource.getFile().toURI().toURL();
         Resource encodedResource = encodedUrlResource(descriptorURL);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, ivySettings);
 

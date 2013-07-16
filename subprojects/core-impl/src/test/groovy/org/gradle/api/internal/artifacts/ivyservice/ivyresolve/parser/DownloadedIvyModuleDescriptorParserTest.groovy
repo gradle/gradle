@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.parser.ParserSettings
-import org.apache.ivy.plugins.repository.Resource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,12 +33,10 @@ class DownloadedIvyModuleDescriptorParserTest extends Specification {
     <info organisation="org" module="someModule" revision="1.2" default="true"/>
 </ivy-module>
 """
-        def url = ivyFile.toURI().toURL()
         ParserSettings settings = new IvySettings()
-        Resource resource = Mock()
 
         when:
-        def descriptor = parser.parseDescriptor(settings, url, resource, true)
+        def descriptor = parser.parseDescriptor(settings, ivyFile, true)
 
         then:
         !descriptor.default

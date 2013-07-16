@@ -29,7 +29,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
-import java.net.URL;
 
 public class ModuleDescriptorStore {
 
@@ -69,8 +68,7 @@ public class ModuleDescriptorStore {
     private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
         ParserSettings settings = IvyContextualiser.getIvyContext().getSettings();
         try {
-            URL result = moduleDescriptorFile.toURI().toURL();
-            return parser.parseDescriptor(settings, result, false);
+            return parser.parseDescriptor(settings, moduleDescriptorFile, false);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

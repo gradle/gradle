@@ -46,7 +46,20 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     def testEmptyDependencies() throws Exception {
         when:
-        ModuleDescriptor md = parser.parseDescriptor(settings, resources.getResource("test-empty-dependencies.xml").toURI().toURL(), true)
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <info organisation="myorg"
+          module="mymodule"
+          revision="myrev"
+          status="integration"
+          publication="20041101110000"
+    />
+    <dependencies>
+    </dependencies>
+</ivy-module>
+"""
+        ModuleDescriptor md = parser.parseDescriptor(settings, file, true)
+
         then:
         md != null
         "myorg" == md.getModuleRevisionId().getOrganisation()
@@ -64,24 +77,55 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     }
 
     public void testBadConfs() throws IOException {
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <info organisation="myorg"
+          module="mymodule"
+          status="integration"
+    />
+    <configurations>
+        <conf name="A" extends="invalidConf"/>
+    </configurations>
+</ivy-module>
+"""
+
         when:
-        parser.parseDescriptor(settings, resources.getResource("test-bad-confs.xml").toURI().toURL(), true)
+        parser.parseDescriptor(settings, file, true)
+
         then:
         def e = thrown(ParseException)
         assertThat(e.message, Matchers.startsWith("unknown configuration 'invalidConf'"))
     }
 
     public void testCyclicConfs() throws IOException {
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <info organisation="myorg"
+          module="mymodule"
+          status="integration"
+    />
+    <configurations>
+        <conf name="A" extends="B"/>
+        <conf name="B" extends="A"/>
+    </configurations>
+</ivy-module>
+"""
+
         when:
-        parser.parseDescriptor(settings, resources.getResource("test-cyclic-confs1.xml").toURI().toURL(), true)
+        parser.parseDescriptor(settings, file, true)
+
         then:
         def e = thrown(ParseException)
         assertThat(e.message, Matchers.startsWith("illegal cycle detected in configuration extension: A => B => A"))
     }
 
     public void testFull() throws Exception {
+        def file = temporaryFolder.file("ivy.xml")
+        file.text = resources.getResource("test-full.xml").text
+
         when:
-        ModuleDescriptor md = parser.parseDescriptor(settings, resources.getResource("test-full.xml").toURI().toURL(), false)
+        ModuleDescriptor md = parser.parseDescriptor(settings, file, false)
+
         then:
         assertNotNull(md)
         assertEquals("myorg", md.getModuleRevisionId().getOrganisation())
@@ -161,7 +205,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseDescriptor(settings, file.toURI().toURL(), false)
+        def descriptor = parser.parseDescriptor(settings, file, false)
         def dependency = descriptor.dependencies.first()
 
         then:
@@ -199,7 +243,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseDescriptor(settings, file.toURI().toURL(), false)
+        def descriptor = parser.parseDescriptor(settings, file, false)
 
         then:
         def dependency1 = descriptor.dependencies[0]

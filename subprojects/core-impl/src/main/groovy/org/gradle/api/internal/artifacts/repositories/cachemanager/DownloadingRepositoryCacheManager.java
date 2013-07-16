@@ -90,7 +90,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
                 }
 
-                File artifactFile = downloadAndCacheArtifactFile(artifact, resourceDownloader, artifactRef.getResource());
+                File artifactFile = downloadAndCacheArtifactFile(artifact, resourceDownloader, artifactRef.getResource()).getFile();
 
                 adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
                 adr.setSize(artifactFile.length());
@@ -112,7 +112,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         return adr;
     }
 
-    public File downloadAndCacheArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, Resource resource) throws IOException {
+    public LocallyAvailableResource downloadAndCacheArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, Resource resource) throws IOException {
         final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             resourceDownloader.download(artifact, resource, tmpFile);
@@ -122,9 +122,9 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         }
     }
 
-    private File cacheDownloadedFile(final Artifact artifact, final Resource resource, final File tmpFile) {
-        return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<File>() {
-            public File create() {
+    private LocallyAvailableResource cacheDownloadedFile(final Artifact artifact, final Resource resource, final File tmpFile) {
+        return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<LocallyAvailableResource>() {
+            public LocallyAvailableResource create() {
                 LocallyAvailableResource cachedResource = fileStore.move(artifact.getId(), tmpFile);
                 File fileInFileStore = cachedResource.getFile();
                 if (resource instanceof ExternalResource) {
@@ -132,7 +132,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
                     ExternalResourceMetaData metaData = externalResource.getMetaData();
                     artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
                 }
-                return fileInFileStore;
+                return cachedResource;
             }
         });
     }

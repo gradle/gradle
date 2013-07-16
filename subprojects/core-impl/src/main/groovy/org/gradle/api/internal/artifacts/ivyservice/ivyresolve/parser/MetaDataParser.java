@@ -19,10 +19,10 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 
-import java.io.File;
 import java.text.ParseException;
 
 public interface MetaDataParser {
-    ModuleDescriptor parseModuleDescriptor(ModuleRevisionId dependencyRevisionId, File moduleDescriptorFile, ExternalResource resource, DependencyResolver resolver) throws ParseException;
+    ModuleDescriptor parseModuleDescriptor(ModuleRevisionId dependencyRevisionId, LocallyAvailableResource localResource, ExternalResource resource, DependencyResolver resolver) throws ParseException;
 }

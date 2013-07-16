@@ -29,7 +29,6 @@ import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
-import java.net.URL;
 import java.text.ParseException;
 import java.util.HashSet;
 import java.util.Set;
@@ -71,8 +70,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     private ModuleRevisionId parseIvyFile(IvyNormalizedPublication publication) {
         try {
-            URL ivyFileLocation = publication.getDescriptorFile().toURI().toURL();
-            return moduleDescriptorParser.parseDescriptor(parserSettings, ivyFileLocation, true).getModuleRevisionId();
+            return moduleDescriptorParser.parseDescriptor(parserSettings, publication.getDescriptorFile(), true).getModuleRevisionId();
         } catch (ParseException pe) {
             throw new InvalidIvyPublicationException(publication.getName(), pe.getLocalizedMessage(), pe);
         } catch (Exception ex) {

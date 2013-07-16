@@ -30,6 +30,8 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,11 +94,11 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
         return new ResolvedModuleRevision(resolver, resolver, descriptor, report);
     }
 
-    public File downloadAndCacheArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, Resource resource) throws IOException {
+    public LocallyAvailableResource downloadAndCacheArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, Resource resource) throws IOException {
         // Does not download, copy or cache local files.
         assert resource.isLocal();
         File file = new File(resource.getName());
         assert file.isFile();
-        return file;
+        return new DefaultLocallyAvailableResource(file);
     }
 }
