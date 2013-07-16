@@ -35,7 +35,7 @@ public interface CopySpecInternal extends CopySpec {
 
     Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
 
-    Iterable<? extends CopySpecInternal> getChildren();
+    Iterable<CopySpecInternal> getChildren();
 
     DefaultCopySpec addChild();
 

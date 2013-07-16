@@ -41,7 +41,7 @@ public class RelativizedCopySpec extends DelegatingCopySpec {
     }
 
     @Override
-    public Iterable<? extends CopySpecInternal> getChildren() {
+    public Iterable<CopySpecInternal> getChildren() {
         return collect(super.getChildren(), new Transformer<CopySpecInternal, CopySpecInternal>() {
             public CopySpecInternal transform(CopySpecInternal original) {
                 return new RelativizedCopySpec(parent, original);

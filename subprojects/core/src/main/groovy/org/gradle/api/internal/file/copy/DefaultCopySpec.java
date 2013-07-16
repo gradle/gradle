@@ -454,7 +454,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         return allActions;
     }
 
-    public Iterable<? extends CopySpecInternal> getChildren() {
+    public Iterable<CopySpecInternal> getChildren() {
         return childSpecs;
     }
 
