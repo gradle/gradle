@@ -188,6 +188,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         return this;
     }
 
+    @Override
+    protected Action<? super FileCopyDetails> createUnhandledDuplicateAction() {
+        return new AbstractArchiveTaskUnhandledDuplicateAction();
+    }
+
     /**
      * Unhandled duplication action.
      */

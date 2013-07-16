@@ -27,16 +27,18 @@ public class CopySpecContentVisitorDriver {
 
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
+    private final Action<? super FileCopyDetails> onUnhandledDuplicate;
 
-    public CopySpecContentVisitorDriver(Instantiator instantiator, FileSystem fileSystem) {
+    public CopySpecContentVisitorDriver(Instantiator instantiator, FileSystem fileSystem, Action<? super FileCopyDetails> onUnhandledDuplicate) {
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
+        this.onUnhandledDuplicate = onUnhandledDuplicate;
     }
 
     public void visit(CopySpecInternal toVisit, CopySpecContentVisitor visitor) {
         final CopySpecContentVisitor effectiveVisitor = new DuplicateHandlingCopySpecContentVisitor(
                 new NormalizingCopySpecContentVisitor(visitor),
-                true
+                onUnhandledDuplicate
         );
 
         // TODO - consider error recovery here. A visitor might be holding a stream open.

@@ -53,6 +53,10 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     protected abstract CopySpecContentVisitor createContentVisitor();
 
+    protected Action<? super FileCopyDetails> createUnhandledDuplicateAction() {
+        return new AbstractCopyTaskUnhandledDuplicateAction();
+    }
+
     @TaskAction
     protected void copy() {
         configureRootSpec();
@@ -60,7 +64,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         Instantiator instantiator = getServices().get(Instantiator.class);
         FileSystem fileSystem = getServices().get(FileSystem.class);
 
-        CopySpecContentVisitorDriver driver = new CopySpecContentVisitorDriver(instantiator, fileSystem);
+        CopySpecContentVisitorDriver driver = new CopySpecContentVisitorDriver(instantiator, fileSystem, createUnhandledDuplicateAction());
         CopySpecContentVisitor contentVisitor = createContentVisitor();
         driver.visit(rootSpec, contentVisitor);
         setDidWork(contentVisitor.getDidWork());
