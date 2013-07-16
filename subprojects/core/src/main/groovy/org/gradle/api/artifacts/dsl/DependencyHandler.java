@@ -111,8 +111,10 @@ import java.util.Map;
  *   compile(group: 'org.myorg', name: 'someLib', version:'1.0') {
  *     //explicitly adding the dependency artifact:
  *     artifact {
+ *       //useful when some artifact properties unconventional
  *       name = 'someArtifact' //artifact name different than module name
- *       type = 'jar'
+ *       extension = 'someExt'
+ *       type = 'someType'
  *       classifier = 'someClassifier'
  *     }
  *   }
