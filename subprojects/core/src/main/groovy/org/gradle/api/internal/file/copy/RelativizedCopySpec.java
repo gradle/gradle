@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.file.RelativePath;
+
+import static org.gradle.util.CollectionUtils.collect;
 
 public class RelativizedCopySpec extends DelegatingCopySpec {
 
@@ -37,4 +40,12 @@ public class RelativizedCopySpec extends DelegatingCopySpec {
         return parent.getDestPath().append(child.getDestPath());
     }
 
+    @Override
+    public Iterable<? extends CopySpecInternal> getChildren() {
+        return collect(super.getChildren(), new Transformer<CopySpecInternal, CopySpecInternal>() {
+            public CopySpecInternal transform(CopySpecInternal original) {
+                return new RelativizedCopySpec(parent, original);
+            }
+        });
+    }
 }
