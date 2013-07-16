@@ -17,6 +17,9 @@
 package org.gradle.api.internal.filestore;
 
 import org.gradle.api.Action;
+import org.gradle.internal.filestore.FileStore;
+import org.gradle.internal.filestore.FileStoreEntry;
+import org.gradle.internal.filestore.FileStoreSearcher;
 
 import java.io.File;
 import java.util.Set;

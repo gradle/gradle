@@ -17,8 +17,8 @@
 package org.gradle.api.internal.externalresource.local;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.filestore.FileStoreEntry;
-import org.gradle.api.internal.filestore.FileStoreSearcher;
+import org.gradle.internal.filestore.FileStoreEntry;
+import org.gradle.internal.filestore.FileStoreSearcher;
 import org.gradle.internal.Factory;
 import org.gradle.util.CollectionUtils;
 

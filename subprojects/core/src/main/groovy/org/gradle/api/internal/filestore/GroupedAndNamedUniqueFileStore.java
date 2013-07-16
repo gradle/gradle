@@ -18,6 +18,9 @@ package org.gradle.api.internal.filestore;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.internal.filestore.FileStore;
+import org.gradle.internal.filestore.FileStoreEntry;
+import org.gradle.internal.filestore.FileStoreSearcher;
 import org.gradle.util.hash.HashUtil;
 
 import java.io.File;

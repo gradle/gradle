@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
-import org.gradle.api.internal.filestore.FileStoreEntry
+import org.gradle.internal.filestore.FileStoreEntry
 import org.gradle.api.internal.filestore.PathKeyFileStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

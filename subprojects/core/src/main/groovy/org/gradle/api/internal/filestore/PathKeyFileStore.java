@@ -24,6 +24,9 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
+import org.gradle.internal.filestore.FileStore;
+import org.gradle.internal.filestore.FileStoreEntry;
+import org.gradle.internal.filestore.FileStoreSearcher;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.filestore;
+package org.gradle.internal.filestore;
 
 import java.util.Set;
 

@@ -18,7 +18,7 @@ package org.gradle.api.plugins.buildcomparison.gradle;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.filestore.FileStore;
+import org.gradle.internal.filestore.FileStore;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult;

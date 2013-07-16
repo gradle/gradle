@@ -18,7 +18,7 @@ package org.gradle.api.internal.externalresource.transport.file;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
-import org.gradle.api.internal.externalresource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;

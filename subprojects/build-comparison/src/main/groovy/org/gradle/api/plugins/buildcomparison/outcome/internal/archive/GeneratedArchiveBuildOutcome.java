@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive;
 
-import org.gradle.api.internal.filestore.FileStoreEntry;
+import org.gradle.internal.filestore.FileStoreEntry;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeSupport;
 
 import java.io.File;

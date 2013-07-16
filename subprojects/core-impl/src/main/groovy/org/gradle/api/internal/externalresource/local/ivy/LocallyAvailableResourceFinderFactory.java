@@ -23,8 +23,9 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePatter
 import org.gradle.api.internal.artifacts.repositories.resolver.M2ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.externalresource.local.*;
-import org.gradle.api.internal.filestore.FileStoreSearcher;
+import org.gradle.internal.filestore.FileStoreSearcher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

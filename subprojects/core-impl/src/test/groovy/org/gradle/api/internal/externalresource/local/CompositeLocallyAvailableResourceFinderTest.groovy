@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.externalresource.local
 
+import org.gradle.internal.resource.local.LocallyAvailableResource
 import spock.lang.Specification
 import org.gradle.util.hash.HashUtil
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.externalresource.local;
 
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.hash.HashValue;
 
 /**

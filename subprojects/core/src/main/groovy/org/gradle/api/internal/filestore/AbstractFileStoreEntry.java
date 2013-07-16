@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.filestore;
 
+import org.gradle.internal.filestore.FileStoreEntry;
 import org.gradle.util.hash.HashUtil;
 import org.gradle.util.hash.HashValue;
 

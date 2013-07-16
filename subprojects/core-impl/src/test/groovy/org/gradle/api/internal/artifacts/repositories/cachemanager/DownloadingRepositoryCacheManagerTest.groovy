@@ -22,8 +22,8 @@ import org.apache.ivy.plugins.repository.ResourceDownloader
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.api.internal.filestore.FileStore
-import org.gradle.api.internal.filestore.FileStoreEntry
+import org.gradle.internal.filestore.FileStore
+import org.gradle.internal.filestore.FileStoreEntry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
