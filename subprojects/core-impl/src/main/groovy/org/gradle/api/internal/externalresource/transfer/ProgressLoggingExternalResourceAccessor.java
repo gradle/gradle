@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.externalresource.transfer;
 
-import org.apache.ivy.plugins.repository.Resource;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
@@ -79,10 +78,6 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             } finally {
                 downloadOperation.completed();
             }
-        }
-
-        public Resource clone(String cloneName) {
-            return resource.clone(cloneName);
         }
 
         public void close() throws IOException {

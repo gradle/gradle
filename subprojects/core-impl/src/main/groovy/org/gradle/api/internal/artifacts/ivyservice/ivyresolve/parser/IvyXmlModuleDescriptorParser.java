@@ -32,7 +32,6 @@ import org.apache.ivy.plugins.namespace.NameSpaceHelper;
 import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.apache.ivy.plugins.repository.ResourceHelper;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
@@ -122,7 +121,7 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
         public void setResource(ExternalResource res) {
             this.res = res; // used for log and date only
             md = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
-            md.setLastModified(ResourceHelper.getLastModifiedOrDefault(res));
+            md.setLastModified(res.getLastModified());
         }
 
         protected ExternalResource getResource() {

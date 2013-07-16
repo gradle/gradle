@@ -15,15 +15,59 @@
  */
 package org.gradle.api.internal.externalresource;
 
-import org.apache.ivy.plugins.repository.Resource;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
-public interface ExternalResource extends Resource {
+public interface ExternalResource {
+    /**
+     * Get the name of the resource.
+     */
+    public String getName();
+
+    /**
+     * Get the date the resource was last modified
+     *
+     * @return A <code>long</code> value representing the time the file was last modified,
+     *         measured in milliseconds since the epoch (00:00:00 GMT, January 1, 1970), or
+     *         <code>0L</code> if the file does not exist or if an I/O error occurs.
+     */
+    public long getLastModified();
+
+    /**
+     * Get the resource size
+     *
+     * @return a <code>long</code> value representing the size of the resource in bytes.
+     */
+    public long getContentLength();
+
+    /**
+     * Determine if the resource is available.
+     * </p>
+     * Note that this method only checks for availability, not for actual existence.
+     *
+     * @return <code>boolean</code> value indicating if the resource is available.
+     */
+    public boolean exists();
+
+    /**
+     * Is this resource local to this host, i.e. is it on the file system?
+     *
+     * @return <code>boolean</code> value indicating if the resource is local.
+     */
+    public boolean isLocal();
+
+    /**
+     * Opens a stream on this resource
+     *
+     * @return the opened input stream
+     */
+    public InputStream openStream() throws IOException;
+
     void writeTo(File destination) throws IOException;
 
     /**

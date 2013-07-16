@@ -16,7 +16,6 @@
 package org.gradle.api.internal.externalresource;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.ivy.plugins.repository.Resource;
 
 import java.io.*;
 
@@ -38,11 +37,6 @@ public abstract class AbstractExternalResource implements ExternalResource {
         } finally {
             input.close();
         }
-    }
-
-
-    public Resource clone(String cloneName) {
-        throw new UnsupportedOperationException();
     }
 
     public void close() throws IOException {
