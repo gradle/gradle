@@ -17,6 +17,7 @@ package org.gradle.api.publish.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.PublishingExtension;
 
 import java.util.Iterator;
@@ -29,6 +30,8 @@ import java.util.Set;
 public class ProjectDependencyPublicationResolver {
     public PublicationCoordinates resolve(ProjectDependency dependency) {
         Project dependencyProject = dependency.getDependencyProject();
+        ((ProjectInternal) dependencyProject).evaluate();
+
         PublishingExtension publishing = dependencyProject.getExtensions().findByType(PublishingExtension.class);
 
         if (publishing == null || publishing.getPublications().withType(PublicationInternal.class).isEmpty()) {

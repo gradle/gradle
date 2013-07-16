@@ -16,7 +16,6 @@
 package org.gradle.api.publish.maven.internal.publication
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ModuleDependency
@@ -26,7 +25,8 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.notations.api.NotationParser
-import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.internal.DefaultPublicationContainer
 import org.gradle.api.publish.internal.PublicationCoordinates
@@ -185,14 +185,14 @@ public class DefaultMavenPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def projectDependency = Mock(ProjectDependency)
-        def extensionContainer = Mock(ExtensionContainer)
+        def extensionContainer = Mock(ExtensionContainerInternal)
         def publishingExtension = Mock(PublishingExtension)
         def publications = new DefaultPublicationContainer(new DirectInstantiator())
         publications.add(otherPublication("otherPub1", "pub-group", "pub-name", "pub-version"))
 
         when:
         projectDependency.artifacts >> []
-        projectDependency.dependencyProject >> Stub(Project) {
+        projectDependency.dependencyProject >> Stub(ProjectInternal) {
             getExtensions() >> extensionContainer
         }
         extensionContainer.findByType(PublishingExtension) >> publishingExtension
@@ -215,13 +215,13 @@ public class DefaultMavenPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def projectDependency = Mock(ProjectDependency)
-        def extensionContainer = Mock(ExtensionContainer)
+        def extensionContainer = Mock(ExtensionContainerInternal)
 
         when:
         projectDependency.group >> "dep-group"
         projectDependency.name >> "dep-name-1"
         projectDependency.version >> "dep-version"
-        projectDependency.dependencyProject >> Stub(Project) {
+        projectDependency.dependencyProject >> Stub(ProjectInternal) {
             getExtensions() >> extensionContainer
             getName() >> "project-name"
         }
