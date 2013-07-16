@@ -391,14 +391,14 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         return task;
     }
 
-    private Multimap<String, Task> tasks(Task... tasks) {
+    private Multimap<String, TaskSelectionResult> tasks(Task... tasks) {
         return tasks(Arrays.asList(tasks));
     }
 
-    private Multimap<String, Task> tasks(Iterable<Task> tasks) {
-        Multimap<String, Task> map = LinkedHashMultimap.create();
-        for (Task task : tasks) {
-            map.put(task.getName(), task);
+    private Multimap<String, TaskSelectionResult> tasks(Iterable<Task> tasks) {
+        Multimap<String, TaskSelectionResult> map = LinkedHashMultimap.create();
+        for (final Task task : tasks) {
+            map.put(task.getName(), new TaskNameResolver.SimpleTaskSelectionResult(task));
         }
         return map;
     }

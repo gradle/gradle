@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.tasks.TaskContainer;
 
+import java.util.Map;
+
 public interface TaskContainerInternal extends TaskContainer, TaskResolver {
     DynamicObject getTasksAsDynamicObject();
 
@@ -41,4 +43,6 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver {
      * As part of this, all placeholder actions are materialized to show up in 'tasks' and 'tasks --all' overview.
      */
     void actualize();
+
+    Map<String, Runnable> getPlaceholderActions();
 }

@@ -35,6 +35,15 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
         wrapper.generated()
     }
 
+    def "can use camel-case for dynamically applied wrapper plugin "() {
+        when:
+        run taskName
+        then:
+        wrapper.generated()
+        where:
+        taskName << ["wrapp"]//, "wrap", "w"]
+    }
+
     def "wrapper plugin not applied on subprojects"() {
         setup:
         settingsFile << "include 'moduleA'"

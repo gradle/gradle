@@ -206,6 +206,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     }
 
+    public Map<String, Runnable> getPlaceholderActions() {
+        return placeholders;
+    }
+
     public Task findByName(String name) {
         Task task = super.findByName(name);
         if(task!=null){
