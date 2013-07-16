@@ -544,7 +544,11 @@ To define custom source sets and components:
 
 ### Test cases
 
-- Attempt to assemble a binary for a component with no source
+- Assemble a binary for a component with no source.
+- Assemble a binary for a component with multiple source sets.
+- Assemble a binary from a functional source set.
+- Assemble a binary from a cpp source set.
+- Attempt to build a binary from a Java source set or a resource set.
 
 ### Open issues
 
