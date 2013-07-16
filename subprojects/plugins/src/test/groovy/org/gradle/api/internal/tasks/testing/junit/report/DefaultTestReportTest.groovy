@@ -78,7 +78,7 @@ class DefaultTestReportTest extends Specification {
         index.assertHasTests(4)
         index.assertHasFailures(0)
         index.assertHasSuccessRate(100)
-        index.assertHasDuration("4.000s")
+        index.assertHasDuration("0.400s")
         index.assertHasLinkTo('org.gradle')
         index.assertHasLinkTo('org.gradle.sub')
         index.assertHasLinkTo('org.gradle.Test', 'org.gradle.Test')
@@ -91,7 +91,7 @@ class DefaultTestReportTest extends Specification {
         packageFile.assertHasTests(3)
         packageFile.assertHasFailures(0)
         packageFile.assertHasSuccessRate(100)
-        packageFile.assertHasDuration("3.000s")
+        packageFile.assertHasDuration("0.300s")
         packageFile.assertHasLinkTo('org.gradle.Test', 'Test')
         packageFile.assertHasLinkTo('org.gradle.Test2', 'Test2')
 
@@ -99,7 +99,7 @@ class DefaultTestReportTest extends Specification {
         testClassFile.assertHasTests(2)
         testClassFile.assertHasFailures(0)
         testClassFile.assertHasSuccessRate(100)
-        testClassFile.assertHasDuration("2.000s")
+        testClassFile.assertHasDuration("0.200s")
         testClassFile.assertHasTest('test1')
         testClassFile.assertHasTest('test2')
         testClassFile.assertHasStandardOutput('this is\nstandard output')
@@ -218,7 +218,7 @@ class DefaultTestReportTest extends Specification {
         given:
         def testTestResults = buildResults {
             testClassResult("org.gradle.Test") {
-                testcase("test1 < test2", 0) {
+                testcase("test1 < test2") {
                     failure("something failed", "<a failure>")
 
                     stdout "</html> & "

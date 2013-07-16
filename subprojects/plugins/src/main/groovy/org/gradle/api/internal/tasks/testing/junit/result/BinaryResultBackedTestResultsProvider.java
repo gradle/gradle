@@ -23,13 +23,12 @@ import java.io.File;
 import java.io.Writer;
 
 public class BinaryResultBackedTestResultsProvider implements TestResultsProvider {
-    private final File resultsDir;
     private final TestOutputStore.Reader outputReader;
-    private final TestResultSerializer resultSerializer = new TestResultSerializer();
+    private final TestResultSerializer resultSerializer;
 
-    public BinaryResultBackedTestResultsProvider(File resultsDir, TestOutputStore.Reader outputReader) {
-        this.resultsDir = resultsDir;
-        this.outputReader = outputReader;
+    public BinaryResultBackedTestResultsProvider(File resultsDir) {
+        this.outputReader = new TestOutputStore(resultsDir).reader();
+        this.resultSerializer = new TestResultSerializer(resultsDir);
     }
 
     public boolean hasOutput(String className, TestOutputEvent.Destination destination) {

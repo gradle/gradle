@@ -462,7 +462,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             outputWriter.finishOutputs();
         }
 
-        new TestResultSerializer().write(results.values(), binaryResultsDir);
+        new TestResultSerializer(binaryResultsDir).write(results.values());
         TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore.reader());
 
         JUnitXmlReport junitXml = reports.getJunitXml();

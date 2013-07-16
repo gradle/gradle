@@ -51,4 +51,8 @@ public class InMemoryTestResultsProvider implements TestResultsProvider {
             visitor.execute(result);
         }
     }
+
+    public boolean isHasResults() {
+        return results.iterator().hasNext();
+    }
 }

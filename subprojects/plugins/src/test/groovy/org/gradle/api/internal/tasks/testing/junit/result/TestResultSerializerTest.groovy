@@ -25,7 +25,6 @@ import spock.lang.Specification
 class TestResultSerializerTest extends Specification {
     @Rule
     private TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
-    final TestResultSerializer serializer = new TestResultSerializer()
 
     def "can write and read results"() {
         def class1 = new TestClassResult('Class1', 1234)
@@ -94,10 +93,10 @@ class TestResultSerializerTest extends Specification {
     }
 
     List<TestClassResult> serialize(Collection<TestClassResult> results) {
-        def dir = tmp.createDir("results")
-        serializer.write(results, dir)
+        def serializer = new TestResultSerializer(tmp.createDir("results"))
+        serializer.write(results)
         def result = []
-        serializer.read(dir, { result << it } as Action)
+        serializer.read({ result << it } as Action)
         return result
     }
 }
