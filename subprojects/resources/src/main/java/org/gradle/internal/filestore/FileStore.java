@@ -16,16 +16,17 @@
 package org.gradle.internal.filestore;
 
 import org.gradle.api.Action;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
 
 public interface FileStore<K> {
 
-    FileStoreEntry move(K key, File source);
+    LocallyAvailableResource move(K key, File source);
 
-    FileStoreEntry copy(K key, File source);
+    LocallyAvailableResource copy(K key, File source);
 
     void moveFilestore(File destination);
 
-    FileStoreEntry add(K key, Action<File> addAction);
+    LocallyAvailableResource add(K key, Action<File> addAction);
 }

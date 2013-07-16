@@ -18,8 +18,8 @@ package org.gradle.api.internal.filestore;
 
 import org.gradle.api.Action;
 import org.gradle.internal.filestore.FileStore;
-import org.gradle.internal.filestore.FileStoreEntry;
 import org.gradle.internal.filestore.FileStoreSearcher;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
 import java.util.Set;
@@ -36,11 +36,11 @@ public class PathNormalisingKeyFileStore implements FileStore<String>, FileStore
         this.delegate = delegate;
     }
 
-    public FileStoreEntry move(String key, File source) {
+    public LocallyAvailableResource move(String key, File source) {
         return delegate.move(normalizePath(key), source);
     }
 
-    public FileStoreEntry copy(String key, File source) {
+    public LocallyAvailableResource copy(String key, File source) {
         return delegate.copy(key, source);
     }
 
@@ -56,11 +56,11 @@ public class PathNormalisingKeyFileStore implements FileStore<String>, FileStore
         delegate.moveFilestore(destination);
     }
 
-    public FileStoreEntry add(String key, Action<File> addAction) {
+    public LocallyAvailableResource add(String key, Action<File> addAction) {
         return delegate.add(normalizePath(key), addAction);
     }
 
-    public Set<? extends FileStoreEntry> search(String key) {
+    public Set<? extends LocallyAvailableResource> search(String key) {
         return delegate.search(normalizeSearchPath(key));
     }
 }

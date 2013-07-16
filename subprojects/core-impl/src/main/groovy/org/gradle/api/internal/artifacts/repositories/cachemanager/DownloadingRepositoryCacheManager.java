@@ -38,8 +38,8 @@ import org.gradle.api.internal.externalresource.cached.CachedExternalResourceInd
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.filestore.FileStore;
-import org.gradle.internal.filestore.FileStoreEntry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,8 +125,8 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
     private File cacheDownloadedFile(final Artifact artifact, final Resource resource, final File tmpFile) {
         return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<File>() {
             public File create() {
-                FileStoreEntry fileStoreEntry = fileStore.move(artifact.getId(), tmpFile);
-                File fileInFileStore = fileStoreEntry.getFile();
+                LocallyAvailableResource cachedResource = fileStore.move(artifact.getId(), tmpFile);
+                File fileInFileStore = cachedResource.getFile();
                 if (resource instanceof ExternalResource) {
                     ExternalResource externalResource = (ExternalResource) resource;
                     ExternalResourceMetaData metaData = externalResource.getMetaData();

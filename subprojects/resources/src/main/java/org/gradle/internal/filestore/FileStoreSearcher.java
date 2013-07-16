@@ -16,10 +16,12 @@
 
 package org.gradle.internal.filestore;
 
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+
 import java.util.Set;
 
 public interface FileStoreSearcher<S> {
 
-    Set<? extends FileStoreEntry> search(S key);
+    Set<? extends LocallyAvailableResource> search(S key);
 
 }

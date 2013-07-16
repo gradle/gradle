@@ -25,8 +25,9 @@ import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
 import org.gradle.internal.filestore.FileStore;
-import org.gradle.internal.filestore.FileStoreEntry;
 import org.gradle.internal.filestore.FileStoreSearcher;
+import org.gradle.internal.resource.local.AbstractLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -67,11 +68,11 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return baseDir;
     }
 
-    public FileStoreEntry move(String path, File source) {
+    public LocallyAvailableResource move(String path, File source) {
         return saveIntoFileStore(source, getFile(path), true);
     }
 
-    public FileStoreEntry copy(String path, File source) {
+    public LocallyAvailableResource copy(String path, File source) {
         return saveIntoFileStore(source, getFile(path), false);
     }
 
@@ -96,12 +97,12 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         baseDir = destination;
     }
 
-    public FileStoreEntry add(String path, Action<File> addAction) {
+    public LocallyAvailableResource add(String path, Action<File> addAction) {
         String error = String.format("Failed to add into filestore '%s' at '%s' ", getBaseDir().getAbsolutePath(), path);
         return doAdd(getFile(path), error, addAction);
     }
 
-    protected FileStoreEntry saveIntoFileStore(final File source, final File destination, final boolean isMove) {
+    protected LocallyAvailableResource saveIntoFileStore(final File source, final File destination, final boolean isMove) {
         String verb = isMove ? "move" : "copy";
 
         if (!source.exists()) {
@@ -121,7 +122,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         });
     }
 
-    protected FileStoreEntry doAdd(File destination, String failureDescription, Action<File> action) {
+    protected LocallyAvailableResource doAdd(File destination, String failureDescription, Action<File> action) {
         try {
             GFileUtils.parentMkdirs(destination);
             File inProgressMarkerFile = getInProgressMarkerFile(destination);
@@ -141,12 +142,12 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return entryAt(destination);
     }
 
-    public Set<? extends FileStoreEntry> search(String pattern) {
+    public Set<? extends LocallyAvailableResource> search(String pattern) {
         if (!getBaseDir().exists()) {
             return Collections.emptySet();
         }
 
-        final Set<FileStoreEntry> entries = new HashSet<FileStoreEntry>();
+        final Set<LocallyAvailableResource> entries = new HashSet<LocallyAvailableResource>();
         findFiles(pattern).visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
                 final File file = fileDetails.getFile();
@@ -177,19 +178,19 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return new SingleIncludePatternFileTree(baseDir, pattern);
     }
 
-    protected FileStoreEntry entryAt(File file) {
+    protected LocallyAvailableResource entryAt(File file) {
         return entryAt(GFileUtils.relativePath(baseDir, file));
     }
 
-    protected FileStoreEntry entryAt(final String path) {
-        return new AbstractFileStoreEntry() {
+    protected LocallyAvailableResource entryAt(final String path) {
+        return new AbstractLocallyAvailableResource() {
             public File getFile() {
                 return new File(baseDir, path);
             }
         };
     }
 
-    public FileStoreEntry get(String key) {
+    public LocallyAvailableResource get(String key) {
         final File file = getFileWhileCleaningInProgress(key);
         if (file.exists()) {
             return entryAt(file);

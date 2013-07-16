@@ -24,9 +24,9 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorParser;
-import org.gradle.internal.filestore.FileStoreEntry;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
 import java.net.URL;
@@ -46,14 +46,14 @@ public class ModuleDescriptorStore {
 
     public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
         String filePath = getFilePath(repository, moduleVersionIdentifier);
-        final FileStoreEntry fileStoreEntry = pathKeyFileStore.get(filePath);
-        if (fileStoreEntry != null) {
-            return parseModuleDescriptorFile(fileStoreEntry.getFile());
+        final LocallyAvailableResource resource = pathKeyFileStore.get(filePath);
+        if (resource != null) {
+            return parseModuleDescriptorFile(resource.getFile());
         }
         return null;
     }
 
-    public FileStoreEntry putModuleDescriptor(ModuleVersionRepository repository, final ModuleDescriptor moduleDescriptor) {
+    public LocallyAvailableResource putModuleDescriptor(ModuleVersionRepository repository, final ModuleDescriptor moduleDescriptor) {
         String filePath = getFilePath(repository, moduleDescriptor.getModuleRevisionId());
         return pathKeyFileStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {

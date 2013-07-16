@@ -16,19 +16,19 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive;
 
-import org.gradle.internal.filestore.FileStoreEntry;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeSupport;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
 
 public class GeneratedArchiveBuildOutcome extends BuildOutcomeSupport {
 
-    private final FileStoreEntry fileStoreEntry;
+    private final LocallyAvailableResource resource;
     private final String rootRelativePath;
 
-    public GeneratedArchiveBuildOutcome(String name, String description, FileStoreEntry fileStoreEntry, String rootRelativePath) {
+    public GeneratedArchiveBuildOutcome(String name, String description, LocallyAvailableResource resource, String rootRelativePath) {
         super(name, description);
-        this.fileStoreEntry = fileStoreEntry;
+        this.resource = resource;
         this.rootRelativePath = rootRelativePath;
     }
 
@@ -40,7 +40,7 @@ public class GeneratedArchiveBuildOutcome extends BuildOutcomeSupport {
      * @return The generated archive, or null if no archive was generated.
      */
     public File getArchiveFile() {
-        return fileStoreEntry == null ? null : fileStoreEntry.getFile();
+        return resource == null ? null : resource.getFile();
     }
 
     /**

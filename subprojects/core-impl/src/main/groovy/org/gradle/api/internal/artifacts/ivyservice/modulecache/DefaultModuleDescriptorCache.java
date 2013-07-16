@@ -24,10 +24,10 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
-import org.gradle.internal.filestore.FileStoreEntry;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.TimeProvider;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.messaging.serialize.DataStreamBackedSerializer;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.util.hash.HashValue;
@@ -91,8 +91,8 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
             getCache().put(createKey(repository, moduleVersionIdentifier), entry);
         } else {
             LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
-            FileStoreEntry fileStoreEntry = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
-            entry = createEntry(isChanging, fileStoreEntry.getSha1(), moduleSource);
+            LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
+            entry = createEntry(isChanging, resource.getSha1(), moduleSource);
             getCache().put(createKey(repository, moduleVersionIdentifier), entry);
         }
         return new DefaultCachedModuleDescriptor(entry, null, timeProvider);

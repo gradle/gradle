@@ -18,10 +18,10 @@ package org.gradle.api.plugins.buildcomparison.gradle.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.filestore.FileStore;
-import org.gradle.internal.filestore.FileStoreEntry;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -59,13 +59,13 @@ public class GradleBuildOutcomeSetInferrer implements Transformer<Set<BuildOutco
             // TODO - we are relying on knowledge that the name of the outcome is the task path
             String taskPath = outcome.getName();
 
-            FileStoreEntry fileStoreEntry = null;
+            LocallyAvailableResource resource = null;
             if (file.exists()) {
                 String filestoreDestination = String.format("%s/%s/%s", fileStorePrefix, taskPath, file.getName());
-                fileStoreEntry = fileStore.move(filestoreDestination, file);
+                resource = fileStore.move(filestoreDestination, file);
             }
 
-            return new GeneratedArchiveBuildOutcome(outcome.getName(), outcome.getDescription(), fileStoreEntry, rootRelativePath);
+            return new GeneratedArchiveBuildOutcome(outcome.getName(), outcome.getDescription(), resource, rootRelativePath);
         } else {
             throw new IllegalStateException(String.format("Unhandled build outcome type: %s", outcome.getClass().getName()));
         }

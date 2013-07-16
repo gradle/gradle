@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.internal.filestore.FileStore
-import org.gradle.internal.filestore.FileStoreEntry
+import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -37,7 +37,7 @@ class DownloadingRepositoryCacheManagerTest extends Specification {
     Artifact artifact = Mock()
     ResourceDownloader resourceDownloader = Mock()
     Resource resource = Mock();
-    FileStoreEntry fileStoreEntry = Mock()
+    LocallyAvailableResource fileStoreEntry = Mock()
     DownloadingRepositoryCacheManager downloadingRepositoryCacheManager = new DownloadingRepositoryCacheManager("TestCacheManager", fileStore, artifactUrlCachedResolutionIndex, tmpFileProvider, lockingManager)
 
     @Rule TestNameTestDirectoryProvider temporaryFolder;

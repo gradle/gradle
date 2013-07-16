@@ -17,7 +17,7 @@
 package org.gradle.api.internal.filestore;
 
 import org.gradle.api.Action;
-import org.gradle.internal.filestore.FileStoreEntry;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -34,8 +34,8 @@ public class UniquePathKeyFileStore extends PathKeyFileStore {
     }
 
     @Override
-    public FileStoreEntry move(String path, File source) {
-        FileStoreEntry entry = super.move(path, source);
+    public LocallyAvailableResource move(String path, File source) {
+        LocallyAvailableResource entry = super.move(path, source);
         if (source.exists()) {
             GFileUtils.deleteQuietly(source);
         }
@@ -43,7 +43,7 @@ public class UniquePathKeyFileStore extends PathKeyFileStore {
     }
 
     @Override
-    protected FileStoreEntry doAdd(File destination, String failureDescription, Action<File> action) {
+    protected LocallyAvailableResource doAdd(File destination, String failureDescription, Action<File> action) {
         if (destination.exists()) {
             return entryAt(destination);
         }

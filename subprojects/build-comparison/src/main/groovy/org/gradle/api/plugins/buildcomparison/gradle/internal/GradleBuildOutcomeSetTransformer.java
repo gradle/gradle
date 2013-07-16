@@ -18,11 +18,11 @@ package org.gradle.api.plugins.buildcomparison.gradle.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.filestore.FileStore;
-import org.gradle.internal.filestore.FileStoreEntry;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
@@ -79,13 +79,13 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
             File originalFile = outcome.getFile();
             String relativePath = GFileUtils.relativePath(rootProject.getProjectDirectory(), originalFile);
 
-            FileStoreEntry fileStoreEntry = null;
+            LocallyAvailableResource resource = null;
             if (originalFile.exists()) {
                 String filestoreDestination = String.format("%s/%s/%s", fileStorePrefix, outcome.getTaskPath(), originalFile.getName());
-                fileStoreEntry = fileStore.move(filestoreDestination, originalFile);
+                resource = fileStore.move(filestoreDestination, originalFile);
             }
 
-            BuildOutcome buildOutcome = new GeneratedArchiveBuildOutcome(outcome.getTaskPath(), outcome.getDescription(), fileStoreEntry, relativePath);
+            BuildOutcome buildOutcome = new GeneratedArchiveBuildOutcome(outcome.getTaskPath(), outcome.getDescription(), resource, relativePath);
             translatedOutcomes.add(buildOutcome);
         } else {
             translatedOutcomes.add(new UnknownBuildOutcome(outcome.getTaskPath(), outcome.getDescription()));

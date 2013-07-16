@@ -17,10 +17,10 @@
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive
 
 import org.gradle.api.Transformer
-import org.gradle.api.internal.filestore.AbstractFileStoreEntry
 import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntryComparison
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -121,9 +121,7 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
     }
 
     GeneratedArchiveBuildOutcome outcome(String name, File file = dir.createFile(name)) {
-        def fileStoreEntry = new AbstractFileStoreEntry() {
-            File getFile() { file }
-        }
-        new GeneratedArchiveBuildOutcome(name, name, fileStoreEntry, name)
+        def resource = new DefaultLocallyAvailableResource(file)
+        new GeneratedArchiveBuildOutcome(name, name, resource, name)
     }
 }

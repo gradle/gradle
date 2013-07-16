@@ -19,8 +19,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.filestore.FileStore;
-import org.gradle.internal.filestore.FileStoreEntry;
 import org.gradle.internal.filestore.FileStoreSearcher;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
@@ -41,15 +41,15 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         this.namer = namer;
     }
 
-    public FileStoreEntry move(K key, File source) {
+    public LocallyAvailableResource move(K key, File source) {
         return delegate.move(toPath(key, getChecksum(source)), source);
     }
 
-    public FileStoreEntry copy(K key, File source) {
+    public LocallyAvailableResource copy(K key, File source) {
         return delegate.copy(toPath(key, getChecksum(source)), source);
     }
 
-    public Set<? extends FileStoreEntry> search(K key) {
+    public Set<? extends LocallyAvailableResource> search(K key) {
         return delegate.search(toPath(key, "*"));
     }
 
@@ -72,7 +72,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         delegate.moveFilestore(destination);
     }
 
-    public FileStoreEntry add(K key, Action<File> addAction) {
+    public LocallyAvailableResource add(K key, Action<File> addAction) {
         //We cannot just delegate to the add method as we need the file content for checksum calculation here
         //and reexecuting the action isn't acceptable
         final File tempFile = getTempFile();
