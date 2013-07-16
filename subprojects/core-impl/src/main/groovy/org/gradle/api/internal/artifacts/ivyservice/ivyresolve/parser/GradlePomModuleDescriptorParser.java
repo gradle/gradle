@@ -71,7 +71,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
     }
 
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableResource localResource, ExternalResource resource, boolean validate) throws ParseException, IOException {
-        URL descriptorURL = localResource.getFile().toURI().toURL();
+        URL descriptorURL = new URL(localResource.getFile().toURI().toASCIIString());
         Resource encodedResource = encodedUrlResource(descriptorURL);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, ivySettings);
 
