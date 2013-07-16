@@ -23,6 +23,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.copy.EmptyCopySpecContentVisitor;
+import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +60,7 @@ public class TarCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
     }
 
     @Override
-    public void visit(FileCopyDetails details) {
+    public void visit(FileCopyDetailsInternal details) {
         if (details.isDirectory()) {
             visitDir(details);
         } else {

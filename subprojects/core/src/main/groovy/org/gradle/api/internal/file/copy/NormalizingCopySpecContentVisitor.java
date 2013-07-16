@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import groovy.lang.Closure;
 import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
-import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 
@@ -28,66 +29,75 @@ import java.io.InputStream;
 import java.util.*;
 
 /**
- * A {@link CopySpecContentVisitor} which cleans up the tree as it is visited. Removes duplicate directories and adds in missing directories. Removes empty directories if instructed to do so by copy spec.
+ * A {@link CopySpecContentVisitor} which cleans up the tree as it is visited. Removes duplicate directories and adds in missing directories. Removes empty directories if instructed to do so by copy
+ * spec.
  */
 public class NormalizingCopySpecContentVisitor extends DelegatingCopySpecContentVisitor {
-    private CopySpecInternal spec;
     private final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
-    private final Map<RelativePath, FileCopyDetails> pendingDirs = new HashMap<RelativePath, FileCopyDetails>();
+    private final ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs = ArrayListMultimap.create();
 
     public NormalizingCopySpecContentVisitor(CopySpecContentVisitor visitor) {
         super(visitor);
     }
 
-    @Override
-    public void visitSpec(CopySpecInternal spec) {
-        this.spec = spec;
-        getVisitor().visitSpec(spec);
-    }
-
     public void endVisit() {
-        if (spec.getIncludeEmptyDirs()) {
-            for (RelativePath path : new ArrayList<RelativePath>(pendingDirs.keySet())) {
-                maybeVisit(path);
+        for (RelativePath path : new LinkedHashSet<RelativePath>(pendingDirs.keySet())) {
+            List<FileCopyDetailsInternal> detailsList = new ArrayList<FileCopyDetailsInternal>(pendingDirs.get(path));
+            for (FileCopyDetailsInternal details : detailsList) {
+                if (details.getCopySpec().getIncludeEmptyDirs()) {
+                    maybeVisit(path, details.getCopySpec());
+                }
             }
         }
+
         visitedDirs.clear();
         pendingDirs.clear();
+
         getVisitor().endVisit();
     }
 
-    private void maybeVisit(RelativePath path) {
+    private void maybeVisit(RelativePath path, CopySpecInternal copySpec) {
         if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
             return;
         }
-        maybeVisit(path.getParent());
-        FileCopyDetails dir = pendingDirs.remove(path);
-        if (dir == null) {
+        maybeVisit(path.getParent(), copySpec);
+        List<FileCopyDetailsInternal> detailsForPath = pendingDirs.removeAll(path);
+
+        FileCopyDetailsInternal dir;
+        if (detailsForPath.isEmpty()) {
             // TODO - this is pretty nasty, look at avoiding using a time bomb stub here
-            dir = new StubbedFileCopyDetails(path);
+            dir = new StubbedFileCopyDetails(path, copySpec);
+        } else {
+            dir = detailsForPath.get(0);
         }
         getVisitor().visit(dir);
     }
 
     @Override
-    public void visit(FileCopyDetails details) {
+    public void visit(FileCopyDetailsInternal details) {
         if (details.isDirectory()) {
             RelativePath path = details.getRelativePath();
             if (!visitedDirs.contains(path)) {
                 pendingDirs.put(path, details);
             }
         } else {
-            maybeVisit(details.getRelativePath().getParent());
+            maybeVisit(details.getRelativePath().getParent(), details.getCopySpec());
             getVisitor().visit(details);
         }
     }
 
-    private static class StubbedFileCopyDetails extends AbstractFileTreeElement implements FileCopyDetails {
+    private static class StubbedFileCopyDetails extends AbstractFileTreeElement implements FileCopyDetailsInternal {
         private final RelativePath path;
         private long lastModified = System.currentTimeMillis();
+        private final CopySpecInternal copySpec;
 
-        private StubbedFileCopyDetails(RelativePath path) {
+        private StubbedFileCopyDetails(RelativePath path, CopySpecInternal copySpec) {
             this.path = path;
+            this.copySpec = copySpec;
+        }
+
+        public CopySpecInternal getCopySpec() {
+            return copySpec;
         }
 
         @Override

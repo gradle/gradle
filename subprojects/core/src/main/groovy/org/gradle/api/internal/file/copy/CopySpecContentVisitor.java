@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.tasks.WorkResult;
 
 public interface CopySpecContentVisitor extends WorkResult {
@@ -24,7 +23,7 @@ public interface CopySpecContentVisitor extends WorkResult {
 
     void visitSpec(CopySpecInternal spec);
 
-    public void visit(FileCopyDetails details);
+    public void visit(FileCopyDetailsInternal details);
 
     void endVisit();
 

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.FileCopyDetails;
-
 public class DelegatingCopySpecContentVisitor implements CopySpecContentVisitor {
     private final CopySpecContentVisitor visitor;
 
@@ -40,7 +38,7 @@ public class DelegatingCopySpecContentVisitor implements CopySpecContentVisitor 
         getVisitor().visitSpec(spec);
     }
 
-    public void visit(FileCopyDetails details) {
+    public void visit(FileCopyDetailsInternal details) {
         getVisitor().visit(details);
     }
 

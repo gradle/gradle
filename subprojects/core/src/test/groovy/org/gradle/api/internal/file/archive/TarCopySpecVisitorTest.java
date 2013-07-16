@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.FileResource;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.hamcrest.Description;
@@ -58,7 +58,7 @@ public class TarCopySpecVisitorTest {
     @Test
     public void createsTarFile() {
         final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
-            new SimpleCompressor());
+                new SimpleCompressor());
         tarAndUntarAndCheckFileContents(tarFile);
     }
 
@@ -74,21 +74,21 @@ public class TarCopySpecVisitorTest {
     @Test
     public void createsGzipCompressedTarFile() {
         final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tgz"),
-            GzipArchiver.getCompressor());
+                GzipArchiver.getCompressor());
         tarAndUntarAndCheckFileContents(tarFile);
     }
 
     @Test
     public void createsBzip2CompressedTarFile() {
         final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tbz2"),
-            Bzip2Archiver.getCompressor());
+                Bzip2Archiver.getCompressor());
         tarAndUntarAndCheckFileContents(tarFile);
     }
 
     @Test
     public void tarFileContainsExpectedPermissions() {
         final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
-            new SimpleCompressor());
+                new SimpleCompressor());
 
         tar(dir("dir"), file("file"));
 
@@ -97,13 +97,13 @@ public class TarCopySpecVisitorTest {
         expected.put("file", 1);
 
         assertVisitsPermissions(new TarFileTree(new FileResource(tarFile), null),
-            expected);
+                expected);
     }
 
     @Test
     public void wrapsFailureToOpenOutputFile() {
         final TestFile tarFile = initializeTarFile(tmpDir.createDir("test.tar"),
-            new SimpleCompressor());
+                new SimpleCompressor());
 
         try {
             visitor.startVisit();
@@ -116,7 +116,7 @@ public class TarCopySpecVisitorTest {
     @Test
     public void wrapsFailureToAddElement() {
         final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
-            new SimpleCompressor());
+                new SimpleCompressor());
 
         visitor.startVisit();
         visitor.visitSpec(copySpec);
@@ -136,11 +136,11 @@ public class TarCopySpecVisitorTest {
         return tarFile;
     }
 
-    private void tar(FileCopyDetails... files) {
+    private void tar(FileCopyDetailsInternal... files) {
         visitor.startVisit();
         visitor.visitSpec(copySpec);
 
-        for (FileCopyDetails f : files) {
+        for (FileCopyDetailsInternal f : files) {
             if (f.isDirectory()) {
                 visitor.visit(f);
             } else {
@@ -151,8 +151,8 @@ public class TarCopySpecVisitorTest {
         visitor.endVisit();
     }
 
-    private FileCopyDetails file(final String path) {
-        final FileCopyDetails details = context.mock(FileCopyDetails.class, path);
+    private FileCopyDetailsInternal file(final String path) {
+        final FileCopyDetailsInternal details = context.mock(FileCopyDetailsInternal.class, path);
         final String content = String.format("contents of %s", path);
 
         context.checking(new Expectations() {{
@@ -163,7 +163,7 @@ public class TarCopySpecVisitorTest {
             will(returnValue(1000L));
 
             allowing(details).getSize();
-            will(returnValue((long)content.getBytes().length));
+            will(returnValue((long) content.getBytes().length));
 
             allowing(details).isDirectory();
             will(returnValue(false));
@@ -187,8 +187,8 @@ public class TarCopySpecVisitorTest {
         return details;
     }
 
-    private FileCopyDetails dir(final String path) {
-        final FileCopyDetails details = context.mock(FileCopyDetails.class, path);
+    private FileCopyDetailsInternal dir(final String path) {
+        final FileCopyDetailsInternal details = context.mock(FileCopyDetailsInternal.class, path);
 
         context.checking(new Expectations() {{
             allowing(details).getRelativePath();
@@ -207,8 +207,8 @@ public class TarCopySpecVisitorTest {
         return details;
     }
 
-    private FileCopyDetails brokenFile(final String path, final Throwable failure) {
-        final FileCopyDetails details = context.mock(FileCopyDetails.class, String.format("[%s]", path));
+    private FileCopyDetailsInternal brokenFile(final String path, final Throwable failure) {
+        final FileCopyDetailsInternal details = context.mock(FileCopyDetailsInternal.class, String.format("[%s]", path));
 
         context.checking(new Expectations() {{
             allowing(details).getRelativePath();

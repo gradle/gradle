@@ -18,14 +18,17 @@ package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
 import org.gradle.api.GradleException;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ContentFilterable;
+import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 import java.io.*;
 import java.util.Map;
 
-public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetails {
+public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetailsInternal {
     private final FileVisitDetails fileDetails;
     private final CopySpecInternal spec;
     private FileSystem fileSystem;
@@ -40,6 +43,10 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         this.spec = spec;
         this.fileSystem = fileSystem;
         this.duplicatesStrategy = null; // inherit from CopySpec
+    }
+
+    public CopySpecInternal getCopySpec() {
+        return spec;
     }
 
     public String getDisplayName() {

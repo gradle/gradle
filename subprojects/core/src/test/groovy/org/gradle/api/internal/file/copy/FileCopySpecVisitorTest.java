@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -53,8 +52,8 @@ public class FileCopySpecVisitorTest {
         visitor.visit(file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt")));
     }
 
-    private FileCopyDetails file(final RelativePath relativePath, final File targetFile) {
-        final FileCopyDetails details = context.mock(FileCopyDetails.class, relativePath.getPathString());
+    private FileCopyDetailsInternal file(final RelativePath relativePath, final File targetFile) {
+        final FileCopyDetailsInternal details = context.mock(FileCopyDetailsInternal.class, relativePath.getPathString());
         context.checking(new Expectations() {{
             allowing(details).getRelativePath();
             will(returnValue(relativePath));

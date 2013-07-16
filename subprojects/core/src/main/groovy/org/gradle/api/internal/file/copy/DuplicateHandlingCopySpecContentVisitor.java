@@ -46,7 +46,7 @@ public class DuplicateHandlingCopySpecContentVisitor extends DelegatingCopySpecC
     }
 
     @Override
-    public void visit(FileCopyDetails details) {
+    public void visit(FileCopyDetailsInternal details) {
         if (!details.isDirectory()) {
             DuplicatesStrategy strategy = determineStrategy(details);
 

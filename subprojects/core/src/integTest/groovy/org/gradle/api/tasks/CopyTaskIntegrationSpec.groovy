@@ -102,6 +102,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         !output.contains("Duplicate file at 2.txt")
     }
 
+    @Issue("http://issues.gradle.org/browse/GRADLE-2838")
     def "include empty dirs works when nested"() {
         given:
         file("a/a.txt") << "foo"
@@ -129,6 +130,42 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
             file("a.txt").exists()
             file("b.txt").exists()
             file("dirA").exists()
+            !file("dirB").exists()
         }
     }
+
+    def "include empty dirs is overridden by subsequent"() {
+        given:
+        file("a/a.txt") << "foo"
+        file("a/dirA").createDir()
+        file("b/b.txt") << "foo"
+        file("b/dirB").createDir()
+
+        buildScript """
+            task copyTask(type: Copy) {
+                into "out"
+                from "b", {
+                    includeEmptyDirs = false
+                }
+                from "a"
+                from "c", {}
+                from "b", {
+                    includeEmptyDirs = true
+                }
+            }
+        """
+
+        when:
+        succeeds "copyTask"
+
+        then:
+        ":copyTask" in nonSkippedTasks
+        with(file("out")) {
+            file("a.txt").exists()
+            file("b.txt").exists()
+            file("dirA").exists()
+            file("dirB").exists()
+        }
+    }
+
 }

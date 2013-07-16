@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.copy.EmptyCopySpecContentVisitor;
+import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 
 import java.io.File;
@@ -56,7 +57,7 @@ public class ZipCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
     }
 
     @Override
-    public void visit(FileCopyDetails details) {
+    public void visit(FileCopyDetailsInternal details) {
         if (details.isDirectory()) {
             visitDir(details);
         } else {

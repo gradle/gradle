@@ -42,8 +42,8 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void doesNotVisitADirectoryWhichHasBeenVisitedBefore() {
-        final FileCopyDetails details = file("dir");
-        final FileCopyDetails file = file("dir/file");
+        final FileCopyDetailsInternal details = file("dir", true);
+        final FileCopyDetailsInternal file = file("dir/file", false);
 
         allowGetIncludeEmptyDirs();
 
@@ -61,8 +61,8 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void doesNotVisitADirectoryUntilAChildFileIsVisited() {
-        final FileCopyDetails dir = file("dir");
-        final FileCopyDetails file = file("dir/file");
+        final FileCopyDetailsInternal dir = file("dir", true);
+        final FileCopyDetailsInternal file = file("dir/file", false);
 
         allowGetIncludeEmptyDirs();
 
@@ -83,9 +83,9 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void doesNotVisitADirectoryUntilAChildDirIsVisited() {
-        final FileCopyDetails dir = file("dir");
-        final FileCopyDetails subdir = file("dir/sub");
-        final FileCopyDetails file = file("dir/sub/file");
+        final FileCopyDetailsInternal dir = file("dir", true);
+        final FileCopyDetailsInternal subdir = file("dir/sub", true);
+        final FileCopyDetailsInternal file = file("dir/sub/file", false);
 
         allowGetIncludeEmptyDirs();
 
@@ -108,8 +108,8 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void visitsDirectoryAncestorsWhichHaveNotBeenVisited() {
-        final FileCopyDetails dir1 = file("a/b/c");
-        final FileCopyDetails file1 = file("a/b/c/file");
+        final FileCopyDetailsInternal dir1 = file("a/b/c", true);
+        final FileCopyDetailsInternal file1 = file("a/b/c/file", false);
 
         allowGetIncludeEmptyDirs();
 
@@ -125,8 +125,8 @@ public class NormalizingCopySpecVisitorTest {
         visitor.visit(dir1);
         visitor.visit(file1);
 
-        final FileCopyDetails dir2 = file("a/b/d/e");
-        final FileCopyDetails file2 = file("a/b/d/e/file");
+        final FileCopyDetailsInternal dir2 = file("a/b/d/e", true);
+        final FileCopyDetailsInternal file2 = file("a/b/d/e/file", false);
 
         context.checking(new Expectations() {{
             one(delegate).visitSpec(spec);
@@ -142,7 +142,7 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void visitsFileAncestorsWhichHaveNotBeenVisited() {
-        final FileCopyDetails details = file("a/b/c");
+        final FileCopyDetailsInternal details = file("a/b/c", false);
 
         allowGetIncludeEmptyDirs();
 
@@ -170,7 +170,7 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void visitsAnEmptyDirectoryIfCorrespondingOptionIsOn() {
-        final FileCopyDetails dir = file("dir");
+        final FileCopyDetailsInternal dir = file("dir", true);
 
         context.checking(new Expectations() {{
             one(spec).getIncludeEmptyDirs();
@@ -187,7 +187,7 @@ public class NormalizingCopySpecVisitorTest {
 
     @Test
     public void doesNotVisitAnEmptyDirectoryIfCorrespondingOptionIsOff() {
-        FileCopyDetails dir = file("dir");
+        FileCopyDetailsInternal dir = file("dir", true);
 
         context.checking(new Expectations() {{
             one(spec).getIncludeEmptyDirs();
@@ -201,17 +201,21 @@ public class NormalizingCopySpecVisitorTest {
         visitor.endVisit();
     }
 
-    private FileCopyDetails file(final String path) {
-        final FileCopyDetails details = context.mock(FileCopyDetails.class, path);
+    private FileCopyDetailsInternal file(final String path, final boolean isDir) {
+        final FileCopyDetailsInternal details = context.mock(FileCopyDetailsInternal.class, path);
         context.checking(new Expectations() {{
             allowing(details).getRelativePath();
             will(returnValue(RelativePath.parse(false, path)));
+            allowing(details).isDirectory();
+            will(returnValue(isDir));
+            allowing(details).getCopySpec();
+            will(returnValue(spec));
         }});
         return details;
     }
 
-    private Matcher<FileCopyDetails> hasPath(final String path) {
-        return new BaseMatcher<FileCopyDetails>() {
+    private Matcher<FileCopyDetailsInternal> hasPath(final String path) {
+        return new BaseMatcher<FileCopyDetailsInternal>() {
             public void describeTo(Description description) {
                 description.appendText("has path ").appendValue(path);
             }

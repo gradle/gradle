@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.FileResolver;
 
@@ -36,7 +35,7 @@ public class FileCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
         return didWork;
     }
 
-    public void visit(FileCopyDetails source) {
+    public void visit(FileCopyDetailsInternal source) {
         File target = fileResolver.resolve(source.getRelativePath().getPathString());
         copyFile(source, target);
     }
