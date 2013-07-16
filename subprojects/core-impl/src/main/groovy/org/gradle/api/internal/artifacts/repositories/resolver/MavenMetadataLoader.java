@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.XMLHelper;
+import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.resource.ResourceException;
@@ -65,21 +66,24 @@ class MavenMetadataLoader {
 
     private void parseMavenMetadataInto(ExternalResource metadataResource, final MavenMetadata mavenMetadata) throws IOException, SAXException, ParserConfigurationException {
         LOGGER.debug("parsing maven-metadata: {}", metadataResource);
-        InputStream metadataStream = metadataResource.openStream();
-        XMLHelper.parse(metadataStream, null, new ContextualSAXHandler() {
-            public void endElement(String uri, String localName, String qName)
-                    throws SAXException {
-                if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
-                    mavenMetadata.timestamp = getText();
-                }
-                if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
-                    mavenMetadata.buildNumber = getText();
-                }
-                if ("metadata/versioning/versions/version".equals(getContext())) {
-                    mavenMetadata.versions.add(getText().trim());
-                }
-                super.endElement(uri, localName, qName);
+        metadataResource.read(new ErroringAction<InputStream>() {
+            public void doExecute(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
+                XMLHelper.parse(inputStream, null, new ContextualSAXHandler() {
+                    public void endElement(String uri, String localName, String qName)
+                            throws SAXException {
+                        if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
+                            mavenMetadata.timestamp = getText();
+                        }
+                        if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
+                            mavenMetadata.buildNumber = getText();
+                        }
+                        if ("metadata/versioning/versions/version".equals(getContext())) {
+                            mavenMetadata.versions.add(getText().trim());
+                        }
+                        super.endElement(uri, localName, qName);
+                    }
+                }, null);
             }
-        }, null);
+        });
     }
 }

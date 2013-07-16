@@ -33,7 +33,7 @@ class ApacheDirectoryListingParserTest extends Specification {
 
     def "parse returns empty List if no link can be found"() {
         expect:
-        List urls = parser.parse(baseUrl, "<html>no link here</html>".bytes, CONTENT_TYPE)
+        List urls = parser.parse(baseUrl, new ByteArrayInputStream("<html>no link here</html>".bytes), CONTENT_TYPE)
         assertNotNull(urls)
         urls.isEmpty()
     }
@@ -55,7 +55,7 @@ class ApacheDirectoryListingParserTest extends Specification {
         <a href="directory3">directory3</a>
         <a href="directory4"/>"""
         expect:
-        def uris = parser.parse(baseUrl, html.bytes, CONTENT_TYPE)
+        def uris = parser.parse(baseUrl, new ByteArrayInputStream(html.bytes), CONTENT_TYPE)
         assertNotNull(uris)
         uris.collect {it.toString()} == ["http://testrepo/directory1", "http://testrepo/directory2", "http://testrepo/directory3", "http://testrepo/directory4"]
     }
@@ -65,7 +65,7 @@ class ApacheDirectoryListingParserTest extends Specification {
         <a href="directory1">directory1</a>
         <a href="directory2">directory2</a>"""
         when:
-        parser.parse(baseUrl, html.bytes, contentType)
+        parser.parse(baseUrl, new ByteArrayInputStream(html.bytes), contentType)
         then:
         thrown(ResourceException)
         where:
@@ -80,7 +80,7 @@ class ApacheDirectoryListingParserTest extends Specification {
         assert !Arrays.equals(encodedHtml, html.getBytes("utf-8"))
 
         expect:
-        def uris = parser.parse(baseUrl, encodedHtml, 'text/html;charset=ISO-8859-1')
+        def uris = parser.parse(baseUrl, new ByteArrayInputStream(encodedHtml), 'text/html;charset=ISO-8859-1')
         uris.collect {it.toString()} == ["http://testrepo/\u00c1\u00d2"]
     }
 
@@ -91,14 +91,14 @@ class ApacheDirectoryListingParserTest extends Specification {
         def encodedHtml = html.getBytes('utf-8')
 
         expect:
-        def uris = parser.parse(baseUrl, encodedHtml, 'text/html')
+        def uris = parser.parse(baseUrl, new ByteArrayInputStream(encodedHtml), 'text/html')
         uris.collect {it.toString()} == ["http://testrepo/\u0321\u0322"]
     }
 
     @Unroll
     def "parse ignores #descr"() {
         expect:
-        parser.parse(baseUrl, "<a href=\"${href}\">link</a>".toString().bytes, CONTENT_TYPE).isEmpty()
+        parser.parse(baseUrl, new ByteArrayInputStream("<a href=\"${href}\">link</a>".toString().bytes), CONTENT_TYPE).isEmpty()
         where:
         href                                                | descr
         "http://anothertestrepo/"                           | "URLs which aren't children of base URL"
@@ -115,7 +115,7 @@ class ApacheDirectoryListingParserTest extends Specification {
     def "parseLink handles #urlDescr"() {
         def listingParser = new ApacheDirectoryListingParser()
         expect:
-        def foundURIs = listingParser.parse(URI.create(baseUri), "<a href=\"${href}\">link</a>".toString().bytes, CONTENT_TYPE)
+        def foundURIs = listingParser.parse(URI.create(baseUri), new ByteArrayInputStream("<a href=\"${href}\">link</a>".toString().bytes), CONTENT_TYPE)
         !foundURIs.isEmpty()
         foundURIs.collect {it.toString()} == ["${baseUri}/directory1"]
         where:
@@ -137,7 +137,7 @@ class ApacheDirectoryListingParserTest extends Specification {
         setup:
         def byte[] content = resources.getResource("${repoType}_dirlisting.html").bytes
         expect:
-        List<URI> urls = new ApacheDirectoryListingParser().parse(new URI(artifactRootURI), content, CONTENT_TYPE)
+        List<URI> urls = new ApacheDirectoryListingParser().parse(new URI(artifactRootURI), new ByteArrayInputStream(content), CONTENT_TYPE)
         urls.collect {it.toString()} as Set == ["${artifactRootURI}3.7/",
                 "${artifactRootURI}3.8/",
                 "${artifactRootURI}3.8.1/",

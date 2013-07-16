@@ -15,13 +15,16 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
+
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy
+import org.gradle.api.Action
 import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.resource.ResourceException
 import org.gradle.api.internal.resource.ResourceNotFoundException
+import org.gradle.internal.UncheckedException
 import org.xml.sax.SAXParseException
 import spock.lang.Specification
 
@@ -48,7 +51,7 @@ class MavenVersionListerTest extends Specification {
 
         and:
         1 * repository.getResource(metaDataResource) >> resource
-        1 * resource.openStream() >> new ByteArrayInputStream("""
+        1 * resource.read(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>
@@ -56,7 +59,8 @@ class MavenVersionListerTest extends Specification {
             <version>1.2</version>
         </versions>
     </versioning>
-</metadata>""".bytes)
+</metadata>""".bytes))
+        }
         1 * resource.close()
         0 * repository._
         0 * resource._
@@ -79,7 +83,7 @@ class MavenVersionListerTest extends Specification {
 
         and:
         1 * repository.getResource('prefix1/org/acme/testproject/maven-metadata.xml') >> resource1
-        1 * resource1.openStream() >> new ByteArrayInputStream("""
+        1 * resource1.read(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>
@@ -87,9 +91,10 @@ class MavenVersionListerTest extends Specification {
             <version>1.2</version>
         </versions>
     </versioning>
-</metadata>""".bytes)
+</metadata>""".bytes))
+        }
         1 * repository.getResource('prefix2/org/acme/testproject/maven-metadata.xml') >> resource2
-        1 * resource2.openStream() >> new ByteArrayInputStream("""
+        1 * resource2.read(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>
@@ -97,7 +102,8 @@ class MavenVersionListerTest extends Specification {
             <version>1.3</version>
         </versions>
     </versioning>
-</metadata>""".bytes)
+</metadata>""".bytes))
+        }
     }
 
     def "visit ignores duplicate patterns"() {
@@ -113,7 +119,7 @@ class MavenVersionListerTest extends Specification {
 
         and:
         1 * repository.getResource(metaDataResource) >> resource
-        1 * resource.openStream() >> new ByteArrayInputStream("""
+        1 * resource.read(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>
@@ -121,7 +127,8 @@ class MavenVersionListerTest extends Specification {
             <version>1.2</version>
         </versions>
     </versioning>
-</metadata>""".bytes)
+</metadata>""".bytes))
+        }
         1 * resource.close()
         0 * repository._
         0 * resource._
@@ -153,10 +160,11 @@ class MavenVersionListerTest extends Specification {
         then:
         ResourceException e = thrown()
         e.message == "Unable to load Maven meta-data from $metaDataResource."
-        e.cause instanceof SAXParseException
+        e.cause instanceof UncheckedException
+        e.cause.cause instanceof SAXParseException
         1 * resource.close()
         1 * repository.getResource(metaDataResource) >> resource;
-        1 * resource.openStream() >> new ByteArrayInputStream("yo".bytes)
+        1 * resource.read(_) >> { Action action -> action.execute(new ByteArrayInputStream("yo".bytes)) }
         0 * repository._
     }
 

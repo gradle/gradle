@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.externalresource.transport.http;
 
-import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.resource.ResourceException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ public class HttpResourceLister implements ExternalResourceLister {
     }
 
     public List<String> list(String parent) throws IOException {
-        URI baseURI;
+        final URI baseURI;
         try {
             baseURI = new URI(parent);
         } catch (URISyntaxException ex) {
@@ -46,15 +46,18 @@ public class HttpResourceLister implements ExternalResourceLister {
             return null;
         }
         try {
-            byte[] resourceContent = loadResourceContent(resource);
-            String contentType = resource.getContentType();
-            ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
-            try {
-                List<URI> uris = directoryListingParser.parse(baseURI, resourceContent, contentType);
-                return convertToStringList(uris);
-            } catch (Exception e) {
-                throw new ResourceException("Unable to parse Http directory listing", e);
-            }
+            return resource.read(new Transformer<List<String>, InputStream>() {
+                public List<String> transform(InputStream inputStream) {
+                    String contentType = resource.getContentType();
+                    ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
+                    try {
+                        List<URI> uris = directoryListingParser.parse(baseURI, inputStream, contentType);
+                        return convertToStringList(uris);
+                    } catch (Exception e) {
+                        throw new ResourceException("Unable to parse Http directory listing", e);
+                    }
+                }
+            });
         } finally {
             resource.close();
         }
@@ -66,11 +69,5 @@ public class HttpResourceLister implements ExternalResourceLister {
             ret.add(url.toString());
         }
         return ret;
-    }
-
-    private byte[] loadResourceContent(ExternalResource resource) throws IOException {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        resource.writeTo(outputStream);
-        return outputStream.toByteArray();
     }
 }

@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.externalresource;
 
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
@@ -62,18 +64,24 @@ public interface ExternalResource {
     public boolean isLocal();
 
     /**
-     * Opens a stream on this resource
-     *
-     * @return the opened input stream
+     * Copies the contents of this resource to the given file.
      */
-    public InputStream openStream() throws IOException;
-
     void writeTo(File destination) throws IOException;
 
     /**
-     * Writes to the given stream. Does not close the stream.
+     * Copies the contents of this resource to the given stream. Does not close the stream.
      */
     void writeTo(OutputStream destination) throws IOException;
+
+    /**
+     * Executes the given action against the contents of this resource.
+     */
+    void read(Action<? super InputStream> readAction) throws IOException;
+
+    /**
+     * Executes the given action against the contents of this resource.
+     */
+    <T> T read(Transformer<? extends T, ? super InputStream> readAction) throws IOException;
 
     void close() throws IOException;
 

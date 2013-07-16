@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.externalresource.transport.http
 
+import org.gradle.api.Transformer
 import spock.lang.Specification
 
 class HttpResourceListerTest extends Specification {
@@ -30,7 +31,7 @@ class HttpResourceListerTest extends Specification {
         when:
         lister.list("http://testrepo/")
         then:
-        1 * externalResource.writeTo(_) >> {OutputStream outputStream -> outputStream.write("<a href='child'/>".bytes)}
+        1 * externalResource.read(_) >> {Transformer action -> return action.transform(new ByteArrayInputStream("<a href='child'/>".bytes))}
         1 * externalResource.getContentType() >> "text/html"
         1 * externalResource.close()
     }

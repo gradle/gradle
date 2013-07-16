@@ -106,19 +106,6 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         then:
         1 * externalResource."$method"()
         where:
-        method << ['close', 'getMetaData', 'getName', 'getLastModified', 'getContentLength', 'isLocal', 'openStream']
-    }
-
-    @Unroll
-    def "ProgressLoggingExternalResource #method to delegate ExternalResource"() {
-        when:
-        accessor.getResource("location") >> externalResource
-        def plExternalResource = progressLoggerAccessor.getResource("location")
-        and:
-        plExternalResource."$method"()
-        then:
-        1 * externalResource."$method"()
-        where:
-        method << ['close', 'getMetaData', 'getName', 'getLastModified', 'getContentLength', 'isLocal', 'openStream', 'toString']
+        method << ['close', 'getMetaData', 'getName', 'getLastModified', 'getContentLength', 'isLocal']
     }
 }

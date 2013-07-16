@@ -16,10 +16,13 @@
 package org.gradle.api.internal.externalresource;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 
 import java.io.*;
 
 public abstract class AbstractExternalResource implements ExternalResource {
+    protected abstract InputStream openStream() throws IOException;
 
     public void writeTo(File destination) throws IOException {
         FileOutputStream output = new FileOutputStream(destination);
@@ -34,6 +37,24 @@ public abstract class AbstractExternalResource implements ExternalResource {
         InputStream input = openStream();
         try {
             IOUtils.copy(input, output);
+        } finally {
+            input.close();
+        }
+    }
+
+    public void read(Action<? super InputStream> readAction) throws IOException {
+        InputStream input = openStream();
+        try {
+            readAction.execute(input);
+        } finally {
+            input.close();
+        }
+    }
+
+    public <T> T read(Transformer<? extends T, ? super InputStream> readAction) throws IOException {
+        InputStream input = openStream();
+        try {
+            return readAction.transform(input);
         } finally {
             input.close();
         }

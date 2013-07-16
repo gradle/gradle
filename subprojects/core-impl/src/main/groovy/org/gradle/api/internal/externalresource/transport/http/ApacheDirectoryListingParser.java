@@ -25,8 +25,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -40,14 +39,14 @@ public class ApacheDirectoryListingParser {
     public ApacheDirectoryListingParser() {
     }
 
-    public List<URI> parse(URI baseURI, byte[] content, String contentType) throws Exception {
+    public List<URI> parse(URI baseURI, InputStream content, String contentType) throws Exception {
         baseURI = addTrailingSlashes(baseURI);
         if (contentType == null || !contentType.startsWith("text/html")) {
             throw new ResourceException(String.format("Unsupported ContentType %s for DirectoryListing", contentType));
         }
         String contentEncoding = contentType.contains("charset=") ? contentType.substring(contentType.indexOf('=') + 1) : "utf-8";
-        final String htmlText = new String(content, contentEncoding);
-        final InputSource inputSource = new InputSource(new StringReader(htmlText));
+        final Reader htmlText = new InputStreamReader(content, contentEncoding);
+        final InputSource inputSource = new InputSource(htmlText);
         final SAXParser htmlParser = new SAXParser();
         final AnchorListerHandler anchorListerHandler = new AnchorListerHandler();
         htmlParser.setContentHandler(anchorListerHandler);
