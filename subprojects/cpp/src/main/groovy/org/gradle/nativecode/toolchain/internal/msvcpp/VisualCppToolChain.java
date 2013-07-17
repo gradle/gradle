@@ -29,18 +29,21 @@ public class VisualCppToolChain extends AbstractToolChain {
     public static final String NAME = "visualCpp";
     static final String COMPILER_EXE = "cl.exe";
     static final String LINKER_EXE = "link.exe";
-    static final String STATIC_LINKER_EXE = "lib.exe";
+    static final String STATIC_LIBRARY_ARCHIVER_EXE = "lib.exe";
+    static final String ASSEMBLER_EXE = "ml.exe";
 
     private final File compilerExe;
     private final File linkerExe;
-    private final File staticLinkerExe;
+    private final File staticLibraryArchiverExe;
+    private final File assemblerExe;
     private final Factory<ExecAction> execActionFactory;
 
     public VisualCppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
         super(operatingSystem);
         this.compilerExe = operatingSystem.findInPath(COMPILER_EXE);
         this.linkerExe = operatingSystem.findInPath(LINKER_EXE);
-        this.staticLinkerExe = operatingSystem.findInPath(STATIC_LINKER_EXE);
+        this.staticLibraryArchiverExe = operatingSystem.findInPath(STATIC_LIBRARY_ARCHIVER_EXE);
+        this.assemblerExe = operatingSystem.findInPath(ASSEMBLER_EXE);
         this.execActionFactory = execActionFactory;
     }
 
@@ -57,7 +60,8 @@ public class VisualCppToolChain extends AbstractToolChain {
     protected void checkAvailable(ToolChainAvailability availability) {
         availability.mustExist(COMPILER_EXE, compilerExe);
         availability.mustExist(LINKER_EXE, linkerExe);
-        availability.mustExist(STATIC_LINKER_EXE, staticLinkerExe);
+        availability.mustExist(STATIC_LIBRARY_ARCHIVER_EXE, staticLibraryArchiverExe);
+        availability.mustExist(ASSEMBLER_EXE, assemblerExe);
     }
 
     @Override
@@ -76,14 +80,17 @@ public class VisualCppToolChain extends AbstractToolChain {
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-        throw new UnsupportedOperationException();
+        checkAvailable();
+        return (Compiler<T>) new Assembler(assemblerExe, execActionFactory);
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {
+        checkAvailable();
         return (Compiler<T>) new LinkExeLinker(linkerExe, execActionFactory);
     }
 
     public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-        return (Compiler<T>) new LibExeStaticLibraryArchiver(staticLinkerExe, execActionFactory);
+        checkAvailable();
+        return (Compiler<T>) new LibExeStaticLibraryArchiver(staticLibraryArchiverExe, execActionFactory);
     }
 }

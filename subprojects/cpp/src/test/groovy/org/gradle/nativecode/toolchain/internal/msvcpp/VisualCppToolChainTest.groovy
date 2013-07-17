@@ -49,6 +49,7 @@ class VisualCppToolChainTest extends Specification {
         os.findInPath("cl.exe") >> file('cl.exe')
         os.findInPath("link.exe") >> file('link.exe')
         os.findInPath("lib.exe") >> file('lib.exe')
+        os.findInPath("ml.exe") >> file('ml.exe')
 
         when:
         def availability = new ToolChainAvailability()
@@ -61,6 +62,7 @@ class VisualCppToolChainTest extends Specification {
         when:
         createFile('cl.exe')
         createFile('link.exe')
+        createFile('ml.exe')
 
         and:
         def availability2 = new ToolChainAvailability()
