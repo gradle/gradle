@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
@@ -332,7 +333,7 @@ public class DefaultConfigurationTest {
     private void prepareResolve(final ResolvedConfiguration resolvedConfiguration, final boolean withErrors) {
         context.checking(new Expectations() {{
             allowing(dependencyResolver).resolve(configuration);
-            will(returnValue(new ResolverResults(resolvedConfiguration)));
+            will(returnValue(new ResolverResults(resolvedConfiguration, context.mock(ResolutionResult.class))));
             allowing(resolvedConfiguration).hasError();
             will(returnValue(withErrors));
         }});

@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.CommandLineOption;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
-import org.gradle.api.tasks.diagnostics.internal.result.ResolutionResultKeeper;
 
 import java.io.IOException;
 import java.util.*;
@@ -35,11 +34,8 @@ import java.util.*;
 public class DependencyReportTask extends AbstractReportTask {
 
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
-    private Set<Configuration> configurations;
 
-    public DependencyReportTask() {
-        new ResolutionResultKeeper().setup(getProject(), this.getPath(), renderer);
-    }
+    private Set<Configuration> configurations;
 
     public ReportRenderer getRenderer() {
         return renderer;
@@ -60,7 +56,6 @@ public class DependencyReportTask extends AbstractReportTask {
         });
         sortedConfigurations.addAll(getConfigurations(project));
         for (Configuration configuration : sortedConfigurations) {
-            configuration.getResolvedConfiguration().getLenientConfiguration(); //force resolve but do not rethrow any error (just fatal)
             renderer.startConfiguration(configuration);
             renderer.render(configuration);
             renderer.completeConfiguration(configuration);

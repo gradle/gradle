@@ -15,17 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyResolutionListener;
-import org.gradle.api.artifacts.result.ResolutionResult;
-
-import java.util.Collection;
 
 public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
     DependencyResolutionListener getDependencyResolutionBroadcast();
 
     ResolutionStrategyInternal getResolutionStrategy();
-
-    Collection<Action<? super ResolutionResult>> getResolutionResultActions();
 }

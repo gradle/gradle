@@ -172,33 +172,29 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
                 }
             }
             configurations {
-                config1 {
-                    incoming.withResolutionResult {
-                        it.allDependencies { it instanceof UnresolvedDependencyResult }
-                    }
-                }
+                config1
             }
             dependencies {
                 config1 'group:projectA:1.0'
             }
 
             task resolveConfig1 << {
-                   configurations.config1.resolvedConfiguration
+                   configurations.config1.incoming.resolutionResult.allDependencies{
+                        it instanceof UnresolvedDependencyResult
+                   }
             }
 
-            project(":subproject") {
-                configurations {
-                    config2 {
-                        incoming.withResolutionResult {
-                            it.allDependencies { it instanceof UnresolvedDependencyResult }
-                        }
-                    }
+            project(":subproject"){
+                configurations{
+                    config2
                 }
                 dependencies{
                     config2 'group:projectA:1.0'
                 }
                 task resolveConfig2 << {
-                    configurations.config2.resolvedConfiguration
+                    configurations.config2.incoming.resolutionResult.allDependencies{
+                        it instanceof UnresolvedDependencyResult
+                    }
                 }
             }
         """

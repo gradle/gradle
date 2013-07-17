@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import spock.lang.Specification
@@ -31,18 +30,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
  */
 class ResolutionResultBuilderSpec extends Specification {
 
-    def theResult
-    def builder = new ResolutionResultBuilder([{
-        theResult = it
-    } as Action])
-
-    ResolutionResult getResult() {
-        builder.resolutionCompleted()
-        theResult
-    }
+    def builder = new ResolutionResultBuilder()
 
     def "builds basic graph"() {
-        when:
+        given:
         builder.start(confId("root"))
         resolvedConf("root", [dep("mid1"), dep("mid2")])
 
@@ -53,6 +44,9 @@ class ResolutionResultBuilderSpec extends Specification {
         resolvedConf("leaf2", [])
         resolvedConf("leaf3", [])
         resolvedConf("leaf4", [])
+
+        when:
+        def result = builder.getResult()
 
         then:
         print(result.root) == """x:root:1
@@ -66,13 +60,16 @@ class ResolutionResultBuilderSpec extends Specification {
     }
 
     def "graph with multiple dependents"() {
-        when:
+        given:
         builder.start(confId("a"))
         resolvedConf("a", [dep("b1"), dep("b2"), dep("b3")])
 
         resolvedConf("b1", [dep("b2"), dep("b3")])
         resolvedConf("b2", [dep("b3")])
         resolvedConf("b3", [])
+
+        when:
+        def result = builder.getResult()
 
         then:
         print(result.root) == """x:a:1
@@ -86,11 +83,14 @@ class ResolutionResultBuilderSpec extends Specification {
     }
 
     def "builds graph with cycles"() {
-        when:
+        given:
         builder.start(confId("a"))
         resolvedConf("a", [dep("b")])
         resolvedConf("b", [dep("c")])
         resolvedConf("c", [dep("a")])
+
+        when:
+        def result = builder.getResult()
 
         then:
         print(result.root) == """x:a:1
@@ -101,16 +101,17 @@ class ResolutionResultBuilderSpec extends Specification {
     }
 
     def "includes selection reason"() {
-        when:
+        given:
         builder.start(confId("a"))
         resolvedConf("a", [dep("b", null, "b", VersionSelectionReasons.FORCED), dep("c", null, "c", VersionSelectionReasons.CONFLICT_RESOLUTION), dep("d", new RuntimeException("Boo!"))])
         resolvedConf("b", [])
         resolvedConf("c", [])
         resolvedConf("d", [])
 
-        then:
-        def deps = result.root.dependencies
+        when:
+        def deps = builder.result.root.dependencies
 
+        then:
         def b = deps.find { it.selected.id.name == 'b' }
         def c = deps.find { it.selected.id.name == 'c' }
 
@@ -119,15 +120,16 @@ class ResolutionResultBuilderSpec extends Specification {
     }
 
     def "links dependents correctly"() {
-        when:
+        given:
         builder.start(confId("a"))
         resolvedConf("a", [dep("b")])
         resolvedConf("b", [dep("c")])
         resolvedConf("c", [dep("a")])
 
-        then:
-        def a = result.root
+        when:
+        def a = builder.getResult().root
 
+        then:
         def b  = first(a.dependencies).selected
         def c  = first(b.dependencies).selected
         def a2 = first(c.dependencies).selected
@@ -148,7 +150,7 @@ class ResolutionResultBuilderSpec extends Specification {
     }
 
     def "accumulates and avoids duplicate dependencies"() {
-        when:
+        given:
         builder.start(confId("root"))
         resolvedConf("root", [dep("mid1")])
 
@@ -159,6 +161,9 @@ class ResolutionResultBuilderSpec extends Specification {
         resolvedConf("leaf1", [])
         resolvedConf("leaf2", [])
 
+        when:
+        def result = builder.getResult()
+
         then:
         print(result.root) == """x:root:1
   x:mid1:1 [root]
@@ -168,13 +173,16 @@ class ResolutionResultBuilderSpec extends Specification {
     }
 
     def "accumulates and avoids duplicate unresolved dependencies"() {
-        when:
+        given:
         builder.start(confId("root"))
         resolvedConf("root", [dep("mid1")])
 
         resolvedConf("mid1", [dep("leaf1", new RuntimeException("foo!"))])
         resolvedConf("mid1", [dep("leaf1", new RuntimeException("bar!"))]) //dupe
         resolvedConf("mid1", [dep("leaf2", new RuntimeException("baz!"))])
+
+        when:
+        def result = builder.getResult()
 
         then:
         def mid1 = first(result.root.dependencies)
@@ -183,11 +191,14 @@ class ResolutionResultBuilderSpec extends Specification {
     }
 
     def "graph includes unresolved deps"() {
-        when:
+        given:
         builder.start(confId("a"))
         resolvedConf("a", [dep("b"), dep("c"), dep("U", new RuntimeException("unresolved!"))])
         resolvedConf("b", [])
         resolvedConf("c", [])
+
+        when:
+        def result = builder.getResult()
 
         then:
         print(result.root) == """x:a:1

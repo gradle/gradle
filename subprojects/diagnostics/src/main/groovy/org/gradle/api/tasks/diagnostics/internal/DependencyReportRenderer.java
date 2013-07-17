@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.tasks.diagnostics.internal.result.ResolutionResultConsumer;
 
 import java.io.IOException;
 
@@ -25,7 +24,7 @@ import java.io.IOException;
  *
  * @author Phil Messenger
  */
-public interface DependencyReportRenderer extends ReportRenderer, ResolutionResultConsumer {
+public interface DependencyReportRenderer extends ReportRenderer {
     /**
      * Starts rendering the given configuration.
      * @param configuration The configuration.

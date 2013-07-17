@@ -27,5 +27,4 @@ public interface ResolvedConfigurationListener {
     ResolvedConfigurationListener start(ModuleVersionIdentifier root);
     void resolvedModuleVersion(ModuleVersionSelection moduleVersion);
     void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies);
-    void resolutionCompleted();
 }

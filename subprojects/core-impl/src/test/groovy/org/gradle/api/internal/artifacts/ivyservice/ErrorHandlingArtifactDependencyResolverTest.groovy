@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice
+package org.gradle.api.internal.artifacts.ivyservice;
+
 
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
@@ -30,13 +32,14 @@ public class ErrorHandlingArtifactDependencyResolverTest extends Specification {
 
     private delegate = Mock(ArtifactDependencyResolver)
     private resolvedConfiguration = Mock(ResolvedConfiguration)
+    private resolutionResult = Mock(ResolutionResult)
     private configuration = Mock(ConfigurationInternal.class, name: 'coolConf')
     private repositories = [Mock(ResolutionAwareRepository)]
     private resolver = new ErrorHandlingArtifactDependencyResolver(delegate);
 
     void "delegates to backing service"() {
         given:
-        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration)
+        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration, resolutionResult)
 
         when:
         ResolverResults outerResults = resolver.resolve(configuration, repositories);
@@ -48,6 +51,7 @@ public class ErrorHandlingArtifactDependencyResolverTest extends Specification {
         1 * resolvedConfiguration.hasError()
         1 * resolvedConfiguration.rethrowFailure()
         1 * resolvedConfiguration.getFiles(Specs.satisfyAll())
+        outerResults.resolutionResult == resolutionResult
     }
 
     void "wraps operations with the failure"() {
@@ -77,7 +81,7 @@ public class ErrorHandlingArtifactDependencyResolverTest extends Specification {
         resolvedConfiguration.getFirstLevelModuleDependencies() >> { throw failure }
         resolvedConfiguration.getResolvedArtifacts() >> { throw failure }
 
-        delegate.resolve(configuration, repositories) >> { new ResolverResults(resolvedConfiguration) }
+        delegate.resolve(configuration, repositories) >> { new ResolverResults(resolvedConfiguration, resolutionResult) }
 
         when:
         ResolverResults results = resolver.resolve(configuration, repositories);

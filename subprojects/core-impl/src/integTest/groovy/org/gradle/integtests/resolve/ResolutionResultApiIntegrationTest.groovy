@@ -53,12 +53,10 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
                 conf 'org:foo:0.5', 'org:bar:1.0', 'org:baz:1.0'
             }
             task resolutionResult << {
-                configurations.conf.incoming.withResolutionResult { result ->
-                    result.allModuleVersions {
-                        println it.id.name + ":" + it.id.version + " " + it.selectionReason.description
-                    }
+                def result = configurations.conf.incoming.resolutionResult
+                result.allModuleVersions {
+                    println it.id.name + ":" + it.id.version + " " + it.selectionReason.description
                 }
-                configurations.conf.resolvedConfiguration //resolve w/o artifact download
             }
         """
 

@@ -38,7 +38,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         try {
             results = dependencyResolver.resolve(configuration, repositories);
         } catch (final Throwable e) {
-            return new ResolverResults(new BrokenResolvedConfiguration(e, configuration));
+            return new ResolverResults(new BrokenResolvedConfiguration(e, configuration), wrapException(e, configuration));
         }
         ResolvedConfiguration withErrorHandling = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
         return results.withResolvedConfiguration(withErrorHandling);

@@ -90,7 +90,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-	            def deps = getResolutionResult().allDependencies
+	            def deps = configurations.conf.incoming.resolutionResult.allDependencies
 	            assert deps*.selected.id.name == ['foo', 'impl', 'api']
 	            assert deps*.selected.id.version == ['2.0', '1.5', '1.5']
 	            assert deps*.selected.selectionReason.forced         == [false, false, false]
@@ -138,7 +138,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-	            def deps = getResolutionResult().allDependencies
+	            def deps = configurations.conf.incoming.resolutionResult.allDependencies
                 assert deps.size() == 2
                 deps.each {
 	                assert it.selected.id.version == '1.5'
@@ -179,7 +179,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-	            def deps = getResolutionResult().allDependencies
+	            def deps = configurations.conf.incoming.resolutionResult.allDependencies
                 assert deps.size() == 2
                 deps.each {
 	                assert it.selected.id.version == '1.3'
@@ -222,7 +222,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-	            def deps = getResolutionResult().allDependencies
+	            def deps = configurations.conf.incoming.resolutionResult.allDependencies
                 assert deps.size() == 2
                 deps.each {
 	                assert it.selected.id.version == '1.3'
@@ -267,7 +267,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def deps = getResolutionResult().allDependencies
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies
                 assert deps.find {
                     it.selected.id.name == 'impl' &&
                     it.selected.id.version == '1.5' &&
@@ -309,7 +309,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def deps = getResolutionResult().allDependencies as List
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
                 assert deps.size() == 1
                 assert deps[0].requested.version == '1.3'
                 assert deps[0].selected.id.version == '1.5'
@@ -347,7 +347,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def modules = getResolutionResult().allModuleVersions as List
+                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
                 def a = modules.find { it.id.name == 'a' }
                 assert a.id.version == '1.4'
                 assert a.selectionReason.conflictResolution
@@ -385,7 +385,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def modules = getResolutionResult().allModuleVersions as List
+                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
                 def a = modules.find { it.id.name == 'a' }
                 assert a.id.version == '1.3'
                 assert a.selectionReason.conflictResolution
@@ -419,7 +419,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def deps = getResolutionResult().allDependencies as List
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
                 assert deps.size() == 1
                 deps[0].requested.version == 'default'
                 deps[0].selected.id.version == '1.3'
@@ -453,7 +453,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def deps = getResolutionResult().allDependencies as List
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
                 assert deps.size() == 2
                 def api = deps.find { it.requested.name == 'api' }
                 api.requested.version == 'default'
@@ -485,7 +485,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def deps = getResolutionResult().allDependencies as List
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
                 assert deps.size() == 1
                 assert deps[0].attempted.group == 'org.utils'
                 assert deps[0].attempted.name == 'api'
@@ -608,7 +608,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def modules = getResolutionResult().allModuleVersions as List
+                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
                 assert !modules.find { it.id.name == 'a' }
                 def b = modules.find { it.id.name == 'b' }
                 assert b.id.version == '2.1'
@@ -777,7 +777,7 @@ conf
             }
 
             task check << {
-                def modules = getResolutionResult().allModuleVersions as List
+                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
                 assert modules.find { it.id.name == 'b' && it.id.version == '4.0' && it.selectionReason.conflictResolution }
             }
 """
@@ -787,16 +787,7 @@ conf
     }
 
     String getCommon() {
-        """
-        configurations {
-            conf {
-                incoming.withResolutionResult { project.ext.theResult = it }
-            }
-        }
-        ResolutionResult getResolutionResult() {
-            configurations.conf.resolvedConfiguration //resolve w/o artifact download
-            theResult
-        }
+        """configurations { conf }
         repositories {
             maven { url "${mavenRepo.uri}" }
         }

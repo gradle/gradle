@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics
+package org.gradle.api.tasks.diagnostics;
+
 
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
@@ -26,20 +27,21 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.graph.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationParser
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter
-import org.gradle.api.tasks.diagnostics.internal.result.ResolutionResultConsumer
-import org.gradle.api.tasks.diagnostics.internal.result.ResolutionResultKeeper
-import org.gradle.internal.graph.GraphRenderer
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
 
 import javax.inject.Inject
 
-import static org.gradle.logging.StyledTextOutput.Style.*
+import static org.gradle.logging.StyledTextOutput.Style.Info
+import static org.gradle.logging.StyledTextOutput.Style.Failure
+import static org.gradle.logging.StyledTextOutput.Style.Identifier
+import static org.gradle.logging.StyledTextOutput.Style.Description
 
 /**
  * Generates a report that attempts to answer questions like:
@@ -83,21 +85,11 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     private final StyledTextOutput output;
     private final GraphRenderer renderer;
-    private ResolutionResult resolutionResult;
 
     @Inject
     DependencyInsightReportTask(StyledTextOutputFactory outputFactory) {
         output = outputFactory.create(getClass());
         renderer = new GraphRenderer(output);
-        new ResolutionResultKeeper().setup(project, this.getPath(), new ResolutionResultConsumer() {
-            void resolutionResult(Configuration configuration, ResolutionResult resolutionResult) {
-                setResolutionResult(resolutionResult);
-            }
-        })
-    }
-
-    void setResolutionResult(ResolutionResult resolutionResult) {
-        this.resolutionResult = resolutionResult
     }
 
     /**
@@ -162,7 +154,14 @@ public class DependencyInsightReportTask extends DefaultTask {
                     + "\nIt can be specified from the command line, e.g: '$path --dependency someDep'")
         }
 
-        Set<DependencyResult> selectedDependencies = selectDependencies()
+        ResolutionResult result = configuration.getIncoming().getResolutionResult();
+
+        Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>()
+        result.allDependencies { DependencyResult it ->
+            if (dependencySpec.isSatisfiedBy(it)) {
+                selectedDependencies << it
+            }
+        }
 
         if (selectedDependencies.empty) {
             output.println("No dependencies matching given input were found in $configuration")
@@ -204,19 +203,5 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
         dependencyGraphRenderer.printLegend()
-    }
-
-    private Set<DependencyResult> selectDependencies() {
-        configuration.resolvedConfiguration.getLenientConfiguration(); //force resolve but do not rethrow any error (just fatal)
-        assert resolutionResult != null;
-
-        Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>()
-        resolutionResult.allDependencies { DependencyResult it ->
-            if (dependencySpec.isSatisfiedBy(it)) {
-                selectedDependencies << it
-            }
-        }
-        resolutionResult = null
-        selectedDependencies
     }
 }

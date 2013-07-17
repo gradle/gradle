@@ -20,20 +20,17 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
+import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.SimpleNodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
-import org.gradle.api.tasks.diagnostics.internal.result.ResolutionResultConsumer;
-import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.gradle.logging.StyledTextOutput.Style.*;
 
@@ -42,10 +39,9 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
  *
  * @author Phil Messenger
  */
-public class AsciiDependencyReportRenderer extends TextReportRenderer implements DependencyReportRenderer, ResolutionResultConsumer {
+public class AsciiDependencyReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
     private boolean hasConfigs;
     DependencyGraphRenderer dependencyGraphRenderer;
-    private Map<Configuration, ResolutionResult> results = new HashMap<Configuration, ResolutionResult>();
 
     @Override
     public void startProject(Project project) {
@@ -84,19 +80,8 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
 
     public void completeConfiguration(Configuration configuration) {}
 
-    public void resolutionResult(Configuration configuration, ResolutionResult resolutionResult) {
-        results.put(configuration, resolutionResult);
-    }
-
     public void render(Configuration configuration) throws IOException {
-        ResolutionResult result = results.remove(configuration);
-        if (result == null && configuration.getState() != Configuration.State.RESOLVED_WITH_FAILURES) {
-            throw new IllegalArgumentException("foo");
-        }
-        if (result == null) {
-            return;
-        }
-
+        ResolutionResult result = configuration.getIncoming().getResolutionResult();
         RenderableDependency root = new RenderableModuleResult(result.getRoot());
         renderNow(root);
     }
@@ -118,4 +103,5 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
 
         super.complete();
     }
+
 }

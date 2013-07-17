@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice
+package org.gradle.api.internal.artifacts.ivyservice;
+
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext
@@ -41,7 +43,7 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "returns correct resolved configuration"() {
         given:
-        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration)
+        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> true
 
@@ -58,7 +60,7 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "uses configuration transitive setting"() {
         given:
-        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration)
+        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> false
 
@@ -72,7 +74,7 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "delegates to provided resolved configuration"() {
         given:
-        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration)
+        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> true
 

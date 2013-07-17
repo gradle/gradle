@@ -29,8 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,16 +75,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                     conflictResolver = new LatestModuleConflictResolver();
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
-
+        
                 DependencyGraphBuilder builder = new DependencyGraphBuilder(resolvedArtifactFactory, idResolver, projectDependencyResolver, conflictResolver, cacheLockingManager, new DefaultDependencyToConfigurationResolver());
-
-                ResolvedConfigurationListener listener = new DefaultResolutionResultBuilder(configuration.getResolutionResultActions());
-
-                DefaultLenientConfiguration result = builder.resolve(configuration, listener);
-
-                listener.resolutionCompleted();
-
-                return new ResolverResults(new DefaultResolvedConfiguration(result));
+                ResolutionResultBuilder resultBuilder = new ResolutionResultBuilder();
+                DefaultLenientConfiguration result = builder.resolve(configuration, resultBuilder);
+                return new ResolverResults(new DefaultResolvedConfiguration(result), resultBuilder.getResult());
             }
         });
     }
