@@ -135,9 +135,10 @@ The progress info in the console contains extra information:
 
 ## Open issues / limitations
 
+    * A much more accurate approach would be using some kind of task history to estimate remaining time.
     * In configure-on-demand mode the loading % progress will be slightly incorrect
     because we don't know how many projects will be configured. So it may happen that all projects will be loaded at 4% of progress.
     However, I think it is still useful to see what's the percentage of projects that were configured during given build run.
     Alternatively, we can drop the % progress for "Loading".
-
-
+    * Inaccurate/awkward when we mix configuring and building, for example, when you use the output of a project to configure the other projects.
+    * Problematic when in future we start mixing configuration and execution in a parallel build.
