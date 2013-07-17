@@ -25,13 +25,30 @@ We want to scale Gradle so that it neatly consumes 1000+ module builds.
     * drop all the resolution strategy state after the configuration is resolved
     * drop more ivy types (DefaultModuleDescriptor)
     * clean up / project instances when Gradle is done with given project. Gradle knows when we're done with the project (e.g. last task for this project has completed).
-        * clear and null out task container
+        * we don't want to drop the core domain objects like tasks but perhaps we would slim them down (e.g. task.deleteAllActions())
         * tear down project services
         * etc.
     * improve configuration on demand mode so that it only loads projects that are requested
     * there's a lot of duplication in the dependency graphs in different configurations / projects. Perhaps some objects / parts of the graph can be reused.
 
 # Actual stories
+
+## Configuration drops redundant state after resolution
+
+To conserve memory the configuration may drop the resolution strategy.
+The resolution strategy has popped up in the profiler as pretty big, especially if lots of forced modules are configured.
+Potentially there's more state we can drop once the configuration is resolved: beforeResolve / afterResolve actions.
+We should be careful not to drop state that can be queried and to focus on things that stick out in the profiler.
+
+### User visible changes
+
+* Decent error message when the user attempts to configure the resolution strategy but the configuration is already resolved
+* less heap used
+* resolutionStrategy.getForcedModules() will fail when the configuration was already resolved. I'm uneasy about this change.
+
+### Other potential state worth dropping after resolution:
+
+* beforeResolve / afterResolve actions
 
 ## The old resolved dependency graph is memory friendly
 
