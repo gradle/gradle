@@ -93,9 +93,7 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.source = getSource()
         spec.macros = getMacros()
         spec.args = getCompilerArgs()
-        if (isPositionIndependentCode()) {
-            spec.positionIndependentCode = true
-        }
+        spec.positionIndependentCode = isPositionIndependentCode()
 
         def result = execute(toolChain as ToolChainInternal, spec)
         didWork = result.didWork
