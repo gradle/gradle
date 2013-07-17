@@ -40,18 +40,18 @@ class Assembler implements Compiler<AssembleSpec> {
         boolean didWork = false;
         CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSource()) {
-            WorkResult result = commandLineAssembler.withArguments(new GccCompileSpecToArguments(sourceFile)).execute(spec);
+            WorkResult result = commandLineAssembler.withArguments(new AssemblerSpecToArguments(sourceFile)).execute(spec);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);
     }
 
 
-    private static class GccCompileSpecToArguments implements CompileSpecToArguments<AssembleSpec> {
+    private static class AssemblerSpecToArguments implements CompileSpecToArguments<AssembleSpec> {
         private final File inputFile;
         private final String outputFileName;
 
-        public GccCompileSpecToArguments(File inputFile) {
+        public AssemblerSpecToArguments(File inputFile) {
             this.inputFile = inputFile;
             this.outputFileName = inputFile.getName() + ".o";
         }

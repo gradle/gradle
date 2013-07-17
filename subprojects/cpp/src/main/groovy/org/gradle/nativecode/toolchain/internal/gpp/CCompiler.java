@@ -17,14 +17,12 @@
 package org.gradle.nativecode.toolchain.internal.gpp;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.language.cpp.internal.CCompileSpec;
-import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.process.internal.ExecAction;
 
@@ -35,25 +33,19 @@ class CCompiler implements Compiler<CCompileSpec> {
     private final CommandLineTool<CCompileSpec> commandLineTool;
 
     public CCompiler(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
-        this.commandLineTool = new CommandLineTool<CCompileSpec>(executable, execActionFactory)
-                .withArguments(useCommandFile ? viaCommandFile() : withoutCommandFile());
-    }
-
-    private static GccCompileSpecToArguments withoutCommandFile() {
-        return new GccCompileSpecToArguments();
-    }
-
-    private static CommandLineCompilerArgumentsToOptionFile<CCompileSpec> viaCommandFile() {
-        return new CommandLineCompilerArgumentsToOptionFile<CCompileSpec>(
-            ArgWriter.unixStyleFactory(), new GccCompileSpecToArguments()
+        GccCompileSpecToArguments<CCompileSpec> specToArguments = new GccCompileSpecToArguments<CCompileSpec>(
+                new CCompileOptionsToArguments(),
+                new GccCompileSourcesToArguments<CCompileSpec>(),
+                useCommandFile
         );
+        this.commandLineTool = new CommandLineTool<CCompileSpec>(executable, execActionFactory).withArguments(specToArguments);
     }
 
     public WorkResult execute(CCompileSpec spec) {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class GccCompileSpecToArguments implements CompileSpecToArguments<CCompileSpec> {
+    private static class CCompileOptionsToArguments implements CompileSpecToArguments<CCompileSpec> {
         public void collectArguments(CCompileSpec spec, ArgCollector collector) {
             // C-compiling options
             collector.args("-x", "c");
@@ -69,13 +61,6 @@ class CCompiler implements Compiler<CCompileSpec> {
                 if (!OperatingSystem.current().isWindows()) {
                     collector.args("-fPIC");
                 }
-            }
-            for (File file : spec.getIncludeRoots()) {
-                collector.args("-I");
-                collector.args(file.getAbsolutePath());
-            }
-            for (File file : spec.getSource()) {
-                collector.args(file.getAbsolutePath());
             }
         }
     }
