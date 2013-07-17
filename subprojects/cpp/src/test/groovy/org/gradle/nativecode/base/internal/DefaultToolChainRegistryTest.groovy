@@ -17,7 +17,7 @@
 package org.gradle.nativecode.base.internal
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativecode.language.cpp.internal.BaseCompileSpec
+import org.gradle.nativecode.language.cpp.internal.NativeCompileSpec
 import spock.lang.Specification
 
 class DefaultToolChainRegistryTest extends Specification {
@@ -47,11 +47,11 @@ class DefaultToolChainRegistryTest extends Specification {
     }
 
     def "compilation searches adapters in the order added and uses the first available"() {
-        BaseCompileSpec compileSpec = Mock()
+        NativeCompileSpec compileSpec = Mock()
         ToolChainInternal toolChainInternal1 = toolChainInternal("z")
         ToolChainInternal toolChainInternal2 = toolChainInternal("b")
         ToolChainInternal toolChainInternal3 = toolChainInternal("a")
-        Compiler<BaseCompileSpec> realCompiler = Mock()
+        Compiler<NativeCompileSpec> realCompiler = Mock()
 
         given:
         registry.add(toolChainInternal1)
@@ -72,7 +72,7 @@ class DefaultToolChainRegistryTest extends Specification {
     }
 
     def "compilation fails when no adapter is available"() {
-        BaseCompileSpec compileSpec = Mock()
+        NativeCompileSpec compileSpec = Mock()
         ToolChainInternal toolChainInternal1 = toolChainInternal("z")
         ToolChainInternal toolChainInternal2 = toolChainInternal("b")
         ToolChainInternal toolChainInternal3 = toolChainInternal("a")

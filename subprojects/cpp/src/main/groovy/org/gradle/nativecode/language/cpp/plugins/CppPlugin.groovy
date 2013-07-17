@@ -188,7 +188,6 @@ class CppPlugin implements Plugin<ProjectInternal> {
         assembleTask.source sourceSet.source
 
         assembleTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
-        assembleTask.conventionMapping.macros = { binary.macros }
         assembleTask.conventionMapping.assemblerArgs = { binary.assemblerArgs }
 
         assembleTask

@@ -15,91 +15,25 @@
  */
 
 package org.gradle.nativecode.language.cpp.tasks
-import org.gradle.api.DefaultTask
-import org.gradle.api.Incubating
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.tasks.*
-import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
-import org.gradle.nativecode.base.ToolChain
-import org.gradle.nativecode.language.cpp.internal.DefaultCppCompileSpec
 
-import javax.inject.Inject
+import org.gradle.api.Incubating
+import org.gradle.api.tasks.WorkResult
+import org.gradle.nativecode.base.internal.ToolChainInternal
+import org.gradle.nativecode.language.cpp.internal.DefaultCppCompileSpec
+import org.gradle.nativecode.language.cpp.internal.NativeCompileSpec
 
 /**
  * Compiles C++ source files into object files.
  */
 @Incubating
-class CppCompile extends DefaultTask {
-    private FileCollection source
-
-    ToolChain toolChain
-
-    @Input
-    boolean positionIndependentCode
-
-    @OutputDirectory
-    File objectFileDir
-
-    @InputFiles
-    FileCollection includes
-
-    @InputFiles @SkipWhenEmpty // Workaround for GRADLE-2026
-    FileCollection getSource() {
-        source
+class CppCompile  extends AbstractNativeCompileTask {
+    @Override
+    protected NativeCompileSpec createCompileSpec() {
+        new DefaultCppCompileSpec()
     }
 
-    // Invalidate output when the tool chain output changes
-    @Input
-    def getOutputType() {
-        return toolChain.outputType
-    }
-
-    @Input
-    List<String> macros
-
-    @Input
-    List<String> compilerArgs
-
-    @Inject
-    CppCompile() {
-        includes = project.files()
-        source = project.files()
-    }
-
-    @TaskAction
-    void compile() {
-        def cleaner = new SimpleStaleClassCleaner(getOutputs())
-        cleaner.setDestinationDir(getObjectFileDir())
-        cleaner.execute()
-
-        def spec = new DefaultCppCompileSpec()
-        spec.tempDir = getTemporaryDir()
-
-        spec.objectFileDir = getObjectFileDir()
-        spec.includeRoots = getIncludes()
-        spec.source = getSource()
-        spec.macros = getMacros()
-        spec.args = getCompilerArgs()
-        if (isPositionIndependentCode()) {
-            spec.positionIndependentCode = true
-        }
-
-        def result = toolChain.createCppCompiler().execute(spec)
-        didWork = result.didWork
-    }
-
-    void includes(SourceDirectorySet dirs) {
-        dirs.files.each {
-            includes.from(it.parentFile)
-        }
-    }
-
-    void includes(FileCollection includeRoots) {
-        includes.from(includeRoots)
-    }
-
-    void source(Object sourceFiles) {
-        source.from sourceFiles
+    @Override
+    protected WorkResult execute(ToolChainInternal toolChain, NativeCompileSpec spec) {
+        return toolChain.createCppCompiler().execute(spec)
     }
 }

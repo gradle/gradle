@@ -17,11 +17,11 @@ package org.gradle.nativecode.toolchain.internal.gpp;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
-import org.gradle.nativecode.language.cpp.internal.BaseCompileSpec;
+import org.gradle.nativecode.language.cpp.internal.NativeCompileSpec;
 
 import java.io.File;
 
-class GccCompileSourcesToArguments<T extends BaseCompileSpec> implements CompileSpecToArguments<T> {
+class GccCompileSourcesToArguments<T extends NativeCompileSpec> implements CompileSpecToArguments<T> {
     public void collectArguments(T spec, ArgCollector collector) {
         for (File file : spec.getIncludeRoots()) {
             collector.args("-I");

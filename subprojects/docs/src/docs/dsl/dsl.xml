@@ -512,13 +512,22 @@
                 <td>org.gradle.nativecode.language.cpp.tasks.CppCompile</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.tasks.CreateStaticLibrary</td>
+                <td>org.gradle.nativecode.language.cpp.tasks.CCompile</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.language.cpp.tasks.Assemble</td>
             </tr>
             <tr>
                 <td>org.gradle.nativecode.base.tasks.LinkExecutable</td>
             </tr>
             <tr>
                 <td>org.gradle.nativecode.base.tasks.LinkSharedLibrary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.tasks.CreateStaticLibrary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.base.tasks.InstallExecutable</td>
             </tr>
         </table>
     </section>

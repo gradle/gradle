@@ -20,11 +20,10 @@ import org.gradle.nativecode.base.internal.BinaryToolSpec;
 
 import java.io.File;
 
-// TODO:DAZ This isn't a good name
 /**
  * A compile spec that will be used to generate object files for combining into a native binary.
  */
-public interface BaseCompileSpec extends BinaryToolSpec {
+public interface NativeCompileSpec extends BinaryToolSpec {
     File getObjectFileDir();
 
     void setObjectFileDir(File objectFileDir);
@@ -44,4 +43,8 @@ public interface BaseCompileSpec extends BinaryToolSpec {
     Iterable<String> getArgs();
 
     void setArgs(Iterable<String> args);
+
+    boolean isPositionIndependentCode();
+
+    void setPositionIndependentCode(boolean flag);
 }

@@ -16,10 +16,6 @@
 
 package org.gradle.nativecode.language.cpp.internal;
 
-public interface CCompileSpec extends BaseCompileSpec {
-
-    boolean isPositionIndependentCode();
-
-    void setPositionIndependentCode(boolean flag);
+public interface CCompileSpec extends NativeCompileSpec {
 
 }

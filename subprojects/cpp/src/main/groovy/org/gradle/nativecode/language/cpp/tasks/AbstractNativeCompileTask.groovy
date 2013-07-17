@@ -18,27 +18,37 @@ package org.gradle.nativecode.language.cpp.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.*
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
 import org.gradle.nativecode.base.ToolChain
-import org.gradle.nativecode.language.cpp.internal.DefaultAssembleSpec
+import org.gradle.nativecode.base.internal.ToolChainInternal
+import org.gradle.nativecode.language.cpp.internal.NativeCompileSpec
 
 import javax.inject.Inject
-
 /**
- * Translates Assembly language source files into object files.
+ * Compiles native source files into object files.
  */
 @Incubating
-class Assemble extends DefaultTask {
+abstract class AbstractNativeCompileTask extends DefaultTask {
     private FileCollection source
 
     ToolChain toolChain
+
+    /**
+     * Should the compiler generate position independent code?
+     */
+    @Input
+    boolean positionIndependentCode
 
     /**
      * The directory where object files will be generated.
      */
     @OutputDirectory
     File objectFileDir
+
+    @InputFiles
+    FileCollection includes
 
     @InputFiles @SkipWhenEmpty // Workaround for GRADLE-2026
     FileCollection getSource() {
@@ -52,35 +62,67 @@ class Assemble extends DefaultTask {
     }
 
     /**
-     * Additional arguments to provide to the assembler.
+     * Macros that should be defined for the compiler.
      */
     @Input
-    List<String> assemblerArgs
+    List<String> macros
+
+    /**
+     * Additional arguments to provide to the compiler.
+     */
+    @Input
+    List<String> compilerArgs
 
     @Inject
-    Assemble() {
+    AbstractNativeCompileTask() {
+        includes = project.files()
         source = project.files()
     }
 
     @TaskAction
-    void assemble() {
+    void compile() {
         def cleaner = new SimpleStaleClassCleaner(getOutputs())
         cleaner.setDestinationDir(getObjectFileDir())
         cleaner.execute()
 
-        def spec = new DefaultAssembleSpec()
+        def spec = createCompileSpec()
         spec.tempDir = getTemporaryDir()
 
         spec.objectFileDir = getObjectFileDir()
+        spec.includeRoots = getIncludes()
         spec.source = getSource()
-        spec.args = getAssemblerArgs()
+        spec.macros = getMacros()
+        spec.args = getCompilerArgs()
+        if (isPositionIndependentCode()) {
+            spec.positionIndependentCode = true
+        }
 
-        def result = toolChain.createAssembler().execute(spec)
+        def result = execute(toolChain as ToolChainInternal, spec)
         didWork = result.didWork
     }
 
+    protected abstract NativeCompileSpec createCompileSpec();
+
+    protected abstract WorkResult execute(ToolChainInternal toolChain, NativeCompileSpec spec);
+
     /**
-     * Adds a set of assembler sources files to be translated.
+     * Add locations where the compiler should search for header files.
+     */
+    void includes(SourceDirectorySet dirs) {
+        dirs.files.each {
+            includes.from(it.parentFile)
+        }
+    }
+
+    /**
+     * Add directories where the compiler should search for header files.
+     */
+    void includes(FileCollection includeRoots) {
+        includes.from(includeRoots)
+    }
+
+    /**
+     * Adds a set of source files to be compiled.
      * The provided sourceFiles object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
     void source(Object sourceFiles) {

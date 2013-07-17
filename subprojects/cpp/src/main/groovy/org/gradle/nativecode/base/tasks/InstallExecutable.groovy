@@ -17,6 +17,7 @@
 package org.gradle.nativecode.base.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.FileCopyAction
@@ -26,9 +27,14 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 import javax.inject.Inject
 
+/**
+ * Installs an executable with it's dependent libraries so it can be easily executed.
+ */
+@Incubating
 public class InstallExecutable extends DefaultTask {
 
     private final Instantiator instantiator
@@ -51,11 +57,14 @@ public class InstallExecutable extends DefaultTask {
     @InputFile
     File executable
 
+    /**
+     * The library files that should be installed.
+     */
     @InputFiles
     FileCollection libs
 
     /**
-     * Adds a set of library files to be linked.
+     * Adds a set of library files to be installed.
      * The provided libs object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
     void lib(Object libs) {
@@ -92,7 +101,9 @@ export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
 export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
 exec "\$APP_BASE_NAME/lib/${executable.name}" \"\$@\"
 """
-        ant.chmod(perm: 'u+x', file: script)
+
+        FileSystem fileSystem = getServices().get(FileSystem.class);
+        fileSystem.chmod(script, 0755)
     }
 
     private void installToDir(File binaryDir) {

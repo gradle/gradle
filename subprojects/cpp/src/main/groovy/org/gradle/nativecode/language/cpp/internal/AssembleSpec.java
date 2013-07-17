@@ -32,10 +32,6 @@ public interface AssembleSpec extends BinaryToolSpec {
 
     void setSource(Iterable<File> source);
 
-    Iterable<String> getMacros();
-
-    void setMacros(Iterable<String> macros);
-
     Iterable<String> getArgs();
 
     void setArgs(Iterable<String> args);
