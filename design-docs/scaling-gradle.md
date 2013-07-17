@@ -30,3 +30,37 @@ We want to scale Gradle so that it neatly consumes 1000+ module builds.
         * etc.
     * improve configuration on demand mode so that it only loads projects that are requested
     * there's a lot of duplication in the dependency graphs in different configurations / projects. Perhaps some objects / parts of the graph can be reused.
+
+# Actual stories
+
+## The old resolved dependency graph is memory friendly
+
+Old resolved dependency graph may consume 20-50% of the heap size (non-retainable) of a large project
+The graph is not needed for the typical scenarios (usually we just need the files)
+The idea is to flush the information needed for the graph to the disk when the configuration is resolved
+When the graph is requested, the information is read from the disk and the graph is assembled
+
+### User visible changes
+
+Ideally, we want the API to remain untouched and the only effect is faster & less memory hungry.
+
+### Implementation plan
+
+* The graph data will be flushed to disk from the DependencyGraphBuilder.assembleResult method
+* The graph for the entire configuration is built when any part of the graph is requested:
+    * configuration.resolvedConfiguration.getFirstLevelModuleDependencies() and friends
+    * resolvedArtifact.getResolvedDependency()
+* The graph data is removed from disk when the build is finished
+* Use little files so that cleanup is fast. Let's try with one file per thread
+
+### Coverage
+
+* existing integ test coverage
+
+### Questions
+
+* Should the graph reside in memory after it was built?
+    * keeping it in memory will bite us when IDE metadata is generated for the large project
+    * I'd rather avoid fancy references. Soft references will cause huge memory allocation because -server jvms will prefer heap expansion over gc
+    * not keeping it in memory will almost certainly reduce the performance if the graph info is accessed often
+    * perhaps we keep it in memory but offer a LenientConfiguration.clear() that removes the graph data. The method obviously goes away once the old graph is gone.
