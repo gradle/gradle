@@ -17,7 +17,9 @@
 apply plugin: 'cpp'
 
 def os = org.gradle.internal.os.OperatingSystem.current()
-def platform = os.macOsX ? "x32_osx" : "x64_linux"
+def platform = os.macOsX ? "x32_osx"
+             : os.windows ? "x64_win"
+             : "x64_linux"
 
 sources {
     main {
@@ -25,28 +27,16 @@ sources {
             source.srcDir "src/main/asm_${platform}"
         }
     }
-    hello {
-        asm {
-            source.srcDir "src/hello/asm_${platform}"
-        }
-    }
-}
-libraries {
-    hello {
-		source sources.hello.asm
-    }
 }
 executables {
     main {
-        source sources.main.asm
-	    binaries.all {
-            lib libraries.hello.static
-		}
+        source sources.main
     }
 }
 
 if (os.macOsX) {
     binaries.all {
+        compilerArgs "-m32"
         assemblerArgs "-arch", "i386"
         linkerArgs "-no_pie", "-arch", "i386"
     }

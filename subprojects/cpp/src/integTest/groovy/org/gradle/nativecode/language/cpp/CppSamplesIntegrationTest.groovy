@@ -24,8 +24,8 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
-    @Rule public final Sample asm = new Sample(temporaryFolder, 'cpp/asm')
     @Rule public final Sample c = new Sample(temporaryFolder, 'cpp/c')
+    @Rule public final Sample asm = new Sample(temporaryFolder, 'cpp/c-with-assembler')
     @Rule public final Sample cpp = new Sample(temporaryFolder, 'cpp/cpp')
     @Rule public final Sample cppExe = new Sample(temporaryFolder, 'cpp/cpp-exe')
     @Rule public final Sample cppLib = new Sample(temporaryFolder, 'cpp/cpp-lib')
@@ -33,7 +33,6 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     @Rule public final Sample variants = new Sample(temporaryFolder, 'cpp/variants')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'cpp/dependencies')
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "asm"() {
         given:
         sample asm
@@ -42,11 +41,10 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         run "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":assembleHelloStaticLibraryHelloAsm", ":createHelloStaticLibrary", ":helloStaticLibrary",
-                              ":assembleMainExecutableMainAsm", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":assembleMainExecutableMainAsm", ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        normaliseLineSeparators(executable("cpp/asm/build/install/mainExecutable/main").exec().out) == "Hello!\nGoodbye.\n"
+        normaliseLineSeparators(executable("cpp/c-with-assembler/build/install/mainExecutable/main").exec().out) == "5 + 7 = 12\n"
     }
 
     def "c"() {
