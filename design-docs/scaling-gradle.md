@@ -81,3 +81,11 @@ Ideally, we want the API to remain untouched and the only effect is faster & les
     * I'd rather avoid fancy references. Soft references will cause huge memory allocation because -server jvms will prefer heap expansion over gc
     * not keeping it in memory will almost certainly reduce the performance if the graph info is accessed often
     * perhaps we keep it in memory but offer a LenientConfiguration.clear() that removes the graph data. The method obviously goes away once the old graph is gone.
+
+## The new resolved dependency graph is memory friendly
+
+Pretty much the same goals and implementation details as for the old dependency graph.
+
+### Questions
+
+* Should we build the new dependency graph from the data that we have stored for the old dependency graph? E.g. reuse the persistent format we already have.
