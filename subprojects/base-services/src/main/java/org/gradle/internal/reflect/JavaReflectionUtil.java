@@ -22,6 +22,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.JavaMethod;
 
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Inherited;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -159,6 +161,24 @@ public class JavaReflectionUtil {
         }
 
         return collector;
+    }
+
+    public static <A extends Annotation> A getAnnotation(Class<?> type, Class<A> annotationType) {
+        A annotation = type.getAnnotation(annotationType);
+        if (annotation != null) {
+            return annotation;
+        }
+
+        if (annotationType.getAnnotation(Inherited.class) != null) {
+            for (Class<?> anInterface : type.getInterfaces()) {
+                annotation = getAnnotation(anInterface, annotationType);
+                if (annotation != null) {
+                    return annotation;
+                }
+            }
+        }
+
+        return null;
     }
 
 }

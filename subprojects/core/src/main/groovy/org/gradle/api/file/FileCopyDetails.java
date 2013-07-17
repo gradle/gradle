@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.Nullable;
 
 /**
@@ -25,6 +26,7 @@ import org.gradle.api.Nullable;
  * <p>Using this interface, you can change the destination path of the file, filter the content of the file, or exclude
  * the file from the result entirely.</p>
  */
+@NonExtensible
 public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
     /**
      * Excludes this file from the copy.

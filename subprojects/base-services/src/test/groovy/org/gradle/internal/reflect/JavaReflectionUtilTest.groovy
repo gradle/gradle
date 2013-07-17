@@ -21,6 +21,10 @@ import org.gradle.api.specs.Specs
 import org.gradle.internal.UncheckedException
 import spock.lang.Specification
 
+import java.lang.annotation.Inherited
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+
 import static org.gradle.internal.reflect.JavaReflectionUtil.*
 
 class JavaReflectionUtilTest extends Specification {
@@ -114,5 +118,60 @@ class JavaReflectionUtilTest extends Specification {
         findMethod(String, { it.name == "getClass" } as Spec) == Object.declaredMethods.find { it.name == "getClass" }
     }
 
+    def "get annotation"() {
+        expect:
+        getAnnotation(Root, InheritedAnnotation).value() == "default"
+        getAnnotation(Subclass, InheritedAnnotation).value() == "default"
+        getAnnotation(RootInterface, InheritedAnnotation).value() == "default"
+        getAnnotation(SubInterface, InheritedAnnotation).value() == "default"
+
+        getAnnotation(Root, NotInheritedAnnotation).value() == "default"
+        getAnnotation(Subclass, NotInheritedAnnotation) == null
+        getAnnotation(RootInterface, NotInheritedAnnotation).value() == "default"
+        getAnnotation(SubInterface, NotInheritedAnnotation) == null
+
+        getAnnotation(ImplementsRootInterface, InheritedAnnotation).value() == "default"
+        getAnnotation(ImplementsRootInterface, NotInheritedAnnotation) == null
+        getAnnotation(ImplementsSubInterface, InheritedAnnotation).value() == "default"
+        getAnnotation(ImplementsSubInterface, NotInheritedAnnotation) == null
+        getAnnotation(ImplementsBoth, InheritedAnnotation).value() == "default"
+        getAnnotation(ImplementsBoth, NotInheritedAnnotation) == null
+
+        getAnnotation(OverrideFirst, InheritedAnnotation).value() == "HasAnnotations"
+        getAnnotation(OverrideLast, InheritedAnnotation).value() == "default"
+    }
+
 }
 
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@interface InheritedAnnotation {
+    String value() default "default"
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface NotInheritedAnnotation {
+    String value() default "default"
+}
+
+@InheritedAnnotation
+@NotInheritedAnnotation
+class Root {}
+
+class Subclass extends Root {}
+
+@InheritedAnnotation
+@NotInheritedAnnotation
+interface RootInterface {}
+
+interface SubInterface extends RootInterface {}
+
+class ImplementsRootInterface implements RootInterface {}
+class ImplementsSubInterface implements SubInterface {}
+class ImplementsBoth implements RootInterface, SubInterface {}
+
+@InheritedAnnotation(value = "HasAnnotations")
+interface HasAnnotations {}
+
+class OverrideFirst implements HasAnnotations, RootInterface, SubInterface {}
+class OverrideLast implements RootInterface, SubInterface, HasAnnotations {}

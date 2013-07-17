@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -36,6 +37,7 @@ import java.util.regex.Pattern;
 /**
  * @author Steve Appling
  */
+@NonExtensible
 public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private final FileResolver resolver;
     private final Set<Object> sourcePaths;
