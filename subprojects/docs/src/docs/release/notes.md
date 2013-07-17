@@ -110,6 +110,19 @@ The following classes will be removed in Gradle 2.0. They are no longer used:
 
 ## Potential breaking changes
 
+### Changes in task arguments evaluation
+
+All arguments passed for task creation are evaluated to be valid. In earlier Gradle versions, a typo in the arguments was silently ignored.
+The following snippet will now fail with a decent error message, giving a hint, that 'Type' is not a valid argument.
+
+<pre>
+    task myCopy(Type: copy) {
+        from "..."
+        into "..."
+    }
+}</pre>
+
+
 ### Changes to incubating C++ support
 
 * Renamed task class org.gradle.nativecode.base.tasks.AssembleStaticLibrary to org.gradle.nativecode.base.tasks.CreateStaticLibrary, with the
