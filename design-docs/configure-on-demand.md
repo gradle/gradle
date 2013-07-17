@@ -216,10 +216,11 @@ Faster & less memory-hungry builds when CoD is used and the user builds only a s
 
 ### Coverage
 
-Not sure if this can be tested in an integ-test fashion
+performance tests, we probably need dedicated performance tests for CoD
 
-### Implementation plan
+### Implementation options
 
+    * Project instances are slim and lazily initiated
     * If we start loading projects on demand, the 'allprojects' and 'subprojects' script blocks will stop working.
     So the prerequisite to this story might be starting with our Gradle 2.0 idea of pushing allprojects / subprojects / common settings to settings.gradle.
     * Perhaps it's time to make projects a domain object container and allprojects can be replaced with 'projects.all'
