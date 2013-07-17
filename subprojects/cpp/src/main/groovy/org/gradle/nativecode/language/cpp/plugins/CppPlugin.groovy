@@ -129,27 +129,27 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     def createTasks(ProjectInternal project, NativeBinaryInternal binary) {
-        BinaryOutputTask binaryAssembleTask
+        BuildBinaryTask buildBinaryTask
         if (binary instanceof StaticLibraryBinary) {
-            binaryAssembleTask = createStaticLibraryTask(project, binary)
+            buildBinaryTask = createStaticLibraryTask(project, binary)
         } else {
-            binaryAssembleTask = createLinkTask(project, binary)
+            buildBinaryTask = createLinkTask(project, binary)
         }
-        binary.dependsOn binaryAssembleTask
+        binary.dependsOn buildBinaryTask
 
         binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
             def compileTask = createCompileTask(project, binary, sourceSet, CppCompile)
-            binaryAssembleTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+            buildBinaryTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
         }
 
         binary.source.withType(CSourceSet).all { CSourceSet sourceSet ->
             def compileTask = createCompileTask(project, binary, sourceSet, CCompile)
-            binaryAssembleTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+            buildBinaryTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
         }
 
         binary.source.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->
             def compileTask = createAssembleTask(project, binary, sourceSet)
-            binaryAssembleTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+            buildBinaryTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
         }
 
         if (binary instanceof ExecutableBinary) {

@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.base.tasks;
-
 /**
- * A task that combines a set of object files into a single binary.
+ * Classes that model aspects of C++ projects.
  */
-public interface BinaryOutputTask {
-    /**
-     * Adds a set of object files to be combined.
-     * The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     */
-    void source(Object source);
-}
+package org.gradle.nativecode.language.c;

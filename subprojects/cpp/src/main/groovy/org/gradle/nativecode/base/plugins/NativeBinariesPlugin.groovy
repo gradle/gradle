@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.base.plugins;
+package org.gradle.nativecode.base.plugins
+import org.gradle.api.*
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.BasePlugin
+import org.gradle.configuration.project.ProjectConfigurationActionContainer
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.base.BinaryContainer
+import org.gradle.language.base.plugins.LanguageBasePlugin
+import org.gradle.nativecode.base.*
+import org.gradle.nativecode.base.internal.*
 
-import org.gradle.api.*;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.BasePlugin;
-import org.gradle.configuration.project.ProjectConfigurationActionContainer;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinaryContainer;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.nativecode.base.*;
-import org.gradle.nativecode.base.internal.*;
-
-import javax.inject.Inject;
-import java.io.File;
-
+import javax.inject.Inject
 /**
  * A plugin that sets up the infrastructure for defining native binaries.
  */
