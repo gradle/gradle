@@ -46,7 +46,7 @@ public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement i
     }
 
     public BinaryNamingScheme getNamingScheme() {
-        return TaskNamerForBinaries.collapseMain(baseName);
+        return new ClassesNamingScheme(baseName);
     }
 
     public String getName() {
@@ -75,5 +75,17 @@ public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement i
 
     public String toString() {
         return String.format("classes '%s'", baseName);
+    }
+
+    private static class ClassesNamingScheme extends TaskNamerForBinaries {
+        private ClassesNamingScheme(String baseName) {
+            super(baseName);
+            withMainCollapsed();
+        }
+
+        @Override
+        public String getLifecycleTaskName() {
+            return getTaskName(null, "classes");
+        }
     }
 }

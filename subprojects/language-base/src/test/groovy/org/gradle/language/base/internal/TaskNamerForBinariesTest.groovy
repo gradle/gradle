@@ -35,7 +35,7 @@ class TaskNamerForBinariesTest extends Specification {
 
     def "can collapse `main` when generating names"() {
         expect:
-        def namer = TaskNamerForBinaries.collapseMain(name)
+        def namer = new TaskNamerForBinaries(name).withMainCollapsed()
         namer.getTaskName(verb, target) == taskName
 
         where:

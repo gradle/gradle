@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
-
 import org.gradle.api.Project
 import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.ProjectSourceSet
+import org.gradle.language.base.internal.BinaryInternal
+import org.gradle.language.base.internal.BinaryNamingScheme
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.util.HelperUtil
-
 import spock.lang.Specification
 
 class LanguageBasePluginTest extends Specification {
@@ -38,5 +38,19 @@ class LanguageBasePluginTest extends Specification {
     def "adds a 'sources' container to the project"() {
         expect:
         project.extensions.findByName("sources") instanceof ProjectSourceSet
+    }
+
+    def "creates a lifecycle task for each binary"() {
+        def binary = Mock(BinaryInternal)
+        def namingScheme = Mock(BinaryNamingScheme)
+
+        when:
+        project.extensions.findByType(BinaryContainer).add(binary)
+
+        then:
+        _ * binary.name >> "binaryName"
+        1 * binary.namingScheme >> namingScheme
+        1 * namingScheme.lifecycleTaskName >> "lifecycle"
+        1 * binary.setLifecycleTask({it == project.tasks.findByName("lifecycle")})
     }
 }

@@ -17,6 +17,8 @@ package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.BinaryContainer;
+import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.language.base.internal.DefaultBinaryContainer;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 
@@ -30,6 +32,9 @@ import javax.inject.Inject;
  */
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
+    // TODO:DAZ Find a good way to share this with the BuildPlugin, without introducing dependency on plugins module
+    public static final String BUILD_GROUP = "build";
+
     private final Instantiator instantiator;
 
 
@@ -38,8 +43,17 @@ public class LanguageBasePlugin implements Plugin<Project> {
         this.instantiator = instantiator;
     }
 
-    public void apply(Project target) {
-        target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
+    public void apply(final Project target) {
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
+        final BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
+
+        binaries.withType(BinaryInternal.class).all(new Action<BinaryInternal>() {
+            public void execute(BinaryInternal binary) {
+                Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
+                binaryLifecycleTask.setGroup(BUILD_GROUP);
+                binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
+                binary.setLifecycleTask(binaryLifecycleTask);
+            }
+        });
     }
 }

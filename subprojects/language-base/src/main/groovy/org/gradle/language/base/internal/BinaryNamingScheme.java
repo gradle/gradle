@@ -19,6 +19,8 @@ package org.gradle.language.base.internal;
 import org.gradle.api.Nullable;
 
 public interface BinaryNamingScheme {
+    String getLifecycleTaskName();
+
     String getTaskName(@Nullable String verb);
 
     String getTaskName(@Nullable String verb, @Nullable String target);

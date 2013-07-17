@@ -21,20 +21,20 @@ import org.gradle.util.GUtil;
 
 public class TaskNamerForBinaries implements BinaryNamingScheme {
     private final String baseName;
-    private final String shortName;
-
-    private TaskNamerForBinaries(String baseName, String shortName) {
-        this.baseName = baseName;
-        this.shortName = shortName;
-    }
+    private String shortName;
 
     public TaskNamerForBinaries(String baseName) {
-        this(baseName, baseName);
+        this.baseName = baseName;
+        this.shortName = baseName;
     }
 
-    public static TaskNamerForBinaries collapseMain(String name) {
-        String shortName = name.equals("main") ? "" : name;
-        return new TaskNamerForBinaries(name, shortName);
+    public TaskNamerForBinaries withMainCollapsed() {
+        shortName = baseName.equals("main") ? "" : baseName;
+        return this;
+    }
+
+    public String getLifecycleTaskName() {
+        return baseName;
     }
 
     public String getOutputDirectoryBase() {
