@@ -512,10 +512,10 @@
                 <td>org.gradle.nativecode.language.cpp.tasks.CppCompile</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.language.cpp.tasks.CCompile</td>
+                <td>org.gradle.nativecode.language.c.tasks.CCompile</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.language.cpp.tasks.Assemble</td>
+                <td>org.gradle.nativecode.language.asm.tasks.Assemble</td>
             </tr>
             <tr>
                 <td>org.gradle.nativecode.base.tasks.LinkExecutable</td>

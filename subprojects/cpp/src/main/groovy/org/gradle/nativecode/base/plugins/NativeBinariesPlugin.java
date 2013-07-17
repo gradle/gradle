@@ -33,13 +33,13 @@ import java.io.File;
  * A plugin that sets up the infrastructure for defining native binaries.
  */
 @Incubating
-public class BinariesPlugin implements Plugin<Project> {
+public class NativeBinariesPlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final ProjectConfigurationActionContainer configurationActions;
     private final FileResolver fileResolver;
 
     @Inject
-    public BinariesPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, FileResolver fileResolver) {
+    public NativeBinariesPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.configurationActions = configurationActions;
         this.fileResolver = fileResolver;

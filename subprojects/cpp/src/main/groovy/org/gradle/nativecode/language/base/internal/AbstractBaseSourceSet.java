@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.language.cpp.internal;
+package org.gradle.nativecode.language.base.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.SourceDirectorySet;
@@ -28,7 +28,7 @@ import org.gradle.nativecode.base.internal.ResolvableNativeDependencySet;
 import java.util.Collection;
 import java.util.Map;
 
-abstract class BaseSourceSet {
+public abstract class AbstractBaseSourceSet {
 
     private final String name;
     private final String fullName;
@@ -38,7 +38,7 @@ abstract class BaseSourceSet {
     private final ResolvableNativeDependencySet libs;
     private final ConfigurationBasedNativeDependencySet configurationDependencySet;
 
-    public BaseSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
+    public AbstractBaseSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
         this.name = name;
         this.fullName = functionalSourceSetName + StringUtils.capitalize(name);
 

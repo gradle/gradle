@@ -17,7 +17,7 @@
 package org.gradle.nativecode.base.internal
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativecode.language.cpp.internal.NativeCompileSpec
+import org.gradle.nativecode.language.base.internal.NativeCompileSpec
 import spock.lang.Specification
 
 class DefaultToolChainRegistryTest extends Specification {

@@ -16,6 +16,8 @@
 
 package org.gradle.nativecode.language.cpp.internal;
 
+import org.gradle.nativecode.language.base.internal.AbstractBaseCompileSpec;
+
 public class DefaultCppCompileSpec extends AbstractBaseCompileSpec implements CppCompileSpec {
     private boolean positionIndependentCode;
 

@@ -24,7 +24,7 @@ import org.gradle.nativecode.language.cpp.plugins.CppPlugin
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-class BinariesPluginTest extends Specification {
+class NativeBinariesPluginTest extends Specification {
     final def project = HelperUtil.createRootProject()
 
     def "creates domain objects and lifecycle task for executable"() {
@@ -59,7 +59,7 @@ class BinariesPluginTest extends Specification {
     def "creates domain objects and lifecycle tasks for library"() {
         when:
         dsl {
-            apply plugin: BinariesPlugin
+            apply plugin: NativeBinariesPlugin
             libraries {
                 test {
                 }

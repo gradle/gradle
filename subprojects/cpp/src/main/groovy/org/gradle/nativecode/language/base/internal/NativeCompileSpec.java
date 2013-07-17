@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.language.cpp.internal;
+package org.gradle.nativecode.language.base.internal;
 
 import org.gradle.nativecode.base.internal.BinaryToolSpec;
 
@@ -23,16 +23,28 @@ import java.io.File;
 /**
  * A compile spec that will be used to generate object files for combining into a native binary.
  */
-public interface AssembleSpec extends BinaryToolSpec {
+public interface NativeCompileSpec extends BinaryToolSpec {
     File getObjectFileDir();
 
     void setObjectFileDir(File objectFileDir);
+
+    Iterable<File> getIncludeRoots();
+
+    void setIncludeRoots(Iterable<File> includeRoots);
 
     Iterable<File> getSource();
 
     void setSource(Iterable<File> source);
 
+    Iterable<String> getMacros();
+
+    void setMacros(Iterable<String> macros);
+
     Iterable<String> getArgs();
 
     void setArgs(Iterable<String> args);
+
+    boolean isPositionIndependentCode();
+
+    void setPositionIndependentCode(boolean flag);
 }

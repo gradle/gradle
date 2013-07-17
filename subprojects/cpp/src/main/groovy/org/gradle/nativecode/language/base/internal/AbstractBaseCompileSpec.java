@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.language.cpp.internal;
+package org.gradle.nativecode.language.base.internal;
 
 import java.io.File;
 import java.util.ArrayList;

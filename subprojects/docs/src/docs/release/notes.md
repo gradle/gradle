@@ -127,6 +127,7 @@ The following snippet will now fail with a decent error message, giving a hint, 
 
 * Renamed task class org.gradle.nativecode.base.tasks.AssembleStaticLibrary to org.gradle.nativecode.base.tasks.CreateStaticLibrary, with the
   default task instance also being renamed from 'assemble${StaticLibraryName}' to 'create${StaticLibraryName}'
+* Renamed plugin class org.gradle.nativecode.base.plugins.BinariesPlugin to org.gradle.nativecode.base.plugins.NativeBinariesPlugin
 
 ### Changes to handling of Ivy `DependencyResolver` implementations
 

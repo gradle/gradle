@@ -16,6 +16,8 @@
 
 package org.gradle.nativecode.language.cpp.internal;
 
+import org.gradle.nativecode.language.base.internal.NativeCompileSpec;
+
 public interface CppCompileSpec extends NativeCompileSpec {
 
 }

@@ -19,8 +19,9 @@ package org.gradle.nativecode.language.cpp.tasks
 import org.gradle.api.Incubating
 import org.gradle.api.tasks.WorkResult
 import org.gradle.nativecode.base.internal.ToolChainInternal
+import org.gradle.nativecode.language.base.tasks.AbstractNativeCompileTask
 import org.gradle.nativecode.language.cpp.internal.DefaultCppCompileSpec
-import org.gradle.nativecode.language.cpp.internal.NativeCompileSpec
+import org.gradle.nativecode.language.base.internal.NativeCompileSpec
 
 /**
  * Compiles C++ source files into object files.

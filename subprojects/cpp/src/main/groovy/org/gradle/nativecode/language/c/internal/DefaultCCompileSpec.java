@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.language.cpp.internal;
+package org.gradle.nativecode.language.c.internal;
 
-public class DefaultAssembleSpec extends AbstractBaseCompileSpec implements AssembleSpec {
+import org.gradle.nativecode.language.base.internal.AbstractBaseCompileSpec;
+
+public class DefaultCCompileSpec extends AbstractBaseCompileSpec implements CCompileSpec {
+    private boolean positionIndependentCode;
+
+    public boolean isPositionIndependentCode() {
+        return positionIndependentCode;
+    }
+
+    public void setPositionIndependentCode(boolean positionIndependentCode) {
+        this.positionIndependentCode = positionIndependentCode;
+    }
 }

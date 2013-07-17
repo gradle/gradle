@@ -13,22 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.language.cpp;
 
-import groovy.lang.Closure;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.nativecode.base.HeaderExportingSourceSet;
+package org.gradle.nativecode.language.c.internal;
 
-// TODO:DAZ Doesn't belong in language.cpp
+import org.gradle.nativecode.language.base.internal.NativeCompileSpec;
 
-/**
- * A set of assembly language sources.
- */
-public interface AssemblerSourceSet extends HeaderExportingSourceSet, LanguageSourceSet {
-
-    /**
-     * The source.
-     */
-    AssemblerSourceSet source(Closure closure);
+public interface CCompileSpec extends NativeCompileSpec {
 
 }

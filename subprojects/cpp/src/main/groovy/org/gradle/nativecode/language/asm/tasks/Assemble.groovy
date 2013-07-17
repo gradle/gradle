@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.language.cpp.tasks
+package org.gradle.nativecode.language.asm.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
 import org.gradle.nativecode.base.ToolChain
-import org.gradle.nativecode.language.cpp.internal.DefaultAssembleSpec
+import org.gradle.nativecode.language.asm.internal.DefaultAssembleSpec
 
 import javax.inject.Inject
 

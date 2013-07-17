@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
-import org.gradle.nativecode.language.cpp.internal.AssembleSpec;
+import org.gradle.nativecode.language.asm.internal.AssembleSpec;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.process.internal.ExecAction;
 

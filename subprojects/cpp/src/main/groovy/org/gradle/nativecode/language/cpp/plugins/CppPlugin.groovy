@@ -25,16 +25,16 @@ import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.nativecode.base.*
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
-import org.gradle.nativecode.base.plugins.BinariesPlugin
+import org.gradle.nativecode.base.plugins.NativeBinariesPlugin
 import org.gradle.nativecode.base.tasks.*
-import org.gradle.nativecode.language.cpp.AssemblerSourceSet
-import org.gradle.nativecode.language.cpp.CSourceSet
+import org.gradle.nativecode.language.asm.AssemblerSourceSet
+import org.gradle.nativecode.language.c.CSourceSet
 import org.gradle.nativecode.language.cpp.CppSourceSet
-import org.gradle.nativecode.language.cpp.internal.DefaultAssemblerSourceSet
-import org.gradle.nativecode.language.cpp.internal.DefaultCSourceSet
+import org.gradle.nativecode.language.asm.internal.DefaultAssemblerSourceSet
+import org.gradle.nativecode.language.c.internal.DefaultCSourceSet
 import org.gradle.nativecode.language.cpp.internal.DefaultCppSourceSet
-import org.gradle.nativecode.language.cpp.tasks.Assemble
-import org.gradle.nativecode.language.cpp.tasks.CCompile
+import org.gradle.nativecode.language.asm.tasks.Assemble
+import org.gradle.nativecode.language.c.tasks.CCompile
 import org.gradle.nativecode.language.cpp.tasks.CppCompile
 import org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin
 import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin
@@ -66,7 +66,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     void apply(ProjectInternal project) {
-        project.plugins.apply(BinariesPlugin)
+        project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(MicrosoftVisualCppPlugin)
         project.plugins.apply(GppCompilerPlugin)
 

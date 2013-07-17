@@ -25,7 +25,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.base.ToolChainRegistry
-import org.gradle.nativecode.base.plugins.BinariesPlugin
+import org.gradle.nativecode.base.plugins.NativeBinariesPlugin
 import org.gradle.nativecode.toolchain.internal.msvcpp.UnavailableToolChain
 import org.gradle.nativecode.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.process.internal.DefaultExecAction
@@ -46,7 +46,7 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
     }
 
     void apply(Project project) {
-        project.plugins.apply(BinariesPlugin)
+        project.plugins.apply(NativeBinariesPlugin)
 
         def registry = project.extensions.getByType(ToolChainRegistry)
 

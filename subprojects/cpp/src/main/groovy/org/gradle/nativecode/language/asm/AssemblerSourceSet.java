@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativecode.language.asm;
 
-package org.gradle.nativecode.language.cpp.internal;
+import groovy.lang.Closure;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.nativecode.base.HeaderExportingSourceSet;
 
-public class DefaultCCompileSpec extends AbstractBaseCompileSpec implements CCompileSpec {
-    private boolean positionIndependentCode;
+// TODO:DAZ Doesn't belong in language.cpp
 
-    public boolean isPositionIndependentCode() {
-        return positionIndependentCode;
-    }
+/**
+ * A set of assembly language sources.
+ */
+public interface AssemblerSourceSet extends HeaderExportingSourceSet, LanguageSourceSet {
 
-    public void setPositionIndependentCode(boolean positionIndependentCode) {
-        this.positionIndependentCode = positionIndependentCode;
-    }
+    /**
+     * The source.
+     */
+    AssemblerSourceSet source(Closure closure);
+
 }

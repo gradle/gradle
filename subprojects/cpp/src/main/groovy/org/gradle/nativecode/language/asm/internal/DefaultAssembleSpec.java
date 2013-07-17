@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.language.cpp.internal;
+package org.gradle.nativecode.language.asm.internal;
 
-public interface CCompileSpec extends NativeCompileSpec {
+import org.gradle.nativecode.language.base.internal.AbstractBaseCompileSpec;
 
+public class DefaultAssembleSpec extends AbstractBaseCompileSpec implements AssembleSpec {
 }

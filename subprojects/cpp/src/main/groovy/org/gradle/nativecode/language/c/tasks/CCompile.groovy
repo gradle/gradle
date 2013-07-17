@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.language.cpp.tasks
+package org.gradle.nativecode.language.c.tasks
 
 import org.gradle.api.Incubating
 import org.gradle.api.tasks.WorkResult
 import org.gradle.nativecode.base.internal.ToolChainInternal
-import org.gradle.nativecode.language.cpp.internal.NativeCompileSpec
-import org.gradle.nativecode.language.cpp.internal.DefaultCCompileSpec
+import org.gradle.nativecode.language.base.internal.NativeCompileSpec
+import org.gradle.nativecode.language.c.internal.DefaultCCompileSpec
+import org.gradle.nativecode.language.base.tasks.AbstractNativeCompileTask
 
 /**
  * Compiles C source files into object files.

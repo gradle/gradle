@@ -17,7 +17,7 @@ package org.gradle.nativecode.toolchain.internal.gpp;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
-import org.gradle.nativecode.language.cpp.internal.NativeCompileSpec;
+import org.gradle.nativecode.language.base.internal.NativeCompileSpec;
 
 import java.io.File;
 

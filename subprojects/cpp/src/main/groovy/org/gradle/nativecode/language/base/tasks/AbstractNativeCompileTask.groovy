@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.language.cpp.tasks
+package org.gradle.nativecode.language.base.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
@@ -23,7 +23,7 @@ import org.gradle.api.tasks.*
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
 import org.gradle.nativecode.base.ToolChain
 import org.gradle.nativecode.base.internal.ToolChainInternal
-import org.gradle.nativecode.language.cpp.internal.NativeCompileSpec
+import org.gradle.nativecode.language.base.internal.NativeCompileSpec
 
 import javax.inject.Inject
 /**

@@ -21,7 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativecode.base.plugins.BinariesPlugin
+import org.gradle.nativecode.base.plugins.NativeBinariesPlugin
 import org.gradle.nativecode.base.ToolChainRegistry
 import org.gradle.nativecode.toolchain.internal.gpp.GppToolChain
 import org.gradle.process.internal.DefaultExecAction
@@ -42,7 +42,7 @@ class GppCompilerPlugin implements Plugin<Project> {
     }
 
     void apply(Project project) {
-        project.plugins.apply(BinariesPlugin)
+        project.plugins.apply(NativeBinariesPlugin)
         project.extensions.getByType(ToolChainRegistry).add(new GppToolChain(
                 OperatingSystem.current(),
                 new Factory<ExecAction>() {
