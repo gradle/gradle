@@ -16,7 +16,6 @@
 package org.gradle.api.internal.externalresource;
 
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
@@ -85,6 +84,5 @@ public interface ExternalResource {
 
     void close() throws IOException;
 
-    @Nullable
     ExternalResourceMetaData getMetaData();
 }
