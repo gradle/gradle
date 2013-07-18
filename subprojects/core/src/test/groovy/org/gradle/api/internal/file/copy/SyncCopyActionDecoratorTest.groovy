@@ -16,19 +16,9 @@
 package org.gradle.api.internal.file.copy
 
 import org.gradle.api.Action
-import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.file.FileVisitor
-import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.BaseDirFileResolver
-import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.WorkspaceTest
-import org.junit.Test
-
-import java.lang.reflect.Field
-
-import static org.junit.Assert.assertTrue
 
 class SyncCopyActionDecoratorTest extends WorkspaceTest {
 
@@ -50,6 +40,7 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
             createFile("subdir/extra.txt")
             createFile("included.txt")
             createFile("extra.txt")
+            createDir("extra")
         }
 
         when:
@@ -61,63 +52,6 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
         then:
         result.didWork
         file("dest").assertHasDescendants("subdir/included.txt", "included.txt");
-    }
-
-    public void deletesExtraDirectoriesFromDestinationDirectoryAtTheEndOfVisit() {
-        TestFile destDir = tmpDir.createDir("dest");
-        destDir.createFile("included.txt");
-        destDir.createFile("extra/extra.txt");
-
-        visitor(destDir);
-        visitor.startVisit();
-        visitor.visit(file("included.txt"));
-
-        // TODO - delete these
-        Field field = SyncCopySpecContentVisitor.class.getDeclaredField("visited");
-        field.setAccessible(true);
-        Set visited = (Set) field.get(visitor);
-        assert visited.contains(new RelativePath(true, "included.txt"));
-        assert !visited.contains(new RelativePath(true, "extra", "extra.txt"));
-        final Set<RelativePath> actual = new HashSet<RelativePath>();
-        new DirectoryFileTree(destDir).postfix().visit(new FileVisitor() {
-            public void visitDir(FileVisitDetails dirDetails) {
-            }
-
-            public void visitFile(FileVisitDetails fileDetails) {
-                actual.add(fileDetails.getRelativePath());
-            }
-        });
-        assert actual.contains(new RelativePath(true, "included.txt"));
-        assert actual.contains(new RelativePath(true, "extra", "extra.txt"));
-
-        visitor.endVisit();
-
-        destDir.assertHasDescendants("included.txt");
-    }
-
-    @Test
-    public void doesNotDeleteDestDirectoryWhenNothingCopied() {
-        TestFile destDir = tmpDir.createDir("dest");
-        destDir.createFile("extra.txt");
-        destDir.createFile("extra/extra.txt");
-
-        visitor(destDir);
-        visitor.startVisit();
-        visitor.endVisit();
-
-        destDir.assertHasDescendants();
-    }
-
-    @Test
-    public void didWorkWhenFilesDeleted() {
-        TestFile destDir = tmpDir.createDir("dest");
-        destDir.createFile("extra.txt");
-
-        visitor(destDir);
-        visitor.startVisit();
-        visitor.endVisit();
-
-        assertTrue(visitor.getDidWork());
     }
 
 }
