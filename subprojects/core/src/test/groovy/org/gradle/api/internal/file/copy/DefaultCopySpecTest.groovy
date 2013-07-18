@@ -357,8 +357,10 @@ public class DefaultCopySpecTest {
         assert child.duplicatesStrategy == DuplicatesStrategy.INCLUDE
 
         spec.duplicatesStrategy = 'EXCLUDE'
-        spec.with new CopySpecImpl(fileResolver, instantiator, spec)
-        assertEquals(DuplicatesStrategy.EXCLUDE, spec.childSpecs[0].duplicatesStrategy)
+        assert child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+
+        child.duplicatesStrategy = 'INCLUDE'
+        assert child.duplicatesStrategy == DuplicatesStrategy.INCLUDE
     }
 
     @Test public void testMatchingCreatesAppropriateAction() {
