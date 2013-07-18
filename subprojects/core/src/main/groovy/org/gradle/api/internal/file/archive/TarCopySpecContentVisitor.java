@@ -18,19 +18,21 @@ package org.gradle.api.internal.file.archive;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.zip.UnixStat;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
-import org.gradle.api.internal.file.copy.EmptyCopySpecContentVisitor;
+import org.gradle.api.internal.file.copy.CopySpecContentVisitor;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class TarCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
-    private TarOutputStream tarOutStr;
+public class TarCopySpecContentVisitor implements CopySpecContentVisitor {
     private final File tarFile;
     private final ArchiveOutputStreamFactory compressor;
 
@@ -39,7 +41,9 @@ public class TarCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
         this.compressor = compressor;
     }
 
-    public void startVisit() {
+    public WorkResult visit(Action<Action<? super FileCopyDetailsInternal>> visitor) {
+        final TarOutputStream tarOutStr;
+
         try {
             OutputStream outStr = compressor.createArchiveOutputStream(tarFile);
             tarOutStr = new TarOutputStream(outStr);
@@ -47,55 +51,51 @@ public class TarCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);
         }
-    }
 
-    public void endVisit() {
+        visitor.execute(new Action<FileCopyDetailsInternal>() {
+            public void execute(FileCopyDetailsInternal details) {
+                if (details.isDirectory()) {
+                    visitDir(details);
+                } else {
+                    visitFile(details);
+                }
+            }
+
+            private void visitFile(FileCopyDetails fileDetails) {
+                try {
+                    TarEntry archiveEntry = new TarEntry(fileDetails.getRelativePath().getPathString());
+                    archiveEntry.setModTime(fileDetails.getLastModified());
+                    archiveEntry.setSize(fileDetails.getSize());
+                    archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getMode());
+                    tarOutStr.putNextEntry(archiveEntry);
+                    fileDetails.copyTo(tarOutStr);
+                    tarOutStr.closeEntry();
+                } catch (Exception e) {
+                    throw new GradleException(String.format("Could not add %s to TAR '%s'.", fileDetails, tarFile), e);
+                }
+            }
+
+            private void visitDir(FileCopyDetails dirDetails) {
+                try {
+                    // Trailing slash on name indicates entry is a directory
+                    TarEntry archiveEntry = new TarEntry(dirDetails.getRelativePath().getPathString() + '/');
+                    archiveEntry.setModTime(dirDetails.getLastModified());
+                    archiveEntry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
+                    tarOutStr.putNextEntry(archiveEntry);
+                    tarOutStr.closeEntry();
+                } catch (Exception e) {
+                    throw new GradleException(String.format("Could not add %s to TAR '%s'.", dirDetails, tarFile), e);
+                }
+            }
+        });
+
         try {
             tarOutStr.close();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        } finally {
-            tarOutStr = null;
         }
+
+        return new SimpleWorkResult(true);
     }
 
-    @Override
-    public void visit(FileCopyDetailsInternal details) {
-        if (details.isDirectory()) {
-            visitDir(details);
-        } else {
-            visitFile(details);
-        }
-    }
-
-    private void visitFile(FileCopyDetails fileDetails) {
-        try {
-            TarEntry archiveEntry = new TarEntry(fileDetails.getRelativePath().getPathString());
-            archiveEntry.setModTime(fileDetails.getLastModified());
-            archiveEntry.setSize(fileDetails.getSize());
-            archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getMode());
-            tarOutStr.putNextEntry(archiveEntry);
-            fileDetails.copyTo(tarOutStr);
-            tarOutStr.closeEntry();
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not add %s to TAR '%s'.", fileDetails, tarFile), e);
-        }
-    }
-
-    private void visitDir(FileCopyDetails dirDetails) {
-        try {
-            // Trailing slash on name indicates entry is a directory
-            TarEntry archiveEntry = new TarEntry(dirDetails.getRelativePath().getPathString() + '/');
-            archiveEntry.setModTime(dirDetails.getLastModified());
-            archiveEntry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
-            tarOutStr.putNextEntry(archiveEntry);
-            tarOutStr.closeEntry();
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not add %s to TAR '%s'.", dirDetails, tarFile), e);
-        }
-    }
-
-    public boolean getDidWork() {
-        return true;
-    }
 }

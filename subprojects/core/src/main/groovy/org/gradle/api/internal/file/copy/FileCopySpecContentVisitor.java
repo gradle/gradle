@@ -15,35 +15,43 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
 
 /**
  * @author Steve Appling
  */
-public class FileCopySpecContentVisitor extends EmptyCopySpecContentVisitor {
+public class FileCopySpecContentVisitor implements CopySpecContentVisitor {
+
     private final FileResolver fileResolver;
-    private boolean didWork;
 
     public FileCopySpecContentVisitor(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
     }
 
-    public boolean getDidWork() {
-        return didWork;
+    private static class BooleanHolder {
+        boolean flag;
     }
 
-    public void visit(FileCopyDetailsInternal source) {
-        File target = fileResolver.resolve(source.getRelativePath().getPathString());
-        copyFile(source, target);
+    public WorkResult visit(Action<Action<? super FileCopyDetailsInternal>> visitor) {
+        final BooleanHolder didWorkHolder = new BooleanHolder();
+
+        visitor.execute(new Action<FileCopyDetailsInternal>() {
+            public void execute(FileCopyDetailsInternal details) {
+                File target = fileResolver.resolve(details.getRelativePath().getPathString());
+                boolean copied = details.copyTo(target);
+                if (copied) {
+                    didWorkHolder.flag = true;
+                }
+
+            }
+        });
+
+        return new SimpleWorkResult(didWorkHolder.flag);
     }
 
-    private void copyFile(FileTreeElement srcFile, File destFile) {
-        boolean copied = srcFile.copyTo(destFile);
-        if (copied) {
-            didWork = true;
-        }
-    }
 }

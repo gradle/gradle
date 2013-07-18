@@ -15,10 +15,13 @@
  */
 package org.gradle.api.internal.file.copy
 
+import org.gradle.api.Action
 import org.gradle.api.file.*
 import org.gradle.api.internal.Actions
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.ThreadGlobalInstantiator
+import org.gradle.api.internal.tasks.SimpleWorkResult
+import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Shared
@@ -33,7 +36,14 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
     private static interface MyCopySpec extends CopySpec, CopySpecInternal {}
 
     def fileSystem = Mock(FileSystem)
-    def delegate = Mock(FileCopySpecContentVisitor)
+    def delegateAction = Mock(Action)
+    def delegate = new CopySpecContentVisitor() {
+        WorkResult visit(Action<Action<? super FileCopyDetailsInternal>> visitor) {
+            visitor.execute(delegateAction)
+            return new SimpleWorkResult(true)
+        }
+    }
+
     @Shared Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
     def driver = new CopySpecContentVisitorDriver(instantiator, fileSystem, Actions.doNothing())
     def copySpec = Mock(MyCopySpec) {
@@ -49,8 +59,8 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
         visit()
 
         then:
-        2 * delegate.visit({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file2.txt' })
+        2 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
     def duplicatesExcludedByPerFileConfiguration() {
@@ -62,8 +72,10 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
         visit()
 
         then:
-        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file2.txt' })
+        1 * delegateAction.execute({ FileCopyDetails it ->
+            it.relativePath.pathString == '/root/path/file1.txt'
+        })
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
 
@@ -77,8 +89,8 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
         visit()
 
         then:
-        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file2.txt' })
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
     def duplicatesExcludedByDefaultConfiguration() {
@@ -91,8 +103,8 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
         visit()
 
         then:
-        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegate.visit({ it.relativePath.pathString == '/root/path/file2.txt' })
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
     void files(String... fileNames) {

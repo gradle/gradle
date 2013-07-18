@@ -66,8 +66,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
         CopySpecContentVisitorDriver driver = new CopySpecContentVisitorDriver(instantiator, fileSystem, createUnhandledDuplicateAction());
         CopySpecContentVisitor contentVisitor = createContentVisitor();
-        driver.visit(rootSpec, contentVisitor);
-        setDidWork(contentVisitor.getDidWork());
+        WorkResult didWork = driver.visit(rootSpec, contentVisitor);
+        setDidWork(didWork.getDidWork());
     }
 
     protected void configureRootSpec() {

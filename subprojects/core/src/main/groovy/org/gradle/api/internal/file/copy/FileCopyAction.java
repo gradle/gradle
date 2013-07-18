@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.reflect.Instantiator;
@@ -46,7 +45,7 @@ public class FileCopyAction {
 
     public WorkResult sync() {
         File destination = getDestination();
-        return doCopy(new SyncCopySpecContentVisitor(getCopyVisitor(destination), destination));
+        return doCopy(new SyncCopySpecContentVisitor(destination, getCopyVisitor(destination)));
     }
 
     private FileCopySpecContentVisitor getCopyVisitor(File destination) {
@@ -55,8 +54,7 @@ public class FileCopyAction {
 
     private WorkResult doCopy(CopySpecContentVisitor visitor) {
         CopySpecContentVisitorDriver visitorDriver = new CopySpecContentVisitorDriver(instantiator, FileSystems.getDefault(), Actions.doNothing());
-        visitorDriver.visit(copySpec, visitor);
-        return new SimpleWorkResult(visitor.getDidWork());
+        return visitorDriver.visit(copySpec, visitor);
     }
 
     private File getDestination() {

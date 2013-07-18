@@ -15,8 +15,11 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.tasks.WorkResult;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -26,12 +29,21 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.gradle.api.internal.file.copy.CopySpecContentVisitorTestDriver.visit;
+
 @RunWith(JMock.class)
 public class NormalizingCopySpecVisitorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final CopySpecContentVisitor delegate = context.mock(CopySpecContentVisitor.class);
+    private final Action<FileCopyDetailsInternal> delegateAction = (Action<FileCopyDetailsInternal>) context.mock(Action.class);
+    private final CopySpecContentVisitor delegate = new CopySpecContentVisitor() {
+        public WorkResult visit(Action<Action<? super FileCopyDetailsInternal>> visitor) {
+            visitor.execute(delegateAction);
+            return new SimpleWorkResult(true);
+        }
+    };
     private final NormalizingCopySpecContentVisitor visitor = new NormalizingCopySpecContentVisitor(delegate);
     private final CopySpecInternal spec = context.mock(CopySpecInternal.class);
+
 
     private void allowGetIncludeEmptyDirs() {
         context.checking(new Expectations() {{
@@ -48,50 +60,11 @@ public class NormalizingCopySpecVisitorTest {
         allowGetIncludeEmptyDirs();
 
         context.checking(new Expectations() {{
-            one(delegate).visit(details);
-            one(delegate).visit(file);
+            one(delegateAction).execute(details);
+            one(delegateAction).execute(file);
         }});
 
-        visitor.visit(details);
-        visitor.visit(file);
-        visitor.visit(details);
-    }
-
-    @Test
-    public void doesNotVisitADirectoryUntilAChildFileIsVisited() {
-        final FileCopyDetailsInternal dir = file("dir", true);
-        final FileCopyDetailsInternal file = file("dir/file", false);
-
-        allowGetIncludeEmptyDirs();
-
-        visitor.visit(dir);
-
-        context.checking(new Expectations() {{
-            one(delegate).visit(dir);
-            one(delegate).visit(file);
-        }});
-
-        visitor.visit(file);
-    }
-
-    @Test
-    public void doesNotVisitADirectoryUntilAChildDirIsVisited() {
-        final FileCopyDetailsInternal dir = file("dir", true);
-        final FileCopyDetailsInternal subdir = file("dir/sub", true);
-        final FileCopyDetailsInternal file = file("dir/sub/file", false);
-
-        allowGetIncludeEmptyDirs();
-
-        visitor.visit(dir);
-        visitor.visit(subdir);
-
-        context.checking(new Expectations() {{
-            one(delegate).visit(dir);
-            one(delegate).visit(subdir);
-            one(delegate).visit(file);
-        }});
-
-        visitor.visit(file);
+        visit(visitor, details, file, details);
     }
 
     @Test
@@ -101,27 +74,32 @@ public class NormalizingCopySpecVisitorTest {
 
         allowGetIncludeEmptyDirs();
 
-        context.checking(new Expectations() {{
-            one(delegate).visit(with(hasPath("a")));
-            one(delegate).visit(with(hasPath("a/b")));
-            one(delegate).visit(dir1);
-            one(delegate).visit(file1);
-        }});
+        visitor.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+            public void execute(Action<? super FileCopyDetailsInternal> action) {
 
-        visitor.visit(dir1);
-        visitor.visit(file1);
+                context.checking(new Expectations() {{
+                    one(delegateAction).execute(with(hasPath("a")));
+                    one(delegateAction).execute(with(hasPath("a/b")));
+                    one(delegateAction).execute(dir1);
+                    one(delegateAction).execute(file1);
+                }});
 
-        final FileCopyDetailsInternal dir2 = file("a/b/d/e", true);
-        final FileCopyDetailsInternal file2 = file("a/b/d/e/file", false);
+                action.execute(dir1);
+                action.execute(file1);
 
-        context.checking(new Expectations() {{
-            one(delegate).visit(with(hasPath("a/b/d")));
-            one(delegate).visit(dir2);
-            one(delegate).visit(file2);
-        }});
+                final FileCopyDetailsInternal dir2 = file("a/b/d/e", true);
+                final FileCopyDetailsInternal file2 = file("a/b/d/e/file", false);
 
-        visitor.visit(dir2);
-        visitor.visit(file2);
+                context.checking(new Expectations() {{
+                    one(delegateAction).execute(with(hasPath("a/b/d")));
+                    one(delegateAction).execute(dir2);
+                    one(delegateAction).execute(file2);
+                }});
+
+                action.execute(dir2);
+                action.execute(file2);
+            }
+        });
     }
 
     @Test
@@ -131,12 +109,12 @@ public class NormalizingCopySpecVisitorTest {
         allowGetIncludeEmptyDirs();
 
         context.checking(new Expectations() {{
-            one(delegate).visit(with(hasPath("a")));
-            one(delegate).visit(with(hasPath("a/b")));
-            one(delegate).visit(details);
+            one(delegateAction).execute(with(hasPath("a")));
+            one(delegateAction).execute(with(hasPath("a/b")));
+            one(delegateAction).execute(details);
         }});
 
-        visitor.visit(details);
+        visit(visitor, details);
     }
 
     @Test
@@ -146,26 +124,23 @@ public class NormalizingCopySpecVisitorTest {
         context.checking(new Expectations() {{
             one(spec).getIncludeEmptyDirs();
             will(returnValue(true));
-            one(delegate).visit(dir);
-            one(delegate).endVisit();
+            one(delegateAction).execute(dir);
         }});
 
-        visitor.visit(dir);
-        visitor.endVisit();
+        visit(visitor, dir);
     }
 
     @Test
     public void doesNotVisitAnEmptyDirectoryIfCorrespondingOptionIsOff() {
-        FileCopyDetailsInternal dir = file("dir", true);
+        final FileCopyDetailsInternal dir = file("dir", true);
 
         context.checking(new Expectations() {{
             one(spec).getIncludeEmptyDirs();
             will(returnValue(false));
-            one(delegate).endVisit();
+            exactly(0).of(delegateAction).execute(dir);
         }});
 
-        visitor.visit(dir);
-        visitor.endVisit();
+        visit(visitor, dir);
     }
 
     private FileCopyDetailsInternal file(final String path, final boolean isDir) {

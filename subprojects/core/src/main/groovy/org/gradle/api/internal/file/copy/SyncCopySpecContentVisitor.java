@@ -15,36 +15,45 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.Action;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-public class SyncCopySpecContentVisitor extends DelegatingCopySpecContentVisitor {
-    private final Set<RelativePath> visited = new HashSet<RelativePath>();
-    private File baseDestDir;
-    private boolean didWork;
+public class SyncCopySpecContentVisitor implements CopySpecContentVisitor {
+    private final File baseDestDir;
+    private final CopySpecContentVisitor delegate;
 
-    public SyncCopySpecContentVisitor(CopySpecContentVisitor visitor, File baseDestDir) {
-        super(visitor);
+    public SyncCopySpecContentVisitor(File baseDestDir, CopySpecContentVisitor delegate) {
         this.baseDestDir = baseDestDir;
+        this.delegate = delegate;
     }
 
-    @Override
-    public void visit(FileCopyDetailsInternal dirDetails) {
-        visited.add(dirDetails.getRelativePath());
-        getVisitor().visit(dirDetails);
-    }
+    public WorkResult visit(final Action<Action<? super FileCopyDetailsInternal>> visitor) {
+        final Set<RelativePath> visited = new HashSet<RelativePath>();
 
-    @Override
-    public void endVisit() {
-        FileVisitor visitor = new FileVisitor() {
+        WorkResult didWork = delegate.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+            public void execute(final Action<? super FileCopyDetailsInternal> delegateAction) {
+                visitor.execute(new Action<FileCopyDetailsInternal>() {
+                    public void execute(FileCopyDetailsInternal details) {
+                        visited.add(details.getRelativePath());
+                        delegateAction.execute(details);
+                    }
+                });
+            }
+        });
+
+        final BooleanHolder didDeleteHolder = new BooleanHolder();
+        FileVisitor fileVisitor = new FileVisitor() {
             public void visitDir(FileVisitDetails dirDetails) {
                 maybeDelete(dirDetails, true);
             }
@@ -61,20 +70,20 @@ public class SyncCopySpecContentVisitor extends DelegatingCopySpecContentVisitor
                     } else {
                         GFileUtils.deleteQuietly(fileDetails.getFile());
                     }
-                    didWork = true;
+                    didDeleteHolder.flag = true;
                 }
             }
         };
 
         MinimalFileTree walker = new DirectoryFileTree(baseDestDir).postfix();
-        walker.visit(visitor);
+        walker.visit(fileVisitor);
         visited.clear();
 
-        getVisitor().endVisit();
+        return new SimpleWorkResult(didWork.getDidWork() || didDeleteHolder.flag);
     }
 
-    @Override
-    public boolean getDidWork() {
-        return didWork || getVisitor().getDidWork();
+    private static class BooleanHolder {
+        boolean flag;
     }
+
 }

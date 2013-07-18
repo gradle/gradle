@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -35,41 +36,41 @@ public class CopySpecContentVisitorDriver {
         this.onUnhandledDuplicate = onUnhandledDuplicate;
     }
 
-    public void visit(CopySpecInternal toVisit, CopySpecContentVisitor visitor) {
+    public WorkResult visit(final CopySpecInternal toVisit, CopySpecContentVisitor visitor) {
         final CopySpecContentVisitor effectiveVisitor = new DuplicateHandlingCopySpecContentVisitor(
                 new NormalizingCopySpecContentVisitor(visitor),
                 onUnhandledDuplicate
         );
 
-        // TODO - consider error recovery here. A visitor might be holding a stream open.
-
-        effectiveVisitor.startVisit();
-        new CopySpecWalker().visit(toVisit, new Action<CopySpecInternal>() {
-            public void execute(final CopySpecInternal spec) {
-                FileTree source = spec.getSource();
-                source.visit(new FileVisitor() {
-                    public void visitDir(FileVisitDetails dirDetails) {
-                        visit(dirDetails);
-                    }
-
-                    public void visitFile(FileVisitDetails fileDetails) {
-                        visit(fileDetails);
-                    }
-
-                    private void visit(FileVisitDetails visitDetails) {
-                        DefaultFileCopyDetails details = instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, spec, fileSystem);
-                        for (Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
-                            action.execute(details);
-                            if (details.isExcluded()) {
-                                return;
+        return effectiveVisitor.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+            public void execute(final Action<? super FileCopyDetailsInternal> action) {
+                new CopySpecWalker().visit(toVisit, new Action<CopySpecInternal>() {
+                    public void execute(final CopySpecInternal spec) {
+                        FileTree source = spec.getSource();
+                        source.visit(new FileVisitor() {
+                            public void visitDir(FileVisitDetails dirDetails) {
+                                visit(dirDetails);
                             }
-                        }
-                        effectiveVisitor.visit(details);
+
+                            public void visitFile(FileVisitDetails fileDetails) {
+                                visit(fileDetails);
+                            }
+
+                            private void visit(FileVisitDetails visitDetails) {
+                                DefaultFileCopyDetails details = instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, spec, fileSystem);
+                                for (Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
+                                    action.execute(details);
+                                    if (details.isExcluded()) {
+                                        return;
+                                    }
+                                }
+                                action.execute(details);
+                            }
+                        });
                     }
                 });
             }
         });
-        effectiveVisitor.endVisit();
     }
 
 }

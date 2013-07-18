@@ -15,14 +15,11 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.Action;
 import org.gradle.api.tasks.WorkResult;
 
-public interface CopySpecContentVisitor extends WorkResult {
+public interface CopySpecContentVisitor {
 
-    void startVisit();
-
-    public void visit(FileCopyDetailsInternal details);
-
-    void endVisit();
+    public WorkResult visit(Action<Action<? super FileCopyDetailsInternal>> visitor);
 
 }

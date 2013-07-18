@@ -16,16 +16,16 @@
 package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
-import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
+import static org.gradle.api.internal.file.copy.CopySpecContentVisitorTestDriver.visit;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -48,7 +49,6 @@ public class ZipCopySpecVisitorTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final CopySpecInternal copySpec = context.mock(CopySpecInternal.class);
     private ZipCopySpecContentVisitor visitor;
     private TestFile zipFile;
 
@@ -95,7 +95,7 @@ public class ZipCopySpecVisitorTest {
         visitor = new ZipCopySpecContentVisitor(invalidZipFile, ZipStoredCompressor.INSTANCE);
 
         try {
-            visitor.startVisit();
+            visitor.visit(Actions.<Action<? super FileCopyDetailsInternal>>doNothing());
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo(String.format("Could not create ZIP '%s'.", zipFile)));
@@ -104,11 +104,10 @@ public class ZipCopySpecVisitorTest {
 
     @Test
     public void wrapsFailureToAddElement() {
-        visitor.startVisit();
 
         Throwable failure = new RuntimeException("broken");
         try {
-            visitor.visit(brokenFile("dir/file1", failure));
+            visit(visitor, brokenFile("dir/file1", failure));
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo(String.format("Could not add [dir/file1] to ZIP '%s'.", zipFile)));
@@ -116,18 +115,18 @@ public class ZipCopySpecVisitorTest {
         }
     }
 
-    private void zip(FileCopyDetailsInternal... files) {
-        visitor.startVisit();
-
-        for (FileCopyDetailsInternal f : files) {
-            if (f.isDirectory()) {
-                visitor.visit(f);
-            } else {
-                visitor.visit(f);
+    private void zip(final FileCopyDetailsInternal... files) {
+        visitor.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+            public void execute(Action<? super FileCopyDetailsInternal> action) {
+                for (FileCopyDetailsInternal f : files) {
+                    if (f.isDirectory()) {
+                        action.execute(f);
+                    } else {
+                        action.execute(f);
+                    }
+                }
             }
-        }
-
-        visitor.endVisit();
+        });
     }
 
     private FileCopyDetailsInternal file(final String path) {
@@ -147,7 +146,7 @@ public class ZipCopySpecVisitorTest {
             will(returnValue(1));
 
             allowing(details).copyTo(with(notNullValue(OutputStream.class)));
-            will(new Action() {
+            will(new org.jmock.api.Action() {
                 public void describeTo(Description description) {
                     description.appendText("write content");
                 }
@@ -199,7 +198,7 @@ public class ZipCopySpecVisitorTest {
             will(returnValue(1));
 
             allowing(details).copyTo(with(notNullValue(OutputStream.class)));
-            will(new Action() {
+            will(new org.jmock.api.Action() {
                 public void describeTo(Description description) {
                     description.appendText("write content");
                 }

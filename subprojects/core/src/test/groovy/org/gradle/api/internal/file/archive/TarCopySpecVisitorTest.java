@@ -16,8 +16,10 @@
 package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.file.FileResource;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
@@ -29,7 +31,6 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
-import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -42,6 +43,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
+import static org.gradle.api.internal.file.copy.CopySpecContentVisitorTestDriver.visit;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -106,7 +108,7 @@ public class TarCopySpecVisitorTest {
                 new SimpleCompressor());
 
         try {
-            visitor.startVisit();
+            visitor.visit(Actions.<Action<? super FileCopyDetailsInternal>>doNothing());
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo(String.format("Could not create TAR '%s'.", tarFile)));
@@ -118,11 +120,9 @@ public class TarCopySpecVisitorTest {
         final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
                 new SimpleCompressor());
 
-        visitor.startVisit();
-
         Throwable failure = new RuntimeException("broken");
         try {
-            visitor.visit(brokenFile("dir/file1", failure));
+            visit(visitor, brokenFile("dir/file1", failure));
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo(String.format("Could not add [dir/file1] to TAR '%s'.", tarFile)));
@@ -135,18 +135,18 @@ public class TarCopySpecVisitorTest {
         return tarFile;
     }
 
-    private void tar(FileCopyDetailsInternal... files) {
-        visitor.startVisit();
-
-        for (FileCopyDetailsInternal f : files) {
-            if (f.isDirectory()) {
-                visitor.visit(f);
-            } else {
-                visitor.visit(f);
+    private void tar(final FileCopyDetailsInternal... files) {
+        visitor.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+            public void execute(Action<? super FileCopyDetailsInternal> action) {
+                for (FileCopyDetailsInternal f : files) {
+                    if (f.isDirectory()) {
+                        action.execute(f);
+                    } else {
+                        action.execute(f);
+                    }
+                }
             }
-        }
-
-        visitor.endVisit();
+        });
     }
 
     private FileCopyDetailsInternal file(final String path) {
@@ -170,7 +170,7 @@ public class TarCopySpecVisitorTest {
             will(returnValue(1));
 
             allowing(details).copyTo(with(notNullValue(OutputStream.class)));
-            will(new Action() {
+            will(new org.jmock.api.Action() {
                 public void describeTo(Description description) {
                     description.appendText("write content");
                 }
@@ -225,7 +225,7 @@ public class TarCopySpecVisitorTest {
             will(returnValue(1));
 
             allowing(details).copyTo(with(notNullValue(OutputStream.class)));
-            will(new Action() {
+            will(new org.jmock.api.Action() {
                 public void describeTo(Description description) {
                     description.appendText("write content");
                 }

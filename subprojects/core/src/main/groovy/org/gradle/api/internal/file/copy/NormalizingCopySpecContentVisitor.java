@@ -18,10 +18,12 @@ package org.gradle.api.internal.file.copy;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
 import java.io.FilterReader;
@@ -32,59 +34,68 @@ import java.util.*;
  * A {@link CopySpecContentVisitor} which cleans up the tree as it is visited. Removes duplicate directories and adds in missing directories. Removes empty directories if instructed to do so by copy
  * spec.
  */
-public class NormalizingCopySpecContentVisitor extends DelegatingCopySpecContentVisitor {
-    private final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
-    private final ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs = ArrayListMultimap.create();
+public class NormalizingCopySpecContentVisitor implements CopySpecContentVisitor {
 
-    public NormalizingCopySpecContentVisitor(CopySpecContentVisitor visitor) {
-        super(visitor);
+    private final CopySpecContentVisitor delegate;
+
+    public NormalizingCopySpecContentVisitor(CopySpecContentVisitor delegate) {
+        this.delegate = delegate;
     }
 
-    public void endVisit() {
-        for (RelativePath path : new LinkedHashSet<RelativePath>(pendingDirs.keySet())) {
-            List<FileCopyDetailsInternal> detailsList = new ArrayList<FileCopyDetailsInternal>(pendingDirs.get(path));
-            for (FileCopyDetailsInternal details : detailsList) {
-                if (details.getCopySpec().getIncludeEmptyDirs()) {
-                    maybeVisit(path, details.getCopySpec());
+    public WorkResult visit(final Action<Action<? super FileCopyDetailsInternal>> visitor) {
+        final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
+        final ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs = ArrayListMultimap.create();
+
+        WorkResult result = delegate.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+            public void execute(final Action<? super FileCopyDetailsInternal> delegateAction) {
+                visitor.execute(new Action<FileCopyDetailsInternal>() {
+                    public void execute(FileCopyDetailsInternal details) {
+                        if (details.isDirectory()) {
+                            RelativePath path = details.getRelativePath();
+                            if (!visitedDirs.contains(path)) {
+                                pendingDirs.put(path, details);
+                            }
+                        } else {
+                            maybeVisit(details.getRelativePath().getParent(), details.getCopySpec(), delegateAction);
+                            delegateAction.execute(details);
+                        }
+                    }
+                });
+
+                for (RelativePath path : new LinkedHashSet<RelativePath>(pendingDirs.keySet())) {
+                    List<FileCopyDetailsInternal> detailsList = new ArrayList<FileCopyDetailsInternal>(pendingDirs.get(path));
+                    for (FileCopyDetailsInternal details : detailsList) {
+                        if (details.getCopySpec().getIncludeEmptyDirs()) {
+                            maybeVisit(path, details.getCopySpec(), delegateAction);
+                        }
+                    }
                 }
+
+                visitedDirs.clear();
+                pendingDirs.clear();
             }
-        }
 
-        visitedDirs.clear();
-        pendingDirs.clear();
+            private void maybeVisit(RelativePath path, CopySpecInternal copySpec, Action<? super FileCopyDetailsInternal> delegateAction) {
+                if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
+                    return;
+                }
+                maybeVisit(path.getParent(), copySpec, delegateAction);
+                List<FileCopyDetailsInternal> detailsForPath = pendingDirs.removeAll(path);
 
-        getVisitor().endVisit();
-    }
-
-    private void maybeVisit(RelativePath path, CopySpecInternal copySpec) {
-        if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
-            return;
-        }
-        maybeVisit(path.getParent(), copySpec);
-        List<FileCopyDetailsInternal> detailsForPath = pendingDirs.removeAll(path);
-
-        FileCopyDetailsInternal dir;
-        if (detailsForPath.isEmpty()) {
-            // TODO - this is pretty nasty, look at avoiding using a time bomb stub here
-            dir = new StubbedFileCopyDetails(path, copySpec);
-        } else {
-            dir = detailsForPath.get(0);
-        }
-        getVisitor().visit(dir);
-    }
-
-    @Override
-    public void visit(FileCopyDetailsInternal details) {
-        if (details.isDirectory()) {
-            RelativePath path = details.getRelativePath();
-            if (!visitedDirs.contains(path)) {
-                pendingDirs.put(path, details);
+                FileCopyDetailsInternal dir;
+                if (detailsForPath.isEmpty()) {
+                    // TODO - this is pretty nasty, look at avoiding using a time bomb stub here
+                    dir = new StubbedFileCopyDetails(path, copySpec);
+                } else {
+                    dir = detailsForPath.get(0);
+                }
+                delegateAction.execute(dir);
             }
-        } else {
-            maybeVisit(details.getRelativePath().getParent(), details.getCopySpec());
-            getVisitor().visit(details);
-        }
+        });
+
+        return result;
     }
+
 
     private static class StubbedFileCopyDetails extends AbstractFileTreeElement implements FileCopyDetailsInternal {
         private final RelativePath path;

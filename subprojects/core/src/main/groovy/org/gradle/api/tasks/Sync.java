@@ -35,7 +35,7 @@ public class Sync extends AbstractCopyTask {
         if (destinationDir == null) {
             throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
-        return new SyncCopySpecContentVisitor(new FileCopySpecContentVisitor(new BaseDirFileResolver(destinationDir)), destinationDir);
+        return new SyncCopySpecContentVisitor(destinationDir, new FileCopySpecContentVisitor(new BaseDirFileResolver(destinationDir)));
     }
 
     @Override

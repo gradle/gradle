@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.tasks.WorkResult;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,28 +31,41 @@ import java.util.Set;
  *
  * @author Kyle Mahan
  */
-public class DuplicateHandlingCopySpecContentVisitor extends DelegatingCopySpecContentVisitor {
+public class DuplicateHandlingCopySpecContentVisitor implements CopySpecContentVisitor {
 
-    private final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
+    private final CopySpecContentVisitor delegate;
+
     private final Action<? super FileCopyDetails> onUnhandledDuplicate;
 
-    public DuplicateHandlingCopySpecContentVisitor(CopySpecContentVisitor visitor, Action<? super FileCopyDetails> onUnhandledDuplicate) {
-        super(visitor);
+    public DuplicateHandlingCopySpecContentVisitor(CopySpecContentVisitor delegate, Action<? super FileCopyDetails> onUnhandledDuplicate) {
+        this.delegate = delegate;
         this.onUnhandledDuplicate = onUnhandledDuplicate;
     }
 
-    @Override
-    public void visit(FileCopyDetailsInternal details) {
-        if (!details.isDirectory()) {
-            DuplicatesStrategy strategy = details.getDuplicatesStrategy();
+    public WorkResult visit(final Action<Action<? super FileCopyDetailsInternal>> visitor) {
+        final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
 
-            if (!visitedFiles.add(details.getRelativePath())) {
-                if (strategy == DuplicatesStrategy.EXCLUDE) {
-                    return;
-                }
-                onUnhandledDuplicate.execute(details);
+        return delegate.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+            public void execute(final Action<? super FileCopyDetailsInternal> delegateAction) {
+                visitor.execute(new Action<FileCopyDetailsInternal>() {
+                    public void execute(FileCopyDetailsInternal details) {
+                        if (!details.isDirectory()) {
+                            DuplicatesStrategy strategy = details.getDuplicatesStrategy();
+
+                            if (!visitedFiles.add(details.getRelativePath())) {
+                                if (strategy == DuplicatesStrategy.EXCLUDE) {
+                                    return;
+                                }
+                                if (strategy != DuplicatesStrategy.INCLUDE) {
+                                    onUnhandledDuplicate.execute(details);
+                                }
+                            }
+                        }
+
+                        delegateAction.execute(details);
+                    }
+                });
             }
-        }
-        super.visit(details);
+        });
     }
 }

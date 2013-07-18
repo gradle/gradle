@@ -30,6 +30,8 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 
+import static org.gradle.api.internal.file.copy.CopySpecContentVisitorTestDriver.visit;
+
 @RunWith(JMock.class)
 public class FileCopySpecVisitorTest {
     private File destDir;
@@ -47,9 +49,10 @@ public class FileCopySpecVisitorTest {
     @Test
     public void plainCopy() {
         visitor = new FileCopySpecContentVisitor(new BaseDirFileResolver(destDir));
-        visitor.startVisit();
-        visitor.visit(file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")));
-        visitor.visit(file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt")));
+        visit(visitor,
+                file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")),
+                file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt"))
+        );
     }
 
     private FileCopyDetailsInternal file(final RelativePath relativePath, final File targetFile) {
