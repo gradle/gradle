@@ -26,6 +26,7 @@ import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.TaskNamerForBinaries;
 import org.gradle.nativecode.base.NativeComponent;
 import org.gradle.nativecode.base.NativeDependencySet;
+import org.gradle.nativecode.base.tasks.BuildBinaryTask;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final TaskNamerForBinaries namer;
     private final String name;
     private final ToolChainInternal toolChain;
+    private BuildBinaryTask builderTask;
     private File outputFile;
 
     protected DefaultNativeBinary(NativeComponent owner, String name, ToolChainInternal toolChain) {
@@ -54,6 +56,15 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
                 source.add(sourceSet);
             }
         });
+    }
+
+    public BuildBinaryTask getBuilderTask() {
+        return builderTask;
+    }
+
+    public void setBuilderTask(BuildBinaryTask builderTask) {
+        this.builderTask = builderTask;
+        dependsOn(builderTask);
     }
 
     public String getName() {

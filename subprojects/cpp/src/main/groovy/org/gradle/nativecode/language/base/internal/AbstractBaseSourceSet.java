@@ -60,7 +60,7 @@ public abstract class AbstractBaseSourceSet {
 
     @Override
     public String toString() {
-        return String.format("C++ source '%s'", getFullName());
+        return String.format("%s '%s'", getClass().getSimpleName(), getFullName());
     }
 
     public TaskDependency getBuildDependencies() {

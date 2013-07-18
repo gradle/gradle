@@ -18,6 +18,10 @@ package org.gradle.nativecode.base.internal;
 
 import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.nativecode.base.NativeBinary;
+import org.gradle.nativecode.base.tasks.BuildBinaryTask;
 
 public interface NativeBinaryInternal extends NativeBinary, BinaryInternal {
+    // TODO:DAZ Develop this concept further, so we can do eg. 'executable.tasks.link'
+    void setBuilderTask(BuildBinaryTask task);
+    BuildBinaryTask getBuilderTask();
 }

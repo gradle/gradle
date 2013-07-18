@@ -18,17 +18,14 @@ package org.gradle.nativecode.language.cpp;
 import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.nativecode.base.DependentSourceSet;
 import org.gradle.nativecode.base.HeaderExportingSourceSet;
-import org.gradle.nativecode.base.NativeDependencySet;
-
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * A representation of a unit of C++ source.
  */
 @Incubating
-public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSet {
+public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
 
     // TODO:DAZ This doesn't feel right. Need some better modelling.
     /**
@@ -45,26 +42,4 @@ public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSe
      * The source.
      */
     CppSourceSet source(Closure closure);
-
-    /**
-     * The libraries that this source set requires.
-     */
-    Collection<NativeDependencySet> getLibs();
-    
-    /**
-     * Adds a library that this source set requires. This method accepts the following types:
-     *
-     * <ul>
-     *     <li>A {@link org.gradle.nativecode.base.Library}</li>
-     *     <li>A {@link org.gradle.nativecode.base.LibraryBinary}</li>
-     *     <li>A {@link NativeDependencySet}</li>
-     * </ul>
-     */
-    void lib(Object library);
-
-    /**
-     * Add a dependency to this source set.
-     */
-    void dependency(Map<?, ?> dep);
-
 }
