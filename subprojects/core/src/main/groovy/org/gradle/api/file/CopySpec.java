@@ -98,23 +98,21 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     void setIncludeEmptyDirs(boolean includeEmptyDirs);
 
     /**
-     * The strategy to use when trying to copy more than one file to the same destination.
+     * Returns the strategy to use when trying to copy more than one file to the same destination.
      * <p>
      * The value can be set with a case insensitive string of the enum value (e.g. {@code 'exclude'} for {@link DuplicatesStrategy#EXCLUDE}).
-     * A value of {@code null} (which is the default) has the same affect as {@link DuplicatesStrategy#INCLUDE}, except information about duplicate
-     * files will be logged at INFO level.
      * <p>
      * This strategy can be overridden for individual files by using {@link #eachFile(org.gradle.api.Action)} or {@link #filesMatching(String, org.gradle.api.Action)}.
      *
      * @see DuplicatesStrategy
-     * @return the strategy, or {@code null} if no strategy has been set
+     * @return the strategy to use for files included by this copy spec.
      */
     @Incubating
-    @Nullable
     DuplicatesStrategy getDuplicatesStrategy();
 
     /**
-     * The strategy to use when trying to copy more than one file to the same destination.
+     * The strategy to use when trying to copy more than one file to the same destination. Set to {@code null} to use the default strategy, which is inherited
+     * from the parent copy spec, if any, or {@link DuplicatesStrategy#INCLUDE} if this copy spec has no parent.
      */
     @Incubating
     void setDuplicatesStrategy(@Nullable DuplicatesStrategy strategy);

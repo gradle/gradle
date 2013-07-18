@@ -39,7 +39,7 @@ class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisi
         this.fileDetails = fileDetails;
         this.spec = spec;
         this.fileSystem = fileSystem;
-        this.duplicatesStrategy = null; // inherit from CopySpec
+        this.duplicatesStrategy = spec.getDuplicatesStrategy();
     }
 
     public String getDisplayName() {

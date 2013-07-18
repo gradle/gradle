@@ -214,10 +214,13 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     }
 
     public DuplicatesStrategy getDuplicatesStrategy() {
-        if (parentSpec != null && duplicatesStrategy == null) {
+        if (duplicatesStrategy != null) {
+            return duplicatesStrategy;
+        }
+        if (parentSpec != null) {
             return parentSpec.getDuplicatesStrategy();
         }
-        return duplicatesStrategy;
+        return DuplicatesStrategy.INCLUDE;
     }
 
     public void setDuplicatesStrategy(DuplicatesStrategy strategy) {

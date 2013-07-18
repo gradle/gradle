@@ -32,7 +32,6 @@ import java.util.Set;
 public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor {
 
     private final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
-    private ReadableCopySpec spec;
     private final Action<? super FileCopyDetails> onUnhandledDuplicate;
 
     public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor, Action<? super FileCopyDetails> onUnhandledDuplicate) {
@@ -40,32 +39,16 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
         this.onUnhandledDuplicate = onUnhandledDuplicate;
     }
 
-    public void visitSpec(ReadableCopySpec spec) {
-        this.spec = spec;
-        super.visitSpec(spec);
-    }
-
     public void visitFile(FileCopyDetails details) {
-        DuplicatesStrategy strategy = determineStrategy(details);
+        DuplicatesStrategy strategy = details.getDuplicatesStrategy();
 
         if (!visitedFiles.add(details.getRelativePath())) {
             if (strategy == DuplicatesStrategy.EXCLUDE) {
                 return;
             }
-            if (strategy != DuplicatesStrategy.INCLUDE) {
-                onUnhandledDuplicate.execute(details);
-            }
+            onUnhandledDuplicate.execute(details);
         }
 
         super.visitFile(details);
     }
-
-
-    private DuplicatesStrategy determineStrategy(FileCopyDetails details) {
-        if (details.getDuplicatesStrategy() == null) {
-            return spec.getDuplicatesStrategy();
-        }
-        return details.getDuplicatesStrategy();
-    }
-
 }
