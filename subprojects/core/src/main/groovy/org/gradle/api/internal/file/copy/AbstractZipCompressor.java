@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.apache.tools.zip.Zip64Mode;
 import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.UncheckedIOException;
 
@@ -27,6 +28,7 @@ abstract class AbstractZipCompressor implements ZipCompressor {
     public ZipOutputStream createArchiveOutputStream(File destination) {
         try {
             ZipOutputStream outStream = new ZipOutputStream(destination);
+            outStream.setUseZip64(Zip64Mode.Never);
             outStream.setMethod(getCompressedMethod());
             return outStream;
         } catch (Exception e) {
