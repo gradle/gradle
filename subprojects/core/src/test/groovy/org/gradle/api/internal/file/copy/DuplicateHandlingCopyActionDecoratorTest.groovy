@@ -116,6 +116,7 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
             }
             fileTree
         }
+        copySpec.walk(_) >> { Action it -> it.execute(copySpec) }
     }
 
     void actions(Closure... actions) {

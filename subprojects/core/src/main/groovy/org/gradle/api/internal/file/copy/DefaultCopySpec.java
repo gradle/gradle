@@ -131,7 +131,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     public FileTree getAllSource() {
         final ImmutableList.Builder<FileTree> builder = ImmutableList.builder();
-        new CopySpecWalker().visit(this, new Action<CopySpecInternal>() {
+        walk(new Action<CopySpecInternal>() {
             public void execute(CopySpecInternal copySpecInternal) {
                 builder.add(copySpecInternal.getSource());
             }
@@ -461,6 +461,13 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     public Iterable<CopySpecInternal> getChildren() {
         return childSpecs;
+    }
+
+    public void walk(Action<? super CopySpecInternal> action) {
+        action.execute(this);
+        for (CopySpecInternal child : getChildren()) {
+            child.walk(action);
+        }
     }
 
     public boolean hasSource() {

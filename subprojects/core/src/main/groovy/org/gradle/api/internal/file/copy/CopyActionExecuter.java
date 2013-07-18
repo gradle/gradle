@@ -44,7 +44,7 @@ public class CopyActionExecuter {
 
         return effectiveVisitor.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
             public void execute(final Action<? super FileCopyDetailsInternal> action) {
-                new CopySpecWalker().visit(spec, new Action<CopySpecInternal>() {
+                spec.walk(new Action<CopySpecInternal>() {
                     public void execute(final CopySpecInternal spec) {
                         FileTree source = spec.getSource();
                         source.visit(new FileVisitor() {

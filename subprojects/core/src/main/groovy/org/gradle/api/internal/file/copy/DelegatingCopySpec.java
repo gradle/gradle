@@ -214,4 +214,11 @@ abstract public class DelegatingCopySpec implements CopySpecInternal {
     public DefaultCopySpec addFirst() {
         return getDelegateCopySpec().addFirst();
     }
+
+    public void walk(Action<? super CopySpecInternal> action) {
+        action.execute(this);
+        for (CopySpecInternal child : getChildren()) {
+            child.walk(action);
+        }
+    }
 }

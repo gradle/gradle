@@ -37,6 +37,8 @@ public interface CopySpecInternal extends CopySpec {
 
     Iterable<CopySpecInternal> getChildren();
 
+    void walk(Action<? super CopySpecInternal> action);
+
     DefaultCopySpec addChild();
 
     DefaultCopySpec addFirst();
