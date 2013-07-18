@@ -27,25 +27,21 @@ import org.gradle.internal.reflect.Instantiator
 import spock.lang.Shared
 import spock.lang.Specification
 
-/**
- * Unit tests for DuplicateHandlingCopySpecContentVisitor
- * @author Kyle Mahan
- */
-class DuplicateHandlingCopySpecVisitorTest extends Specification {
+class DuplicateHandlingCopyActionDecoratorTest extends Specification {
 
     private static interface MyCopySpec extends CopySpec, CopySpecInternal {}
 
     def fileSystem = Mock(FileSystem)
     def delegateAction = Mock(Action)
-    def delegate = new CopySpecContentVisitor() {
-        WorkResult visit(Action<Action<? super FileCopyDetailsInternal>> visitor) {
-            visitor.execute(delegateAction)
+    def delegate = new CopyAction() {
+        WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
+            stream.execute(delegateAction)
             return new SimpleWorkResult(true)
         }
     }
 
     @Shared Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
-    def driver = new CopySpecContentVisitorDriver(instantiator, fileSystem, Actions.doNothing())
+    def driver = new CopyActionExecuter(instantiator, fileSystem, Actions.doNothing())
     def copySpec = Mock(MyCopySpec) {
         getChildren() >> []
     }
@@ -127,7 +123,7 @@ class DuplicateHandlingCopySpecVisitorTest extends Specification {
     }
 
     void visit() {
-        driver.visit(copySpec, delegate)
+        driver.execute(copySpec, delegate)
     }
 
 }

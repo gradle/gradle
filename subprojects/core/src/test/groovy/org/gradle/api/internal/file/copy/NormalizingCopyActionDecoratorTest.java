@@ -32,16 +32,16 @@ import org.junit.runner.RunWith;
 import static org.gradle.api.internal.file.copy.CopySpecContentVisitorTestDriver.visit;
 
 @RunWith(JMock.class)
-public class NormalizingCopySpecVisitorTest {
+public class NormalizingCopyActionDecoratorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Action<FileCopyDetailsInternal> delegateAction = (Action<FileCopyDetailsInternal>) context.mock(Action.class);
-    private final CopySpecContentVisitor delegate = new CopySpecContentVisitor() {
-        public WorkResult visit(Action<Action<? super FileCopyDetailsInternal>> visitor) {
-            visitor.execute(delegateAction);
+    private final CopyAction delegate = new CopyAction() {
+        public WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
+            stream.execute(delegateAction);
             return new SimpleWorkResult(true);
         }
     };
-    private final NormalizingCopySpecContentVisitor visitor = new NormalizingCopySpecContentVisitor(delegate);
+    private final NormalizingCopyActionDecorator decorator = new NormalizingCopyActionDecorator(delegate);
     private final CopySpecInternal spec = context.mock(CopySpecInternal.class);
 
 
@@ -64,7 +64,7 @@ public class NormalizingCopySpecVisitorTest {
             one(delegateAction).execute(file);
         }});
 
-        visit(visitor, details, file, details);
+        visit(decorator, details, file, details);
     }
 
     @Test
@@ -74,7 +74,7 @@ public class NormalizingCopySpecVisitorTest {
 
         allowGetIncludeEmptyDirs();
 
-        visitor.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+        decorator.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
             public void execute(Action<? super FileCopyDetailsInternal> action) {
 
                 context.checking(new Expectations() {{
@@ -114,7 +114,7 @@ public class NormalizingCopySpecVisitorTest {
             one(delegateAction).execute(details);
         }});
 
-        visit(visitor, details);
+        visit(decorator, details);
     }
 
     @Test
@@ -127,7 +127,7 @@ public class NormalizingCopySpecVisitorTest {
             one(delegateAction).execute(dir);
         }});
 
-        visit(visitor, dir);
+        visit(decorator, dir);
     }
 
     @Test
@@ -140,7 +140,7 @@ public class NormalizingCopySpecVisitorTest {
             exactly(0).of(delegateAction).execute(dir);
         }});
 
-        visit(visitor, dir);
+        visit(decorator, dir);
     }
 
     private FileCopyDetailsInternal file(final String path, final boolean isDir) {

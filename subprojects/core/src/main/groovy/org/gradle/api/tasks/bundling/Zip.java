@@ -15,8 +15,8 @@
  */
 package org.gradle.api.tasks.bundling;
 
-import org.gradle.api.internal.file.archive.ZipCopySpecContentVisitor;
-import org.gradle.api.internal.file.copy.CopySpecContentVisitor;
+import org.gradle.api.internal.file.archive.ZipCopyAction;
+import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.internal.file.copy.ZipDeflatedCompressor;
 import org.gradle.api.internal.file.copy.ZipStoredCompressor;
@@ -48,8 +48,8 @@ public class Zip extends AbstractArchiveTask {
     }
 
     @Override
-    protected CopySpecContentVisitor createContentVisitor() {
-        return new ZipCopySpecContentVisitor(getArchivePath(), getCompressor());
+    protected CopyAction createCopyAction() {
+        return new ZipCopyAction(getArchivePath(), getCompressor());
     }
 
     /**

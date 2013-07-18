@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.internal.file.copy.FileCopyAction;
+import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.specs.Spec;
@@ -85,7 +85,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     public WorkResult copy(Closure closure) {
-        FileCopyAction copyAction = new FileCopyAction(instantiator, resolver);
+        FileCopier copyAction = new FileCopier(instantiator, resolver);
         CopySpecInternal copySpec = copyAction.getCopySpec();
         copySpec.from(this);
         ConfigureUtil.configure(closure, copySpec);

@@ -15,50 +15,40 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.internal.Actions;
-import org.gradle.api.internal.file.BaseDirFileResolver;
+import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.nativeplatform.filesystem.FileSystems;
-import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 
-public class FileCopyAction {
+public class FileCopyAction implements CopyAction {
 
-    private final Instantiator instantiator;
-    private final DestinationRootCopySpec copySpec;
+    private final FileResolver fileResolver;
 
-    public FileCopyAction(Instantiator instantiator, FileResolver fileResolver) {
-        this.instantiator = instantiator;
-        DefaultCopySpec copySpec = instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
-        this.copySpec = instantiator.newInstance(DestinationRootCopySpec.class, fileResolver, copySpec);
+    public FileCopyAction(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
     }
 
-    public CopySpecInternal getCopySpec() {
-        return copySpec;
+    private static class BooleanHolder {
+        boolean flag;
     }
 
-    public WorkResult copy() {
-        return doCopy(getCopyVisitor(getDestination()));
-    }
+    public WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
+        final BooleanHolder didWorkHolder = new BooleanHolder();
 
-    public WorkResult sync() {
-        File destination = getDestination();
-        return doCopy(new SyncCopySpecContentVisitor(destination, getCopyVisitor(destination)));
-    }
+        stream.execute(new Action<FileCopyDetailsInternal>() {
+            public void execute(FileCopyDetailsInternal details) {
+                File target = fileResolver.resolve(details.getRelativePath().getPathString());
+                boolean copied = details.copyTo(target);
+                if (copied) {
+                    didWorkHolder.flag = true;
+                }
 
-    private FileCopySpecContentVisitor getCopyVisitor(File destination) {
-        return new FileCopySpecContentVisitor(new BaseDirFileResolver(destination));
-    }
+            }
+        });
 
-    private WorkResult doCopy(CopySpecContentVisitor visitor) {
-        CopySpecContentVisitorDriver visitorDriver = new CopySpecContentVisitorDriver(instantiator, FileSystems.getDefault(), Actions.doNothing());
-        return visitorDriver.visit(copySpec, visitor);
-    }
-
-    private File getDestination() {
-        return copySpec.getDestinationDir();
+        return new SimpleWorkResult(didWorkHolder.flag);
     }
 
 }

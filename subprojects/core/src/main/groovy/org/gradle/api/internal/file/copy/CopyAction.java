@@ -18,8 +18,16 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.WorkResult;
 
-public interface CopySpecContentVisitor {
+/**
+ * An object that processes a stream of {@link FileCopyDetailsInternal}
+ */
+public interface CopyAction {
 
-    public WorkResult visit(Action<Action<? super FileCopyDetailsInternal>> visitor);
+    /**
+     * Processes a stream of FileCopyDetailsInternal, represented as an action.
+     * <p>
+     * The stream action takes an action as it argument that is called with each file to copy.
+     */
+    public WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream);
 
 }

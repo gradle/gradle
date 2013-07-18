@@ -24,27 +24,27 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
-public class CopySpecContentVisitorDriver {
+public class CopyActionExecuter {
 
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
     private final Action<? super FileCopyDetails> onUnhandledDuplicate;
 
-    public CopySpecContentVisitorDriver(Instantiator instantiator, FileSystem fileSystem, Action<? super FileCopyDetails> onUnhandledDuplicate) {
+    public CopyActionExecuter(Instantiator instantiator, FileSystem fileSystem, Action<? super FileCopyDetails> onUnhandledDuplicate) {
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
         this.onUnhandledDuplicate = onUnhandledDuplicate;
     }
 
-    public WorkResult visit(final CopySpecInternal toVisit, CopySpecContentVisitor visitor) {
-        final CopySpecContentVisitor effectiveVisitor = new DuplicateHandlingCopySpecContentVisitor(
-                new NormalizingCopySpecContentVisitor(visitor),
+    public WorkResult execute(final CopySpecInternal spec, CopyAction action) {
+        final CopyAction effectiveVisitor = new DuplicateHandlingCopyActionDecorator(
+                new NormalizingCopyActionDecorator(action),
                 onUnhandledDuplicate
         );
 
-        return effectiveVisitor.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+        return effectiveVisitor.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
             public void execute(final Action<? super FileCopyDetailsInternal> action) {
-                new CopySpecWalker().visit(toVisit, new Action<CopySpecInternal>() {
+                new CopySpecWalker().visit(spec, new Action<CopySpecInternal>() {
                     public void execute(final CopySpecInternal spec) {
                         FileTree source = spec.getSource();
                         source.visit(new FileVisitor() {

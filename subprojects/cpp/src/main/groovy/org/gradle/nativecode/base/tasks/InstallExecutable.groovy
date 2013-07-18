@@ -20,14 +20,14 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.copy.FileCopyAction
+import org.gradle.api.internal.file.copy.FileCopier
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 import javax.inject.Inject
 
@@ -109,7 +109,7 @@ exec "\$APP_BASE_NAME/lib/${executable.name}" \"\$@\"
     private void installToDir(File binaryDir) {
         FileResolver fileResolver = getServices().get(FileResolver.class)
 
-        def copyAction = new FileCopyAction(instantiator, fileResolver)
+        def copyAction = new FileCopier(instantiator, fileResolver)
         def spec = copyAction.getCopySpec();
         spec.into(binaryDir)
         spec.from(getExecutable())

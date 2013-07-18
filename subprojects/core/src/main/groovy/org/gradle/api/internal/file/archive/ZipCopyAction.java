@@ -22,7 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.file.copy.CopySpecContentVisitor;
+import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
@@ -31,16 +31,16 @@ import org.gradle.api.tasks.WorkResult;
 import java.io.File;
 import java.io.IOException;
 
-public class ZipCopySpecContentVisitor implements CopySpecContentVisitor {
+public class ZipCopyAction implements CopyAction {
     private final File zipFile;
     private final ZipCompressor compressor;
 
-    public ZipCopySpecContentVisitor(File zipFile, ZipCompressor compressor) {
+    public ZipCopyAction(File zipFile, ZipCompressor compressor) {
         this.zipFile = zipFile;
         this.compressor = compressor;
     }
 
-    public WorkResult visit(Action<Action<? super FileCopyDetailsInternal>> visitor) {
+    public WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
         final ZipOutputStream zipOutStr;
 
         try {
@@ -49,7 +49,7 @@ public class ZipCopySpecContentVisitor implements CopySpecContentVisitor {
             throw new GradleException(String.format("Could not create ZIP '%s'.", zipFile), e);
         }
 
-        visitor.execute(new Action<FileCopyDetailsInternal>() {
+        stream.execute(new Action<FileCopyDetailsInternal>() {
             public void execute(FileCopyDetailsInternal details) {
                 if (details.isDirectory()) {
                     visitDir(details);

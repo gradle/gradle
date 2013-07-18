@@ -31,7 +31,7 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
-import org.gradle.api.internal.file.copy.FileCopyAction;
+import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
@@ -139,7 +139,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public WorkResult copy(Closure closure) {
-        FileCopyAction copyAction = new FileCopyAction(instantiator, fileResolver);
+        FileCopier copyAction = new FileCopier(instantiator, fileResolver);
         ConfigureUtil.configure(closure, copyAction.getCopySpec());
         return copyAction.copy();
     }

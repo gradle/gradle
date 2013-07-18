@@ -30,12 +30,12 @@ import java.lang.reflect.Field
 
 import static org.junit.Assert.assertTrue
 
-class SyncCopySpecVisitorTest extends WorkspaceTest {
+class SyncCopyActionDecoratorTest extends WorkspaceTest {
 
-    FileCopyAction visitor
+    FileCopier copier
 
     def setup() {
-        visitor = new FileCopyAction(new DirectInstantiator(), new BaseDirFileResolver(testDirectory))
+        copier = new FileCopier(new DirectInstantiator(), new BaseDirFileResolver(testDirectory))
     }
 
     void deletesExtraFilesFromDestinationDirectoryAtTheEndOfVisit() {
@@ -53,7 +53,7 @@ class SyncCopySpecVisitorTest extends WorkspaceTest {
         }
 
         when:
-        def result = visitor.with {
+        def result = copier.with {
             copySpec.with {
                 from "src"
                 into "dest"

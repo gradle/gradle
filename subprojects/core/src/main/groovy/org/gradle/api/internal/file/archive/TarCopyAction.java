@@ -23,7 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
-import org.gradle.api.internal.file.copy.CopySpecContentVisitor;
+import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
@@ -32,16 +32,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class TarCopySpecContentVisitor implements CopySpecContentVisitor {
+public class TarCopyAction implements CopyAction {
     private final File tarFile;
     private final ArchiveOutputStreamFactory compressor;
 
-    public TarCopySpecContentVisitor(File tarFile, ArchiveOutputStreamFactory compressor) {
+    public TarCopyAction(File tarFile, ArchiveOutputStreamFactory compressor) {
         this.tarFile = tarFile;
         this.compressor = compressor;
     }
 
-    public WorkResult visit(Action<Action<? super FileCopyDetailsInternal>> visitor) {
+    public WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
         final TarOutputStream tarOutStr;
 
         try {
@@ -52,7 +52,7 @@ public class TarCopySpecContentVisitor implements CopySpecContentVisitor {
             throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);
         }
 
-        visitor.execute(new Action<FileCopyDetailsInternal>() {
+        stream.execute(new Action<FileCopyDetailsInternal>() {
             public void execute(FileCopyDetailsInternal details) {
                 if (details.isDirectory()) {
                     visitDir(details);

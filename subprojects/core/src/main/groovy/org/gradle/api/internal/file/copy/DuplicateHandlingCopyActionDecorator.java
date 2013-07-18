@@ -25,29 +25,23 @@ import org.gradle.api.tasks.WorkResult;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Maintains a set of relative paths that has been seen and optionally
- * excludes duplicates (based on that path).
- *
- * @author Kyle Mahan
- */
-public class DuplicateHandlingCopySpecContentVisitor implements CopySpecContentVisitor {
+public class DuplicateHandlingCopyActionDecorator implements CopyAction {
 
-    private final CopySpecContentVisitor delegate;
+    private final CopyAction delegate;
 
     private final Action<? super FileCopyDetails> onUnhandledDuplicate;
 
-    public DuplicateHandlingCopySpecContentVisitor(CopySpecContentVisitor delegate, Action<? super FileCopyDetails> onUnhandledDuplicate) {
+    public DuplicateHandlingCopyActionDecorator(CopyAction delegate, Action<? super FileCopyDetails> onUnhandledDuplicate) {
         this.delegate = delegate;
         this.onUnhandledDuplicate = onUnhandledDuplicate;
     }
 
-    public WorkResult visit(final Action<Action<? super FileCopyDetailsInternal>> visitor) {
+    public WorkResult execute(final Action<Action<? super FileCopyDetailsInternal>> stream) {
         final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
 
-        return delegate.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+        return delegate.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
             public void execute(final Action<? super FileCopyDetailsInternal> delegateAction) {
-                visitor.execute(new Action<FileCopyDetailsInternal>() {
+                stream.execute(new Action<FileCopyDetailsInternal>() {
                     public void execute(FileCopyDetailsInternal details) {
                         if (!details.isDirectory()) {
                             DuplicatesStrategy strategy = details.getDuplicatesStrategy();

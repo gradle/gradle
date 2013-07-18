@@ -17,7 +17,7 @@ package org.gradle.api.tasks
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.file.copy.CopySpecContentVisitor
+import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.util.HelperUtil
 import org.jmock.Expectations
 import org.junit.Test
@@ -74,10 +74,10 @@ class AbstractCopyTaskTest extends Specification {
     }
 
     static class TestCopyTask extends AbstractCopyTask {
-        CopySpecContentVisitor contentVisitor
+        CopyAction contentVisitor
         FileCollection defaultSource
 
-        protected CopySpecContentVisitor createContentVisitor() {
+        protected CopyAction createCopyAction() {
             contentVisitor
         }
 

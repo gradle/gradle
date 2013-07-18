@@ -16,12 +16,12 @@
 
 package org.gradle.api.tasks.bundling;
 
-import org.gradle.api.internal.file.archive.TarCopySpecContentVisitor;
+import org.gradle.api.internal.file.archive.TarCopyAction;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
-import org.gradle.api.internal.file.copy.CopySpecContentVisitor;
+import org.gradle.api.internal.file.copy.CopyAction;
 
 import java.util.concurrent.Callable;
 
@@ -42,8 +42,8 @@ public class Tar extends AbstractArchiveTask {
     }
 
     @Override
-    protected CopySpecContentVisitor createContentVisitor() {
-        return new TarCopySpecContentVisitor(getArchivePath(), getCompressor());
+    protected CopyAction createCopyAction() {
+        return new TarCopyAction(getArchivePath(), getCompressor());
     }
 
     private ArchiveOutputStreamFactory getCompressor() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.Actions;
+import org.gradle.api.internal.file.FileResource;
+import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
+import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
+import org.gradle.api.internal.file.archive.compression.GzipArchiver;
+import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
-import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.hamcrest.Description;
@@ -29,7 +33,6 @@ import org.jmock.Expectations;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,78 +48,93 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
-public class ZipCopySpecVisitorTest {
+public class TarCopyActionTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private ZipCopySpecContentVisitor visitor;
-    private TestFile zipFile;
+    private TarCopyAction action;
 
-    @Before
-    public void setup() {
-        zipFile = tmpDir.getTestDirectory().file("test.zip");
-        visitor = new ZipCopySpecContentVisitor(zipFile, ZipStoredCompressor.INSTANCE);
-    }
 
     @Test
-    public void createsZipFile() {
-        zip(dir("dir"), file("dir/file1"), file("file2"));
+    public void createsTarFile() {
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
+                new SimpleCompressor());
+        tarAndUntarAndCheckFileContents(tarFile);
+    }
+
+    private void tarAndUntarAndCheckFileContents(TestFile tarFile) {
+        tar(file("dir/file1"), file("file2"));
 
         TestFile expandDir = tmpDir.getTestDirectory().file("expanded");
-        zipFile.unzipTo(expandDir);
+        tarFile.untarTo(expandDir);
         expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
         expandDir.file("file2").assertContents(equalTo("contents of file2"));
     }
 
     @Test
-    public void createsDeflatedZipFile() {
-        zip(dir("dir"), file("dir/file1"), file("file2"));
-
-        TestFile expandDir = tmpDir.getTestDirectory().file("expanded");
-        zipFile.unzipTo(expandDir);
-        expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
-        expandDir.file("file2").assertContents(equalTo("contents of file2"));
+    public void createsGzipCompressedTarFile() {
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tgz"),
+                GzipArchiver.getCompressor());
+        tarAndUntarAndCheckFileContents(tarFile);
     }
 
     @Test
-    public void zipFileContainsExpectedPermissions() {
-        zip(dir("dir"), file("file"));
+    public void createsBzip2CompressedTarFile() {
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tbz2"),
+                Bzip2Archiver.getCompressor());
+        tarAndUntarAndCheckFileContents(tarFile);
+    }
+
+    @Test
+    public void tarFileContainsExpectedPermissions() {
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
+                new SimpleCompressor());
+
+        tar(dir("dir"), file("file"));
 
         Map<String, Integer> expected = new HashMap<String, Integer>();
         expected.put("dir", 2);
         expected.put("file", 1);
 
-        assertVisitsPermissions(new ZipFileTree(zipFile, null), expected);
+        assertVisitsPermissions(new TarFileTree(new FileResource(tarFile), null),
+                expected);
     }
 
     @Test
     public void wrapsFailureToOpenOutputFile() {
-        final TestFile invalidZipFile = tmpDir.createDir("test.zip");
-        visitor = new ZipCopySpecContentVisitor(invalidZipFile, ZipStoredCompressor.INSTANCE);
+        final TestFile tarFile = initializeTarFile(tmpDir.createDir("test.tar"),
+                new SimpleCompressor());
 
         try {
-            visitor.visit(Actions.<Action<? super FileCopyDetailsInternal>>doNothing());
+            action.execute(Actions.<Action<? super FileCopyDetailsInternal>>doNothing());
             fail();
         } catch (GradleException e) {
-            assertThat(e.getMessage(), equalTo(String.format("Could not create ZIP '%s'.", zipFile)));
+            assertThat(e.getMessage(), equalTo(String.format("Could not create TAR '%s'.", tarFile)));
         }
     }
 
     @Test
     public void wrapsFailureToAddElement() {
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
+                new SimpleCompressor());
 
         Throwable failure = new RuntimeException("broken");
         try {
-            visit(visitor, brokenFile("dir/file1", failure));
+            visit(action, brokenFile("dir/file1", failure));
             fail();
         } catch (GradleException e) {
-            assertThat(e.getMessage(), equalTo(String.format("Could not add [dir/file1] to ZIP '%s'.", zipFile)));
+            assertThat(e.getMessage(), equalTo(String.format("Could not add [dir/file1] to TAR '%s'.", tarFile)));
             assertThat(e.getCause(), sameInstance(failure));
         }
     }
 
-    private void zip(final FileCopyDetailsInternal... files) {
-        visitor.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+    private TestFile initializeTarFile(final TestFile tarFile, final ArchiveOutputStreamFactory compressor) {
+        action = new TarCopyAction(tarFile, compressor);
+        return tarFile;
+    }
+
+    private void tar(final FileCopyDetailsInternal... files) {
+        action.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
             public void execute(Action<? super FileCopyDetailsInternal> action) {
                 for (FileCopyDetailsInternal f : files) {
                     if (f.isDirectory()) {
@@ -131,6 +149,7 @@ public class ZipCopySpecVisitorTest {
 
     private FileCopyDetailsInternal file(final String path) {
         final FileCopyDetailsInternal details = context.mock(FileCopyDetailsInternal.class, path);
+        final String content = String.format("contents of %s", path);
 
         context.checking(new Expectations() {{
             allowing(details).getRelativePath();
@@ -138,6 +157,9 @@ public class ZipCopySpecVisitorTest {
 
             allowing(details).getLastModified();
             will(returnValue(1000L));
+
+            allowing(details).getSize();
+            will(returnValue((long) content.getBytes().length));
 
             allowing(details).isDirectory();
             will(returnValue(false));
@@ -152,7 +174,7 @@ public class ZipCopySpecVisitorTest {
                 }
 
                 public Object invoke(Invocation invocation) throws Throwable {
-                    IOUtils.write(String.format("contents of %s", path), (OutputStream) invocation.getParameter(0));
+                    IOUtils.write(content, (OutputStream) invocation.getParameter(0));
                     return null;
                 }
             });
@@ -189,6 +211,9 @@ public class ZipCopySpecVisitorTest {
             will(returnValue(RelativePath.parse(true, path)));
 
             allowing(details).getLastModified();
+            will(returnValue(1000L));
+
+            allowing(details).getSize();
             will(returnValue(1000L));
 
             allowing(details).isDirectory();

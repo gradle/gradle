@@ -33,10 +33,9 @@ import java.io.IOException;
 import static org.gradle.api.internal.file.copy.CopySpecContentVisitorTestDriver.visit;
 
 @RunWith(JMock.class)
-public class FileCopySpecVisitorTest {
+public class FileCopyActionTest {
     private File destDir;
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private FileCopySpecContentVisitor visitor;
 
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -48,7 +47,7 @@ public class FileCopySpecVisitorTest {
 
     @Test
     public void plainCopy() {
-        visitor = new FileCopySpecContentVisitor(new BaseDirFileResolver(destDir));
+        FileCopyAction visitor = new FileCopyAction(new BaseDirFileResolver(destDir));
         visit(visitor,
                 file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")),
                 file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt"))

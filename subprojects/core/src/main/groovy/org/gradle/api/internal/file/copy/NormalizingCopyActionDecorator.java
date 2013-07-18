@@ -31,24 +31,24 @@ import java.io.InputStream;
 import java.util.*;
 
 /**
- * A {@link CopySpecContentVisitor} which cleans up the tree as it is visited. Removes duplicate directories and adds in missing directories. Removes empty directories if instructed to do so by copy
+ * A {@link CopyAction} which cleans up the tree as it is visited. Removes duplicate directories and adds in missing directories. Removes empty directories if instructed to do so by copy
  * spec.
  */
-public class NormalizingCopySpecContentVisitor implements CopySpecContentVisitor {
+public class NormalizingCopyActionDecorator implements CopyAction {
 
-    private final CopySpecContentVisitor delegate;
+    private final CopyAction delegate;
 
-    public NormalizingCopySpecContentVisitor(CopySpecContentVisitor delegate) {
+    public NormalizingCopyActionDecorator(CopyAction delegate) {
         this.delegate = delegate;
     }
 
-    public WorkResult visit(final Action<Action<? super FileCopyDetailsInternal>> visitor) {
+    public WorkResult execute(final Action<Action<? super FileCopyDetailsInternal>> stream) {
         final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
         final ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs = ArrayListMultimap.create();
 
-        WorkResult result = delegate.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+        WorkResult result = delegate.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
             public void execute(final Action<? super FileCopyDetailsInternal> delegateAction) {
-                visitor.execute(new Action<FileCopyDetailsInternal>() {
+                stream.execute(new Action<FileCopyDetailsInternal>() {
                     public void execute(FileCopyDetailsInternal details) {
                         if (details.isDirectory()) {
                             RelativePath path = details.getRelativePath();

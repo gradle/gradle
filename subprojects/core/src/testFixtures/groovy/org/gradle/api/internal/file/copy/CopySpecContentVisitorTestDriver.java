@@ -23,8 +23,8 @@ import java.util.Arrays;
 
 public class CopySpecContentVisitorTestDriver {
 
-    public static WorkResult visit(CopySpecContentVisitor visitor, final Iterable<FileCopyDetailsInternal> detailses) {
-        return visitor.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+    public static WorkResult visit(CopyAction visitor, final Iterable<FileCopyDetailsInternal> detailses) {
+        return visitor.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
             public void execute(Action<? super FileCopyDetailsInternal> action) {
                 for (FileCopyDetailsInternal detailsInternal : detailses) {
                     action.execute(detailsInternal);
@@ -33,7 +33,7 @@ public class CopySpecContentVisitorTestDriver {
         });
     }
 
-    public static WorkResult visit(CopySpecContentVisitor visitor, final FileCopyDetailsInternal... detailses) {
+    public static WorkResult visit(CopyAction visitor, final FileCopyDetailsInternal... detailses) {
         return visit(visitor, Arrays.asList(detailses));
     }
 

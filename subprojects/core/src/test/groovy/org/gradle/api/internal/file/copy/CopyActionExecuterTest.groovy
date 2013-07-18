@@ -17,7 +17,7 @@ package org.gradle.api.internal.file.copy
 
 import spock.lang.Specification
 
-class CopySpecContentVisitorDriverTest extends Specification {
+class CopyActionExecuterTest extends Specification {
 
 
 

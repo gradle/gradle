@@ -19,10 +19,10 @@ package org.gradle.api.tasks;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.copy.CopySpecContentVisitor;
+import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
-import org.gradle.api.internal.file.copy.FileCopySpecContentVisitor;
+import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -65,12 +65,12 @@ import java.io.File;
 public class Copy extends AbstractCopyTask {
 
     @Override
-    protected CopySpecContentVisitor createContentVisitor() {
+    protected CopyAction createCopyAction() {
         File destinationDir = getDestinationDir();
         if (destinationDir == null) {
             throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
-        return new FileCopySpecContentVisitor(new BaseDirFileResolver(destinationDir));
+        return new FileCopyAction(new BaseDirFileResolver(destinationDir));
     }
 
     @Override

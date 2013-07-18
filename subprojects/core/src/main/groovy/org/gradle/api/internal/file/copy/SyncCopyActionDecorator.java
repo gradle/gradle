@@ -29,21 +29,21 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-public class SyncCopySpecContentVisitor implements CopySpecContentVisitor {
+public class SyncCopyActionDecorator implements CopyAction {
     private final File baseDestDir;
-    private final CopySpecContentVisitor delegate;
+    private final CopyAction delegate;
 
-    public SyncCopySpecContentVisitor(File baseDestDir, CopySpecContentVisitor delegate) {
+    public SyncCopyActionDecorator(File baseDestDir, CopyAction delegate) {
         this.baseDestDir = baseDestDir;
         this.delegate = delegate;
     }
 
-    public WorkResult visit(final Action<Action<? super FileCopyDetailsInternal>> visitor) {
+    public WorkResult execute(final Action<Action<? super FileCopyDetailsInternal>> stream) {
         final Set<RelativePath> visited = new HashSet<RelativePath>();
 
-        WorkResult didWork = delegate.visit(new Action<Action<? super FileCopyDetailsInternal>>() {
+        WorkResult didWork = delegate.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
             public void execute(final Action<? super FileCopyDetailsInternal> delegateAction) {
-                visitor.execute(new Action<FileCopyDetailsInternal>() {
+                stream.execute(new Action<FileCopyDetailsInternal>() {
                     public void execute(FileCopyDetailsInternal details) {
                         visited.add(details.getRelativePath());
                         delegateAction.execute(details);
