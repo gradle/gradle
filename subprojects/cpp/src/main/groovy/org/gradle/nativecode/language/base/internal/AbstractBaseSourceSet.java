@@ -32,15 +32,17 @@ public abstract class AbstractBaseSourceSet {
 
     private final String name;
     private final String fullName;
+    private final String typeName;
 
     private final DefaultSourceDirectorySet exportedHeaders;
     private final DefaultSourceDirectorySet source;
     private final ResolvableNativeDependencySet libs;
     private final ConfigurationBasedNativeDependencySet configurationDependencySet;
 
-    public AbstractBaseSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
+    public AbstractBaseSourceSet(String name, String functionalSourceSetName, ProjectInternal project, String typeName) {
         this.name = name;
         this.fullName = functionalSourceSetName + StringUtils.capitalize(name);
+        this.typeName = typeName;
 
         this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", project.getFileResolver());
         this.source = new DefaultSourceDirectorySet("source", project.getFileResolver());
@@ -60,7 +62,7 @@ public abstract class AbstractBaseSourceSet {
 
     @Override
     public String toString() {
-        return String.format("%s '%s'", getClass().getSimpleName(), getFullName());
+        return String.format("%s source '%s'", typeName, getFullName());
     }
 
     public TaskDependency getBuildDependencies() {

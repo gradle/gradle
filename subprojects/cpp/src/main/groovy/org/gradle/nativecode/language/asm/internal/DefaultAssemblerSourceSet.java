@@ -25,7 +25,7 @@ import org.gradle.util.ConfigureUtil;
 public class DefaultAssemblerSourceSet extends AbstractBaseSourceSet implements AssemblerSourceSet {
 
     public DefaultAssemblerSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
-        super(name, functionalSourceSetName, project);
+        super(name, functionalSourceSetName, project, "Assembler");
     }
 
     public AssemblerSourceSet source(Closure closure) {

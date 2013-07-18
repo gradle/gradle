@@ -24,7 +24,7 @@ import org.gradle.util.ConfigureUtil;
 
 public class DefaultCppSourceSet extends AbstractBaseSourceSet implements CppSourceSet {
     public DefaultCppSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
-        super(name, functionalSourceSetName, project);
+        super(name, functionalSourceSetName, project, "C++");
     }
 
     public CppSourceSet exportedHeaders(Closure closure) {

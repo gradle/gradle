@@ -25,7 +25,7 @@ import org.gradle.util.ConfigureUtil;
 public class DefaultCSourceSet extends AbstractBaseSourceSet implements CSourceSet {
 
     public DefaultCSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
-        super(name, functionalSourceSetName, project);
+        super(name, functionalSourceSetName, project, "C");
     }
 
     public CSourceSet exportedHeaders(Closure closure) {
