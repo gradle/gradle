@@ -16,27 +16,12 @@
 
 package org.gradle.nativecode.language.cpp.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativecode.language.base.internal.AbstractBaseSourceSet;
 import org.gradle.nativecode.language.cpp.CppSourceSet;
-import org.gradle.util.ConfigureUtil;
 
 public class DefaultCppSourceSet extends AbstractBaseSourceSet implements CppSourceSet {
     public DefaultCppSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
         super(name, functionalSourceSetName, project, "C++");
     }
-
-    public CppSourceSet exportedHeaders(Closure closure) {
-        ConfigureUtil.configure(closure, getExportedHeaders());
-        return this;
-    }
-
-
-    public CppSourceSet source(Closure closure) {
-        ConfigureUtil.configure(closure, getSource());
-        return this;
-    }
-
-
 }

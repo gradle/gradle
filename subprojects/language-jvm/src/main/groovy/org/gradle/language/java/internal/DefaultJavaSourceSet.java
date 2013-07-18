@@ -15,6 +15,7 @@
  */
 package org.gradle.language.java.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.language.jvm.Classpath;
@@ -44,6 +45,10 @@ public class DefaultJavaSourceSet implements JavaSourceSet {
 
     public SourceDirectorySet getSource() {
         return source;
+    }
+
+    public void source(Action<SourceDirectorySet> config) {
+        config.execute(getSource());
     }
 
     public TaskDependency getBuildDependencies() {

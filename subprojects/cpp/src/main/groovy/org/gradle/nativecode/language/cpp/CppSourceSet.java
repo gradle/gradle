@@ -15,7 +15,6 @@
  */
 package org.gradle.nativecode.language.cpp;
 
-import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativecode.base.DependentSourceSet;
@@ -32,14 +31,4 @@ public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSe
      * A unique name for this source set across all functional source sets.
      */
     String getFullName();
-
-    /**
-     * The headers.
-     */
-    CppSourceSet exportedHeaders(Closure closure);
-
-    /**
-     * The source.
-     */
-    CppSourceSet source(Closure closure);
 }

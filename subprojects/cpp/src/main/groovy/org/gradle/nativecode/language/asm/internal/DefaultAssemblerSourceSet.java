@@ -16,20 +16,12 @@
 
 package org.gradle.nativecode.language.asm.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativecode.language.asm.AssemblerSourceSet;
 import org.gradle.nativecode.language.base.internal.AbstractBaseSourceSet;
-import org.gradle.util.ConfigureUtil;
 
 public class DefaultAssemblerSourceSet extends AbstractBaseSourceSet implements AssemblerSourceSet {
-
     public DefaultAssemblerSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
         super(name, functionalSourceSetName, project, "Assembler");
-    }
-
-    public AssemblerSourceSet source(Closure closure) {
-        ConfigureUtil.configure(closure, getSource());
-        return this;
     }
 }

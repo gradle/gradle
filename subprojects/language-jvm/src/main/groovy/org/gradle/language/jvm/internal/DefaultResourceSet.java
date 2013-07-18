@@ -15,6 +15,7 @@
  */
 package org.gradle.language.jvm.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.api.tasks.TaskDependency;
@@ -33,6 +34,10 @@ public class DefaultResourceSet implements ResourceSet {
 
     public SourceDirectorySet getSource() {
         return source;
+    }
+
+    public void source(Action<SourceDirectorySet> config) {
+        config.execute(getSource());
     }
 
     public TaskDependency getBuildDependencies() {

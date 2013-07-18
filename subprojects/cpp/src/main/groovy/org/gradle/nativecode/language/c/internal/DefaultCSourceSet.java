@@ -16,26 +16,13 @@
 
 package org.gradle.nativecode.language.c.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.nativecode.language.c.CSourceSet;
 import org.gradle.nativecode.language.base.internal.AbstractBaseSourceSet;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.nativecode.language.c.CSourceSet;
 
 public class DefaultCSourceSet extends AbstractBaseSourceSet implements CSourceSet {
 
     public DefaultCSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
         super(name, functionalSourceSetName, project, "C");
-    }
-
-    public CSourceSet exportedHeaders(Closure closure) {
-        ConfigureUtil.configure(closure, getExportedHeaders());
-        return this;
-    }
-
-
-    public CSourceSet source(Closure closure) {
-        ConfigureUtil.configure(closure, getSource());
-        return this;
     }
 }

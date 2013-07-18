@@ -16,6 +16,7 @@
 package org.gradle.nativecode.language.base.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -74,8 +75,16 @@ public abstract class AbstractBaseSourceSet {
         return exportedHeaders;
     }
 
+    public void exportedHeaders(Action<SourceDirectorySet> config) {
+        config.execute(getExportedHeaders());
+    }
+
     public SourceDirectorySet getSource() {
         return source;
+    }
+
+    public void source(Action<SourceDirectorySet> config) {
+        config.execute(getSource());
     }
 
     public Collection<NativeDependencySet> getLibs() {

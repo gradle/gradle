@@ -13,23 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.language.c;
+package org.gradle.language.base.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.nativecode.base.DependentSourceSet;
-import org.gradle.nativecode.base.HeaderExportingSourceSet;
-
-/**
- * A representation of a unit of C source.
- */
-@Incubating
-public interface CSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
-
-    // TODO:DAZ This doesn't feel right. Need some better modelling.
-    /**
-     * A unique name for this source set across all functional source sets.
-     */
-    String getFullName();
-
+public interface LanguageSourceSetInternal {
 }

@@ -15,20 +15,10 @@
  */
 package org.gradle.nativecode.language.asm;
 
-import groovy.lang.Closure;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.nativecode.base.HeaderExportingSourceSet;
-
-// TODO:DAZ Doesn't belong in language.cpp
 
 /**
  * A set of assembly language sources.
  */
-public interface AssemblerSourceSet extends HeaderExportingSourceSet, LanguageSourceSet {
-
-    /**
-     * The source.
-     */
-    AssemblerSourceSet source(Closure closure);
-
+public interface AssemblerSourceSet extends LanguageSourceSet {
 }
