@@ -16,13 +16,14 @@
 package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
@@ -84,12 +85,14 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         return String.format("directory '%s'", dir);
     }
 
-    public WorkResult copy(Closure closure) {
+    public WorkResult copy(final Closure closure) {
         FileCopier copyAction = new FileCopier(instantiator, resolver);
-        CopySpecInternal copySpec = copyAction.getCopySpec();
-        copySpec.from(this);
-        ConfigureUtil.configure(closure, copySpec);
-        return copyAction.copy();
+        return copyAction.copy(new Action<CopySpec>() {
+            public void execute(CopySpec copySpec) {
+                copySpec.from(DefaultConfigurableFileTree.this);
+                ConfigureUtil.configure(closure, copySpec);
+            }
+        });
     }
 
     public Set<String> getIncludes() {

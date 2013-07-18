@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.Action;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
@@ -27,38 +29,39 @@ import java.io.File;
 public class FileCopier {
 
     private final Instantiator instantiator;
-    private final DestinationRootCopySpec copySpec;
+    private final FileResolver fileResolver;
 
     public FileCopier(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
-        DefaultCopySpec copySpec = instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
-        this.copySpec = instantiator.newInstance(DestinationRootCopySpec.class, fileResolver, copySpec);
+        this.fileResolver = fileResolver;
     }
 
-    public CopySpecInternal getCopySpec() {
-        return copySpec;
+    private DestinationRootCopySpec createCopySpec(Action<? super CopySpec> action) {
+        DefaultCopySpec copySpec = instantiator.newInstance(DefaultCopySpec.class, this.fileResolver, instantiator);
+        DestinationRootCopySpec destinationRootCopySpec = instantiator.newInstance(DestinationRootCopySpec.class, fileResolver, copySpec);
+        action.execute(destinationRootCopySpec);
+        return destinationRootCopySpec;
     }
 
-    public WorkResult copy() {
-        return doCopy(getCopyVisitor(getDestination()));
+    public WorkResult copy(Action<? super CopySpec> action) {
+        DestinationRootCopySpec copySpec = createCopySpec(action);
+        File destinationDir = copySpec.getDestinationDir();
+        return doCopy(copySpec, getCopyVisitor(destinationDir));
     }
 
-    public WorkResult sync() {
-        File destination = getDestination();
-        return doCopy(new SyncCopyActionDecorator(destination, getCopyVisitor(destination)));
+    public WorkResult sync(Action<? super CopySpec> action) {
+        DestinationRootCopySpec copySpec = createCopySpec(action);
+        File destinationDir = copySpec.getDestinationDir();
+        return doCopy(copySpec, new SyncCopyActionDecorator(destinationDir, getCopyVisitor(destinationDir)));
     }
 
     private FileCopyAction getCopyVisitor(File destination) {
         return new FileCopyAction(new BaseDirFileResolver(destination));
     }
 
-    private WorkResult doCopy(CopyAction visitor) {
+    private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {
         CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, FileSystems.getDefault(), Actions.doNothing());
         return visitorDriver.execute(copySpec, visitor);
-    }
-
-    private File getDestination() {
-        return copySpec.getDestinationDir();
     }
 
 }

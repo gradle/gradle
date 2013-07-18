@@ -18,10 +18,8 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.DeleteAction;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
@@ -140,8 +138,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
 
     public WorkResult copy(Closure closure) {
         FileCopier copyAction = new FileCopier(instantiator, fileResolver);
-        ConfigureUtil.configure(closure, copyAction.getCopySpec());
-        return copyAction.copy();
+        return copyAction.copy(new ClosureBackedAction<CopySpec>(closure));
     }
 
     public CopySpecInternal copySpec(Closure closure) {

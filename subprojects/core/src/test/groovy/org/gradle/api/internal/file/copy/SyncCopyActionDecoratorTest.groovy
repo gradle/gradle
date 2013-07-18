@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.copy
 
+import org.gradle.api.Action
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
@@ -23,7 +24,6 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.WorkspaceTest
-import org.jmock.Expectations
 import org.junit.Test
 
 import java.lang.reflect.Field
@@ -53,21 +53,17 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
         }
 
         when:
-        def result = copier.with {
-            copySpec.with {
-                from "src"
-                into "dest"
-            }
-            sync()
-        }
+        def result = copier.sync({
+            it.from "src"
+            it.into "dest"
+        } as Action)
 
         then:
         result.didWork
         file("dest").assertHasDescendants("subdir/included.txt", "included.txt");
     }
 
-    @Test
-    public void deletesExtraDirectoriesFromDestinationDirectoryAtTheEndOfVisit() throws Exception {
+    public void deletesExtraDirectoriesFromDestinationDirectoryAtTheEndOfVisit() {
         TestFile destDir = tmpDir.createDir("dest");
         destDir.createFile("included.txt");
         destDir.createFile("extra/extra.txt");
@@ -110,19 +106,6 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
         visitor.endVisit();
 
         destDir.assertHasDescendants();
-    }
-
-    @Test
-    public void didWorkWhenDelegateDidWork() {
-        visitor(tmpDir.createDir("test"));
-        context.checking(new Expectations() {
-            {
-                allowing(delegate).getDidWork();
-                will(returnValue(true));
-            }
-        });
-
-        assertTrue(visitor.getDidWork());
     }
 
     @Test

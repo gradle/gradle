@@ -16,8 +16,10 @@
 
 package org.gradle.nativecode.base.tasks
 
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
+import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.FileCopier
@@ -108,13 +110,14 @@ exec "\$APP_BASE_NAME/lib/${executable.name}" \"\$@\"
 
     private void installToDir(File binaryDir) {
         FileResolver fileResolver = getServices().get(FileResolver.class)
-
         def copyAction = new FileCopier(instantiator, fileResolver)
-        def spec = copyAction.getCopySpec();
-        spec.into(binaryDir)
-        spec.from(getExecutable())
-        spec.from(getLibs())
-        copyAction.sync()
+        copyAction.sync(new Action<CopySpec>() {
+            void execute(CopySpec copySpec) {
+                copySpec.into(binaryDir)
+                copySpec.from(getExecutable())
+                copySpec.from(getLibs())
+            }
+        })
     }
 
 }
