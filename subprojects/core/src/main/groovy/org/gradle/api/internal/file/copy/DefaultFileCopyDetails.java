@@ -42,7 +42,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         this.fileDetails = fileDetails;
         this.spec = spec;
         this.fileSystem = fileSystem;
-        this.duplicatesStrategy = null; // inherit from CopySpec
+        this.duplicatesStrategy = spec.getDuplicatesStrategy();
     }
 
     public CopySpecInternal getCopySpec() {

@@ -212,22 +212,33 @@ public class DefaultCopySpecTest {
         assertThat(patterns.excludeSpecs, equalTo([specExclude] as Set))
     }
 
-    @Test public void testChildUsesCaseSensitiveFlagFromParentAsDefault() {
-        DefaultCopySpec child = spec.from('dir') {}
-        assertTrue(child.caseSensitive)
-        assertTrue(child.patternSet.caseSensitive)
-
-        spec.caseSensitive = false
-        assertFalse(child.caseSensitive)
-        assertFalse(child.patternSet.caseSensitive)
-
-        child.caseSensitive = true
-        assertTrue(child.caseSensitive)
-        assertTrue(child.patternSet.caseSensitive)
+    @Test public void caseSensitiveFlagDefaultsToTrue() {
+        assert spec.caseSensitive
+        assert spec.patternSet.caseSensitive
     }
 
-    @Test public void testChildUsesIncludeEmptyDirsFlagFromParentAsDefault() {
+    @Test public void childUsesCaseSensitiveFlagFromParentAsDefault() {
         def child = spec.from('dir') {}
+
+        assert child.caseSensitive
+        assert child.patternSet.caseSensitive
+
+        spec.caseSensitive = false
+        assert !child.caseSensitive
+        assert !child.patternSet.caseSensitive
+
+        child.caseSensitive = true
+        assert child.caseSensitive
+        assert child.patternSet.caseSensitive
+    }
+
+    @Test public void includeEmptyDirsFlagDefaultsToTrue() {
+        assert spec.includeEmptyDirs
+    }
+
+    @Test public void childUsesIncludeEmptyDirsFlagFromParentAsDefault() {
+        def child = spec.from('dir') {}
+
         assert child.includeEmptyDirs
 
         spec.includeEmptyDirs = false
@@ -336,20 +347,17 @@ public class DefaultCopySpecTest {
         assertTrue(spec.hasSource())
     }
 
-    @Test public void testGetSetDuplicatesStrategy() {
-        assertEquals(null, spec.duplicatesStrategy)
-        spec.duplicatesStrategy = 'INCLUDE'
-        assertEquals(DuplicatesStrategy.INCLUDE, spec.duplicatesStrategy)
-        spec.duplicatesStrategy = 'EXCLUDE'
-        assertEquals(DuplicatesStrategy.EXCLUDE, spec.duplicatesStrategy)
-        spec.duplicatesStrategy = null
-        assertEquals(null, spec.duplicatesStrategy)
+    @Test public void duplicatesStrategyDefaultsToInclude() {
+        assert spec.duplicatesStrategy == DuplicatesStrategy.INCLUDE
     }
 
+    @Test public void childInheritsDuplicatesStrategyFromParent() {
+        def child = spec.from('dir') {}
 
-    @Test public void testDuplicatesStrategyInherited() {
+        assert child.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+
         spec.duplicatesStrategy = 'EXCLUDE'
-        spec.with new DefaultCopySpec(fileResolver, instantiator, spec)
+        spec.with new CopySpecImpl(fileResolver, instantiator, spec)
         assertEquals(DuplicatesStrategy.EXCLUDE, spec.childSpecs[0].duplicatesStrategy)
     }
 

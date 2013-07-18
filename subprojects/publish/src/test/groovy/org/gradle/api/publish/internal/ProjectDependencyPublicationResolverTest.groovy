@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 package org.gradle.api.publish.internal
-import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
 public class ProjectDependencyPublicationResolverTest extends Specification {
     def projectDependency = Mock(ProjectDependency)
-    def project = Mock(Project)
-    def extensions = Mock(ExtensionContainer)
+    def project = Mock(ProjectInternal)
+    def extensions = Mock(ExtensionContainerInternal)
     def publishing = Mock(PublishingExtension)
     def publications = new DefaultPublicationContainer(new DirectInstantiator())
     def publication = Mock(PublicationInternal)
@@ -34,6 +34,7 @@ public class ProjectDependencyPublicationResolverTest extends Specification {
     def "resolves project coordinates if project does not have publishing extension"() {
         when:
         projectDependency.dependencyProject >> project
+        project.evaluate() >> project
         project.extensions >> extensions
         extensions.findByType(PublishingExtension) >> null
 
@@ -117,6 +118,7 @@ public class ProjectDependencyPublicationResolverTest extends Specification {
 
     private void dependentProjectHasPublications(PublicationInternal... added) {
         projectDependency.dependencyProject >> project
+        project.evaluate() >> project
         project.extensions >> extensions
         extensions.findByType(PublishingExtension) >> publishing
         publishing.publications >> publications

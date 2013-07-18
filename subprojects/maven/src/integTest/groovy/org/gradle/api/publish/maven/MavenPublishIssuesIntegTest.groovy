@@ -108,4 +108,55 @@ publishing {
         succeeds "publish"
     }
 
+   @Issue("GRADLE-2837")
+   def "project is properly configured when it is the target of a project dependency"() {
+       given:
+       mavenRepo.module("org.gradle", "dep", "1.1").publish()
+
+       and:
+       settingsFile << "include ':main', ':util'"
+
+       buildFile << """
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    group = 'my.org'
+    version = '1.0'
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+    publishing {
+        repositories {
+            maven { url "${mavenRepo.uri}" }
+        }
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+}
+"""
+       file("main", "build.gradle") << """
+    dependencies {
+        compile project(':util')
+    }
+"""
+
+       file("util", "build.gradle") << """
+    dependencies {
+        compile 'org.gradle:dep:1.1'
+    }
+"""
+
+        when:
+        succeeds "publish"
+
+        then:
+        def mainPom = mavenRepo.module('my.org', 'main', '1.0').parsedPom
+        mainPom.scopes.runtime.expectDependency('my.org:util:1.0')
+
+        def utilPom = mavenRepo.module('my.org', 'util', '1.0').parsedPom
+        utilPom.scopes.runtime.expectDependency('org.gradle:dep:1.1')
+    }
 }

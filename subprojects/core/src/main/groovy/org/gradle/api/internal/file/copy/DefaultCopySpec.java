@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.copy;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -39,6 +40,7 @@ import java.util.regex.Pattern;
 /**
  * @author Steve Appling
  */
+@NonExtensible
 public class DefaultCopySpec implements CopySpecInternal {
     private final FileResolver resolver;
     private final Set<Object> sourcePaths;
@@ -235,10 +237,13 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public DuplicatesStrategy getDuplicatesStrategy() {
-        if (parentSpec != null && duplicatesStrategy == null) {
+        if (duplicatesStrategy != null) {
+            return duplicatesStrategy;
+        }
+        if (parentSpec != null) {
             return parentSpec.getDuplicatesStrategy();
         }
-        return duplicatesStrategy;
+        return DuplicatesStrategy.INCLUDE;
     }
 
     public void setDuplicatesStrategy(DuplicatesStrategy strategy) {

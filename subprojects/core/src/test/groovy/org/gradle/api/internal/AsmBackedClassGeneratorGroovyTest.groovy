@@ -17,7 +17,9 @@
 package org.gradle.api.internal
 
 import org.gradle.api.Action
+import org.gradle.api.NonExtensible
 import org.gradle.api.internal.coerce.TypeCoercionException
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
@@ -246,6 +248,32 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
 
         then:
         i.calledWith == Integer
+    }
+
+    @NonExtensible
+    static class NonExtensibleObject {
+        TestEnum testEnum
+    }
+
+    def "can use non extensible objects"() {
+        def i = create(NonExtensibleObject)
+
+        when:
+        i.testEnum "ABC"
+
+        then:
+        i.testEnum == TestEnum.ABC
+
+        !(TestEnum instanceof ExtensionAware)
+        !(TestEnum instanceof IConventionAware)
+        !(TestEnum instanceof HasConvention)
+
+        when:
+        i.ext.foo = "bar"
+
+        then:
+        def e = thrown(MissingFieldException)
+        e.field == "ext"
     }
 
     def conf(o, c) {

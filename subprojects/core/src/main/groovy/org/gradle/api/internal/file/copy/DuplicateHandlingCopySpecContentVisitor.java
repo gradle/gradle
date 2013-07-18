@@ -43,25 +43,15 @@ public class DuplicateHandlingCopySpecContentVisitor extends DelegatingCopySpecC
     @Override
     public void visit(FileCopyDetailsInternal details) {
         if (!details.isDirectory()) {
-            DuplicatesStrategy strategy = determineStrategy(details);
+            DuplicatesStrategy strategy = details.getDuplicatesStrategy();
 
             if (!visitedFiles.add(details.getRelativePath())) {
                 if (strategy == DuplicatesStrategy.EXCLUDE) {
                     return;
                 }
-                if (strategy != DuplicatesStrategy.INCLUDE) {
-                    onUnhandledDuplicate.execute(details);
-                }
+                onUnhandledDuplicate.execute(details);
             }
         }
         super.visit(details);
     }
-
-    private DuplicatesStrategy determineStrategy(FileCopyDetailsInternal details) {
-        if (details.getDuplicatesStrategy() == null) {
-            return details.getCopySpec().getDuplicatesStrategy();
-        }
-        return details.getDuplicatesStrategy();
-    }
-
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -100,6 +101,31 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         then:
         !output.contains("Duplicate file at 1.txt")
         !output.contains("Duplicate file at 2.txt")
+    }
+
+    def "nested specs and details arent extensible objects"() {
+        given:
+        file("a/a.txt").touch()
+
+        buildScript """
+            task copy(type: Copy) {
+                assert delegate instanceof ${ExtensionAware.name}
+                into "out"
+                from "a", {
+                    assert !(delegate instanceof ${ExtensionAware.name})
+                    eachFile {
+                        it.name = "rename"
+                        assert !(delegate instanceof ${ExtensionAware.name})
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "copy"
+
+        then:
+        file("out/rename").exists()
     }
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2838")
