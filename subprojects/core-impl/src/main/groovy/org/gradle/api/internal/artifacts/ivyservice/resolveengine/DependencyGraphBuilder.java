@@ -32,6 +32,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfigurationMeta
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener;
@@ -71,8 +73,10 @@ public class DependencyGraphBuilder {
         ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver);
         traverseGraph(resolveState);
 
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult(), cacheLockingManager);
-        assembleResult(resolveState, result, listener);
+        DefaultResolvedConfigurationBuilder builder = new DefaultResolvedConfigurationBuilder();
+        builder.start(resolveState.root.getResult());
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, builder, cacheLockingManager);
+        assembleResult(resolveState, builder, listener);
 
         return result;
     }
@@ -367,7 +371,7 @@ public class DependencyGraphBuilder {
         public void attachToParents(ConfigurationNode childConfiguration, ResolvedArtifactFactory artifactFactory, ResolvedConfigurationBuilder result) {
             DefaultResolvedDependency parent = from.getResult();
             DefaultResolvedDependency child = childConfiguration.getResult();
-            parent.addChild(child);
+            result.addChild(parent, child);
 
             Set<ResolvedArtifact> artifacts = getArtifacts(childConfiguration, artifactFactory);
             if (artifacts.isEmpty()) {

@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 
 public interface ResolvedConfigurationBuilder {
     void addArtifact(ResolvedArtifact artifact);
@@ -26,4 +27,8 @@ public interface ResolvedConfigurationBuilder {
     void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency dependency);
 
     void addUnresolvedDependency(UnresolvedDependency unresolvedDependency);
+
+    void addChild(ResolvedDependency parent, ResolvedDependency child);
+
+    void start(DefaultResolvedDependency root);
 }
