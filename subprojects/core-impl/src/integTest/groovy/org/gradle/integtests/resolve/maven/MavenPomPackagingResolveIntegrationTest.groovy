@@ -23,7 +23,7 @@ import spock.lang.Issue
 class MavenPomPackagingResolveIntegrationTest extends AbstractDependencyResolutionTest {
     MavenFileModule projectA
 
-    public setup() {
+    def setup() {
         server.start()
 
         projectA = mavenRepo().module('group', 'projectA')

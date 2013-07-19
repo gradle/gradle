@@ -44,16 +44,16 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         this.organisation = organisation
         this.module = module
         this.revision = revision
-        configurations['runtime'] = [extendsFrom: [], transitive: true]
-        configurations['default'] = [extendsFrom: ['runtime'], transitive: true]
+        configurations['runtime'] = [extendsFrom: [], transitive: true, visibility: 'public']
+        configurations['default'] = [extendsFrom: ['runtime'], transitive: true, visibility: 'public']
     }
 
     IvyDescriptor getIvy() {
         return new IvyDescriptor(ivyFile)
     }
 
-    IvyFileModule configuration(String name, List extendsFrom = []) {
-        configurations[name] = [extendsFrom: extendsFrom, transitive: true]
+    IvyFileModule configuration(Map<String, ?> options = [:], String name) {
+        configurations[name] = [extendsFrom: options.extendsFrom ?: [], transitive: true, visibility: options.visibility ?: 'public']
         return this
     }
 
@@ -157,13 +157,14 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 	/>
 	<configurations>"""
             configurations.each { name, config ->
-                ivyFileWriter << "<conf name='$name' visibility='public'"
+                ivyFileWriter << "<conf name='$name'"
                 if (config.extendsFrom) {
                     ivyFileWriter << " extends='${config.extendsFrom.join(',')}'"
                 }
                 if (!config.transitive) {
                     ivyFileWriter << " transitive='false'"
                 }
+                ivyFileWriter << " visibility='$config.visibility'"
                 ivyFileWriter << "/>"
             }
             ivyFileWriter << """</configurations>
