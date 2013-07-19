@@ -72,6 +72,7 @@ public class DependencyGraphBuilder {
         ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, builder);
         traverseGraph(resolveState);
 
+        builder.start(resolveState.root.getResult());
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, builder, cacheLockingManager);
         assembleResult(resolveState, builder, listener);
 

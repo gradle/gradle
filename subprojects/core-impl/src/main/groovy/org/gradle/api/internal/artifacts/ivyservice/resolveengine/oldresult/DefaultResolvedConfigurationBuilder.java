@@ -55,6 +55,10 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
         unresolvedDependencies.add(unresolvedDependency);
     }
 
+    public void start(ResolvedDependency root) {
+        this.root = (DefaultResolvedDependency) root;
+    }
+
     public void addChild(ResolvedDependency parent, ResolvedDependency child) {
         //this cast should be fine for now. The old results go away at some point plus after the refactorings are done,
         // this class will be in control of instantiating the resolved dependencies.
@@ -66,11 +70,7 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
     }
 
     public ResolvedDependency newResolvedDependency(ModuleVersionIdentifier id, String configurationName) {
-        DefaultResolvedDependency d = new DefaultResolvedDependency(id, configurationName);
-        if (root == null) {
-            this.root = d;
-        }
-        return d;
+        return new DefaultResolvedDependency(id, configurationName);
     }
 
     public ResolvedArtifact newArtifact(ResolvedDependency owner, Artifact artifact, ArtifactResolver artifactResolver) {
