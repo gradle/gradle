@@ -129,6 +129,42 @@ The following snippet will now fail with a decent error message, giving a hint, 
   default task instance also being renamed from 'assemble${StaticLibraryName}' to 'create${StaticLibraryName}'
 * Renamed plugin class org.gradle.nativecode.base.plugins.BinariesPlugin to org.gradle.nativecode.base.plugins.NativeBinariesPlugin
 
+The DSL for defining C++ source sets has changed, with the 'cpp' extension being removed. This change makes the C++ plugin DSL consistent with
+the new Gradle DSL for multiple source sets.
+
+<table>
+    <tr><th>Gradle 1.7</th><th>Gradle 1.8</th></tr>
+    <tr>
+    <td>`cpp.sourceSets.main`</td>
+    <td>`sources.main.cpp`</td>
+    </tr>
+    <tr>
+    <td><pre>cpp {
+    sourceSets {
+        main {
+            source {
+                srcDirs "..."
+                exportedHeaders "..."
+            }
+        }
+    }
+}</pre>
+    </td>
+    <td>
+<pre>sources {
+    main {
+        cpp {
+            source {
+                srcDirs "..."
+                exportedHeaders "..."
+            }
+        }
+    }
+}</pre>
+    </td>
+    </tr>
+</table>
+
 ### Changes to handling of Ivy `DependencyResolver` implementations
 
 In order to improve performance and heap usage during dependency resolution, this release includes some internal changes to the way meta-data is
