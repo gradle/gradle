@@ -53,7 +53,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     IvyFileModule configuration(Map<String, ?> options = [:], String name) {
-        configurations[name] = [extendsFrom: options.extendsFrom ?: [], transitive: true, visibility: options.visibility ?: 'public']
+        configurations[name] = [extendsFrom: options.extendsFrom ?: [], transitive: options.transitive ?: true, visibility: options.visibility ?: 'public']
         return this
     }
 
