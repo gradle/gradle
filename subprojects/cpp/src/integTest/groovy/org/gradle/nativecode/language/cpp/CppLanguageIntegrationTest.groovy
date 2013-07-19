@@ -13,28 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.nativecode.language.cpp
 
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-// TODO:DAZ Use a convention plugin here that includes C sources
-class CLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
+class CppLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
     static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
 
-    def main_c = """
+    static final MAIN_CPP = """
             #include "hello.h"
 
             int main () {
-                hello();
-                return 0;
+              hello();
+              return 0;
             }
 """
-    def hello_c = """
-            #include <stdio.h>
+    static final HELLO_CPP = """
+            #include <iostream>
+
             #ifdef _WIN32
             #define DLL_FUNC __declspec(dllexport)
             #else
@@ -43,68 +45,57 @@ class CLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
 
             void DLL_FUNC hello() {
                 #ifdef FRENCH
-                printf("${HELLO_WORLD_FRENCH}");
+                std::cout << "${HELLO_WORLD_FRENCH}";
                 #else
-                printf("${HELLO_WORLD}");
+                std::cout << "${HELLO_WORLD}";
                 #endif
             }
 """
-    def hello_h = """
+    static final HELLO_H = """
             void hello();
-
 """
+
+    def setup() {
+        settingsFile << "rootProject.name = 'test'"
+    }
+
 
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-            sources {
-                main {}
-            }
-            executables {
-                main {
-                    source sources.main
-                }
-            }
+            apply plugin: "cpp-exe"
         """
 
         and:
-        file("src", "main", "c", "helloworld.c") << """
-            #include <stdio.h>
+        file("src", "main", "cpp", "helloworld.cpp") << """
+            #include <iostream>
 
             'broken
         """
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
-        failure.assertHasCause("C compile failed; see the error output for details.")
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.");
+        failure.assertHasCause("C++ compile failed; see the error output for details.")
     }
+
 
     def "compile and link executable"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-            sources {
-                main {}
-            }
-            executables {
-                main {
-                    source sources.main
-                }
-            }
+            apply plugin: "cpp-exe"
         """
 
         and:
-        file("src", "main", "c", "main.c") << main_c
-        file("src", "main", "c", "hello.c") << hello_c
-        file("src", "main", "headers", "hello.h") << hello_h
+        file("src/main/cpp/main.cpp") << MAIN_CPP
+        file("src/main/cpp/hello.cpp") << HELLO_CPP
+        file("src/main/headers/hello.h") << HELLO_H
 
         when:
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/binaries/mainExecutable/test")
         mainExecutable.assertExists()
         mainExecutable.exec().out == HELLO_WORLD
     }
@@ -112,30 +103,22 @@ class CLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
     def "build executable with custom compiler arg"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-            sources {
-                main {}
-            }
-            executables {
-                main {
-                    source sources.main
-                    binaries.all {
-                        compilerArgs "-DFRENCH"
-                    }
-                }
+            apply plugin: "cpp-exe"
+            executables.main.binaries.all {
+                compilerArgs "-DFRENCH"
             }
         """
 
         and:
-        file("src", "main", "c", "main.c") << main_c
-        file("src", "main", "c", "hello.c") << hello_c
-        file("src", "main", "headers", "hello.h") << hello_h
+        file("src/main/cpp/main.cpp") << MAIN_CPP
+        file("src/main/cpp/hello.cpp") << HELLO_CPP
+        file("src/main/headers/hello.h") << HELLO_H
 
         when:
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/binaries/mainExecutable/test")
         mainExecutable.assertExists()
         mainExecutable.exec().out == HELLO_WORLD_FRENCH
     }
@@ -143,30 +126,22 @@ class CLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
     def "build executable with macro defined"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-            sources {
-                main {}
-            }
-            executables {
-                main {
-                    source sources.main
-                    binaries.all {
-                        define "FRENCH"
-                    }
-                }
+            apply plugin: "cpp-exe"
+            executables.main.binaries.all {
+                define "FRENCH"
             }
         """
 
         and:
-        file("src", "main", "c", "main.c") << main_c
-        file("src", "main", "c", "hello.c") << hello_c
-        file("src", "main", "headers", "hello.h") << hello_h
+        file("src/main/cpp/main.cpp") << MAIN_CPP
+        file("src/main/cpp/hello.cpp") << HELLO_CPP
+        file("src/main/headers/hello.h") << HELLO_H
 
         when:
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/binaries/mainExecutable/test")
         mainExecutable.assertExists()
         mainExecutable.exec().out == HELLO_WORLD_FRENCH
     }
@@ -175,36 +150,30 @@ class CLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
     def "build shared library and link into executable"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
+            apply plugin: "cpp-exe"
 
             sources {
-                main {}
                 hello {}
-            }
-            executables {
-                main {
-                    source sources.main
-                }
             }
             libraries {
                 hello {
                     source sources.hello
                 }
             }
-            sources.main.c.lib libraries.hello
+            sources.main.cpp.lib libraries.hello
         """
 
         and:
-        file("src", "main", "c", "helloworld.c") << main_c
-        file("src", "hello", "headers", "hello.h") << hello_h
-        file("src", "hello", "c", "hello.c") << hello_c
+        file("src/main/cpp/main.cpp") << MAIN_CPP
+        file("src/hello/cpp/hello.cpp") << HELLO_CPP
+        file("src/hello/headers/hello.h") << HELLO_H
 
         when:
         run "installMainExecutable"
 
         then:
         sharedLibrary("build/binaries/helloSharedLibrary/hello").assertExists()
-        executable("build/binaries/mainExecutable/main").assertExists()
+        executable("build/binaries/mainExecutable/test").assertExists()
 
         def install = installation("build/install/mainExecutable")
         install.assertInstalled()
@@ -216,16 +185,10 @@ class CLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
     def "build static library and link into executable"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
+            apply plugin: "cpp-exe"
 
             sources {
-                main {}
                 hello {}
-            }
-            executables {
-                main {
-                    source sources.main
-                }
             }
             libraries {
                 hello {
@@ -235,20 +198,20 @@ class CLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
                     }
                 }
             }
-            sources.main.c.lib libraries.hello.static
+            sources.main.cpp.lib libraries.hello.static
         """
 
         and:
-        file("src", "main", "c", "helloworld.c") << main_c
-        file("src", "hello", "headers", "hello.h") << hello_h
-        file("src", "hello", "c", "hello.c") << hello_c
+        file("src/main/cpp/main.cpp") << MAIN_CPP
+        file("src/hello/cpp/hello.cpp") << HELLO_CPP
+        file("src/hello/headers/hello.h") << HELLO_H
 
         when:
         run "installMainExecutable"
 
         then:
         staticLibrary("build/binaries/helloStaticLibrary/hello").assertExists()
-        executable("build/binaries/mainExecutable/main").assertExists()
+        executable("build/binaries/mainExecutable/test").assertExists()
 
         and:
         def install = installation("build/install/mainExecutable")
