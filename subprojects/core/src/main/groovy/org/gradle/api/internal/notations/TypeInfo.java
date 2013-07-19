@@ -29,7 +29,7 @@ public class TypeInfo<T> {
         this.targetType = targetType;
     }
 
-    Class<T> getTargetType() {
+    public Class<T> getTargetType() {
         return targetType;
     }
 }

@@ -15,16 +15,18 @@
  */
 package org.gradle.nativecode.base.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativecode.base.NativeBinary;
 import org.gradle.nativecode.base.NativeComponent;
 import org.gradle.util.GUtil;
 
+import java.util.Set;
+
 public class DefaultNativeComponent implements NativeComponent {
+    private final NotationParser<Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final String name;
     private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;
@@ -44,16 +46,8 @@ public class DefaultNativeComponent implements NativeComponent {
         return sourceSets;
     }
 
-    public void source(FunctionalSourceSet sourceSet) {
-        sourceSet.all(new Action<LanguageSourceSet>() {
-            public void execute(LanguageSourceSet languageSourceSet) {
-                source(languageSourceSet);
-            }
-        });
-    }
-
-    public void source(LanguageSourceSet sourceSet) {
-        sourceSets.add(sourceSet);
+    public void source(Object sources) {
+        sourceSets.addAll(sourcesNotationParser.parseNotation(sources));
     }
 
     public DomainObjectSet<NativeBinary> getBinaries() {

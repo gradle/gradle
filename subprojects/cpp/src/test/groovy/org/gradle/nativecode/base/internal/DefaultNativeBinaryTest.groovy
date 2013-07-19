@@ -60,12 +60,10 @@ class DefaultNativeBinaryTest extends Specification {
 
         when:
         functionalSourceSet.add(sourceSet1)
+        functionalSourceSet.add(sourceSet2)
 
         and:
         binary.source functionalSourceSet
-
-        and:
-        functionalSourceSet.add(sourceSet2)
 
         then:
         binary.source.contains(sourceSet1)

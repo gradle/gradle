@@ -36,12 +36,10 @@ class DefaultNativeComponentTest extends Specification {
 
         when:
         functionalSourceSet.add(sourceSet1)
+        functionalSourceSet.add(sourceSet2)
 
         and:
         component.source functionalSourceSet
-
-        and:
-        functionalSourceSet.add(sourceSet2)
 
         then:
         component.source.contains(sourceSet1)

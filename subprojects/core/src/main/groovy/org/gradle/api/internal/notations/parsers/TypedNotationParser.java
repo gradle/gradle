@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.notations.parsers;
 
+import org.gradle.api.internal.notations.TypeInfo;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.UnsupportedNotationException;
 
@@ -31,6 +32,11 @@ public abstract class TypedNotationParser<N, T> implements NotationParser<T> {
     public TypedNotationParser(Class<N> typeToken) {
         assert typeToken != null : "typeToken cannot be null";
         this.typeToken = typeToken;
+    }
+
+    public TypedNotationParser(TypeInfo<N> typeToken) {
+        assert typeToken != null : "typeToken cannot be null";
+        this.typeToken = typeToken.getTargetType();
     }
 
     public void describe(Collection<String> candidateFormats) {

@@ -19,7 +19,7 @@ package org.gradle.nativecode.base.internal;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryNamingScheme;
@@ -29,12 +29,10 @@ import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.tasks.BuildBinaryTask;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public abstract class DefaultNativeBinary extends AbstractBuildableModelElement implements NativeBinaryInternal {
+    private final NotationParser<Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final ResolvableNativeDependencySet libs = new ResolvableNativeDependencySet();
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final ArrayList<Object> compilerArgs = new ArrayList<Object>();
@@ -87,16 +85,8 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
         return source;
     }
 
-    public void source(FunctionalSourceSet sourceSet) {
-        sourceSet.all(new Action<LanguageSourceSet>() {
-            public void execute(LanguageSourceSet languageSourceSet) {
-                source(languageSourceSet);
-            }
-        });
-    }
-
-    public void source(LanguageSourceSet sourceSet) {
-        source.add(sourceSet);
+    public void source(Object sources) {
+        source.addAll(sourcesNotationParser.parseNotation(sources));
     }
 
     public List<Object> getMacros() {
