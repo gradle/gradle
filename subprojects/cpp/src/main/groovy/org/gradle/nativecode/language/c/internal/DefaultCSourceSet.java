@@ -17,11 +17,12 @@
 package org.gradle.nativecode.language.c.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativecode.language.base.internal.AbstractBaseSourceSet;
 import org.gradle.nativecode.language.c.CSourceSet;
 
 public class DefaultCSourceSet extends AbstractBaseSourceSet implements CSourceSet {
-    public DefaultCSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
-        super(name, functionalSourceSetName, project, "C");
+    public DefaultCSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
+        super(name, parent, project, "C");
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.language.cpp.internal
 
+import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.nativecode.base.Library
 import org.gradle.nativecode.base.LibraryBinary
 import org.gradle.nativecode.base.NativeDependencySet
@@ -23,7 +24,10 @@ import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class DefaultCppSourceSetTest extends Specification {
-    def sourceSet = new DefaultCppSourceSet("cpp", "main", HelperUtil.createRootProject())
+    def parent = Stub(FunctionalSourceSet) {
+        getName() >> "main"
+    }
+    def sourceSet = new DefaultCppSourceSet("cpp", parent, HelperUtil.createRootProject())
 
     def "has useful string representation"() {
         expect:

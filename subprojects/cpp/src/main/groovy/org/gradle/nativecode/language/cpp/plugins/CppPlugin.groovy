@@ -95,7 +95,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         })
 
         // Create a single C++ source set
-        functionalSourceSet.add(instantiator.newInstance(DefaultCppSourceSet.class, "cpp", functionalSourceSet.getName(), project));
+        functionalSourceSet.add(instantiator.newInstance(DefaultCppSourceSet.class, "cpp", functionalSourceSet, project));
     }
 
     private void applyCConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
@@ -108,7 +108,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         })
 
         // Create a single C source set
-        functionalSourceSet.add(instantiator.newInstance(DefaultCSourceSet.class, "c", functionalSourceSet.getName(), project));
+        functionalSourceSet.add(instantiator.newInstance(DefaultCSourceSet.class, "c", functionalSourceSet, project));
     }
 
     private void applyAssemblerConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
@@ -120,6 +120,6 @@ class CppPlugin implements Plugin<ProjectInternal> {
         })
 
         // Create a single assembler source set
-        functionalSourceSet.add(instantiator.newInstance(DefaultAssemblerSourceSet.class, "asm", functionalSourceSet.getName(), project));
+        functionalSourceSet.add(instantiator.newInstance(DefaultAssemblerSourceSet.class, "asm", functionalSourceSet, project));
     }
 }

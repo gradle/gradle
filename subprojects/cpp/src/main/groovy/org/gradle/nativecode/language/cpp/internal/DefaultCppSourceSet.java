@@ -17,11 +17,12 @@
 package org.gradle.nativecode.language.cpp.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativecode.language.base.internal.AbstractBaseSourceSet;
 import org.gradle.nativecode.language.cpp.CppSourceSet;
 
 public class DefaultCppSourceSet extends AbstractBaseSourceSet implements CppSourceSet {
-    public DefaultCppSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
-        super(name, functionalSourceSetName, project, "C++");
+    public DefaultCppSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
+        super(name, parent, project, "C++");
     }
 }

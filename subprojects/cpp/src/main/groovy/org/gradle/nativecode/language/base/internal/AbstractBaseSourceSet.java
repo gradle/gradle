@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.internal.ConfigurationBasedNativeDependencySet;
@@ -46,9 +47,9 @@ public abstract class AbstractBaseSourceSet implements LanguageSourceSetInternal
     private final ResolvableNativeDependencySet libs;
     private final ConfigurationBasedNativeDependencySet configurationDependencySet;
 
-    public AbstractBaseSourceSet(String name, String functionalSourceSetName, ProjectInternal project, String typeName) {
+    public AbstractBaseSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project, String typeName) {
         this.name = name;
-        this.fullName = functionalSourceSetName + StringUtils.capitalize(name);
+        this.fullName = parent.getName() + StringUtils.capitalize(name);
         this.typeName = typeName;
 
         this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", project.getFileResolver());

@@ -17,11 +17,12 @@
 package org.gradle.nativecode.language.asm.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.nativecode.language.asm.AssemblerSourceSet;
 import org.gradle.nativecode.language.base.internal.AbstractBaseSourceSet;
 
 public class DefaultAssemblerSourceSet extends AbstractBaseSourceSet implements AssemblerSourceSet {
-    public DefaultAssemblerSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
-        super(name, functionalSourceSetName, project, "Assembler");
+    public DefaultAssemblerSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
+        super(name, parent, project, "Assembler");
     }
 }
