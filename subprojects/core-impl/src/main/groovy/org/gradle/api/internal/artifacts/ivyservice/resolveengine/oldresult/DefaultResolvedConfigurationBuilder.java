@@ -18,10 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactFactory;
+import org.gradle.internal.Factory;
 
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -70,7 +73,8 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
     }
 
     public ResolvedArtifact newArtifact(ResolvedDependency owner, Artifact artifact, ArtifactResolver artifactResolver) {
-        ResolvedArtifact newArtifact = resolvedArtifactFactory.create(owner, artifact, artifactResolver);
+        Factory<File> artifactSource = resolvedArtifactFactory.artifactSource(artifact, artifactResolver);
+        ResolvedArtifact newArtifact = new DefaultResolvedArtifact(owner, artifact, artifactSource);
         artifacts.add(newArtifact);
         return newArtifact;
     }
