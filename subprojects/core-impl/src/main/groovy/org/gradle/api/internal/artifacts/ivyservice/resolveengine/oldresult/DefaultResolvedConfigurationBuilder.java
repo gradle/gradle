@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 
 import java.util.LinkedHashMap;
@@ -56,8 +53,16 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
         ((DefaultResolvedDependency) parent).addChild((DefaultResolvedDependency) child);
     }
 
-    public void start(DefaultResolvedDependency root) {
-        this.root = root;
+    public void start(ResolvedDependency root) {
+        this.root = (DefaultResolvedDependency) root;
+    }
+
+    public void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedDependency child, Set<ResolvedArtifact> artifacts) {
+        ((DefaultResolvedDependency)child).addParentSpecificArtifacts(parent, artifacts);
+    }
+
+    public ResolvedDependency newResolvedDependency(ModuleVersionIdentifier id, String configurationName) {
+        return new DefaultResolvedDependency(id, configurationName);
     }
 
     public boolean hasError() {
