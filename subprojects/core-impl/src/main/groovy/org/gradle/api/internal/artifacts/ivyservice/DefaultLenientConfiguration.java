@@ -64,10 +64,6 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
         return artifacts;
     }
 
-    public ResolvedDependency getRoot() {
-        return root;
-    }
-
     public void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency refersTo) {
         firstLevelDependencies.put(moduleDependency, refersTo);
     }

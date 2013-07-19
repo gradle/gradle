@@ -26,6 +26,4 @@ public interface ResolvedConfigurationBuilder {
     void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency dependency);
 
     void addUnresolvedDependency(UnresolvedDependency unresolvedDependency);
-
-    ResolvedDependency getRoot();
 }
