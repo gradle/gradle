@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -97,7 +98,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
 
     public Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
         if (!parents.contains(parent)) {
-            throw new IllegalArgumentException("Provided dependency (" + parent + ") must be a parent of: " + this);
+            throw new InvalidUserDataException("Provided dependency (" + parent + ") must be a parent of: " + this);
         }
         Set<ResolvedArtifact> artifacts = parentArtifacts.get(parent);
         return artifacts == null ? Collections.<ResolvedArtifact>emptySet() : artifacts;
