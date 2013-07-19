@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.copy
 
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.Actions
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -25,9 +24,8 @@ import spock.lang.Specification
 public class CopyActionImplTest extends Specification {
     FileCopySpecVisitor visitor = Mock()
     FileResolver resolver = Mock()
-    FileTree sourceFileTree = Mock()
     Instantiator instantiator = new DirectInstantiator()
-    CopyActionImpl copyAction = new CopyActionImpl(instantiator, resolver, visitor, Actions.doNothing())
+    CopyActionImpl copyAction = new CopyActionImpl(instantiator, resolver, visitor)
 
     def delegatesToMainSpecRootSpec() {
         when:

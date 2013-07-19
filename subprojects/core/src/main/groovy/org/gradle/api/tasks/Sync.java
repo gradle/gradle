@@ -33,7 +33,7 @@ public class Sync extends AbstractCopyTask {
     public Sync() {
         Instantiator instantiator = getServices().get(Instantiator.class);
         FileResolver fileResolver = getServices().get(FileResolver.class);
-        action = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()), new AbstractCopyTaskUnhandledDuplicateAction());
+        action = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
     }
 
     @Override

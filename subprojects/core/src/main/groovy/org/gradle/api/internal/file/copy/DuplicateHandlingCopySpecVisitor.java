@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
@@ -32,11 +31,9 @@ import java.util.Set;
 public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor {
 
     private final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
-    private final Action<? super FileCopyDetails> onUnhandledDuplicate;
 
-    public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor, Action<? super FileCopyDetails> onUnhandledDuplicate) {
+    public DuplicateHandlingCopySpecVisitor(CopySpecVisitor visitor) {
         super(visitor);
-        this.onUnhandledDuplicate = onUnhandledDuplicate;
     }
 
     public void visitFile(FileCopyDetails details) {
@@ -46,7 +43,6 @@ public class DuplicateHandlingCopySpecVisitor extends DelegatingCopySpecVisitor 
             if (strategy == DuplicatesStrategy.EXCLUDE) {
                 return;
             }
-            onUnhandledDuplicate.execute(details);
         }
 
         super.visitFile(details);

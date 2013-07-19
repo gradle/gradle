@@ -112,7 +112,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testWithSpecSource() {
-        CopyActionImpl source = new CopyActionImpl(instantiator, fileResolver, null, Actions.doNothing())
+        CopyActionImpl source = new CopyActionImpl(instantiator, fileResolver, null)
 
         spec.with source
         assertTrue(spec.sourcePaths.empty)

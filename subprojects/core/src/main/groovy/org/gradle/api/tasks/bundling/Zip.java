@@ -74,7 +74,7 @@ public class Zip extends AbstractArchiveTask {
      */
     protected class ZipCopyActionImpl extends CopyActionImpl implements ZipCopyAction {
         public ZipCopyActionImpl(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver, new ZipCopySpecVisitor(), new AbstractArchiveTaskUnhandledDuplicateAction());
+            super(instantiator, fileResolver, new ZipCopySpecVisitor());
         }
 
         public File getArchivePath() {

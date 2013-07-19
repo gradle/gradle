@@ -42,7 +42,7 @@ public class Tar extends AbstractArchiveTask {
         Instantiator instantiator = getServices().get(Instantiator.class);
         FileResolver fileResolver = getServices().get(FileResolver.class);
         action = instantiator.newInstance(TarCopyActionImpl.class, this, instantiator, fileResolver);
-        getConventionMapping().map("extension", new Callable<Object>(){
+        getConventionMapping().map("extension", new Callable<Object>() {
             public Object call() throws Exception {
                 return getCompression().getDefaultExtension();
             }
@@ -74,9 +74,9 @@ public class Tar extends AbstractArchiveTask {
     /**
      * Internal implementation (not private because of reflective instantiation)
      */
-    class TarCopyActionImpl extends CopyActionImpl implements ArchiveCopyAction  {
+    class TarCopyActionImpl extends CopyActionImpl implements ArchiveCopyAction {
         public TarCopyActionImpl(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver, new TarCopySpecVisitor(), new AbstractArchiveTaskUnhandledDuplicateAction());
+            super(instantiator, fileResolver, new TarCopySpecVisitor());
         }
 
         public File getArchivePath() {
@@ -84,10 +84,13 @@ public class Tar extends AbstractArchiveTask {
         }
 
         public ArchiveOutputStreamFactory getCompressor() {
-            switch(compression) {
-                case BZIP2: return Bzip2Archiver.getCompressor();
-                case GZIP:  return GzipArchiver.getCompressor();
-                default:    return new SimpleCompressor();
+            switch (compression) {
+                case BZIP2:
+                    return Bzip2Archiver.getCompressor();
+                case GZIP:
+                    return GzipArchiver.getCompressor();
+                default:
+                    return new SimpleCompressor();
             }
         }
     }

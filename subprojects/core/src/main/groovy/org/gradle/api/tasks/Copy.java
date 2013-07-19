@@ -64,7 +64,7 @@ public class Copy extends AbstractCopyTask {
     public Copy() {
         Instantiator instantiator = getServices().get(Instantiator.class);
         FileResolver fileResolver = getServices().get(FileResolver.class);
-        copyAction = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new FileCopySpecVisitor(), new AbstractCopyTaskUnhandledDuplicateAction());
+        copyAction = instantiator.newInstance(FileCopyActionImpl.class, instantiator, fileResolver, new FileCopySpecVisitor());
     }
 
     protected void configureRootSpec() {
