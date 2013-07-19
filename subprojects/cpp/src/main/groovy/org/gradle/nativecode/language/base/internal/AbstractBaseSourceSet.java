@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.internal.ConfigurationBasedNativeDependencySet;
 import org.gradle.nativecode.base.internal.ResolvableNativeDependencySet;
@@ -29,7 +30,12 @@ import org.gradle.nativecode.base.internal.ResolvableNativeDependencySet;
 import java.util.Collection;
 import java.util.Map;
 
-public abstract class AbstractBaseSourceSet {
+/**
+ * A convenience base class for implementing language source sets.
+ * Note that this class 'implements' all required methods for {@link org.gradle.nativecode.base.HeaderExportingSourceSet}
+ * and {@link org.gradle.nativecode.base.DependentSourceSet} but does not add those types to the API.
+ */
+public abstract class AbstractBaseSourceSet implements LanguageSourceSetInternal {
 
     private final String name;
     private final String fullName;

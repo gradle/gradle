@@ -15,5 +15,15 @@
  */
 package org.gradle.language.base.internal;
 
-public interface LanguageSourceSetInternal {
+import org.gradle.language.base.LanguageSourceSet;
+
+public interface LanguageSourceSetInternal extends LanguageSourceSet {
+
+    // TODO:DAZ This doesn't feel right. Need some better modelling.
+    // TODO:DAZ Use this for ClassDirectoryBinary task names as well: need to hack the naming scheme to maintain back-compatibility
+    /**
+     * A unique name for this source set across all functional source sets.
+     */
+    String getFullName();
+
 }

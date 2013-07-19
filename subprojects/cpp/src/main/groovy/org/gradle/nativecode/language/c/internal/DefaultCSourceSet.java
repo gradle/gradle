@@ -21,7 +21,6 @@ import org.gradle.nativecode.language.base.internal.AbstractBaseSourceSet;
 import org.gradle.nativecode.language.c.CSourceSet;
 
 public class DefaultCSourceSet extends AbstractBaseSourceSet implements CSourceSet {
-
     public DefaultCSourceSet(String name, String functionalSourceSetName, ProjectInternal project) {
         super(name, functionalSourceSetName, project, "C");
     }

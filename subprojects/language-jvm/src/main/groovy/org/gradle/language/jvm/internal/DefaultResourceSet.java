@@ -15,13 +15,15 @@
  */
 package org.gradle.language.jvm.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.jvm.ResourceSet;
 
-public class DefaultResourceSet implements ResourceSet {
+public class DefaultResourceSet implements ResourceSet, LanguageSourceSetInternal {
     private final String name;
     private final SourceDirectorySet source;
     private final FunctionalSourceSet parent;
@@ -46,6 +48,10 @@ public class DefaultResourceSet implements ResourceSet {
 
     public String getName() {
         return name;
+    }
+
+    public String getFullName() {
+        return parent.getName() + StringUtils.capitalize(name);
     }
 
     public String toString() {
