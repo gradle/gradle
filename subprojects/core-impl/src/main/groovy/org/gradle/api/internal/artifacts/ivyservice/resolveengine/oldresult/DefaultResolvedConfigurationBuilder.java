@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactFactory;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -34,6 +37,11 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
 
     private final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();
     private DefaultResolvedDependency root;
+    private ResolvedArtifactFactory resolvedArtifactFactory;
+
+    public DefaultResolvedConfigurationBuilder(ResolvedArtifactFactory resolvedArtifactFactory) {
+        this.resolvedArtifactFactory = resolvedArtifactFactory;
+    }
 
     public void addArtifact(ResolvedArtifact artifact) {
         artifacts.add(artifact);
@@ -53,16 +61,20 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
         ((DefaultResolvedDependency) parent).addChild((DefaultResolvedDependency) child);
     }
 
-    public void start(ResolvedDependency root) {
-        this.root = (DefaultResolvedDependency) root;
-    }
-
     public void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedDependency child, Set<ResolvedArtifact> artifacts) {
         ((DefaultResolvedDependency)child).addParentSpecificArtifacts(parent, artifacts);
     }
 
     public ResolvedDependency newResolvedDependency(ModuleVersionIdentifier id, String configurationName) {
-        return new DefaultResolvedDependency(id, configurationName);
+        DefaultResolvedDependency d = new DefaultResolvedDependency(id, configurationName);
+        if (root == null) {
+            this.root = d;
+        }
+        return d;
+    }
+
+    public ResolvedArtifact newArtifact(ResolvedDependency owner, Artifact artifact, ArtifactResolver artifactResolver) {
+        return resolvedArtifactFactory.create(owner, artifact, artifactResolver);
     }
 
     public boolean hasError() {

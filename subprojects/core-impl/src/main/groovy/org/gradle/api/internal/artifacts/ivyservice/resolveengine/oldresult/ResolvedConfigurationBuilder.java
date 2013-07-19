@@ -15,11 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 
 import java.util.Set;
 
 public interface ResolvedConfigurationBuilder {
+
+    //not needed
     void addArtifact(ResolvedArtifact artifact);
 
     void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency dependency);
@@ -28,9 +32,9 @@ public interface ResolvedConfigurationBuilder {
 
     void addChild(ResolvedDependency parent, ResolvedDependency child);
 
-    void start(ResolvedDependency root);
-
     void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedDependency child, Set<ResolvedArtifact> artifacts);
 
     ResolvedDependency newResolvedDependency(ModuleVersionIdentifier id, String name);
+
+    ResolvedArtifact newArtifact(ResolvedDependency result, Artifact artifact, ArtifactResolver artifactResolver);
 }
