@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.copy
 
 import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.api.internal.Actions
 import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.api.tasks.WorkResult
@@ -58,7 +57,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
                 new SimpleWorkResult(workResult)
             }
         }
-        def executer = new CopyActionExecuter(new DirectInstantiator(), FileSystems.getDefault(), Actions.doNothing())
+        def executer = new CopyActionExecuter(new DirectInstantiator(), FileSystems.getDefault())
 
         when:
         executer.execute(copySpec, copyAction)

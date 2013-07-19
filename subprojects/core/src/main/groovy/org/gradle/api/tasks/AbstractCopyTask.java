@@ -53,10 +53,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     protected abstract CopyAction createCopyAction();
 
-    protected Action<? super FileCopyDetails> createUnhandledDuplicateAction() {
-        return new AbstractCopyTaskUnhandledDuplicateAction();
-    }
-
     @TaskAction
     protected void copy() {
         configureRootSpec();
@@ -64,7 +60,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         Instantiator instantiator = getServices().get(Instantiator.class);
         FileSystem fileSystem = getServices().get(FileSystem.class);
 
-        CopyActionExecuter copyActionExecuter = new CopyActionExecuter(instantiator, fileSystem, createUnhandledDuplicateAction());
+        CopyActionExecuter copyActionExecuter = new CopyActionExecuter(instantiator, fileSystem);
         CopyAction copyAction = createCopyAction();
         WorkResult didWork = copyActionExecuter.execute(rootSpec, copyAction);
         setDidWork(didWork.getDidWork());
@@ -413,12 +409,4 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         return this;
     }
 
-    /**
-     * Unhandled duplication action.
-     */
-    class AbstractCopyTaskUnhandledDuplicateAction implements Action<FileCopyDetails> {
-        public void execute(FileCopyDetails fileCopyDetails) {
-            getLogger().info("Duplicate file at {} for task {} from {}", fileCopyDetails.getRelativePath(), getPath(), fileCopyDetails);
-        }
-    }
 }

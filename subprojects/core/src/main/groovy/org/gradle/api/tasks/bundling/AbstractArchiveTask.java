@@ -16,8 +16,6 @@
 package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.util.GUtil;
@@ -188,17 +186,4 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         return this;
     }
 
-    @Override
-    protected Action<? super FileCopyDetails> createUnhandledDuplicateAction() {
-        return new AbstractArchiveTaskUnhandledDuplicateAction();
-    }
-
-    /**
-     * Unhandled duplication action.
-     */
-    class AbstractArchiveTaskUnhandledDuplicateAction implements Action<FileCopyDetails> {
-        public void execute(FileCopyDetails fileCopyDetails) {
-            getLogger().info("Creating duplicate entry {} for task {} from {}", fileCopyDetails.getRelativePath(), getPath(), fileCopyDetails);
-        }
-    }
 }

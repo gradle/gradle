@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.DuplicatesStrategy;
-import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.tasks.WorkResult;
 
@@ -29,11 +28,8 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
 
     private final CopyAction delegate;
 
-    private final Action<? super FileCopyDetails> onUnhandledDuplicate;
-
-    public DuplicateHandlingCopyActionDecorator(CopyAction delegate, Action<? super FileCopyDetails> onUnhandledDuplicate) {
+    public DuplicateHandlingCopyActionDecorator(CopyAction delegate) {
         this.delegate = delegate;
-        this.onUnhandledDuplicate = onUnhandledDuplicate;
     }
 
     public WorkResult execute(final Action<Action<? super FileCopyDetailsInternal>> stream) {
@@ -49,9 +45,6 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
                             if (!visitedFiles.add(details.getRelativePath())) {
                                 if (strategy == DuplicatesStrategy.EXCLUDE) {
                                     return;
-                                }
-                                if (strategy != DuplicatesStrategy.INCLUDE) {
-                                    onUnhandledDuplicate.execute(details);
                                 }
                             }
                         }

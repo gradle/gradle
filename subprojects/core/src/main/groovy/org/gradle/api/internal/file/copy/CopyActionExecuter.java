@@ -28,18 +28,15 @@ public class CopyActionExecuter {
 
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
-    private final Action<? super FileCopyDetails> onUnhandledDuplicate;
 
-    public CopyActionExecuter(Instantiator instantiator, FileSystem fileSystem, Action<? super FileCopyDetails> onUnhandledDuplicate) {
+    public CopyActionExecuter(Instantiator instantiator, FileSystem fileSystem) {
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
-        this.onUnhandledDuplicate = onUnhandledDuplicate;
     }
 
     public WorkResult execute(final CopySpecInternal spec, CopyAction action) {
         final CopyAction effectiveVisitor = new DuplicateHandlingCopyActionDecorator(
-                new NormalizingCopyActionDecorator(action),
-                onUnhandledDuplicate
+                new NormalizingCopyActionDecorator(action)
         );
 
         return effectiveVisitor.execute(new Action<Action<? super FileCopyDetailsInternal>>() {

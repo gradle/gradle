@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.copy
 
 import org.gradle.api.Action
 import org.gradle.api.file.*
-import org.gradle.api.internal.Actions
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.tasks.SimpleWorkResult
@@ -41,7 +40,7 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
     }
 
     @Shared Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
-    def driver = new CopyActionExecuter(instantiator, fileSystem, Actions.doNothing())
+    def driver = new CopyActionExecuter(instantiator, fileSystem)
     def copySpec = Mock(MyCopySpec) {
         getChildren() >> []
     }

@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.WorkResult;
@@ -60,7 +59,7 @@ public class FileCopier {
     }
 
     private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {
-        CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, FileSystems.getDefault(), Actions.doNothing());
+        CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, FileSystems.getDefault());
         return visitorDriver.execute(copySpec, visitor);
     }
 
