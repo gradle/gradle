@@ -36,7 +36,7 @@ class GppLinker implements Compiler<LinkerSpec> {
     private final CommandLineTool<LinkerSpec> commandLineTool;
 
     public GppLinker(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
-        this.commandLineTool = new CommandLineTool<LinkerSpec>(executable, execActionFactory)
+        this.commandLineTool = new CommandLineTool<LinkerSpec>("Link", executable, execActionFactory)
                 .withArguments(useCommandFile ? viaCommandFile() : withoutCommandFile());
     }
 

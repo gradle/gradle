@@ -34,7 +34,7 @@ class CCompiler implements Compiler<CCompileSpec> {
     private final CommandLineTool<CCompileSpec> commandLineTool;
 
     CCompiler(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<CCompileSpec>(executable, execActionFactory)
+        this.commandLineTool = new CommandLineTool<CCompileSpec>("C compile", executable, execActionFactory)
                 .withArguments(new CommandLineCompilerArgumentsToOptionFile<CCompileSpec>(
                 ArgWriter.windowsStyleFactory(), new CCompileSpecToArguments()
         ));

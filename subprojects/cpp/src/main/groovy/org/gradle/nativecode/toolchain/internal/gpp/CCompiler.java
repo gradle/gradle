@@ -38,7 +38,7 @@ class CCompiler implements Compiler<CCompileSpec> {
                 new GccCompileSourcesToArguments<CCompileSpec>(),
                 useCommandFile
         );
-        this.commandLineTool = new CommandLineTool<CCompileSpec>(executable, execActionFactory).withArguments(specToArguments);
+        this.commandLineTool = new CommandLineTool<CCompileSpec>("C compile", executable, execActionFactory).withArguments(specToArguments);
     }
 
     public WorkResult execute(CCompileSpec spec) {

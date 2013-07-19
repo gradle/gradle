@@ -38,7 +38,7 @@ class CppCompiler implements Compiler<CppCompileSpec> {
                 new GccCompileSourcesToArguments<CppCompileSpec>(),
                 useCommandFile
         );
-        this.commandLineTool = new CommandLineTool<CppCompileSpec>(executable, execActionFactory).withArguments(specToArguments);
+        this.commandLineTool = new CommandLineTool<CppCompileSpec>("C++ compile", executable, execActionFactory).withArguments(specToArguments);
     }
 
     public WorkResult execute(CppCompileSpec spec) {

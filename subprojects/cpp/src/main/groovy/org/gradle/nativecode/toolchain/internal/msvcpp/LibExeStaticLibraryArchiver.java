@@ -33,7 +33,7 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
     private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
 
     public LibExeStaticLibraryArchiver(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<StaticLibraryArchiverSpec>(executable, execActionFactory)
+        this.commandLineTool = new CommandLineTool<StaticLibraryArchiverSpec>("Create static library", executable, execActionFactory)
                 .withArguments(new CommandLineCompilerArgumentsToOptionFile<StaticLibraryArchiverSpec>(ArgWriter.windowsStyleFactory(), new LibExeSpecToArguments()
         ));
     }

@@ -33,7 +33,7 @@ class Assembler implements Compiler<AssembleSpec> {
     private final CommandLineTool<AssembleSpec> commandLineTool;
 
     public Assembler(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<AssembleSpec>(executable, execActionFactory);
+        this.commandLineTool = new CommandLineTool<AssembleSpec>("Assemble", executable, execActionFactory);
     }
 
     public WorkResult execute(AssembleSpec spec) {

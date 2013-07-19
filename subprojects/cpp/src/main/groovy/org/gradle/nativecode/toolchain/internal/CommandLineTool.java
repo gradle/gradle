@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.toolchain.internal;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
@@ -23,17 +24,20 @@ import org.gradle.api.internal.tasks.compile.ExecSpecBackedArgCollector;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecException;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
 public class CommandLineTool<T extends CompileSpec> {
+    private final String action;
     private final File executable;
     private final Factory<ExecAction> execActionFactory;
     private CompileSpecToArguments<T> toArguments;
     private File workDir;
 
-    public CommandLineTool(File executable, Factory<ExecAction> execActionFactory) {
+    public CommandLineTool(String action, File executable, Factory<ExecAction> execActionFactory) {
+        this.action = action;
         this.executable = executable;
         this.execActionFactory = execActionFactory;
     }
@@ -58,7 +62,11 @@ public class CommandLineTool<T extends CompileSpec> {
 
         toArguments.collectArguments(spec, new ExecSpecBackedArgCollector(compiler));
 
-        compiler.execute();
+        try {
+            compiler.execute();
+        } catch (ExecException e) {
+            throw new GradleException(String.format("%s failed; see the error output for details.", action));
+        }
         return new SimpleWorkResult(true);
     }
 }

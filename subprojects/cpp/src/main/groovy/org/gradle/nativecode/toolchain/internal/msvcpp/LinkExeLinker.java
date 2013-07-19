@@ -35,7 +35,7 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     private final CommandLineTool<LinkerSpec> commandLineTool;
 
     public LinkExeLinker(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<LinkerSpec>(executable, execActionFactory)
+        this.commandLineTool = new CommandLineTool<LinkerSpec>("Link", executable, execActionFactory)
                 .withArguments(new CommandLineCompilerArgumentsToOptionFile<LinkerSpec>(
                 ArgWriter.windowsStyleFactory(), new VisualCppLinkerSpecArguments()
         ));

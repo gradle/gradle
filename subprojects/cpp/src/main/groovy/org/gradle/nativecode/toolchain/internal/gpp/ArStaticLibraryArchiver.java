@@ -35,7 +35,7 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
 
     public ArStaticLibraryArchiver(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<StaticLibraryArchiverSpec>(executable, execActionFactory)
+        this.commandLineTool = new CommandLineTool<StaticLibraryArchiverSpec>("Create static library", executable, execActionFactory)
                 .withArguments(new LinkerSpecToArguments());
     }
 

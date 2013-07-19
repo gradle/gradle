@@ -34,7 +34,7 @@ class CppCompiler implements Compiler<CppCompileSpec> {
     private final CommandLineTool<CppCompileSpec> commandLineTool;
 
     CppCompiler(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<CppCompileSpec>(executable, execActionFactory)
+        this.commandLineTool = new CommandLineTool<CppCompileSpec>("C++ compile", executable, execActionFactory)
                 .withArguments(new CommandLineCompilerArgumentsToOptionFile<CppCompileSpec>(
                 ArgWriter.windowsStyleFactory(), new CppCompileSpecToArguments()
         ));
