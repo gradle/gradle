@@ -15,10 +15,60 @@
  */
 package org.gradle.api.internal.file.copy
 
-import spock.lang.Specification
+import org.gradle.api.Action
+import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.internal.Actions
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.tasks.SimpleWorkResult
+import org.gradle.api.tasks.WorkResult
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.test.fixtures.file.WorkspaceTest
 
-class CopyActionExecuterTest extends Specification {
+class CopyActionExecuterTest extends WorkspaceTest {
 
+    def "can execute test"() {
+        given:
+        file("a").with {
+            createFile("a")
+        }
+        file("b").with {
+            createFile("b")
+            createDir("b1").createFile("b1")
+        }
 
+        def resolver = new BaseDirFileResolver(testDirectory)
+        def copySpec = new DestinationRootCopySpec(resolver, new DefaultCopySpec(resolver, new DirectInstantiator()))
+        copySpec.with {
+            into "out"
+            from "a", {
+                from "b/b1", {
+                    it.eachFile {
+                        FileCopyDetails fcd -> fcd.exclude()
+                    }
+                }
+            }
+        }
 
+        Action<FileCopyDetailsInternal> action = Mock(Action)
+        def workResult = true
+        def copyAction = new CopyAction() {
+            WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
+                stream.execute(action)
+                new SimpleWorkResult(workResult)
+            }
+        }
+        def executer = new CopyActionExecuter(new DirectInstantiator(), FileSystems.getDefault(), Actions.doNothing())
+
+        when:
+        executer.execute(copySpec, copyAction)
+
+        then:
+        1 * action.execute({ it.relativePath.pathString == "a" })
+        0 * action.execute(_)
+    }
+
+    Closure path(path) {
+        return { println it.relativePath.pathString; it.relativePath.pathString == path }
+    }
 }
