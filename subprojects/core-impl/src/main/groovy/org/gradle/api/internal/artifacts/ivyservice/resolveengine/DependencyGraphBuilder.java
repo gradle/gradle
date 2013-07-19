@@ -377,10 +377,6 @@ public class DependencyGraphBuilder {
             }
             result.addParentSpecificArtifacts(parent, child, artifacts);
 
-            for (ResolvedArtifact artifact : artifacts) {
-                result.addArtifact(artifact);
-            }
-
             if (parent == resolveState.root.getResult()) {
                 EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) dependencyDescriptor;
                 result.addFirstLevelDependency(enhancedDependencyDescriptor.getModuleDependency(), child);

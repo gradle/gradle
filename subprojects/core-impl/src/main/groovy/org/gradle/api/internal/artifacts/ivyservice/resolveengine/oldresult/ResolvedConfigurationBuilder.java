@@ -23,9 +23,6 @@ import java.util.Set;
 
 public interface ResolvedConfigurationBuilder {
 
-    //not needed
-    void addArtifact(ResolvedArtifact artifact);
-
     void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency dependency);
 
     void addUnresolvedDependency(UnresolvedDependency unresolvedDependency);

@@ -43,10 +43,6 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
         this.resolvedArtifactFactory = resolvedArtifactFactory;
     }
 
-    public void addArtifact(ResolvedArtifact artifact) {
-        artifacts.add(artifact);
-    }
-
     public void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency dependency) {
         firstLevelDependencies.put(moduleDependency, dependency);
     }
@@ -74,7 +70,9 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
     }
 
     public ResolvedArtifact newArtifact(ResolvedDependency owner, Artifact artifact, ArtifactResolver artifactResolver) {
-        return resolvedArtifactFactory.create(owner, artifact, artifactResolver);
+        ResolvedArtifact newArtifact = resolvedArtifactFactory.create(owner, artifact, artifactResolver);
+        artifacts.add(newArtifact);
+        return newArtifact;
     }
 
     public boolean hasError() {
