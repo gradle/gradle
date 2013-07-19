@@ -52,7 +52,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         }
     }
 
-    def "returns tasks in dependency order"() {
+    def "schedules tasks in dependency order"() {
         given:
         Task a = task("a");
         Task b = task("b", dependsOn: [a]);
@@ -63,10 +63,10 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([d])
 
         then:
-        executedTasks == [a, b, c, d]
+        executes(a, b, c, d)
     }
 
-    def "returns task dependencies in name order"() {
+    def "schedules task dependencies in name order when there are no dependencies between them"() {
         given:
         Task a = task("a");
         Task b = task("b");
@@ -77,10 +77,10 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([d])
 
         then:
-        executedTasks == [a, b, c, d]
+        executes(a, b, c, d)
     }
 
-    def "returns a single batch of tasks in name order"() {
+    def "schedules a single batch of tasks in name order"() {
         given:
         Task a = task("a");
         Task b = task("b");
@@ -90,10 +90,10 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate(toList(b, c, a));
 
         then:
-        executedTasks == [a, b, c]
+        executes(a, b, c)
     }
 
-    def "returns separately added tasks in order added"() {
+    def "schedules separately added tasks in order added"() {
         given:
         Task a = task("a");
         Task b = task("b");
@@ -106,10 +106,10 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.determineExecutionPlan()
 
         then:
-        executedTasks == [b, c, a, d];
+        executes(b, c, a, d)
     }
 
-    def "returns must run after task dependencies in name order"() {
+    def "schedules must run after task dependencies in name order"() {
         given:
         Task a = task("a");
         Task b = task("b");
@@ -120,10 +120,10 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([c, d]);
 
         then:
-        executedTasks == [a, b, c, d]
+        executes(a, b, c, d)
     }
 
-    def "common tasks in separate batches are returned only once"() {
+    def "common tasks in separate batches are schedules only once"() {
         Task a = task("a");
         Task b = task("b");
         Task c = task("c", dependsOn: [a, b]);
@@ -136,10 +136,10 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.determineExecutionPlan();
 
         then:
-        executedTasks == [a, b, c, d, e];
+        executes(a, b, c, d, e)
     }
 
-    def "all dependencies added when adding tasks"() {
+    def "all dependencies scheduled when adding tasks"() {
         Task a = task("a");
         Task b = task("b", dependsOn: [a]);
         Task c = task("c", dependsOn: [b, a]);
@@ -149,8 +149,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate(toList(d));
 
         then:
-        executionPlan.getTasks() == [a, b, c, d];
-        executedTasks == [a, b, c, d]
+        executes(a, b, c, d)
     }
 
     def "must run after ordering is honoured for tasks added separately to graph"() {
@@ -164,7 +163,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.determineExecutionPlan()
 
         then:
-        executedTasks == [a, b, c]
+        executes(a, b, c)
     }
 
     def "must run after ordering is honoured for dependencies"() {
@@ -176,7 +175,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([c])
 
         then:
-        executedTasks == [b, a, c]
+        executes(b, a, c)
     }
 
     def "mustRunAfter dependencies are scheduled before regular dependencies"() {
@@ -189,7 +188,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([c, d])
 
         then:
-        executedTasks == [b, a, c, d]
+        executes(b, a, c, d)
     }
 
     def "must run after does not pull in tasks that are not in the graph"() {
@@ -200,7 +199,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([b])
 
         then:
-        executedTasks == [b]
+        executes(b)
     }
 
     def "finalizer tasks are executed if a finalized task is added to the graph"() {
@@ -211,18 +210,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([finalized])
 
         then:
-        executedTasks == [finalized, finalizer]
-    }
-
-    def "finalizer tasks are executed after the finalized task"() {
-        Task finalizer = task("finalizer")
-        Task finalized = task("finalized", finalizedBy: [finalizer])
-
-        when:
-        addToGraphAndPopulate([finalizer, finalized])
-
-        then:
-        executedTasks == [finalized, finalizer]
+        executes(finalized, finalizer)
     }
 
     def "finalizer tasks and their dependencies are executed even in case of a task failure"() {
@@ -236,7 +224,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([finalized1, finalized2])
 
         then:
-        executedTasks == [finalized1, finalizerDependency, finalizer1, finalized2, finalizer2]
+        executes(finalized1, finalizerDependency, finalizer1, finalized2, finalizer2)
     }
 
     def "finalizer task is not added to the graph if it is filtered"() {
@@ -252,8 +240,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([finalized])
 
         then:
-        executionPlan.getTasks() == [finalized]
-        executedTasks == [finalized]
+        executes(finalized)
     }
 
     def "finalizer tasks and their dependencies are not executed if finalized task did not run"() {
@@ -266,6 +253,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([finalized])
 
         then:
+        executionPlan.tasks == [finalizedDependency, finalized, finalizerDependency, finalizer]
         executedTasks == [finalizedDependency]
     }
 
@@ -280,6 +268,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([finalizer, finalized])
 
         then:
+        executionPlan.tasks == [finalizedDependency, finalized, finalizerDependency, finalizer]
         executedTasks == [finalizedDependency, finalizerDependency, finalizer]
     }
 
@@ -295,7 +284,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.determineExecutionPlan()
 
         then:
-        executedTasks == [finalized, finalizerDependency, finalizer, dependsOnFinalizer]
+        executes(finalized, finalizerDependency, finalizer, dependsOnFinalizer)
     }
 
     def "finalizer tasks run as soon as possible for tasks that depend on finalized tasks"() {
@@ -307,7 +296,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([dependsOnFinalized])
 
         then:
-        executedTasks == [finalized, finalizer, dependsOnFinalized]
+        executes(finalized, finalizer, dependsOnFinalized)
     }
 
     def "finalizer tasks run as soon as possible for tasks that must run after finalized tasks"() {
@@ -319,22 +308,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([mustRunAfterFinalized, finalized])
 
         then:
-        executedTasks == [finalized, finalizer, mustRunAfterFinalized]
-    }
-
-    def "getAllTasks returns tasks in execution order"() {
-        Task e = task("e");
-        Task d = task("d", mustRunAfter: [e]);
-        Task c = task("c");
-        Task b = task("b", dependsOn: [d, c, e]);
-        Task a = task("a", dependsOn: [b]);
-
-        when:
-        addToGraphAndPopulate(toList(a));
-
-        then:
-        executionPlan.getTasks() == [c, e, d, b, a]
-        executedTasks == [c, e, d, b, a]
+        executes(finalized, finalizer, mustRunAfterFinalized)
     }
 
     def "cannot add task with circular reference"() {
@@ -546,18 +520,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.clear()
 
         then:
-        executionPlan.getTasks() == []
+        executionPlan.tasks == []
         executedTasks == []
-    }
-
-    def getExecutedTasks() {
-        def tasks = []
-        def taskInfo
-        while ((taskInfo = taskToExecute) != null) {
-            tasks << taskInfo.task
-            executionPlan.taskComplete(taskInfo)
-        }
-        return tasks
     }
 
     def "can add additional tasks after execution and clear"() {
@@ -569,14 +533,14 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([a])
 
         then:
-        executedTasks == [a]
+        executes(a)
 
         when:
         executionPlan.clear()
         addToGraphAndPopulate([b])
 
         then:
-        executedTasks == [b]
+        executes(b)
     }
 
     def "does not build graph for or execute filtered tasks"() {
@@ -593,8 +557,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([a, b])
 
         then:
-        executionPlan.getTasks() == [b]
-        executedTasks == [b]
+        executes(b)
     }
 
     def "does not build graph for or execute filtered dependencies"() {
@@ -612,8 +575,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([c])
 
         then:
-        executionPlan.tasks == [b, c]
-        executedTasks == [b, c]
+        executes(b, c)
     }
 
     def "does not build graph for or execute filtered tasks reachable via task ordering"() {
@@ -631,8 +593,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([b, c])
 
         then:
-        executionPlan.tasks == [b, c]
-        executedTasks == [b, c]
+        executes(b, c)
     }
 
     def "will execute a task whose dependencies have been filtered"() {
@@ -649,7 +610,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([c]);
 
         then:
-        executedTasks == [c]
+        executes(c)
     }
 
     def "one parallel task per project is allowed"() {
@@ -681,6 +642,21 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         then:
         t3.task.project != t4.task.project
+    }
+
+    void executes(Task... expectedTasks) {
+        assert executionPlan.tasks == expectedTasks as List
+        assert expectedTasks == expectedTasks as List
+    }
+
+    def getExecutedTasks() {
+        def tasks = []
+        def taskInfo
+        while ((taskInfo = taskToExecute) != null) {
+            tasks << taskInfo.task
+            executionPlan.taskComplete(taskInfo)
+        }
+        return tasks
     }
 
     private TaskDependency taskDependencyResolvingTo(TaskInternal task, List<Task> tasks) {

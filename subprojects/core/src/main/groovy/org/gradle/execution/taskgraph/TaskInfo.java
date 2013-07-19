@@ -53,8 +53,8 @@ class TaskInfo implements Comparable<TaskInfo> {
         return state == TaskExecutionState.MUST_NOT_RUN;
     }
 
-    public boolean isNotRequired() {
-        return state == TaskExecutionState.NOT_REQUIRED;
+    public boolean isIncludeInGraph() {
+        return state == TaskExecutionState.NOT_REQUIRED || state == TaskExecutionState.UNKNOWN;
     }
 
     public boolean isReady() {

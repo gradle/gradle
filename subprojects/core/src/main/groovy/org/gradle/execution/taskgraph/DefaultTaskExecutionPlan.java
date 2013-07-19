@@ -195,7 +195,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         while (!nodeQueue.isEmpty()) {
             TaskInfo taskNode = nodeQueue.get(0);
 
-            if (taskNode.isNotRequired() || executionPlan.containsKey(taskNode.getTask())) {
+            if (taskNode.isIncludeInGraph() || executionPlan.containsKey(taskNode.getTask())) {
                 nodeQueue.remove(0);
                 continue;
             }
