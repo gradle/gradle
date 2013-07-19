@@ -72,7 +72,6 @@ public class DependencyGraphBuilder {
         ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, builder);
         traverseGraph(resolveState);
 
-        builder.start(resolveState.root.getResult());
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, builder, cacheLockingManager);
         assembleResult(resolveState, builder, listener);
 
@@ -172,6 +171,7 @@ public class DependencyGraphBuilder {
             }
         }
         failureState.attachFailures(result);
+        result.done(resolveState.root.getResult());
     }
 
     private static class FailureState {
@@ -375,7 +375,7 @@ public class DependencyGraphBuilder {
             if (artifacts.isEmpty()) {
                 artifacts = childConfiguration.getArtifacts();
             }
-            result.addParentSpecificArtifacts(parent, child, artifacts);
+            result.addParentSpecificArtifacts(child, parent, artifacts);
 
             if (parent == resolveState.root.getResult()) {
                 EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) dependencyDescriptor;

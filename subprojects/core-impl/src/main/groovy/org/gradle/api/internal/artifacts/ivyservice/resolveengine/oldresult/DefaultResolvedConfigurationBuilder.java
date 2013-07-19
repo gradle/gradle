@@ -54,7 +54,7 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
         unresolvedDependencies.add(unresolvedDependency);
     }
 
-    public void start(ResolvedDependency root) {
+    public void done(ResolvedDependency root) {
         this.root = (DefaultResolvedDependency) root;
     }
 

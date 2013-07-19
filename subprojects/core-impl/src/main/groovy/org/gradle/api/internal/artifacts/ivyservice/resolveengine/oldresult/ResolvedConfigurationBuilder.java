@@ -29,11 +29,11 @@ public interface ResolvedConfigurationBuilder {
 
     void addChild(ResolvedDependency parent, ResolvedDependency child);
 
-    void start(ResolvedDependency root);
-
     void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedDependency child, Set<ResolvedArtifact> artifacts);
 
     ResolvedDependency newResolvedDependency(ModuleVersionIdentifier id, String name);
 
     ResolvedArtifact newArtifact(ResolvedDependency result, Artifact artifact, ArtifactResolver artifactResolver);
+
+    void done(ResolvedDependency result);
 }
