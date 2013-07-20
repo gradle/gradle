@@ -165,6 +165,36 @@ project(':b') {
     }
 
     @Test
+    public void artifactFilesPreserveFixedOrder() {
+        repo.module('org', 'leaf1').publish()
+        repo.module('org', 'leaf2').publish()
+        repo.module('org', 'leaf3').publish()
+        repo.module('org', 'leaf4').publish()
+
+        repo.module('org', 'middle1').dependsOn("leaf1", "leaf2").publish()
+        repo.module('org', 'middle2').dependsOn("leaf3", "leaf4").publish()
+
+        repo.module('org', 'top').dependsOn("middle1", "middle2").publish()
+
+        testFile('build.gradle') << """
+            repositories {
+                maven { url '${repo.uri}' }
+            }
+            configurations {
+                compile
+            }
+            dependencies {
+                compile "org:middle2:1.0", "org:middle1:1.0"
+            }
+            task test << {
+                assert configurations.compile.files.collect { it.name } == ['middle2-1.0.jar', 'middle1-1.0.jar', 'leaf3-1.0.jar', 'leaf4-1.0.jar', 'leaf1-1.0.jar', 'leaf2-1.0.jar']
+            }
+        """
+
+        executer.withTasks("test").run()
+    }
+
+    @Test
     public void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
         def module = repo.module('org.gradle.test', 'lib', '1.0')
         module.artifact(type: 'zip')
