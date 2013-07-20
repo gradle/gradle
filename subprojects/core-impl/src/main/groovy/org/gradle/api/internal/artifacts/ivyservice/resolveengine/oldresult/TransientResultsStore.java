@@ -17,7 +17,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
@@ -66,8 +65,8 @@ class TransientResultsStore {
                     cache.allDependencies.put(ev.id, new DefaultResolvedDependency(ev.id.getId(), ev.id.getConfiguration()));
                 } else if (e instanceof ParentChildMapping) {
                     ParentChildMapping ev = (ParentChildMapping) e;
-                    DefaultResolvedDependency parent = dep(cache.allDependencies.get(ev.parent));
-                    DefaultResolvedDependency child = dep(cache.allDependencies.get(ev.child));
+                    DefaultResolvedDependency parent = cache.allDependencies.get(ev.parent);
+                    DefaultResolvedDependency child = cache.allDependencies.get(ev.child);
                     parent.addChild(child);
                 } else if (e instanceof FirstLevelDependency) {
                     FirstLevelDependency ev = (FirstLevelDependency) e;
@@ -77,8 +76,8 @@ class TransientResultsStore {
                     cache.root = cache.allDependencies.get(ev.id);
                 } else if (e instanceof ParentSpecificArtifact) {
                     ParentSpecificArtifact ev = (ParentSpecificArtifact) e;
-                    DefaultResolvedDependency child = dep(cache.allDependencies.get(ev.child));
-                    DefaultResolvedDependency parent = dep(cache.allDependencies.get(ev.parent));
+                    DefaultResolvedDependency child = cache.allDependencies.get(ev.child);
+                    DefaultResolvedDependency parent = cache.allDependencies.get(ev.parent);
                     child.addParentSpecificArtifacts(parent, newHashSet(mapping.getArtifact(ev.artifactId)));
                 } else {
                     throw new IllegalStateException("Unknown resolution event: " + e);
@@ -86,11 +85,6 @@ class TransientResultsStore {
             }
             return cache;
         }
-    }
-
-    //to streamline casting
-    private DefaultResolvedDependency dep(ResolvedDependency d) {
-        return (DefaultResolvedDependency) d;
     }
 
     private static interface ResolutionResultEvent {}
