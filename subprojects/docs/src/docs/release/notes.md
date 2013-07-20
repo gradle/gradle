@@ -174,9 +174,9 @@ meta-data handling. The changes should generally be backwards compatible, howeve
 
 Note that using Ivy `DependencyResolver` implementations is deprecated, and we recommend that you use Gradle's repository implementations instead.
 
-<!--
-### Example breaking change
--->
+### The order of resolved artifacts is slightly different
+
+todo
 
 ## External contributions
 

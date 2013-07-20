@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationResults;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
@@ -31,6 +32,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
     private CacheLockingManager cacheLockingManager;
     private final Configuration configuration;
     private ResolvedConfigurationResults results;
+    //TODO SF check if we can avoid creating the walker if we don't need this. What about thread safety?
     private final CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker
             = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph());
 
@@ -126,6 +128,12 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
      * @param dependencySpec dependency spec
      */
     public Set<ResolvedArtifact> getAllArtifacts(Spec<? super Dependency> dependencySpec) {
+        //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
+        //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
+        if (dependencySpec == Specs.SATISFIES_ALL) {
+            return results.getArtifacts();
+        }
+
         Set<ResolvedDependency> firstLevelModuleDependencies = getFirstLevelModuleDependencies(dependencySpec);
 
         Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();

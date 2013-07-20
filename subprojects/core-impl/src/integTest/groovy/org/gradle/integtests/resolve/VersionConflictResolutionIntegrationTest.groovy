@@ -445,7 +445,7 @@ task checkDeps << {
             }
 
         task checkDeps << {
-            assert configurations.conf*.name == ['a-1.0.jar', 'b-1.0.jar', 'target-child-1.0.jar', 'target-1.0.jar', 'in-conflict-2.0.jar', 'b-child-1.0.jar']
+            assert configurations.conf*.name == ['a-1.0.jar', 'b-1.0.jar', 'b-child-1.0.jar', 'target-1.0.jar', 'in-conflict-2.0.jar', 'target-child-1.0.jar']
             def result = configurations.conf.incoming.resolutionResult
             assert result.allModuleVersions.size() == 7
             def a = result.allModuleVersions.find { it.id.name == 'a' }

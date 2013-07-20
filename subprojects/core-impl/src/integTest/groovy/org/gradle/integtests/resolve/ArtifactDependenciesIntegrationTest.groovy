@@ -216,7 +216,7 @@ dependencies {
     compile "org.gradle.test:dist:1.0"
 }
 task test << {
-    assert configurations.compile.files.collect { it.name } == ['lib-1.0.jar', 'lib-1.0.zip', 'lib-1.0-classifier.jar', 'dist-1.0.zip']
+    assert configurations.compile.files.collect { it.name } == ['lib-1.0.jar', 'lib-1.0-classifier.jar', 'lib-1.0.zip', 'dist-1.0.zip']
     def artifacts = configurations.compile.resolvedConfiguration.resolvedArtifacts as List
     assert artifacts.size() == 4
     assert artifacts[0].name == 'lib'
