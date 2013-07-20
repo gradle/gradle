@@ -73,6 +73,9 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
     }
 
     public ResolvedDependency newResolvedDependency(ModuleVersionIdentifier id, String configurationName) {
+        //TODO SF it should be possible to completely avoid creation of ResolvedDependency instances during resolution.
+        //At this stage I'm pretty sure the DependencyGraphBuilder does not really need them
+        // and could operate on ResolvedConfigurationIdentifier
         DefaultResolvedDependency d = new DefaultResolvedDependency(id, configurationName);
         store.allDependencies.put(d.getId(), d);
         return d;
