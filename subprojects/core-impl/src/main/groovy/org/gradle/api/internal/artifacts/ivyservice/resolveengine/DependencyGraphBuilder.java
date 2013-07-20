@@ -375,7 +375,7 @@ public class DependencyGraphBuilder {
             if (artifacts.isEmpty()) {
                 artifacts = childConfiguration.getArtifacts();
             }
-            result.addParentSpecificArtifacts(child, parent, artifacts);
+            result.addParentSpecificArtifacts(parent, child, artifacts);
 
             if (parent == resolveState.root.getResult()) {
                 EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) dependencyDescriptor;
