@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts
 
 import org.apache.ivy.core.module.descriptor.Artifact
-import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.internal.Factory
 import org.gradle.util.Matchers
@@ -27,29 +26,29 @@ class DefaultResolvedArtifactTest extends Specification {
 
     def "uses extended attributes to determine classifier"() {
         Artifact ivyArtifact = ivyArtifact("name", "type", "ext", ['m:classifier': 'classifier'])
-        ResolvedDependency dependency = Mock()
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArtifact, artifactSource)
+        ResolvedModuleVersion owner = Mock()
+        def artifact = new DefaultResolvedArtifact(owner, {} as Factory, ivyArtifact, artifactSource)
 
         expect:
         artifact.classifier == 'classifier'
     }
 
     def "attributes are equal when module, name, type, extension and extended attributes are equal"() {
-        ResolvedDependency dependency = dep("group", "module1", "1.2")
-        ResolvedDependency dependencySameModule = dep("group", "module1", "1.2")
-        ResolvedDependency dependency2 = dep("group", "module2", "1-beta")
+        def dependency = dep("group", "module1", "1.2")
+        def dependencySameModule = dep("group", "module1", "1.2")
+        def dependency2 = dep("group", "module2", "1-beta")
         Artifact ivyArt = ivyArtifact("name", "type", "ext", [attr: "value"])
         Artifact ivyArtifactWithDifferentName = ivyArtifact("name2", "type", "ext", [attr: "value"])
         Artifact ivyArtifactWithDifferentType = ivyArtifact("name", "type2", "ext", [attr: "value"])
         Artifact ivyArtifactWithDifferentExt = ivyArtifact("name", "type", "ext2", [attr: "value"])
         Artifact ivyArtWithDifferentAttributes = ivyArtifact("name", "type", "ext", [attr: "value2"])
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactSource)
-        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, ivyArt, artifactSource)
-        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactSource)
-        def differentName = new DefaultResolvedArtifact(dependency, ivyArtifactWithDifferentName, artifactSource)
-        def differentType = new DefaultResolvedArtifact(dependency, ivyArtifactWithDifferentType, artifactSource)
-        def differentExtension = new DefaultResolvedArtifact(dependency, ivyArtifactWithDifferentExt, artifactSource)
-        def differentAttributes = new DefaultResolvedArtifact(dependency, ivyArtWithDifferentAttributes, artifactSource)
+        def artifact = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArt, artifactSource)
+        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, {} as Factory, ivyArt, artifactSource)
+        def differentModule = new DefaultResolvedArtifact(dependency2, {} as Factory, ivyArt, artifactSource)
+        def differentName = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtifactWithDifferentName, artifactSource)
+        def differentType = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtifactWithDifferentType, artifactSource)
+        def differentExtension = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtifactWithDifferentExt, artifactSource)
+        def differentAttributes = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtWithDifferentAttributes, artifactSource)
 
         expect:
         artifact Matchers.strictlyEqual(equalArtifact)
@@ -70,10 +69,8 @@ class DefaultResolvedArtifactTest extends Specification {
     }
 
     def dep(String group, String moduleName, String version) {
-        ResolvedDependency dependency = Mock()
         ResolvedModuleVersion module = Mock()
-        _ * dependency.module >> module
         _ * module.id >> new DefaultModuleVersionIdentifier(group, moduleName, version)
-        return dependency
+        module
     }
 }

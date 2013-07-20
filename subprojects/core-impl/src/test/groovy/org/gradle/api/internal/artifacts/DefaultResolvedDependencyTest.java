@@ -33,7 +33,7 @@ import java.util.Set;
 
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.newHashSet;
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.*;
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
 import static org.gradle.util.Matchers.strictlyEqual;
 import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.equalTo;
@@ -122,7 +122,7 @@ public class DefaultResolvedDependencyTest {
             allowing(version).getId();
             will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
         }});
-        return new DefaultResolvedArtifact(resolvedDependency, artifactStub, artifactSource);
+        return new DefaultResolvedArtifact(resolvedDependency.getModule(), null , artifactStub, artifactSource);
     }
 
     private DefaultResolvedDependency createResolvedDependency() {

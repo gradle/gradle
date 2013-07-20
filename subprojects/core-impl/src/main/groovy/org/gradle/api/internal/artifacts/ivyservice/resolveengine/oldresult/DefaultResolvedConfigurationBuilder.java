@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactFactory;
 import org.gradle.internal.Factory;
@@ -48,6 +49,11 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
         store.firstLevelDependencies.put(moduleDependency, dependency);
     }
 
+    //to streamline casting
+    private DefaultResolvedDependency dep(ResolvedDependency d) {
+        return (DefaultResolvedDependency) d;
+    }
+
     public void addUnresolvedDependency(UnresolvedDependency unresolvedDependency) {
         unresolvedDependencies.add(unresolvedDependency);
     }
@@ -67,12 +73,15 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
     }
 
     public ResolvedDependency newResolvedDependency(ModuleVersionIdentifier id, String configurationName) {
-        return new DefaultResolvedDependency(id, configurationName);
+        DefaultResolvedDependency d = new DefaultResolvedDependency(id, configurationName);
+        store.allDependencies.put(d.getId(), d);
+        return d;
     }
 
-    public ResolvedArtifact newArtifact(ResolvedDependency owner, Artifact artifact, ArtifactResolver artifactResolver) {
+    public ResolvedArtifact newArtifact(final ResolvedDependency owner, Artifact artifact, ArtifactResolver artifactResolver) {
         Factory<File> artifactSource = resolvedArtifactFactory.artifactSource(artifact, artifactResolver);
-        ResolvedArtifact newArtifact = new DefaultResolvedArtifact(owner, artifact, artifactSource);
+        Factory<ResolvedDependency> dependencySource = new ResolvedDependencyFactory(owner, store);
+        ResolvedArtifact newArtifact = new DefaultResolvedArtifact(owner.getModule(), dependencySource, artifact, artifactSource);
         artifacts.add(newArtifact);
         return newArtifact;
     }
@@ -91,5 +100,19 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
 
     public Set<UnresolvedDependency> getUnresolvedDependencies() {
         return unresolvedDependencies;
+    }
+
+    private static class ResolvedDependencyFactory implements Factory<ResolvedDependency> {
+        private final ResolvedDependency owner;
+        private TransientResultsStore store;
+
+        public ResolvedDependencyFactory(ResolvedDependency owner, TransientResultsStore store) {
+            this.owner = owner;
+            this.store = store;
+        }
+
+        public ResolvedDependency create() {
+            return store.getResolvedDependency(new ResolvedConfigurationIdentifier(owner.getModule().getId(), owner.getConfiguration()));
+        }
     }
 }

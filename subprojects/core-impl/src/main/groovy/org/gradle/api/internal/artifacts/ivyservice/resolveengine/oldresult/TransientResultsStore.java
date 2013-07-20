@@ -20,17 +20,20 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * By Szczepan Faber on 7/20/13
  */
-public class TransientResultsStore implements TransientConfigurationResults {
+class TransientResultsStore implements TransientConfigurationResults {
 
     final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();
     DefaultResolvedDependency root;
+    final Map<ResolvedConfigurationIdentifier, ResolvedDependency> allDependencies = new HashMap<ResolvedConfigurationIdentifier, ResolvedDependency>();
 
     public Map<ModuleDependency, ResolvedDependency> getFirstLevelDependencies() {
         return firstLevelDependencies;
@@ -38,5 +41,9 @@ public class TransientResultsStore implements TransientConfigurationResults {
 
     public DefaultResolvedDependency getRoot() {
         return root;
+    }
+
+    public ResolvedDependency getResolvedDependency(ResolvedConfigurationIdentifier id) {
+        return allDependencies.get(id);
     }
 }

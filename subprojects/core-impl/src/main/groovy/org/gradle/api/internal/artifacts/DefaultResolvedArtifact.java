@@ -31,16 +31,18 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultResolvedArtifact implements ResolvedArtifact {
-    private final ResolvedDependency resolvedDependency;
     private final Map<String, String> extraAttributes;
     private final String name;
     private final String type;
     private final String ext;
+    private final ResolvedModuleVersion owner;
+    private final Factory<ResolvedDependency> ownerSource;
     private Factory<File> artifactSource;
     private File file;
 
-    public DefaultResolvedArtifact(ResolvedDependency resolvedDependency, Artifact artifact, Factory<File> artifactSource) {
-        this.resolvedDependency = resolvedDependency;
+    public DefaultResolvedArtifact(ResolvedModuleVersion owner, Factory<ResolvedDependency> ownerSource, Artifact artifact, Factory<File> artifactSource) {
+        this.ownerSource = ownerSource;
+        this.owner = owner;
         // Unpack the stuff that we're interested from the artifact and discard. The artifact instance drags in a whole pile of stuff that
         // we don't want to retain references to.
         this.name = artifact.getName();
@@ -55,16 +57,17 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
                 "ResolvedArtifact.getResolvedDependency()",
                 "For version info use ResolvedArtifact.getModuleVersion(), to access the dependency graph use ResolvedConfiguration.getFirstLevelModuleDependencies()"
         );
-        return resolvedDependency;
+        //resolvedDependency is expensive so lazily create it
+        return ownerSource.create();
     }
 
     public ResolvedModuleVersion getModuleVersion() {
-        return resolvedDependency.getModule();
+        return owner;
     }
 
     @Override
     public String toString() {
-        return String.format("[ResolvedArtifact dependency:%s name:%s classifier:%s extension:%s type:%s]", resolvedDependency, getName(), getClassifier(), getExtension(), getType());
+        return String.format("[ResolvedArtifact dependency:%s name:%s classifier:%s extension:%s type:%s]", owner, getName(), getClassifier(), getExtension(), getType());
     }
 
     @Override
@@ -76,7 +79,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
             return false;
         }
         DefaultResolvedArtifact other = (DefaultResolvedArtifact) obj;
-        if (!other.resolvedDependency.getModule().getId().equals(resolvedDependency.getModule().getId())) {
+        if (!other.owner.getId().equals(owner.getId())) {
             return false;
         }
         if (!other.getName().equals(getName())) {
@@ -96,7 +99,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
 
     @Override
     public int hashCode() {
-        return resolvedDependency.getModule().getId().hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ extraAttributes.hashCode();
+        return owner.getId().hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ extraAttributes.hashCode();
     }
 
     public String getName() {
