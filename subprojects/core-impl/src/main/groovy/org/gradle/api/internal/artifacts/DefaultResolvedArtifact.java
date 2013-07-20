@@ -36,13 +36,15 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     private final String type;
     private final String ext;
     private final ResolvedModuleVersion owner;
+    private long id;
     private final Factory<ResolvedDependency> ownerSource;
     private Factory<File> artifactSource;
     private File file;
 
-    public DefaultResolvedArtifact(ResolvedModuleVersion owner, Factory<ResolvedDependency> ownerSource, Artifact artifact, Factory<File> artifactSource) {
+    public DefaultResolvedArtifact(ResolvedModuleVersion owner, Factory<ResolvedDependency> ownerSource, Artifact artifact, Factory<File> artifactSource, long id) {
         this.ownerSource = ownerSource;
         this.owner = owner;
+        this.id = id;
         // Unpack the stuff that we're interested from the artifact and discard. The artifact instance drags in a whole pile of stuff that
         // we don't want to retain references to.
         this.name = artifact.getName();
@@ -50,6 +52,10 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         this.ext = artifact.getExt();
         this.extraAttributes = new HashMap<String, String>(artifact.getQualifiedExtraAttributes());
         this.artifactSource = artifactSource;
+    }
+
+    public long getId() {
+        return id;
     }
 
     public ResolvedDependency getResolvedDependency() {

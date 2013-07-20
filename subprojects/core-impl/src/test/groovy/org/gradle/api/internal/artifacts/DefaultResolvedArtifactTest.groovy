@@ -27,7 +27,7 @@ class DefaultResolvedArtifactTest extends Specification {
     def "uses extended attributes to determine classifier"() {
         Artifact ivyArtifact = ivyArtifact("name", "type", "ext", ['m:classifier': 'classifier'])
         ResolvedModuleVersion owner = Mock()
-        def artifact = new DefaultResolvedArtifact(owner, {} as Factory, ivyArtifact, artifactSource)
+        def artifact = new DefaultResolvedArtifact(owner, {} as Factory, ivyArtifact, artifactSource, 0)
 
         expect:
         artifact.classifier == 'classifier'
@@ -42,13 +42,13 @@ class DefaultResolvedArtifactTest extends Specification {
         Artifact ivyArtifactWithDifferentType = ivyArtifact("name", "type2", "ext", [attr: "value"])
         Artifact ivyArtifactWithDifferentExt = ivyArtifact("name", "type", "ext2", [attr: "value"])
         Artifact ivyArtWithDifferentAttributes = ivyArtifact("name", "type", "ext", [attr: "value2"])
-        def artifact = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArt, artifactSource)
-        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, {} as Factory, ivyArt, artifactSource)
-        def differentModule = new DefaultResolvedArtifact(dependency2, {} as Factory, ivyArt, artifactSource)
-        def differentName = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtifactWithDifferentName, artifactSource)
-        def differentType = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtifactWithDifferentType, artifactSource)
-        def differentExtension = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtifactWithDifferentExt, artifactSource)
-        def differentAttributes = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtWithDifferentAttributes, artifactSource)
+        def artifact = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArt, artifactSource, 0)
+        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, {} as Factory, ivyArt, artifactSource, 0)
+        def differentModule = new DefaultResolvedArtifact(dependency2, {} as Factory, ivyArt, artifactSource, 0)
+        def differentName = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtifactWithDifferentName, artifactSource, 0)
+        def differentType = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtifactWithDifferentType, artifactSource, 0)
+        def differentExtension = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtifactWithDifferentExt, artifactSource, 0)
+        def differentAttributes = new DefaultResolvedArtifact(dependency, {} as Factory, ivyArtWithDifferentAttributes, artifactSource, 0)
 
         expect:
         artifact Matchers.strictlyEqual(equalArtifact)

@@ -20,16 +20,28 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * By Szczepan Faber on 7/20/13
  */
-public interface TransientConfigurationResults {
+public class DefaultTransientConfigurationResults implements TransientConfigurationResults {
 
-    Map<ModuleDependency, ResolvedDependency> getFirstLevelDependencies();
+    final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();
+    ResolvedDependency root;
+    final Map<ResolvedConfigurationIdentifier, ResolvedDependency> allDependencies = new HashMap<ResolvedConfigurationIdentifier, ResolvedDependency>();
 
-    ResolvedDependency getRoot();
+    public Map<ModuleDependency, ResolvedDependency> getFirstLevelDependencies() {
+        return firstLevelDependencies;
+    }
 
-    ResolvedDependency getResolvedDependency(ResolvedConfigurationIdentifier id);
+    public ResolvedDependency getRoot() {
+        return root;
+    }
+
+    public ResolvedDependency getResolvedDependency(ResolvedConfigurationIdentifier id) {
+        return allDependencies.get(id);
+    }
 }

@@ -17,19 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-
-import java.util.Map;
 
 /**
  * By Szczepan Faber on 7/20/13
  */
-public interface TransientConfigurationResults {
+public interface ResolvedContentsMapping {
 
-    Map<ModuleDependency, ResolvedDependency> getFirstLevelDependencies();
+    ResolvedArtifact getArtifact(long id);
 
-    ResolvedDependency getRoot();
-
-    ResolvedDependency getResolvedDependency(ResolvedConfigurationIdentifier id);
+    ModuleDependency getModuleDependency(ResolvedConfigurationIdentifier id);
 }
