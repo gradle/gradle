@@ -25,9 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactFactory;
 import org.gradle.internal.Factory;
 
 import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -38,16 +36,16 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
     private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
     private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
 
-    private final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();
-    private DefaultResolvedDependency root;
     private ResolvedArtifactFactory resolvedArtifactFactory;
+
+    private final TransientResultsStore store = new TransientResultsStore();
 
     public DefaultResolvedConfigurationBuilder(ResolvedArtifactFactory resolvedArtifactFactory) {
         this.resolvedArtifactFactory = resolvedArtifactFactory;
     }
 
     public void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency dependency) {
-        firstLevelDependencies.put(moduleDependency, dependency);
+        store.firstLevelDependencies.put(moduleDependency, dependency);
     }
 
     public void addUnresolvedDependency(UnresolvedDependency unresolvedDependency) {
@@ -55,12 +53,12 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
     }
 
     public void done(ResolvedDependency root) {
-        this.root = (DefaultResolvedDependency) root;
+        store.root = (DefaultResolvedDependency) root;
     }
 
     public void addChild(ResolvedDependency parent, ResolvedDependency child) {
         //this cast should be fine for now. The old results go away at some point plus after the refactorings are done,
-        // this class will be in control of instantiating the resolved dependencies.
+        // this class is in control of instantiating the resolved dependencies.
         ((DefaultResolvedDependency) parent).addChild((DefaultResolvedDependency) child);
     }
 
@@ -83,8 +81,8 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
         return !unresolvedDependencies.isEmpty();
     }
 
-    public Map<ModuleDependency, ResolvedDependency> getFirstLevelDependencies() {
-        return firstLevelDependencies;
+    public TransientConfigurationResults more() {
+        return store;
     }
 
     public Set<ResolvedArtifact> getArtifacts() {
@@ -93,9 +91,5 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
 
     public Set<UnresolvedDependency> getUnresolvedDependencies() {
         return unresolvedDependencies;
-    }
-
-    public DefaultResolvedDependency getRoot() {
-        return root;
     }
 }

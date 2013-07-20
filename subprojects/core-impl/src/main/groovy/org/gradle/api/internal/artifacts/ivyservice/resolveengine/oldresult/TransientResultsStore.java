@@ -14,22 +14,29 @@
  * limitations under the License.
  */
 
+
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * By Szczepan Faber on 7/19/13
+ * By Szczepan Faber on 7/20/13
  */
-public interface ResolvedConfigurationResults {
-    boolean hasError();
+public class TransientResultsStore implements TransientConfigurationResults {
 
-    Set<UnresolvedDependency> getUnresolvedDependencies();
+    final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();
+    DefaultResolvedDependency root;
 
-    Set<ResolvedArtifact> getArtifacts();
+    public Map<ModuleDependency, ResolvedDependency> getFirstLevelDependencies() {
+        return firstLevelDependencies;
+    }
 
-    TransientConfigurationResults more();
+    public DefaultResolvedDependency getRoot() {
+        return root;
+    }
 }

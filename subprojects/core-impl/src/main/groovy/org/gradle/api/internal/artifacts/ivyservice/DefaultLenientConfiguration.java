@@ -64,7 +64,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
         Set<ResolvedDependency> matches = new LinkedHashSet<ResolvedDependency>();
-        for (Map.Entry<ModuleDependency, ResolvedDependency> entry : results.getFirstLevelDependencies().entrySet()) {
+        for (Map.Entry<ModuleDependency, ResolvedDependency> entry : results.more().getFirstLevelDependencies().entrySet()) {
             if (dependencySpec.isSatisfiedBy(entry.getKey())) {
                 matches.add(entry.getValue());
             }
@@ -131,7 +131,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
         Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
 
         for (ResolvedDependency resolvedDependency : firstLevelModuleDependencies) {
-            artifacts.addAll(resolvedDependency.getParentArtifacts(results.getRoot()));
+            artifacts.addAll(resolvedDependency.getParentArtifacts(results.more().getRoot()));
             walker.add(resolvedDependency);
         }
 
@@ -144,7 +144,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-        return results.getRoot().getChildren();
+        return results.more().getRoot().getChildren();
     }
 
     private static class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
