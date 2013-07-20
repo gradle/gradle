@@ -367,8 +367,8 @@ public class DependencyGraphBuilder {
         }
 
         public void attachToParents(ConfigurationNode childConfiguration, ResolvedConfigurationBuilder result) {
-            ResolvedDependency parent = from.getResult();
-            ResolvedDependency child = childConfiguration.getResult();
+            ResolvedConfigurationIdentifier parent = from.getResult();
+            ResolvedConfigurationIdentifier child = childConfiguration.getResult();
             result.addChild(parent, child);
 
             Set<ResolvedArtifact> artifacts = getArtifacts(childConfiguration);
@@ -693,7 +693,7 @@ public class DependencyGraphBuilder {
         final ResolveState resolveState;
         final Set<DependencyEdge> incomingEdges = new LinkedHashSet<DependencyEdge>();
         final Set<DependencyEdge> outgoingEdges = new LinkedHashSet<DependencyEdge>();
-        ResolvedDependency result;
+        ResolvedConfigurationIdentifier result;
         ModuleVersionSpec previousTraversal;
         Set<ResolvedArtifact> artifacts;
 
@@ -719,9 +719,10 @@ public class DependencyGraphBuilder {
             return artifacts;
         }
 
-        public ResolvedDependency getResult() {
+        public ResolvedConfigurationIdentifier getResult() {
             if (result == null) {
-                result = resolveState.builder.newResolvedDependency(moduleRevision.id, metaData.getName());
+                result = new ResolvedConfigurationIdentifier(moduleRevision.id, metaData.getName());
+                resolveState.builder.newResolvedDependency(result);
             }
 
             return result;

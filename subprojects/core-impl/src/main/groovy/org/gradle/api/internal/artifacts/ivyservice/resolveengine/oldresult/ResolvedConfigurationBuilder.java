@@ -16,24 +16,27 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 
 import java.util.Set;
 
 public interface ResolvedConfigurationBuilder {
 
-    void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency dependency);
+    void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedConfigurationIdentifier dependency);
 
     void addUnresolvedDependency(UnresolvedDependency unresolvedDependency);
 
-    void addChild(ResolvedDependency parent, ResolvedDependency child);
+    void addChild(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child);
 
-    void done(ResolvedDependency root);
+    void done(ResolvedConfigurationIdentifier root);
 
-    void addParentSpecificArtifacts(ResolvedDependency child, ResolvedDependency parent, Set<ResolvedArtifact> artifacts);
+    void addParentSpecificArtifacts(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, Set<ResolvedArtifact> artifacts);
 
-    ResolvedDependency newResolvedDependency(ModuleVersionIdentifier id, String name);
+    void newResolvedDependency(ResolvedConfigurationIdentifier id);
 
-    ResolvedArtifact newArtifact(ResolvedDependency result, Artifact artifact, ArtifactResolver artifactResolver);
+    ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, Artifact artifact, ArtifactResolver artifactResolver);
 }
