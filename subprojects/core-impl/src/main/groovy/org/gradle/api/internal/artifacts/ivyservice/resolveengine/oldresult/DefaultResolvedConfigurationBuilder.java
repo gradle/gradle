@@ -64,7 +64,7 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
         ((DefaultResolvedDependency) parent).addChild((DefaultResolvedDependency) child);
     }
 
-    public void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedDependency child, Set<ResolvedArtifact> artifacts) {
+    public void addParentSpecificArtifacts(ResolvedDependency child, ResolvedDependency parent, Set<ResolvedArtifact> artifacts) {
         ((DefaultResolvedDependency)child).addParentSpecificArtifacts(parent, artifacts);
     }
 

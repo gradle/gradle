@@ -31,7 +31,7 @@ public interface ResolvedConfigurationBuilder {
 
     void done(ResolvedDependency root);
 
-    void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedDependency child, Set<ResolvedArtifact> artifacts);
+    void addParentSpecificArtifacts(ResolvedDependency child, ResolvedDependency parent, Set<ResolvedArtifact> artifacts);
 
     ResolvedDependency newResolvedDependency(ModuleVersionIdentifier id, String name);
 
