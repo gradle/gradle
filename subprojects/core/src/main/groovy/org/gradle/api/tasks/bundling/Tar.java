@@ -71,24 +71,4 @@ public class Tar extends AbstractArchiveTask {
         this.compression = compression;
     }
 
-    /**
-     * Internal implementation (not private because of reflective instantiation)
-     */
-    class TarCopyActionImpl extends CopyActionImpl implements ArchiveCopyAction  {
-        public TarCopyActionImpl(Instantiator instantiator, FileResolver fileResolver) {
-            super(instantiator, fileResolver, new TarCopySpecVisitor(), new AbstractArchiveTaskUnhandledDuplicateAction());
-        }
-
-        public File getArchivePath() {
-            return Tar.this.getArchivePath();
-        }
-
-        public ArchiveOutputStreamFactory getCompressor() {
-            switch(compression) {
-                case BZIP2: return Bzip2Archiver.getCompressor();
-                case GZIP:  return GzipArchiver.getCompressor();
-                default:    return new SimpleCompressor();
-            }
-        }
-    }
 }
