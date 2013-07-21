@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Unroll
 
 class IvyModuleResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def "correctly handles wildcard on LHS of configuration mapping"() {
+    def "wildcard on LHS of configuration mapping includes all public configurations of target module"() {
         given:
         buildFile << """
 configurations {
@@ -46,10 +46,13 @@ task retrieve(type: Sync) {
 
         ivyRepo.module('ivy.configuration', 'projectB', '1.5')
                 .configuration('child')
+                .configuration('private', visibility: 'private')
                 .artifact()
                 .artifact([name: 'projectB', conf: 'runtime'])
                 .artifact([name: 'projectB-child', conf: 'child'])
+                .artifact([name: 'projectB-private', conf: 'private'])
                 .dependsOn(organisation: 'ivy.configuration', module: 'projectC', revision: '1.7', conf: 'child->*')
+                .dependsOn(organisation: 'ivy.configuration', module: 'projectD', revision: 'broken', conf: 'private->*')
                 .publish()
 
         ivyRepo.module('ivy.configuration', 'projectC', '1.7')
@@ -102,7 +105,7 @@ task retrieve(type: Sync) {
 """
         ivyRepo.module('ivy.configuration', 'projectA', '1.2')
                 .configuration("parent")
-                .configuration("a", ["parent"])
+                .configuration("a", extendsFrom: ["parent"])
                 .configuration("b")
                 .dependsOn(organisation: 'ivy.configuration', module: 'projectB', revision: '1.5', conf: rule)
                 .publish()
@@ -111,11 +114,14 @@ task retrieve(type: Sync) {
                 .configuration('a')
                 .configuration('b')
                 .configuration('c')
+                .configuration('d', visibility: 'private')
                 .artifact([name: 'projectB-a', conf: 'a'])
                 .artifact([name: 'projectB-b', conf: 'b'])
                 .artifact([name: 'projectB-c', conf: 'c'])
+                .artifact([name: 'projectB-d', conf: 'd'])
                 .dependsOn(organisation: 'ivy.configuration', module: 'projectC', revision: '1.7', conf: 'a->default')
                 .dependsOn(organisation: 'ivy.configuration', module: 'projectD', revision: '1.7', conf: 'b->default')
+                .dependsOn(organisation: 'ivy.configuration', module: 'projectE', revision: '1.7', conf: 'd->default')
                 .publish()
 
         ivyRepo.module('ivy.configuration', 'projectC', '1.7').publish()

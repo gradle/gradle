@@ -411,13 +411,13 @@ rootProject.name = 'root'
     def "renders ivy tree with custom configurations"() {
         given:
         def module = ivyRepo.module("org", "child")
-        module.configurations['first'] = [extendsFrom: ['second'], transitive: true]
-        module.configurations['second'] = [extendsFrom: [], transitive: true]
+        module.configuration('first', extendsFrom: ['second'])
+        module.configuration('second')
         module.publish()
 
         module = ivyRepo.module("org", "parent").dependsOn('child')
-        module.configurations['first'] = [extendsFrom: ['second'], transitive: true]
-        module.configurations['second'] = [extendsFrom: [], transitive: true]
+        module.configuration('first', extendsFrom: ['second'])
+        module.configuration('second')
         module.publish()
 
         file("build.gradle") << """

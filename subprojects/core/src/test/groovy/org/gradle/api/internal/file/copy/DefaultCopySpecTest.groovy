@@ -111,6 +111,14 @@ public class DefaultCopySpecTest {
         assertThat(spec.childSpecs.size(), equalTo(2))
     }
 
+    @Test public void testWithSpecSource() {
+        CopyActionImpl source = new CopyActionImpl(instantiator, fileResolver, null, Actions.doNothing())
+
+        spec.with source
+        assertTrue(spec.sourcePaths.empty)
+        assertThat(spec.childSpecs.size(), equalTo(1))
+    }
+
     @Test public void testWithSpecInheritsDestinationPathFromParent() {
         DefaultCopySpec other = new DefaultCopySpec(fileResolver, instantiator)
         other.into 'other'

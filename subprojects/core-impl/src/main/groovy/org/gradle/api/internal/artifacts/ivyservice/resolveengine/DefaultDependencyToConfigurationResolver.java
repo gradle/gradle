@@ -69,7 +69,7 @@ public class DefaultDependencyToConfigurationResolver implements DependencyToCon
                 }
             }
             if (candidate.equals("*")) {
-                Collections.addAll(targetConfigs, targetModule.getConfigurationsNames());
+                Collections.addAll(targetConfigs, targetModule.getPublicConfigurationsNames());
                 continue;
             }
             targetConfigs.add(candidate);
