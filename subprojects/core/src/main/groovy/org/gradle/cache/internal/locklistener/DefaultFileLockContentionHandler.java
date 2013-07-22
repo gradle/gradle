@@ -28,9 +28,6 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * By Szczepan Faber on 5/28/13
- */
 public class DefaultFileLockContentionHandler implements FileLockContentionHandler {
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockContentionHandler.class);
     private final Lock lock = new ReentrantLock();

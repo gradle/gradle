@@ -25,9 +25,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.Executor;
 
-/**
- * @author Tom Eyckmans
- */
 public class ExecOutputHandleRunner implements Runnable {
     private final static Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
 

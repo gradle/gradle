@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-/**
-* By Szczepan Faber on 4/19/13
-*/
 class DependencyMetadataCacheStats {
     int cacheInstances;
     int reposWrapped;

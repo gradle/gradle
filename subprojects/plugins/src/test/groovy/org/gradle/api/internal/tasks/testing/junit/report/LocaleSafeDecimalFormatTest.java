@@ -23,9 +23,6 @@ import java.util.Locale;
 
 import static junit.framework.Assert.assertEquals;
 
-/**
- * @author Szczepan Faber, @date: 09.03.11
- */
 public class LocaleSafeDecimalFormatTest {
 
     Locale defaultLocale = Locale.getDefault();

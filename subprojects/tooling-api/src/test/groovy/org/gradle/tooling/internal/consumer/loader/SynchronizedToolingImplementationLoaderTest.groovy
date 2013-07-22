@@ -26,9 +26,6 @@ import spock.lang.Specification
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-/**
- * by Szczepan Faber, created at: 12/15/11
- */
 public class SynchronizedToolingImplementationLoaderTest extends Specification {
 
     def factory = Mock(ProgressLoggerFactory)

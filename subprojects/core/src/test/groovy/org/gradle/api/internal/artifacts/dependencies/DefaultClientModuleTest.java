@@ -23,9 +23,6 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultClientModuleTest extends AbstractModuleDependencyTest {
     private static final String TEST_GROUP = "org.gradle";
     private static final String TEST_NAME = "gradle-core";

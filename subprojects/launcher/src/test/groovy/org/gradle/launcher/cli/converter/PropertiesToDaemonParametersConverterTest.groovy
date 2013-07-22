@@ -27,9 +27,6 @@ import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.configuration.GradleProperties.*
 
-/**
- * by Szczepan Faber, created at: 3/11/13
- */
 class PropertiesToDaemonParametersConverterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()

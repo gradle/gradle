@@ -34,9 +34,6 @@ import static junit.framework.Assert.assertNotNull;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Tom Eyckmans
- */
 public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
     private JUnitTestFramework jUnitTestFramework;
     private JUnitOptions jUnitOptionsMock;

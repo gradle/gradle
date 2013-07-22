@@ -22,9 +22,6 @@ import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
-/**
-* @author Szczepan Faber, created at: 3/30/11
-*/
 public class DefaultMavenFileLocations implements MavenFileLocations {
     public File getUserMavenDir() {
         return new File(SystemProperties.getUserHome(), ".m2");

@@ -25,9 +25,6 @@ import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-/**
- * by Szczepan Faber, created at: 9/4/12
- */
 class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule

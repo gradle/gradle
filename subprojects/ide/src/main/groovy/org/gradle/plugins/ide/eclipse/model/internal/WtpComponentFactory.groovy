@@ -23,9 +23,6 @@ import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 
-/**
- * @author Hans Dockter
- */
 class WtpComponentFactory {
     void configure(EclipseWtpComponent wtp, WtpComponent component) {
         def entries = getEntriesFromSourceDirs(wtp)

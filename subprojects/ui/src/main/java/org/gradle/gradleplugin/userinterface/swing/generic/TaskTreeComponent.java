@@ -33,8 +33,6 @@ import java.util.List;
 /**
  * This displays a tree of projects, subprojects, and tasks. You implement the Interaction to detemine how to handle right clicks and double clicking tasks. To use this, call populate and pass it a
  * filter (allows you to change exactly what is displayed). There are several functions to obtaining the selected items, plus you can get the tree directly for any advanced functionality.
- *
- * @author mhunsicker
  */
 public class TaskTreeComponent {
     private GradlePluginLord gradlePluginLord;

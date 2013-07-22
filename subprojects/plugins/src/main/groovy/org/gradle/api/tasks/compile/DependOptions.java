@@ -29,8 +29,6 @@ import com.google.common.collect.ImmutableSet;
  * <p>The {@code srcDir}, {@code destDir}, and {@code cache} properties of the Ant task
  * are set automatically. The latter is replaced by a {@code useCache} option to enable/disable caching of
  * dependency information.
- *
- * @author Steve Appling
  */
 public class DependOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;

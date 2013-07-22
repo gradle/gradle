@@ -32,9 +32,6 @@ import java.util.Properties;
 
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultGradlePropertiesLoaderTest {
     private DefaultGradlePropertiesLoader gradlePropertiesLoader;
     private File gradleUserHomeDir;

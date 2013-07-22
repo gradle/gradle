@@ -22,8 +22,6 @@ package org.gradle.openapi.external.foundation;
  * 
  * This is a mirror of Request inside Gradle, but this is meant to aid backward and forward compatibility by shielding you
  * from direct changes within gradle.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated

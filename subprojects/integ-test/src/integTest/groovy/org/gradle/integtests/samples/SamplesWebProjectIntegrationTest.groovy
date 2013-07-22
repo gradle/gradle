@@ -21,9 +21,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
-/**
- * @author Hans Dockter
- */
 class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
     static final String WEB_PROJECT_NAME = 'customised'
 

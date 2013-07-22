@@ -25,12 +25,9 @@ import org.junit.Test;
 import java.io.File;
 import java.util.List;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.isEmpty;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     public static final String TEST_PATTERN_1 = "pattern1";
     public static final String TEST_PATTERN_2 = "pattern2";

@@ -130,8 +130,6 @@ import java.util.Set;
  * <h4>Dynamic Methods</h4>
  *
  * <p>A {@link Plugin} may add methods to a {@code Task} using its {@link Convention} object.</p>
- *
- * @author Hans Dockter
  */
 public interface Task extends Comparable<Task>, ExtensionAware {
     public static final String TASK_NAME = "name";

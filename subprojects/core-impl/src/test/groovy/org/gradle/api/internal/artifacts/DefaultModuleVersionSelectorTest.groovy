@@ -21,9 +21,6 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-/**
- * by Szczepan Faber, created at: 2/11/13
- */
 class DefaultModuleVersionSelectorTest extends Specification {
 
     def "equality"() {

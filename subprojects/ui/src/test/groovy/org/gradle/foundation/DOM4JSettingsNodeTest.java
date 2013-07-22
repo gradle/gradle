@@ -27,8 +27,6 @@ import java.util.List;
 
 /**
  * Tests the DOM4JSettingsNode class.
- *
- * @author mhunsicker
  */
 public class DOM4JSettingsNodeTest extends TestCase {
     private DOM4JSettingsNode rootNode;

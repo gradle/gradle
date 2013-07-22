@@ -24,8 +24,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Connection decorator that synchronizes dispatching.
- * <p>
- * by Szczepan Faber, created at: 2/27/12
  */
 public class SynchronizedDispatchConnection<T> implements Connection<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizedDispatchConnection.class);

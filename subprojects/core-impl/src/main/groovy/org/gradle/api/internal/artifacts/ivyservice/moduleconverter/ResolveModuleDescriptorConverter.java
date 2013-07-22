@@ -26,9 +26,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class ResolveModuleDescriptorConverter implements ModuleDescriptorConverter {
     private final ModuleDescriptorFactory moduleDescriptorFactory;
     private final ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;

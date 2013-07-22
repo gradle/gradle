@@ -21,8 +21,6 @@ import org.gradle.api.internal.Contextual;
 
 /**
  * <p>A <code>ResolveException</code> is thrown when a dependency configuration cannot be resolved for some reason.</p>
- *
- * @author Hans Dockter
  */
 @Contextual
 public class ResolveException extends AbstractMultiCauseException {

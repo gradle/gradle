@@ -21,9 +21,6 @@ import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
-/**
- * @author Tom Eyckmans
- */
 public interface TestFramework {
 
     /**

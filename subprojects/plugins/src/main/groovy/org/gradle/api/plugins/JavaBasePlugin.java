@@ -50,8 +50,6 @@ import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
- *
- * @author Hans Dockter
  */
 public class JavaBasePlugin implements Plugin<Project> {
     public static final String CHECK_TASK_NAME = "check";

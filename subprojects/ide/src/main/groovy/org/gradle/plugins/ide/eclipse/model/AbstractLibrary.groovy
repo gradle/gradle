@@ -19,9 +19,6 @@ import org.gradle.api.Nullable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 
-/**
- * @author Hans Dockter
- */
 abstract class AbstractLibrary extends AbstractClasspathEntry {
     FileReference sourcePath
     FileReference javadocPath

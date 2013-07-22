@@ -19,19 +19,16 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.EarPlugin
+import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.internal.IdePlugin
-import org.gradle.plugins.ide.eclipse.model.*
 
 import javax.inject.Inject
 
-/**
- * @author: Szczepan Faber, created at: 6/28/11
- */
 class EclipseWtpPlugin extends IdePlugin {
 
     static final String ECLIPSE_WTP_COMPONENT_TASK_NAME = "eclipseWtpComponent"

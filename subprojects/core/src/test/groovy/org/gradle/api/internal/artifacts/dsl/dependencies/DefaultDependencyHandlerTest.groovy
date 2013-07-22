@@ -15,12 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
-import spock.lang.Specification
 import org.gradle.api.artifacts.*
+import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class DefaultDependencyHandlerTest extends Specification {
     private static final String TEST_CONF_NAME = "someConf"
     private ConfigurationContainer configurationContainer = Mock()

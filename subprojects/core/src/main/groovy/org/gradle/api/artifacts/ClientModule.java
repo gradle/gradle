@@ -22,8 +22,6 @@ import java.util.Set;
  * artifact or you declare a module dependency that depends on a module descriptor in a repository. With
  * a client module you can declare a module dependency without the need of a module descriptor in a
  * remote repository.
- *
- * @author Hans Dockter
  */
 public interface ClientModule extends ExternalDependency {
     /**

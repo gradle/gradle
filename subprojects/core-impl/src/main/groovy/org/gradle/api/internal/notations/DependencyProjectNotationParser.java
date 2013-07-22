@@ -23,9 +23,6 @@ import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 
 import java.util.Collection;
 
-/**
- * by Szczepan Faber, created at: 11/10/11
- */
 public class DependencyProjectNotationParser extends TypedNotationParser<Project, ProjectDependency> {
 
     private final DefaultProjectDependencyFactory factory;

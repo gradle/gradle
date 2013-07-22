@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations;
-
+package org.gradle.api.internal.notations
 
 import org.gradle.api.artifacts.DependencyArtifact
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 11/10/11
- */
 public class DependencyMapNotationParserTest extends Specification {
 
     def parser = new DependencyMapNotationParser<DefaultExternalModuleDependency>(new DirectInstantiator(), DefaultExternalModuleDependency.class);

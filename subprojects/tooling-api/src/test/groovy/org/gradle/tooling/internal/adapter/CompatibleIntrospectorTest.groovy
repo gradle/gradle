@@ -18,9 +18,6 @@ package org.gradle.tooling.internal.adapter
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 3/16/12
- */
 class CompatibleIntrospectorTest extends Specification {
     
     class Foo {

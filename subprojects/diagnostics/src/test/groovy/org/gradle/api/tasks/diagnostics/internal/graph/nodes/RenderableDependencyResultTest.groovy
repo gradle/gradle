@@ -23,9 +23,6 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
 
-/**
- * by Szczepan Faber, created at: 10/9/12
- */
 class RenderableDependencyResultTest extends Specification {
 
     def "renders name"() {

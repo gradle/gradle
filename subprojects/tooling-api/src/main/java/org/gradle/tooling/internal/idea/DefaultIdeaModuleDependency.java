@@ -22,9 +22,6 @@ import org.gradle.tooling.model.idea.IdeaModuleDependency;
 
 import java.io.Serializable;
 
-/**
- * @author: Szczepan Faber, created at: 7/26/11
- */
 public class DefaultIdeaModuleDependency implements IdeaModuleDependency, Serializable {
 
     private IdeaDependencyScope scope;

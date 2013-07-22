@@ -21,9 +21,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
 class SamplesCodeQualityIntegrationTest extends AbstractIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'codeQuality')

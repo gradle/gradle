@@ -25,8 +25,6 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.*
 
 /**
  * Created: 23/08/2012
- *
- * @author Szczepan Faber
  */
 public class DependencyInsightReporter {
 

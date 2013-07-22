@@ -19,9 +19,6 @@ package org.gradle.plugins.ide.internal.configurer
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * @author Szczepan Faber, @date: 14.03.11
- */
 class DeduplicationTargetTest extends Specification {
 
     def "knows candidate names"() {

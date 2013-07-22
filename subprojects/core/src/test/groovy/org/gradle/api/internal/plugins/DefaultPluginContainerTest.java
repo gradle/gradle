@@ -29,9 +29,6 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultPluginContainerTest {
     protected String pluginId = "somePluginId";
     protected JUnit4Mockery context = new JUnit4Mockery();

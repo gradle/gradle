@@ -32,8 +32,6 @@ import java.util.List;
  During the editing process, you often need to fire off notifications that
  normally aren't required. This is where those notifications would come from.
  This also has some extra validation that isn't present in the filter itself.
-
- @author mhunsicker
   */
 
 public class BasicFilterEditor implements ProjectAndTaskFilter {

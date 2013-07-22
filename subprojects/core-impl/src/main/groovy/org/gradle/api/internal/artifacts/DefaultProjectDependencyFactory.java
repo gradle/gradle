@@ -23,9 +23,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.reflect.Instantiator;
 
-/**
- * by Szczepan Faber, created at: 2/5/13
- */
 public class DefaultProjectDependencyFactory {
     private final ProjectAccessListener projectAccessListener;
     private final Instantiator instantiator;

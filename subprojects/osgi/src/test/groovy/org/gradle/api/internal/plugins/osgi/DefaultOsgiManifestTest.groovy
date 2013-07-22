@@ -16,7 +16,6 @@
 package org.gradle.api.internal.plugins.osgi
 
 import aQute.bnd.osgi.Analyzer
-import java.util.jar.Manifest
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.java.archives.Attributes
@@ -27,9 +26,8 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-/**
- * @author Hans Dockter
- */
+import java.util.jar.Manifest
+
 class DefaultOsgiManifestTest extends Specification {
     private static final String ARBITRARY_SECTION = "A-Different-Section"
     private static final String ARBITRARY_ATTRIBUTE = "Silly-Attribute"

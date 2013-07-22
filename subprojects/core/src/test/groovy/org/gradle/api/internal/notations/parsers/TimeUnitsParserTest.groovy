@@ -22,9 +22,6 @@ import spock.lang.Specification
 import static java.util.concurrent.TimeUnit.MILLISECONDS
 import static java.util.concurrent.TimeUnit.NANOSECONDS
 
-/**
- * by Szczepan Faber, created at: 2/12/13
- */
 class TimeUnitsParserTest extends Specification {
 
     def parser = new TimeUnitsParser()

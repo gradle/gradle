@@ -31,8 +31,6 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <em>Note:</em> If possible, it's preferable to let the party creating the server socket select the port (e.g. with <tt>new ServerSocket(0)</tt>) and then query it for the port chosen. With this
  * class, there is always a risk that someone else grabs the port between the time it is returned from <tt>getNextAvailable()</tt> and the time the socket is created.
- *
- * @author <a href="http://mina.apache.org">Apache MINA Project</a>
  * @see <a href="http://www.iana.org/assignments/port-numbers">IANA.org</a>
  */
 @ThreadSafe

@@ -26,9 +26,6 @@ import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
 
-/**
- * @author Hans Dockter
- */
 public class ArchivePublishArtifactTest extends AbstractPublishArtifactTest {
     private AbstractArchiveTask archiveTask = context.mock(AbstractArchiveTask.class)
 

@@ -23,9 +23,6 @@ import org.gradle.util.GUtil;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public class IvyUtil {
 
     public static ModuleRevisionId createModuleRevisionId(Module module) {

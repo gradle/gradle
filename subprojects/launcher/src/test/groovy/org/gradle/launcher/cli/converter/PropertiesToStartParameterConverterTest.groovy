@@ -22,9 +22,6 @@ import spock.lang.Specification
 import static org.gradle.launcher.daemon.configuration.GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY
 import static org.gradle.launcher.daemon.configuration.GradleProperties.PARALLEL_PROPERTY
 
-/**
- * by Szczepan Faber, created at: 3/11/13
- */
 class PropertiesToStartParameterConverterTest extends Specification {
 
     def converter = new PropertiesToStartParameterConverter()

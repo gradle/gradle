@@ -24,9 +24,6 @@ import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * by Szczepan Faber, created at: 4/2/12
- */
 public class ConsumerTargetTypeProvider implements TargetTypeProvider {
 
     Map<String, Class<?>> configuredTargetTypes = new HashMap<String, Class<?>>();

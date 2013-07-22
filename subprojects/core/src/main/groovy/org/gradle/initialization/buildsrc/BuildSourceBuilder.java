@@ -31,9 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URLClassLoader;
 
-/**
- * @author Hans Dockter
- */
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
 

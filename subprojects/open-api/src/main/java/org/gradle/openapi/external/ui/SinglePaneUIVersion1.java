@@ -15,7 +15,7 @@
  */
 package org.gradle.openapi.external.ui;
 
-import javax.swing.JComponent;
+import javax.swing.*;
 
 /*
  This is a gradle UI that is entirely within a single panel (and only a panel;
@@ -28,7 +28,6 @@ import javax.swing.JComponent;
  the current directory (at any time) so gradle knows where your project is
  located.
 
- @author mhunsicker
  @deprecated No replacement
   */
 @Deprecated

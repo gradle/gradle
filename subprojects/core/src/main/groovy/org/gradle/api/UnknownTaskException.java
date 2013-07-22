@@ -18,8 +18,6 @@ package org.gradle.api;
 
 /**
  * <p>An <code>UnknownTaskException</code> is thrown when a task referenced by path cannot be found.</p>
- *
- * @author Hans Dockter
  */
 public class UnknownTaskException extends UnknownDomainObjectException {
     public UnknownTaskException(String message) {

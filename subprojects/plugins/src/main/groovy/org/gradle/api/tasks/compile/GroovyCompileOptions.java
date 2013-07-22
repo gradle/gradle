@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.util.DeprecationLogger;
@@ -29,8 +28,6 @@ import java.util.Map;
 
 /**
  * Compilation options to be passed to the Groovy compiler.
- *
- * @author Hans Dockter
  */
 public class GroovyCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;

@@ -31,9 +31,6 @@ import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 
 class GroovyBasePluginTest {
     private final Project project = HelperUtil.createRootProject()

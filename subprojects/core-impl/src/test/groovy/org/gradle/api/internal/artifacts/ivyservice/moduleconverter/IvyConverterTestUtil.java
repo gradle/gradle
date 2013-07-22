@@ -19,9 +19,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 
-/**
- * @author Hans Dockter
- */
 public class IvyConverterTestUtil {
     public static Configuration createNamedConfigurationStub(final String name, Mockery context) {
         final Configuration configurationStub = context.mock(Configuration.class, name);

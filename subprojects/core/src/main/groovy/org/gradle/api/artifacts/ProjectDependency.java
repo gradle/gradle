@@ -20,8 +20,6 @@ import org.gradle.api.internal.HasInternalProtocol;
 
 /**
  * <p>A {@code ProjectDependency} is a {@link Dependency} on another project in the current project hierarchy.</p>
- *
- * @author Hans Dockter
  */
 @HasInternalProtocol
 public interface ProjectDependency extends ModuleDependency, SelfResolvingDependency {

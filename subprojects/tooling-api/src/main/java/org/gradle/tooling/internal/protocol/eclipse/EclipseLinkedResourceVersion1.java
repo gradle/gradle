@@ -18,8 +18,6 @@ package org.gradle.tooling.internal.protocol.eclipse;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @author: Szczepan Faber, created at: 6/11/11
  */
 public interface EclipseLinkedResourceVersion1 {
 

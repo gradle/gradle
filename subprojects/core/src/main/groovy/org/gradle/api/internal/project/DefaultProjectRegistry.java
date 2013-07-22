@@ -20,14 +20,11 @@ import org.gradle.api.specs.Spec;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T> {
     private Map<String, T> projects = new HashMap<String, T>();
     private Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();

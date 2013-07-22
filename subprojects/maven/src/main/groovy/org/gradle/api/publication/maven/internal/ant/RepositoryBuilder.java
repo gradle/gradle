@@ -21,9 +21,6 @@ import org.apache.maven.artifact.ant.Proxy;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.ant.RepositoryPolicy;
 
-/**
- * @author Hans Dockter
- */
 public class RepositoryBuilder extends FactoryBuilderSupport {
     public RepositoryBuilder() {
         registerFactory("repository", new RepositoryFactory(RemoteRepository.class));

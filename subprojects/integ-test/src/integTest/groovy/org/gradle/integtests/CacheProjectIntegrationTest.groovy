@@ -30,9 +30,6 @@ import org.junit.Test
 
 import static org.junit.Assert.assertEquals
 
-/**
- * @author Hans Dockter
- */
 public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 

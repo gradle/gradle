@@ -27,9 +27,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 8/10/12
- */
 public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersionResult {
     private final ModuleVersionIdentifier id;
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();

@@ -17,17 +17,13 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 
 import org.gradle.gradleplugin.foundation.DOM4JSerializer;
 
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import java.awt.Window;
+import java.awt.*;
 import java.io.File;
 
 /**
  * Swing implementation of ExportInteraction. This prompts the user for a file via the JFileChooser and handles reporting errors.
- *
- * @author mhunsicker
  */
 public class SwingExportInteraction implements DOM4JSerializer.ExportInteraction {
     private Window parent;

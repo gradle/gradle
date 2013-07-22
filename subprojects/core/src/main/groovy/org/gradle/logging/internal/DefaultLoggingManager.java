@@ -25,9 +25,6 @@ import org.gradle.logging.LoggingManagerInternal;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultLoggingManager implements LoggingManagerInternal {
     private boolean started;
     private final StartableLoggingSystem loggingSystem;

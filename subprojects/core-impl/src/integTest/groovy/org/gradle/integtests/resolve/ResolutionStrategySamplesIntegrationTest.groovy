@@ -20,10 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
-/**
- * @author Szczepan Faber, @date 03.03.11
- */
-class ResolutionStrategySamplesIntegrationTest extends AbstractIntegrationSpec {
+public class ResolutionStrategySamplesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder, 'userguide/artifacts/resolutionStrategy')
 

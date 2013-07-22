@@ -23,8 +23,6 @@ import org.gradle.listener.ActionBroadcast
  * Models the generation/parsing/merging capabilities.
  * <p>
  * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject} or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
- *
- * @author: Szczepan Faber, created at: 4/21/11
  */
 class FileContentMerger {
 

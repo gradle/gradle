@@ -23,9 +23,6 @@ import org.gradle.process.internal.ExecHandleBuilder;
 import java.io.File;
 import java.util.List;
 
-/**
- * by Szczepan Faber, created at: 5/7/12
- */
 public class DaemonExecHandleBuilder {
 
     ExecHandleBuilder builder = new ExecHandleBuilder();

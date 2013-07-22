@@ -18,9 +18,6 @@ package org.gradle.execution.taskpath;
 
 import org.gradle.api.internal.project.ProjectInternal;
 
-/**
- * by Szczepan Faber, created at: 1/29/13
- */
 public class ResolvedTaskPath {
     private final String prefix;
     private final String taskName;

@@ -32,9 +32,6 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 public class ClientModuleDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 

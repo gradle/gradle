@@ -57,9 +57,6 @@ import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public class DefaultTaskGraphExecuterTest {
     final JUnit4Mockery context = new JUnit4GroovyMockery();

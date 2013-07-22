@@ -31,9 +31,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.*;
 
-/**
- * @author Tom Eyckmans
- */
 public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> implements TestFrameworkDetector {
     protected static final String TEST_CASE = "junit/framework/TestCase";
     protected static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";

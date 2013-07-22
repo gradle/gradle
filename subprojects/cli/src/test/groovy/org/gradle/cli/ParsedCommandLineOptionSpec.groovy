@@ -18,9 +18,6 @@ package org.gradle.cli
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 9/5/12
- */
 class ParsedCommandLineOptionSpec extends Specification {
 
     final option = new ParsedCommandLineOption();

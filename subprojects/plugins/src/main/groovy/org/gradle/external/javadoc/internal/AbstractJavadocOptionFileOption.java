@@ -21,7 +21,6 @@ import org.gradle.external.javadoc.JavadocOptionFileOption;
 /**
  * A base class for {@link org.gradle.external.javadoc.JavadocOptionFileOption} implementations.
  *
- * @author Tom Eyckmans
  * @param <T> The type which this option represents.
  */
 public abstract class AbstractJavadocOptionFileOption<T> implements JavadocOptionFileOption<T> {

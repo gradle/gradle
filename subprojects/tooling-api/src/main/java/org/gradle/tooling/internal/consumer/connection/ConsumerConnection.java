@@ -19,9 +19,6 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 
-/**
- * by Szczepan Faber, created at: 12/22/11
- */
 public interface ConsumerConnection {
 
     void stop();

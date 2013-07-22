@@ -26,9 +26,6 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public class DefaultPomFilterTest {
     private static final String TEST_NAME = "TEST_NAME";

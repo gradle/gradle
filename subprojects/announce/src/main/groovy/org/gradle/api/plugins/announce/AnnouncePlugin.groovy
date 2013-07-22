@@ -21,8 +21,6 @@ import org.gradle.api.Project
 
 /**
  * This plugin allows to send announce messages to Twitter.
- *
- * @author hackergarten
  */
 class AnnouncePlugin implements Plugin<Project> {
     void apply(Project project) {

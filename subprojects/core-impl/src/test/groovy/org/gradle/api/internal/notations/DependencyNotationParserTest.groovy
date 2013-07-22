@@ -21,9 +21,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.notations.api.NotationParser
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 11/9/11
- */
 public class DependencyNotationParserTest extends Specification {
 
     def notationParser = Mock(NotationParser)

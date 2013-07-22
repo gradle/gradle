@@ -28,9 +28,6 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultModuleDescriptorFactoryForClientModuleTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 

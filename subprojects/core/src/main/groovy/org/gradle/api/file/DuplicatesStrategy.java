@@ -20,8 +20,6 @@ import org.gradle.api.Incubating;
 
 /**
  * Strategies for dealing with the potential creation of duplicate files for or archive entries.
- *
- * @author Kyle Mahan
  */
 @Incubating
 public enum DuplicatesStrategy {

@@ -41,8 +41,6 @@ import java.util.concurrent.Callable;
  * <p>
  * A {@link Plugin} with tasks which assemble a web application into a EAR file.
  * </p>
- *
- * @author David Gileadi, Hans Dockter
  */
 public class EarPlugin implements Plugin<Project> {
 

@@ -16,9 +16,6 @@
 
 package org.gradle.launcher.daemon
 
-/**
- * by Szczepan Faber, created at: 1/20/12
- */
 class DispachingFailureIntegrationSpec extends DaemonIntegrationSpec {
 
     def "failing build does not make the daemon send corrupted message"() {

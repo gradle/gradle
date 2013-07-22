@@ -99,8 +99,6 @@ import org.gradle.util.ConfigureUtil
  *   }
  * }
  * </pre>
- *
- * @author Szczepan Faber, created at: 4/13/11
  */
 class EclipseProject {
 

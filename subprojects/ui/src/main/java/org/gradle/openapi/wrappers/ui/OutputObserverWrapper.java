@@ -23,8 +23,6 @@ import org.gradle.openapi.external.ui.OutputObserverVersion1;
 
 /**
  * Wrapper to shield version changes in OutputUILord.OutputObserver from an external user of the gradle open API.
- *
- * @author mhunsicker
  */
 public class OutputObserverWrapper implements OutputUILord.OutputObserver {
     private OutputObserverVersion1 outputObserverVersion1;

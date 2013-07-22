@@ -19,9 +19,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.xml.XmlTransformer
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class ProjectTest extends Specification {
     final PathFactory pathFactory = new PathFactory()
     final customModules = [path('file://$PROJECT_DIR$/gradle-idea-plugin.iml')]

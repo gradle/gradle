@@ -17,9 +17,6 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Module;
 
-/**
- * @author Hans Dockter
- */
 public interface DependencyMetaDataProvider {
     Module getModule();
 }

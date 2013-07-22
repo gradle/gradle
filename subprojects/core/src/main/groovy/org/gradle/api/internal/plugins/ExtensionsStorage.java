@@ -31,9 +31,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Szczepan Faber, created at: 6/24/11
- */
 public class ExtensionsStorage {
     private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<String, ExtensionHolder>();
 

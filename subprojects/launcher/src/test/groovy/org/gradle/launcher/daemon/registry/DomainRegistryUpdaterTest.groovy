@@ -22,9 +22,6 @@ import org.gradle.launcher.daemon.server.DomainRegistryUpdater
 import org.gradle.messaging.remote.Address
 import spock.lang.Specification
 
-/**
- * @author: Szczepan Faber, created at: 9/12/11
- */
 public class DomainRegistryUpdaterTest extends Specification {
 
     final DaemonRegistry registry = Mock()

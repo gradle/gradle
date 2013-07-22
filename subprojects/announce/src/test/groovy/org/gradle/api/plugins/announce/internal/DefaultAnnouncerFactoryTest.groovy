@@ -21,9 +21,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class DefaultAnnouncerFactoryTest extends Specification {
     final project = HelperUtil.createRootProject()
     final extension = new AnnouncePluginExtension(project)

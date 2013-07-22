@@ -24,9 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-/**
- * by Szczepan Faber, created at: 4/17/12
- */
 public class StreamsForwarder implements StreamsHandler {
 
     private final OutputStream standardOutput;

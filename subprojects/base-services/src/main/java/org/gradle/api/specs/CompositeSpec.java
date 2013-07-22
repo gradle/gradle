@@ -23,7 +23,6 @@ import java.util.List;
 /**
  * A {@link org.gradle.api.specs.Spec} which aggregates a sequence of other {@code Spec} instances.
  *
- * @author Hans Dockter
  * @param <T> The target type for this Spec
  */
 abstract public class CompositeSpec<T> implements Spec<T> {

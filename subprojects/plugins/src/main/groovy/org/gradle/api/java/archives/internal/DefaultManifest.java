@@ -32,9 +32,6 @@ import org.gradle.util.ConfigureUtil;
 import java.io.*;
 import java.util.*;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
     private List<ManifestMergeSpec> manifestMergeSpecs = new ArrayList<ManifestMergeSpec>();
 

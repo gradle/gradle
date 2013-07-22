@@ -25,9 +25,6 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 import java.util.*;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultResolvedDependency implements ResolvedDependency {
     private final Set<ResolvedDependency> children = new LinkedHashSet<ResolvedDependency>();
     private final Set<ResolvedDependency> parents = new LinkedHashSet<ResolvedDependency>();

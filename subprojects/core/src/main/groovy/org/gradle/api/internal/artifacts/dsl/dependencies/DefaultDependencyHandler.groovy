@@ -23,9 +23,6 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
 
-/**
- * @author Hans Dockter
- */
 class DefaultDependencyHandler implements DependencyHandler {
     ConfigurationContainer configurationContainer
     DependencyFactory dependencyFactory

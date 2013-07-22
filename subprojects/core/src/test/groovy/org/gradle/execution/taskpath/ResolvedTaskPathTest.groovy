@@ -19,9 +19,6 @@ package org.gradle.execution.taskpath
 import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 1/29/13
- */
 class ResolvedTaskPathTest extends Specification {
 
     def "knows if path is qualified"() {

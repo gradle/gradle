@@ -15,12 +15,9 @@
  */
 package org.gradle.api.java.archives.internal
 
-import spock.lang.Specification
 import org.gradle.api.java.archives.ManifestException
+import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class DefaultAttributesTest extends Specification {
     DefaultAttributes attributes = new DefaultAttributes();
 

@@ -25,9 +25,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 
 class DefaultManifestTest extends Specification {
     def static final MANIFEST_VERSION_MAP = ['Manifest-Version': '1.0']

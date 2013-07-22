@@ -21,9 +21,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 public class ClasspathTest extends Specification {
     final fileReferenceFactory = new FileReferenceFactory()
     final customEntries = [

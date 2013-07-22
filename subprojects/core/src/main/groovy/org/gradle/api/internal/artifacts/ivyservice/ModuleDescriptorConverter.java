@@ -21,9 +21,6 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public interface ModuleDescriptorConverter {
     ModuleVersionPublishMetaData convert(Set<? extends Configuration> configurations, Module module);
 }

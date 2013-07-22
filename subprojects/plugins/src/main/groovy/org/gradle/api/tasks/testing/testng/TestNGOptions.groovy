@@ -19,9 +19,6 @@ import groovy.xml.MarkupBuilder
 import org.gradle.api.JavaVersion
 import org.gradle.api.tasks.testing.TestFrameworkOptions
 
-/**
- * @author Tom Eyckmans
- */
 public class TestNGOptions extends TestFrameworkOptions{
     static final String JDK_ANNOTATIONS = 'JDK'
     static final String JAVADOC_ANNOTATIONS = 'Javadoc'

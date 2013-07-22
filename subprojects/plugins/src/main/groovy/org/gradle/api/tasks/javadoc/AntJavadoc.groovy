@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.javadoc
 
 /**
- * @author Hans Dockter
  * @deprecated No replacement
  */
 @Deprecated

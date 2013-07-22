@@ -23,28 +23,23 @@ package org.gradle.openapi.external.foundation.favorites;
  * changes within gradle.
  *
  * You should not implement this yourself. Only use an implementation coming from Gradle.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated
 public interface FavoriteTaskVersion1 {
     /**<!====== getFullCommandLine ============================================>
        @return the command line that is executed
-       @author mhunsicker
     <!=======================================================================>*/
     public String getFullCommandLine();
 
     /**<!====== getDisplayName ================================================>
        @return a display name for this command
-       @author mhunsicker
     <!=======================================================================>*/
     public String getDisplayName();
 
     /**<!====== alwaysShowOutput ==============================================>
        @return true if executing this command should always show the output, false
                to only show output if an error occurs.
-       @author mhunsicker
     <!=======================================================================>*/
     public boolean alwaysShowOutput();
 }

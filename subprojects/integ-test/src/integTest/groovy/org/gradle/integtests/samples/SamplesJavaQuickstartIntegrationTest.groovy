@@ -28,9 +28,6 @@ import java.util.jar.Manifest
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
-/**
- * @author Hans Dockter
- */
 class SamplesJavaQuickstartIntegrationTest extends  AbstractIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/quickstart')

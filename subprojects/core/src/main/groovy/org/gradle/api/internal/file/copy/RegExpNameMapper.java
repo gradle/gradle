@@ -20,9 +20,6 @@ import org.gradle.api.Transformer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Steve Appling
- */
 public class RegExpNameMapper implements Transformer<String, String> {
     private Matcher matcher;
     private String replacement;

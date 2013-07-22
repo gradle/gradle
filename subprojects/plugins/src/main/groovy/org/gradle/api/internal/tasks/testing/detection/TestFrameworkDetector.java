@@ -20,9 +20,6 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 
 import java.io.File;
 
-/**
- * @author Tom Eyckmans
- */
 public interface TestFrameworkDetector {
     void startDetection(TestClassProcessor testClassProcessor);
 

@@ -22,9 +22,6 @@ import org.gradle.api.internal.notations.api.NotationParser;
 
 import java.util.Collection;
 
-/**
- * by Szczepan Faber, created at: 11/8/11
- */
 public class DependencyNotationParser implements NotationParser<Dependency> {
 
     private final NotationParser<Dependency> delegate;

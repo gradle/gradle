@@ -21,9 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-/**
- * @author Szczepan Faber, @date 03.03.11
- */
 class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
     void "forces multiple modules by rule"()

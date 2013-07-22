@@ -16,14 +16,11 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph
 
-import org.gradle.internal.graph.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
+import org.gradle.internal.graph.GraphRenderer
 import org.gradle.logging.TestStyledTextOutput
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 9/21/12
- */
 class DependencyGraphRendererSpec extends Specification {
 
     private textOutput = new TestStyledTextOutput().ignoreStyle()

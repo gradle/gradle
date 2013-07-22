@@ -29,10 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * @author Hans Dockter
- */
-
 public class DefaultPluginRegistry implements PluginRegistry {
     private final Map<String, Class<? extends Plugin>> idMappings = new HashMap<String, Class<? extends Plugin>>();
     private final DefaultPluginRegistry parent;

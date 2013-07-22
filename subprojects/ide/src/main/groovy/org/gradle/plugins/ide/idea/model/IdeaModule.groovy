@@ -124,8 +124,6 @@ import org.gradle.util.ConfigureUtil
  * }
  *
  * </pre>
- *
- * @author Szczepan Faber, created at: 3/31/11
  */
 class IdeaModule {
 

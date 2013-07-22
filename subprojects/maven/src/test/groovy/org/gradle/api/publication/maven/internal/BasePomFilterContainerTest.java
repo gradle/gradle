@@ -32,9 +32,6 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public class BasePomFilterContainerTest {
     private static final String TEST_NAME = "testName";

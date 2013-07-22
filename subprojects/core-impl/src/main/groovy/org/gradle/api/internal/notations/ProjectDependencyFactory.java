@@ -25,9 +25,6 @@ import org.gradle.api.tasks.Optional;
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public class ProjectDependencyFactory {
     private final DefaultProjectDependencyFactory factory;
 

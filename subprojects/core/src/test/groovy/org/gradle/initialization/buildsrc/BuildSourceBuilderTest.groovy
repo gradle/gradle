@@ -25,9 +25,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter, Szczepan Faber
- */
 class BuildSourceBuilderTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()

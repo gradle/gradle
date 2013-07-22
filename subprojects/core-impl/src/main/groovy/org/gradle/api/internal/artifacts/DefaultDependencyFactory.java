@@ -28,9 +28,6 @@ import org.gradle.api.internal.notations.api.NotationParser;
 
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultDependencyFactory implements DependencyFactory {
     private final NotationParser<Dependency> dependencyNotationParser;
     private final NotationParser<ClientModule> clientModuleNotationParser;

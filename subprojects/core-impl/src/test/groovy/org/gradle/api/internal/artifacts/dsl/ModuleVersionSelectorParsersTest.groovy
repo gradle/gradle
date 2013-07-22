@@ -24,9 +24,6 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 import static org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers.multiParser
 import static org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers.parser
 
-/**
- * by Szczepan Faber, created at: 10/14/11
- */
 public class ModuleVersionSelectorParsersTest extends Specification {
 
     def "understands group:name:version notation"() {

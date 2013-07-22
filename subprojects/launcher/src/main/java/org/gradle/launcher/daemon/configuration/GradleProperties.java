@@ -20,9 +20,6 @@ import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
 
-/**
- * by Szczepan Faber, created at: 1/22/13
- */
 public class GradleProperties {
 
     public static final String IDLE_TIMEOUT_PROPERTY = "org.gradle.daemon.idletimeout";

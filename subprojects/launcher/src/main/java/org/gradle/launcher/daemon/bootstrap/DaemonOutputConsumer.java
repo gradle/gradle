@@ -27,9 +27,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Scanner;
 
-/**
-* by Szczepan Faber, created at: 4/28/12
-*/
 public class DaemonOutputConsumer implements StreamsHandler {
 
     private final static Logger LOGGER = Logging.getLogger(DaemonOutputConsumer.class);

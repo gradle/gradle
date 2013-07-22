@@ -25,9 +25,6 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 7/27/12
- */
 public class RenderableDependencyResult extends AbstractRenderableDependencyResult {
     private final ResolvedDependencyResult dependency;
 

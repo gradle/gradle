@@ -23,9 +23,6 @@ import org.gradle.util.ConcurrentSpecification
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-/**
- * By Szczepan Faber on 6/25/13 
- */
 class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
 
     def handler = new DefaultFileLockContentionHandler();

@@ -42,8 +42,6 @@ import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
- *
- * @author Hans Dockter
  */
 public class JavaPlugin implements Plugin<Project> {
     public static final String PROCESS_RESOURCES_TASK_NAME = "processResources";

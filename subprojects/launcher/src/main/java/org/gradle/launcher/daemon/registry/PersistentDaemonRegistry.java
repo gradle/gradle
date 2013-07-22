@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.registry;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStateCacheDecorator;
 import org.gradle.cache.internal.FileLockManager;
@@ -26,6 +25,7 @@ import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.serialize.DefaultSerializer;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -35,8 +35,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Access to daemon registry files. Useful also for testing.
- *
- * @author: Szczepan Faber, created at: 8/18/11
  */
 public class PersistentDaemonRegistry implements DaemonRegistry {
     private final PersistentStateCache<DaemonRegistryContent> cache;

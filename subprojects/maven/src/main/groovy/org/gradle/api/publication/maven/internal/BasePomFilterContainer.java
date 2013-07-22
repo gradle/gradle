@@ -28,9 +28,6 @@ import org.gradle.util.WrapUtil;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public class BasePomFilterContainer implements PomFilterContainer {
     private Map<String, PomFilter> pomFilters = new HashMap<String, PomFilter>();
 

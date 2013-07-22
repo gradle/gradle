@@ -20,8 +20,6 @@ import org.gradle.process.internal.ExecException;
 
 /**
  * Represents the result of running an external process.
- *
- * @author Hans Dockter
  */
 public interface ExecResult {
     /**

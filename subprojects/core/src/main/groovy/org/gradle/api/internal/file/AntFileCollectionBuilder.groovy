@@ -16,12 +16,9 @@
  
 package org.gradle.api.internal.file
 
-import org.gradle.api.tasks.AntBuilderAware
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.AntBuilderAware
 
-/**
- * @author Hans Dockter
- */
 class AntFileCollectionBuilder implements AntBuilderAware {
     private final FileCollection files
 

@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
-/**
- * by Szczepan Faber, created at: 8/24/12
- */
 public interface InternalDependencyResult {
 
     ModuleVersionSelector getRequested();

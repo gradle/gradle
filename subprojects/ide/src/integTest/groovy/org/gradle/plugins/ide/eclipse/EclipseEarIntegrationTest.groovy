@@ -17,9 +17,6 @@ package org.gradle.plugins.ide.eclipse
 
 import org.junit.Test
 
-/**
- * @author Szczepan Faber
- */
 class EclipseEarIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test

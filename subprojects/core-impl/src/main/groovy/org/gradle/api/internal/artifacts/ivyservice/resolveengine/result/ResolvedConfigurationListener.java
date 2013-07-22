@@ -20,9 +20,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.Collection;
 
-/**
- * by Szczepan Faber, created at: 7/26/12
- */
 public interface ResolvedConfigurationListener {
     ResolvedConfigurationListener start(ModuleVersionIdentifier root);
     void resolvedModuleVersion(ModuleVersionSelection moduleVersion);

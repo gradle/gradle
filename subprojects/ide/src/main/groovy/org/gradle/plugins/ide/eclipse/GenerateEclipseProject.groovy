@@ -25,8 +25,6 @@ import org.gradle.plugins.ide.eclipse.model.Project
  * Generates an Eclipse <code>.project</code> file. If you want to fine tune the eclipse configuration
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseProject}.
- *
- * @author Hans Dockter
  */
 class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 

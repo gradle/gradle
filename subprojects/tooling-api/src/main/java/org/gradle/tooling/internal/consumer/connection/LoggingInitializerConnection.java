@@ -22,8 +22,6 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 
 /**
  * The idea is to initialize the logging infrastructure before we actually build the model or run a build.
- * <p>
- * by Szczepan Faber, created at: 12/14/11
  */
 public class LoggingInitializerConnection implements ConsumerConnection {
 

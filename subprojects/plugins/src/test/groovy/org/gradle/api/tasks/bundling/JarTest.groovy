@@ -19,12 +19,10 @@ package org.gradle.api.tasks.bundling
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.junit.Before
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
 
-/**
- * @author Hans Dockter
- */
 class JarTest extends AbstractArchiveTaskTest {
     Jar jar
 

@@ -30,8 +30,6 @@ import org.gradle.util.ConfigureUtil
 /**
  * Is mixed in into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
  * {@link org.gradle.api.plugins.JavaPlugin}.
- *
- * @author Hans Dockter
  */
 class JavaPluginConvention {
     ProjectInternal project

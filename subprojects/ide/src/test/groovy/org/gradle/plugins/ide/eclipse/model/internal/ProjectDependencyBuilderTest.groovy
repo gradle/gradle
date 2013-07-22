@@ -19,9 +19,6 @@ import org.gradle.api.Project
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * @author Szczepan Faber, @date: 11.03.11
- */
 class ProjectDependencyBuilderTest extends Specification {
 
     def Project project = HelperUtil.createRootProject()

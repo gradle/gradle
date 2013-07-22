@@ -19,9 +19,6 @@ package org.gradle.api.internal.artifacts.dsl.dependencies
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.util.ConfigureUtil
 
-/**
- * @author Hans Dockter
- */
 class ModuleFactoryDelegate {
   ClientModule clientModule
   DependencyFactory dependencyFactory

@@ -20,8 +20,6 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 /**
  * Creates the .settings/org.eclipse.wst.common.component file for WTP projects.
- *
- * @author Hans Dockter
  */
 class WtpComponent extends XmlPersistableConfigurationObject {
     String deployName

@@ -28,9 +28,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * @author: Szczepan Faber, created at: 7/25/11
- */
 public class DefaultIdeaModule implements Serializable, IdeaModule {
 
     private String name;

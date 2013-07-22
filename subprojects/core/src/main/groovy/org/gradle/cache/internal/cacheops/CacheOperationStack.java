@@ -19,9 +19,6 @@ package org.gradle.cache.internal.cacheops;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
-* By Szczepan Faber on 6/7/13
-*/
 class CacheOperationStack {
     private final List<CacheOperation> operations = new ArrayList<CacheOperation>();
 

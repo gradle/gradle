@@ -18,8 +18,6 @@ package org.gradle.api.artifacts;
 /**
  * <p>An {@code Artifact} represents an artifact included in a {@link org.gradle.api.artifacts.Dependency}.</p>
  * An artifact is an (immutable) value object.
- *
- * @author Hans Dockter
  */
 public interface DependencyArtifact {
     String DEFAULT_TYPE = "jar";

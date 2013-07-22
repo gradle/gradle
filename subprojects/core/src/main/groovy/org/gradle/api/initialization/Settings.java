@@ -60,8 +60,6 @@ import java.io.File;
  * <li>Provided on the command-line using the -P option.</li>
  *
  * </ul>
- *
- * @author Hans Dockter
  */
 public interface Settings extends PluginAware {
     /**

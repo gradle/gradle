@@ -19,9 +19,6 @@ import org.gradle.api.artifacts.Configuration;
 
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public interface ConfigurationsProvider {
     Set<Configuration> getAll();
 }

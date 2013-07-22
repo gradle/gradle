@@ -65,7 +65,6 @@ import java.util.regex.Pattern;
  * In this example, the <code>into</code> and <code>exclude</code> specifications at the root level are inherited by the
  * two child CopySpecs.
  *
- * @author Steve Appling
  * @see org.gradle.api.tasks.Copy Copy Task
  * @see org.gradle.api.Project#copy(groovy.lang.Closure) Project.copy()
  */

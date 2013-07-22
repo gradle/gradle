@@ -16,9 +16,9 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.concurrent.Synchronizer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.concurrent.Synchronizer;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
@@ -26,8 +26,6 @@ import org.gradle.logging.internal.ProgressListener;
 
 /**
  * Thread safe logging provider that needs to be initialized before use.
- * <p>
- * by Szczepan Faber, created at: 12/14/11
  */
 public class SynchronizedLogging implements LoggingProvider {
 

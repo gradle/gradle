@@ -16,13 +16,10 @@
 
 package org.gradle.launcher.daemon.client
 
-import org.gradle.messaging.remote.internal.Connection
 import org.gradle.internal.id.IdGenerator
+import org.gradle.messaging.remote.internal.Connection
 import spock.lang.Specification
 
-/**
- * @author: Szczepan Faber, created at: 9/13/11
- */
 public class StopDispatcherTest extends Specification {
 
     def dispatcher = new StopDispatcher({12} as IdGenerator)

@@ -36,9 +36,6 @@ import java.util.Map;
 
 import static org.gradle.util.CollectionUtils.flattenToList;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandler {
 
     public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";

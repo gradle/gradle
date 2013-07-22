@@ -25,9 +25,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
-* By Szczepan Faber on 4/19/13
-*/
 class DependencyMetadataCache {
     private final Map<ModuleVersionSelector, CachedModuleVersionResult> localMetaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
     private final Map<ModuleVersionSelector, CachedModuleVersionResult> metaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();

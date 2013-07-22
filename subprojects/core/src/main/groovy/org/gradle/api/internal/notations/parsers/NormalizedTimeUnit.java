@@ -18,9 +18,6 @@ package org.gradle.api.internal.notations.parsers;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * by Szczepan Faber, created at: 2/18/13
- */
 public class NormalizedTimeUnit {
 
     private int value;

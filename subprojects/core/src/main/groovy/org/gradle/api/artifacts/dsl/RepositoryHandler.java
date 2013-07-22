@@ -28,8 +28,6 @@ import java.util.Map;
 
 /**
  * A {@code RepositoryHandler} manages a set of repositories, allowing repositories to be defined and queried.
- *
- * @author Hans Dockter
  */
 public interface RepositoryHandler extends ArtifactRepositoryContainer {
 

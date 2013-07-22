@@ -19,9 +19,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.hamcrest.Matchers
 
-/**
- * by Szczepan Faber, created at: 11/9/11
- */
 class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
 
     def "understands dependency notations"() {

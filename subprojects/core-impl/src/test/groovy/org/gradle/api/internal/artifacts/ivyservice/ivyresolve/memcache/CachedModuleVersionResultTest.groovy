@@ -20,9 +20,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
 import spock.lang.Specification
 
-/**
- * By Szczepan Faber on 4/19/13
- */
 class CachedModuleVersionResultTest extends Specification {
 
     def "knows if result is cachable"() {

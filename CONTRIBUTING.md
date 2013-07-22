@@ -39,6 +39,7 @@ All code contributions should contain the following:
 1. Unit Tests (we love Spock) for any logic introduced.
 2. Integration Test coverage of the bug/feature at the level of build execution.
 3. Documentation coverage in the UserGuide, DSL Reference and JavaDocs where appropriate.
+4. Javadoc `@author` tags and committer names are not used in the codebase (contributions are recognised in the commit history and release notes)
 
 If you're not sure where to start, ask on the developer list. There's likely a number of existing examples to help get you going.
 

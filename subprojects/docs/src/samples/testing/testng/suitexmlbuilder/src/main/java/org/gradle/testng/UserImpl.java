@@ -1,8 +1,5 @@
 package org.gradle.testng;
 
-/**
- * @author Tom Eyckmans
- */
 public class UserImpl implements User
 {
     private final String firstName;

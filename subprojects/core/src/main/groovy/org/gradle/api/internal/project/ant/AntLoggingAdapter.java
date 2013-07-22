@@ -23,9 +23,6 @@ import org.gradle.api.logging.Logging;
 
 import java.io.PrintStream;
 
-/**
- * @author Hans Dockter
- */
 public class AntLoggingAdapter implements BuildLogger {
     private final Logger logger = Logging.getLogger(AntLoggingAdapter.class);
 

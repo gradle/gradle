@@ -33,9 +33,6 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import java.io.Serializable;
 import java.net.URLClassLoader;
 
-/**
- * @author Tom Eyckmans
- */
 public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
     private JUnitDetector detector;

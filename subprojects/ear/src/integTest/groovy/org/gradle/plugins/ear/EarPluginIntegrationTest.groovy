@@ -24,9 +24,6 @@ import org.junit.Test
 import static org.testng.Assert.assertEquals
 import static org.testng.Assert.assertFalse
 
-/**
- * @author: Szczepan Faber, created at: 6/3/11
- */
 class EarPluginIntegrationTest extends AbstractIntegrationTest {
 
     @Before

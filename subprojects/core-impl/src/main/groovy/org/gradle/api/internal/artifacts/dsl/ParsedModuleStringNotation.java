@@ -18,9 +18,6 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.util.GUtil;
 
-/**
- * @author Hans Dockter
- */
 public class ParsedModuleStringNotation {
     private String group;
     private String name;

@@ -21,9 +21,6 @@ import org.gradle.execution.taskpath.ResolvedTaskPath
 import org.gradle.execution.taskpath.TaskPathResolver
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 1/8/13
- */
 class TaskPathProjectEvaluatorTest extends Specification {
 
     private resolver = Mock(TaskPathResolver)

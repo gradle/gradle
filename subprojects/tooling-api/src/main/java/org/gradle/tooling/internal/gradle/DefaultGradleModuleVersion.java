@@ -21,9 +21,6 @@ import org.gradle.tooling.model.GradleModuleVersion;
 
 import java.io.Serializable;
 
-/**
- * by Szczepan Faber, created at: 5/11/12
- */
 public class DefaultGradleModuleVersion implements GradleModuleVersion, Serializable {
 
     private final String group;

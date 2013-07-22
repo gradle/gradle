@@ -26,9 +26,6 @@ import org.gradle.api.tasks.bundling.Compression;
 import java.io.InputStream;
 import java.net.URI;
 
-/**
- * by Szczepan Faber, created at: 11/23/11
- */
 public class MaybeCompressedFileResource implements ReadableResource {
 
     private final ReadableResource resource;

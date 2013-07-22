@@ -23,8 +23,8 @@ import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.internal.Factory;
 import org.gradle.api.publication.maven.internal.DefaultMavenDeployment;
+import org.gradle.internal.Factory;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.junit.Test;
@@ -36,9 +36,6 @@ import java.util.Set;
 
 import static org.junit.Assert.assertTrue;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
 

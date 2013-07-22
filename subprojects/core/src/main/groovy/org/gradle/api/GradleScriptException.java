@@ -20,8 +20,6 @@ import org.gradle.api.internal.Contextual;
 /**
  * <p>A <code>GradleScriptException</code> is thrown when an exception occurs in the compilation or execution of a
  * script.</p>
- *
- * @author Hans Dockter
  */
 @Contextual
 public class GradleScriptException extends GradleException {

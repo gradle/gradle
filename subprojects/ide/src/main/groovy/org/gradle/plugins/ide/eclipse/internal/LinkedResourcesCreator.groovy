@@ -16,13 +16,10 @@
 
 package org.gradle.plugins.ide.eclipse.internal
 
+import org.gradle.api.Project
 import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.eclipse.model.internal.SourceFoldersCreator
-import org.gradle.api.Project
 
-/**
- * @author: Szczepan Faber, created at: 4/22/11
- */
 class LinkedResourcesCreator {
 
     Set<Link> links(Project project) {

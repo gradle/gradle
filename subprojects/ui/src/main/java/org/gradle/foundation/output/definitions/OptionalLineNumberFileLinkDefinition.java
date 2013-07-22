@@ -17,8 +17,6 @@ package org.gradle.foundation.output.definitions;
 
 /**
  * This is just like BasicFileLinkDefinition except that the line number delimiter is optional and it allows spaces between the file and the delimiter.
- *
- * @author mhunsicker
  */
 public class OptionalLineNumberFileLinkDefinition extends PrefixedFileLinkDefinition {
     public OptionalLineNumberFileLinkDefinition(String name, String prefix, String extension, String lineNumberDelimiter) {

@@ -16,13 +16,11 @@
  
 package org.gradle.api.tasks.compile
 
-import org.junit.Test
 import org.junit.Before
+import org.junit.Test
+
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 class GroovyCompileOptionsTest {
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 

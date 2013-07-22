@@ -20,9 +20,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
 public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationTest {
 
     @Rule

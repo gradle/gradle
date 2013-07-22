@@ -18,8 +18,6 @@ package org.gradle.api.artifacts;
 /**
  * <p>A {@code Module} represents the meta-information about a project which should be used when publishing the
  * module.</p>
- *
- * @author Hans Dockter
  */
 public interface Module {
     public static final String DEFAULT_STATUS = "integration";

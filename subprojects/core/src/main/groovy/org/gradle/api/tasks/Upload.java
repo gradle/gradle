@@ -39,8 +39,6 @@ import static org.gradle.util.CollectionUtils.collect;
 
 /**
  * Uploads the artifacts of a {@link Configuration} to a set of repositories.
- *
- * @author Hans Dockter
  */
 public class Upload extends ConventionTask {
 

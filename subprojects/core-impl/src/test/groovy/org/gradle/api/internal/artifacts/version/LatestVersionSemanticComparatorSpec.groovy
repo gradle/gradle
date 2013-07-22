@@ -18,9 +18,6 @@ package org.gradle.api.internal.artifacts.version
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 10/9/12
- */
 class LatestVersionSemanticComparatorSpec extends Specification {
 
     private comparator = new LatestVersionSemanticComparator()

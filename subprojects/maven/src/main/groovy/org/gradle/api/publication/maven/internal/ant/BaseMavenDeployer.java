@@ -24,8 +24,8 @@ import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.internal.Factory;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
+import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
@@ -33,9 +33,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * @author Hans Dockter
- */
 public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDeployer {
     private RemoteRepository remoteRepository;
 

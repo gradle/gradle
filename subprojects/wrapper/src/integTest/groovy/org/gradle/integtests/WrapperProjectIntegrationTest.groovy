@@ -24,9 +24,6 @@ import spock.lang.Issue
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 
-/**
- * @author Hans Dockter
- */
 class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     void setup() {
         assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :distributions:binZip task"

@@ -20,8 +20,7 @@ package org.gradle.api;
  * Usually, this target object is a {@link org.gradle.api.Project}, but plugins can be applied to any type of
  * objects.</p>
  *
- * @author Hans Dockter
- * @param <T> The type of object which this plugin can configure. 
+ * @param <T> The type of object which this plugin can configure.
  */
 public interface Plugin<T> {
     /**

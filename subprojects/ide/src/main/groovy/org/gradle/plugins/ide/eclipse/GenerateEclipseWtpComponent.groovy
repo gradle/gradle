@@ -30,8 +30,6 @@ import org.gradle.util.DeprecationLogger
  * If you want to fine tune the eclipse configuration
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseWtpComponent}.
- *
- * @author Hans Dockter
  */
 class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 

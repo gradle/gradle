@@ -38,8 +38,6 @@ import java.util.List;
 
 /**
  * Performs integration tests on favorite tasks.
- *
- * @author mhunsicker
  */
 public class FavoritesIntegrationTest {
     @Rule

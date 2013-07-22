@@ -17,15 +17,14 @@ package org.gradle.initialization;
 
 import org.gradle.util.Path;
 import org.junit.Test;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 
-/**
- * @author Hans Dockter
- */
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+
 public class DefaultProjectDescriptorRegistryTest {
     private static final File TEST_DIR = new File("testDir");
 

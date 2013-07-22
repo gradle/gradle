@@ -21,9 +21,6 @@ import java.util.Map;
 
 import static java.lang.Thread.currentThread;
 
-/**
- * By Szczepan Faber on 6/7/13
- */
 public class CacheAccessOperationsStack {
 
     private final Map<Thread, CacheOperationStack> perThreadStacks = new HashMap<Thread, CacheOperationStack>();

@@ -17,8 +17,6 @@ package org.gradle.gradleplugin.foundation.settings;
 
 /**
  * Something that can be serialized to an XML structure. This is meant to store any preferences or settings (lightweight and heavyweight).
- *
- * @author mhunsicker
  */
 public interface SettingsSerializable {
     /**
@@ -32,7 +30,6 @@ public interface SettingsSerializable {
      * Call this to read in this object's settings. The reverse of serializeOut.
      *
      * @param settings where you read your settings.
-     * @author mhunsicker
      */
     public void serializeIn(SettingsNode settings);
 }

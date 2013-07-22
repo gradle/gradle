@@ -40,9 +40,6 @@ import java.net.URLClassLoader;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class SettingsHandlerTest {
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);

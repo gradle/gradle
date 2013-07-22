@@ -29,9 +29,6 @@ import java.util.Collections;
 import java.util.Map;
 
 
-/**
- * @author Hans Dockter
- */
 public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     private static Logger logger = LoggerFactory.getLogger(ScriptEvaluatingSettingsProcessor.class);
 

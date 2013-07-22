@@ -21,10 +21,7 @@ import spock.lang.Issue
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.hamcrest.Matchers.containsString
 
-/**
- * @author Szczepan Faber, @date 03.03.11
- */
-class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
+public class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     void "strict conflict resolution should fail due to conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()

@@ -27,9 +27,6 @@ import java.util.Map;
 
 import static org.gradle.launcher.daemon.configuration.GradleProperties.*;
 
-/**
- * by Szczepan Faber, created at: 2/18/13
- */
 public class PropertiesToDaemonParametersConverter {
     public void convert(Map<String, String> properties, DaemonParameters target) {
         String prop = properties.get(IDLE_TIMEOUT_PROPERTY);

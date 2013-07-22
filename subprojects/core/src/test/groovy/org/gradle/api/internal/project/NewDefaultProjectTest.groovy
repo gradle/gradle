@@ -22,9 +22,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * @author Szczepan Faber
- */
 class NewDefaultProjectTest extends Specification {
 
     def project = HelperUtil.createRootProject()

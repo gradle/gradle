@@ -18,8 +18,6 @@ package org.gradle.api.tasks.compile;
 /**
  * Fork options for Groovy compilation. Only take effect if {@code GroovyCompileOptions.fork}
  * is {@code true}.
- *
- * @author Hans Dockter
  */
 public class GroovyForkOptions extends BaseForkOptions {
     private static final long serialVersionUID = 0;

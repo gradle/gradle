@@ -20,9 +20,6 @@ import org.gradle.api.Project
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.ModuleDependency
 
-/**
- * @author Szczepan Faber, @date: 19.03.11
- */
 class ModuleDependencyBuilder {
     ModuleDependency create(Project project, String scope) {
         if (project.plugins.hasPlugin(IdeaPlugin)) {

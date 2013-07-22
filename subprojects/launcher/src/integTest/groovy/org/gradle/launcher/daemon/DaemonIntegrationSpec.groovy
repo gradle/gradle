@@ -21,9 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.slf4j.LoggerFactory
 
-/**
- * by Szczepan Faber, created at: 2/1/12
- */
 class DaemonIntegrationSpec extends AbstractIntegrationSpec {
 
     String output

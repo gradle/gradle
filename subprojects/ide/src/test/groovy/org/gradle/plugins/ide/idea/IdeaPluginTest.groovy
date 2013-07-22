@@ -25,9 +25,6 @@ import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class IdeaPluginTest extends Specification {
     private final DefaultProject project = HelperUtil.createRootProject()
     private final Project childProject = HelperUtil.createChildProject(project, "child", new File("."))

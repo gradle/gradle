@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.Lists;
-
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 
@@ -25,8 +24,6 @@ import java.util.List;
 /**
  * Fork options for compilation. Only take effect if {@code fork}
  * is {@code true}.
- *
- * @author Hans Dockter
  */
 public class BaseForkOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;

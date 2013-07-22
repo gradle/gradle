@@ -30,9 +30,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author Tom Eyckmans
- */
 @RunWith(JMock.class)
 public abstract class AbstractTestFrameworkTest {
 

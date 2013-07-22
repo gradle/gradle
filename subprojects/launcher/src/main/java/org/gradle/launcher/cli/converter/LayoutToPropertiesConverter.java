@@ -29,9 +29,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * by Szczepan Faber, created at: 2/18/13
- */
 public class LayoutToPropertiesConverter {
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {
         configureFromBuildDir(layout.getProjectDir(), layout.getSearchUpwards(), properties);

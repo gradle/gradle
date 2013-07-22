@@ -19,9 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 5/11/12
- */
 class DefaultUnresolvedDependencySpec extends Specification {
 
     def "provides module details"() {

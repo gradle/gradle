@@ -29,9 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-/**
- * @author Hans Dockter
- */
 public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
     private final Convention _convention;

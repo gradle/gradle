@@ -27,9 +27,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * by Szczepan Faber, created at: 7/26/12
- */
 public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
     private DefaultResolvedModuleVersionResult rootModule;

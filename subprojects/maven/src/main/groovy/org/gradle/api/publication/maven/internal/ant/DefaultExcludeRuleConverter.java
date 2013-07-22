@@ -20,9 +20,6 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.publication.maven.internal.ExcludeRuleConverter;
 
 
-/**
- * @author Hans Dockter
- */
 public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
     public Exclusion convert(ExcludeRule excludeRule) {
         if (isConvertable(excludeRule)) {

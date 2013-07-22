@@ -35,8 +35,6 @@ import java.util.*;
 
 /**
  * This tab contains general settings for the plugin.
- *
- * @author mhunsicker
  */
 public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     private final Logger logger = Logging.getLogger(SetupTab.class);

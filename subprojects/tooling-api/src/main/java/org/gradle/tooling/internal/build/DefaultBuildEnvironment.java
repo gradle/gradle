@@ -25,9 +25,6 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-/**
- * by Szczepan Faber, created at: 12/17/11
- */
 public class DefaultBuildEnvironment implements BuildEnvironment, InternalBuildEnvironment, Serializable {
 
     private final String gradleVersion;

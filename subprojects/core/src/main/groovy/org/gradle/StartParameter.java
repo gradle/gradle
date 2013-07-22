@@ -43,7 +43,6 @@ import java.util.*;
  *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  *
- * @author Hans Dockter
  * @see GradleLauncher
  */
 public class StartParameter extends LoggingConfiguration implements Serializable {
@@ -366,7 +365,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      *  Returns the configured CacheUsage.
      *  @deprecated Use {@link #isRecompileScripts} and/or {@link #isRerunTasks} instead.
-     * */
+      */
     @Deprecated
     public CacheUsage getCacheUsage() {
         return cacheUsage;
@@ -375,7 +374,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      *  Sets the Cache usage.
      *  @deprecated Use {@link #setRecompileScripts} and/or {@link #setRerunTasks} instead.
-     * */
+      */
     @Deprecated
     public void setCacheUsage(CacheUsage cacheUsage) {
         this.cacheUsage = cacheUsage;
@@ -393,7 +392,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Returns task optimization disabled flag.
      *
      * @deprecated Use {@link #isRerunTasks} instead.
-     * */
+      */
     @Deprecated
     public boolean isNoOpt() {
         return rerunTasks;

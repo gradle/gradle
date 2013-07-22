@@ -26,8 +26,6 @@ import java.util.*;
 /**
  * This visits each project and task in a hierarchical manner. This visitor is specifically meant to walk the projects first and tasks second for the purpose of populating a tree where the
  * projects/subprojects are first and the tasks are second.
- *
- * @author mhunsicker
  */
 public class TaskTreePopulationVisitor {
     public interface Visitor<P, T> {
@@ -40,7 +38,6 @@ public class TaskTreePopulationVisitor {
                  was passed into the visitPojectsAndTasks function.
            @return an object that will be handed back to you for each of this
                    project's tasks.
-           @author mhunsicker
         */
 
         public P visitProject(ProjectView project, int indexOfProject, P parentProjectObject);
@@ -52,7 +49,6 @@ public class TaskTreePopulationVisitor {
          @param indexOfTask
          @param  tasksProject       the project for this task
          @param  userProjectObject  whatever you returned from the parent project's visitProject
-           @author mhunsicker
         */
 
         public T visitTask(TaskView task, int indexOfTask, ProjectView tasksProject, P userProjectObject);
@@ -67,7 +63,6 @@ public class TaskTreePopulationVisitor {
                                        the project and task objects below
            @param  projectObjects      a list of whatever you returned from visitProject
            @param  taskObjects         a list of whatever you returned from visitTask
-           @author mhunsicker
         */
 
         public void completedVisitingProject(P parentProjectObject, List<P> projectObjects, List<T> taskObjects);
@@ -80,8 +75,6 @@ public class TaskTreePopulationVisitor {
 
        This is the same as the other version of visitProjectsAndTasks except this
        one visits everything.
-
-       @author mhunsicker
     */
 
     public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor,
@@ -98,7 +91,6 @@ public class TaskTreePopulationVisitor {
        @param  filter     allows you to skip projects and tasks as specified by the filter.
        @param  rootProjectObject whatever you pass here will be passed to the
                 root-level projects as parentProjectObject.
-       @author mhunsicker
     */
 
     public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor,
@@ -141,8 +133,6 @@ public class TaskTreePopulationVisitor {
 
     /*
        Add the list of tasks to the parent tree node.
-
-       @author mhunsicker
     */
 
     private static <P, T> List<T> visitTasks(Visitor<P, T> visitor, ProjectAndTaskFilter filter, ProjectView project,

@@ -18,12 +18,8 @@ package org.gradle.foundation.ipc.basic;
 import java.io.File;
 import java.util.HashMap;
 
-/**
- * @author mhunsicker
- */
 /*
    Fill this in with whatever you need to launch your external process.
-   @author mhunsicker
 */
 public interface ExecutionInfo {
     /**

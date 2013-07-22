@@ -24,8 +24,6 @@ import org.gradle.api.logging.Logging;
  * logback. This would be bad for embedded usage. We only want one on slf4j. But slf4j has no constants for log levels.
  * As we want to avoid the execution of if statements for each Ivy request, we use Map which delegates Ivy log
  * statements to Sl4j action classes.
- *
- * @author Hans Dockter
  */
 public class IvyLoggingAdaper extends AbstractMessageLogger {
     private final Logger logger = Logging.getLogger(IvyLoggingAdaper.class);

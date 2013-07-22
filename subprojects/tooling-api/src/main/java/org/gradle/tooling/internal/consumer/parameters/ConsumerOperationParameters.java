@@ -30,9 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * by Szczepan Faber, created at: 1/9/12
- */
 public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1, BuildParameters {
 
     private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();

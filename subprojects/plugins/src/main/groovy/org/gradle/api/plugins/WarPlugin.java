@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.java.WebApplication;
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.War;
 
@@ -34,8 +34,6 @@ import java.util.concurrent.Callable;
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add tasks which assemble a web application into a WAR
  * file.</p>
- *
- * @author Hans Dockter
  */
 public class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";

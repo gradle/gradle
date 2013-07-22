@@ -22,8 +22,6 @@ import org.gradle.api.tasks.Optional;
 /**
  * Debug options for Java compilation. Only take effect if {@link CompileOptions#debug}
  * is set to {@code true}.
- *
- * @author Hans Dockter
  */
 public class DebugOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;

@@ -34,8 +34,6 @@ import javax.inject.Inject
 
 /**
  * Adds the ability to create distributions of the project.
- *
- * @author scogneau
  */
 @Incubating
 class DistributionPlugin implements Plugin<Project> {

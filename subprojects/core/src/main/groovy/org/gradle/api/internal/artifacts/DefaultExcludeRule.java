@@ -21,11 +21,6 @@ import org.gradle.util.DeprecationLogger;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- *
- *         DefaultExcludeRule is a value object
- */
 public class DefaultExcludeRule implements ExcludeRule {
     private String group;
     private String module;

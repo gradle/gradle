@@ -25,9 +25,6 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 1/5/12
- */
 @IgnoreIf({!JavaVersion.current().java6Compatible})
 public class AutoTestedSamplesToolingApiTest extends Specification {
 

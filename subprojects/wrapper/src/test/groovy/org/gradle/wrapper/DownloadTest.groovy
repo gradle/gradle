@@ -23,9 +23,6 @@ import org.junit.Test
 
 import static org.junit.Assert.assertEquals
 
-/**
- * @author Hans Dockter
- */
 class DownloadTest {
     Download download
     File testDir

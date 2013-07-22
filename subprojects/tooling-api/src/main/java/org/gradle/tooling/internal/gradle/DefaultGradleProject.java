@@ -27,9 +27,6 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * @author: Szczepan Faber, created at: 7/27/11
- */
 public class DefaultGradleProject implements InternalGradleProject, GradleProject, Serializable {
 
     private String name;

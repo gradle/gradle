@@ -15,17 +15,14 @@
  */
 package org.gradle.api.tasks.testing.testng
 
-import org.junit.Before
-import org.junit.Test
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*
-import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework
+import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest
+import org.junit.Before
+import org.junit.Test
 
-/**
- * @author Tom Eyckmans
- */
+import static org.hamcrest.Matchers.hasItems
+import static org.junit.Assert.*
 
 public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTestFramework> {
 

@@ -89,8 +89,6 @@ import org.gradle.util.ConfigureUtil
  *   }
  * }
  * </pre>
- *
- * @author Szczepan Faber, created at: 4/4/11
  */
 class IdeaProject {
 

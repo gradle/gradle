@@ -22,8 +22,6 @@ import java.lang.reflect.InvocationTargetException;
 
 /**
  * This is the same as Application, but this version blocks the calling thread until the Application shuts down.
- *
- * @author mhunsicker
  */
 public class BlockingApplication {
 

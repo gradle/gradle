@@ -17,9 +17,6 @@ package org.gradle.api.publication.maven.internal;
 
 import org.gradle.api.artifacts.maven.MavenPom;
 
-/**
- * @author Hans Dockter
- */
 public interface ArtifactPomFactory {
     ArtifactPom createArtifactPom(MavenPom pom);
 }

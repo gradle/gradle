@@ -15,15 +15,13 @@
  */
 package org.gradle.api.plugins.antlr.internal;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Models information about an Antlr grammar file, including the inidividual {@link #getGrammars grammars} (lexers,
  * parsers, etc) contained within it.
- *
- * @author Steve Ebersole
  */
 public class GrammarFileMetadata {
     private final File filePath;

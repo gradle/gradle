@@ -21,9 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.project.IsolatedAntBuilder
 
-/**
- * @author Hans Dockter
- */
 class AntGroovydoc {
     private final IsolatedAntBuilder ant
     private final ClassPathRegistry classPathRegistry

@@ -21,9 +21,6 @@ import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.reflect.Instantiator;
 
-/**
- * @author Hans Dockter
- */
 public interface PluginRegistry {
     <T extends Plugin> T loadPlugin(Class<T> pluginClass) throws PluginInstantiationException;
 

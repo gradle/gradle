@@ -19,8 +19,6 @@ import java.util.*;
 
 /**
  * Utility class that allows lists to be reordered.
- *
- * @author Chris Hampton
  */
 public class ListReorderer {
     /**

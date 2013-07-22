@@ -17,9 +17,6 @@ package org.gradle.api.publication.maven.internal.ant;
 
 import org.gradle.internal.Factory;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultDeployTaskFactory implements Factory<CustomDeployTask> {
     public CustomDeployTask create() {
         return new CustomDeployTask();

@@ -23,9 +23,6 @@ import org.junit.Test
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
 
-/**
- * @author Hans Dockter
- */
 abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
 
     FileResolver resolver = [resolve: {it as File}] as FileResolver

@@ -26,9 +26,6 @@ import java.util.Collection;
 import java.util.Formatter;
 import java.util.List;
 
-/**
- * by Szczepan Faber, created at: 11/8/11
- */
 public class ErrorHandlingNotationParser<T> implements NotationParser<T> {
     private final String targetTypeDisplayName;
     private final String invalidNotationMessage;

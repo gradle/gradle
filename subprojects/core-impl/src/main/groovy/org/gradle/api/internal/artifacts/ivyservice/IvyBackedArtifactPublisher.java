@@ -32,9 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class IvyBackedArtifactPublisher implements ArtifactPublisher {
     private final ModuleDescriptorConverter publishModuleDescriptorConverter;
     private final IvyContextManager ivyContextManager;

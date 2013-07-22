@@ -26,9 +26,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * by Szczepan Faber, created at: 2/13/12
- */
 public class DaemonContextParser {
     public static DaemonContext parseFrom(String source) {
         Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[uid=([^\\n]+),javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?),daemonOpts=([^\\n]+)].*",

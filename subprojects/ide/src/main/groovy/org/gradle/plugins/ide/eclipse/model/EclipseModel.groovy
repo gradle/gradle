@@ -44,8 +44,6 @@ import org.gradle.util.ConfigureUtil
  * </pre>
  *
  * More examples in docs for {@link EclipseProject}, {@link EclipseClasspath}, {@link EclipseWtp}
- *
- * @author: Szczepan Faber, created at: 4/13/11
  */
 class EclipseModel {
 

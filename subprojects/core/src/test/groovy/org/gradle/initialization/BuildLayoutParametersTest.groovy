@@ -25,9 +25,6 @@ import spock.lang.Specification
 
 import static org.gradle.util.GFileUtils.canonicalise
 
-/**
- * by Szczepan Faber, created at: 3/10/13
- */
 class BuildLayoutParametersTest extends Specification {
 
     @Rule SetSystemProperties props = new SetSystemProperties()

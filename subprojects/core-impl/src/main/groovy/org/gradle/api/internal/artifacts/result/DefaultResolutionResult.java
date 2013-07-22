@@ -29,9 +29,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 8/10/12
- */
 public class DefaultResolutionResult implements ResolutionResult {
 
     private final ResolvedModuleVersionResult root;

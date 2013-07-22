@@ -48,8 +48,6 @@ import java.util.List;
 
 /**
  * This displays a tree of projects and tasks.
- *
- * @author mhunsicker
  */
 public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObserver, GradlePluginLord.RequestObserver {
     private final Logger logger = Logging.getLogger(TaskTreeTab.class);
@@ -290,7 +288,6 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
      * Notification that a command is about to be executed. This is mostly useful for IDE's that may need to save their files.
      *
      * @param request the request that's about to be executed.
-     * @author mhunsicker
      */
     public void aboutToExecuteRequest(Request request) {
         //we don't really care

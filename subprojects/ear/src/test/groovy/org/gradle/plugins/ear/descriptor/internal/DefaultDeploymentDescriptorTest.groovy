@@ -25,9 +25,6 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-/**
- * @author: Szczepan Faber, created at: 6/3/11
- */
 class DefaultDeploymentDescriptorTest extends Specification {
     def descriptor = new DefaultDeploymentDescriptor({ it } as FileResolver)
     @Rule TestNameTestDirectoryProvider tmpDir

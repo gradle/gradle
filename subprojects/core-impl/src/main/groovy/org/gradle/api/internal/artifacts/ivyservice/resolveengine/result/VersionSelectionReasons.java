@@ -18,9 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 
-/**
- * by Szczepan Faber, created at: 10/1/12
- */
 public class VersionSelectionReasons {
     public static final ModuleVersionSelectionReason REQUESTED = new DefaultModuleVersionSelectionReason(false, false, false, "requested");
     public static final ModuleVersionSelectionReason ROOT = new DefaultModuleVersionSelectionReason(false, false, false, "root");

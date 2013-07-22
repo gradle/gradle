@@ -53,8 +53,6 @@ import java.util.Set;
  * automatically performing a hot redeploy when necessary. This allows the developer to concentrate on coding changes to
  * the project using their IDE of choice and have those changes immediately and transparently reflected in the running
  * web container, eliminating development time that is wasted on rebuilding, reassembling and redeploying. </p>
- *
- * @author janb
  */
 public class JettyRun extends AbstractJettyRunTask {
     private static Logger logger = LoggerFactory.getLogger(JettyRun.class);

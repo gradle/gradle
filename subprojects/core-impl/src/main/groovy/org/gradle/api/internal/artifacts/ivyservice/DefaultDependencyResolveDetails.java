@@ -24,9 +24,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
 
-/**
-* by Szczepan Faber, created at: 11/29/12
-*/
 public class DefaultDependencyResolveDetails implements DependencyResolveDetailsInternal {
     private final ModuleVersionSelector requested;
     private ModuleVersionSelectionReason selectionReason;

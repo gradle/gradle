@@ -20,9 +20,6 @@ import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget
 import org.gradle.plugins.ide.internal.configurer.ProjectDeduper
 
-/**
- * @author Szczepan Faber, @date 11.03.11
- */
 class EclipseNameDeduper {
 
     void configureRoot(Project rootProject) {

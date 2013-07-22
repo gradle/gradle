@@ -44,9 +44,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultArtifactPomTest {
     private DefaultArtifactPom artifactPom;
     private MavenPom testPom;

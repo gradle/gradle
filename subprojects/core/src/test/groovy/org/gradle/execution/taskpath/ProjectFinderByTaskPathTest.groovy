@@ -20,9 +20,6 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 1/8/13
- */
 class ProjectFinderByTaskPathTest extends Specification {
 
     def finder = new ProjectFinderByTaskPath()

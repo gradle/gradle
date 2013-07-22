@@ -29,9 +29,6 @@ import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 //TODO SF spockify
 public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
     private JUnit4Mockery context = new JUnit4Mockery();

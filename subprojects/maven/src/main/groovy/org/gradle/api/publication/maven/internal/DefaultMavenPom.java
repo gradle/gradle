@@ -29,8 +29,8 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.IoActions;
-import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.listener.ActionBroadcast;
 
 import java.io.BufferedWriter;
@@ -39,9 +39,6 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultMavenPom implements MavenPom {
 
     private PomDependenciesConverter pomDependenciesConverter;

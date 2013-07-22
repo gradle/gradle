@@ -20,9 +20,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultExternalModuleDependency extends AbstractExternalDependency implements ExternalModuleDependency {
     private String group;
     private String name;

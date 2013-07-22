@@ -26,18 +26,11 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import static junit.framework.Assert.assertSame;
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.WrapUtil.toSet;
+import static org.gradle.util.WrapUtil.toSortedSet;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultProjectRegistryTest {
     public static final String CHILD_NAME = "child";
     public static final String CHILD_CHILD_NAME = "childchild";

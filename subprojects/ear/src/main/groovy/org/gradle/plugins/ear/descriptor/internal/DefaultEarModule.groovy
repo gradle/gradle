@@ -18,9 +18,6 @@ package org.gradle.plugins.ear.descriptor.internal
 import groovy.xml.QName
 import org.gradle.plugins.ear.descriptor.EarModule
 
-/**
- * @author David Gileadi
- */
 class DefaultEarModule implements EarModule {
 
     String path;

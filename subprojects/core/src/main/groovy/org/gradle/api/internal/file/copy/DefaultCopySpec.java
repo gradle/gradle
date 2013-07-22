@@ -37,9 +37,6 @@ import java.io.FilterReader;
 import java.util.*;
 import java.util.regex.Pattern;
 
-/**
- * @author Steve Appling
- */
 @NonExtensible
 public class DefaultCopySpec implements CopySpecInternal {
     private final FileResolver resolver;

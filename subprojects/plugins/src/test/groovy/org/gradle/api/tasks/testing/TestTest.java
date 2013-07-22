@@ -62,9 +62,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public class TestTest extends AbstractConventionTaskTest {
     static final String TEST_PATTERN_1 = "pattern1";

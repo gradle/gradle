@@ -15,7 +15,7 @@
  */
 package org.gradle.openapi.external.ui;
 
-import java.awt.Component;
+import java.awt.*;
 
 /**
 
@@ -24,15 +24,12 @@ import java.awt.Component;
   This is a mirror of GradleTab inside Gradle, but this is meant to aid
   backward and forward compatibility by shielding you from direct changes
   within gradle.
-
- @author mhunsicker
  @deprecated No replacement
   */
 @Deprecated
 public interface GradleTabVersion1 {
    /*
       @return the name of this tab
-      @author mhunsicker
    */
    public String getName();
 
@@ -40,14 +37,12 @@ public interface GradleTabVersion1 {
       This is where we should create your component.
 
       @return the component
-      @author mhunsicker
    */
    public Component createComponent();
 
    /*
       Notification that this component is about to be shown. Do whatever
       initialization you choose.
-      @author mhunsicker
    */
    public void aboutToShow();
 }

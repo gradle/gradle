@@ -22,9 +22,6 @@ import org.gradle.logging.StyledTextOutput;
 import static org.gradle.logging.StyledTextOutput.Style.Failure;
 import static org.gradle.logging.StyledTextOutput.Style.Info;
 
-/**
- * by Szczepan Faber, created at: 9/21/12
- */
 public class SimpleNodeRenderer implements NodeRenderer {
     public void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
         output.text(node.getName());

@@ -15,15 +15,13 @@
  */
 package org.gradle.api.plugins.antlr.internal;
 
-import java.io.File;
-
-import antlr.TreeParser;
 import antlr.Parser;
+import antlr.TreeParser;
+
+import java.io.File;
 
 /**
  * Models a grammar defined within an Antlr grammar file.
- *
- * @author Steve Ebersole
  */
 public class GrammarMetadata {
     private final GrammarFileMetadata grammarFileMetadata;

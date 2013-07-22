@@ -21,8 +21,6 @@ import java.io.IOException;
 
 /**
  * Renders the model of a project dependency report.
- *
- * @author Phil Messenger
  */
 public interface DependencyReportRenderer extends ReportRenderer {
     /**

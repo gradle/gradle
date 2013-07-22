@@ -22,8 +22,6 @@ package org.gradle.api.internal;
  *
  * <p>Each getter of an {@code IConventionAware} object should use the mappings to determine the value for the property,
  * when no value has been explicitly set for the property.</p>
- *
- * @author Hans Dockter
  */
 public interface IConventionAware {
 

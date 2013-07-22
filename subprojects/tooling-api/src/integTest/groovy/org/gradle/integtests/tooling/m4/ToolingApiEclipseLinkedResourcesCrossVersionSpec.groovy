@@ -21,9 +21,6 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-/**
- * @author: Szczepan Faber, created at: 6/11/11
- */
 @MinToolingApiVersion('1.0-milestone-4')
 @MinTargetGradleVersion('1.0-milestone-4')
 class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecification {

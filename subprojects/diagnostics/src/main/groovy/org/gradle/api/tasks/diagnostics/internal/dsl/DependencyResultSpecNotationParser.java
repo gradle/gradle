@@ -26,9 +26,6 @@ import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
 
-/**
- * by Szczepan Faber, created at: 10/9/12
- */
 public class DependencyResultSpecNotationParser implements NotationParser<Spec<DependencyResult>> {
 
     public Spec<DependencyResult> parseNotation(final Object notation) throws UnsupportedNotationException {

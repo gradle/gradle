@@ -22,9 +22,6 @@ import org.objectweb.asm.Opcodes;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author Tom Eyckmans
- */
 class TestNGTestMethodDetecter extends MethodVisitor {
     private final TestNGTestClassDetecter testClassDetecter;
     private final Set<String> testMethodAnnotations = new HashSet<String>();

@@ -20,9 +20,6 @@ import spock.lang.Specification
 
 import static org.gradle.util.Assertions.assertThat
 
-/**
- * by Szczepan Faber, created at: 12/18/12
- */
 class AssertionsTest extends Specification {
 
     static class Foo {

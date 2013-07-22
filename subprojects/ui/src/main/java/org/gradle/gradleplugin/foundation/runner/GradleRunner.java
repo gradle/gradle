@@ -24,8 +24,6 @@ import java.io.File;
 
 /**
  * This executes a command line in an external process.
- *
- * @author mhunsicker
  */
 public class GradleRunner {
     private File currentDirectory;

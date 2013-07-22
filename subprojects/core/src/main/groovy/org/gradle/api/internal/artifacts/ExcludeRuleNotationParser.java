@@ -24,9 +24,6 @@ import org.gradle.api.tasks.Optional;
 
 import java.util.Collection;
 
-/**
- * @author Rene Groeschke
- */
 public class ExcludeRuleNotationParser<T extends ExcludeRule> extends MapNotationParser<T> {
 
     @Override

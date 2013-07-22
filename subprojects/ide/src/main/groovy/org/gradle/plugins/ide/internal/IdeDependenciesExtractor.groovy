@@ -17,12 +17,9 @@
 package org.gradle.plugins.ide.internal
 
 import org.gradle.api.Project
-import org.gradle.api.specs.Spec
 import org.gradle.api.artifacts.*
+import org.gradle.api.specs.Spec
 
-/**
- * @author: Szczepan Faber, created at: 7/1/11
- */
 class IdeDependenciesExtractor {
 
     static class IdeDependency {

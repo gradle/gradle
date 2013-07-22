@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * Contains some daemon diagnostics information useful for the client.
- * <p>
- * by Szczepan Faber, created at: 2/28/12
  */
 public class DaemonDiagnostics implements Serializable {
 

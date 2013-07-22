@@ -22,8 +22,6 @@ import org.gradle.api.internal.xml.XmlTransformer
  * Models the generation/parsing/merging capabilities. Adds XML-related hooks.
  * <p>
  * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject} or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
- *
- * @author: Szczepan Faber, created at: 4/21/11
  */
 class XmlFileContentMerger extends FileContentMerger {
 

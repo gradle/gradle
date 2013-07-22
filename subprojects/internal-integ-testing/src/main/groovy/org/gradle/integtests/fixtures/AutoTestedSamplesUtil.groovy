@@ -18,9 +18,6 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.internal.SystemProperties
 
-/**
- * @author: Szczepan Faber, created at: 3/28/11
- */
 class AutoTestedSamplesUtil {
 
     String includes = '**/*.groovy **/*.java'

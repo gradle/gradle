@@ -30,8 +30,6 @@ import java.beans.PropertyChangeListener;
  * A simple UI for gradle. This is a single panel that can be inserted into a stand-alone application or an IDE. This is meant to hide most of the complexities of gradle. 'single pane' means that both
  * the tabbed pane and the output pane are contained within a single pane that this maintains. Meaning, you add this to a UI and its a self-contained gradle UI. This is opposed to a multi-pane concept
  * where the output would be separated from the tabbed pane.
- *
- * @author mhunsicker
  */
 public class SinglePaneUIInstance extends AbstractGradleUIInstance {
     private static final String SPLITTER_PREFERENCES_ID = "splitter-id";

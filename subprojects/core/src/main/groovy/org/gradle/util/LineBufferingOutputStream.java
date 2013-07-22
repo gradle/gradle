@@ -23,8 +23,6 @@ import java.io.OutputStream;
 
 /**
  * An OutputStream which separates bytes written into lines. Uses the platform default encoding. Is not thread safe.
- *
- * @author Hans Dockter
  */
 public class LineBufferingOutputStream extends OutputStream {
     private boolean hasBeenClosed;

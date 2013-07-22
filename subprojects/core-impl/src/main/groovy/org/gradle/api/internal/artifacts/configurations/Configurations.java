@@ -21,9 +21,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class Configurations {
     public static Set<String> getNames(Collection<? extends Configuration> configurations, boolean includeExtended) {
         Set<Configuration> allConfigurations = new HashSet<Configuration>(configurations);

@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
+import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import spock.lang.Specification
-import org.apache.ivy.core.module.descriptor.*
 
-/**
- * by Szczepan Faber, created at: 1/29/13
- */
 class ReflectiveDependencyDescriptorFactoryTest extends Specification {
 
     def factory = new ReflectiveDependencyDescriptorFactory()

@@ -19,9 +19,6 @@ package org.gradle.util
 import org.gradle.util.GradleVersion.Stage
 import spock.lang.Specification
 
-/**
- * @author Szczepan Faber
- */
 class StageTest extends Specification {
     def "builds simple stage"() {
         when:

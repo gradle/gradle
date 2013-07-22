@@ -29,9 +29,6 @@ import java.util.regex.Pattern;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
-/**
- * @author Hans Dockter
- */
 public class GUtil {
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_LOWER = Pattern.compile("(\\p{Upper}*)(\\p{Lower}*)");

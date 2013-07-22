@@ -31,9 +31,6 @@ import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 import java.util.Map;
 
-/**
- * by Szczepan Faber, created at: 1/13/12
- */
 public class ModelMapping {
     private static final BiMap<Class<?>, Class<?>> MODEL_TO_PROTOCOL_MAP = HashBiMap.create();
     private static final BiMap<Class<?>, String> MODEL_NAME_MAP = HashBiMap.create();

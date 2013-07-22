@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
-/**
- * @author Tom Eyckmans
- */
 public interface JarFilePackageListener {
     void receivePackage(String packageName);
 }

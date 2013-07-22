@@ -26,9 +26,6 @@ import spock.lang.Specification
 import java.nio.channels.ByteChannel
 import java.nio.channels.Channel
 
-/**
- * by Szczepan Faber, created at: 4/2/12
- */
 class ProtocolToModelAdapterTest extends Specification {
     final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter()
 

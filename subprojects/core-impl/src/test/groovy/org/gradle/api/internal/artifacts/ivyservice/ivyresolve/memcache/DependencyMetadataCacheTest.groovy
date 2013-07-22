@@ -25,9 +25,6 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-/**
- * By Szczepan Faber on 4/19/13
- */
 class DependencyMetadataCacheTest extends Specification {
 
     def stats = new DependencyMetadataCacheStats()

@@ -25,8 +25,6 @@ import java.util.Set;
 
 /**
  * Provides a number of {@link org.gradle.api.specs.Spec} implementations.
- *
- * @author Hans Dockter
  */
 public class Specs {
 

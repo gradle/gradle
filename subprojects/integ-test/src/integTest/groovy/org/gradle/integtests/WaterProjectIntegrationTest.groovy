@@ -25,9 +25,6 @@ import org.junit.Test
 
 import static org.junit.Assert.assertEquals
 
-/**
- * @author Hans Dockter
- */
 class WaterProjectIntegrationTest {
     final static String NL = SystemProperties.lineSeparator
 

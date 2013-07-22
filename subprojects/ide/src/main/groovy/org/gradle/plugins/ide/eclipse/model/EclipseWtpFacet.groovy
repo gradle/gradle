@@ -62,8 +62,6 @@ import org.gradle.util.ConfigureUtil
  * }
  *
  * </pre>
- *
- * @author: Szczepan Faber, created at: 4/20/11
  */
 class EclipseWtpFacet {
 

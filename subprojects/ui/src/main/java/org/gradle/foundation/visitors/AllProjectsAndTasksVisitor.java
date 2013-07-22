@@ -26,13 +26,10 @@ import java.util.List;
 
 /**
  * This visits all projects and their subprojects and tasks in a hierarchal manner. Useful if you need to do some processing with each one.
- *
- * @author mhunsicker
  */
 public class AllProjectsAndTasksVisitor {
     /*
           Visitor allowing you to do whatever you like with a project or task.
-       @author mhunsicker
     */
 
     public interface Visitor<P, T> {
@@ -44,7 +41,6 @@ public class AllProjectsAndTasksVisitor {
             was passed into the visitPojectsAndTasks function.
            @return an object that will be handed back to you for each of this
                    project's tasks.
-           @author mhunsicker
         */
 
         public P visitProject(ProjectView project, P parentProjectObject);
@@ -55,7 +51,6 @@ public class AllProjectsAndTasksVisitor {
          @param  task               the task
          @param  tasksProject       the project for this task
          @param  userProjectObject  whatever you returned from the parent project's visitProject
-           @author mhunsicker
         */
 
         public T visitTask(TaskView task, ProjectView tasksProject, P userProjectObject);
@@ -68,8 +63,6 @@ public class AllProjectsAndTasksVisitor {
 
        This is the same as the other version of visitProjectsAndTasks except this
        one visits everything.
-
-       @author mhunsicker
     */
 
     public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor, P rootProjectObject) {
@@ -85,7 +78,6 @@ public class AllProjectsAndTasksVisitor {
        @param  filter     allows you to skip projects and tasks as specified by the filter.
        @param  rootProjectObject whatever you pass here will be passed to the
                 root-level projects as parentProjectObject.
-       @author mhunsicker
     */
 
     public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor, ProjectAndTaskFilter filter, P rootProjectObject) {
@@ -116,8 +108,6 @@ public class AllProjectsAndTasksVisitor {
 
     /*
        Add the list of tasks to the parent tree node.
-
-       @author mhunsicker
     */
 
     private static <P, T> List<T> visitTasks(Visitor<P, T> visitor, ProjectAndTaskFilter filter, ProjectView project, P userProjectObject) {

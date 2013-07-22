@@ -23,8 +23,6 @@ import java.util.List;
 
 /**
  * Specifies the compression which should be applied to a TAR archive.
- * 
- * @author Hans Dockter
  */
 public enum Compression {
     NONE("tar"),

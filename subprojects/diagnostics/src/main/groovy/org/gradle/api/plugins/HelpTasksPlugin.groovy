@@ -19,14 +19,11 @@ package org.gradle.api.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.configuration.Help
 import org.gradle.api.tasks.diagnostics.*
+import org.gradle.configuration.Help
 
 import static org.gradle.configuration.ImplicitTasksConfigurer.*
 
-/**
- * by Szczepan Faber, created at: 9/5/12
- */
 @Incubating
 class HelpTasksPlugin implements Plugin<ProjectInternal> {
 

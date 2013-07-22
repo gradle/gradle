@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.javadoc;
 
+import groovy.lang.Closure;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
@@ -25,8 +26,6 @@ import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GUtil;
-
-import groovy.lang.Closure;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -67,8 +66,6 @@ import java.util.List;
  *   options.addStringOption("jaxrscontext", "http://localhost:8080/myapp")
  * }
  * </pre>
- *
- * @author Hans Dockter
  */
 public class Javadoc extends SourceTask {
     private JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder();

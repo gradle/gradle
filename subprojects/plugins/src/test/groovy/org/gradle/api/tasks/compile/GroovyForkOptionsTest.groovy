@@ -15,13 +15,11 @@
  */
 package org.gradle.api.tasks.compile
 
+import org.junit.Before
 import org.junit.Test
-import org.junit.Before;
+
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 public class GroovyForkOptionsTest {
     static final Map PROPS = [memoryInitialSize: 'memoryInitialSize', memoryMaximumSize: 'memoryMaximumSize']
 

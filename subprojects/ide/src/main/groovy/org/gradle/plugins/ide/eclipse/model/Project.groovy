@@ -20,8 +20,6 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 /**
  * Represents the customizable elements of an eclipse project file. (via XML hooks everything is customizable).
- *
- * @author Hans Dockter
  */
 class Project extends XmlPersistableConfigurationObject {
     public static final String PROJECT_FILE_NAME = ".project";

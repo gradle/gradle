@@ -33,8 +33,6 @@ import java.util.List;
 
 /**
  * This dialog allows you to edit what tasks and projects are visible when a filter is enabled. Filters are used to weed out rarely-used things to make finding things easier.
- *
- * @author mhunsicker
  */
 public class ProjectAndTaskFilterDialog {
     private JDialog dialog;

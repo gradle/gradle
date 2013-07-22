@@ -19,9 +19,6 @@ package org.gradle.tooling.internal.consumer;
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 12/6/11
- */
 public class ConnectorServicesTest extends Specification {
 
     def "services sharing configuration"() {

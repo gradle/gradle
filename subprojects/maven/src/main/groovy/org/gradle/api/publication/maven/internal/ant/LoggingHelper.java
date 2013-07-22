@@ -24,9 +24,6 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 
 import java.lang.reflect.Field;
 
-/**
- * @author Hans Dockter
- */
 public class LoggingHelper {
     public static void injectLogger(PlexusContainer container, Project project) {
         try {

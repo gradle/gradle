@@ -24,9 +24,6 @@ import java.net.SocketException;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
-/**
- * By Szczepan Faber on 5/23/13
- */
 public class FileLockCommunicator {
     private final DatagramSocket socket;
     private boolean stopped;

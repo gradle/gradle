@@ -19,13 +19,10 @@ package org.gradle.configuration;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
 
-import java.net.URL;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 
-/**
- * @author Hans Dockter
- */
 public class ImportsReader {
 
     private String importsText;

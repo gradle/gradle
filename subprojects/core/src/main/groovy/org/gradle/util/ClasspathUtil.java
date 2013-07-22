@@ -28,9 +28,6 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Hans Dockter
- */
 public class ClasspathUtil {
     public static void addUrl(URLClassLoader classLoader, Iterable<URL> classpathElements) {
         try {

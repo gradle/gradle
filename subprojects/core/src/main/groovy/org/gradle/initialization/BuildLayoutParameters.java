@@ -23,9 +23,6 @@ import java.io.File;
 
 import static org.gradle.util.GFileUtils.canonicalise;
 
-/**
- * by Szczepan Faber, created at: 2/18/13
- */
 public class BuildLayoutParameters {
 
     private boolean searchUpwards = true;

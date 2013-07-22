@@ -39,9 +39,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultConfigurableFileTree extends CompositeFileTree implements ConfigurableFileTree {
     private PatternSet patternSet = new PatternSet();
     private Object dir;

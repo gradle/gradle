@@ -21,8 +21,6 @@ import org.gradle.plugins.ide.eclipse.model.Library
 
 /**
  * Eclipse calls them 'class folders' on java build path->libraries tab
- *
- * @author: Szczepan Faber, created at: 5/6/11
  */
 class ClassFoldersCreator {
 

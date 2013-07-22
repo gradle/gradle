@@ -29,9 +29,6 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedList;
 
-/**
- * @author: Szczepan Faber, created at: 7/25/11
- */
 public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Serializable {
 
 //    public static final long serialVersionUID = 1L;

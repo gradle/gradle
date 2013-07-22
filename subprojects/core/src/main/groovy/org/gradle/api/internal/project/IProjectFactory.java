@@ -20,8 +20,6 @@ import org.gradle.api.internal.GradleInternal;
 
 /**
  * Creates a {@link ProjectInternal} implementation.
- *
- * @author Hans Dockter
  */
 public interface IProjectFactory {
     ProjectInternal createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle);

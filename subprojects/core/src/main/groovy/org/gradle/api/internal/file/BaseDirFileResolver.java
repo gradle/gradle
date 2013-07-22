@@ -27,9 +27,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author Hans Dockter
- */
 public class BaseDirFileResolver extends AbstractFileResolver {
     private final File baseDir;
 

@@ -20,8 +20,6 @@ import java.util.Map;
 /**
  * An {@code ExcludeRule} is used to describe transitive dependencies that should be excluded when resolving
  * dependencies.
- *
- * @author Hans Dockter
  */
 public interface ExcludeRule {
     String GROUP_KEY = "group";
@@ -29,7 +27,7 @@ public interface ExcludeRule {
 
     /**
      * The exact name of the organization or group that should be excluded.
-     * */
+      */
     String getGroup();
 
     /**

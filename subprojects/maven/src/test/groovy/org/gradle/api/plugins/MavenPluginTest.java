@@ -33,9 +33,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class MavenPluginTest {
     private final DefaultProject project = HelperUtil.createRootProject();
 

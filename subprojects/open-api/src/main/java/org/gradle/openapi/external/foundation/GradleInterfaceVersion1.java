@@ -24,8 +24,6 @@ import java.util.List;
  * This is an abstraction from Gradle that allows you to retrieve projects and views from it.
  *
  * This is a mirror of GradlePluginLord inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated

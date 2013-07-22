@@ -26,8 +26,6 @@ import org.gradle.util.ConfigureUtil
 
 /**
  * Assembles a WAR archive.
- *
- * @author Hans Dockter
  */
 class War extends Jar {
     public static final String WAR_EXTENSION = 'war'

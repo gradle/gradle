@@ -20,8 +20,6 @@ import org.gradle.foundation.TaskView;
 
 /**
  * Interface for a filter that weeds out certain projects and tasks. Useful when trying to walk the projects and tasks.
- *
- * @author mhunsicker
  */
 public interface ProjectAndTaskFilter {
     /**
@@ -37,7 +35,6 @@ public interface ProjectAndTaskFilter {
      *
      * @param task the task in question
      * @return true to allow it, false not to.
-     * @author mhunsicker
      */
     public boolean doesAllowTask(TaskView task);
 }

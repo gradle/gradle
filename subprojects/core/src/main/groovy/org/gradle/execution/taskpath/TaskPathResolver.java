@@ -19,9 +19,6 @@ package org.gradle.execution.taskpath;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 
-/**
- * by Szczepan Faber, created at: 1/29/13
- */
 public class TaskPathResolver {
 
     private final ProjectFinderByTaskPath projectFinder;

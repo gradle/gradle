@@ -16,9 +16,6 @@
 
 package org.gradle.launcher.daemon.diagnostics;
 
-/**
- * by Szczepan Faber, created at 4/6/12
- */
 public class DaemonStartupInfo {
 
     private String uid;

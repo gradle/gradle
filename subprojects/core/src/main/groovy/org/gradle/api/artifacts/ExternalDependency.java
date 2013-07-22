@@ -17,8 +17,6 @@ package org.gradle.api.artifacts;
 
 /**
  * <p>An {@code ExternalDependency} is a {@link Dependency} on a source outside the current project hierarchy.</p>
- *
- * @author Hans Dockter
  */
 public interface ExternalDependency extends ModuleDependency, ModuleVersionSelector {
     /**

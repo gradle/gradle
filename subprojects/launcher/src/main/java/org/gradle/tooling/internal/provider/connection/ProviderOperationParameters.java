@@ -27,8 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Defines what information is needed on the provider side regarding the build operation.
- * <p>
- * by Szczepan Faber, created at: 12/20/11
  */
 public interface ProviderOperationParameters {
     boolean getVerboseLogging(boolean defaultValue);

@@ -16,14 +16,13 @@
 
 package org.gradle.external.javadoc.internal;
 
-import java.util.List;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * A base class for {@link org.gradle.external.javadoc.JavadocOptionFileOption} implementations whose value is a {@code List}.
  *
  * @param <T> The type which this option represents.
- * @author Tom Eyckmans
  */
 public abstract class AbstractListJavadocOptionFileOption<T extends List> extends AbstractJavadocOptionFileOption<T> {
     protected String joinBy;

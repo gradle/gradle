@@ -22,9 +22,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 
-/**
- * @author Hans Dockter
-*/
 public class ClientModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     private ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule;
 

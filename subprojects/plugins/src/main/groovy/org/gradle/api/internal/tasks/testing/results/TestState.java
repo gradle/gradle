@@ -25,11 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Extracted from the StateTrackingTestResultProcessor
- *
- * by Szczepan Faber, created at: 10/14/11
- */
 public class TestState {
     public final TestDescriptorInternal test;
     final TestStartEvent startEvent;

@@ -20,19 +20,17 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
 
-/**
- * @author Hans Dockter
- */
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 @RunWith(JMock.class)
 public class DefaultConfigurationsToModuleDescriptorConverterTest {
     private DefaultConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter = new DefaultConfigurationsToModuleDescriptorConverter();

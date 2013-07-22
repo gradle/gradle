@@ -17,14 +17,11 @@
 package org.gradle.build
 
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.*
-import org.gradle.api.file.*
-import org.gradle.api.tasks.*
 import com.tonicsystems.jarjar.Main as JarJarMain
 
 /*
 * a Jar task that performs JarJar repackaging after archive is created
-* */
+ */
 class JarJarJar extends Jar {
     @Input def rules = [:]
     @Input def keeps = []

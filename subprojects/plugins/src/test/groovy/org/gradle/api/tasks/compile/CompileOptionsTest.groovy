@@ -18,12 +18,10 @@ package org.gradle.api.tasks.compile
 
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*;
-import static org.gradle.util.Matchers.*
 
-/**
- * @author Hans Dockter
- */
+import static org.gradle.util.Matchers.isEmpty
+import static org.junit.Assert.*
+
 class CompileOptionsTest {
     static final Map TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']

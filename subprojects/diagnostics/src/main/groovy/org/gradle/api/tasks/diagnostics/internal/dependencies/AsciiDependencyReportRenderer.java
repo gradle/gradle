@@ -20,13 +20,13 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
-import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.SimpleNodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
+import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.GUtil;
 
@@ -36,8 +36,6 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
 
 /**
  * Simple dependency graph renderer that emits an ASCII tree.
- *
- * @author Phil Messenger
  */
 public class AsciiDependencyReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
     private boolean hasConfigs;

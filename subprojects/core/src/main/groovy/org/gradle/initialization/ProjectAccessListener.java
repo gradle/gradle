@@ -20,8 +20,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 
 /**
  * Internal interface, used by our configuration on demand mode.
- *
- * by Szczepan Faber, created at: 2/5/13
  */
 public interface ProjectAccessListener {
     void beforeRequestingTaskByPath(ProjectInternal targetProject);

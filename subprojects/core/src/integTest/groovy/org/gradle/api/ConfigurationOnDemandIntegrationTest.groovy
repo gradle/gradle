@@ -22,9 +22,6 @@ import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
-/**
- * by Szczepan Faber, created at: 11/21/12
- */
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)

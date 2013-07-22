@@ -24,9 +24,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     private Set<ExcludeRule> addedRules = new LinkedHashSet<ExcludeRule>();
     private NotationParser<ExcludeRule> notationParser = new ExcludeRuleNotationParser<ExcludeRule>();

@@ -30,8 +30,6 @@ import java.util.List;
 
 /**
  * Builds the GradleProject that contains the project hierarchy and task information
- *
- * @author Szczepan Faber, created at: 7/27/11
  */
 public class GradleProjectBuilder implements ToolingModelBuilder {
     public boolean canBuild(String modelName) {

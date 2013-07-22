@@ -28,9 +28,6 @@ import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * by Szczepan Faber, created at: 11/10/11
- */
 public class DependencyStringNotationParser<T extends ExternalDependency> extends TypedNotationParser<CharSequence, T> {
 
     private final Instantiator instantiator;

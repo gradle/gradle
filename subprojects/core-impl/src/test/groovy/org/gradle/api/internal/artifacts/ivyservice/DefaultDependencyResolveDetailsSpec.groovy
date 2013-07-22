@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
-/**
- * by Szczepan Faber, created at: 12/13/12
- */
 class DefaultDependencyResolveDetailsSpec extends Specification {
 
     def "can specify version to use"() {

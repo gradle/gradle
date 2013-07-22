@@ -25,8 +25,6 @@ import org.gradle.plugins.ide.idea.model.Module
  * Please refer to interesting examples on idea configuration in {@link IdeaModule}.
  * <p>
  * At this moment nearly all configuration is done via {@link IdeaModule}.
- *
- * @author Hans Dockter
  */
 public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 

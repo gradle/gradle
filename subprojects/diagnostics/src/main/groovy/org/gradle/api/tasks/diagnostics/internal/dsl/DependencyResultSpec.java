@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.specs.Spec;
 
-/**
-* by Szczepan Faber, created at: 11/6/12
-*/
 class DependencyResultSpec implements Spec<DependencyResult> {
     private final String stringNotation;
 

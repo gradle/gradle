@@ -25,9 +25,6 @@ import static org.gradle.util.Matchers.matchesRegexp;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 public class PathAssemblerTest {
     public static final String TEST_GRADLE_USER_HOME = "someUserHome";
     private PathAssembler pathAssembler = new PathAssembler(new File(TEST_GRADLE_USER_HOME));

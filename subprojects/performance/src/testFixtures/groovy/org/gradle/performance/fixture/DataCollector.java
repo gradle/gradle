@@ -20,9 +20,6 @@ import org.gradle.performance.measure.MeasuredOperation;
 
 import java.io.File;
 
-/**
- * by Szczepan Faber, created at: 8/14/12
- */
 public interface DataCollector {
 
     void collect(File testProjectDir, MeasuredOperation operation);

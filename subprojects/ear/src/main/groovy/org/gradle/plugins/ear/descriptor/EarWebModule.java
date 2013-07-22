@@ -17,8 +17,6 @@ package org.gradle.plugins.ear.descriptor;
 
 /**
  * A module element in a deployment descriptor like application.xml that has a web child element.
- * 
- * @author David Gileadi
  */
 public interface EarWebModule extends EarModule {
 

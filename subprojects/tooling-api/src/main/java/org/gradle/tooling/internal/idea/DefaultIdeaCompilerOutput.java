@@ -21,9 +21,6 @@ import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 import java.io.File;
 import java.io.Serializable;
 
-/**
- * @author: Szczepan Faber, created at: 8/5/11
- */
 public class DefaultIdeaCompilerOutput implements IdeaCompilerOutput, Serializable {
 
     private boolean inheritOutputDirs;

@@ -29,9 +29,6 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-/**
- * @author Hans Dockter
- */
 class ClientModuleResolverTest extends Specification {
     final ModuleDescriptor module = Mock()
     final ModuleRevisionId moduleId = new ModuleRevisionId(new ModuleId("org", "name"), "1.0")

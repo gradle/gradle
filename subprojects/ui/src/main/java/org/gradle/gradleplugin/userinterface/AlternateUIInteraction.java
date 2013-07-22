@@ -20,8 +20,6 @@ import java.io.File;
 /**
  * This allows this plugin to interact with alternative UIs. Specifically, this has callbacks for IDE's so tell it to edit a project file or the like. This is the 'alternate' UI interaction because it
  * interacts with other UIs (other than the built-in UI).
- *
- * @author mhunsicker
  */
 public interface AlternateUIInteraction {
 
@@ -40,7 +38,6 @@ public interface AlternateUIInteraction {
 
       @param  file      the file to open
       @param line the line to go to. -1 if no line is specified.
-      @author mhunsicker
    */
     public void editFile(File file, int line);
 

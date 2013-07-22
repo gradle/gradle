@@ -15,19 +15,17 @@
  */
 package org.gradle.api.plugins.antlr.internal;
 
-import java.lang.reflect.Method;
-import java.util.Enumeration;
-import java.util.ArrayList;
-import java.util.List;
-
 import antlr.collections.impl.IndexedVector;
 import antlr.preprocessor.GrammarFile;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  * Antlr defines its {@link antlr.preprocessor.Grammar} class as package-protected for some unfortunate reason. So this class acts as a delegate to the Antlr {@link antlr.preprocessor.Grammar} class,
  * hiding all the ugly necessary reflection code.
- *
- * @author Steve Ebersole
  */
 public class GrammarDelegate {
     public static List<GrammarDelegate> extractGrammarDelegates(GrammarFile antlrGrammarFile) {

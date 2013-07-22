@@ -28,9 +28,6 @@ import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import java.io.File;
 import java.util.*;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultArtifactPom implements ArtifactPom {
     private static final Set<String> PACKAGING_TYPES = Sets.newHashSet("war", "jar", "ear");
     private final MavenPom pom;

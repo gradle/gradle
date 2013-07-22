@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.gradle.mvn3.org.apache.maven.settings.Settings;
-import org.gradle.mvn3.org.apache.maven.settings.building.*;
+import org.gradle.mvn3.org.apache.maven.settings.building.SettingsBuildingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +25,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Steve Ebersole
- */
 public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultLocalMavenRepositoryLocator.class);
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^\\}]*)\\}");

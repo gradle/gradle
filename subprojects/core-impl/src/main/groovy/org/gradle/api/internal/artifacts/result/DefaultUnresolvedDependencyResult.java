@@ -22,9 +22,6 @@ import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
-/**
- * by Szczepan Faber, created at: 7/26/12
- */
 public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult implements UnresolvedDependencyResult {
     private final ModuleVersionSelectionReason reason;
     private final ModuleVersionResolveException failure;

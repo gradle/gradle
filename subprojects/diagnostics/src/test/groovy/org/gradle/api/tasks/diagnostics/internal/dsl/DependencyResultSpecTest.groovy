@@ -19,12 +19,8 @@ package org.gradle.api.tasks.diagnostics.internal.dsl
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newDependency
-
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newUnresolvedDependency
 
-/**
- * by Szczepan Faber, created at: 11/6/12
- */
 class DependencyResultSpecTest extends Specification {
 
     def "knows matching dependencies"() {

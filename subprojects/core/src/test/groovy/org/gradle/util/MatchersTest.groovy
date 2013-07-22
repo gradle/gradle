@@ -22,9 +22,6 @@ import java.util.regex.Pattern
 
 import static org.gradle.util.Matchers.matchesRegexp
 
-/**
- * by Szczepan Faber, created at: 12/17/12
- */
 class MatchersTest extends Specification {
 
     def "matches regex"() {

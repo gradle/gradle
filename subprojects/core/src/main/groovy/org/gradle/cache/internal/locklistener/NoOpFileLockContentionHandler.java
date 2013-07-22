@@ -16,9 +16,6 @@
 
 package org.gradle.cache.internal.locklistener;
 
-/**
- * By Szczepan Faber on 5/28/13
- */
 public class NoOpFileLockContentionHandler implements FileLockContentionHandler {
 
     public void start(long lockId, Runnable whenContended) {}

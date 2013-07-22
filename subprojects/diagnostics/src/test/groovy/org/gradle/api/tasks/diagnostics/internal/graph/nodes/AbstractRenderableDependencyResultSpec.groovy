@@ -23,9 +23,6 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-/**
- * by Szczepan Faber, created at: 10/9/12
- */
 class AbstractRenderableDependencyResultSpec extends Specification {
 
     def "renders name cleanly"() {

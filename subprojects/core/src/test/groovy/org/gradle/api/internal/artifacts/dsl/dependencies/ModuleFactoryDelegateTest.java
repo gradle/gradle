@@ -29,9 +29,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class ModuleFactoryDelegateTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 

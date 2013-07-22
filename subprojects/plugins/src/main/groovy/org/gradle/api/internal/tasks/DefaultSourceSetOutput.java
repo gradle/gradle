@@ -29,9 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-/**
- * @author: Szczepan Faber, created at: 5/4/11
- */
 public class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
     private DefaultConfigurableFileCollection outputDirectories;
     private Object classesDir;

@@ -28,9 +28,6 @@ import org.junit.Test
 
 import static org.junit.Assert.assertSame
 
-/**
- * @author Hans Dockter
- */
 class ScriptEvaluatingSettingsProcessorTest {
     static final File TEST_ROOT_DIR = new File('rootDir')
     ScriptEvaluatingSettingsProcessor settingsProcessor

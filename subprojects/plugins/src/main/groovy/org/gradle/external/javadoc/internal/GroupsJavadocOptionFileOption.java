@@ -26,8 +26,6 @@ import java.util.Map;
 /**
  * A {@link org.gradle.external.javadoc.JavadocOptionFileOption} which represents the -groups command line
  * option.
- *
- * @author Tom Eyckmans
  */
 public class GroupsJavadocOptionFileOption extends AbstractJavadocOptionFileOption<Map<String, List<String>>> {
     public GroupsJavadocOptionFileOption(String option) {

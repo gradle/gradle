@@ -28,8 +28,6 @@ import java.util.*;
 /**
  * Displays the dependency tree for a project. An instance of this type is used when you
  * execute the {@code dependencies} task from the command-line.
- *
- * @author Phil Messenger
  */
 public class DependencyReportTask extends AbstractReportTask {
 

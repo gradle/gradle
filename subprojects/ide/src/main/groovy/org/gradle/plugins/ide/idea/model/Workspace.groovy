@@ -20,8 +20,6 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 /**
  * Represents the customizable elements of an ipr (via XML hooks everything of the ipr is customizable).
- *
- * @author Hans Dockter
  */
 
 class Workspace extends XmlPersistableConfigurationObject {

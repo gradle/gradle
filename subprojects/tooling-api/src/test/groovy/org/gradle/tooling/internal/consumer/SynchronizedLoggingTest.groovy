@@ -22,9 +22,6 @@ import spock.lang.Specification
 
 import java.util.concurrent.CopyOnWriteArraySet
 
-/**
- * by Szczepan Faber, created at: 12/16/11
- */
 public class SynchronizedLoggingTest extends Specification {
 
     def logging = new SynchronizedLogging()

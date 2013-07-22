@@ -22,9 +22,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public interface IvyDependencyPublisher {
     void publish(Set<String> configurations,
                  List<ModuleVersionPublisher> publishResolvers,

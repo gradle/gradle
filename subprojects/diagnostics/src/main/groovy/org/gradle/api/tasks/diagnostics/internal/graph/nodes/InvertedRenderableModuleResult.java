@@ -27,8 +27,6 @@ import java.util.Set;
 
 /**
  * Children of this renderable dependency node are its dependents.
- *
- * by Szczepan Faber, created at: 8/10/12
  */
 public class InvertedRenderableModuleResult extends RenderableModuleResult {
 

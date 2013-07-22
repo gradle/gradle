@@ -38,9 +38,6 @@ import java.util.List;
 
 import static org.gradle.api.internal.Cast.cast;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObjectList<ArtifactRepository>
         implements ArtifactRepositoryContainer {
 

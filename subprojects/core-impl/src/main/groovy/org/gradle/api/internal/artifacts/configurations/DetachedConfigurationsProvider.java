@@ -20,9 +20,6 @@ import org.gradle.util.WrapUtil;
 
 import java.util.Set;
 
-/**
- * @author Hans Dockter
-*/
 class DetachedConfigurationsProvider implements ConfigurationsProvider {
     private Configuration theOnlyConfiguration;
 

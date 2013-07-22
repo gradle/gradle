@@ -40,9 +40,6 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class SettingsFactoryTest {
     private JUnit4Mockery context = new JUnit4Mockery() {{

@@ -19,9 +19,6 @@ package org.gradle.internal.service;
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 11/24/11
- */
 public class SynchronizedServiceRegistryTest extends Specification {
 
     def delegate = Mock(ServiceRegistry)

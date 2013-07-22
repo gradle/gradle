@@ -26,8 +26,6 @@ import java.util.Set;
 
 /**
  * A deployment descriptor such as application.xml.
- * 
- * @author David Gileadi
  */
 public interface DeploymentDescriptor {
 

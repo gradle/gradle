@@ -29,8 +29,6 @@ import java.util.Map;
 
 /**
  * Base class for compilation-related options.
- *
- * @author Hans Dockter
  */
 public abstract class AbstractOptions implements Serializable {
     private static final long serialVersionUID = 0;

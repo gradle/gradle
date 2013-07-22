@@ -5,9 +5,6 @@ import org.testng.annotations.Test;
 import org.testng.annotations.AfterMethod;
 import static org.testng.Assert.*;
 
-/**
- * @author Tom Eyckmans
- */
 public class UserImplTest
 {
     private UserImpl user;

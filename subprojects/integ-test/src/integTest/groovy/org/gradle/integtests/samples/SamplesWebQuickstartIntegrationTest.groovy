@@ -23,9 +23,6 @@ import org.junit.Rule
 import spock.lang.Timeout
 import spock.lang.Unroll
 
-/**
- * @author Hans Dockter
- */
 class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart')
 

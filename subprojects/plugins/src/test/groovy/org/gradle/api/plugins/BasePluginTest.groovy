@@ -29,12 +29,10 @@ import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
+
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.instanceOf
 
-/**
- * @author Hans Dockter
- */
 class BasePluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject()
     private final BasePlugin plugin = new BasePlugin()

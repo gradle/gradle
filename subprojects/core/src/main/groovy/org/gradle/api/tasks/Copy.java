@@ -59,8 +59,6 @@ import java.io.File;
  * includeEmptyDirs = false
  * }
  * </pre>
- *
- * @author Steve Appling
  */
 public class Copy extends AbstractCopyTask {
 

@@ -19,9 +19,6 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-/**
- * @author Tom Eyckmans
- */
 class JUnitTestMethodDetecter extends MethodVisitor {
 
     private final JUnitTestClassDetecter testClassDetecter;

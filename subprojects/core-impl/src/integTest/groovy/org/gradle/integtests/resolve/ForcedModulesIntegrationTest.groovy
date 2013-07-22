@@ -17,10 +17,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-/**
- * @author Szczepan Faber, @date 03.03.11
- */
-class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
+public class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
 
     void "can force the version of a particular module"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()

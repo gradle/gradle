@@ -32,9 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyPublisher.class);
 

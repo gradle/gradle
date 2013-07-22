@@ -30,9 +30,6 @@ import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
 
-/**
- * by Szczepan Faber, created at: 10/11/11
- */
 public class ModuleVersionSelectorParsers {
 
     public static NotationParser<Set<ModuleVersionSelector>> multiParser() {

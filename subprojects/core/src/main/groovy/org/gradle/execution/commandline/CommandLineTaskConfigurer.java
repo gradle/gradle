@@ -32,9 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * by Szczepan Faber, created at: 9/5/12
- */
 public class CommandLineTaskConfigurer {
 
     public List<String> configureTasks(Collection<Task> tasks, List<String> arguments) {

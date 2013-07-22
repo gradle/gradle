@@ -32,9 +32,6 @@ import spock.lang.Unroll
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 
-/**
- * @author: Szczepan Faber, created at: 8/30/11
- */
 class DefaultFileLockManagerTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def metaDataProvider = Mock(ProcessMetaDataProvider)

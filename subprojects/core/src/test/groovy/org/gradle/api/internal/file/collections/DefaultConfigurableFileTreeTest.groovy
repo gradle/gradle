@@ -42,9 +42,6 @@ import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     JUnit4Mockery context = new JUnit4GroovyMockery();
     TaskResolver taskResolverStub = context.mock(TaskResolver.class);

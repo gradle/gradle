@@ -16,9 +16,6 @@
 
 package org.gradle.util;
 
-/**
- * by Szczepan Faber, created at: 12/18/12
- */
 class Assertions {
 
     private final Object source

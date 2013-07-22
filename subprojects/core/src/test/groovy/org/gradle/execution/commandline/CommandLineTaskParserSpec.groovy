@@ -26,9 +26,6 @@ import spock.lang.Specification
 import static com.google.common.collect.Sets.newHashSet
 import static java.util.Collections.emptyList
 
-/**
- * by Szczepan Faber, created at: 10/8/12
- */
 class CommandLineTaskParserSpec extends Specification {
 
     Project project = new ProjectBuilder().build()

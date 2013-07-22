@@ -44,9 +44,6 @@ import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.List;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final String EMPTY_SCRIPT_MARKER_FILE_NAME = "emptyScript.txt";

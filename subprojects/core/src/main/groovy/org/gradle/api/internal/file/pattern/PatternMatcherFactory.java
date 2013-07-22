@@ -18,9 +18,6 @@ package org.gradle.api.internal.file.pattern;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 
-/**
- * @author Steve Appling
- */
 public class PatternMatcherFactory {
     public static Spec<RelativePath> getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
         // trailing / or \ assumes **

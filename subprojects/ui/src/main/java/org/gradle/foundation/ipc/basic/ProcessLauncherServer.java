@@ -28,8 +28,6 @@ import java.io.ByteArrayOutputStream;
 /**
  * This launches an application as a separate process then listens for messages from it. You implement the Protocol interface to handle the specifics of the communications. To use this, instantiate
  * it, then call start. When the communications are finished, call requestShutdown(). Your server's protocol can call sendMessage once communication is started to respond to client's messages.
- *
- * @author mhunsicker
  */
 public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol, ProcessLauncherServer.ServerObserver> {
     private volatile ExecHandle externalProcess;

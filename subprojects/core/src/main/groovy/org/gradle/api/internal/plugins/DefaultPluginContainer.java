@@ -20,9 +20,6 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultPluginContainer<T extends PluginAware> extends DefaultPluginCollection<Plugin> implements PluginContainer {
     private PluginRegistry pluginRegistry;
     private final T pluginAware;

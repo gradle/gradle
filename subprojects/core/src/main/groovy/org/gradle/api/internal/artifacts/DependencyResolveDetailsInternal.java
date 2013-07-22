@@ -19,9 +19,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 
-/**
- * by Szczepan Faber, created at: 12/13/12
- */
 public interface DependencyResolveDetailsInternal extends DependencyResolveDetails {
 
     void useVersion(String version, ModuleVersionSelectionReason selectionReason);

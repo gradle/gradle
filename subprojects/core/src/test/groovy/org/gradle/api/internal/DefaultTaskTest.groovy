@@ -39,9 +39,6 @@ import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 class DefaultTaskTest extends AbstractTaskTest {
     ClassLoader cl
     DefaultTask defaultTask

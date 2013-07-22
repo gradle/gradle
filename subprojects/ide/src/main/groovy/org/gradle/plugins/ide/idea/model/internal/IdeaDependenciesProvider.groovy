@@ -21,9 +21,6 @@ import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 
-/**
- * @author Szczepan Faber, created at: 4/1/11
- */
 class IdeaDependenciesProvider {
 
     private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()

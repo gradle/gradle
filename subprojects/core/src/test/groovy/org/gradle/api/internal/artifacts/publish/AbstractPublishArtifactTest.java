@@ -21,14 +21,12 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.util.Date;
 
-/**
- * @author Hans Dockter
- */
+import static org.junit.Assert.assertEquals;
+
 public abstract class AbstractPublishArtifactTest {
     private static final File TEST_FILE = new File("artifactFile");
     private static final String TEST_NAME = "myfile-1";

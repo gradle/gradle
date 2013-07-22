@@ -25,9 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class PublishModuleDescriptorConverter implements ModuleDescriptorConverter {
     static final String IVY_MAVEN_NAMESPACE = "http://ant.apache.org/ivy/maven";
     static final String IVY_MAVEN_NAMESPACE_PREFIX = "m";

@@ -21,9 +21,6 @@ import org.gradle.internal.concurrent.Synchronizer;
 
 import java.lang.reflect.Type;
 
-/**
- * by Szczepan Faber, created at: 11/24/11
- */
 public class SynchronizedServiceRegistry implements ServiceRegistry {
     private final Synchronizer synchronizer = new Synchronizer();
     private final ServiceRegistry delegate;

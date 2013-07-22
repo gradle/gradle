@@ -28,9 +28,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 11/8/11
- */
 public class NotationParserBuilder<T> {
     private TypeInfo<T> resultingType;
     private String invalidNotationMessage;

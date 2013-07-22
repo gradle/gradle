@@ -21,8 +21,6 @@ import java.util.List;
 
 /**
  * Specifies the options for executing a Java application.
- *
- * @author Hans Dockter
  */
 public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     /**

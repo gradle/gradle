@@ -21,9 +21,6 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.*
 
-/**
- * by Szczepan Faber, created at: 9/20/12
- */
 class DefaultResolutionResultTest extends Specification {
 
     def "provides all modules and dependencies including unresolved"() {

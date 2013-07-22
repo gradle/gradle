@@ -23,8 +23,6 @@ import java.io.Writer;
 
 /**
  * <p>A streaming XML writer.</p>
- *
- * by Szczepan Faber, created at: 12/3/12
  */
 public class SimpleXmlWriter extends SimpleMarkupWriter {
 

@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.launcher.exec
 
-
+import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import spock.lang.Specification
-import org.gradle.api.logging.LogLevel
 
-/**
- * @author: Szczepan Faber, created at: 9/6/11
- */
 public class DefaultBuildActionParametersTest extends Specification {
 
     def "is serializable"() {

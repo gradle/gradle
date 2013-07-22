@@ -20,9 +20,6 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 
-/**
- * by Szczepan Faber, created at: 7/26/12
- */
 public class AbstractDependencyResult implements DependencyResult {
     private final ModuleVersionSelector requested;
     private final ResolvedModuleVersionResult from;

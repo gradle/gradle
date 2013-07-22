@@ -19,8 +19,6 @@ import org.w3c.dom.Element
 
 /**
  * Validates sample element - looks for missing attributes.
- *
- * @author Tomek Kaczanowski
  */
 public class SampleElementValidator {
 

@@ -15,13 +15,10 @@
  */
 package org.gradle.api.plugins.announce
 
-import spock.lang.Specification
-import org.gradle.util.HelperUtil
 import org.gradle.api.Project
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class AnnouncePluginTest extends Specification {
     AnnouncePlugin announcePlugin = new AnnouncePlugin()
     Project project = HelperUtil.createRootProject()

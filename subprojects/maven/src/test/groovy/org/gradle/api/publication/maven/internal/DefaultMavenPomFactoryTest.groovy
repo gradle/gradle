@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publication.maven.internal;
-
+package org.gradle.api.publication.maven.internal
 
 import org.gradle.api.artifacts.ConfigurationContainer
-
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 public class DefaultMavenPomFactoryTest extends Specification {
     def createMavenPom() {
         DefaultConf2ScopeMappingContainer scopeMappings = new DefaultConf2ScopeMappingContainer();

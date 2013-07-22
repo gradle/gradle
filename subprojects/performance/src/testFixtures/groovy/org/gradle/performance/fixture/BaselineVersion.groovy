@@ -22,9 +22,6 @@ import org.gradle.performance.measure.Duration
 
 import static org.gradle.performance.fixture.PrettyCalculator.*
 
-/**
- * by Szczepan Faber, created at: 11/20/12
- */
 class BaselineVersion {
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()

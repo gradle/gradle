@@ -18,9 +18,6 @@ package org.gradle.process.internal;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaExecSpec;
 
-/**
- * @author Hans Dockter
- */
 public interface JavaExecAction extends JavaExecSpec {
     ExecResult execute();
 }

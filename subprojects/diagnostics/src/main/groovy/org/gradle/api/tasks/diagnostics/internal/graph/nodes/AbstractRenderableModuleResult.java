@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 8/10/12
- */
 public abstract class AbstractRenderableModuleResult implements RenderableDependency {
 
     protected final ResolvedModuleVersionResult module;

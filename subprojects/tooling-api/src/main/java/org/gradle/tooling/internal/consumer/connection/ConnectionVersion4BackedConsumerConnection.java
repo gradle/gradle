@@ -31,8 +31,6 @@ import org.gradle.util.GradleVersion;
 
 /**
  * An implementation that wraps a protocol instance that has rigid compatibility policy.
- * <p>
- * by Szczepan Faber, created at: 12/22/11
  */
 public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12ConsumerConnection {
 

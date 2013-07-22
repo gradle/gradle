@@ -19,7 +19,6 @@ package org.gradle.external.javadoc;
 /**
  * Represents a Javadoc command-line option.
  *
- * @author Tom Eyckmans
  * @param <T> The type which this option represents.
  */
 public interface JavadocOptionFileOption<T> extends OptionLessJavadocOptionFileOption<T> {

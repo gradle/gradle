@@ -24,8 +24,6 @@ import java.util.List;
  * This is an abstraction from Gradle that allows you to retrieve projects and views from it.
  *
  * This is a mirror of GradlePluginLord inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated
@@ -55,7 +53,6 @@ public interface GradleInterfaceVersion2 extends GradleInterfaceVersion1 {
      * @param commandLineArguments the command line arguments to pass to gradle.
      * @param displayName the name displayed in the UI for this command
      * @return the request object. Useful if you want to track its completion via a RequestObserver
-     * @author mhunsicker
      */
     public RequestVersion1 executeCommand2(String commandLineArguments, String displayName);
 

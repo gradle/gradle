@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.result.ResolutionResult
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 10/16/12
- */
 class ResolverResultsSpec extends Specification {
 
     private resolvedConfiguration = Mock(ResolvedConfiguration)

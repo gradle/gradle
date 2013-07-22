@@ -15,9 +15,6 @@
  */
 package org.gradle.groovy.scripts;
 
-/**
- * @author Hans Dockter
- */
 public class EmptyScript extends groovy.lang.Script {
     public Object run() {
         return null;

@@ -19,8 +19,6 @@ import java.util.List;
 
 /**
  * Specified the options for executing some command.
- *
- * @author Hans Dockter
  */
 public interface ExecSpec extends BaseExecSpec {
     /**

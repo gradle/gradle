@@ -50,8 +50,6 @@ import java.util.Map;
  *   }
  * }
  * </pre>
- * 
- * @author Hans Dockter
  */
 public class Exec extends ConventionTask implements ExecSpec {
     private ExecAction execAction;

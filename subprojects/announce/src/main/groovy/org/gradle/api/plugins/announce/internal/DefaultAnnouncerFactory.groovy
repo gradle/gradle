@@ -22,9 +22,6 @@ import org.gradle.api.plugins.announce.AnnouncePluginExtension
 import org.gradle.api.plugins.announce.Announcer
 import org.gradle.internal.os.OperatingSystem
 
-/**
- * @author Hans Dockter
- */
 class DefaultAnnouncerFactory implements AnnouncerFactory {
     private final AnnouncePluginExtension announcePluginConvention
     private final IconProvider iconProvider

@@ -26,9 +26,6 @@ import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/**
- * @author: Szczepan Faber, created at: 8/3/11
- */
 public class DefaultIdeaContentRoot implements IdeaContentRoot, Serializable {
 
     File rootDirectory;

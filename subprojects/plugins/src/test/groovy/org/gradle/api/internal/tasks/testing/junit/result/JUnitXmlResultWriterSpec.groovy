@@ -32,9 +32,6 @@ import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.*
 import static org.hamcrest.Matchers.equalTo
 
-/**
- * by Szczepan Faber, created at: 11/16/12
- */
 class JUnitXmlResultWriterSpec extends Specification {
 
     private provider = Mock(TestResultsProvider)

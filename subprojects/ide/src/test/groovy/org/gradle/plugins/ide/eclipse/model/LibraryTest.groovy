@@ -19,9 +19,6 @@ import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 
 class LibraryTest extends Specification {
     final static String XML_TEXT_TEMPLATE = '''

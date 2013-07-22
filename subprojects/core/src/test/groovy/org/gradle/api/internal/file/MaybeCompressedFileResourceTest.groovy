@@ -21,9 +21,6 @@ import org.gradle.api.internal.file.archive.compression.Bzip2Archiver
 import org.gradle.api.internal.file.archive.compression.GzipArchiver
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 11/24/11
- */
 public class MaybeCompressedFileResourceTest extends Specification {
 
     def "understands file extensions"() {

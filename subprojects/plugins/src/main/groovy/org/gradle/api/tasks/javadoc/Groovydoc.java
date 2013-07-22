@@ -34,8 +34,6 @@ import java.util.*;
  * some severe limitations at the moment (for example no doc for properties comments). The version of the Groovydoc that
  * is used, is the one from the Groovy defined in the build script. Please note also, that the Groovydoc tool prints to
  * System.out for many of its statements and does circumvents our logging currently.
- *
- * @author Hans Dockter
  */
 public class Groovydoc extends SourceTask {
     private FileCollection groovyClasspath;

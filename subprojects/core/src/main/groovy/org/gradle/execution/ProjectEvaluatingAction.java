@@ -23,8 +23,6 @@ import java.util.List;
 
 /**
  * Ensures that projects resolved from the command line task names are evaluated.
- *
- * by Szczepan Faber, created at: 11/22/12
  */
 public class ProjectEvaluatingAction implements BuildConfigurationAction {
 

@@ -23,9 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-/**
- * @author Tom Eyckmans
- */
 class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetecter> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestNGDetector.class);
 

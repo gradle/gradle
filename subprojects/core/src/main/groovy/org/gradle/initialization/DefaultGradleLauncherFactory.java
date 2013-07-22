@@ -42,9 +42,6 @@ import org.gradle.util.DeprecationLogger;
 
 import java.util.Arrays;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final ServiceRegistry sharedServices;
     private final NestedBuildTracker tracker;

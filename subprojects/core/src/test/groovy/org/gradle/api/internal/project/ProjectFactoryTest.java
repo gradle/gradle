@@ -43,9 +43,6 @@ import java.io.IOException;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public class ProjectFactoryTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();

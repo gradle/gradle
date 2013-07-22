@@ -17,9 +17,9 @@
 package org.gradle.tooling.internal.provider.connection;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
-import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 
 import java.io.File;
 import java.io.InputStream;
@@ -28,9 +28,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * by Szczepan Faber, created at: 12/20/11
- */
 public class AdaptedOperationParameters implements ProviderOperationParameters {
 
     private final BuildOperationParametersVersion1 delegate;

@@ -22,9 +22,6 @@ import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.process.ExecResult;
 
-/**
- * by Szczepan Faber, created at: 1/19/12
- */
 public class DaemonGreeter {
     private final DocumentationRegistry documentationRegistry;
 

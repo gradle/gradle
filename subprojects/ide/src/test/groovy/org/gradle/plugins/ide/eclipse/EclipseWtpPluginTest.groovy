@@ -25,9 +25,6 @@ import org.gradle.util.HelperUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
-/**
- * @author: Szczepan Faber, created at: 6/28/11
- */
 class EclipseWtpPluginTest extends Specification {
 
     private final DefaultProject project = HelperUtil.createRootProject()

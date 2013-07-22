@@ -26,9 +26,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
 class LoggingIntegrationTest extends AbstractIntegrationTest {
 
     @Rule public final TestResources resources = new TestResources(testDirectoryProvider)

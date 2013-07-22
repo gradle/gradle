@@ -22,7 +22,6 @@ package org.gradle.openapi.external.ui;
    that shouldn't change across versions. New interfaces can be expected, but
    we'll always allow 'version1'. This is to provide backward/forward compatibility.
 
-   @author mhunsicker
    @deprecated No replacement
 */
 @Deprecated

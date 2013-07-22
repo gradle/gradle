@@ -24,8 +24,6 @@ import java.util.List;
 
 /**
  * This visitor builds up a list of unqiuely named projects and tasks. The projects will be their full path, so they're all unique.
- *
- * @author mhunsicker
  */
 public class UniqueNameProjectAndTaskVisitor implements AllProjectsAndTasksVisitor.Visitor<Object, Object> {
     private List<String> taskNames = new ArrayList<String>();
@@ -59,7 +57,6 @@ public class UniqueNameProjectAndTaskVisitor implements AllProjectsAndTasksVisit
                                it'll be whatever was passed into the
                                visitPojectsAndTasks function.
     @return always null
-    @author mhunsicker
     */
 
     public Object visitProject(ProjectView project, Object parentProjectObject) {
@@ -76,7 +73,6 @@ public class UniqueNameProjectAndTaskVisitor implements AllProjectsAndTasksVisit
     @param task              the task
     @param tasksProject      the project for this task
     @param userProjectObject always null.
-    @author mhunsicker
     */
 
     public Object visitTask(TaskView task, ProjectView tasksProject, Object userProjectObject) {

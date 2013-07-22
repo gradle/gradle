@@ -31,9 +31,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
 
-/**
- * @author Hans Dockter
- */
 public class BaseSettings extends AbstractPluginAware implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
 

@@ -21,8 +21,6 @@ import org.gradle.api.tasks.Optional;
 
 /**
  * Fork options for Java compilation. Only take effect if {@code CompileOptions.fork} is {@code true}.
- *
- * @author Hans Dockter
  */
 public class ForkOptions extends BaseForkOptions {
     private static final long serialVersionUID = 0;

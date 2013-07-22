@@ -19,9 +19,6 @@ package org.gradle.tooling.model.internal;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
-/**
- * by Szczepan Faber, created at: 12/22/11
- */
 public class Exceptions {
 
     public final static String INCOMPATIBLE_VERSION_HINT =

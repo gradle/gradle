@@ -23,9 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleC
 
 import java.util.Collection;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultDependenciesToModuleDescriptorConverter implements DependenciesToModuleDescriptorConverter {
     private DependencyDescriptorFactory dependencyDescriptorFactory;
     private ExcludeRuleConverter excludeRuleConverter;

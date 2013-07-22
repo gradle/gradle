@@ -21,8 +21,6 @@ import java.io.File;
  * This is how the gradle UI panel interacts with the UI that is holding it.
  *
  * This is a mirror of AlternateUIInteraction inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated

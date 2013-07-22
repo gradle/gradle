@@ -15,9 +15,6 @@
  */
 package org.gradle.util
 
-/**
- * @author Hans Dockter
- */
 class ReflectionUtil {
     static Object invoke(Object object, String method, Object... params) {
         object.invokeMethod(method, params)

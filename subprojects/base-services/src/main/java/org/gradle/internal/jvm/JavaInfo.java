@@ -19,9 +19,6 @@ package org.gradle.internal.jvm;
 import java.io.File;
 import java.util.Map;
 
-/**
- * by Szczepan Faber, created at: 2/6/12
- */
 public interface JavaInfo {
     /**
      * @return the executable

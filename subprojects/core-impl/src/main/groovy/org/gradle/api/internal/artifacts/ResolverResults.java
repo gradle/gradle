@@ -20,9 +20,6 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 
-/**
- * by Szczepan Faber, created at: 10/16/12
- */
 public class ResolverResults {
 
     private final ResolvedConfiguration resolvedConfiguration;

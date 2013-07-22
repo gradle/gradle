@@ -28,9 +28,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-/**
- * by Szczepan Faber, created at: 11/13/12
- */
 public class JUnitXmlResultWriter {
 
     private final String hostName;

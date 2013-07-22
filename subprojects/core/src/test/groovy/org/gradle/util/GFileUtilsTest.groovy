@@ -24,9 +24,6 @@ import spock.lang.Specification
 import static org.gradle.util.GFileUtils.mkdirs
 import static org.gradle.util.GFileUtils.parentMkdirs
 
-/**
- * by Szczepan Faber, created at: 2/28/12
- */
 class GFileUtilsTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp

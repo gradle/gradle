@@ -19,9 +19,6 @@ package org.gradle.launcher.daemon
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
-/**
- * by Szczepan Faber, created at: 1/20/12
- */
 class StoppingDaemonIntegrationSpec extends DaemonIntegrationSpec {
     def "can handle multiple concurrent stop requests"() {
         given:

@@ -22,8 +22,6 @@ import java.io.File;
 /**
  * This represents a link to a file inside gradle's output. This is so the gradle UI/plugins can open the file. This is useful for a user when gradle displays a build error, test failure or compile
  * error.
- *
- * @author mhunsicker
  */
 public class FileLink {
     private File file;

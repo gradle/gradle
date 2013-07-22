@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
-import spock.lang.Specification
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 1/29/13
- */
 class VersionSelectionReasonResolverTest extends Specification {
 
     def "configures selection reason"() {

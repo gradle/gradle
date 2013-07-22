@@ -33,9 +33,6 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.util.*;
 
-/**
-* @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
-*/
 public class EclipseModelBuilder implements ToolingModelBuilder {
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject result;

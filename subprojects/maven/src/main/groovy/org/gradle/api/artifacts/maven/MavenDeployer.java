@@ -31,8 +31,6 @@ import java.util.Collection;
  *
  * <p>You can create an instance of this type via the {@link org.gradle.api.tasks.Upload#getRepositories()}
  * container</p>
- *
- * @author Hans Dockter
  */
 public interface MavenDeployer extends MavenResolver {
 

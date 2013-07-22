@@ -36,7 +36,6 @@ import java.io.IOException;
 
 /**
  * @param <T> The type which this option represents.
- * @author Tom Eyckmans
  */
 public class EnumJavadocOptionFileOption<T> extends AbstractJavadocOptionFileOption<T> {
     public EnumJavadocOptionFileOption(String option) {

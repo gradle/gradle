@@ -16,15 +16,12 @@
 package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeLocalFileDependency
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeProjectDependency
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeRepoFileDependency
-import org.gradle.plugins.ide.eclipse.model.*
 
-/**
- * @author Hans Dockter
- */
 class ClasspathFactory {
 
     private final ClasspathEntryBuilder outputCreator = new ClasspathEntryBuilder() {

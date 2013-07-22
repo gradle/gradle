@@ -18,9 +18,6 @@ package org.gradle.api.publication.maven.internal.ant;
 import org.apache.maven.artifact.ant.InstallTask;
 import org.apache.maven.settings.Settings;
 
-/**
- * @author Hans Dockter
- */
 public class CustomInstallTask extends InstallTask implements CustomInstallDeployTaskSupport {
     @Override
     public synchronized Settings getSettings() {

@@ -26,7 +26,6 @@ import org.gradle.internal.os.OperatingSystem;
 /**
  * Initializes for a well behaved parent process.
  * <p>
- * by Szczepan Faber, created at: 3/2/12
  */
 public class ProcessParentingInitializer {
 

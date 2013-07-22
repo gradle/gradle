@@ -21,9 +21,6 @@ import org.gradle.api.internal.artifacts.configurations.Configurations;
 
 import java.util.Arrays;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultConfigurationsToModuleDescriptorConverter implements ConfigurationsToModuleDescriptorConverter {
     public void addConfigurations(DefaultModuleDescriptor moduleDescriptor, Iterable<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {

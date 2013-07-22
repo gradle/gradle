@@ -19,9 +19,6 @@ package org.gradle.api.internal.notations.parsers
 import org.gradle.api.internal.notations.api.UnsupportedNotationException
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 10/12/12
- */
 class ClosureToSpecNotationParserTest extends Specification {
 
     private ClosureToSpecNotationParser parser = new ClosureToSpecNotationParser()

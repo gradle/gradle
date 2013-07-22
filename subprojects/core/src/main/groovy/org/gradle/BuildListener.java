@@ -22,7 +22,6 @@ import org.gradle.api.invocation.Gradle;
  * <p>A {@code BuildListener} is notified of the major lifecycle events as a {@link GradleLauncher} instance executes a
  * build.</p>
  *
- * @author Hans Dockter
  * @see org.gradle.api.invocation.Gradle#addListener(Object)
  */
 public interface BuildListener {

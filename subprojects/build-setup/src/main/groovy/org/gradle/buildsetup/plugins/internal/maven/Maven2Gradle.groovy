@@ -26,10 +26,7 @@ import org.gradle.util.GFileUtils
  * and generates build.gradle scripts. It also generates settings.gradle for multimodule builds. <br/>
  *
  * It currently supports both single-module and multi-module POMs, inheritance, dependency management, properties - everything.
- *
- * @author Antony Stubbs <antony.stubbs@gmail.com>
- * @author Baruch Sadogursky <jbaruch@sadogursky.com>
- * */
+ */
 class Maven2Gradle {
 
     def dependentWars = []

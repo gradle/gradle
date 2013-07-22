@@ -23,9 +23,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 11/19/12
- */
 class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()

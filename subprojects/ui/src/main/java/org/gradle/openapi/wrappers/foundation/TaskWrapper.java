@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * Implementation of TaskVersion1 meant to help shield external users from internal changes.
- *
- * @author mhunsicker
  */
 public class TaskWrapper implements TaskVersion1 {
 

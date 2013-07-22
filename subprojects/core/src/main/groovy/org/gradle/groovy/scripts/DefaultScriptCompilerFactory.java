@@ -15,14 +15,11 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
     private final ScriptRunnerFactory scriptRunnerFactory;
     private final ScriptClassCompiler scriptClassCompiler;

@@ -27,8 +27,6 @@ import org.gradle.util.VersionNumber
  * Please note: includeAntRuntime=false is ignored if groovyc is used in non fork mode. In this case the runtime classpath is
  * added to the compile classpath.
  * See: http://jira.codehaus.org/browse/GROOVY-2717
- *
- * @author Hans Dockter
  */
 class AntGroovyCompiler implements org.gradle.api.internal.tasks.compile.Compiler<GroovyJavaJointCompileSpec> {
     private final IsolatedAntBuilder ant

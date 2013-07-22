@@ -15,9 +15,6 @@
  */
 
 package org.gradle.performance.measure
-/**
- * by Szczepan Faber, created at: 2/10/12
- */
 public class MeasuredOperation {
     Amount<Duration> executionTime
     Exception exception

@@ -18,9 +18,6 @@ package org.gradle.util.internal
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 2/28/12
- */
 class LimitedDescriptionTest extends Specification {
 
     def desc = new LimitedDescription(2)

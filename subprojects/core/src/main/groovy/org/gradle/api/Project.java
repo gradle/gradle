@@ -187,8 +187,6 @@ import java.util.Set;
  * <li>The parent project, recursively up to the root project.</li>
  *
  * </ul>
- *
- * @author Hans Dockter
  */
 @HasInternalProtocol
 public interface Project extends Comparable<Project>, ExtensionAware, PluginAware {

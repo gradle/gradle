@@ -20,9 +20,6 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*
 
-/**
- * by Szczepan Faber, created at: 1/29/13
- */
 class VersionSelectionReasonsTest extends Specification {
 
     def "decorates with conflict resolution"() {

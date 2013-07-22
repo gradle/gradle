@@ -18,9 +18,6 @@ package org.gradle.buildsetup.plugins.internal.maven
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 1/21/13
- */
 class MavenProjectXmlWriterTest extends Specification {
 
     def writer = new MavenProjectXmlWriter()

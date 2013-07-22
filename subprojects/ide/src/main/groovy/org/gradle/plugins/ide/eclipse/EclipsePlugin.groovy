@@ -17,11 +17,11 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
@@ -35,8 +35,6 @@ import javax.inject.Inject
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
- *
- * @author Hans Dockter
  */
 class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_TASK_NAME = "eclipse"

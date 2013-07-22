@@ -19,9 +19,6 @@ import org.gradle.launcher.daemon.server.exec.DaemonUnavailableException
 import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
-/**
- * by Szczepan Faber, created at: 2/6/12
- */
 class DaemonStateCoordinatorTest extends Specification {
     final Runnable onStartCommand = Mock(Runnable)
     final Runnable onFinishCommand = Mock(Runnable)

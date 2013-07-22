@@ -15,8 +15,5 @@
  */
 package org.gradle.cache.internal;
 
-/**
- * By Szczepan Faber on 6/6/13
- */
 public class GracefullyStoppedException extends Exception {
 }

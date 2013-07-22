@@ -20,9 +20,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-/**
- * by Szczepan Faber, created at: 11/16/11
- */
 public class SimpleCompressor implements ArchiveOutputStreamFactory {
 
     public OutputStream createArchiveOutputStream(File destination) {

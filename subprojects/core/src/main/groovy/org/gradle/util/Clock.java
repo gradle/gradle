@@ -19,9 +19,6 @@ package org.gradle.util;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 
-/**
- * @author Hans Dockter
- */
 public class Clock {
     private long start;
     private TimeProvider timeProvider;

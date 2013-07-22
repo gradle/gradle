@@ -31,9 +31,6 @@ import org.gradle.testfixtures.ProjectBuilder
 
 import java.rmi.server.UID
 
-/**
- * @author Hans Dockter
- */
 class HelperUtil {
      public static final Closure TEST_CLOSURE = {}
 

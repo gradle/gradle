@@ -23,9 +23,6 @@ import spock.lang.Specification
 
 import static org.gradle.configuration.ImplicitTasksConfigurer.*
 
-/**
- * by Szczepan Faber, created at: 9/5/12
- */
 class HelpTasksPluginSpec extends Specification {
     final project = HelperUtil.createRootProject()
 

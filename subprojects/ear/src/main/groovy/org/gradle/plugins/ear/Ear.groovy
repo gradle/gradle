@@ -30,8 +30,6 @@ import org.gradle.util.ConfigureUtil
 
 /**
  * Assembles an EAR archive.
- *
- * @author David Gileadi
  */
 class Ear extends Jar {
     public static final String EAR_EXTENSION = 'ear'

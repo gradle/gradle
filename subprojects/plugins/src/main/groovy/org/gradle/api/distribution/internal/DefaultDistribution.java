@@ -24,8 +24,6 @@ import org.gradle.internal.reflect.Instantiator;
 
 /**
  * Allow user to declare a distribution.
- *
- * @author scogneau
  */
 public class DefaultDistribution implements Distribution {
     private final String name;

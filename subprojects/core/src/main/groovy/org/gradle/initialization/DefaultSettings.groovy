@@ -21,9 +21,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ServiceRegistryFactory
 import org.gradle.groovy.scripts.ScriptSource
 
-/**
- * @author Hans Dockter
- */
 public class DefaultSettings extends BaseSettings {
 
     DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,

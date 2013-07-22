@@ -25,8 +25,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * This class abstracts running multiple tasks consecutively. This exists because I'm not certain that Gradle is thread-safe and on Windows, running tasks that require lots of disk I/O get
  * considerably slower when run concurrently. This will allow requests to be made and they will run as soon as any previous requests have finished.
- *
- * @author mhunsicker
  */
 public class ExecutionQueue<R extends ExecutionQueue.Request> {
     private final Logger logger = Logging.getLogger(ExecutionQueue.class);

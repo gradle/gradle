@@ -29,9 +29,6 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import java.io.File;
 import java.util.*;
 
-/**
- * @author Szczepan Faber, created at: 7/23/11
- */
 public class IdeaModelBuilder implements ToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
     private boolean offlineDependencyResolution;

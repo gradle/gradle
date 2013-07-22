@@ -30,9 +30,6 @@ import java.util.Map;
 
 import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
     private static final String NO_PROJECT_DEPENDENCY_REBUILD = "a";
     private static final String BUILD_FILE = "b";

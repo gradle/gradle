@@ -23,16 +23,14 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer
-import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.idea.model.*
+import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
 
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task.
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
- *
- *  @author Hans Dockter
  */
 class IdeaPlugin extends IdePlugin {
     private final Instantiator instantiator

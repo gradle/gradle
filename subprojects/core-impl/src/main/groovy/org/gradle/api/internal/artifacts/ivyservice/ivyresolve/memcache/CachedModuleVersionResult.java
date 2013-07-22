@@ -22,13 +22,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult.State.Missing;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult.State.ProbablyMissing;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult.State.Resolved;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult.State.*;
 
-/**
-* By Szczepan Faber on 4/19/13
-*/
 class CachedModuleVersionResult {
     private final BuildableModuleVersionMetaDataResolveResult.State state;
     private final ModuleDescriptor moduleDescriptor;

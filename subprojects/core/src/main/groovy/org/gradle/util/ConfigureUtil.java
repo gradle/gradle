@@ -27,9 +27,6 @@ import java.util.Map;
 
 import static org.gradle.util.CollectionUtils.toStringList;
 
-/**
- * @author Hans Dockter
- */
 public class ConfigureUtil {
 
     public static <T> T configureByMap(Map<?, ?> properties, T delegate) {

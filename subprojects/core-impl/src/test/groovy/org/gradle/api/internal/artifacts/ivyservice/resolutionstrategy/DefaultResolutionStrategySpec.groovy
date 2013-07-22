@@ -27,9 +27,6 @@ import java.util.concurrent.TimeUnit
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.util.Assertions.assertThat
 
-/**
- * by Szczepan Faber, created at: 11/2/11
- */
 public class DefaultResolutionStrategySpec extends Specification {
 
     def cachePolicy = Mock(DefaultCachePolicy)

@@ -37,7 +37,6 @@ import java.util.concurrent.locks.ReentrantLock
 
 /**
 This tests the that live output is gathered while executing a task.
-@author mhunsicker
 */
 class LiveOutputIntegrationTest extends AbstractIntegrationTest {
 
@@ -61,8 +60,6 @@ class LiveOutputIntegrationTest extends AbstractIntegrationTest {
 This executes 'build' on the java multiproject sample. We want to make sure that
 we do get live output from gradle. We're not concerned with what it is, because
 that's likely to change over time. This version executes the command via GradlePlugin.
-
-@author mhunsicker
 */
 
     @Test
@@ -89,8 +86,6 @@ that's likely to change over time. This version executes the command via GradleP
 This executes 'build' on the java multiproject sample. We want to make sure that
 we do get live output from gradle. We're not concerned with what it is, because
 that's likely to change over time. This version executes the command via GradleRunner.
-
-@author mhunsicker
 */
     @Test
     public void liveOutputObtainedViaGradleRunner() {

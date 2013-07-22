@@ -22,9 +22,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author Hans Dockter
- */
 public class ProjectDependencies2TaskResolver implements ProjectConfigureAction {
     private static Logger logger = LoggerFactory.getLogger(ProjectDependencies2TaskResolver.class);
 

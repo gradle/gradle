@@ -16,13 +16,11 @@
  
 package org.gradle.api.tasks.compile
 
-import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
+import static org.junit.Assert.assertEquals
+
 class ForkOptionsTest {
     static final List PROPS = ['executable', 'memoryInitialSize', 'memoryMaximumSize', 'tempDir']
     

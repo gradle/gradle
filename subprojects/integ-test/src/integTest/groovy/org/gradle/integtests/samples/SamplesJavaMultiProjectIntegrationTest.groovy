@@ -28,9 +28,6 @@ import org.junit.Test
 
 import static org.hamcrest.Matchers.containsString
 
-/**
- * @author Hans Dockter
- */
 class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
 
     static final String JAVA_PROJECT_NAME = 'java/multiproject'

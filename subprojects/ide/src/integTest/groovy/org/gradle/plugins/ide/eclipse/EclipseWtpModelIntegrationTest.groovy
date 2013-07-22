@@ -22,9 +22,6 @@ import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
 
-/**
- * @author Szczepan Faber, created at: 4/19/11
- */
 class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Rule

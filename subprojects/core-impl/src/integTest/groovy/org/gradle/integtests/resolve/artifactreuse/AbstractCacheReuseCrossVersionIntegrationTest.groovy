@@ -22,9 +22,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 
-/**
- * by Szczepan Faber, created at: 11/27/12
- */
 abstract class AbstractCacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
     /**

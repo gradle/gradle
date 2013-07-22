@@ -24,9 +24,6 @@ import org.gradle.api.specs.Specs;
 
 import java.util.Collection;
 
-/**
- * by Szczepan Faber, created at: 10/12/12
- */
 public class ClosureToSpecNotationParser<T> implements NotationParser<Spec<T>> {
     public Spec<T> parseNotation(Object notation) throws UnsupportedNotationException {
         if (notation instanceof Closure) {

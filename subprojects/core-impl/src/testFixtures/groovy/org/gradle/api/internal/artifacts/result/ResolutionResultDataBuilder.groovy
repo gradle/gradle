@@ -17,15 +17,12 @@
 package org.gradle.api.internal.artifacts.result
 
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 
-/**
- * by Szczepan Faber, created at: 10/2/12
- */
 class ResolutionResultDataBuilder {
 
     static DefaultResolvedDependencyResult newDependency(String group='a', String module='a', String version='1', String selectedVersion='1') {

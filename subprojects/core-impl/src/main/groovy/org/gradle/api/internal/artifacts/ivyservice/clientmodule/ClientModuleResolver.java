@@ -23,9 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionRes
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor;
 
-/**
- * @author Hans Dockter
- */
 public class ClientModuleResolver implements DependencyToModuleVersionResolver {
     private final DependencyToModuleVersionResolver resolver;
 

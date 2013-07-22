@@ -15,12 +15,11 @@
  */
 package org.gradle.util;
 
-import org.apache.tools.ant.*;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectHelper;
+import org.apache.tools.ant.Task;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 
-/**
- * @author Hans Dockter
- */
 public class AntUtil {
     /**
      * @return Factory method to create new Project instances

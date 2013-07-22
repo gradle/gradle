@@ -26,8 +26,6 @@ import java.util.List;
 
 /**
  * This is a basic filter where you can specify specific projects and tasks that will be filtered out.
- *
- * @author mhunsicker
  */
 public class BasicProjectAndTaskFilter implements ProjectAndTaskFilter, SettingsSerializable {
     private static final String BASIC_PROJECT_AND_TASK_FILTER = "basic-project-and-task-filter";

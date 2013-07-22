@@ -60,9 +60,6 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, DependencyResolver {
     
     private ArtifactPomContainer artifactPomContainer;

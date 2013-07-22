@@ -21,9 +21,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.taskpath.ResolvedTaskPath;
 import org.gradle.execution.taskpath.TaskPathResolver;
 
-/**
- * by Szczepan Faber, created at: 1/8/13
- */
 public class TaskPathProjectEvaluator {
 
     private final TaskPathResolver taskPathResolver;

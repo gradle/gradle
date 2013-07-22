@@ -25,8 +25,6 @@ import java.awt.geom.Rectangle2D;
 /**
  * This is button that has no border and only an image. It highlights when the user moves over it. This style was modeled after Idea. This was used because the borders on toolbars can get a little
  * busy and this looks a little cleaner.
- *
- * @author mhunsicker
  */
 public class BorderlessImageButton extends JButton {
     private Color oldBackgroundColor;

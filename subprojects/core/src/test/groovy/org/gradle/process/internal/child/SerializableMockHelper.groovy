@@ -20,17 +20,15 @@ package org.gradle.process.internal.child
 
 import groovyjarjarasm.asm.ClassVisitor
 import groovyjarjarasm.asm.ClassWriter
-import java.util.concurrent.atomic.AtomicInteger
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.control.CompilationUnit
 import org.codehaus.groovy.control.CompilationUnit.ClassgenCallback
 import org.codehaus.groovy.control.Phases
 import org.gradle.api.Action
 
-class SerializableMockHelper { /**
- * @author Hans Dockter
- */
-    static final Map ACTIONS = [:]
+import java.util.concurrent.atomic.AtomicInteger
+
+class SerializableMockHelper {     static final Map ACTIONS = [:]
     private final AtomicInteger counter = new AtomicInteger()
 
     /**

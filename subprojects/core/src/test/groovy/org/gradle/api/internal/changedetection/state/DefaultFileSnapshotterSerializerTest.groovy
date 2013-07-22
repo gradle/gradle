@@ -18,9 +18,6 @@ package org.gradle.api.internal.changedetection.state
 
 import spock.lang.Specification
 
-/**
- * By Szczepan Faber on 5/21/13
- */
 class DefaultFileSnapshotterSerializerTest extends Specification {
 
     def serializer = new DefaultFileSnapshotterSerializer()

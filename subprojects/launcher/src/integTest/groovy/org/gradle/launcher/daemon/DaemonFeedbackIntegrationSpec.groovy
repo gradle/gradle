@@ -23,9 +23,6 @@ import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-/**
- * by Szczepan Faber, created at: 1/20/12
- */
 class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
     def setup() {
         executer.requireIsolatedDaemons()

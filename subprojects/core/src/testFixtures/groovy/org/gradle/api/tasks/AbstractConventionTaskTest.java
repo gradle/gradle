@@ -25,9 +25,6 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractConventionTaskTest extends AbstractTaskTest {
 
     public abstract AbstractTask getTask();

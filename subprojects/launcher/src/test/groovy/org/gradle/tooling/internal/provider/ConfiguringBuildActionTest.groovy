@@ -27,9 +27,6 @@ import spock.lang.Specification
 import static org.gradle.util.Matchers.isSerializable
 import static org.hamcrest.MatcherAssert.assertThat
 
-/**
- * by Szczepan Faber, created at: 3/6/12
- */
 class ConfiguringBuildActionTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp
 

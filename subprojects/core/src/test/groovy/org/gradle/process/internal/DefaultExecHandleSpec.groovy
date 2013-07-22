@@ -28,9 +28,6 @@ import spock.lang.Timeout
 
 import java.util.concurrent.Callable
 
-/**
- * @author Tom Eyckmans, Szczepan Faber
- */
 @Timeout(60)
 class DefaultExecHandleSpec extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();

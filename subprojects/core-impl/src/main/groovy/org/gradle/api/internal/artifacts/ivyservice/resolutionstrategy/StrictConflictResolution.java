@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.ConflictResolution;
 
 /**
  * Strict type, allows configuring (forcing) certain dependency versions using dependency notation
- * <p>
- * by Szczepan Faber, created at: 10/5/11
  */
 public class StrictConflictResolution implements ConflictResolution {
 }

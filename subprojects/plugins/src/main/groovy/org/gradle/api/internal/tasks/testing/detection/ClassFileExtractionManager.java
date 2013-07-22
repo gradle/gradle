@@ -30,8 +30,6 @@ import java.util.*;
 
 /**
  * This class manages class file extraction from library jar files.
- *
- * @author Tom Eyckmans
  */
 public class ClassFileExtractionManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClassFileExtractionManager.class);

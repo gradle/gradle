@@ -41,9 +41,6 @@ import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public class DefaultPomDependenciesConverterTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();

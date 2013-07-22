@@ -19,9 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 
-/**
- * by Szczepan Faber, created at: 8/29/12
- */
 class SubstitutedModuleVersionIdResolveResult implements ModuleVersionIdResolveResult {
 
     final ModuleVersionIdResolveResult result;

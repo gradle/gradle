@@ -18,9 +18,6 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.ProjectDependency;
 
-/**
- * by Szczepan Faber, created at: 3/4/13
- */
 public interface ProjectDependencyInternal extends ProjectDependency {
 
     /**

@@ -20,9 +20,6 @@ import org.gradle.api.GradleException
 import org.gradle.messaging.remote.internal.Connection
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 8/31/12
- */
 class DaemonClientConnectionTest extends Specification {
 
     final delegate = Mock(Connection)

@@ -32,7 +32,6 @@ import java.util.List;
  To use this, instantiate this, then call one of the initialize functions.
  Now you can get the class loader to load whatever classes you like.
 
- @author mhunsicker
  @deprecated No replacement
   */
 @Deprecated
@@ -60,7 +59,6 @@ public class BootstrapLoader {
       @param  bootStrapDebug       true to output debug information about the loading
                                    process.
       @throws Exception            if something goes wrong.
-      @author mhunsicker
    */
     public void initialize(ClassLoader parentClassloader, File gradleHome, boolean useParentLastClassLoader, boolean loadOpenAPI, boolean bootStrapDebug) throws Exception {
         if (gradleHome == null || !gradleHome.exists()) {
@@ -152,7 +150,6 @@ public class BootstrapLoader {
 
       @param  nonLoggingJarFiles a list of jar files
       @param  loadOpenAPI        true to keep the open api jar, false to remove it.
-      @author mhunsicker
    */
     private void removeUnwantedJarFiles(List<File> nonLoggingJarFiles, boolean loadOpenAPI) {
         if (loadOpenAPI) {
@@ -171,7 +168,6 @@ public class BootstrapLoader {
     /*
       Call this to get the class loader you can use to load gradle classes.
       @return a URLClassLoader
-      @author mhunsicker
    */
     public URLClassLoader getClassLoader() {
         return libClassLoader;

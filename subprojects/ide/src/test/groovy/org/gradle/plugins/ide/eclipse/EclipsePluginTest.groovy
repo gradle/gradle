@@ -26,9 +26,6 @@ import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class EclipsePluginTest extends Specification {
     private final DefaultProject project = HelperUtil.createRootProject()
     private final EclipsePlugin eclipsePlugin = new EclipsePlugin(project.services.get(Instantiator))

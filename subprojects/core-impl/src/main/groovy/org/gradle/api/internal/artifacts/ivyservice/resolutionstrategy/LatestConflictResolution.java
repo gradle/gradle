@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.ConflictResolution;
 
 /**
  * Latest resolution strategy
- * <p>
- * by Szczepan Faber, created at: 10/5/11
  */
 public class LatestConflictResolution implements ConflictResolution {
 }

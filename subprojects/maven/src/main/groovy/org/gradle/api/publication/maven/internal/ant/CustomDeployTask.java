@@ -21,8 +21,6 @@ import org.codehaus.plexus.PlexusContainer;
 
 /**
  * We could also use reflection to get hold of the container property. But this would make it harder to use a Mock for this class.
- *
- * @author Hans Dockter
  */
 public class CustomDeployTask extends DeployTask implements CustomInstallDeployTaskSupport {
     @Override

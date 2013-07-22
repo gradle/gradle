@@ -34,9 +34,6 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertThat
 
-/**
- * @author Hans Dockter
- */
 class JavaPluginConventionTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private DefaultProject project = HelperUtil.createRootProject()

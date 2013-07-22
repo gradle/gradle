@@ -25,9 +25,6 @@ import org.gradle.internal.reflect.Instantiator;
 import java.io.File;
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public class SettingsFactory {
     private final Instantiator instantiator;
     private final ServiceRegistryFactory serviceRegistryFactory;

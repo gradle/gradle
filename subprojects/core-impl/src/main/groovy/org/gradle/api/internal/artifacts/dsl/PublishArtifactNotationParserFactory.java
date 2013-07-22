@@ -34,9 +34,6 @@ import org.gradle.internal.reflect.Instantiator;
 import java.io.File;
 import java.util.Collection;
 
-/**
- * @author Hans Dockter
- */
 public class PublishArtifactNotationParserFactory implements Factory<NotationParser<PublishArtifact>> {
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider metaDataProvider;

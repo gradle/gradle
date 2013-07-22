@@ -18,9 +18,6 @@ package org.gradle.cli
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 4/16/12
- */
 class ParsedCommandLineTest extends Specification {
 
     def "knows if contains an option"() {

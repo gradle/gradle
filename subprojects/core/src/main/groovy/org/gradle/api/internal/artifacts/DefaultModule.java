@@ -17,9 +17,6 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.Module;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultModule implements Module {
     private String group;
     private String name;

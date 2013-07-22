@@ -18,9 +18,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 
-/**
- * @author Hans Dockter
- */
 public interface ConfigurationResolver {
     ResolverResults resolve(ConfigurationInternal configuration) throws ResolveException;
 }

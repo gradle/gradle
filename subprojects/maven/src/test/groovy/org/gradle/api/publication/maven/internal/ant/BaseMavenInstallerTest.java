@@ -20,16 +20,13 @@ import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.internal.Factory;
 import org.gradle.api.publication.maven.internal.DefaultMavenDeployment;
+import org.gradle.internal.Factory;
 import org.jmock.Expectations;
 
 import java.io.IOException;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
     private BaseMavenInstaller mavenInstaller;
 

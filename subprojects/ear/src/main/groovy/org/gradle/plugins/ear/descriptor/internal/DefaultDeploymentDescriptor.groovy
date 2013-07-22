@@ -27,9 +27,6 @@ import org.gradle.plugins.ear.descriptor.EarModule
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.plugins.ear.descriptor.EarWebModule
 
-/**
- * @author David Gileadi
- */
 class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     private String fileName = "application.xml"

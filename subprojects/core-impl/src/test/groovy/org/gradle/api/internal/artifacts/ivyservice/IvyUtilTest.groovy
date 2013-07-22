@@ -18,11 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
 
-/**
- * @author Hans Dockter
- */
 class IvyUtilTest {
     @Test public void testModuleRevisionId() {
         List l = ['myorg', 'myname', 'myrev']

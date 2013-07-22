@@ -25,9 +25,6 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * By Szczepan Faber on 4/19/13
- */
 class InMemoryDependencyMetadataCacheTest extends Specification {
 
     @Rule SetSystemProperties sysProp = new SetSystemProperties()

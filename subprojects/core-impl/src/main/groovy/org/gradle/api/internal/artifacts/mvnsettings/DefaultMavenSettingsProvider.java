@@ -18,9 +18,6 @@ package org.gradle.api.internal.artifacts.mvnsettings;
 import org.gradle.mvn3.org.apache.maven.settings.Settings;
 import org.gradle.mvn3.org.apache.maven.settings.building.*;
 
-/**
- * @author Szczepan Faber/Steve Ebersole
- */
 public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
 
     private final MavenFileLocations mavenFileLocations;

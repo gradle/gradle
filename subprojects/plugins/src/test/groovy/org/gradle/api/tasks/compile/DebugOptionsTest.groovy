@@ -18,9 +18,6 @@ package org.gradle.api.tasks.compile
 
 import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
 class DebugOptionsTest {
     DebugOptions debugOptions = new DebugOptions()
 

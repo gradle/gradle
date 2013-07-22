@@ -19,9 +19,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-/**
-* By Szczepan Faber on 5/21/13
-*/
 public class LongSerializer extends DataStreamBackedSerializer<Long> {
 
     @Override

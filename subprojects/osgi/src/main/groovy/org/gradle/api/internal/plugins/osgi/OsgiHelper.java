@@ -23,9 +23,6 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Hans Dockter
- */
 public class OsgiHelper {
     /**
      * Bundle-Version must match this pattern

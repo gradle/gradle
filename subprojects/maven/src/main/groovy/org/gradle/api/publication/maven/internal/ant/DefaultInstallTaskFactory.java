@@ -17,9 +17,6 @@ package org.gradle.api.publication.maven.internal.ant;
 
 import org.gradle.internal.Factory;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultInstallTaskFactory implements Factory<CustomInstallTask> {
     public CustomInstallTask create() {
         return new CustomInstallTask();

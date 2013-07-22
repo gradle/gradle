@@ -33,9 +33,6 @@ import spock.lang.Specification
 
 import static org.gradle.util.Matchers.sameCollection
 import static org.gradle.util.WrapUtil.toLinkedSet
-/**
- * @author Hans Dockter
- */
 
 class JavaBasePluginTest extends Specification {
     @Rule

@@ -25,10 +25,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
-/**
- * Tests for CopySpec.matching and notMatching facilities
- * @author Kyle Mahan
- */
 class CopySpecMatchingTest extends Specification {
 
     DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.resolver(), new DirectInstantiator(), null)

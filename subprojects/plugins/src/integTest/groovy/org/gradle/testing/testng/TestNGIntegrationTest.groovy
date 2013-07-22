@@ -29,9 +29,6 @@ import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-/**
- * @author Tom Eyckmans
- */
 class TestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Rule public TestResources resources = new TestResources(testDirectoryProvider)

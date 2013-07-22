@@ -20,9 +20,6 @@ import org.gradle.tooling.model.idea.IdeaDependencyScope;
 
 import java.io.Serializable;
 
-/**
- * @author: Szczepan Faber, created at: 8/3/11
- */
 public class DefaultIdeaDependencyScope implements IdeaDependencyScope, Serializable {
 
     String scope;

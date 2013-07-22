@@ -30,8 +30,6 @@ import org.gradle.openapi.wrappers.ui.SinglePaneUIWrapper;
  *
  * This class should not be moved or renamed, nor should its functions be renamed or have arguments added to/removed from them. This is to ensure forward/backward compatibility with multiple versions
  * of IDE plugins. Instead, consider changing the interaction that is passed to the functions as a means of having the caller provide different functionality.
- *
- * @author mhunsicker
  */
 public class UIWrapperFactory {
 

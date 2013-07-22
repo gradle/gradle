@@ -17,12 +17,9 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.specs.Spec;
 
-import java.util.Set;
 import java.io.File;
+import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public interface ProjectRegistry<T extends ProjectIdentifier> {
     void addProject(T project);
 

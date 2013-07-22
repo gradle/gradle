@@ -19,8 +19,6 @@ import groovy.lang.Closure;
 
 /**
  * Specifies sources for a file copy.
- *
- * @author Steve Appling
  */
 public interface CopySourceSpec {
     /**

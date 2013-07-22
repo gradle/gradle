@@ -24,9 +24,6 @@ import org.gradle.listener.ListenerBroadcast
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 12/7/12
- */
 class TestTaskSpec extends Specification {
 
     private testExecuter = Mock(TestExecuter)

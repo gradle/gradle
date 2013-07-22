@@ -18,9 +18,6 @@ package org.gradle.launcher.daemon.bootstrap
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 4/10/12
- */
 class DaemonStartupCommunicationSpec extends Specification {
 
     def comm = new DaemonStartupCommunication()

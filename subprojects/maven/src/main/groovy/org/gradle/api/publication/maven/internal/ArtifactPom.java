@@ -22,9 +22,6 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import java.io.File;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public interface ArtifactPom {
     /**
      * @return The main artifact, may be null.

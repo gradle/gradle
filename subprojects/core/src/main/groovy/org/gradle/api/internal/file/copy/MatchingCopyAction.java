@@ -20,10 +20,6 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 
-/**
- * Action performed on each FileCopyDetails that matches the given specification
- * @author Kyle Mahan
- */
 public class MatchingCopyAction implements Action<FileCopyDetails> {
 
     private final Spec<RelativePath> matchSpec;

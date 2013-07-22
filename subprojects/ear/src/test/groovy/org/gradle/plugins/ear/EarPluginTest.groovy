@@ -35,9 +35,6 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-/**
- * @author David Gileadi
- */
 class EarPluginTest {
     private ProjectInternal project
     private static final String TEST_APP_XML = toPlatformLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n' +

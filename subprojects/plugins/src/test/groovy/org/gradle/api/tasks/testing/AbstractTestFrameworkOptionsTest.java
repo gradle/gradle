@@ -20,9 +20,6 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 
-/**
- * @author Tom Eyckmans
- */
 public class AbstractTestFrameworkOptionsTest<T extends TestFramework> {
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 

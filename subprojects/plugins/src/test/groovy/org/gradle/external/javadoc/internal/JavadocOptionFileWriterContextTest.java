@@ -16,19 +16,16 @@
 
 package org.gradle.external.javadoc.internal;
 
+import org.gradle.util.WrapUtil;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.Expectations;
 import org.junit.Before;
 import org.junit.Test;
-import org.gradle.util.WrapUtil;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 
-/**
- * @author Tom Eyckmans
- */
 public class JavadocOptionFileWriterContextTest {
 
     private final JUnit4Mockery context = new JUnit4Mockery();

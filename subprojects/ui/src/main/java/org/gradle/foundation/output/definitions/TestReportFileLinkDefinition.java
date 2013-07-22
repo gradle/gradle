@@ -23,8 +23,6 @@ import java.util.List;
 /**
  * This is a special FileLinkDefinition for handling test reports. At the time of this writing, the test reports error message merely told you the directory to visit, not the actual file. So this
  * appends 'index.html' to the directory to generate the file.
- *
- * @author mhunsicker
  */
 public class TestReportFileLinkDefinition implements FileLinkDefinition {
     private String expression;

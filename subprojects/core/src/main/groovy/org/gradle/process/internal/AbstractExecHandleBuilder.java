@@ -27,9 +27,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
     private OutputStream standardOutput;
     private OutputStream errorOutput;

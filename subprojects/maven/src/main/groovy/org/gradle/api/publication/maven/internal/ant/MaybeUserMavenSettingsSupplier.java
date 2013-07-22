@@ -22,9 +22,6 @@ import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations;
 
 import java.io.File;
 
-/**
- * @author Szczepan Faber, created at: 3/29/11
- */
 public class MaybeUserMavenSettingsSupplier implements MavenSettingsSupplier {
 
     MavenSettingsSupplier emptySettingsSupplier = new EmptyMavenSettingsSupplier();

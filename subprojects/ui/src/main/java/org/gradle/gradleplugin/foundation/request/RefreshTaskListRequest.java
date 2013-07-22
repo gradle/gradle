@@ -29,8 +29,6 @@ import java.util.List;
 
 /**
  * This represents a request to gradle that is executed in a separate process using the ProcessLauncherServer. This is a special request where the results are to build up a project/task tree.
- *
- * @author mhunsicker
  */
 public class RefreshTaskListRequest extends AbstractRequest {
 

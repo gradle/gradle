@@ -19,9 +19,6 @@ package org.gradle.tooling.internal.provider.connection
 import org.gradle.api.logging.LogLevel
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 1/18/13
- */
 class BuildLogLevelMixInTest extends Specification {
 
     final parameters = Mock(ProviderOperationParameters)

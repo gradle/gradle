@@ -23,9 +23,6 @@ import java.util.Map;
 
 import static org.gradle.launcher.daemon.configuration.GradleProperties.isTrue;
 
-/**
- * by Szczepan Faber, created at: 2/18/13
- */
 public class PropertiesToStartParameterConverter {
     public StartParameter convert(Map<String, String> properties, StartParameter startParameter) {
         startParameter.setConfigureOnDemand(isTrue(properties.get(GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY)));

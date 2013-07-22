@@ -19,9 +19,6 @@ package org.gradle.integtests.fixtures
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.ExecHandleBuilder
 
-/**
- * by Szczepan Faber, created at: 9/24/12
- */
 class KillProcessAvailability {
 
     final static CAN_KILL

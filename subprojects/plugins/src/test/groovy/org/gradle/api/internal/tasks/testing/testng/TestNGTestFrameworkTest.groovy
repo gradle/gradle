@@ -23,9 +23,6 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * @author Szczepan Faber
- */
 public class TestNGTestFrameworkTest extends Specification {
 
     private project = new ProjectBuilder().build()

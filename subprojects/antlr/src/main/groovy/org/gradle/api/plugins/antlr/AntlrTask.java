@@ -16,23 +16,23 @@
 
 package org.gradle.api.plugins.antlr;
 
-import java.io.File;
-import java.util.List;
-
 import org.apache.tools.ant.taskdefs.optional.ANTLR;
 import org.apache.tools.ant.types.Path;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.antlr.internal.GenerationPlan;
+import org.gradle.api.plugins.antlr.internal.GenerationPlanBuilder;
+import org.gradle.api.plugins.antlr.internal.MetadataExtracter;
+import org.gradle.api.plugins.antlr.internal.XRef;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.plugins.antlr.internal.MetadataExtracter;
-import org.gradle.api.plugins.antlr.internal.XRef;
-import org.gradle.api.plugins.antlr.internal.GenerationPlanBuilder;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * <p>Generates parsers from Antlr grammars.</p>
@@ -42,8 +42,6 @@ import org.slf4j.LoggerFactory;
  * classpath it uses to perform generation execution.  This <b>should</b> really only require the antlr jar.  In {@link
  * AntlrPlugin} usage, this would happen simply by adding your antlr jar into the 'antlr' dependency configuration
  * created and exposed by the {@link AntlrPlugin} itself.</p>
- *
- * @author Steve Ebersole
  */
 public class AntlrTask extends SourceTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntlrTask.class);

@@ -20,11 +20,9 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
 
-/**
- * @author Hans Dockter
- */
 class BasePluginConventionTest {
     private DefaultProject project = HelperUtil.createRootProject()
     private File testDir = project.projectDir

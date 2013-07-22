@@ -53,9 +53,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Task.class);
     private static ThreadLocal<TaskInfo> nextInstance = new ThreadLocal<TaskInfo>();

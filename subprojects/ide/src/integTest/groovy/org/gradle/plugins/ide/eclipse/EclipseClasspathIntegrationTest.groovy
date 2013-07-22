@@ -20,9 +20,6 @@ import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
 
-/**
- * @author Szczepan Faber
- */
 class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Rule

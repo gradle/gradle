@@ -28,9 +28,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
 class SamplesMavenQuickstartIntegrationTest extends AbstractIntegrationTest {
     @Rule public Resources resources = new Resources();
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'maven/quickstart')

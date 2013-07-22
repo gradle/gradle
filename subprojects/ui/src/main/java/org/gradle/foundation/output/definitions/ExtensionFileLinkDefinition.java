@@ -25,8 +25,6 @@ import java.util.List;
  * a delimiter after the path to specify a line number (the delimiter cannot be before the path).
  *
  * Here's a sample line output from a compile error: /home/someguy/path/etc/etc.java:186: cannot find symbol
- *
- * @author mhunsicker
  */
 public class ExtensionFileLinkDefinition implements FileLinkDefinition {
     private String expression;

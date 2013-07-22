@@ -17,9 +17,6 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil
 
-/**
- * @author Hans Dockter
- */
 
 class WbDependentModule {
     String deployPath

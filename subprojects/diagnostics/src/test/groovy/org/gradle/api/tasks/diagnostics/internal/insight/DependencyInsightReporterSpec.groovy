@@ -27,10 +27,6 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONFLICT_RESOLUTION
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.FORCED
 
-/**
- * Created: 23/08/2012
- * @author Szczepan Faber
- */
 class DependencyInsightReporterSpec extends Specification {
 
     def "sorts dependencies"() {

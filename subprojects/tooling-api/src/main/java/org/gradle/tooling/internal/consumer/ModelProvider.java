@@ -27,9 +27,6 @@ import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.internal.Exceptions;
 
-/**
- * by Szczepan Faber, created at: 12/21/11
- */
 public class ModelProvider {
     public <T> T provide(ConsumerConnection connection, Class<T> modelType, ConsumerOperationParameters operationParameters) {
         VersionDetails version = connection.getVersionDetails();

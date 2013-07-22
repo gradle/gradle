@@ -37,9 +37,6 @@ import org.junit.runner.RunWith
 
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock)
 class DefaultSettingsTest {
     File settingsDir

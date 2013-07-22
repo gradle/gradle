@@ -31,8 +31,6 @@ import java.util.concurrent.Callable;
 /**
  * <p>A {@link Plugin} which extends the {@link WarPlugin} to add tasks which run the web application using an embedded
  * Jetty web container.</p>
- *
- * @author Hans Dockter
  */
 public class JettyPlugin implements Plugin<Project> {
     public static final String JETTY_RUN = "jettyRun";

@@ -23,8 +23,6 @@ import java.util.List;
 /**
  * This is a special type of OutputParser. It handles tracking live output. The unique thing about live output is that we're not guaranteed to get whole lines. Also, we don't want to parse parts that
  * have already been parsed. This holds onto the output until a newline is reached, then parses it. It also tracks the overall index into the output (even though its only parsing a part of it).
- *
- * @author mhunsicker
  */
 public class LiveOutputParser {
     private OutputParser parser;

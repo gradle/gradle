@@ -21,8 +21,6 @@ import org.objectweb.asm.Opcodes;
 
 /**
  * Base class for ASM test class scanners.
- *
- * @author Tom Eyckmans
  */
 public abstract class TestClassVisitor extends ClassVisitor {
 

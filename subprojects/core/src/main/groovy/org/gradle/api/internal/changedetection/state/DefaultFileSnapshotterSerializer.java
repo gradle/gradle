@@ -24,9 +24,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
-* By Szczepan Faber on 5/21/13
-*/
 class DefaultFileSnapshotterSerializer extends DataStreamBackedSerializer<FileCollectionSnapshot> {
 
     @Override

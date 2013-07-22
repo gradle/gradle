@@ -27,8 +27,6 @@ import java.util.concurrent.Callable;
 
 /**
  * Assembles a TAR archive.
- *
- * @author Hans Dockter
  */
 public class Tar extends AbstractArchiveTask {
     private Compression compression = Compression.NONE;

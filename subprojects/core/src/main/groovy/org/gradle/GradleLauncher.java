@@ -49,7 +49,6 @@ import org.gradle.util.DeprecationLogger;
  *
  * </ol>
  *
- * @author Hans Dockter
  * @deprecated Use the tooling API instead.
  */
 @Deprecated

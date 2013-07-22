@@ -26,8 +26,6 @@ import java.net.SocketException;
 
 /**
  * Wrapper around a java.net.Socket just to simplify usage.
- *
- * @author mhunsicker
  */
 public class ObjectSocketWrapper {
     private Socket socket;

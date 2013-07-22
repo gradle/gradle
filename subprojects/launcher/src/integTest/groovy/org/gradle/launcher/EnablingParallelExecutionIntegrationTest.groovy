@@ -21,9 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
-/**
- * by Szczepan Faber, created at: 11/21/12
- */
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
 

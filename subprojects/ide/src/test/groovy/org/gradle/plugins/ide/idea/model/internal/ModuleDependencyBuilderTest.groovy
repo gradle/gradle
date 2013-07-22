@@ -19,9 +19,6 @@ package org.gradle.plugins.ide.idea.model.internal
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * @author Szczepan Faber, @date: 19.03.11
- */
 class ModuleDependencyBuilderTest extends Specification {
 
     def project = HelperUtil.createRootProject()

@@ -25,9 +25,6 @@ import spock.lang.Specification
 import static org.gradle.util.Matchers.isSerializable
 import static org.junit.Assert.assertThat
 
-/**
- * @author Hans Dockter
- */
 class StartParameterTest extends Specification {
     @Rule private TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule private SetSystemProperties systemProperties = new SetSystemProperties()

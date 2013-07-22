@@ -41,8 +41,6 @@ import java.util.concurrent.Callable;
 /**
  * Extends {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy
  * source files.
- *
- * @author Hans Dockter
  */
 public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     /**

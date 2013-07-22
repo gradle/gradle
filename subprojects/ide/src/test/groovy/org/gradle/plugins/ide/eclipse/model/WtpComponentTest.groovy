@@ -21,9 +21,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 public class WtpComponentTest extends Specification {
     private static final List CUSTOM_WB_MODULE_ENTRIES = [
             new WbDependentModule('/WEB-INF/lib', "module:/classpath/myapp-1.0.0.jar"),

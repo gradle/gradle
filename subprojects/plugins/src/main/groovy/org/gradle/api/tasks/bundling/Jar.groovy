@@ -28,8 +28,6 @@ import org.gradle.util.ConfigureUtil
 
 /**
  * Assembles a JAR archive.
- *
- * @author Hans Dockter
  */
 public class Jar extends Zip {
     public static final String DEFAULT_EXTENSION = 'jar'

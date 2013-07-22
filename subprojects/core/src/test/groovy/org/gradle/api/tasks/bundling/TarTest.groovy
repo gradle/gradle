@@ -16,14 +16,12 @@
 
 package org.gradle.api.tasks.bundling
 
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertThat;
+
 class TarTest extends AbstractArchiveTaskTest {
     Tar tar
 

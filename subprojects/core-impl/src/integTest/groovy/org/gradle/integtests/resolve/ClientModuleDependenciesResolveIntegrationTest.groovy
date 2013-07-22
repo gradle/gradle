@@ -18,9 +18,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
 public class ClientModuleDependenciesResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Test
     public void "uses metadata from Client Module and looks up artifact in declared repositories"() {

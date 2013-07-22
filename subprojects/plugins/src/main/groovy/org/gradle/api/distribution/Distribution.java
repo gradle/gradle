@@ -23,8 +23,6 @@ import org.gradle.api.file.CopySpec;
 
 /**
  * A distribution allow to bundle an application or a library including dependencies,sources...
- *
- * @author scogneau
  */
 @Incubating
 public interface Distribution extends Named {

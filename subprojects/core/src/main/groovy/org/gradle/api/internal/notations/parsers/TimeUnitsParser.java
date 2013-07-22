@@ -22,9 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.gradle.api.internal.notations.parsers.NormalizedTimeUnit.millis;
 
-/**
- * by Szczepan Faber, created at: 2/12/13
- */
 public class TimeUnitsParser {
 
     public NormalizedTimeUnit parseNotation(CharSequence notation, int value) {

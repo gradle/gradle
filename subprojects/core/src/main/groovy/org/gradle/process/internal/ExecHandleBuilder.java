@@ -29,9 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author Tom Eyckmans
- */
 public class ExecHandleBuilder extends AbstractExecHandleBuilder implements ExecSpec {
     private final List<Object> arguments = new ArrayList<Object>();
 

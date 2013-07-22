@@ -20,9 +20,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.specs.Spec;
 
-/**
- * by Szczepan Faber, created at: 9/10/12
- */
 public class ModuleVersionSelectorStrictSpec implements Spec<ModuleVersionIdentifier> {
 
     private final ModuleVersionSelector selector;

@@ -22,9 +22,6 @@ import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.process.ExecResult
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 4/10/12
- */
 class DaemonGreeterTest extends Specification {
 
     DocumentationRegistry registry = Mock()

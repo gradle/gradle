@@ -23,9 +23,6 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.logging.LoggingServiceRegistry;
 
-/**
- * by Szczepan Faber, created at: 12/6/11
- */
 public class EmbeddedExecuterSupport {
 
     private GradleLauncherFactory gradleLauncherFactory;

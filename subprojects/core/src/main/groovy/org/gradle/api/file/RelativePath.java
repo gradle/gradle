@@ -29,8 +29,6 @@ import java.util.ListIterator;
  * and target file path when copying files.</p>
  *
  * <p>{@code RelativePath} instances are immutable.</p>
- *
- * @author Steve Appling
  */
 public class RelativePath implements Serializable {
     private final boolean endsWithFile;

@@ -21,9 +21,6 @@ import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 
-/**
- * @author Hans Dockter
- */
 public class ClientModuleNotationParserFactory implements Factory<NotationParser<ClientModule>> {
 
     private final Instantiator instantiator;

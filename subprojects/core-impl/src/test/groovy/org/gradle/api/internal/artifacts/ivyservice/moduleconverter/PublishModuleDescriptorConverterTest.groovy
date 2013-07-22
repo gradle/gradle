@@ -23,9 +23,6 @@ import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter, Szczepan
- */
 public class PublishModuleDescriptorConverterTest extends Specification {
 
     def "converts"() {

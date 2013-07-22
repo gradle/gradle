@@ -20,8 +20,6 @@ import org.gradle.launcher.Main
 
 /**
  * Use this class to run/debug any gradle build from the IDE. Especially useful for learning & debugging Gradle internals.
- *
- * @author: Szczepan Faber, created at: 4/30/11
  */
 class GradleBuildRunner {
     public static void main(String[] args) {

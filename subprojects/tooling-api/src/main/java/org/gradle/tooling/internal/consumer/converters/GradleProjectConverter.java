@@ -25,9 +25,6 @@ import org.gradle.tooling.model.GradleTask;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * by Szczepan Faber, created at: 3/27/12
- */
 public class GradleProjectConverter {
 
     public DefaultGradleProject convert(EclipseProjectVersion3 project) {

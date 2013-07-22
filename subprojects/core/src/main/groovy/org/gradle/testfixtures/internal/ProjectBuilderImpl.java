@@ -35,9 +35,6 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
-/**
- * by Szczepan Faber, created at: 10/1/11
- */
 public class ProjectBuilderImpl {
     private static final GlobalTestServices GLOBAL_SERVICES = new GlobalTestServices();
     private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator();

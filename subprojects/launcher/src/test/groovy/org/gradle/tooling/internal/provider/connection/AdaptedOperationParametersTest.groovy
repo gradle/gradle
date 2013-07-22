@@ -20,9 +20,6 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 3/6/12
- */
 class AdaptedOperationParametersTest extends Specification {
 
     interface BuildOperationParametersStub extends BuildOperationParametersVersion1 {

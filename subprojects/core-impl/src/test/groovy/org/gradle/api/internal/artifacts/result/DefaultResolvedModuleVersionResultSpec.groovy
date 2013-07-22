@@ -20,10 +20,6 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.*
 
-/**
- * Created: 10/08/2012
- * @author Szczepan Faber
- */
 class DefaultResolvedModuleVersionResultSpec extends Specification {
 
     def "mutating dependencies or dependents is harmless"() {

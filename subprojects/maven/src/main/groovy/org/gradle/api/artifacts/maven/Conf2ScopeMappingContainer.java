@@ -23,8 +23,6 @@ import java.util.Map;
 /**
  * Defines a set of rules for how to map the Gradle dependencies to a POM. This mapping is based
  * on the configuration the dependencies belong to.
- *
- * @author Hans Dockter
  */
 public interface Conf2ScopeMappingContainer {
     String PROVIDED = "provided";

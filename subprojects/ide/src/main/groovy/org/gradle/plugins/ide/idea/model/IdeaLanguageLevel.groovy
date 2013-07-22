@@ -20,8 +20,6 @@ import org.gradle.api.JavaVersion
 
 /**
  * Java language level used by IDEA projects.
- *
- * @author: Szczepan Faber, created at: 7/14/11
  */
 class IdeaLanguageLevel {
 

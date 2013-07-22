@@ -17,8 +17,6 @@ package org.gradle.plugins.ide.idea.model
 
 /**
  * Represents a path in a format as used often in ipr and iml files.
- *
- * @author Hans Dockter
  */
 class Path {
     /**

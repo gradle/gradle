@@ -24,8 +24,6 @@ import java.io.File;
 
 /**
  * Swing implementation of ImportInteraction. This prompts the user for a file via the JFileChooser and handles reporting errors.
- *
- * @author mhunsicker
  */
 public class SwingImportInteraction implements DOM4JSerializer.ImportInteraction {
     private Window parent;

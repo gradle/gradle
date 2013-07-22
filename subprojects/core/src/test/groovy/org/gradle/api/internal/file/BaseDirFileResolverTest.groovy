@@ -33,9 +33,6 @@ import java.util.concurrent.Callable
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 class BaseDirFileResolverTest {
     static final String TEST_PATH = 'testpath'
 

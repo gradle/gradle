@@ -20,9 +20,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 4/10/12
- */
 class DaemonDiagnosticsTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp

@@ -15,13 +15,10 @@
  */
 package org.gradle.api.publication.maven.internal.ant;
 
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
-/**
- * @author Hans Dockter
- */
+import static org.junit.Assert.assertTrue;
+
 public class DefaultDeployTaskFactoryTest {
     @Test
     public void create() {

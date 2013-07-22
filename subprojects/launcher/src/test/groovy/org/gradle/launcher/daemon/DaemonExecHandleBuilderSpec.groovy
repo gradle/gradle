@@ -20,9 +20,6 @@ import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer
 import org.gradle.process.internal.ExecHandleBuilder
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 5/7/12
- */
 class DaemonExecHandleBuilderSpec extends Specification {
 
     def builder = Mock(ExecHandleBuilder)

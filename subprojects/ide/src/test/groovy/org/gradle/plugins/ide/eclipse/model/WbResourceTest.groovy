@@ -17,9 +17,6 @@ package org.gradle.plugins.ide.eclipse.model
 
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 
 class WbResourceTest extends Specification {
     final static String XML_TEXT = '<wb-resource deploy-path="/" source-path="src/main/webapp"/>'

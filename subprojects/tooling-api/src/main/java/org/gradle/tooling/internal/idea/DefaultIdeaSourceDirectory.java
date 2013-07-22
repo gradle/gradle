@@ -21,9 +21,6 @@ import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import java.io.File;
 import java.io.Serializable;
 
-/**
- * @author: Szczepan Faber, created at: 7/27/11
- */
 public class DefaultIdeaSourceDirectory implements IdeaSourceDirectory, Serializable {
 
     private File directory;

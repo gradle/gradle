@@ -21,9 +21,6 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-/**
- * by Szczepan Faber, created at: 2/9/12
- */
 class TestExecutionPerformanceTest extends AbstractPerformanceTest {
     @Unroll("Project '#testProject' test execution")
     def "test execution"() {

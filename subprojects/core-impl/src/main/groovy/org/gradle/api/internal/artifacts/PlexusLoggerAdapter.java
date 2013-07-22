@@ -17,9 +17,6 @@ package org.gradle.api.internal.artifacts;
 
 import org.codehaus.plexus.logging.Logger;
 
-/**
- * @author Hans Dockter
- */
 public class PlexusLoggerAdapter implements Logger {
     org.slf4j.Logger logger;
 

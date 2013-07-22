@@ -35,8 +35,6 @@ import static org.hamcrest.Matchers.startsWith
 
 /**
  * Tests aspects of the OutputUILord in OpenAPI
- *
- * @author mhunsicker
  */
 @Requires(TestPrecondition.SWING)
 class OutputUILordTest {

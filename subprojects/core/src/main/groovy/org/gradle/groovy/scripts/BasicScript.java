@@ -19,17 +19,13 @@ package org.gradle.groovy.scripts;
 import groovy.lang.MetaClass;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectUtil;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.logging.StandardOutputCapture;
 import org.gradle.api.internal.ProcessOperations;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.logging.StandardOutputCapture;
 
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- *
- */
 public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, FileOperations, ProcessOperations {
     private StandardOutputCapture standardOutputCapture;
     private Object target;

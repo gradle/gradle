@@ -20,9 +20,6 @@ package org.gradle.launcher.daemon.bootstrap
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 4/28/12
- */
 class DaemonOutputConsumerTest extends Specification {
 
     def consumer = new DaemonOutputConsumer()

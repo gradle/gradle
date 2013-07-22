@@ -28,9 +28,6 @@ import java.net.URI;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-/**
- * by Szczepan Faber, created at: 11/16/11
- */
 public class GzipArchiver implements ReadableResource {
 
     private ReadableResource resource;

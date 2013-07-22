@@ -51,8 +51,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * <li>{@link #start()} allowed when state is INIT</li>
  * <li>{@link #abort()} allowed when state is STARTED or DETACHED</li>
  * </ul>
- *
- * @author Tom Eyckmans
  */
 public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private static final Logger LOGGER = Logging.getLogger(DefaultExecHandle.class);

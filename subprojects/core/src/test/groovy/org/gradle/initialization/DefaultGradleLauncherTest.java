@@ -47,9 +47,6 @@ import java.io.File;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultGradleLauncherTest {
     private BuildLoader buildLoaderMock;

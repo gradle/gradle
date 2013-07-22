@@ -30,8 +30,6 @@ import java.util.Map;
 
 /**
  * Implementation of GradleInterfaceVersion1 meant to help shield external users from internal changes.
- *
- * @author mhunsicker
  */
 public class GradleInterfaceWrapperVersion1 implements GradleInterfaceVersion1 {
 

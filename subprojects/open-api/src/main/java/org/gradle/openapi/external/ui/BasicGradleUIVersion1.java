@@ -26,8 +26,6 @@ import java.io.File;
  *
  * To use this, you'll want to get an instance of this from Gradle. Then setup your UI and add this to it via getComponent. Then call aboutToShow before you display your UI. Call close before you hide
  * your UI. You'll need to set the current directory (at any time) so gradle knows where your project is located.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated

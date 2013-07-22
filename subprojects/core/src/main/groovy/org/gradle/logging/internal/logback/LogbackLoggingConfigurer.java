@@ -28,7 +28,9 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.spi.FilterReply;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.UncheckedException;
-import org.gradle.logging.internal.*;
+import org.gradle.logging.internal.LogEvent;
+import org.gradle.logging.internal.LoggingConfigurer;
+import org.gradle.logging.internal.OutputEventListener;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 
@@ -37,8 +39,6 @@ import java.io.PrintStream;
 /**
  * A {@link org.gradle.logging.internal.LoggingConfigurer} implementation which configures Logback
  * to route logging events to a {@link org.gradle.logging.internal.OutputEventListener}.
- *
- * @author Hans Dockter
  */
 public class LogbackLoggingConfigurer implements LoggingConfigurer {
     private final OutputEventListener outputEventListener;

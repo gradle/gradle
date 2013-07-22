@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.external.javadoc.internal;
+package org.gradle.external.javadoc.internal
 
-
+import org.gradle.external.javadoc.MinimalJavadocOptions
 import org.gradle.internal.jvm.Jvm
 import org.junit.Test
 import spock.lang.Specification
-import static org.junit.Assert.assertTrue
-import org.gradle.external.javadoc.MinimalJavadocOptions
 
-/**
- * @author Tom Eyckmans
- */
+import static org.junit.Assert.assertTrue
+
 public class JavadocExecHandleBuilderTest extends Specification {
 
     private JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder()

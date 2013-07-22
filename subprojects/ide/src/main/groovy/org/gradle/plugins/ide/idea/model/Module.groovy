@@ -21,8 +21,6 @@ import org.gradle.util.DeprecationLogger
 
 /**
  * Represents the customizable elements of an iml (via XML hooks everything of the iml is customizable).
- *
- * @author Hans Dockter
  */
 class Module extends XmlPersistableConfigurationObject {
     static final String INHERITED = "inherited"

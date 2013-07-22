@@ -22,16 +22,13 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.DynamicObject;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.*;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultConvention implements Convention, ExtensionContainerInternal {
 
     private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();

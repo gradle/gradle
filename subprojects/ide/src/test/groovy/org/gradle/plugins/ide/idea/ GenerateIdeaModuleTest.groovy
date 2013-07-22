@@ -20,9 +20,6 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * @author Szczepan Faber, @date 03.03.11
- */
 class GenerateIdeaModuleTest extends Specification {
 
     DefaultProject project = HelperUtil.createRootProject()

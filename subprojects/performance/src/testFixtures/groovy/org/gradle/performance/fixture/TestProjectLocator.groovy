@@ -16,9 +16,6 @@
 
 package org.gradle.performance.fixture
 
-/**
- * by Szczepan Faber, created at: 2/10/12
- */
 class TestProjectLocator {
 
     File findProjectDir(String name) {

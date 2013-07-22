@@ -25,8 +25,6 @@ import java.util.regex.Pattern;
 
 /**
  * Utility functions required by the OpenAPI
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated
@@ -40,7 +38,6 @@ public class ExternalUtility {
      * @param gradleHomeDirectory the root directory of a gradle installation
      * @param showDebugInfo true to show some additional information that may be helpful diagnosing problems is this fails
      * @return a classloader that has loaded gradle and all of its dependencies.
-     * @author mhunsicker
      */
 
     public static ClassLoader getGradleClassloader(ClassLoader parentClassLoader, File gradleHomeDirectory, boolean showDebugInfo) throws Exception {
@@ -61,7 +58,6 @@ public class ExternalUtility {
      *
      * @param gradleHomeDirectory the root directory of a gradle installation. We're expecting this to have a child directory named 'lib'.
      * @return the gradle jar file. Null if we didn't find it.
-     * @author mhunsicker
      */
     public static File getGradleJar(File gradleHomeDirectory) {
         File libDirectory = new File(gradleHomeDirectory, "lib");

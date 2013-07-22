@@ -16,15 +16,12 @@
 
 package org.gradle.initialization.buildsrc
 
-import spock.lang.Specification
-import org.gradle.cache.PersistentCache
 import org.gradle.GradleLauncher
-import org.junit.Rule
+import org.gradle.cache.PersistentCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 3/18/13
- */
 class BuildSrcUpdateFactoryTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()

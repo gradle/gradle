@@ -30,9 +30,6 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.zip.Checksum;
 
-/**
- * @author Hans Dockter
- */
 public class GFileUtils {
 
     public static FileInputStream openInputStream(File file) {

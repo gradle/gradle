@@ -20,9 +20,6 @@ package org.gradle.api.internal.notations.parsers;
 import org.gradle.api.internal.notations.api.UnsupportedNotationException
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 11/10/11
- */
 public class TypedNotationParserTest extends Specification {
 
     def parser = new DummyParser();

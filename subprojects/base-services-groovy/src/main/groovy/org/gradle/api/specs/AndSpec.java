@@ -26,7 +26,6 @@ import java.util.List;
  * A {@link org.gradle.api.specs.CompositeSpec} which requires all its specs to be true in order to evaluate to true.
  * Uses lazy evaluation.
  *
- * @author Hans Dockter
  * @param <T> The target type for this Spec
  */
 public class AndSpec<T> extends CompositeSpec<T> {

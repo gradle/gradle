@@ -31,8 +31,6 @@ import java.util.Collections;
 
 /**
  * Properties and methods added by the {@link org.gradle.api.plugins.MavenPlugin}.
- * 
- * @author Hans Dockter
  */
 public class MavenPluginConvention implements MavenPomMetaInfoProvider {
     private final ProjectInternal project;

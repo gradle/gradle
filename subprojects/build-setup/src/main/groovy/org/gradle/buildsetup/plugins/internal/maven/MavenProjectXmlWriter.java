@@ -23,9 +23,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 9/14/12
- */
 public class MavenProjectXmlWriter {
 
     //TODO this class attempts to mimic the behavior of the output of mvn help:effective-pom

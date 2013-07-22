@@ -24,9 +24,6 @@ import org.gradle.internal.os.OperatingSystem
 import spock.lang.Issue
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class GradleVersionTest extends Specification {
     final GradleVersion version = GradleVersion.current()
 

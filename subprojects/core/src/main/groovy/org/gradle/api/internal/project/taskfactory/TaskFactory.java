@@ -35,9 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-/**
- * @author Hans Dockter
- */
 public class TaskFactory implements ITaskFactory {
     public static final String GENERATE_SUBCLASS = "generateSubclass";
     private final ClassGenerator generator;

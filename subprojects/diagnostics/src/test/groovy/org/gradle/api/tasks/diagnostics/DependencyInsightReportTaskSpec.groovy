@@ -21,9 +21,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 9/20/12
- */
 class DependencyInsightReportTaskSpec extends Specification {
 
     def project = HelperUtil.createRootProject()

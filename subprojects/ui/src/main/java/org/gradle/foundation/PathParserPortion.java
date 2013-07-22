@@ -17,8 +17,6 @@ package org.gradle.foundation;
 
 /**
  * Small helper class that aids walking a full task path which can be multiple projects deep with a task on the end.
- *
- * @author mhunsicker
  */
 public class PathParserPortion {
     private String firstPart;

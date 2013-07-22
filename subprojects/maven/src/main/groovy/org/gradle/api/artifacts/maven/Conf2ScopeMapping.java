@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.Configuration;
 /**
  * An immutable mapping to map a dependency configuration to a Maven scope. This class has implemented equality and
  * hashcode based on its values not on object identity.
- *
- * @author Hans Dockter
  * @see org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
  */
 public class Conf2ScopeMapping {

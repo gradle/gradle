@@ -15,8 +15,8 @@
  */
 package org.gradle.foundation;
 
-import java.net.URLClassLoader;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLStreamHandlerFactory;
 
 /**
@@ -26,8 +26,6 @@ import java.net.URLStreamHandlerFactory;
  *
  * <p>Using this class can be very dangerous. You must carefully make sure you understand the ramifications of using this. You should also probably make this the first class loader between your plugin
  * and the plugin's owner.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated
@@ -46,7 +44,6 @@ public class ParentLastClassLoader extends URLClassLoader {
 
     /*
     This has been overridden to look at the parent class loader last.
-    @author mhunsicker
     */
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {

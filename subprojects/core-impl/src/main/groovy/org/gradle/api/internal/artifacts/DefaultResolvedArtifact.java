@@ -27,9 +27,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultResolvedArtifact implements ResolvedArtifact {
     private final Map<String, String> extraAttributes;
     private final String name;

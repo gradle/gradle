@@ -22,9 +22,6 @@ import org.gradle.api.Task;
 
 import java.util.concurrent.Callable;
 
-/**
- * @author Hans Dockter
- */
 public abstract class ConventionTask extends DefaultTask implements IConventionAware {
     private ConventionMapping conventionMapping;
 

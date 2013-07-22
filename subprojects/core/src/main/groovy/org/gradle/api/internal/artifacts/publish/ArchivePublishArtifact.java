@@ -21,9 +21,6 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.util.Date;
 
-/**
- * @author Hans Dockter
- */
 public class ArchivePublishArtifact extends AbstractPublishArtifact {
     private String name;
     private String extension;

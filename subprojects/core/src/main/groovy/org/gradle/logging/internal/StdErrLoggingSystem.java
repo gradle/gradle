@@ -16,8 +16,5 @@
 
 package org.gradle.logging.internal;
 
-/**
- * by Szczepan Faber, created at: 11/21/11
- */
 public interface StdErrLoggingSystem extends LoggingSystem {
 }

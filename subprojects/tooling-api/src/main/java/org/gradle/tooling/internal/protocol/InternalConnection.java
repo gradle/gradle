@@ -17,8 +17,6 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * by Szczepan Faber, created at: 1/1/12
- *
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
  * <p>Consumer compatibility: This interface is used by all consumer versions from 1.0-milestone-8 to 1.1. It is also used by later consumers when the

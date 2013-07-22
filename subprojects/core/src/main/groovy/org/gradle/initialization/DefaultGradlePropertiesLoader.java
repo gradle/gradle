@@ -26,9 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private static Logger logger = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
 

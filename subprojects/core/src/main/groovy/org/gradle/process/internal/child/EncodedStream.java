@@ -23,8 +23,6 @@ import java.io.OutputStream;
 /**
  * Provides Input/OutputStream implementations that are able to encode/decode using a simple algorithm (byte<->2 digit hex string(2 bytes)).
  * Useful when streams are interpreted a text streams as it happens on IBM java for standard input.
- * <p>
- * by Szczepan Faber, created at: 5/25/12
  */
 public abstract class EncodedStream {
     private final static char[] HEX_DIGIT = new char[] {

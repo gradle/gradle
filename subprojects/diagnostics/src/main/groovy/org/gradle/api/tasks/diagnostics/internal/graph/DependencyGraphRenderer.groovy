@@ -18,15 +18,12 @@ package org.gradle.api.tasks.diagnostics.internal.graph
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.internal.graph.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
+import org.gradle.internal.graph.GraphRenderer
 import org.gradle.logging.StyledTextOutput
 
 import static org.gradle.logging.StyledTextOutput.Style.Info
 
-/**
- * by Szczepan Faber, created at: 9/20/12
- */
 class DependencyGraphRenderer {
     private final GraphRenderer renderer
     private final NodeRenderer nodeRenderer

@@ -21,9 +21,6 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 
 import java.util.List;
 
-/**
- * @author Hans Dockter
- */
 public interface ArtifactDependencyResolver {
     ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException;
 }

@@ -35,9 +35,6 @@ import org.gradle.util.ConfigureUtil;
 import java.io.File;
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
     private final FileResolver fileResolver;

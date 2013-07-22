@@ -26,9 +26,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- * @author Tom Eyckmans
- */
 public class JavadocOptionFileWriter {
     private final JavadocOptionFile optionFile;
 

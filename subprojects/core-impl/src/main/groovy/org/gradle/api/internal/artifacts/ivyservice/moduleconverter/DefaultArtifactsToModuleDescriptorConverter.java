@@ -28,9 +28,6 @@ import org.gradle.util.GUtil;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToModuleDescriptorConverter {
 
     public void addArtifacts(BuildableModuleVersionPublishMetaData metaData, Iterable<? extends Configuration> configurations) {

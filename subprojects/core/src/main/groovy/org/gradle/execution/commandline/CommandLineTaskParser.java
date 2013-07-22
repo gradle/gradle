@@ -26,9 +26,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 10/8/12
- */
 public class CommandLineTaskParser {
 
     CommandLineTaskConfigurer taskConfigurer =  new CommandLineTaskConfigurer();

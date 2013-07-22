@@ -238,8 +238,6 @@ import java.util.Map;
  *
  * The module notation is the same as the dependency notations described above, except that the classifier property is
  * not available. Client modules are represented using a {@link org.gradle.api.artifacts.ClientModule}.
- *
- * @author Hans Dockter
  */
 public interface DependencyHandler {
     /**

@@ -24,9 +24,6 @@ import org.gradle.performance.measure.MeasuredOperation
 import static org.gradle.performance.fixture.PrettyCalculator.prettyBytes
 import static org.gradle.performance.fixture.PrettyCalculator.prettyTime
 
-/**
- * by Szczepan Faber, created at: 2/10/12
- */
 public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
     String name
 

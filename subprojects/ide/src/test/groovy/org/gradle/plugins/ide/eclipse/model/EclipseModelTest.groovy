@@ -18,9 +18,6 @@ package org.gradle.plugins.ide.eclipse.model
 
 import spock.lang.Specification
 
-/**
- * @author Szczepan Faber, created at: 4/19/11
- */
 class EclipseModelTest extends Specification {
 
     EclipseModel model = new EclipseModel(classpath: new EclipseClasspath(null))

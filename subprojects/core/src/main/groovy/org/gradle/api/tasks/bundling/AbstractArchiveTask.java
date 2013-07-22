@@ -24,8 +24,6 @@ import java.io.File;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
- *
- * @author Hans Dockter
  */
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private File destinationDir;

@@ -35,9 +35,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 abstract public class AbstractModuleDependencyTest {
     //TODO SF rework the remaining coverage of this hierarchy in the spirit of AbstractModuleDependencySpec and DefaultProjectDependencyTest

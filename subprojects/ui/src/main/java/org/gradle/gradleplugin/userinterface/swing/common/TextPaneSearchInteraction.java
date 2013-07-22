@@ -18,7 +18,7 @@ package org.gradle.gradleplugin.userinterface.swing.common;
 import org.gradle.gradleplugin.foundation.search.TextBlockSearchEditor;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
 
-import javax.swing.JTextPane;
+import javax.swing.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.DefaultStyledDocument;
 import java.util.ArrayList;
@@ -30,8 +30,6 @@ import java.util.List;
  *
  * Note: there's something kind of goofy here. This draws and 'undraws' highlights on text (using AttributeSets). If you use this and you draw your own highlights in the JTextPane, you need to
  * override removeResultHighlights() and reset your AttributeSets. Otherwise, this assumes there is a default style that all non-highlighted text uses.
- *
- * @author mhunsicker
  */
 public class TextPaneSearchInteraction implements SearchPanel.SearchInteraction {
     private JTextPane textComponentToSearch;

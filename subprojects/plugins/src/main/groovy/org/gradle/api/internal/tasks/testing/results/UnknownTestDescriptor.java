@@ -18,9 +18,6 @@ package org.gradle.api.internal.tasks.testing.results;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
 
-/**
- * by Szczepan Faber, created at: 1/8/12
- */
 public class UnknownTestDescriptor implements TestDescriptorInternal {
 
     public Object getId() {

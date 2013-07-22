@@ -16,15 +16,15 @@
 
 package org.gradle.api.tasks.util
 
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
 import org.junit.Before
 import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
+import static org.gradle.util.Matchers.isEmpty
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertThat
+
 abstract class AbstractTestForPatternSet {
     static final String TEST_PATTERN_1 = 'pattern1'
     static final String TEST_PATTERN_2 = 'pattern2'

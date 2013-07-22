@@ -18,8 +18,6 @@ package org.gradle.openapi.external.ui;
 /**
  * This allows you to add a listener that can add additional command line arguments whenever gradle is executed. This is useful if you've customized your gradle build and need to specify, for example,
  * an init script.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated

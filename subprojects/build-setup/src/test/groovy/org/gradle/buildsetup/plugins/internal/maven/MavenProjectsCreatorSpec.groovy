@@ -22,9 +22,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 10/15/12
- */
 class MavenProjectsCreatorSpec extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp

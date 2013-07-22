@@ -37,9 +37,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultCommandLineConverterTest {
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();

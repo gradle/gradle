@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public interface ModuleDescriptorFactoryForClientModule {
     ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies);
 }

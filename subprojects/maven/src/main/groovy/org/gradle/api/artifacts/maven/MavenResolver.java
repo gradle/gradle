@@ -21,8 +21,6 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 
 /**
  * An {@link ArtifactRepository} which can be used to publish artifacts to Maven repositories.
- *
- * @author Hans Dockter
  */
 public interface MavenResolver extends ArtifactRepository, PomFilterContainer {
     /**

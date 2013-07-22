@@ -30,9 +30,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * @author Hans Dockter
- */
 public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProjectPropertySettingBuildLoader.class);
 

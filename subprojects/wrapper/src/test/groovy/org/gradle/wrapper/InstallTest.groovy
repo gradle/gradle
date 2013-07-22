@@ -22,9 +22,6 @@ import org.junit.Before
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class InstallTest extends Specification {
     File testDir
     Install install

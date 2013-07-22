@@ -46,10 +46,10 @@ import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.configuration.project.ProjectConfigurationActionContainer;
-import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
+import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
@@ -71,9 +71,6 @@ import static java.util.Collections.singletonMap;
 import static org.gradle.util.GUtil.addMaps;
 import static org.gradle.util.GUtil.isTrue;
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private ServiceRegistryFactory services;

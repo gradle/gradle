@@ -16,9 +16,6 @@
 
 package org.gradle.internal.jvm;
 
-/**
- * by Szczepan Faber, created at: 1/23/12
- */
 public class JavaHomeException extends RuntimeException {
     public JavaHomeException(String message) {
         super(message);

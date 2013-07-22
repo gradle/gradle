@@ -25,9 +25,6 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdentifier {
     private String name;
     private File dir;

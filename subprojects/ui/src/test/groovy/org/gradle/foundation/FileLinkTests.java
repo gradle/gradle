@@ -25,7 +25,6 @@ import java.util.List;
 
 /**
  These test several aspects of parsing output looking for files.
- @author mhunsicker
  */
 public class FileLinkTests extends TestCase {
     public static void parseOutputTest(String textToSearch, FileLink... expectedResults) {

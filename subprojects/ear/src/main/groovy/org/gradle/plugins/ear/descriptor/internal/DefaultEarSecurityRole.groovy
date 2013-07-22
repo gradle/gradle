@@ -17,9 +17,6 @@ package org.gradle.plugins.ear.descriptor.internal
 
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 
-/**
- * @author David Gileadi
- */
 class DefaultEarSecurityRole implements EarSecurityRole {
 
     String description

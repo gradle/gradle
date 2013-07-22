@@ -24,9 +24,6 @@ import org.junit.Test
 
 import static org.hamcrest.Matchers.containsString
 
-/**
- * @author Hans Dockter
- */
 class SamplesGroovyMultiProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_PROJECT_NAME = 'testproject'
 

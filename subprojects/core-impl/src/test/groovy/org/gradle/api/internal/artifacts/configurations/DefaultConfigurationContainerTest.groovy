@@ -35,9 +35,6 @@ import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-/**
- * @author Hans Dockter
- */
 
 @RunWith(JMock)
 class DefaultConfigurationContainerTest {

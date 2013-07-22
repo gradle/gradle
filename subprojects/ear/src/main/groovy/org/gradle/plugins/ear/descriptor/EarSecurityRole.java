@@ -17,8 +17,6 @@ package org.gradle.plugins.ear.descriptor;
 
 /**
  * A security-role element in a deployment descriptor like application.xml.
- * 
- * @author David Gileadi
  */
 public interface EarSecurityRole {
 

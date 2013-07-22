@@ -19,8 +19,6 @@ import java.io.File;
 
 /**
  * .
- *
- * @author mhunsicker
  * @deprecated Use the tooling API instead.
  */
 @Deprecated

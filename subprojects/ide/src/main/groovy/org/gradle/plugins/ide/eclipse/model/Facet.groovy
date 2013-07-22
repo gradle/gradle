@@ -15,9 +15,6 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
-/**
- * @author Hans Dockter
- */
 
 class Facet {
 

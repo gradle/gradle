@@ -31,9 +31,6 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 
-/**
- * by Szczepan Faber, created at: 10/1/12
- */
 public class CachingDependencyResultFactory {
 
     private final Map<List, DefaultUnresolvedDependencyResult> unresolvedDependencies = new HashMap<List, DefaultUnresolvedDependencyResult>();

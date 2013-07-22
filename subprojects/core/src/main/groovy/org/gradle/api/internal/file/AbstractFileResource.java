@@ -21,9 +21,6 @@ import org.gradle.api.resources.ReadableResource;
 import java.io.File;
 import java.net.URI;
 
-/**
- * by Szczepan Faber, created at: 11/23/11
- */
 public abstract class AbstractFileResource implements ReadableResource {
 
     protected final File file;

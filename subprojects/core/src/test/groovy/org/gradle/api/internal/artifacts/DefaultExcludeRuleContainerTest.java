@@ -25,9 +25,6 @@ import java.util.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultExcludeRuleContainerTest {
     @Test
     public void testInit() {

@@ -18,9 +18,6 @@ package org.gradle.api.publication.maven.internal;
 import org.gradle.api.artifacts.ExcludeRule;
 
 
-/**
- * @author Hans Dockter
- */
 public interface ExcludeRuleConverter {
     Object convert(ExcludeRule excludeRule);
 }

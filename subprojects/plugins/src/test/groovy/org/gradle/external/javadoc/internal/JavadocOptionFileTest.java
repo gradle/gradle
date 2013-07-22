@@ -25,9 +25,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-/**
- * @author Tom Eyckmans
- */
 public class JavadocOptionFileTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     @SuppressWarnings("unchecked")

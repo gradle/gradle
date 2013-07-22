@@ -22,9 +22,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-/**
-* By Szczepan Faber on 5/21/13
-*/
 class FileSnapshotSerializer extends DataStreamBackedSerializer<FileCollectionSnapshot> {
 
     @Override

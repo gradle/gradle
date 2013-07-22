@@ -21,9 +21,6 @@ import org.gradle.tooling.model.GradleTask;
 
 import java.io.Serializable;
 
-/**
- * @author: Szczepan Faber, created at: 7/27/11
- */
 public class DefaultGradleTask implements GradleTask, Serializable {
 
     String path;

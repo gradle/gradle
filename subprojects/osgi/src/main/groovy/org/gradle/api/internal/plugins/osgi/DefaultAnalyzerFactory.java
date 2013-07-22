@@ -17,9 +17,6 @@ package org.gradle.api.internal.plugins.osgi;
 
 import org.gradle.internal.Factory;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultAnalyzerFactory implements Factory<ContainedVersionAnalyzer> {
     public ContainedVersionAnalyzer create() {
         return new ContainedVersionAnalyzer();

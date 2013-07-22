@@ -22,9 +22,6 @@ import org.gradle.util.ConcurrentSpecification
 import static org.gradle.cache.internal.FileLockCommunicator.pingOwner
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-/**
- * By Szczepan Faber on 5/23/13
- */
 class FileLockCommunicatorTest extends ConcurrentSpecification {
 
     def communicator = new FileLockCommunicator()

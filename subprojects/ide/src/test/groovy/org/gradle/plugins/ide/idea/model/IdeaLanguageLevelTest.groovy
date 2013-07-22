@@ -18,9 +18,6 @@ package org.gradle.plugins.ide.idea.model
 import org.gradle.api.JavaVersion
 import spock.lang.Specification
 
-/**
- * @author: Szczepan Faber, created at: 7/14/11
- */
 class IdeaLanguageLevelTest extends Specification {
 
     def "formats language level in IDEA fancy format"() {

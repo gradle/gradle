@@ -17,7 +17,10 @@
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.version.*;
+import org.apache.ivy.plugins.version.ChainVersionMatcher;
+import org.apache.ivy.plugins.version.LatestVersionMatcher;
+import org.apache.ivy.plugins.version.SubVersionMatcher;
+import org.apache.ivy.plugins.version.VersionRangeMatcher;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.version.LatestVersionSemanticComparator;
@@ -27,8 +30,6 @@ import java.util.*;
 
 /**
  * Created: 17/08/2012
- *
- * @author Szczepan Faber
  */
 public class DependencyResultSorter {
 

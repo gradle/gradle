@@ -25,9 +25,6 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 
-/**
- * by Szczepan Faber, created at: 2/18/13
- */
 public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
 
     public static final String GRADLE_USER_HOME = "g";

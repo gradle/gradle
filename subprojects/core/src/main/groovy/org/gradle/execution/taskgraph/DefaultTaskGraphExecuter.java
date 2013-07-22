@@ -34,9 +34,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private static Logger logger = LoggerFactory.getLogger(DefaultTaskGraphExecuter.class);
 

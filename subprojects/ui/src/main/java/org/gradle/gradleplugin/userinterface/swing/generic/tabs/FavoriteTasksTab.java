@@ -36,8 +36,6 @@ import java.util.List;
 
 /**
  * This displays a list of favorites and allows the user to add/remove items as well as change their order.
- *
- * @author mhunsicker
  */
 public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPluginObserver, FavoritesEditor.FavoriteTasksObserver {
     private GradlePluginLord gradlePluginLord;

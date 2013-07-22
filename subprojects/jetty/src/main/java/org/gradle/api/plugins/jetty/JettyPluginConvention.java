@@ -17,8 +17,6 @@ package org.gradle.api.plugins.jetty;
 
 /**
  * Convention properties and methods added by the {@link org.gradle.api.plugins.jetty.JettyPlugin}.
- *
- * @author Hans Dockter
  */
 public class JettyPluginConvention {
     private Integer stopPort;

@@ -20,9 +20,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 
 import java.util.Collection;
 
-/**
-* by Szczepan Faber, created at: 1/29/13
-*/
 public class VersionSelectionReasonResolver implements ModuleConflictResolver {
 
     private final ModuleConflictResolver delegate;

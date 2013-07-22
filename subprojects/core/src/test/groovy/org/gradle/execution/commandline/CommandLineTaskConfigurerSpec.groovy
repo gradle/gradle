@@ -27,9 +27,6 @@ import org.gradle.execution.TaskSelector
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 10/8/12
- */
 class CommandLineTaskConfigurerSpec extends Specification {
 
     Project project = new ProjectBuilder().build()

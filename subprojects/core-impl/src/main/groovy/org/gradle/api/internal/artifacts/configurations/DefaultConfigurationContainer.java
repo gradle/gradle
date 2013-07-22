@@ -32,10 +32,7 @@ import org.gradle.util.DeprecationLogger;
 import java.util.Collection;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
-public class DefaultConfigurationContainer extends AbstractNamedDomainObjectContainer<Configuration> 
+public class DefaultConfigurationContainer extends AbstractNamedDomainObjectContainer<Configuration>
         implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     

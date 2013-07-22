@@ -27,9 +27,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
-* by Szczepan Faber, created at: 11/29/12
-*/
 public class ModuleForcingResolveRule implements Action<DependencyResolveDetailsInternal> {
 
     private final Map<ModuleIdentifier, String> forcedModules;

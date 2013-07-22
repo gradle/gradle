@@ -21,9 +21,6 @@ import org.gradle.api.internal.notations.api.UnsupportedNotationException;
 
 import java.util.Collection;
 
-/**
- * by Szczepan Faber, created at: 11/10/11
- */
 public class CompositeNotationParser<T> implements NotationParser<T> {
 
     private final Collection<NotationParser<? extends T>> delegates;

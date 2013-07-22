@@ -21,22 +21,10 @@ import org.gradle.gradleplugin.userinterface.swing.common.BorderlessImageButton;
 import org.gradle.gradleplugin.userinterface.swing.common.BorderlessImageToggleButton;
 
 import javax.imageio.ImageIO;
-import javax.swing.Action;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import javax.swing.JToggleButton;
-import javax.swing.JMenuItem;
+import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
-import java.awt.Component;
-import java.awt.Rectangle;
-import java.awt.Window;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -45,8 +33,6 @@ import java.lang.reflect.Method;
 
 /**
  * Just some utility functions.
- *
- * @author mhunsicker
  */
 public class Utility {
     private static final Logger LOGGER = Logging.getLogger(Utility.class);

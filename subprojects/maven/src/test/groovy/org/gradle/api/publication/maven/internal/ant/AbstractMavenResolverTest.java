@@ -31,9 +31,9 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.DefaultMavenDeployment;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -55,9 +55,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractMavenResolverTest {
     public static final String TEST_NAME = "name";
     private static final Artifact TEST_IVY_ARTIFACT = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org", TEST_NAME, "1.0"), null);

@@ -33,9 +33,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 public class ConventionAwareHelperTest {
     ConventionAwareHelper conventionAware;
 

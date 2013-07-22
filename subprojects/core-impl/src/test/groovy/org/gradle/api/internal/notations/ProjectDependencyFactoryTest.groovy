@@ -25,9 +25,6 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.GUtil
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 public class ProjectDependencyFactoryTest extends Specification {
 
     def projectDummy = Mock(ProjectInternal)

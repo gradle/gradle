@@ -24,9 +24,6 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import java.io.File;
 import java.io.PrintStream;
 
-/**
- * by Szczepan Faber, created at: 4/10/12
- */
 public class DaemonStartupCommunication {
 
     private static final String DELIM = ";:"; //this very simple delim should be safe for any kind of path.

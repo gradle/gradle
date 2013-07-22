@@ -28,8 +28,6 @@ import java.io.File;
 /**
  * The default test class scanner. Depending on the availability of a test framework detector,
  * a detection or filename scan is performed to find test classes.
- *
- * @author Tom Eyckmans
  */
 public class DefaultTestClassScanner implements Runnable {
     private final FileTree candidateClassFiles;

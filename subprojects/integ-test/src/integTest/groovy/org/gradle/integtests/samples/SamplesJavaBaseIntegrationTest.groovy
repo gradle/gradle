@@ -23,9 +23,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
 
 class SamplesJavaBaseIntegrationTest extends AbstractIntegrationTest {
 

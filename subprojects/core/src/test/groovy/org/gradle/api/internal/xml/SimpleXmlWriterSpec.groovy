@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.xml
 
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 import javax.xml.parsers.DocumentBuilderFactory
-import org.gradle.util.TextUtil
 
-/**
- * by Szczepan Faber, created at: 12/3/12
- */
 class SimpleXmlWriterSpec extends Specification {
 
     private sw = new ByteArrayOutputStream()

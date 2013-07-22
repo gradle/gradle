@@ -25,9 +25,6 @@ import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * @author Szczepan Faber, created at: 3/29/11
- */
 public class EmptyMavenSettingsSupplier implements MavenSettingsSupplier {
 
     private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();

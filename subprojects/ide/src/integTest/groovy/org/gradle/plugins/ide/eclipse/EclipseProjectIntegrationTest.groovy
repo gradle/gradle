@@ -19,9 +19,6 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * @author Szczepan Faber
- */
 class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Rule

@@ -40,8 +40,6 @@ import javax.inject.Inject;
 /**
  * <p>A {@link org.gradle.api.Plugin} which allows project artifacts to be deployed to a Maven repository, or installed
  * to the local Maven cache.</p>
- *
- * @author Hans Dockter
  */
 public class MavenPlugin implements Plugin<ProjectInternal> {
     public static final int COMPILE_PRIORITY = 300;

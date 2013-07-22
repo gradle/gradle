@@ -23,9 +23,6 @@ import org.gradle.util.WrapUtil;
 
 import java.util.List;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultDependencyDescriptorFactory implements DependencyDescriptorFactory {
     private List<IvyDependencyDescriptorFactory> dependencyDescriptorFactories;
 

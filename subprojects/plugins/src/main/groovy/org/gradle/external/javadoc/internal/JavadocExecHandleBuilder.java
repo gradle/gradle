@@ -26,9 +26,6 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * @author Tom Eyckmans
- */
 public class JavadocExecHandleBuilder {
     private File execDirectory;
     private MinimalJavadocOptions options;

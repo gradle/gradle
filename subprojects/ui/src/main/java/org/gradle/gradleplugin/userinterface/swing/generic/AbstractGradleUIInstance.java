@@ -26,8 +26,6 @@ import java.io.File;
 
 /**
  * A simple UI for gradle that is meant to be embedded into an IDE. This doesn't have it own output since most IDEs have their own mechanism for that.
- *
- * @author mhunsicker
  */
 public abstract class AbstractGradleUIInstance implements BasicGradleUI {
     protected MainGradlePanel gradlePanel;
@@ -169,7 +167,6 @@ public abstract class AbstractGradleUIInstance implements BasicGradleUI {
 
       @param  commandLineArguments the command line arguments to pass to gradle.
       @param displayName           the name displayed in the UI for this command
-      @author mhunsicker
    */
     public void executeCommand(String commandLineArguments, String displayName) {
         gradlePluginLord.addExecutionRequestToQueue(commandLineArguments, displayName);

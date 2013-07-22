@@ -20,9 +20,6 @@ import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * @author Szczepan Faber, @date 01.03.11
- */
 class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)

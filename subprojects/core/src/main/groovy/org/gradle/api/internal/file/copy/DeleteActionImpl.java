@@ -24,9 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-/**
- * @author Hans Dockter
- */
 public class DeleteActionImpl implements DeleteAction {
     private static Logger logger = LoggerFactory.getLogger(DeleteActionImpl.class);
     

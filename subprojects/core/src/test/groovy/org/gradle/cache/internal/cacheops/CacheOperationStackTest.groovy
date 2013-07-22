@@ -18,9 +18,6 @@ package org.gradle.cache.internal.cacheops
 
 import spock.lang.Specification
 
-/**
- * By Szczepan Faber on 6/7/13
- */
 class CacheOperationStackTest extends Specification {
 
     def stack = new CacheOperationStack()

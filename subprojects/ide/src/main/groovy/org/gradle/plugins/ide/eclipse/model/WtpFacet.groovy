@@ -20,8 +20,6 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 /**
  * Creates the .settings/org.eclipse.wst.common.project.facet.core.xml file for WTP projects.
- *
- * @author Hans Dockter
  */
 class WtpFacet extends XmlPersistableConfigurationObject {
     List facets = [] // TODO: turn into Set?

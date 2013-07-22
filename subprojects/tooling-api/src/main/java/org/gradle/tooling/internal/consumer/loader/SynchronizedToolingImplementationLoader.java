@@ -25,9 +25,6 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParamet
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * by Szczepan Faber, created at: 12/6/11
- */
 public class SynchronizedToolingImplementationLoader implements ToolingImplementationLoader {
 
     Lock lock = new ReentrantLock();

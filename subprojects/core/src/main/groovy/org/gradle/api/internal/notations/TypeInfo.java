@@ -18,8 +18,6 @@ package org.gradle.api.internal.notations;
 
 /**
  * Type literal, useful for nested Generics.
- *
- * by Szczepan Faber, created at: 10/12/12
  */
 public class TypeInfo<T> {
     private final Class<T> targetType;

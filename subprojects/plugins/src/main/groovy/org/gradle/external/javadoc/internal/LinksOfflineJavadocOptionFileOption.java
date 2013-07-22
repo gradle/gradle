@@ -18,13 +18,10 @@ package org.gradle.external.javadoc.internal;
 
 import org.gradle.external.javadoc.JavadocOfflineLink;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * @author Tom Eyckmans
- */
 public class LinksOfflineJavadocOptionFileOption extends AbstractJavadocOptionFileOption<List<JavadocOfflineLink>> {
     public LinksOfflineJavadocOptionFileOption(String option) {
         super(option, new ArrayList<JavadocOfflineLink>());

@@ -40,9 +40,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultResolvedDependencyTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 

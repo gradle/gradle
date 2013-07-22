@@ -30,9 +30,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDependencyDescriptorFactory {
     private ExcludeRuleConverter excludeRuleConverter;
 

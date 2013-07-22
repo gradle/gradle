@@ -18,8 +18,6 @@ package org.gradle.api;
 
 /**
  * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
- *
- * @author Hans Dockter
  */
 public class GradleException extends RuntimeException {
     public GradleException() {

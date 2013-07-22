@@ -18,9 +18,6 @@ package org.gradle.external.javadoc.internal;
 
 import java.io.IOException;
 
-/**
- * @author Tom Eyckmans
- */
 public class StringJavadocOptionFileOption extends AbstractJavadocOptionFileOption<String> {
     public StringJavadocOptionFileOption(String option) {
         super(option);

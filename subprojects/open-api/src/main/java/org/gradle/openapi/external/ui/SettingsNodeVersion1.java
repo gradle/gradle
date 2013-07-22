@@ -21,8 +21,6 @@ import java.util.List;
  * Abstraction of how settings are stored. If you're implementing this, see SettingsNode for more information.
  *
  * This is a mirror of SettingsNode inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated

@@ -26,9 +26,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
 
-/**
- * @author Hans Dockter
- */
 public class GradleWrapperMain {
     public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
     public static final String GRADLE_USER_HOME_OPTION = "g";

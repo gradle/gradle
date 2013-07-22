@@ -17,11 +17,9 @@
 package org.gradle.util
 
 import spock.lang.Specification
-import static org.gradle.util.Matchers.*
 
-/**
- * @author Hans Dockter
- */
+import static org.gradle.util.Matchers.strictlyEquals
+
 class PathTest extends Specification {
     def construction() {
         expect:

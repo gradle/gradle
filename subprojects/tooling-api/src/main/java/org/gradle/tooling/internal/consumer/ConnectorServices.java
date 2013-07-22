@@ -17,17 +17,14 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.service.SynchronizedServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.SynchronizedServiceRegistry;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 
-/**
- * by Szczepan Faber, created at: 12/6/11
- */
 public class ConnectorServices {
 
     private static ServiceRegistry singletonRegistry = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());

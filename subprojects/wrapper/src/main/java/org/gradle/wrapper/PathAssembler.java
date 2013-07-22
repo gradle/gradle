@@ -20,9 +20,6 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.security.MessageDigest;
 
-/**
- * @author Hans Dockter
- */
 public class PathAssembler {
     public static final String GRADLE_USER_HOME_STRING = "GRADLE_USER_HOME";
     public static final String PROJECT_STRING = "PROJECT";

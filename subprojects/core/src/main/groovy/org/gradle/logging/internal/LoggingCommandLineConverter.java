@@ -96,7 +96,6 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
      *
      * @param commandLineArgument a single command line argument (with no '-')
      * @return the corresponding log level or null if it doesn't match any.
-     * @author mhunsicker
      */
     public LogLevel getLogLevel(String commandLineArgument) {
         LogLevel logLevel = logLevelMap.get(commandLineArgument);
@@ -112,7 +111,6 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
      *
      * @param logLevel the log level.
      * @return the command line argument or null if this level cannot be represented on the command line.
-     * @author mhunsicker
      */
     public String getLogLevelCommandLine(LogLevel logLevel) {
         String commandLine = logLevelMap.inverse().get(logLevel);
@@ -127,7 +125,6 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
      * This returns the log levels that are supported on the command line.
      *
      * @return a collection of available log levels
-     * @author mhunsicker
      */
     public Set<LogLevel> getLogLevels() {
         return new HashSet<LogLevel>(Arrays.asList(LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.QUIET));
@@ -145,7 +142,6 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
      *
      * @param commandLineArgument a single command line argument (with no '-')
      * @return the corresponding stack trace level or null if it doesn't match any.
-     * @author mhunsicker
      */
     public ShowStacktrace getShowStacktrace(String commandLineArgument) {
         ShowStacktrace showStacktrace = showStacktraceMap.get(commandLineArgument);
@@ -161,7 +157,6 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
      *
      * @param showStacktrace the stack trace level.
      * @return the command line argument or null if this level cannot be represented on the command line.
-     * @author mhunsicker
      */
     public String getShowStacktraceCommandLine(ShowStacktrace showStacktrace) {
         String commandLine = showStacktraceMap.inverse().get(showStacktrace);

@@ -16,9 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.versioning;
 
-/**
- * by Szczepan Faber, created at: 1/13/12
- */
 public abstract class VersionDetails {
     private final String providerVersion;
 

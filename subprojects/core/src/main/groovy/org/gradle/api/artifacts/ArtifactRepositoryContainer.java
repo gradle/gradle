@@ -47,8 +47,6 @@ import java.util.List;
  *     url 'some-url'
  * }
  * </pre>
- *
- * @author Hans Dockter
  */
 public interface ArtifactRepositoryContainer extends NamedDomainObjectList<ArtifactRepository>, Configurable<ArtifactRepositoryContainer> {
     String DEFAULT_BINTRAY_JCENTER_REPO_NAME = "BintrayJCenter";

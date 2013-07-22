@@ -17,9 +17,6 @@ package org.gradle.api.plugins.announce.internal
 
 import org.gradle.api.plugins.announce.Announcer
 
-/**
- * @author Hans Dockter
- */
 interface AnnouncerFactory {
     Announcer createAnnouncer(String type)
 }

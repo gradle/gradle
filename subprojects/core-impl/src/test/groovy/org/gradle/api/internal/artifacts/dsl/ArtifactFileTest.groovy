@@ -16,9 +16,6 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import spock.lang.Specification
-/**
- * @author Hans Dockter
- */
 public class ArtifactFileTest extends Specification {
     final String module = '1.2'
 

@@ -26,7 +26,7 @@ import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
 
 /**
  * Generates a Gradle project structure.
- * */
+  */
 @Incubating
 class SetupBuild extends DefaultTask {
     private String type

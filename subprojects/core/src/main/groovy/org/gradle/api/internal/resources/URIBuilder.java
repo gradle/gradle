@@ -20,9 +20,6 @@ import org.gradle.util.GUtil;
 
 import java.net.URI;
 
-/**
- * by Szczepan Faber, created at: 12/13/11
- */
 public class URIBuilder {
     private final URI uri;
     private String schemePrefix = "";

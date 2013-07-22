@@ -20,8 +20,6 @@ import org.gradle.api.file.CopySpec
 
 /**
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
- *
- * @author Rene Groeschke
  */
 class ApplicationPluginConvention {
     /**

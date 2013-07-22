@@ -23,9 +23,6 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
-/**
- * by Szczepan Faber, created at: 2/18/13
- */
 public class DaemonCommandLineConverter extends AbstractCommandLineConverter<DaemonParameters> {
 
     private static final String DAEMON = "daemon";

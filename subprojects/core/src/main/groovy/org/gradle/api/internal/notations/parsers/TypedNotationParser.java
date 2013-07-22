@@ -22,9 +22,6 @@ import org.gradle.api.internal.notations.api.UnsupportedNotationException;
 
 import java.util.Collection;
 
-/**
- * by Szczepan Faber, created at: 11/9/11
- */
 public abstract class TypedNotationParser<N, T> implements NotationParser<T> {
 
     private final Class<N> typeToken;

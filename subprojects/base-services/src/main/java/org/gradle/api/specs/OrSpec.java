@@ -21,7 +21,6 @@ import java.util.List;
  * A {@link CompositeSpec} which requires any one of its specs to be true in order to evaluate to
  * true. Uses lazy evaluation.
  *
- * @author Hans Dockter
  * @param <T> The target type for this Spec
  */
 public class OrSpec<T> extends CompositeSpec<T> {

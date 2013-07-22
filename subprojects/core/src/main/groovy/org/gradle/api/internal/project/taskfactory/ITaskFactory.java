@@ -21,9 +21,6 @@ import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public interface ITaskFactory {
     public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator);
 

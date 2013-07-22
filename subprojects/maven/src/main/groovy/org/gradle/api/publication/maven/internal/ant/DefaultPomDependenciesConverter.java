@@ -26,9 +26,6 @@ import org.gradle.api.publication.maven.internal.PomDependenciesConverter;
 
 import java.util.*;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultPomDependenciesConverter implements PomDependenciesConverter {
     private ExcludeRuleConverter excludeRuleConverter;
 

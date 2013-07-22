@@ -32,9 +32,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.jar.Manifest;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest {
 
     // Because these properties can be convention mapped we need special handling in here.

@@ -20,9 +20,6 @@ import org.gradle.tooling.internal.adapter.MethodInvocation;
 import org.gradle.tooling.internal.adapter.MethodInvoker;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 
-/**
- * by Szczepan Faber, created at: 4/2/12
- */
 public class GradleProjectMixInHandler implements MethodInvoker {
     public void invoke(MethodInvocation invocation) throws Throwable {
         if (invocation.getName().equals("getGradleProject")

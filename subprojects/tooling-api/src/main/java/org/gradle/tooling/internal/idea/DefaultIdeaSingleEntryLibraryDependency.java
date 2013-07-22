@@ -23,9 +23,6 @@ import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import java.io.File;
 import java.io.Serializable;
 
-/**
- * @author: Szczepan Faber, created at: 7/26/11
- */
 public class DefaultIdeaSingleEntryLibraryDependency implements IdeaSingleEntryLibraryDependency, Serializable {
 
     private File file;

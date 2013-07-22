@@ -21,8 +21,6 @@ import java.util.List;
 
 /**
  * .
- *
- * @author mhunsicker
  */
 public interface FileLinkDefinition {
     /**

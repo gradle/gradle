@@ -19,9 +19,6 @@ import org.gradle.integtests.fixtures.*
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * @author Tom Eyckmans
- */
 public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider)

@@ -24,9 +24,6 @@ import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-/**
- * by Szczepan Faber, created at: 3/19/13
- */
 class ProfileReportRendererTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()

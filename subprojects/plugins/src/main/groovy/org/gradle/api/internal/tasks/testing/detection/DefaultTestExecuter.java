@@ -33,8 +33,6 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 
 /**
  * The default test class scanner factory.
- *
- * @author Tom Eyckmans
  */
 public class DefaultTestExecuter implements TestExecuter {
     private final Factory<WorkerProcessBuilder> workerFactory;

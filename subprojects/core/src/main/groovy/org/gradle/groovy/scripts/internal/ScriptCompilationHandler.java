@@ -21,9 +21,6 @@ import org.gradle.groovy.scripts.Transformer;
 
 import java.io.File;
 
-/**
- * @author Hans Dockter
- */
 public interface ScriptCompilationHandler {
     void compileToDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir, Transformer transformer,
                       Class<? extends Script> scriptBaseClass);

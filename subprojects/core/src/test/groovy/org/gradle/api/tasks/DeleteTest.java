@@ -35,9 +35,6 @@ import java.io.IOException;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DeleteTest extends AbstractConventionTaskTest {
     private Mockery context = new JUnit4GroovyMockery();

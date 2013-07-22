@@ -18,16 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
-import spock.lang.Specification
 import org.gradle.api.artifacts.result.*
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 
-/**
- * by Szczepan Faber, created at: 8/27/12
- */
 class ResolutionResultBuilderSpec extends Specification {
 
     def builder = new ResolutionResultBuilder()

@@ -21,9 +21,6 @@ import org.gradle.util.ConcurrentSpecification
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-/**
- * By Szczepan Faber on 6/7/13
- */
 class CacheAccessOperationsStackTest extends ConcurrentSpecification {
 
     def stack = new CacheAccessOperationsStack()

@@ -17,15 +17,12 @@
 package org.gradle.api.publication.maven.internal.ant
 
 import org.gradle.api.artifacts.maven.PomFilterContainer
-
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+
 import static org.junit.Assert.assertEquals
 
-/**
- * @author Hans Dockter
- */
 @RunWith (org.jmock.integration.junit4.JMock.class)
 class DefaultGroovyMavenDeployerTest extends BaseMavenDeployerTest {
     private DefaultGroovyMavenDeployer groovyMavenDeployer;

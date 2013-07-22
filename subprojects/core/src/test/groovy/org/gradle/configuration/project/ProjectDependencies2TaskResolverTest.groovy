@@ -19,9 +19,6 @@ package org.gradle.configuration.project
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class ProjectDependencies2TaskResolverTest extends Specification {
     private root = HelperUtil.createRootProject()
     private child = HelperUtil.createChildProject(root, "child")

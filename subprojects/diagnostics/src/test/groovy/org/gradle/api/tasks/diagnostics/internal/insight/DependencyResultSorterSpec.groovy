@@ -24,9 +24,6 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-/**
- * by Szczepan Faber, created at: 8/22/12
- */
 class DependencyResultSorterSpec extends Specification {
     def "sorts by requested version"() {
         def d1 = newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0"))

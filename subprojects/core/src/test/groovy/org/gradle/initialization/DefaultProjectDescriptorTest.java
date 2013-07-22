@@ -15,23 +15,19 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.Project;
 import org.gradle.util.Path;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import org.gradle.api.Project;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
 
 import java.io.File;
 import java.io.IOException;
 
-/**
- * @author Hans Dockter
- */
+import static org.junit.Assert.*;
+
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultProjectDescriptorTest {
     private DefaultProjectDescriptor projectDescriptor;

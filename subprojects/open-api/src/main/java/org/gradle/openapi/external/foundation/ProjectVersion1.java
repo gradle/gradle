@@ -22,8 +22,6 @@ import java.util.List;
  * This is an abstraction of a Gradle project
  *
  * This is a mirror of ProjectView inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated

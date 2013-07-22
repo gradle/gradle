@@ -26,9 +26,6 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
-/**
- * by Szczepan Faber, created at: 1/20/12
- */
 @IgnoreIf( { GradleContextualExecuter.embedded })
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
 

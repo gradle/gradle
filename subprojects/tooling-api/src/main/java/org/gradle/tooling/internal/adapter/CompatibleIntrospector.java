@@ -23,8 +23,6 @@ import java.lang.reflect.Method;
 
 /**
  * Uses reflection to find out / call methods.
- *
- * by Szczepan Faber, created at: 12/9/11
  */
 public class CompatibleIntrospector {
 

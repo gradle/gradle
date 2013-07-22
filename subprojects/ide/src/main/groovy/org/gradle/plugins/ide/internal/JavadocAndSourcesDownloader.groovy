@@ -16,18 +16,11 @@
 
 package org.gradle.plugins.ide.internal
 
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.artifacts.ExternalDependency
-import org.gradle.api.specs.Spec
+import org.gradle.api.artifacts.*
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
-import org.gradle.api.artifacts.ConfigurationContainer
 
-/**
- * by Szczepan Faber, created at: 1/25/13
- */
 class JavadocAndSourcesDownloader {
 
     private Map<String, File> sourceFiles

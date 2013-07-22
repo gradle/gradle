@@ -19,9 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 
-/**
- * by Szczepan Faber, created at: 9/5/12
- */
 class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpec {
 
     final String someConfigurableTaskType = """

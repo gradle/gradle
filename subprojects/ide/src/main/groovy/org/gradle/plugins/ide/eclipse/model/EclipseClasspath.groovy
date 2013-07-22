@@ -103,8 +103,6 @@ import org.gradle.util.ConfigureUtil
  *   }
  * }
  * </pre>
- *
- * @author Szczepan Faber, created at: 4/16/11
  */
 class EclipseClasspath {
 

@@ -25,9 +25,6 @@ import spock.lang.Specification
 import static org.gradle.launcher.daemon.configuration.GradleProperties.IDLE_TIMEOUT_PROPERTY
 import static org.gradle.launcher.daemon.configuration.GradleProperties.JVM_ARGS_PROPERTY
 
-/**
- * by Szczepan Faber, created at: 3/11/13
- */
 class LayoutToPropertiesConverterTest extends Specification {
 
     @Rule SetSystemProperties sysProperties = new SetSystemProperties()

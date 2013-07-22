@@ -29,8 +29,6 @@ import java.util.Set;
  *   delete 'uglyFolder', 'uglyFile'
  * }
  * </pre>
- *
- * @author Hans Dockter
  */
 public class Delete extends ConventionTask {
     private Set<Object> delete = new LinkedHashSet<Object>();

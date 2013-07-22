@@ -44,9 +44,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.junit.Assert.assertFalse
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractSpockTaskTest extends Specification {
     public static final String TEST_TASK_NAME = "taskname"
     @Rule

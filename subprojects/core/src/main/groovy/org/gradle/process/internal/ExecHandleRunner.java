@@ -23,9 +23,6 @@ import org.gradle.process.internal.streams.StreamsHandler;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * @author Tom Eyckmans
- */
 public class ExecHandleRunner implements Runnable {
     private static final Object START_LOCK = new Object();
     private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);

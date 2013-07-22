@@ -24,14 +24,12 @@ import org.gradle.api.tasks.bundling.War
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
+
 import static org.gradle.util.Matchers.dependsOn
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 class WarPluginTest {
     private Project project // = HelperUtil.createRootProject()
     private WarPlugin warPlugin// = new WarPlugin()

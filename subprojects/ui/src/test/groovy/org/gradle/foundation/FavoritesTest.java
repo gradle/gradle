@@ -31,8 +31,6 @@ import java.util.List;
 
 /**
  * Tests aspects of favorite tasks and the favorites editor.
- *
- * @author mhunsicker
  */
 public class FavoritesTest extends TestCase {
     private BuildInformation buildInformation;

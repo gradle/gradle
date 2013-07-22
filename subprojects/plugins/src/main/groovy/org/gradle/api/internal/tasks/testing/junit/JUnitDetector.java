@@ -23,9 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-/**
- * @author Tom Eyckmans
- */
 public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassDetecter> {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitDetector.class);
 

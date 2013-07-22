@@ -22,9 +22,6 @@ import org.gradle.api.artifacts.maven.MavenDeployment;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
-*/
 public class DefaultMavenDeployment implements MavenDeployment {
     private Set<PublishArtifact> attachedArtifacts;
     private final PublishArtifact pomArtifact;

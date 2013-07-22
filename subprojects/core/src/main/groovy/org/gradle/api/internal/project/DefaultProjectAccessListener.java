@@ -18,9 +18,6 @@ package org.gradle.api.internal.project;
 
 import org.gradle.initialization.ProjectAccessListener;
 
-/**
-* by Szczepan Faber, created at: 2/11/13
-*/
 public class DefaultProjectAccessListener implements ProjectAccessListener {
 
     public void beforeRequestingTaskByPath(ProjectInternal targetProject) {

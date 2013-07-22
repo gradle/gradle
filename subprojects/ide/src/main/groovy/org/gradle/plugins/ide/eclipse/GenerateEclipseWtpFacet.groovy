@@ -26,8 +26,6 @@ import org.gradle.plugins.ide.eclipse.model.WtpFacet
  * If you want to fine tune the eclipse configuration
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseWtpFacet}.
- *
- * @author Hans Dockter
  */
 class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
 

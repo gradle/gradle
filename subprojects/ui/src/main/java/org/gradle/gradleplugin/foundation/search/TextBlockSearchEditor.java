@@ -24,8 +24,6 @@ import java.util.regex.Pattern;
 
 /**
  * This searches within a block of text. The bulk of the work is handled by RegEx. This builds a list of results.
- *
- * @author mhunsicker
  */
 public class TextBlockSearchEditor {
     private List<SearchResult> matchedResults = new ArrayList<SearchResult>();
@@ -83,7 +81,6 @@ public class TextBlockSearchEditor {
     /**
      * Information about a search's results.
      *
-     * @author mhunsicker
      */
     public static class SearchResult {
         private String matchedText;

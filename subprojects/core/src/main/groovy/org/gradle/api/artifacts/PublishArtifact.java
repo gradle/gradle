@@ -23,8 +23,6 @@ import java.util.Date;
 
 /**
  * <p>A {@code PublishArtifact} is an artifact produced by a project.</p>
- *
- * @author Hans Dockter
  */
 public interface PublishArtifact extends Buildable {
     /**

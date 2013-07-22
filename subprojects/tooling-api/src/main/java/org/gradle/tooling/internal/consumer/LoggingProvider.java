@@ -19,9 +19,6 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 
-/**
- * by Szczepan Faber, created at: 12/14/11
- */
 public interface LoggingProvider {
     ListenerManager getListenerManager();
     ProgressLoggerFactory getProgressLoggerFactory();

@@ -15,9 +15,9 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic;
 
+import org.gradle.foundation.common.ObserverLord;
 import org.gradle.foundation.output.FileLinkDefinitionLord;
 import org.gradle.foundation.queue.ExecutionQueue;
-import org.gradle.foundation.common.ObserverLord;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
@@ -25,9 +25,7 @@ import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.Point;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -37,8 +35,6 @@ import java.util.List;
 
 /**
  * This class manages displaying the results of a gradle execution in a panel inside a JTabbedPane. It can reuse existing tabs but creates new ones if you run multiple things concurrently.
- *
- * @author mhunsicker
  */
 public class OutputPanelLord implements OutputUILord, GradlePluginLord.RequestObserver, OutputPanel.OutputPanelParent {
 
@@ -375,7 +371,6 @@ public class OutputPanelLord implements OutputUILord, GradlePluginLord.RequestOb
      * Notification that a command is about to be executed. This is mostly useful for IDE's that may need to save their files.
      *
      * @param request the request to be executed
-     * @author mhunsicker
      */
     public void aboutToExecuteRequest(Request request) {
     }

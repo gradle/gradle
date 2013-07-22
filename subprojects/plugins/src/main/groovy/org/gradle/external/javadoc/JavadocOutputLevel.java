@@ -18,8 +18,6 @@ package org.gradle.external.javadoc;
 
 /**
  * This enum maps to the -verbose and -quiet options of the javadoc executable.
- *
- * @author Tom Eyckmans
  */
 public enum JavadocOutputLevel {
     /**

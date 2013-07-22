@@ -25,9 +25,6 @@ import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.messaging.remote.internal.Connection;
 
-/**
- * @author: Szczepan Faber, created at: 9/13/11
- */
 public class StopDispatcher {
     private static final Logger LOGGER = Logging.getLogger(StopDispatcher.class);
     private final IdGenerator<?> idGenerator;

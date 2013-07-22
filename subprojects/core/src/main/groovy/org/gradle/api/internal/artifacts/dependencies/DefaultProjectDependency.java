@@ -31,9 +31,6 @@ import org.gradle.initialization.ProjectAccessListener;
 import java.io.File;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
     private ProjectInternal dependencyProject;
     private final boolean buildProjectDependencies;

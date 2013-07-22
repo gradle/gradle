@@ -18,8 +18,6 @@ package org.gradle.api;
 /**
  * <p>A {@code Rule} represents some action to perform when an unknown domain object is referenced. The rule can use the
  * domain object name to add an implicit domain object.</p>
- *
- * @author Hans Dockter
  */
 public interface Rule {
     /**

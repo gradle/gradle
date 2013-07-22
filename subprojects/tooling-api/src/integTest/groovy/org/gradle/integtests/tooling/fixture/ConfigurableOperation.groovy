@@ -19,9 +19,6 @@ package org.gradle.integtests.tooling.fixture
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProgressListener
 
-/**
- * by Szczepan Faber, created at: 12/19/11
- */
 class ConfigurableOperation {
 
     def operation

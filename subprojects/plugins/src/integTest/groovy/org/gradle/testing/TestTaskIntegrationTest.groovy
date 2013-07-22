@@ -19,9 +19,6 @@ package org.gradle.testing;
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue;
 
-/**
- * By Szczepan Faber on 6/17/13
- */
 public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2702")

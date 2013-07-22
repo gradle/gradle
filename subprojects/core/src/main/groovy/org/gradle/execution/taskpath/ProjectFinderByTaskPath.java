@@ -23,9 +23,6 @@ import org.gradle.util.NameMatcher;
 
 import java.util.Map;
 
-/**
- * by Szczepan Faber, created at: 1/3/13
- */
 public class ProjectFinderByTaskPath {
 
     public ProjectInternal findProject(String projectPath, ProjectInternal startFrom) {

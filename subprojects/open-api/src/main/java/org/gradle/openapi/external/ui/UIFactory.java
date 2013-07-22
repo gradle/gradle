@@ -24,8 +24,6 @@ import java.lang.reflect.Constructor;
  * This loads up the main gradle UI. This is intended to be used as a plugin inside another application (like an IDE) in a dynamic fashion. If you're always going to ship the entire plugin with the
  * entire Gradle dist, you don't need to use this. This is meant to dynamically load Gradle from its dist. The idea is that you point your plugin to a Gradle dist and then can always load the latest
  * version.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated
@@ -148,7 +146,6 @@ public class UIFactory {
      * @param interaction this is how we interact with the caller.
      * @param showDebugInfo true to show some additional information that may be helpful diagnosing problems is this fails
      * @return the UI object.
-     * @author mhunsicker
      * @deprecated Use the tooling API instead.
      */
     @Deprecated

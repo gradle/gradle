@@ -18,7 +18,7 @@ package org.gradle.cache;
 
 /**
  * CacheValidator interface can be used for specify a particular cache validation logic.
- * */
+  */
 public interface CacheValidator {
     boolean isValid();
 

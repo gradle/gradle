@@ -20,9 +20,6 @@ import org.gradle.tooling.internal.protocol.eclipse.EclipseLinkedResourceVersion
 
 import java.io.Serializable;
 
-/**
- * @author: Szczepan Faber, created at: 6/11/11
- */
 public class DefaultEclipseLinkedResource implements Serializable, EclipseLinkedResourceVersion1 {
 
     private String name;

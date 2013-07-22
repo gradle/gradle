@@ -30,9 +30,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * @author Hans Dockter
- */
 class SamplesMavenPomGenerationIntegrationTest extends AbstractIntegrationTest {
     private TestFile pomProjectDir
 

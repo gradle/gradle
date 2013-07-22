@@ -23,8 +23,6 @@ import org.gradle.internal.reflect.Instantiator;
 
 /**
  * Default implementation for {@link org.gradle.api.distribution.DistributionContainer}
- *
- * @author scogneau
  */
 public class DefaultDistributionContainer extends AbstractNamedDomainObjectContainer<Distribution> implements DistributionContainer {
     private final FileResolver fileResolver;

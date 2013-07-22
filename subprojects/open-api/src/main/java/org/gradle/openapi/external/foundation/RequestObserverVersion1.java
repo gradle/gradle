@@ -19,8 +19,6 @@ package org.gradle.openapi.external.foundation;
  * This allows you to observer when Gradle commands are executed/complete. It is an abstraction of a GradlePluginLord.RequestObserver.
  *
  * <p>This is a mirror of GradlePluginLord.RequestObserver inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
- *
- * @author mhunsicker
  * @deprecated No replacement
  */
 @Deprecated

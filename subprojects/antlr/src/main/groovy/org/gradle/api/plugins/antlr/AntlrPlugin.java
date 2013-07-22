@@ -36,8 +36,6 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME;
 
 /**
  * A plugin for adding Antlr support to {@link JavaPlugin java projects}.
- *
- * @author Steve Ebersole
  */
 public class AntlrPlugin implements Plugin<ProjectInternal> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";

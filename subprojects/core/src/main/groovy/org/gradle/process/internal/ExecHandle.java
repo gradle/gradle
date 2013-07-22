@@ -22,9 +22,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Tom Eyckmans
- */
 public interface ExecHandle {
 
     File getDirectory();

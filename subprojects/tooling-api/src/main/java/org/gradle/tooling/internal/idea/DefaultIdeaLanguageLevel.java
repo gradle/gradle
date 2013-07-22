@@ -20,9 +20,6 @@ import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 
 import java.io.Serializable;
 
-/**
- * @author: Szczepan Faber, created at: 7/30/11
- */
 public class DefaultIdeaLanguageLevel implements IdeaLanguageLevel, Serializable {
 
     private final String level;

@@ -18,9 +18,6 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-/**
- * by Szczepan Faber, created at: 11/21/12
- */
 class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
     def "accessing the task by path from containing project is safe"() {

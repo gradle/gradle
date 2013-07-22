@@ -43,8 +43,6 @@ import java.util.regex.Pattern;
  *
  * A file or directory will only be visited if it matches all includes and no
  * excludes.
- *
- * @author Steve Appling
  */
 public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection, LocalFileTree, DirectoryTree {
     private static final Logger LOGGER = Logging.getLogger(DirectoryFileTree.class);

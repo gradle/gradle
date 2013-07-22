@@ -36,9 +36,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.gradle.util.GUtil.flattenElements;
 
-/**
- * by Szczepan Faber, created at: 10/7/11
- */
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     private Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();

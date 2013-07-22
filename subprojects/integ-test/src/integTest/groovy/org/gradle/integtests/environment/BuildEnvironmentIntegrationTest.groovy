@@ -25,9 +25,6 @@ import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-/**
- * @author: Szczepan Faber, created at: 8/11/11
- */
 class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     def "canonicalizes working directory"() {
         given:

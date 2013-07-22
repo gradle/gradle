@@ -32,8 +32,6 @@ import org.gradle.util.ConfigureUtil
  *     provider.asNode().appendNode('gradleRocks', 'true')
  * }
  * </pre>
- *
- * @author Szczepan Faber, created at: 06/09/11
  */
 class IdeaWorkspace {
 

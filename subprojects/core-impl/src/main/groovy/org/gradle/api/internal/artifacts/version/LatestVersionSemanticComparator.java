@@ -21,9 +21,6 @@ import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 
 import java.util.Comparator;
 
-/**
- * by Szczepan Faber, created at: 10/9/12
- */
 public class LatestVersionSemanticComparator implements Comparator<String> {
     private final Comparator<SimpleArtifactInfo> comparator = new LatestRevisionStrategy().getComparator();
 

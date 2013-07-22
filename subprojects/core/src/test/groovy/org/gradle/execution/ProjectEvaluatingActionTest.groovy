@@ -21,9 +21,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.DefaultProject
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 1/8/13
- */
 class ProjectEvaluatingActionTest extends Specification {
 
     private evaluator = Mock(TaskPathProjectEvaluator)

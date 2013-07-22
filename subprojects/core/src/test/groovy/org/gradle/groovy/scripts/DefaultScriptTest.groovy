@@ -33,9 +33,6 @@ import org.junit.runner.RunWith
 
 import static org.junit.Assert.assertEquals
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock)
 class DefaultScriptTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()

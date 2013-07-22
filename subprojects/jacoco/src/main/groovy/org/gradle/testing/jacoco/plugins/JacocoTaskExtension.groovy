@@ -108,7 +108,7 @@ class JacocoTaskExtension {
 
     /**
      * The task we extend
-     * */
+      */
     private JavaForkOptions task
 
     /**

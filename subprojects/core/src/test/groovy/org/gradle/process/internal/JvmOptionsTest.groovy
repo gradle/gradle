@@ -19,13 +19,11 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.IdentityFileResolver
-import spock.lang.Specification
 import org.gradle.process.JavaForkOptions
+import spock.lang.Specification
+
 import java.nio.charset.Charset
 
-/**
- * by Szczepan Faber, created at: 2/13/12
- */
 class JvmOptionsTest extends Specification {
     final String defaultCharset = Charset.defaultCharset().name()
 

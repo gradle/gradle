@@ -15,9 +15,6 @@
  */
 package org.gradle.process.internal;
 
-/**
- * @author Tom Eyckmans
- */
 public class BadExitCodeException extends Exception {
     public BadExitCodeException(String message) {
         super(message);

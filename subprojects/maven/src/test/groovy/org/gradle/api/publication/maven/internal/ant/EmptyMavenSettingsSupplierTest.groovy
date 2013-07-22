@@ -19,9 +19,6 @@ package org.gradle.api.publication.maven.internal.ant
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport
 import spock.lang.Specification
 
-/**
- * @author Szczepan Faber, created at: 3/29/11
- */
 class EmptyMavenSettingsSupplierTest extends Specification {
 
     def EmptyMavenSettingsSupplier supplier = new EmptyMavenSettingsSupplier()

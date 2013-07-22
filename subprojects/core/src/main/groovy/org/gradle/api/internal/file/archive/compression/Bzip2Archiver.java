@@ -28,9 +28,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 
-/**
- * by Szczepan Faber, created at: 11/16/11
- */
 public class Bzip2Archiver implements ReadableResource {
 
     private final ReadableResource resource;

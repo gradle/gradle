@@ -39,10 +39,6 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Hans Dockter
- * @author Russel Winder
- */
 public class GradleVersion implements Comparable<GradleVersion> {
     public final static String URL = "http://www.gradle.org";
     private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}([-+]\\d{4})?))?");

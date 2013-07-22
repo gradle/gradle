@@ -27,9 +27,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public class DefaultExternalModuleDependencyTest extends AbstractModuleDependencyTest {
     private static final String TEST_GROUP = "org.gradle";

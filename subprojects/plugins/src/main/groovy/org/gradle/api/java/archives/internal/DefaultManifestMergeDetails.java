@@ -17,9 +17,6 @@ package org.gradle.api.java.archives.internal;
 
 import org.gradle.api.java.archives.ManifestMergeDetails;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultManifestMergeDetails implements ManifestMergeDetails {
     private String section;
     private String key;

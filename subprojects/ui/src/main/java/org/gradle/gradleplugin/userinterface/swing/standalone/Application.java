@@ -36,8 +36,6 @@ import java.net.URI;
 /**
  * The main entry point for a stand-alone application for Gradle. The real work is not done here. This is just a UI containing components that are meant to be reuseable in other UIs (say an IDE
  * plugin). Those other components do the real work. Most of the work is wrapped inside SinglePaneUIInstance.
- *
- * @author mhunsicker
  */
 public class Application implements AlternateUIInteraction {
     private static final int DEFAULT_WIDTH = 800;

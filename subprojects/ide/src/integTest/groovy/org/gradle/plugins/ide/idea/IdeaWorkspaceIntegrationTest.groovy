@@ -19,9 +19,6 @@ package org.gradle.plugins.ide.idea
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Test
 
-/**
- * @author: Szczepan Faber, created at: 6/9/11
- */
 class IdeaWorkspaceIntegrationTest extends AbstractIdeIntegrationTest {
 
     @Test

@@ -16,25 +16,29 @@
 
 package org.gradle.api.internal.project
 
+import groovy.lang.MissingMethodException
 import org.apache.tools.ant.types.FileSet
+import org.gradle.api.*
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.*
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
+import org.gradle.api.internal.project.TestConvention
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.Directory
+import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectEvaluator
-import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Factory
@@ -50,18 +54,13 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import java.awt.Point
+import java.awt.*
 import java.text.FieldPosition
-
-import org.gradle.api.*
-import org.gradle.api.internal.*
+import java.util.List
 
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 @RunWith (JMock.class)
 class DefaultProjectTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()

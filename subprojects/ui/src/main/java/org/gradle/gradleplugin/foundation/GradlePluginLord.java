@@ -45,8 +45,6 @@ import java.util.concurrent.LinkedBlockingQueue;
  * This class has nothing to do with plugins inside of gradle, but are related to making a plugin that uses gradle, such as for an IDE. It is also used by the standalone IDE (that way the standalone
  * UI and plugin UIs are kept in synch). <p/> This is the class that stores most of the information that the Gradle plugin works directly with. It is meant to simplify creating a plugin that uses
  * gradle. It maintains a queue of commands to execute and executes them in a separate process due to some complexities with gradle and its dependencies classpaths and potential memory issues.
- *
- * @author mhunsicker
  */
 public class GradlePluginLord {
     private final Logger logger = Logging.getLogger(GradlePluginLord.class);

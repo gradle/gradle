@@ -23,9 +23,6 @@ import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-/**
- * @author Hans Dockter
- */
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
     private final IDownload download;

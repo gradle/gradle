@@ -15,7 +15,6 @@
  */
 package org.gradle.foundation;
 
-import org.junit.Assert;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
@@ -28,6 +27,7 @@ import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.internal.UncheckedException;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Assert;
 
 import javax.swing.filechooser.FileFilter;
 import java.io.File;
@@ -38,8 +38,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Utility class for initializing various test objects related.
- *
- * @author mhunsicker
  */
 public class TestUtility {
     private static long uniqueNameCounter = 1; //used to make unique names for JMock objects.

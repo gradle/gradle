@@ -20,9 +20,6 @@ import org.gradle.api.artifacts.Module
 import org.gradle.api.internal.artifacts.DefaultModule
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 public class DefaultModuleDescriptorFactoryTest extends Specification {
     final DefaultModuleDescriptorFactory factory = new DefaultModuleDescriptorFactory()
 

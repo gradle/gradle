@@ -23,9 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaDat
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
-/**
-* By Szczepan Faber on 4/19/13
-*/
 class CachedRepository implements LocalAwareModuleVersionRepository {
     final DependencyMetadataCache cache;
     final LocalAwareModuleVersionRepository delegate;

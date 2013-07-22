@@ -18,12 +18,8 @@ package org.gradle.api.publication.maven.internal.ant
 
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations
-
 import spock.lang.Specification
 
-/**
- * @author Szczepan Faber, created at: 3/29/11
- */
 class MaybeUserMavenSettingsSupplierTest extends Specification {
 
     InstallDeployTaskSupport support = Mock()

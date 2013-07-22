@@ -22,8 +22,6 @@ import org.gradle.foundation.queue.ExecutionQueue;
 /**
  * This represents a basic reques to gradle that is executed in a separate process using the ProcessLauncherServer. This stores the command line to execute and has the ability to cancel itself by
  * either removing it from the queue if it hasn't started yet, or killing the external process.
- *
- * @author mhunsicker
  */
 public abstract class AbstractRequest implements Request {
     private long requestID;

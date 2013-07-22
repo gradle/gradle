@@ -20,9 +20,6 @@ import org.gradle.api.internal.notations.api.UnsupportedNotationException;
 
 import java.util.Collection;
 
-/**
- * by Szczepan Faber, created at: 11/8/11
- */
 public class JustReturningParser<T> implements NotationParser<T> {
 
     private final Class<T> passThroughType;

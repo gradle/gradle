@@ -25,9 +25,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * @author: Szczepan Faber, created at: 9/12/11
- */
 public class JnaBootPathConfigurer {
     /**
      * Attempts to find the jna library and copies it to a specified folder.

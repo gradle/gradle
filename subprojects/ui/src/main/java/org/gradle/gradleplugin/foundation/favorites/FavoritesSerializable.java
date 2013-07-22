@@ -25,10 +25,7 @@ import java.util.List;
 /**
  * Inner class that handles serializing favorites. You can either pass it a favorites list and serialize them out or use the default constructor and serialize it. This allows you to serialize a
  * favorites list with or without an editor.
- *
- * @author mhunsicker
- */
-class FavoritesSerializable implements SettingsSerializable {
+ */class FavoritesSerializable implements SettingsSerializable {
     private List<FavoriteTask> favorites;
 
     private static final String FAVORITE_ELEMENT_TAG = "favorite";

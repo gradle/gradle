@@ -19,9 +19,6 @@ package org.gradle.profile
 import org.gradle.api.tasks.TaskState
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 3/19/13
- */
 class ProjectProfileTest extends Specification {
 
     def "provides sorted tasks"() {

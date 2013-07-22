@@ -25,8 +25,6 @@ import org.gradle.api.internal.file.copy.ZipStoredCompressor;
  * Assembles a ZIP archive.
  * 
  * The default is to compress the contents of the zip.
- * 
- * @author Hans Dockter
  */
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";

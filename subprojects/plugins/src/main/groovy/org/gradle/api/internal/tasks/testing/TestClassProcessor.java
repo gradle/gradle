@@ -20,8 +20,6 @@ import org.gradle.internal.Stoppable;
 
 /**
  * A processor for executing tests. Implementations are not required to be thread-safe.
- *
- * @author Tom Eyckmans
  */
 public interface TestClassProcessor extends Stoppable {
     /**

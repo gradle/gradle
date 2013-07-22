@@ -20,9 +20,6 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 3/11/13
- */
 class DaemonCommandLineConverterTest extends Specification {
 
     def "converts daemon options"() {

@@ -16,9 +16,6 @@
 
 package org.gradle.cache.internal.cacheops;
 
-/**
-* By Szczepan Faber on 6/7/13
-*/
 class CacheOperation {
     final String description;
     final boolean longRunningOperation;

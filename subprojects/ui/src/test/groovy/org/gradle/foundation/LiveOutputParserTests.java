@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * Tests aspects of LiveOutputParser. This finds FileLinks within text that is being output constantly.
- *
- * @author mhunsicker
  */
 public class LiveOutputParserTests extends TestCase {
     private LiveOutputParser parser;

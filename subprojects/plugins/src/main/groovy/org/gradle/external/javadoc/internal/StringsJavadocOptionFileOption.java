@@ -16,13 +16,10 @@
 
 package org.gradle.external.javadoc.internal;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * @author Tom Eyckmans
- */
 public class StringsJavadocOptionFileOption extends AbstractListJavadocOptionFileOption<List<String>> {
     protected StringsJavadocOptionFileOption(String option, String joinBy) {
         super(option, new ArrayList<String>(), joinBy);

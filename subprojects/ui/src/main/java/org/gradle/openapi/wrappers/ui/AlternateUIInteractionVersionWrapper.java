@@ -23,8 +23,6 @@ import java.io.File;
 
 /**
  * Wrapper to shield version changes in AlternateUIInteraction from an external user of gradle open API.
- *
- * @author mhunsicker
  */
 public class AlternateUIInteractionVersionWrapper implements AlternateUIInteraction {
     private AlternateUIInteractionVersion1 alternateUIInteractionVersion1;

@@ -16,14 +16,11 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import org.junit.rules.MethodRule
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.junit.runners.model.Statement
+import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
+import org.junit.runners.model.Statement
 
-/**
- * by Szczepan Faber, created at: 2/1/13
- */
 abstract class InitScriptExecuterFixture implements MethodRule {
 
     GradleExecuter executer

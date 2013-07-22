@@ -32,7 +32,6 @@ import java.util.concurrent.TimeUnit
 
 /**
  This tests the multiproject sample with the GradleView mechanism.
- @author mhunsicker
  */
 class MultiprojectProjectAndTaskListIntegrationTest extends AbstractIntegrationTest {
 
@@ -59,8 +58,6 @@ class MultiprojectProjectAndTaskListIntegrationTest extends AbstractIntegrationT
        (services:webservice). This isn't really interested in the actual tasks
        themselves (I fear those may change too often to worry with keeping the
        test up to date).
-
-       @author mhunsicker
     */
 
     @Test

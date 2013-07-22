@@ -20,8 +20,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Terminates the external running 'sub' process when the Gradle process is being cancelled.
- *
- * @author Tom Eyckmans
  */
 public class ExecHandleShutdownHookAction implements Runnable {
 

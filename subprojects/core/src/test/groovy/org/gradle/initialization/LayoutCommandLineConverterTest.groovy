@@ -24,9 +24,6 @@ import spock.lang.Specification
 
 import static org.gradle.util.GFileUtils.canonicalise
 
-/**
- * by Szczepan Faber, created at: 2/19/13
- */
 class LayoutCommandLineConverterTest extends Specification {
 
     def converter = new LayoutCommandLineConverter()

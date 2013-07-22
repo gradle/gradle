@@ -20,9 +20,6 @@ import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 11/19/12
- */
 class TestClassResultSpec extends Specification {
 
     def "provides test class result information"() {

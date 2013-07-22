@@ -20,9 +20,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class ConfigurationsTest {
     private static final String TEST_CONF = "testConf";
 

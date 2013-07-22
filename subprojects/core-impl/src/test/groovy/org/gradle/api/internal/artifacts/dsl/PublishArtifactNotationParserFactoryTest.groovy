@@ -30,9 +30,6 @@ import spock.lang.Specification
 
 import java.awt.*
 
-/**
- * @author Hans Dockter
- */
 public class PublishArtifactNotationParserFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
     final Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()

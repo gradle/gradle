@@ -26,8 +26,6 @@ import java.util.List;
 /**
  * Is used for generating a Maven POM file and customizing the generation.
  * To learn about the Maven POM see: <a href="http://maven.apache.org/pom.html">http://maven.apache.org/pom.html</a>
- *
- * @author Hans Dockter
  */
 public interface MavenPom {
 

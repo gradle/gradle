@@ -106,8 +106,6 @@ import static java.util.Arrays.asList;
  *   }
  * }
  * </pre>
- *
- * @author Hans Dockter
  */
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestReports> {
 

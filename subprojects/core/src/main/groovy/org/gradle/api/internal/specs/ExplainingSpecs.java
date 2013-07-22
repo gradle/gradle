@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.specs;
 
-/**
- * by Szczepan Faber, created at: 5/14/12
- */
 public class ExplainingSpecs {
 
     private static final ExplainingSpec<Object> SATISFIES_ALL = new ExplainingSpec<Object>() {

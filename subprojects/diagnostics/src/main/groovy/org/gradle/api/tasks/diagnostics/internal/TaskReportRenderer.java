@@ -32,8 +32,6 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
 
 /**
  * <p>A {@code TaskReportRenderer} is responsible for rendering the model of a project task report.</p>
- *
- * @author Hans Dockter
  */
 public class TaskReportRenderer extends TextReportRenderer {
     private boolean currentProjectHasTasks;

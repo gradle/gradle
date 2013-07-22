@@ -28,9 +28,6 @@ import java.util.jar.Manifest
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
 
-/**
- * @author Hans Dockter
- */
 class OsgiProjectSampleIntegrationTest extends AbstractIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'osgi')

@@ -33,9 +33,6 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-/**
- * @author Tom Eyckmans
- */
 public class TestNGTestFramework implements TestFramework {
     private TestNGOptions options;
     private TestNGDetector detector;

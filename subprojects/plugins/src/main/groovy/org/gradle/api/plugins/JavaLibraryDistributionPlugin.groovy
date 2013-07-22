@@ -23,8 +23,6 @@ import org.gradle.api.distribution.plugins.DistributionPlugin
 
 /**
  * A {@link Plugin} which package a Java project as a distribution including the JAR and runtime dependencies.
- *
- * @author scogneau
  */
 @Incubating
 class JavaLibraryDistributionPlugin implements Plugin<Project> {

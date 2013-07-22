@@ -21,9 +21,6 @@ import org.gradle.util.Resources
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class ImportsReaderTest extends Specification {
     @Rule public Resources resources = new Resources()
     ImportsReader reader = new ImportsReader()

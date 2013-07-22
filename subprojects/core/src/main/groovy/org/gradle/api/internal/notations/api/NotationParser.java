@@ -18,9 +18,6 @@ package org.gradle.api.internal.notations.api;
 
 import java.util.Collection;
 
-/**
- * by Szczepan Faber, created at: 11/8/11
- */
 public interface NotationParser<T> {
     T parseNotation(Object notation) throws UnsupportedNotationException;
 

@@ -17,9 +17,6 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 
-/**
- * @author Hans Dockter
- */
 public interface ISettingsFinder {
     SettingsLocation find(StartParameter startParameter);
 }

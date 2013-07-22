@@ -36,9 +36,6 @@ import java.io.File;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class GroovyCompileTest extends AbstractCompileTest {
 

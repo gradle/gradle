@@ -17,9 +17,6 @@ package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.apache.commons.io.FilenameUtils
 
-/**
- * @author Hans Dockter
- */
 class PathUtil {
   static String normalizePath(String path) {
         FilenameUtils.separatorsToUnix(path)

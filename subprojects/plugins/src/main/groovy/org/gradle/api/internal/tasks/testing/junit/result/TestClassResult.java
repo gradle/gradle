@@ -21,9 +21,6 @@ import org.gradle.api.tasks.testing.TestResult;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * by Szczepan Faber, created at: 11/13/12
- */
 public class TestClassResult {
     private final List<TestMethodResult> methodResults = new ArrayList<TestMethodResult>();
     private final String className;

@@ -50,9 +50,6 @@ import static org.gradle.util.Matchers.isA;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public class DefaultScriptCompilationHandlerTest {
 

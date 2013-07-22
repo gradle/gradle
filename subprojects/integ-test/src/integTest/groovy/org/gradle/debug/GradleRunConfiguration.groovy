@@ -21,8 +21,6 @@ import org.gradle.launcher.Main
 /**
  * Used by IDEA run configuration created as part of 'gradle idea' run.
  * Required because dependency on 'launcher' project has scope 'test'.
- *
- * @author: Szczepan Faber, created at: 4/30/11
  */
 class GradleRunConfiguration {
     public static void main(String[] args) {

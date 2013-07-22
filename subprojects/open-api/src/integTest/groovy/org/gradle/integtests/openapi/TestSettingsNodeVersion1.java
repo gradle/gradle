@@ -24,8 +24,6 @@ import java.util.List;
 
 /**
  * Implementation of settings node. It basically mirrors a DOM.
- *
- * @author mhunsicker
  */
 public class TestSettingsNodeVersion1 implements SettingsNodeVersion1 {
 

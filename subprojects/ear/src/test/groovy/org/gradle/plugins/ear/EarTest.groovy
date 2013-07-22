@@ -16,16 +16,14 @@
 
 package org.gradle.plugins.ear
 
-import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
-import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
+import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
 import org.junit.Before
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
 
-/**
- * @author David Gileadi
- */
 class EarTest extends AbstractArchiveTaskTest {
 
     Ear ear

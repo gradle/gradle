@@ -19,9 +19,6 @@ package org.gradle.launcher.daemon.testing
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices
 
-/**
- * by Szczepan Faber, created at: 9/3/12
- */
 class DaemonLogsAnalyzer {
 
     private List<File> daemonLogs

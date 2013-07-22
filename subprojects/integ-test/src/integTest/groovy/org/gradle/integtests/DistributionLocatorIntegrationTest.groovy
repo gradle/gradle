@@ -22,9 +22,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
-/**
- * @author: Szczepan Faber, created at: 8/20/11
- */
 @Requires(TestPrecondition.ONLINE)
 class DistributionLocatorIntegrationTest extends Specification {
 

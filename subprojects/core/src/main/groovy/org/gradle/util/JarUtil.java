@@ -19,12 +19,9 @@ package org.gradle.util;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
-/**
- * @author Tom Eyckmans
- */
 public class JarUtil {
     public static boolean extractZipEntry(File jarFile, String entryName, File extractToFile) throws IOException {
         boolean entryExtracted = false;

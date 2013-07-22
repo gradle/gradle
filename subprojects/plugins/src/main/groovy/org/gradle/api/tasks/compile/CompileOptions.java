@@ -28,8 +28,6 @@ import java.util.Map;
 
 /**
  * Main options for Java compilation.
- *
- * @author Hans Dockter
  */
 public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;

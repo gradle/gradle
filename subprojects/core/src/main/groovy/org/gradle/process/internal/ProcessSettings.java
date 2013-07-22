@@ -20,9 +20,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-/**
- * by Szczepan Faber, created at: 4/20/12
- */
 public interface ProcessSettings {
 
     File getDirectory();

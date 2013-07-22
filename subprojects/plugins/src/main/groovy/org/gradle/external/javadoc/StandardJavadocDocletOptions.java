@@ -16,17 +16,17 @@
 
 package org.gradle.external.javadoc;
 
-import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
+import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides the options for the standard Javadoc doclet.
- * 
- * @author Tom Eyckmans
  */
 public class StandardJavadocDocletOptions extends CoreJavadocOptions implements MinimalJavadocOptions {
 

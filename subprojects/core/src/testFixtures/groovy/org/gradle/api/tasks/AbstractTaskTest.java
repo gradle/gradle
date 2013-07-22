@@ -50,9 +50,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractTaskTest {
     public static final String TEST_TASK_NAME = "testTask";
     @Rule

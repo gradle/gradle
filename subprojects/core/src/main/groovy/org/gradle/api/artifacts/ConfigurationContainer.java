@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
-
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.internal.HasInternalProtocol;
@@ -80,8 +79,6 @@ import org.gradle.api.internal.HasInternalProtocol;
  * </pre>
  *
  * Examples on configuring the <b>resolution strategy</b> - see docs for {@link ResolutionStrategy}
- *
- * @author Hans Dockter
  */
 @HasInternalProtocol
 public interface ConfigurationContainer extends NamedDomainObjectContainer<Configuration> {
