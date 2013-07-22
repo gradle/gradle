@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project
 
-import groovy.lang.MissingMethodException
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.*
 import org.gradle.api.artifacts.Module
@@ -31,7 +30,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
-import org.gradle.api.internal.project.TestConvention
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
