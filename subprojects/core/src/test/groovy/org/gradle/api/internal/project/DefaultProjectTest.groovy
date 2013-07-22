@@ -56,7 +56,6 @@ import org.junit.runner.RunWith
 
 import java.awt.*
 import java.text.FieldPosition
-import java.util.List
 
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
@@ -890,7 +889,7 @@ def scriptMethod(Closure closure) {
     private void checkConfigureProject(String configureMethod, Set projectsToCheck) {
         String propValue = 'someValue'
         if (configureMethod == 'configure') {
-            project."$configureMethod" projectsToCheck as List,
+            project."$configureMethod" projectsToCheck as java.util.List,
                     {
                         testSubProp = propValue
                     }

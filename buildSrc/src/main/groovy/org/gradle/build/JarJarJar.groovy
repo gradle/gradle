@@ -18,6 +18,7 @@ package org.gradle.build
 
 import org.gradle.api.tasks.bundling.Jar
 import com.tonicsystems.jarjar.Main as JarJarMain
+import org.gradle.api.tasks.Input
 
 /*
 * a Jar task that performs JarJar repackaging after archive is created
