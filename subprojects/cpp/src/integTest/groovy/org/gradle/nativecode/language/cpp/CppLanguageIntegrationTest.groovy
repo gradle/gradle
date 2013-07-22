@@ -14,64 +14,34 @@
  * limitations under the License.
  */
 
-
 package org.gradle.nativecode.language.cpp
 
-import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-
-class CppLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
-
+class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     static final HELLO_WORLD = "Hello, World!"
     static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
 
-    static final MAIN_CPP = """
-            #include "hello.h"
-
-            int main () {
-              hello();
-              return 0;
-            }
-"""
-    static final HELLO_CPP = """
-            #include <iostream>
-
-            #ifdef _WIN32
-            #define DLL_FUNC __declspec(dllexport)
-            #else
-            #define DLL_FUNC
-            #endif
-
-            void DLL_FUNC hello() {
-                #ifdef FRENCH
-                std::cout << "${HELLO_WORLD_FRENCH}";
-                #else
-                std::cout << "${HELLO_WORLD}";
-                #endif
-            }
-"""
-    static final HELLO_H = """
-            void hello();
-"""
-
-    def setup() {
-        settingsFile << "rootProject.name = 'test'"
-    }
-
+    def helloWorldApp = new CppHelloWorldApp()
 
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-            apply plugin: "cpp-exe"
-        """
+             apply plugin: "cpp"
+             sources {
+                 main {}
+             }
+             executables {
+                 main {
+                     source sources.main
+                 }
+             }
+         """
 
         and:
-        file("src", "main", "cpp", "helloworld.cpp") << """
-            #include <iostream>
+        file("src/main/cpp/broken.cpp") << """
+        #include <iostream>
 
-            'broken
-        """
+        'broken
+"""
 
         expect:
         fails "mainExecutable"
@@ -79,143 +49,58 @@ class CppLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
         failure.assertHasCause("C++ compile failed; see the error output for details.")
     }
 
+    class CppHelloWorldApp {
+        def englishOutput = "$HELLO_WORLD 12"
+        def frenchOutput = "$HELLO_WORLD_FRENCH 12"
+        def customArgs = ""
 
-    def "compile and link executable"() {
-        given:
-        buildFile << """
-            apply plugin: "cpp-exe"
-        """
+        def appSources = [
+                "cpp/main.cpp": """
+                #include <iostream>
+                #include "hello.h"
 
-        and:
-        file("src/main/cpp/main.cpp") << MAIN_CPP
-        file("src/main/cpp/hello.cpp") << HELLO_CPP
-        file("src/main/headers/hello.h") << HELLO_H
-
-        when:
-        run "mainExecutable"
-
-        then:
-        def mainExecutable = executable("build/binaries/mainExecutable/test")
-        mainExecutable.assertExists()
-        mainExecutable.exec().out == HELLO_WORLD
-    }
-
-    def "build executable with custom compiler arg"() {
-        given:
-        buildFile << """
-            apply plugin: "cpp-exe"
-            executables.main.binaries.all {
-                compilerArgs "-DFRENCH"
-            }
-        """
-
-        and:
-        file("src/main/cpp/main.cpp") << MAIN_CPP
-        file("src/main/cpp/hello.cpp") << HELLO_CPP
-        file("src/main/headers/hello.h") << HELLO_H
-
-        when:
-        run "mainExecutable"
-
-        then:
-        def mainExecutable = executable("build/binaries/mainExecutable/test")
-        mainExecutable.assertExists()
-        mainExecutable.exec().out == HELLO_WORLD_FRENCH
-    }
-
-    def "build executable with macro defined"() {
-        given:
-        buildFile << """
-            apply plugin: "cpp-exe"
-            executables.main.binaries.all {
-                define "FRENCH"
-            }
-        """
-
-        and:
-        file("src/main/cpp/main.cpp") << MAIN_CPP
-        file("src/main/cpp/hello.cpp") << HELLO_CPP
-        file("src/main/headers/hello.h") << HELLO_H
-
-        when:
-        run "mainExecutable"
-
-        then:
-        def mainExecutable = executable("build/binaries/mainExecutable/test")
-        mainExecutable.assertExists()
-        mainExecutable.exec().out == HELLO_WORLD_FRENCH
-    }
-
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "build shared library and link into executable"() {
-        given:
-        buildFile << """
-            apply plugin: "cpp-exe"
-
-            sources {
-                hello {}
-            }
-            libraries {
-                hello {
-                    source sources.hello
+                int main () {
+                  sayHello();
+                  std::cout << " " << sum(5, 7);
+                  return 0;
                 }
-            }
-            sources.main.cpp.lib libraries.hello
-        """
+    """
+        ]
 
-        and:
-        file("src/main/cpp/main.cpp") << MAIN_CPP
-        file("src/hello/cpp/hello.cpp") << HELLO_CPP
-        file("src/hello/headers/hello.h") << HELLO_H
+        def libraryHeaders = [
+                "headers/hello.h": """
+                #ifdef _WIN32
+                #define DLL_FUNC __declspec(dllexport)
+                #else
+                #define DLL_FUNC
+                #endif
 
-        when:
-        run "installMainExecutable"
+                void sayHello();
+                int sum(int a, int b);
+    """
+        ]
 
-        then:
-        sharedLibrary("build/binaries/helloSharedLibrary/hello").assertExists()
-        executable("build/binaries/mainExecutable/test").assertExists()
+        def librarySources = [
+                "cpp/hello.cpp": """
+                #include <iostream>
+                #include "hello.h"
 
-        def install = installation("build/install/mainExecutable")
-        install.assertInstalled()
-        install.assertIncludesLibraries("hello")
-        install.exec().out == HELLO_WORLD
-    }
-
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "build static library and link into executable"() {
-        given:
-        buildFile << """
-            apply plugin: "cpp-exe"
-
-            sources {
-                hello {}
-            }
-            libraries {
-                hello {
-                    source sources.hello
-                    binaries.withType(StaticLibraryBinary) {
-                        define "FRENCH"
-                    }
+                void DLL_FUNC sayHello() {
+                    #ifdef FRENCH
+                    std::cout << "${HELLO_WORLD_FRENCH}";
+                    #else
+                    std::cout << "${HELLO_WORLD}";
+                    #endif
                 }
-            }
-            sources.main.cpp.lib libraries.hello.static
-        """
+    """,
+            "cpp/sum.cpp": """
+                #include "hello.h"
 
-        and:
-        file("src/main/cpp/main.cpp") << MAIN_CPP
-        file("src/hello/cpp/hello.cpp") << HELLO_CPP
-        file("src/hello/headers/hello.h") << HELLO_H
-
-        when:
-        run "installMainExecutable"
-
-        then:
-        staticLibrary("build/binaries/helloStaticLibrary/hello").assertExists()
-        executable("build/binaries/mainExecutable/test").assertExists()
-
-        and:
-        def install = installation("build/install/mainExecutable")
-        install.assertInstalled()
-        install.exec().out == HELLO_WORLD_FRENCH
+                int DLL_FUNC sum(int a, int b) {
+                    return a + b;
+                }
+    """
+        ]
     }
 }
+

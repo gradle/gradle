@@ -13,61 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.nativecode.language.cpp
 
-class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+class CppCallingCLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     static final HELLO_WORLD = "Hello, World!"
     static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
 
-    def helloWorldApp = new CHelloWorldApp()
-    def "build fails when compilation fails"() {
-        given:
-        buildFile << """
-             apply plugin: "cpp"
-             sources {
-                 main {}
-             }
-             executables {
-                 main {
-                     source sources.main
-                 }
-             }
-         """
+    def helloWorldApp = new CppCallingCHelloWorldApp()
 
-        and:
-        file("src/main/c/broken.c") << """
-        #include <stdio.h>
-
-        'broken
-"""
-
-        expect:
-        fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
-        failure.assertHasCause("C compile failed; see the error output for details.")
-    }
-
-    class CHelloWorldApp {
-        def englishOutput= "$HELLO_WORLD 12"
+    class CppCallingCHelloWorldApp {
+        def englishOutput = "$HELLO_WORLD 12"
         def frenchOutput = "$HELLO_WORLD_FRENCH 12"
         def customArgs = ""
 
-
         def appSources = [
-            "c/main.c": """
-                #include <stdio.h>
-                #include "hello.h"
+                "cpp/main.cpp": """
+                #include <iostream>
+                extern "C" {
+                    #include "hello.h"
+                }
 
                 int main () {
-                    sayHello();
-                    printf(" %d", sum(5, 7));
-                    return 0;
+                  sayHello();
+                  std::cout << " " << sum(5, 7);
+                  return 0;
                 }
     """
         ]
 
         def libraryHeaders = [
-            "headers/hello.h": """
+                "headers/hello.h": """
                 #ifdef _WIN32
                 #define DLL_FUNC __declspec(dllexport)
                 #else
@@ -80,7 +56,7 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         ]
 
         def librarySources = [
-            "c/hello.c": """
+                "c/hello.c": """
                 #include <stdio.h>
                 #include "hello.h"
 
@@ -91,16 +67,12 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                     printf("${HELLO_WORLD}");
                     #endif
                 }
-    """,
-            "c/sum.c": """
-                #include "hello.h"
 
                 int DLL_FUNC sum(int a, int b) {
                     return a + b;
                 }
     """
         ]
-
     }
 }
 
