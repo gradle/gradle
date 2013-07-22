@@ -17,12 +17,11 @@
 
 package org.gradle.nativecode.language.cpp
 
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativecode.language.cpp.fixtures.MixedLanguageHelloWorldApp
 
 class AssemblyLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
-    static final HELLO_WORLD = "Hello, World!"
-    static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
-    def helloWorldApp = new MixedCAssemblerHelloWorldApp()
+    // TODO: Would be better to have a "pure assembler" app here
+    def helloWorldApp = new AssemblerWithCHelloWorldApp()
 
     def "build fails when compilation fails"() {
         given:
@@ -53,22 +52,7 @@ pushl
         failure.assertHasCause("Assemble failed; see the error output for details.")
     }
 
-    class MixedCAssemblerHelloWorldApp {
-
-        def englishOutput= "$HELLO_WORLD 12"
-        def frenchOutput = "$HELLO_WORLD_FRENCH 12"
-
-        def getCustomArgs() {
-            if (OperatingSystem.current().isMacOsX()) {
-                return """
-                        compilerArgs "-m32"
-                        assemblerArgs "-arch", "i386"
-                        linkerArgs "-no_pie", "-arch", "i386"
-                """
-            }
-            return ""
-        }
-
+    static class AssemblerWithCHelloWorldApp extends MixedLanguageHelloWorldApp {
         def appSources = [
             "c/main.c": """
                 #include <stdio.h>
@@ -81,105 +65,6 @@ pushl
                 }
     """
         ]
-
-        def libraryHeaders = [
-            "headers/hello.h": """
-                #ifdef _WIN32
-                #define DLL_FUNC __declspec(dllexport)
-                #else
-                #define DLL_FUNC
-                #endif
-
-                void sayHello();
-                int sum(int a, int b);
-    """
-        ]
-
-        def librarySources = [
-            "c/hello.c": """
-                #include <stdio.h>
-                #include "hello.h"
-
-                void DLL_FUNC sayHello() {
-                    #ifdef FRENCH
-                    printf("${HELLO_WORLD_FRENCH}");
-                    #else
-                    printf("${HELLO_WORLD}");
-                    #endif
-                }
-""",
-            "asm/sum.s": getAsmSource()
-        ]
     }
-
-    private static def getAsmSource() {
-        def os = OperatingSystem.current()
-        if (os.isMacOsX()) {
-            return osxAsmSource
-        } else if (os.isWindows()) {
-            return windowsAsmSource
-        } else {
-            return linuxAsmSource
-        }
-    }
-
-    static private String osxAsmSource = '''
-   .section    __TEXT,__text,regular,pure_instructions
-   .globl  _sum
-   .align  4, 0x90C
-_sum:
-   pushl   %ebp
-   movl    %esp, %ebp
-   movl    12(%ebp), %eax
-   addl    8(%ebp), %eax
-   popl    %ebp
-   ret
-
-
-.subsections_via_symbols
-'''
-    static private String windowsAsmSource = '''
-    .686P
-    .XMM
-    include   listing.inc
-    .model    flat
-
-INCLUDELIB LIBCMT
-INCLUDELIB OLDNAMES
-
-PUBLIC    _sum
-_TEXT     SEGMENT
-_a$ = 8
-_b$ = 12
-_sum    PROC
-    push   ebp
-    mov    ebp, esp
-    mov    eax, DWORD PTR _a$[ebp]
-    add    eax, DWORD PTR _b$[ebp]
-    pop    ebp
-    ret    0
-_sum    ENDP
-_TEXT   ENDS
-END
-'''
-    static private String linuxAsmSource = '''
-        .file   "sum.c"
-        .text
-        .p2align 4,,15
-.globl sum
-        .type   sum, @function
-sum:
-.LFB0:
-        .cfi_startproc
-        leal    (%rsi,%rdi), %eax
-        ret
-        .cfi_endproc
-.LFE0:
-        .size   sum, .-sum
-        .ident  "GCC: (Ubuntu/Linaro 4.5.2-8ubuntu4) 4.5.2"
-        .section        .note.GNU-stack,"",@progbits
-'''
-
-
 }
 
