@@ -34,7 +34,6 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
                         }
                         exportedHeaders {
                             srcDirs "src/hello", "include"
-                            include "**/*.h"
                         }
                     }
                     c {
@@ -44,7 +43,6 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
                         }
                         exportedHeaders {
                             srcDirs "src/hello", "include"
-                            include "**/*.h"
                         }
                     }
                 }
@@ -69,7 +67,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         and:
         file("src", "hello", "french", "bonjour.c") << """
             #include <stdio.h>
-            #include "otherproject/bonjour.h"
+            #include "otherProject/bonjour.h"
 
             void bonjour() {
                 printf("${HELLO_WORLD_FRENCH}");
