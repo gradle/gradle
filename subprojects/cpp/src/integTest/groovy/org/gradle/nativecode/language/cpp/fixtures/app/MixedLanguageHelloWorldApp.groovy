@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.language.cpp.fixtures;
+package org.gradle.nativecode.language.cpp.fixtures.app;
 
 import org.gradle.internal.os.OperatingSystem;
 
-public class MixedLanguageHelloWorldApp {
-    static final HELLO_WORLD = "Hello, World!"
-    static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
+public class MixedLanguageHelloWorldApp extends HelloWorldApp {
 
-    def englishOutput= "$HELLO_WORLD 12"
-    def frenchOutput = "$HELLO_WORLD_FRENCH 12"
-
-    def getCustomArgs() {
+    String getCustomArgs() {
         if (OperatingSystem.current().isMacOsX()) {
             return """
                     compilerArgs "-m32"
@@ -33,27 +28,26 @@ public class MixedLanguageHelloWorldApp {
                     linkerArgs "-no_pie", "-arch", "i386"
             """
         }
-        return ""
+        return super.getCustomArgs()
     }
 
-    // Include C++ in the mix
-    def appSources = [
-        "cpp/main.cpp": """
-        #include <iostream>
-        extern "C" {
-            #include "hello.h"
-        }
+    SourceFile getMainSource() {
+        return new SourceFile("cpp", "main.cpp", """
+            #include <iostream>
+            extern "C" {
+                #include "hello.h"
+            }
 
-        int main () {
-          sayHello();
-          std::cout << " " << sum(5, 7);
-          return 0;
-        }
-"""
-    ]
+            int main () {
+              sayHello();
+              std::cout << " " << sum(5, 7);
+              return 0;
+            }
+""")
+    }
 
-    def libraryHeaders = [
-        "headers/hello.h": """
+    SourceFile getLibraryHeader() {
+        return new SourceFile("headers", "hello.h", """
             #ifdef _WIN32
             #define DLL_FUNC __declspec(dllexport)
             #else
@@ -62,11 +56,12 @@ public class MixedLanguageHelloWorldApp {
 
             void sayHello();
             int sum(int a, int b);
-"""
-    ]
+""")
+    }
 
-    def librarySources = [
-        "c/hello.c": """
+    List<SourceFile> getLibrarySources() {
+        return  [
+            new SourceFile("c", "hello.c", """
             #include <stdio.h>
             #include "hello.h"
 
@@ -77,9 +72,10 @@ public class MixedLanguageHelloWorldApp {
                 printf("${HELLO_WORLD}");
                 #endif
             }
-""",
-        "asm/sum.s": getAsmSource()
-    ]
+"""),
+            new SourceFile("asm", "sum.s", getAsmSource())
+        ]
+    }
 
     protected def getAsmSource() {
         def os = OperatingSystem.current()

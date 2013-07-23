@@ -14,12 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.language.cpp
+package org.gradle.nativecode.language.cpp.fixtures.app;
 
-import org.gradle.nativecode.language.cpp.fixtures.app.CCallingCppHelloWorldApp
-import org.gradle.nativecode.language.cpp.fixtures.app.HelloWorldApp
+public class SourceFile {
+    private final String path;
+    private final String name;
+    private final String content;
 
-class CCallingCppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
-    HelloWorldApp helloWorldApp = new CCallingCppHelloWorldApp()
+    public SourceFile(String path, String name, String content) {
+        this.content = content;
+        this.path = path;
+        this.name = name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getContent() {
+        return content;
+    }
 }
-

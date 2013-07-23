@@ -16,10 +16,12 @@
 
 package org.gradle.nativecode.language.cpp
 
-import org.gradle.nativecode.language.cpp.fixtures.app.CCallingCppHelloWorldApp
-import org.gradle.nativecode.language.cpp.fixtures.app.HelloWorldApp
+import org.gradle.nativecode.language.cpp.fixtures.app.CHelloWorldApp
+import org.gradle.nativecode.language.cpp.fixtures.app.IncrementalHelloWorldApp
 
-class CCallingCppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
-    HelloWorldApp helloWorldApp = new CCallingCppHelloWorldApp()
+class CLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest {
+    @Override
+    IncrementalHelloWorldApp getHelloWorldApp() {
+        new CHelloWorldApp()
+    }
 }
-

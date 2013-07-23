@@ -15,11 +15,11 @@
  */
 
 package org.gradle.nativecode.language.cpp
+import org.gradle.nativecode.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.nativecode.language.cpp.fixtures.app.IncrementalHelloWorldApp
 
-import org.gradle.nativecode.language.cpp.fixtures.app.CCallingCppHelloWorldApp
-import org.gradle.nativecode.language.cpp.fixtures.app.HelloWorldApp
-
-class CCallingCppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
-    HelloWorldApp helloWorldApp = new CCallingCppHelloWorldApp()
+class CppLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest {
+    IncrementalHelloWorldApp getHelloWorldApp() {
+        new CppHelloWorldApp()
+    }
 }
-

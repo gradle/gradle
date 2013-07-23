@@ -16,63 +16,10 @@
 
 package org.gradle.nativecode.language.cpp
 
+import org.gradle.nativecode.language.cpp.fixtures.app.CppCallingCHelloWorldApp
+import org.gradle.nativecode.language.cpp.fixtures.app.HelloWorldApp
+
 class CppCallingCLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
-    static final HELLO_WORLD = "Hello, World!"
-    static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
-
-    def helloWorldApp = new CppCallingCHelloWorldApp()
-
-    class CppCallingCHelloWorldApp {
-        def englishOutput = "$HELLO_WORLD 12"
-        def frenchOutput = "$HELLO_WORLD_FRENCH 12"
-        def customArgs = ""
-
-        def appSources = [
-                "cpp/main.cpp": """
-                #include <iostream>
-                extern "C" {
-                    #include "hello.h"
-                }
-
-                int main () {
-                  sayHello();
-                  std::cout << " " << sum(5, 7);
-                  return 0;
-                }
-    """
-        ]
-
-        def libraryHeaders = [
-                "headers/hello.h": """
-                #ifdef _WIN32
-                #define DLL_FUNC __declspec(dllexport)
-                #else
-                #define DLL_FUNC
-                #endif
-
-                void sayHello();
-                int sum(int a, int b);
-    """
-        ]
-
-        def librarySources = [
-                "c/hello.c": """
-                #include <stdio.h>
-                #include "hello.h"
-
-                void DLL_FUNC sayHello() {
-                    #ifdef FRENCH
-                    printf("${HELLO_WORLD_FRENCH}");
-                    #else
-                    printf("${HELLO_WORLD}");
-                    #endif
-                }
-
-                int DLL_FUNC sum(int a, int b) {
-                    return a + b;
-                }
-    """
-        ]
-    }
+    HelloWorldApp helloWorldApp = new CppCallingCHelloWorldApp()
 }
 

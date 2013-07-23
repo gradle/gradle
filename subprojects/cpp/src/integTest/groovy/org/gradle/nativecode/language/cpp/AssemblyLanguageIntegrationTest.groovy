@@ -17,11 +17,13 @@
 
 package org.gradle.nativecode.language.cpp
 
-import org.gradle.nativecode.language.cpp.fixtures.MixedLanguageHelloWorldApp
+import org.gradle.nativecode.language.cpp.fixtures.app.HelloWorldApp
+import org.gradle.nativecode.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
+import org.gradle.nativecode.language.cpp.fixtures.app.SourceFile
 
 class AssemblyLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     // TODO: Would be better to have a "pure assembler" app here
-    def helloWorldApp = new AssemblerWithCHelloWorldApp()
+    HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp()
 
     def "build fails when compilation fails"() {
         given:
@@ -53,8 +55,9 @@ pushl
     }
 
     static class AssemblerWithCHelloWorldApp extends MixedLanguageHelloWorldApp {
-        def appSources = [
-            "c/main.c": """
+        @Override
+        SourceFile getMainSource() {
+            return new SourceFile("c", "main.c", """
                 #include <stdio.h>
                 #include "hello.h"
 
@@ -63,8 +66,8 @@ pushl
                     printf(" %d", sum(5, 7));
                     return 0;
                 }
-    """
-        ]
+            """);
+        }
     }
 }
 

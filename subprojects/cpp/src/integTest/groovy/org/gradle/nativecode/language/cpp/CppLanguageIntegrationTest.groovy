@@ -16,11 +16,12 @@
 
 package org.gradle.nativecode.language.cpp
 
-class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
-    static final HELLO_WORLD = "Hello, World!"
-    static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
+import org.gradle.nativecode.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.nativecode.language.cpp.fixtures.app.HelloWorldApp
 
-    def helloWorldApp = new CppHelloWorldApp()
+class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+
+    HelloWorldApp helloWorldApp = new CppHelloWorldApp()
 
     def "build fails when compilation fails"() {
         given:
@@ -47,60 +48,6 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.");
         failure.assertHasCause("C++ compile failed; see the error output for details.")
-    }
-
-    class CppHelloWorldApp {
-        def englishOutput = "$HELLO_WORLD 12"
-        def frenchOutput = "$HELLO_WORLD_FRENCH 12"
-        def customArgs = ""
-
-        def appSources = [
-                "cpp/main.cpp": """
-                #include <iostream>
-                #include "hello.h"
-
-                int main () {
-                  sayHello();
-                  std::cout << " " << sum(5, 7);
-                  return 0;
-                }
-    """
-        ]
-
-        def libraryHeaders = [
-                "headers/hello.h": """
-                #ifdef _WIN32
-                #define DLL_FUNC __declspec(dllexport)
-                #else
-                #define DLL_FUNC
-                #endif
-
-                void sayHello();
-                int sum(int a, int b);
-    """
-        ]
-
-        def librarySources = [
-                "cpp/hello.cpp": """
-                #include <iostream>
-                #include "hello.h"
-
-                void DLL_FUNC sayHello() {
-                    #ifdef FRENCH
-                    std::cout << "${HELLO_WORLD_FRENCH}";
-                    #else
-                    std::cout << "${HELLO_WORLD}";
-                    #endif
-                }
-    """,
-            "cpp/sum.cpp": """
-                #include "hello.h"
-
-                int DLL_FUNC sum(int a, int b) {
-                    return a + b;
-                }
-    """
-        ]
     }
 }
 
