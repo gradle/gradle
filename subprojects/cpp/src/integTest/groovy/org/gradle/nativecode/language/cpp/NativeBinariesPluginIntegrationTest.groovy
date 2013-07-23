@@ -15,6 +15,8 @@
  */
 package org.gradle.nativecode.language.cpp
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
 class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
@@ -161,6 +163,8 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
         failure.assertHasCause("Link failed; see the error output for details.")
     }
 
+    // TODO:DAZ Find a way to make library linking fail on linux
+    @Requires(TestPrecondition.NOT_LINUX)
     def "build fails when link shared library fails"() {
         given:
         buildFile << """

@@ -69,6 +69,9 @@ enum TestPrecondition {
     LINUX({
         OperatingSystem.current().linux
     }),
+    NOT_LINUX({
+        !LINUX.fulfilled
+    }),
     UNIX({
         OperatingSystem.current().unix
     }),

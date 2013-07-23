@@ -32,6 +32,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractB
     String libraryCompileTask
     TestFile sourceFile
     TestFile headerFile
+    List<TestFile> librarySourceFiles = []
 
     abstract IncrementalHelloWorldApp getHelloWorldApp();
 
@@ -68,7 +69,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractB
         sourceFile = write("main", app.mainSource)
         headerFile = write("hello", app.libraryHeader)
         app.librarySources.each {
-            write("hello", it)
+            librarySourceFiles << write("hello", it)
         }
 
         run "installMainExecutable"
@@ -111,8 +112,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractB
     def "relinks binary with library source file change"() {
         when:
         def executable = executable("build/install/mainExecutable/main")
-        app.alternateLibrarySources.each { sourceFile ->
-            write("hello", sourceFile)
+        for (int i = 0; i < librarySourceFiles.size(); i++) {
+            TestFile sourceFile = librarySourceFiles.get(i);
+            sourceFile.text = app.alternateLibrarySources[i].content
         }
 
         and:

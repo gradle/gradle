@@ -69,7 +69,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         and:
         file("src", "hello", "french", "bonjour.c") << """
             #include <stdio.h>
-            #include <otherproject/bonjour.h>
+            #include "otherproject/bonjour.h"
 
             void bonjour() {
                 printf("${HELLO_WORLD_FRENCH}");
@@ -85,7 +85,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         file("src", "app", "main", "main.cpp") << """
             #include "hello.h"
             extern "C" {
-                #include <otherProject/bonjour.h>
+                #include "otherProject/bonjour.h"
             }
 
             int main () {

@@ -61,9 +61,9 @@ public class CCallingCppHelloWorldApp extends HelloWorldApp {
 
             void DLL_FUNC sayHello() {
                 #ifdef FRENCH
-                printf("${HELLO_WORLD_FRENCH}");
+                std::cout << "${HELLO_WORLD_FRENCH}";
                 #else
-                printf("${HELLO_WORLD}");
+                std::cout << "${HELLO_WORLD}";
                 #endif
             }
 
