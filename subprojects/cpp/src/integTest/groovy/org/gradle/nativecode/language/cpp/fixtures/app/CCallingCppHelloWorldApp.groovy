@@ -44,8 +44,8 @@ public class CCallingCppHelloWorldApp extends HelloWorldApp {
                 extern "C" {
                 #endif
 
-                void sayHello();
-                int sum(int a, int b);
+                void DLL_FUNC sayHello();
+                int DLL_FUNC sum(int a, int b);
 
                 #ifdef __cplusplus
                 }

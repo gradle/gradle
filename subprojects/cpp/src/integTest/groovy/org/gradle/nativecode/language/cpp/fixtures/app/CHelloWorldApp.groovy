@@ -42,8 +42,8 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
             #define DLL_FUNC
             #endif
 
-            void sayHello();
-            int sum(int a, int b);
+            void DLL_FUNC sayHello();
+            int DLL_FUNC sum(int a, int b);
         """);
     }
 
