@@ -33,17 +33,17 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
                             include "**/*.cpp"
                         }
                         exportedHeaders {
-                            srcDirs "src", "include"
+                            srcDirs "src/hello", "include"
                             include "**/*.h"
                         }
                     }
                     c {
                         source {
-                            srcDirs "src"
+                            srcDirs "src", "include"
                             include "**/*.c"
                         }
                         exportedHeaders {
-                            srcDirs "src", "include"
+                            srcDirs "src/hello", "include"
                             include "**/*.h"
                         }
                     }
@@ -69,7 +69,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         and:
         file("src", "hello", "french", "bonjour.c") << """
             #include <stdio.h>
-            #include "bonjour.h"
+            #include <otherproject/bonjour.h>
 
             void bonjour() {
                 printf("${HELLO_WORLD_FRENCH}");
@@ -85,7 +85,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         file("src", "app", "main", "main.cpp") << """
             #include "hello.h"
             extern "C" {
-                #include "bonjour.h"
+                #include <otherProject/bonjour.h>
             }
 
             int main () {
@@ -102,7 +102,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
 
         and:
         file("include", "otherProject", "bonjour.cpp") << """
-            THIS FILE WON'T BE INCLUDED
+            THIS FILE WON'T BE COMPILED
         """
 
         when:

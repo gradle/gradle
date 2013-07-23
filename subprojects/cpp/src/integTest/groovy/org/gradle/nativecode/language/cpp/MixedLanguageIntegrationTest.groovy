@@ -42,7 +42,6 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                         }
                         exportedHeaders {
                             srcDirs "src/main/flat"
-                            include "**/*.h"
                         }
                     }
                     asm {

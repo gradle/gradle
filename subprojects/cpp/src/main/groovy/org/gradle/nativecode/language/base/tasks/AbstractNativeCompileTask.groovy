@@ -107,9 +107,7 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
      * Add locations where the compiler should search for header files.
      */
     void includes(SourceDirectorySet dirs) {
-        dirs.files.each {
-            includes.from(it.parentFile)
-        }
+        includes.from({dirs.srcDirs})
     }
 
     /**
