@@ -16,6 +16,8 @@
 
 package org.gradle.nativecode.language.cpp.fixtures.app
 
+import org.gradle.util.TextUtil
+
 class CppHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     SourceFile getMainSource() {
@@ -44,7 +46,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
         """)
     }
 
-    String alternateOutput = "$HELLO_WORLD\n"
+    String alternateOutput = TextUtil.toPlatformLineSeparators("$HELLO_WORLD\n")
 
     @Override
     SourceFile getLibraryHeader() {
@@ -100,6 +102,6 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
         """)
     ]
 
-    String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12"
+    String alternateLibraryOutput = TextUtil.toPlatformLineSeparators("[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12")
 
 }

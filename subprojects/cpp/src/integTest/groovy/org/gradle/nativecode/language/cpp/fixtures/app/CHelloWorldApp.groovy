@@ -16,6 +16,8 @@
 
 package org.gradle.nativecode.language.cpp.fixtures.app
 
+import org.gradle.util.TextUtil
+
 class CHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
@@ -81,7 +83,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
         """)
     }
 
-    String alternateOutput = "$HELLO_WORLD\ngoodbye"
+    String alternateOutput = TextUtil.toPlatformLineSeparators("$HELLO_WORLD\ngoodbye")
 
     List<SourceFile> alternateLibrarySources = [
             sourceFile("c", "hello.c", """
@@ -101,5 +103,5 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
             """)
     ]
 
-    String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12"
+    String alternateLibraryOutput = TextUtil.toPlatformLineSeparators("[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12")
 }
