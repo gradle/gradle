@@ -88,7 +88,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                 #include "hello.h"
 
                 void DLL_FUNC sayHello() {
-                    printf("[${HELLO_WORLD}]");
+                    printf("[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]");
                 }
             """),
             sourceFile("c", "sum.c","""
@@ -100,5 +100,5 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
             """)
     ]
 
-    String alternateLibraryOutput = "[${HELLO_WORLD}] 12"
+    String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}] 12"
 }

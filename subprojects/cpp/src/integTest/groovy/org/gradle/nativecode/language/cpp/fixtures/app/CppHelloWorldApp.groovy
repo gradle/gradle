@@ -88,7 +88,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
             #include "hello.h"
 
             void DLL_FUNC sayHello() {
-                std::cout << "[${HELLO_WORLD}]";
+                std::cout << "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]";
             }
         """),
         sourceFile("cpp", "sum.cpp", """
@@ -100,6 +100,6 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
         """)
     ]
 
-    String alternateLibraryOutput = "[${HELLO_WORLD}] 12"
+    String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}] 12"
 
 }
