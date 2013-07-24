@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.ResolutionResult;
 
 import java.util.Collection;
 
@@ -24,4 +25,5 @@ public interface ResolvedConfigurationListener {
     ResolvedConfigurationListener start(ModuleVersionIdentifier root);
     void resolvedModuleVersion(ModuleVersionSelection moduleVersion);
     void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies);
+    ResolutionResult getResult();
 }

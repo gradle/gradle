@@ -16,13 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -40,7 +40,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
     public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(configuration.getModule());
-            DefaultResolutionResult emptyResult = new ResolutionResultBuilder().start(id).getResult();
+            ResolutionResult emptyResult = new ResolutionResultBuilder().start(id).getResult();
             return new ResolverResults(new EmptyResolvedConfiguration(), emptyResult);
         }
         return dependencyResolver.resolve(configuration, repositories);
