@@ -25,7 +25,7 @@ public class CCallingCppHelloWorldApp extends HelloWorldApp {
 
                 int main () {
                     sayHello();
-                    printf(" %d", sum(5, 7));
+                    printf("%d", sum(5, 7));
                     return 0;
                 }
         """)
@@ -61,9 +61,9 @@ public class CCallingCppHelloWorldApp extends HelloWorldApp {
 
             void DLL_FUNC sayHello() {
                 #ifdef FRENCH
-                std::cout << "${HELLO_WORLD_FRENCH}";
+                std::cout << "${HELLO_WORLD_FRENCH}" << std::endl;
                 #else
-                std::cout << "${HELLO_WORLD}";
+                std::cout << "${HELLO_WORLD}" << std::endl;
                 #endif
             }
 

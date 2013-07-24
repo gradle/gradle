@@ -40,7 +40,7 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
 
             int main () {
               sayHello();
-              std::cout << " " << sum(5, 7);
+              std::cout << sum(5, 7);
               return 0;
             }
 """)
@@ -67,9 +67,9 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
 
             void DLL_FUNC sayHello() {
                 #ifdef FRENCH
-                printf("${HELLO_WORLD_FRENCH}");
+                printf("${HELLO_WORLD_FRENCH}\\n");
                 #else
-                printf("${HELLO_WORLD}");
+                printf("${HELLO_WORLD}\\n");
                 #endif
             }
 """),

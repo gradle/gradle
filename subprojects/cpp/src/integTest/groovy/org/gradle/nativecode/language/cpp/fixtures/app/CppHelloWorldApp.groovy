@@ -26,7 +26,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
 
             int main () {
               sayHello();
-              std::cout << " " << sum(5, 7);
+              std::cout << sum(5, 7);
               return 0;
             }
         """);
@@ -44,7 +44,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
         """)
     }
 
-    String alternateOutput = "$HELLO_WORLD"
+    String alternateOutput = "$HELLO_WORLD\n"
 
     @Override
     SourceFile getLibraryHeader() {
@@ -67,9 +67,9 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
 
             void DLL_FUNC sayHello() {
                 #ifdef FRENCH
-                std::cout << "${HELLO_WORLD_FRENCH}";
+                std::cout << "${HELLO_WORLD_FRENCH}" << std::endl;
                 #else
-                std::cout << "${HELLO_WORLD}";
+                std::cout << "${HELLO_WORLD}" << std::endl;
                 #endif
             }
         """),
@@ -88,7 +88,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
             #include "hello.h"
 
             void DLL_FUNC sayHello() {
-                std::cout << "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]";
+                std::cout << "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]" << std::endl;
             }
         """),
         sourceFile("cpp", "sum.cpp", """
@@ -100,6 +100,6 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
         """)
     ]
 
-    String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}] 12"
+    String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12"
 
 }

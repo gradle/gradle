@@ -63,7 +63,7 @@ pushl
 
                 int main () {
                     sayHello();
-                    printf(" %d", sum(5, 7));
+                    printf("%d", sum(5, 7));
                     return 0;
                 }
             """);

@@ -27,7 +27,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
 
             int main () {
                 sayHello();
-                printf(" %d", sum(5, 7));
+                printf("%d", sum(5, 7));
                 return 0;
             }
         """);
@@ -54,9 +54,9 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
 
             void DLL_FUNC sayHello() {
                 #ifdef FRENCH
-                printf("${HELLO_WORLD_FRENCH}");
+                printf("${HELLO_WORLD_FRENCH}\\n");
                 #else
-                printf("${HELLO_WORLD}");
+                printf("${HELLO_WORLD}\\n");
                 #endif
             }
         """),
@@ -75,12 +75,13 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
 
             int main () {
               sayHello();
+              printf("goodbye");
               return 0;
             }
         """)
     }
 
-    String alternateOutput = "$HELLO_WORLD"
+    String alternateOutput = "$HELLO_WORLD\ngoodbye"
 
     List<SourceFile> alternateLibrarySources = [
             sourceFile("c", "hello.c", """
@@ -88,7 +89,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                 #include "hello.h"
 
                 void DLL_FUNC sayHello() {
-                    printf("[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]");
+                    printf("[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\\n");
                 }
             """),
             sourceFile("c", "sum.c","""
@@ -100,5 +101,5 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
             """)
     ]
 
-    String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}] 12"
+    String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12"
 }

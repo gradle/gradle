@@ -26,11 +26,11 @@ public abstract class HelloWorldApp {
     public static final String HELLO_WORLD_FRENCH = "Bonjour, Monde!";
 
     public String getEnglishOutput() {
-        return HELLO_WORLD + " 12";
+        return HELLO_WORLD + "\n12";
     }
 
     public String getFrenchOutput() {
-        return HELLO_WORLD_FRENCH + " 12";
+        return HELLO_WORLD_FRENCH + "\n12";
     }
 
     public String getCustomArgs() {
