@@ -29,7 +29,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,10 +78,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
         
-                DependencyGraphBuilder builder = new DependencyGraphBuilder(resolvedArtifactFactory, idResolver, projectDependencyResolver, conflictResolver, cacheLockingManager, new DefaultDependencyToConfigurationResolver());
-                ResolutionResultBuilder resultBuilder = new ResolutionResultBuilder();
-                DefaultLenientConfiguration result = builder.resolve(configuration, resultBuilder);
-                return new ResolverResults(new DefaultResolvedConfiguration(result), resultBuilder.getResult());
+                DependencyGraphBuilder graphBuilder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
+                ResolvedConfigurationListener newResultsBuilder = new ResolutionResultBuilder();
+                DefaultResolvedConfigurationBuilder oldResultsBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory);
+                graphBuilder.resolve(configuration, newResultsBuilder, oldResultsBuilder);
+                DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldResultsBuilder, cacheLockingManager);
+                return new ResolverResults(new DefaultResolvedConfiguration(result), newResultsBuilder.getResult());
             }
         });
     }

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 
 import java.util.Collection;
 
+//listens to result events tailored for the new dependency graph model, TODO SF rename job needed
 public interface ResolvedConfigurationListener {
     ResolvedConfigurationListener start(ModuleVersionIdentifier root);
     void resolvedModuleVersion(ModuleVersionSelection moduleVersion);
