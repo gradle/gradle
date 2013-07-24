@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.nativecode.base.Flavor;
 import org.gradle.nativecode.base.Library;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.SharedLibraryBinary;
@@ -32,8 +33,8 @@ import java.util.Set;
 public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements SharedLibraryBinary {
     private final Library library;
 
-    public DefaultSharedLibraryBinary(Library library, ToolChainInternal toolChain) {
-        super(library, library.getName() + "SharedLibrary", toolChain);
+    public DefaultSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain) {
+        super(library, flavor, "SharedLibrary", toolChain);
         this.library = library;
     }
 

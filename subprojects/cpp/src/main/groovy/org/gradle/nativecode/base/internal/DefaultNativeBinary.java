@@ -24,9 +24,11 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.TaskNamerForBinaries;
+import org.gradle.nativecode.base.Flavor;
 import org.gradle.nativecode.base.NativeComponent;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.tasks.BuildBinaryTask;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.*;
@@ -41,12 +43,15 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final ArrayList<Object> defines = new ArrayList<Object>();
     private final TaskNamerForBinaries namer;
     private final String name;
+    private final Flavor flavor;
     private final ToolChainInternal toolChain;
     private BuildBinaryTask builderTask;
     private File outputFile;
 
-    protected DefaultNativeBinary(NativeComponent owner, String name, ToolChainInternal toolChain) {
-        this.name = name;
+    protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, String typeString, ToolChainInternal toolChain) {
+        String flavorName = Flavor.DEFAULT.equals(flavor.getName()) ? "" : flavor.getName();
+        this.name = GUtil.toLowerCamelCase(String.format("%s %s %s", flavorName, owner.getName(), typeString));
+        this.flavor = flavor;
         this.toolChain = toolChain;
         namer = new TaskNamerForBinaries(name);
         owner.getSource().all(new Action<LanguageSourceSet>() {
@@ -54,6 +59,10 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
                 source.add(sourceSet);
             }
         });
+    }
+
+    public Flavor getFlavor() {
+        return flavor;
     }
 
     public BuildBinaryTask getBuilderTask() {

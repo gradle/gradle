@@ -71,12 +71,15 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
             public void execute(ProjectInternal projectInternal) {
                 ToolChain defaultToolChain = toolChains.getDefaultToolChain();
                 for (Library library : libraries) {
-                    DefaultSharedLibraryBinary sharedLibraryBinary = instantiator.newInstance(DefaultSharedLibraryBinary.class, library, defaultToolChain);
-                    register(setupDefaults(project, sharedLibraryBinary), library, binaries);
-                    register(setupDefaults(project, instantiator.newInstance(DefaultStaticLibraryBinary.class, library, defaultToolChain)), library, binaries);
+                    for (Flavor flavor : library.getFlavors()) {
+                        register(setupDefaults(project, instantiator.newInstance(DefaultSharedLibraryBinary.class, library, flavor, defaultToolChain)), library, binaries);
+                        register(setupDefaults(project, instantiator.newInstance(DefaultStaticLibraryBinary.class, library, flavor, defaultToolChain)), library, binaries);
+                    }
                 }
                 for (Executable executable : executables) {
-                    register(setupDefaults(project, instantiator.newInstance(DefaultExecutableBinary.class, executable, defaultToolChain)), executable, binaries);
+                    for (Flavor flavor : executable.getFlavors()) {
+                        register(setupDefaults(project, instantiator.newInstance(DefaultExecutableBinary.class, executable, flavor, defaultToolChain)), executable, binaries);
+                    }
                 }
             }
         });

@@ -19,20 +19,24 @@ package org.gradle.nativecode.base.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.nativecode.base.Library
-import org.gradle.nativecode.base.LibraryBinary
-import org.gradle.nativecode.base.NativeComponent
-import org.gradle.nativecode.base.NativeDependencySet
+import org.gradle.nativecode.base.*
 import spock.lang.Specification
 
 class DefaultNativeBinaryTest extends Specification {
-    def component = new DefaultNativeComponent("name")
+    def component = new DefaultNativeComponent("name", new DirectInstantiator())
 
     def "can generate names for binary"() {
         expect:
-        def binary = new TestBinary(component, "binary")
-        binary.namingScheme.getTaskName("link") == 'linkBinary'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileBinaryCpp'
+        def binary = new TestBinary(component, "flavor", "type")
+        binary.namingScheme.getTaskName("link") == 'linkFlavorNameType'
+        binary.namingScheme.getTaskName("compile", "cpp") == 'compileFlavorNameTypeCpp'
+    }
+
+    def "uses short name for default flavor"() {
+        expect:
+        def binary = new TestBinary(component, Flavor.DEFAULT, "type")
+        binary.namingScheme.getTaskName("link") == 'linkNameType'
+        binary.namingScheme.getTaskName("compile", "cpp") == 'compileNameTypeCpp'
     }
 
     def "binary uses source from its owner component"() {
@@ -115,8 +119,8 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     class TestBinary extends DefaultNativeBinary {
-        TestBinary(NativeComponent owner, String name = "name") {
-            super(owner, name, null)
+        TestBinary(NativeComponent owner, String flavor = Flavor.DEFAULT, String type = "type") {
+            super(owner, new DefaultFlavor(flavor), type, null)
         }
 
         @Override

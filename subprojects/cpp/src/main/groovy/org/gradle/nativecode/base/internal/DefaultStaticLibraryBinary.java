@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.nativecode.base.Flavor;
 import org.gradle.nativecode.base.Library;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.StaticLibraryBinary;
@@ -33,8 +34,8 @@ import java.util.Set;
 public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements StaticLibraryBinary {
     private final Library library;
 
-    public DefaultStaticLibraryBinary(Library library, ToolChainInternal toolChain) {
-        super(library, library.getName() + "StaticLibrary", toolChain);
+    public DefaultStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain) {
+        super(library, flavor, "StaticLibrary", toolChain);
         this.library = library;
     }
 

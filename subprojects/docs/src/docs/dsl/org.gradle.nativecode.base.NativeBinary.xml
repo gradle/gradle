@@ -44,6 +44,9 @@
             <tr>
                 <td>linkerArgs</td>
             </tr>
+            <tr>
+                <td>flavor</td>
+            </tr>
         </table>
     </section>
     <section>

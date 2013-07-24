@@ -32,6 +32,12 @@ import java.util.List;
  */
 @Incubating @HasInternalProtocol
 public interface NativeBinary extends Binary {
+
+    /**
+     * The flavor that this binary was built with.
+     */
+    Flavor getFlavor();
+
     /**
      * The file where this binary will be created.
      */
