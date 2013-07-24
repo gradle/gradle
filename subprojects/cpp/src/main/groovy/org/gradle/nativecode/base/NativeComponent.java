@@ -15,6 +15,7 @@
  */
 package org.gradle.nativecode.base;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
@@ -58,4 +59,15 @@ public interface NativeComponent extends Named {
      * Sets the name that is used to construct the output file names when building this component.
      */
     void setBaseName(String baseName);
+
+    /**
+     * The set of flavors defined for this component. All components automatically have a default flavor named "default".
+     */
+    FlavorContainer getFlavors();
+
+    /**
+     * Configure the flavors for this component.
+     */
+    void flavors(Action<FlavorContainer> config);
+
 }

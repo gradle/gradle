@@ -32,6 +32,9 @@
             <tr>
                 <td>binaries</td>
             </tr>
+            <tr>
+                <td>flavors</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -44,6 +47,9 @@
             </thead>
             <tr>
                 <td>source</td>
+            </tr>
+            <tr>
+                <td>flavors</td>
             </tr>
         </table>
     </section>

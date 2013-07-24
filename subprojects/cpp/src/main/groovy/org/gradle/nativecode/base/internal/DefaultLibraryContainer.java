@@ -32,6 +32,6 @@ public class DefaultLibraryContainer extends AbstractNamedDomainObjectContainer<
 
     @Override
     protected Library doCreate(String name) {
-        return getInstantiator().newInstance(DefaultLibrary.class, name, fileResolver);
+        return getInstantiator().newInstance(DefaultLibrary.class, name, getInstantiator(), fileResolver);
     }
 }

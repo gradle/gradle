@@ -15,10 +15,13 @@
  */
 package org.gradle.nativecode.base.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.nativecode.base.FlavorContainer;
 import org.gradle.nativecode.base.NativeBinary;
 import org.gradle.nativecode.base.NativeComponent;
 import org.gradle.util.GUtil;
@@ -30,12 +33,15 @@ public class DefaultNativeComponent implements NativeComponent {
     private final String name;
     private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;
+    private final DefaultFlavorContainer flavors;
     private String baseName;
 
-    public DefaultNativeComponent(String name) {
+    public DefaultNativeComponent(String name, Instantiator instantiator) {
         this.name = name;
         this.sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
         binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);
+        flavors = instantiator.newInstance(DefaultFlavorContainer.class, instantiator);
+        flavors.create("default");
     }
 
     public String getName() {
@@ -60,5 +66,13 @@ public class DefaultNativeComponent implements NativeComponent {
 
     public void setBaseName(String baseName) {
         this.baseName = baseName;
+    }
+
+    public FlavorContainer getFlavors() {
+        return flavors;
+    }
+
+    public void flavors(Action<FlavorContainer> config) {
+        config.execute(flavors);
     }
 }

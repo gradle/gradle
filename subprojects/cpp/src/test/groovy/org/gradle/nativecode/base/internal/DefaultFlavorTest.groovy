@@ -15,14 +15,24 @@
  */
 
 package org.gradle.nativecode.base.internal
-import org.gradle.internal.reflect.DirectInstantiator
+
 import spock.lang.Specification
 
-class DefaultExecutableTest extends Specification {
+class DefaultFlavorTest extends Specification {
     def "has useful string representation"() {
-        def executable = new DefaultExecutable("someExe", new DirectInstantiator())
+        def flavor = new DefaultFlavor("someFlavor")
 
         expect:
-        executable.toString() == "executable 'someExe'"
+        flavor.toString() == "flavor 'someFlavor'"
+    }
+
+    def "has well behaved equals and hashcode"() {
+        def one = new DefaultFlavor("one")
+        def same = new DefaultFlavor("one")
+        def different = new DefaultFlavor("two")
+
+        expect:
+        one == same
+        one != different
     }
 }

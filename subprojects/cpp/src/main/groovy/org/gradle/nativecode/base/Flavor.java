@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.base.internal
-import org.gradle.internal.reflect.DirectInstantiator
-import spock.lang.Specification
+package org.gradle.nativecode.base;
 
-class DefaultExecutableTest extends Specification {
-    def "has useful string representation"() {
-        def executable = new DefaultExecutable("someExe", new DirectInstantiator())
+import org.gradle.api.Named;
 
-        expect:
-        executable.toString() == "executable 'someExe'"
-    }
+public interface Flavor extends Named {
+    String DEFAULT = "default";
 }

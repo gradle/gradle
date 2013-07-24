@@ -18,6 +18,7 @@ package org.gradle.nativecode.base.internal
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativecode.base.NativeDependencySet
 import org.gradle.nativecode.base.SharedLibraryBinary
 import org.gradle.nativecode.base.StaticLibraryBinary
@@ -25,14 +26,14 @@ import spock.lang.Specification
 
 class DefaultLibraryTest extends Specification {
     def "has useful string representation"() {
-        def library = new DefaultLibrary("someLib", Stub(FileResolver))
+        def library = new DefaultLibrary("someLib", new DirectInstantiator(), Stub(FileResolver))
 
         expect:
         library.toString() == "library 'someLib'"
     }
 
     def "can use shared and static variants as dependencies"() {
-        def library = new DefaultLibrary("someLib", Stub(FileResolver))
+        def library = new DefaultLibrary("someLib", new DirectInstantiator(), Stub(FileResolver))
         def sharedLinkFiles = Stub(FileCollection)
         def staticLinkFiles = Stub(FileCollection)
         def sharedDependency = Stub(NativeDependencySet)

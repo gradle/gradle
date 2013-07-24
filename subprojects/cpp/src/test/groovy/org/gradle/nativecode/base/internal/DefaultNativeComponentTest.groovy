@@ -16,17 +16,23 @@
 
 package org.gradle.nativecode.base.internal
 
+import org.gradle.api.Action
+import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
+import org.gradle.nativecode.base.Flavor
+import org.gradle.nativecode.base.FlavorContainer
 import spock.lang.Specification
 
 class DefaultNativeComponentTest extends Specification {
-    def component = new DefaultNativeComponent("name")
+    def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    def component = new DefaultNativeComponent("name", instantiator)
 
     def "uses all source sets from a functional source set"() {
         given:
-        def functionalSourceSet = new DefaultFunctionalSourceSet("func", new DirectInstantiator())
+        def functionalSourceSet = new DefaultFunctionalSourceSet("func", instantiator)
         def sourceSet1 = Stub(LanguageSourceSet) {
             getName() >> "ss1"
         }
@@ -44,5 +50,24 @@ class DefaultNativeComponentTest extends Specification {
         then:
         component.source.contains(sourceSet1)
         component.source.contains(sourceSet2)
+    }
+
+    def "automatically has a single flavor named 'default'"() {
+        expect:
+        component.flavors.collect({it.name}) == [Flavor.DEFAULT]
+    }
+
+    def "flavors can be added"() {
+        when:
+        component.flavors({
+            it.create("flavor1")
+            it.create("flavor2")
+        } as Action<FlavorContainer>)
+
+        and:
+        component.flavors.create("flavor3")
+
+        then:
+        component.flavors.collect({it.name}) as Set == [Flavor.DEFAULT, "flavor1", "flavor2", "flavor3"] as Set
     }
 }

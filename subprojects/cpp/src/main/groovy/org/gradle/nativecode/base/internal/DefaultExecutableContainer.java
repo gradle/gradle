@@ -28,6 +28,6 @@ public class DefaultExecutableContainer extends AbstractNamedDomainObjectContain
 
     @Override
     protected Executable doCreate(String name) {
-        return getInstantiator().newInstance(DefaultExecutable.class, name);
+        return getInstantiator().newInstance(DefaultExecutable.class, name, getInstantiator());
     }
 }

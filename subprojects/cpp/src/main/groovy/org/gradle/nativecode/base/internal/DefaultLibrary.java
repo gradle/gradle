@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativecode.base.*;
 
 import java.util.ArrayList;
@@ -30,8 +31,8 @@ import java.util.List;
 public class DefaultLibrary extends DefaultNativeComponent implements Library {
     private final DefaultSourceDirectorySet headers;
 
-    public DefaultLibrary(String name, FileResolver fileResolver) {
-        super(name);
+    public DefaultLibrary(String name, Instantiator instantiator, FileResolver fileResolver) {
+        super(name, instantiator);
         this.headers = new DefaultSourceDirectorySet("headers", String.format("Exported headers for native library '%s'", name), fileResolver);
         initExportedHeaderTracking();
     }
