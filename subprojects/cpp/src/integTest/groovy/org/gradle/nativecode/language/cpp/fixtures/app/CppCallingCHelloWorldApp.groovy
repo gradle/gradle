@@ -58,6 +58,7 @@ public class CppCallingCHelloWorldApp extends HelloWorldApp {
                 #else
                 printf("${HELLO_WORLD}\\n");
                 #endif
+                fflush(stdout);
             }
 
             int DLL_FUNC sum(int a, int b) {

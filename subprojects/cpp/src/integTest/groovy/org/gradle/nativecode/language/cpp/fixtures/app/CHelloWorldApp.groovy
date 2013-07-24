@@ -60,6 +60,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                 #else
                 printf("${HELLO_WORLD}\\n");
                 #endif
+                fflush(stdout);
             }
         """),
         sourceFile("c", "sum.c","""
@@ -92,6 +93,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
 
                 void DLL_FUNC sayHello() {
                     printf("[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\\n");
+                    fflush(stdout);
                 }
             """),
             sourceFile("c", "sum.c","""
