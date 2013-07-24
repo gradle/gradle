@@ -15,12 +15,13 @@
  */
 package org.gradle.nativecode.language.cpp
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+import org.gradle.nativecode.language.cpp.fixtures.app.CppCallingCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
 class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
-    static final HELLO_WORLD = "Hello, World!"
+    def helloWorldApp = new CppCallingCHelloWorldApp()
 
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
@@ -66,7 +67,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
         succeeds "mainExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/main").exec().out == HELLO_WORLD
+        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
     }
 
     def "assemble executable binary directly from language source sets"() {
@@ -92,7 +93,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
         succeeds "mainExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/main").exec().out == HELLO_WORLD
+        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
     }
 
     def "assemble executable binary directly from functional source set"() {
@@ -117,33 +118,13 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
         succeeds "mainExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/main").exec().out == HELLO_WORLD
+        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
     }
 
     private def useMixedSources() {
-        file("src/main/headers/hello.h") << """
-            void hello();
-        """
-
-        file("src/main/c/hello.c") << """
-            #include <stdio.h>
-            #include "hello.h"
-
-            void hello () {
-                printf("${HELLO_WORLD}");
-            }
-        """
-
-        file("src/main/cpp/main.cpp") << """
-            extern "C" {
-                #include "hello.h"
-            }
-
-            int main () {
-                hello();
-                return 0;
-            }
-        """
+        helloWorldApp.sourceFiles.each { sourceFile ->
+            file("src/main/${sourceFile.path}/${sourceFile.name}") << sourceFile.content
+        }
     }
 
     def "build fails when link executable fails"() {
