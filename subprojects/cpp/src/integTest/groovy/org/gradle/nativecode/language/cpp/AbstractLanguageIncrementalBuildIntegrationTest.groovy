@@ -110,6 +110,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractB
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "relinks binary with library source file change"() {
+        // sleep for 1 second to ensure generated binaries have different timestamp
+        sleep(1000)
+
         when:
         def executable = executable("build/install/mainExecutable/main")
         for (int i = 0; i < librarySourceFiles.size(); i++) {
