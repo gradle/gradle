@@ -25,7 +25,7 @@ public interface DependentSourceSet {
     /**
      * The libraries that this source set requires.
      */
-    Collection<NativeDependencySet> getLibs();
+    Collection<?> getLibs();
 
     /**
      * Adds a library that this source set requires. This method accepts the following types:

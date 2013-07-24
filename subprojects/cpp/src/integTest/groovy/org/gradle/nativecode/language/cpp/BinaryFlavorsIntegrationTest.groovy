@@ -64,6 +64,64 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
         executable("build/binaries/frenchMainExecutable/main").exec().out == helloWorldApp.frenchOutput
     }
 
+    def "build multiple flavors of shared library binary and link into executable with same flavor"() {
+        given:
+        write("main", helloWorldApp.mainSource)
+        write("hello", helloWorldApp.libraryHeader)
+        helloWorldApp.librarySources.each {
+            write("hello", it)
+        }
+
+        and:
+        buildFile << """
+            apply plugin: "cpp"
+            sources {
+                main {}
+                hello {}
+            }
+            libraries {
+                hello {
+                    source sources.hello
+                    flavors {
+                        french {}
+                    }
+                    binaries.all {
+                        if (flavor == flavors.french) {
+                            define "FRENCH"
+                        }
+                    }
+                }
+            }
+            executables {
+                main {
+                    source sources.main
+                    flavors {
+                        french {}
+                    }
+                    binaries.all {
+                        lib libraries.hello
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        def install = installation("build/install/mainExecutable")
+        install.assertInstalled()
+        install.exec().out == helloWorldApp.englishOutput
+
+        when:
+        succeeds "installFrenchMainExecutable"
+
+        then:
+        def frenchInstall = installation("build/install/frenchMainExecutable")
+        frenchInstall.assertInstalled()
+        frenchInstall.exec().out == helloWorldApp.frenchOutput
+    }
+
     def "build multiple flavors of static library binary and link into executable with same flavor"() {
         given:
         write("main", helloWorldApp.mainSource)
@@ -98,14 +156,8 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
                     flavors {
                         french {}
                     }
-                    // Link the static library with the same flavor into each executable
-                    // This should be part of the infrastructure...
-                    binaries.all { executableBinary ->
-                        libraries.hello.binaries.withType(StaticLibraryBinary).all { libraryBinary ->
-                            if (executableBinary.flavor == libraryBinary.flavor) {
-                                executableBinary.lib libraryBinary
-                            }
-                        }
+                    binaries.all {
+                        lib libraries.hello.static
                     }
                 }
             }
@@ -123,6 +175,51 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
         then:
         executable("build/binaries/frenchMainExecutable/main").exec().out == helloWorldApp.frenchOutput
     }
+
+    def "build fails when library has no matching flavour"() {
+        given:
+        write("main", helloWorldApp.mainSource)
+        write("hello", helloWorldApp.libraryHeader)
+        helloWorldApp.librarySources.each {
+            write("hello", it)
+        }
+
+        when:
+        buildFile << """
+            apply plugin: "cpp"
+            sources {
+                main {}
+                hello {}
+            }
+            libraries {
+                hello {
+                    source sources.hello
+                    flavors {
+                        french {}
+                    }
+                }
+            }
+            executables {
+                main {
+                    source sources.main
+                    flavors {
+                        german {}
+                    }
+                    binaries.all {
+                        lib libraries.hello
+                    }
+                }
+            }
+        """
+
+        and:
+        // TODO:DAZ Fix the excpetion reporting
+        executer.withStackTraceChecksDisabled()
+
+        then:
+        fails "germanMainExecutable"
+        failure.assertHasCause("No shared library binary available for library 'hello' with flavor 'german'")
+   }
 
     def write(def path, def sourceFile) {
         file("src/$path/${sourceFile.path}/${sourceFile.name}") << sourceFile.content

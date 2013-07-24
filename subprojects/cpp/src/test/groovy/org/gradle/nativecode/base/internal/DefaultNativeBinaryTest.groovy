@@ -74,13 +74,16 @@ class DefaultNativeBinaryTest extends Specification {
         binary.source.contains(sourceSet2)
     }
 
-    def "can add a library as a dependency of the binary"() {
-        def binary = new TestBinary(component)
-        def dependency = Stub(NativeDependencySet)
+    def "can add a resolved library as a dependency of the binary"() {
+        def binary = new TestBinary(component, "flavor")
         def library = Mock(Library)
+        def resolver = Mock(ConfigurableLibraryResolver)
+        def dependency = Stub(NativeDependencySet)
 
         given:
-        library.shared >> dependency
+        library.shared >> resolver
+        resolver.withFlavor(new DefaultFlavor("flavor")) >> resolver
+        resolver.resolve() >> dependency
 
         when:
         binary.lib(library)
@@ -93,13 +96,13 @@ class DefaultNativeBinaryTest extends Specification {
     def "can add a library binary as a dependency of the binary"() {
         def binary = new TestBinary(component)
         def dependency = Stub(NativeDependencySet)
-        def library = Mock(LibraryBinary)
+        def libraryBinary = Mock(LibraryBinary)
 
         given:
-        library.asNativeDependencySet >> dependency
+        libraryBinary.resolve() >> dependency
 
         when:
-        binary.lib(library)
+        binary.lib(libraryBinary)
 
         then:
         binary.libs.size() == 1

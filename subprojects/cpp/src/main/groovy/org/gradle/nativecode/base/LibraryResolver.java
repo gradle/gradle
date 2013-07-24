@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.nativecode.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.SourceDirectorySet;
 
-/**
- * The logical representation of an library native component.
- */
 @Incubating
-public interface Library extends NativeComponent {
-    /**
-     * The headers exported by this library.
-     */
-    SourceDirectorySet getHeaders();
-
-    /**
-     * Converts this library to a native dependency that uses the shared library variant. This is the default.
-     */
-    LibraryResolver getShared();
-
-    /**
-     * Converts this library to a native dependency that uses the static library variant.
-     */
-    LibraryResolver getStatic();
+/**
+ * Resolves a library to a single binary to use as a dependency.
+ */
+public interface LibraryResolver {
+    NativeDependencySet resolve();
 }

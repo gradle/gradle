@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativecode.language.cpp.internal
-
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.nativecode.base.Library
 import org.gradle.nativecode.base.LibraryBinary
@@ -35,31 +34,23 @@ class DefaultCppSourceSetTest extends Specification {
     }
 
     def "can add a library as a dependency of the source set"() {
-        def dependency = Stub(NativeDependencySet)
         def library = Mock(Library)
-
-        given:
-        library.shared >> dependency
 
         when:
         sourceSet.lib(library)
 
         then:
-        sourceSet.libs.contains(dependency)
+        sourceSet.libs.contains(library)
     }
 
     def "can add a library binary as a dependency of the binary"() {
-        def dependency = Stub(NativeDependencySet)
         def library = Mock(LibraryBinary)
-
-        given:
-        library.asNativeDependencySet >> dependency
 
         when:
         sourceSet.lib(library)
 
         then:
-        sourceSet.libs.contains(dependency)
+        sourceSet.libs.contains(library)
     }
 
     def "can add a native dependency as a dependency of the binary"() {

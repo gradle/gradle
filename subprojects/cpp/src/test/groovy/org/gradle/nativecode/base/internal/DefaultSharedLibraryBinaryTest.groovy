@@ -29,7 +29,7 @@ class DefaultSharedLibraryBinaryTest extends Specification {
     final library = Stub(Library) {
         getName() >> "main"
     }
-    final binary = new DefaultSharedLibraryBinary(library, toolChain)
+    final binary = new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavor"), toolChain)
 
     def "has useful string representation"() {
         expect:

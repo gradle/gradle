@@ -38,8 +38,12 @@ class DefaultLibraryTest extends Specification {
         def staticLinkFiles = Stub(FileCollection)
         def sharedDependency = Stub(NativeDependencySet)
         def staticDependency = Stub(NativeDependencySet)
-        def sharedBinary = Stub(SharedLibraryBinary)
-        def staticBinary = Stub(StaticLibraryBinary)
+        def sharedBinary = Stub(SharedLibraryBinary) {
+            getFlavor() >> new DefaultFlavor("default")
+        }
+        def staticBinary = Stub(StaticLibraryBinary) {
+            getFlavor() >> new DefaultFlavor("default")
+        }
 
         given:
         library.binaries.add(sharedBinary)
@@ -48,11 +52,11 @@ class DefaultLibraryTest extends Specification {
         and:
         sharedDependency.linkFiles >> sharedLinkFiles
         staticDependency.linkFiles >> staticLinkFiles
-        sharedBinary.asNativeDependencySet >> sharedDependency
-        staticBinary.asNativeDependencySet >> staticDependency
+        sharedBinary.resolve() >> sharedDependency
+        staticBinary.resolve() >> staticDependency
 
         expect:
-        library.shared.linkFiles == sharedLinkFiles
-        library.static.linkFiles == staticLinkFiles
+        library.shared.resolve().linkFiles == sharedLinkFiles
+        library.static.resolve().linkFiles == staticLinkFiles
     }
 }

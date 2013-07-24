@@ -26,7 +26,7 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         getName() >> "main"
     }
     def toolChain = Stub(ToolChainInternal)
-    def binary = new DefaultStaticLibraryBinary(library, toolChain)
+    def binary = new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavor"), toolChain)
 
     def "has useful string representation"() {
         expect:

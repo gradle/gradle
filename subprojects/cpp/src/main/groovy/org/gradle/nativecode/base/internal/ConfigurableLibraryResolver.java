@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.base;
+package org.gradle.nativecode.base.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.nativecode.base.Flavor;
+import org.gradle.nativecode.base.LibraryBinary;
+import org.gradle.nativecode.base.LibraryResolver;
 
-/**
- * A physical representation of a {@link Library} component.
- */
-@Incubating
-public interface LibraryBinary extends NativeBinary, LibraryResolver {
-    Library getComponent();
+public interface ConfigurableLibraryResolver extends LibraryResolver {
+    ConfigurableLibraryResolver withType(Class<? extends LibraryBinary> type);
 
-    /**
-     * Converts this binary into a {@link NativeDependencySet}, for consumption in another binary.
-     */
-    // TODO:DAZ Remove this and use resolve()
-    NativeDependencySet getAsNativeDependencySet();
+    ConfigurableLibraryResolver withFlavor(Flavor flavor);
 }

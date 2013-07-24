@@ -135,7 +135,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     }
 
     public Collection<NativeDependencySet> getLibs() {
-        return libs.resolve();
+        return libs.resolve(this);
     }
 
     public void lib(Object notation) {

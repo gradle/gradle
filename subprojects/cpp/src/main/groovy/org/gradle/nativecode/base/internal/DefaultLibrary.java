@@ -18,7 +18,6 @@ package org.gradle.nativecode.base.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
@@ -46,12 +45,12 @@ public class DefaultLibrary extends DefaultNativeComponent implements Library {
         return headers;
     }
 
-    public NativeDependencySet getShared() {
-        return new LazyDependencySet(SharedLibraryBinary.class);
+    public ConfigurableLibraryResolver getShared() {
+        return new DefaultLibraryResolver(this).withType(SharedLibraryBinary.class);
     }
 
-    public NativeDependencySet getStatic() {
-        return new LazyDependencySet(StaticLibraryBinary.class);
+    public ConfigurableLibraryResolver getStatic() {
+        return new DefaultLibraryResolver(this).withType(StaticLibraryBinary.class);
     }
 
     private void initExportedHeaderTracking() {
@@ -75,33 +74,5 @@ public class DefaultLibrary extends DefaultNativeComponent implements Library {
             headerDirs.add(sourceSet.getExportedHeaders());
         }
         headers.setSrcDirs(headerDirs);
-    }
-
-    private class LazyDependencySet implements NativeDependencySet {
-        private final Class<? extends LibraryBinary> type;
-        private NativeDependencySet delegate;
-
-        private LazyDependencySet(Class<? extends LibraryBinary> type) {
-            this.type = type;
-        }
-
-        private NativeDependencySet getDelegate() {
-            if (delegate == null) {
-                delegate = getBinaries().withType(type).iterator().next().getAsNativeDependencySet();
-            }
-            return delegate;
-        }
-
-        public FileCollection getIncludeRoots() {
-            return getDelegate().getIncludeRoots();
-        }
-
-        public FileCollection getLinkFiles() {
-            return getDelegate().getLinkFiles();
-        }
-
-        public FileCollection getRuntimeFiles() {
-            return getDelegate().getRuntimeFiles();
-        }
     }
 }

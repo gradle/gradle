@@ -41,10 +41,10 @@ public class NativeBinariesPlugin implements Plugin<Project> {
         }
     }
 
-    private static void bindSourceSetLibsToBinary(binary) {
+    private static void bindSourceSetLibsToBinary(NativeBinaryInternal binary) {
         // TODO:DAZ Move this logic into NativeBinary (once we have laziness sorted)
         binary.source.withType(DependentSourceSet).all { DependentSourceSet sourceSet ->
-            sourceSet.libs.each { NativeDependencySet lib ->
+            sourceSet.libs.each { lib ->
                 binary.lib lib
             }
         }

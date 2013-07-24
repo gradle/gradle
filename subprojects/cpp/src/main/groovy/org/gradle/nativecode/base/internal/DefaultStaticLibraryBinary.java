@@ -52,6 +52,10 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
         return getToolChain().getStaticLibraryName(getComponent().getBaseName());
     }
 
+    public NativeDependencySet resolve() {
+        return getAsNativeDependencySet();
+    }
+
     public NativeDependencySet getAsNativeDependencySet() {
         return new NativeDependencySet() {
             public FileCollection getIncludeRoots() {

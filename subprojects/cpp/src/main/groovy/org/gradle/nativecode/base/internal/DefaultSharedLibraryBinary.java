@@ -21,10 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.nativecode.base.Flavor;
-import org.gradle.nativecode.base.Library;
-import org.gradle.nativecode.base.NativeDependencySet;
-import org.gradle.nativecode.base.SharedLibraryBinary;
+import org.gradle.nativecode.base.*;
 
 import java.io.File;
 import java.util.Collections;
@@ -53,6 +50,10 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
 
     private File getLinkFile() {
         return new File(getToolChain().getSharedLibraryLinkFileName(getOutputFile().getPath()));
+    }
+
+    public NativeDependencySet resolve() {
+        return getAsNativeDependencySet();
     }
 
     public NativeDependencySet getAsNativeDependencySet() {

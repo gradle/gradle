@@ -16,7 +16,10 @@
 
 package org.gradle.nativecode.base.internal;
 
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.nativecode.base.Library;
+import org.gradle.nativecode.base.LibraryResolver;
+import org.gradle.nativecode.base.NativeBinary;
 import org.gradle.nativecode.base.NativeDependencySet;
 
 import java.util.ArrayList;
@@ -30,12 +33,29 @@ public class ResolvableNativeDependencySet {
         this.libs.add(lib);
     }
 
-    public Collection<NativeDependencySet> resolve() {
-        NotationParser<NativeDependencySet> parser = NativeDependencyNotationParser.parser();
+    public Collection<NativeDependencySet> resolve(NativeBinary target) {
         List<NativeDependencySet> result = new ArrayList<NativeDependencySet>();
         for (Object lib : libs) {
-            result.add(parser.parseNotation(lib));
+            result.add(resolve(target, lib));
+            resolve(target, lib);
         }
         return result;
+    }
+
+    private NativeDependencySet resolve(NativeBinary target, Object lib) {
+        if (lib instanceof NativeDependencySet) {
+            return (NativeDependencySet) lib;
+        }
+        if (lib instanceof Library) {
+            return resolve(target, ((Library) lib).getShared());
+        }
+        if (lib instanceof ConfigurableLibraryResolver) {
+            return ((ConfigurableLibraryResolver) lib).withFlavor(target.getFlavor()).resolve();
+        }
+        if (lib instanceof LibraryResolver) {
+            return ((LibraryResolver) lib).resolve();
+        }
+
+        throw new InvalidUserDataException("Not a valid type for a library dependency: " + lib);
     }
 }
