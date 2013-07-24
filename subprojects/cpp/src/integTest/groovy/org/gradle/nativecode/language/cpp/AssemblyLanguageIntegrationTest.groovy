@@ -20,7 +20,11 @@ package org.gradle.nativecode.language.cpp
 import org.gradle.nativecode.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativecode.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativecode.language.cpp.fixtures.app.SourceFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+// TODO:DAZ Fix on windows
+@Requires(TestPrecondition.NOT_WINDOWS)
 class AssemblyLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     // TODO: Would be better to have a "pure assembler" app here
     HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp()
