@@ -17,6 +17,8 @@
 package org.gradle.nativecode.language.cpp.plugins
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.nativecode.base.StaticLibraryBinary
+import org.gradle.nativecode.base.SharedLibraryBinary
 import org.gradle.nativecode.base.tasks.CreateStaticLibrary
 import org.gradle.nativecode.base.tasks.InstallExecutable
 import org.gradle.nativecode.base.tasks.LinkExecutable
@@ -179,7 +181,12 @@ class CppPluginTest extends Specification {
                     binaries.all {
                         define "NDEBUG"
                         compilerArgs "ARG1", "ARG2"
+                    }
+                    binaries.withType(SharedLibraryBinary) {
                         linkerArgs "LINK1", "LINK2"
+                    }
+                    binaries.withType(StaticLibraryBinary) {
+                        staticLibArgs "LIB1", "LIB2"
                     }
                 }
             }
@@ -219,6 +226,7 @@ class CppPluginTest extends Specification {
         staticLink instanceof CreateStaticLibrary
         staticLink.toolChain == staticLib.toolChain
         staticLink.outputFile == staticLib.outputFile
+        staticLink.staticLibArgs == ["LIB1", "LIB2"]
         staticLink Matchers.dependsOn("compileTestStaticLibraryMainCpp")
 
         and:

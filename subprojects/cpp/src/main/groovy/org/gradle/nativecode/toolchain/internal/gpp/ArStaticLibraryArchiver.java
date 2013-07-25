@@ -36,16 +36,17 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
 
     public ArStaticLibraryArchiver(File executable, Factory<ExecAction> execActionFactory) {
         this.commandLineTool = new CommandLineTool<StaticLibraryArchiverSpec>("Create static library", executable, execActionFactory)
-                .withArguments(new LinkerSpecToArguments());
+                .withArguments(new ArchiverSpecToArguments());
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
         return commandLineTool.execute(spec);
     }
 
-    private static class LinkerSpecToArguments implements CompileSpecToArguments<StaticLibraryArchiverSpec> {
+    private static class ArchiverSpecToArguments implements CompileSpecToArguments<StaticLibraryArchiverSpec> {
         public void collectArguments(StaticLibraryArchiverSpec spec, ArgCollector collector) {
             collector.args("-rc", spec.getOutputFile().getAbsolutePath());
+            collector.args(spec.getArgs());
             for (File file : spec.getSource()) {
                 collector.args(file.getAbsolutePath());
             }

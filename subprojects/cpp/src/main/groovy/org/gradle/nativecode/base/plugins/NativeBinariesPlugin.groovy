@@ -88,14 +88,16 @@ public class NativeBinariesPlugin implements Plugin<Project> {
         return LinkExecutable
     }
 
-    private CreateStaticLibrary createStaticLibraryTask(ProjectInternal project, NativeBinaryInternal binary) {
-        CreateStaticLibrary task = project.task(binary.namingScheme.getTaskName("create"), type: CreateStaticLibrary) {
+    private CreateStaticLibrary createStaticLibraryTask(ProjectInternal project, StaticLibraryBinary binary) {
+        def namingScheme = ((NativeBinaryInternal) binary).namingScheme
+        CreateStaticLibrary task = project.task(namingScheme.getTaskName("create"), type: CreateStaticLibrary) {
              description = "Creates ${binary}"
              group = BasePlugin.BUILD_GROUP
          }
 
         task.toolChain = binary.toolChain
         task.conventionMapping.outputFile = { binary.outputFile }
+        task.conventionMapping.staticLibArgs = { binary.staticLibArgs }
         return task
     }
 

@@ -27,4 +27,8 @@ public interface StaticLibraryArchiverSpec extends BinaryToolSpec {
     File getOutputFile();
 
     void setOutputFile(File outputFile);
+
+    Iterable<String> getArgs();
+
+    void setArgs(Iterable<String> args);
 }

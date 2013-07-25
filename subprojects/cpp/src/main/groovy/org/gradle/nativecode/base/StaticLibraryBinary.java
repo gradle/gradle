@@ -18,9 +18,20 @@ package org.gradle.nativecode.base;
 
 import org.gradle.api.Incubating;
 
+import java.util.List;
+
 /**
  * A {@link Library} that has been compiled and archived into a static library.
  */
 @Incubating
 public interface StaticLibraryBinary extends LibraryBinary {
+    /**
+     * The arguments passed when creating a this binary.
+     */
+    List<Object> getStaticLibArgs();
+
+    /**
+     * Adds a number of arguments to be passed when creating this static library.
+     */
+    void staticLibArgs(Object... args);
 }

@@ -75,6 +75,12 @@ class CreateStaticLibrary extends DefaultTask implements BuildBinaryTask {
         this.source.from source
     }
 
+    /**
+     * Additional arguments passed to the archiver.
+     */
+    @Input
+    List<String> staticLibArgs
+
     @TaskAction
     void link() {
         def spec = new Spec()
@@ -82,6 +88,7 @@ class CreateStaticLibrary extends DefaultTask implements BuildBinaryTask {
 
         spec.outputFile = getOutputFile()
         spec.source = getSource()
+        spec.args = getStaticLibArgs()
 
         def result = toolChain.createStaticLibraryArchiver().execute(spec)
         didWork = result.didWork
@@ -91,5 +98,6 @@ class CreateStaticLibrary extends DefaultTask implements BuildBinaryTask {
         Iterable<File> source;
         File outputFile;
         File tempDir;
+        Iterable<String> args = new ArrayList<String>();
     }
 }

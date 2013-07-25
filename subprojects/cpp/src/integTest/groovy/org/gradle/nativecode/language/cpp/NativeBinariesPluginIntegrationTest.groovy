@@ -164,4 +164,27 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
         failure.assertHasDescription("Execution failed for task ':linkMainSharedLibrary'.");
         failure.assertHasCause("Link failed; see the error output for details.")
     }
+
+    def "build fails when create static library fails"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp-lib"
+            binaries.withType(StaticLibraryBinary) {
+                staticLibArgs "not_a_file"
+            }
+        """
+
+        and:
+        file("src/main/cpp/hello.cpp") << """
+            void hello() {
+            }
+"""
+
+        when:
+        fails "mainStaticLibrary"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':createMainStaticLibrary'.");
+        failure.assertHasCause("Create static library failed; see the error output for details.")
+    }
 }
