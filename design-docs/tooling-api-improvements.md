@@ -45,9 +45,15 @@ to use this same mechanism is one step in this direction.
 
 ## Story: Expose the publications of a project
 
-1. Add a `getPublications()` method to `GradleProject` that should return a `DomainObjectSet<GradleModuleVersion>`. Include an `@since` javadoc tag and
-   an `@Incubating` annotation on this method.
-2. Change `GradleProjectBuilder` to:
+This story allows an IDE to map dependencies between different Gradle builds and and between Gradle and non-Gradle builds.
+For incoming dependencies, the Gradle coordinates of a given library are exposed through `ExternalDependency`. This story
+exposes the outgoing publications of a Gradle project.
+
+1. Add a `GradlePublication` type with the following properties:
+    1. An `id` property with type `GradleModuleVersion`.
+2. Add a `publications` property to `GradleProject` with type `DomainObjectSet<GradlePublication>`.
+3. Include an `@since` javadoc tag and an `@Incubating` annotation on the new types and methods.
+4. Change `GradleProjectBuilder` to:
     1. When the `PublishingPlugin` is applied to the project, then add a value for each publication defined in the `publishing.publications`
        container. For an instance of type `IvyPublicationInternal`, use the publication's `identity` property to determine the values to use.
        For an instance of type `MavenPublicationInternal`, use the publication's `mavenProjectIdentity` property.
@@ -56,7 +62,14 @@ to use this same mechanism is one step in this direction.
     3. When the `uploadArchives` task has any other type of repository defined, then use the `uploadArchives.configuration.module` property
        to determine the values to use.
 
-### Test coverage.
+An example usage:
+
+    GradleProject project = connection.getModel(GradleProject.class);
+    for (GradlePublication publication: project.getPublications()) {
+        System.out.println("project " + project.getPath() + " produces " + publication.getId());
+    }
+
+### Test coverage
 
 - Add a new `ToolingApiSpecification` integration test class that covers:
     - For a project that does not configure `uploadArchives` or use the publishing plugins, verify that the tooling model does not include any publications.
@@ -64,6 +77,85 @@ to use this same mechanism is one step in this direction.
     - A project that uses the `maven-publish` plugin and defines a single Maven publication.
     - A project that uses the `maven` plugin and defines a single remote `mavenDeployer` repository on the `uploadArchives` task.
     - A project that defines a single Ivy repository on the `uploadArchives` task.
+- Verify that a decent error message is received when using a Gradle version that does not expose the publications.
+
+## Story: Expose the build script of a project
+
+This story exposes some basic information about the build script of a project.
+
+1. Add a `GradleScript` type with the following properties:
+    1. A `file` property with type `File`.
+2. Add a `buildScript` property to `GradleProject` with type `GradleScript`.
+3. Include an `@since` javadoc tag and an `@Incubating` annotation on the new types and methods.
+4. Change `GradleProjectBuilder` to populate the model.
+
+An example usage:
+
+    GradleProject project = connection.getModel(GradleProject.class);
+    System.out.println("project " + project.getPath() + " uses script " + project.getBuildScript().getFile());
+
+### Test coverage
+
+- Add a new `ToolingApiSpecification` integration test class that covers:
+    - A project with standard build script location
+    - A project with customized build script location
+- Verify that a decent error message is received when using a Gradle version that does not expose the build scripts.
+
+## Story: Expose the compile details of a build script
+
+This story exposes some information about how a build script will be compiled. This information can be used by an
+IDE to provide some content assistance for a build script.
+
+1. Introduce a new hierachy to represent classpath element. Retrofit the IDEA and Eclipse models to use this.
+    - Should expose a set of files, a set of source archives and a set of API docs.
+2. Add `compileClasspath` property to `GradleScript` to expose the build script classpath.
+3. Include the Gradle API and core plugins in the classpath.
+    - Should include the source and Javadoc
+4. Add a `groovyVersion` property to `GradleScript` to expose the Groovy version that is used
+
+### Open issues
+
+- Will need to use Eclipse and IDEA specific classpath models
+
+### Test coverage
+
+- Add a new `ToolingApiSpecification` integration test class that covers:
+    - Gradle API is included in the classpath
+    - buildSrc output is included in the classpath
+    - Classpath declared in script is included in the classpath
+    - Classpath declared in script of ancestor project is included in the classpath
+    - Source and Javadoc artifacts for the above are included in the classpath
+- Verify that a decent error message is received when using a Gradle version that does not expose the build script classpath.
+
+## Story: Expose the IDE output directories
+
+Add the appropriate properties to the IDEA and Eclipse models.
+
+## Story: Expose the project root directory
+
+1. Add a `projectDir` property to `GradleProject`
+
+### Test coverage
+
+- Verify that a decent error message is received when using a Gradle version that does not expose the project directory
+
+## Story: Expose the Java language level
+
+Split out a `GradleJavaProject` model from `GradleProject` and expose this for Java projects.
+
+Add the appropriate properties to the IDEA, Eclipse and GradleJavaProject models. For Eclipse, need to expose the appropriate
+container and nature. For IDEA, need to choose between setting level on all modules vs setting level on project and inheriting.
+
+## Story: Expose the Groovy language level
+
+Split out a `GradleGroovyProject` model from `GradleProject` and expose this for Groovy projects.
+
+Add the appropriate properties to the IDEA, Eclipse and GradleGroovyProject models.
+
+## Story: Expose generated directories
+
+It is useful for IDEs to know which directories are generated by the build. An initial approximation can be to expose
+just the build directory and the `.gradle` directory. This can be improved later.
 
 ## Story: Built-in Gradle plugin can register a tooling model
 
