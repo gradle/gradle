@@ -16,6 +16,8 @@
 package org.gradle.nativecode.language.cpp
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
 import org.gradle.nativecode.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
@@ -64,6 +66,7 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
         executable("build/binaries/frenchMainExecutable/main").exec().out == helloWorldApp.frenchOutput
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build multiple flavors of shared library binary and link into executable with same flavor"() {
         given:
         write("main", helloWorldApp.mainSource)
