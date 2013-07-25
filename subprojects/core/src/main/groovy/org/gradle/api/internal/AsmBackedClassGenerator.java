@@ -242,7 +242,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE private MixInExtensibleDynamicObject dynamicObjectHelper = new MixInExtensibleDynamicObject(this, super.getAsDynamicObject())
 
             Class<?> extensibleObjectFieldType = extensible ? MixInExtensibleDynamicObject.class : BeanDynamicObject.class;
-            final String fieldSignature = "L" + extensibleObjectFieldType.getName().replaceAll("\\.", "/") + ";";
+            final String fieldSignature = Type.getDescriptor(extensibleObjectFieldType);
             visitor.visitField(Opcodes.ACC_PRIVATE, "dynamicObjectHelper", fieldSignature, null, null);
             initDynamicObjectHelper = new MethodCodeBody() {
                 public void add(MethodVisitor visitor) throws Exception {
@@ -381,7 +381,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE private ConventionMapping mapping = new ConventionAwareHelper(this, getConvention())
 
-            final String mappingFieldSignature = "L" + ConventionMapping.class.getName().replaceAll("\\.", "/") + ";";
+            final String mappingFieldSignature = Type.getDescriptor(ConventionMapping.class);
             final String getConventionDesc = Type.getMethodDescriptor(conventionType, new Type[0]);
 
             visitor.visitField(Opcodes.ACC_PRIVATE, "mapping", mappingFieldSignature, null, null);
@@ -450,7 +450,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE private MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass())
 
-            final String metaClassFieldSignature = "L" + MetaClass.class.getName().replaceAll("\\.", "/") + ";";
+            final String metaClassFieldSignature = Type.getDescriptor(MetaClass.class);
             visitor.visitField(Opcodes.ACC_PRIVATE, "metaClass", metaClassFieldSignature, null, null);
 
             initMetaClass = new MethodCodeBody() {
