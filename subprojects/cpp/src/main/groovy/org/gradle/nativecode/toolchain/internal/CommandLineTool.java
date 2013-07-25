@@ -65,7 +65,7 @@ public class CommandLineTool<T extends CompileSpec> {
         try {
             compiler.execute();
         } catch (ExecException e) {
-            throw new GradleException(String.format("%s failed; see the error output for details.", action));
+            throw new GradleException(String.format("%s failed; see the error output for details.", action), e);
         }
         return new SimpleWorkResult(true);
     }
