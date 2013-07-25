@@ -50,7 +50,6 @@ class CppExeConventionPlugin implements Plugin<Project> {
                     source sources.main.cpp
                 }
             }
-
         }
 
         configureActions.add {

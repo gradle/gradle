@@ -16,7 +16,6 @@
 package org.gradle.nativecode.language.cpp
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
 import org.gradle.nativecode.language.cpp.fixtures.app.CppCallingCHelloWorldApp
-import spock.lang.Ignore
 
 class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
@@ -25,9 +24,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
         settingsFile << "rootProject.name = 'test'"
     }
 
-    // TODO:DAZ Fix this
-    @Ignore("Not sure what the behaviour should be")
-    def "assemble executable from component with no source"() {
+    def "skips building executable binary with no source"() {
         given:
         buildFile << """
             apply plugin: "cpp"
@@ -40,7 +37,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").assertExists()
+        executable("build/binaries/mainExecutable/main").assertDoesNotExist()
     }
 
     def "assemble executable from component with multiple language source sets"() {
@@ -112,6 +109,36 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
             }
         """
         
+        then:
+        succeeds "mainExecutable"
+
+        and:
+        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
+    }
+
+    def "ignores java sources added to binary"() {
+        given:
+        useMixedSources()
+        file("src/main/java/HelloWorld.java") << """
+    This would not compile
+"""
+
+        when:
+        buildFile << """
+            apply plugin: "cpp"
+            apply plugin: "java"
+            sources {
+                main {}
+            }
+            executables {
+                main {
+                    source sources.main.cpp
+                    source sources.main.c
+                    source sources.main.java
+                }
+            }
+         """
+
         then:
         succeeds "mainExecutable"
 
