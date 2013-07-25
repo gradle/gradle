@@ -174,7 +174,11 @@ Extension objects have been available for over 2 years and are now an establishe
 
 Promote the `sonar-runner` plugin and remove the `sonar` plugin.
 
-## Remove support for JNA and JNA-Posix
+## Remove support for running Gradle on Java 5
+
+Would still be able to compile for Java 5. Would need to improve cross-compilation support.
+
+## Remove usages of JNA and JNA-Posix
 
 Replace all usages of JNA and JNA-Posix with native-platform. Currently, this means that console support and
 UNIX file permissions with JVMs earlier than Java 7 will not be supported on the following platforms:
