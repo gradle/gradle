@@ -18,10 +18,15 @@ package org.gradle.nativecode.base;
 
 import org.gradle.api.Incubating;
 
-@Incubating
+// TODO:DAZ Needs a better name
 /**
  * Resolves a library to a single binary to use as a dependency.
  */
+@Incubating
 public interface LibraryResolver {
+
+    /**
+     * Resolves the library to a dependency set.
+     */
     NativeDependencySet resolve();
 }
