@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.base.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -42,6 +43,8 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final ArrayList<Object> linkerArgs = new ArrayList<Object>();
     private final ArrayList<Object> defines = new ArrayList<Object>();
     private final TaskNamerForBinaries namer;
+    private final String shortName;
+    private final String typeWords;
     private final String name;
     private final Flavor flavor;
     private final ToolChainInternal toolChain;
@@ -49,8 +52,9 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private File outputFile;
 
     protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, String typeString, ToolChainInternal toolChain) {
-        String flavorName = Flavor.DEFAULT.equals(flavor.getName()) ? "" : flavor.getName();
-        this.name = GUtil.toLowerCamelCase(String.format("%s %s %s", flavorName, owner.getName(), typeString));
+        this.shortName = Flavor.DEFAULT.equals(flavor.getName()) ? owner.getName() : GUtil.toLowerCamelCase(String.format("%s %s", flavor.getName(), owner.getName()));
+        this.name = shortName + StringUtils.capitalize(typeString);
+        this.typeWords = GUtil.toWords(typeString);
         this.flavor = flavor;
         this.toolChain = toolChain;
         namer = new TaskNamerForBinaries(name);
@@ -59,6 +63,11 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
                 source.add(sourceSet);
             }
         });
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s '%s'", typeWords, shortName);
     }
 
     public Flavor getFlavor() {

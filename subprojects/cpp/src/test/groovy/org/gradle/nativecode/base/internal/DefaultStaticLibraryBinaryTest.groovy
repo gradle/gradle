@@ -26,11 +26,13 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         getName() >> "main"
     }
     def toolChain = Stub(ToolChainInternal)
-    def binary = new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavor"), toolChain)
+    def binary = new DefaultStaticLibraryBinary(library, new DefaultFlavor("default"), toolChain)
+    def flavoredBinary = new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavor"), toolChain)
 
     def "has useful string representation"() {
         expect:
         binary.toString() == "static library 'main'"
+        flavoredBinary.toString() == "static library 'flavorMain'"
     }
 
     def "can convert binary to a native dependency"() {

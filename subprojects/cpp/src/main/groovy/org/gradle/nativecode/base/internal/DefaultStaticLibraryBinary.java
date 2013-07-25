@@ -43,11 +43,6 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
         return library;
     }
 
-    @Override
-    public String toString() {
-        return String.format("static library '%s'", library.getName());
-    }
-
     public String getOutputFileName() {
         return getToolChain().getStaticLibraryName(getComponent().getBaseName());
     }

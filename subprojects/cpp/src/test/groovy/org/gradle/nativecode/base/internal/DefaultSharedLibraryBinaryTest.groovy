@@ -29,11 +29,13 @@ class DefaultSharedLibraryBinaryTest extends Specification {
     final library = Stub(Library) {
         getName() >> "main"
     }
-    final binary = new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavor"), toolChain)
+    final binary = new DefaultSharedLibraryBinary(library, new DefaultFlavor("default"), toolChain)
+    final flavoredBinary = new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavor"), toolChain)
 
     def "has useful string representation"() {
         expect:
         binary.toString() == "shared library 'main'"
+        flavoredBinary.toString() == "shared library 'flavorMain'"
     }
 
     def "can convert binary to a native dependency"() {

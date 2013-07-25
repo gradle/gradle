@@ -32,11 +32,6 @@ public class DefaultExecutableBinary extends DefaultNativeBinary implements Exec
         return executable;
     }
 
-    @Override
-    public String toString() {
-        return String.format("executable '%s'", executable.getName());
-    }
-
     public String getOutputFileName() {
         return getToolChain().getExecutableName(getComponent().getBaseName());
     }

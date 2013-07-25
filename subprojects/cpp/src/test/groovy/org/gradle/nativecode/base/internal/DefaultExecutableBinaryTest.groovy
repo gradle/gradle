@@ -22,11 +22,13 @@ import spock.lang.Specification
 class DefaultExecutableBinaryTest extends Specification {
     def "has useful string representation"() {
         def executable = Stub(Executable) {
-            getName() >> "main"
+            getName() >> "bigExe"
         }
-        def binary = new DefaultExecutableBinary(executable, Stub(ToolChainInternal))
+        def binary = new DefaultExecutableBinary(executable, new DefaultFlavor("default"), Stub(ToolChainInternal))
+        def flavoredBinary = new DefaultExecutableBinary(executable, new DefaultFlavor("theFlavor"), Stub(ToolChainInternal))
 
         expect:
-        binary.toString() == "executable 'main'"
+        binary.toString() == "executable 'bigExe'"
+        flavoredBinary.toString() == "executable 'theFlavorBigExe'"
     }
 }
