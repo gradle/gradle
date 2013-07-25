@@ -559,6 +559,7 @@ To define custom source sets and components:
 - Need to deal with source sets that are generated.
 - Need a `CppSourceSet.getBuildDependencies()` implementation.
 - Declare a dependency on another source set.
+- Replace `SourceDirectorySet` with something that is actually a set of source directories.
 
 ## Story: Compile C source files using the C compiler
 
