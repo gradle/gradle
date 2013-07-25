@@ -110,18 +110,16 @@ public class GradleWrapperMain {
     }
 
     private static File gradleUserHome(ParsedCommandLine options) {
-        String gradleUserHome = null;
         if (options.hasOption(GRADLE_USER_HOME_OPTION)) {
-            gradleUserHome = options.option(GRADLE_USER_HOME_OPTION).getValue();
+            return new File(options.option(GRADLE_USER_HOME_OPTION).getValue());
         }
-        if (gradleUserHome != null) {
+        String gradleUserHome;
+        if ((gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY)) != null) {
             return new File(gradleUserHome);
-        } else if ((gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY)) != null) {
-            return new File(gradleUserHome);
-        } else if ((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
-            return new File(gradleUserHome);
-        } else {
-            return new File(DEFAULT_GRADLE_USER_HOME);
         }
+        if ((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
+            return new File(gradleUserHome);
+        }
+        return new File(DEFAULT_GRADLE_USER_HOME);
     }
 }
