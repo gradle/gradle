@@ -153,8 +153,14 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
 
         and:
         file("src/main/cpp/hello.cpp") << """
+            #include "test.h"
             void hello() {
+                test();
             }
+"""
+        // Header file available, but no implementation to link
+        file("src/main/cpp/test.h") << """
+            int test();
 """
 
         when:
