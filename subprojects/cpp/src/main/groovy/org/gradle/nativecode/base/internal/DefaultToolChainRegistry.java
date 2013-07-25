@@ -49,12 +49,12 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
 
     public ToolChainInternal getDefaultToolChain() {
         List<String> messages = new ArrayList<String>();
-        for (ToolChainInternal adapter : searchOrder) {
-            ToolChainAvailability availability = adapter.getAvailability();
+        for (ToolChainInternal toolChain : searchOrder) {
+            ToolChainAvailability availability = toolChain.getAvailability();
             if (availability.isAvailable()) {
-                return adapter;
+                return toolChain;
             }
-            messages.add(String.format("Could not load '%s': %s", adapter.getName(), availability.getUnavailableMessage()));
+            messages.add(String.format("Could not load '%s': %s", toolChain.getName(), availability.getUnavailableMessage()));
         }
         return new UnavailableToolChain(messages);
     }

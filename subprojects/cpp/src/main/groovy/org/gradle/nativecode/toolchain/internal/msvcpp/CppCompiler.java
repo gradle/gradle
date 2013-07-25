@@ -18,13 +18,12 @@ package org.gradle.nativecode.toolchain.internal.msvcpp;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
+import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
-import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
@@ -44,28 +43,12 @@ class CppCompiler implements Compiler<CppCompileSpec> {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class CppCompileSpecToArguments implements CompileSpecToArguments<CppCompileSpec> {
+    private static class CppCompileSpecToArguments extends GeneralVisualCppCompileSpecToArguments<CppCompileSpec> {
         public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
             // C++-compiling options
             collector.args("/TP");
 
-            // TODO:DAZ Extract common stuff out
-            // General compiler options
-            collector.args("/nologo");
-            for (String macro : spec.getMacros()) {
-                collector.args("/D" + macro);
-            }
-            collector.args(spec.getArgs());
-            collector.args("/c");
-            if (spec.isPositionIndependentCode()) {
-                collector.args("/LD"); // TODO:DAZ Not sure if this has any effect at compile time
-            }
-            for (File file : spec.getIncludeRoots()) {
-                collector.args("/I", file.getAbsolutePath());
-            }
-            for (File file : spec.getSource()) {
-                collector.args(file);
-            }
+            super.collectArguments(spec, collector);
         }
     }
-}
+    }

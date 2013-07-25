@@ -17,11 +17,9 @@
 package org.gradle.nativecode.toolchain.internal.gpp;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.language.c.internal.CCompileSpec;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.process.internal.ExecAction;
@@ -45,23 +43,12 @@ class CCompiler implements Compiler<CCompileSpec> {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class CCompileOptionsToArguments implements CompileSpecToArguments<CCompileSpec> {
+    private static class CCompileOptionsToArguments extends GeneralGccCompileOptionsToArguments<CCompileSpec> {
         public void collectArguments(CCompileSpec spec, ArgCollector collector) {
             // C-compiling options
             collector.args("-x", "c");
 
-            // TODO:DAZ Extract common stuff out
-            // General GCC compiler options
-            for (String macro : spec.getMacros()) {
-                collector.args("-D" + macro);
-            }
-            collector.args(spec.getArgs());
-            collector.args("-c");
-            if (spec.isPositionIndependentCode()) {
-                if (!OperatingSystem.current().isWindows()) {
-                    collector.args("-fPIC");
-                }
-            }
+            super.collectArguments(spec, collector);
         }
     }
 }

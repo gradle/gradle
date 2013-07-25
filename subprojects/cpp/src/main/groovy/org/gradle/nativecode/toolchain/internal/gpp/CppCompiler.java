@@ -17,11 +17,9 @@
 package org.gradle.nativecode.toolchain.internal.gpp;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.process.internal.ExecAction;
@@ -46,23 +44,13 @@ class CppCompiler implements Compiler<CppCompileSpec> {
     }
 
     // Certain options do not function correctly via an option file, so only use option file for headers and sources
-    private static class CppCompileOptionsToArguments implements CompileSpecToArguments<CppCompileSpec> {
+    private static class CppCompileOptionsToArguments extends GeneralGccCompileOptionsToArguments<CppCompileSpec> {
+        @Override
         public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
             // C++-compiling options
             collector.args("-x", "c++");
 
-            // TODO:DAZ Extract common stuff out
-            // General G++ compiler options
-            for (String macro : spec.getMacros()) {
-                collector.args("-D" + macro);
-            }
-            collector.args(spec.getArgs());
-            collector.args("-c");
-            if (spec.isPositionIndependentCode()) {
-                if (!OperatingSystem.current().isWindows()) {
-                    collector.args("-fPIC");
-                }
-            }
+            super.collectArguments(spec, collector);
         }
     }
 }
