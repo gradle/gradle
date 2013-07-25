@@ -15,66 +15,70 @@
  */
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.junit.*
+import org.junit.Rule
 
-class IncrementalTestIntegrationTest extends AbstractIntegrationTest {
+class IncrementalTestIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
+    @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
-    @Before
-    public void before() {
+    def setup() {
         executer.noExtraLogging()
     }
 
-    @Test
-    public void doesNotRunStaleTests() {
-        executer.withTasks('test').runWithFailure().assertTestsFailed()
+    def doesNotRunStaleTests() {
+        given:
+        fails('test').assertTestsFailed()
 
         file('src/test/java/Broken.java').assertIsFile().delete()
 
-        executer.withTasks('test').run()
+        expect:
+        succeeds('test')
     }
 
-    @Test
-    public void executesTestsWhenSourceChanges() {
-        executer.withTasks('test').run()
+    def executesTestsWhenSourceChanges() {
+        given:
+        succeeds('test')
 
+        when:
         // Change a production class
         file('src/main/java/MainClass.java').assertIsFile().copyFrom(file('NewMainClass.java'))
 
-        executer.withTasks('test').run().assertTasksNotSkipped(':compileJava', ':classes', ':compileTestJava', ':testClasses', ':test')
-        executer.withTasks('test').run().assertTasksNotSkipped()
-        
+        then:
+        succeeds('test').assertTasksNotSkipped(':compileJava', ':classes', ':compileTestJava', ':testClasses', ':test')
+        succeeds('test').assertTasksNotSkipped()
+
+        when:
         // Change a test class
         file('src/test/java/Ok.java').assertIsFile().copyFrom(file('NewOk.java'))
 
-        executer.withTasks('test').run().assertTasksNotSkipped(':compileTestJava', ':testClasses', ':test')
-        executer.withTasks('test').run().assertTasksNotSkipped()
+        then:
+        succeeds('test').assertTasksNotSkipped(':compileTestJava', ':testClasses', ':test')
+        succeeds('test').assertTasksNotSkipped()
     }
 
-    @Test
-    public void executesTestsWhenTestFrameworkChanges() {
-        executer.withTasks('test').run()
+    def executesTestsWhenTestFrameworkChanges() {
+        given:
+        succeeds('test')
 
         def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('JUnitTest')
 
+        when:
         // Switch test framework
         file('build.gradle').append 'test.useTestNG()\n'
 
-        executer.withTasks('test').run().assertTasksNotSkipped(':test')
+        then:
+        succeeds('test').assertTasksNotSkipped(':test')
 
-        result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('TestNGTest', 'JUnitTest') //previous result still present in the dir
 
-        executer.withTasks('test').run().assertTasksNotSkipped()
+        succeeds('test').assertTasksNotSkipped()
     }
 
-    @Test
-    public void "test up-to-date status respects test name patterns"() {
+    def "test up-to-date status respects test name patterns"() {
         file("src/test/java/FooTest.java") << """
 import org.junit.*;
 public class FooTest {
@@ -100,13 +104,6 @@ public class BarTest {
 
         then:
         //asserting on output because test results are kept in between invocations
-        result.output.contains("executed test test(BarTest)")
-        !result.output.contains("executed test test(FooTest)")
-
-        when:
-        result = executer.withTasks("test", "-Dtest.single=Bar").run()
-
-        then:
         !result.output.contains("executed test test(BarTest)")
         result.output.contains("executed test test(FooTest)")
 
@@ -114,11 +111,13 @@ public class BarTest {
         result = executer.withTasks("test", "-Dtest.single=Bar").run()
 
         then:
-        result.assertTaskSkipped(":test")
-    }
+        result.output.contains("executed test test(BarTest)")
+        !result.output.contains("executed test test(FooTest)")
 
-    @Test @Ignore
-    public void executesTestsWhenPropertiesChange() {
-        Assert.fail()
+        when:
+        result = executer.withTasks("test", "-Dtest.single=Bar").run()
+
+        then:
+        result.assertTaskSkipped(":test")
     }
 }
