@@ -71,6 +71,12 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
                 #else
                 printf("${HELLO_WORLD}\\n");
                 #endif
+
+                fflush(stdout);
+            }
+
+            int DLL_FUNC sum(int a, int b) {
+                return sumx(a, b);
             }
 """),
             new SourceFile("asm", "sum.s", getAsmSource())
@@ -90,9 +96,9 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
 
     private static String osxAsmSource = '''
 .section    __TEXT,__text,regular,pure_instructions
-.globl  _sum
+.globl  _sumx
 .align  4, 0x90C
-_sum:
+_sumx:
 pushl   %ebp
 movl    %esp, %ebp
 movl    12(%ebp), %eax
@@ -113,35 +119,35 @@ include   listing.inc
 INCLUDELIB LIBCMT
 INCLUDELIB OLDNAMES
 
-PUBLIC    _sum
+PUBLIC    _sumx
 _TEXT     SEGMENT
 _a$ = 8
 _b$ = 12
-_sum    PROC
+_sumx    PROC
 push   ebp
 mov    ebp, esp
 mov    eax, DWORD PTR _a$[ebp]
 add    eax, DWORD PTR _b$[ebp]
 pop    ebp
 ret    0
-_sum    ENDP
+_sumx    ENDP
 _TEXT   ENDS
 END
 '''
     private static String linuxAsmSource = '''
-    .file   "sum.c"
+    .file   "sumx.c"
     .text
     .p2align 4,,15
-.globl sum
-    .type   sum, @function
-sum:
+.globl sumx
+    .type   sumx, @function
+sumx:
 .LFB0:
     .cfi_startproc
     leal    (%rsi,%rdi), %eax
     ret
     .cfi_endproc
 .LFE0:
-    .size   sum, .-sum
+    .size   sumx, .-sumx
     .ident  "GCC: (Ubuntu/Linaro 4.5.2-8ubuntu4) 4.5.2"
     .section        .note.GNU-stack,"",@progbits
 '''

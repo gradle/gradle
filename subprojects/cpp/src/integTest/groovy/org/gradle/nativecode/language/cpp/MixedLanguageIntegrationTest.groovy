@@ -19,12 +19,9 @@ package org.gradle.nativecode.language.cpp
 import org.gradle.nativecode.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativecode.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativecode.language.cpp.fixtures.app.SourceFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-// TODO:DAZ Fix on windows
-@Requires(TestPrecondition.NOT_WINDOWS)
 class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+
     HelloWorldApp helloWorldApp = new MixedLanguageHelloWorldApp()
 
     def "can have all source files co-located in a common directory"() {
