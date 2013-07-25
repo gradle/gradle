@@ -53,7 +53,7 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         toolChain.getSharedLibraryLinkFileName(binaryFile.path) >> linkFile.path
 
         expect:
-        def nativeDependency = binary.asNativeDependencySet
+        def nativeDependency = binary.resolve()
         nativeDependency.includeRoots == headers
 
         and:

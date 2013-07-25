@@ -23,11 +23,8 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface LibraryBinary extends NativeBinary, LibraryResolver {
-    Library getComponent();
-
     /**
-     * Converts this binary into a {@link NativeDependencySet}, for consumption in another binary.
+     * The Library that this binary represents.
      */
-    // TODO:DAZ Remove this and use resolve()
-    NativeDependencySet getAsNativeDependencySet();
+    Library getComponent();
 }

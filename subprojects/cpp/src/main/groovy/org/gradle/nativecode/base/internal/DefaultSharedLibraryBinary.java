@@ -48,10 +48,6 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
     }
 
     public NativeDependencySet resolve() {
-        return getAsNativeDependencySet();
-    }
-
-    public NativeDependencySet getAsNativeDependencySet() {
         return new NativeDependencySet() {
             public FileCollection getIncludeRoots() {
                 return library.getHeaders();

@@ -44,7 +44,7 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         binary.dependsOn(Stub(Task))
 
         expect:
-        def nativeDependency = binary.asNativeDependencySet
+        def nativeDependency = binary.resolve()
         nativeDependency.includeRoots == headers
 
         and:
