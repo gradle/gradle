@@ -34,10 +34,6 @@ public class JUnitXmlResultWriter {
     private final TestResultsProvider testResultsProvider;
     private final TestOutputAssociation outputAssociation;
 
-    public JUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider) {
-        this(hostName, testResultsProvider, TestOutputAssociation.WITH_SUITE);
-    }
-
     public JUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider, TestOutputAssociation outputAssociation) {
         this.hostName = hostName;
         this.testResultsProvider = testResultsProvider;
