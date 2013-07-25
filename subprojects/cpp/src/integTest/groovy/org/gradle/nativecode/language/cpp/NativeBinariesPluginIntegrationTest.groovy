@@ -16,8 +16,6 @@
 package org.gradle.nativecode.language.cpp
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
 import org.gradle.nativecode.language.cpp.fixtures.app.CppCallingCHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
 class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
@@ -144,24 +142,19 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
         failure.assertHasCause("Link failed; see the error output for details.")
     }
 
-    // TODO:DAZ Find a way to make library linking fail on linux
-    @Requires([TestPrecondition.NOT_LINUX, TestPrecondition.NOT_UNKNOWN_OS])
-    def "build fails when link shared library fails"() {
+    def "build fails when link library fails"() {
         given:
         buildFile << """
             apply plugin: "cpp-lib"
+            binaries.all {
+                linkerArgs "--not-an-option"
+            }
         """
 
         and:
         file("src/main/cpp/hello.cpp") << """
-            #include "test.h"
             void hello() {
-                test();
             }
-"""
-        // Header file available, but no implementation to link
-        file("src/main/cpp/test.h") << """
-            int test();
 """
 
         when:
@@ -171,6 +164,4 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
         failure.assertHasDescription("Execution failed for task ':linkMainSharedLibrary'.");
         failure.assertHasCause("Link failed; see the error output for details.")
     }
-
-    // TODO:DAZ Add test for failing to link static library
 }
