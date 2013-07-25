@@ -52,4 +52,8 @@ public class DefaultFlavor implements Flavor {
     public int hashCode() {
         return name.hashCode();
     }
+
+    public boolean isDefault() {
+        return Flavor.DEFAULT.getName().equals(name);
+    }
 }

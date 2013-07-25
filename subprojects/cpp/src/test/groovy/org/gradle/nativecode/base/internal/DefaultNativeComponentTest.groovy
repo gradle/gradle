@@ -54,7 +54,7 @@ class DefaultNativeComponentTest extends Specification {
 
     def "automatically has a single flavor named 'default'"() {
         expect:
-        component.flavors.collect({it.name}) == [Flavor.DEFAULT]
+        component.flavors == [Flavor.DEFAULT] as Set
     }
 
     def "flavors can be added"() {
@@ -68,6 +68,10 @@ class DefaultNativeComponentTest extends Specification {
         component.flavors.create("flavor3")
 
         then:
-        component.flavors.collect({it.name}) as Set == [Flavor.DEFAULT, "flavor1", "flavor2", "flavor3"] as Set
+        component.flavors == [Flavor.DEFAULT, flavor("flavor1"), flavor("flavor2"), flavor("flavor3")] as Set
+    }
+
+    def flavor(String name) {
+        new DefaultFlavor(name)
     }
 }

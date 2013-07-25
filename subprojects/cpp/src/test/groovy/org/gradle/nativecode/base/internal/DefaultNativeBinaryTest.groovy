@@ -34,7 +34,7 @@ class DefaultNativeBinaryTest extends Specification {
 
     def "uses short name for default flavor"() {
         expect:
-        def binary = new TestBinary(component, Flavor.DEFAULT, "type")
+        def binary = new TestBinary(component, Flavor.DEFAULT.name, "type")
         binary.namingScheme.getTaskName("link") == 'linkNameType'
         binary.namingScheme.getTaskName("compile", "cpp") == 'compileNameTypeCpp'
     }
@@ -122,7 +122,7 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     class TestBinary extends DefaultNativeBinary {
-        TestBinary(NativeComponent owner, String flavor = Flavor.DEFAULT, String type = "type") {
+        TestBinary(NativeComponent owner, String flavor = "default", String type = "type") {
             super(owner, new DefaultFlavor(flavor), type, null)
         }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.base.internal
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.nativecode.base.Flavor
 import org.gradle.nativecode.base.Library
@@ -31,13 +32,13 @@ class DefaultLibraryResolverTest extends Specification {
     def sharedDeps = Mock(NativeDependencySet)
     def staticDeps = Mock(NativeDependencySet)
     def defaultStaticBinary = Stub(StaticLibraryBinary) {
-        getFlavor() >> new DefaultFlavor(Flavor.DEFAULT)
+        getFlavor() >> Flavor.DEFAULT
     }
     def flavoredStaticBinary = Stub(StaticLibraryBinary) {
         getFlavor() >> new DefaultFlavor("another")
     }
     def defaultSharedBinary = Stub(SharedLibraryBinary) {
-        getFlavor() >> new DefaultFlavor(Flavor.DEFAULT)
+        getFlavor() >> Flavor.DEFAULT
     }
     def flavoredSharedBinary = Stub(SharedLibraryBinary) {
         getFlavor() >> new DefaultFlavor("another")
@@ -72,5 +73,18 @@ class DefaultLibraryResolverTest extends Specification {
         resolver.withFlavor(flavor).resolve() == sharedDeps;
         resolver.withFlavor(flavor).withType(SharedLibraryBinary.class).resolve() == sharedDeps
         resolver.withFlavor(flavor).withType(StaticLibraryBinary.class).resolve() == staticDeps
+    }
+
+    def "fails when no library found with defined flavor"() {
+        final flavor = new DefaultFlavor("different")
+        when:
+        library.getBinaries() >> allBinaries
+
+        and:
+        resolver.withFlavor(flavor).resolve();
+
+        then:
+        def e = thrown InvalidUserDataException
+        e.message == "No shared library binary available for $library with flavor 'different'"
     }
 }

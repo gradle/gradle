@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.nativecode.base.*;
 
 class DefaultLibraryResolver implements ConfigurableLibraryResolver {
-    private String flavorName = Flavor.DEFAULT;
+    private Flavor flavor = Flavor.DEFAULT;
     private Class<? extends LibraryBinary> type = SharedLibraryBinary.class;
     private Library library;
 
@@ -29,7 +29,7 @@ class DefaultLibraryResolver implements ConfigurableLibraryResolver {
     }
 
     public ConfigurableLibraryResolver withFlavor(Flavor flavor) {
-        this.flavorName = flavor.getName();
+        this.flavor = flavor;
         return this;
     }
 
@@ -40,12 +40,12 @@ class DefaultLibraryResolver implements ConfigurableLibraryResolver {
 
     public NativeDependencySet resolve() {
         for (LibraryBinary candidate : library.getBinaries().withType(type)) {
-            if (flavorName.equals(candidate.getFlavor().getName())) {
+            if (flavor.equals(candidate.getFlavor())) {
                 return candidate.resolve();
             }
         }
 
         String typeName = type == SharedLibraryBinary.class ? "shared" : "static";
-        throw new InvalidUserDataException(String.format("No %s library binary available for library '%s' with flavor '%s'", typeName, library.getName(), flavorName));
+        throw new InvalidUserDataException(String.format("No %s library binary available for %s with %s", typeName, library, flavor));
     }
 }

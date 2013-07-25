@@ -52,7 +52,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private File outputFile;
 
     protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, String typeString, ToolChainInternal toolChain) {
-        this.shortName = Flavor.DEFAULT.equals(flavor.getName()) ? owner.getName() : GUtil.toLowerCamelCase(String.format("%s %s", flavor.getName(), owner.getName()));
+        this.shortName = flavor.isDefault() ? owner.getName() : GUtil.toLowerCamelCase(String.format("%s %s", flavor.getName(), owner.getName()));
         this.name = shortName + StringUtils.capitalize(typeString);
         this.typeWords = GUtil.toWords(typeString);
         this.flavor = flavor;
