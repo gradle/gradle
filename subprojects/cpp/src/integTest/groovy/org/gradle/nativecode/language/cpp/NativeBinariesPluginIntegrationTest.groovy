@@ -145,7 +145,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
     }
 
     // TODO:DAZ Find a way to make library linking fail on linux
-    @Requires(TestPrecondition.NOT_LINUX)
+    @Requires([TestPrecondition.NOT_LINUX, TestPrecondition.NOT_UNKNOWN_OS])
     def "build fails when link shared library fails"() {
         given:
         buildFile << """
