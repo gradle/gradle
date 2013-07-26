@@ -17,8 +17,8 @@
 package org.gradle.api.internal.externalresource.transfer;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
@@ -94,7 +94,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
                 if (local != null) {
                     LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", location, local.getFile());
-                    return new LocallyAvailableExternalResource(location, local, remoteMetaData);
+                    return new DefaultLocallyAvailableExternalResource(location, local, remoteMetaData);
                 }
             }
         }

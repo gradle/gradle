@@ -16,8 +16,8 @@
 package org.gradle.api.internal.externalresource.transport.file;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
@@ -76,7 +76,7 @@ public class FileResourceConnector implements ExternalResourceLister, ExternalRe
         if (!localFile.exists()) {
             return null;
         }
-        return new LocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(localFile));
+        return new DefaultLocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(localFile));
     }
 
     public ExternalResourceMetaData getMetaData(String location) throws IOException {
