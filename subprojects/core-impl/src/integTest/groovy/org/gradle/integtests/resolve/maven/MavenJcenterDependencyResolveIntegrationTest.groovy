@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class MavenJcenterDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
