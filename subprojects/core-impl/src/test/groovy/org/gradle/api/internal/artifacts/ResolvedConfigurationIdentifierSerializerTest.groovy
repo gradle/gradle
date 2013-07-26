@@ -20,9 +20,6 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
-/**
- * By Szczepan Faber on 7/20/13
- */
 class ResolvedConfigurationIdentifierSerializerTest extends Specification {
 
     def s = new ResolvedConfigurationIdentifierSerializer()

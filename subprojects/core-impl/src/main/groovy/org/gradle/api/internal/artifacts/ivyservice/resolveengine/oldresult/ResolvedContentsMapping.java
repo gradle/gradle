@@ -20,9 +20,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
-/**
- * By Szczepan Faber on 7/20/13
- */
 public interface ResolvedContentsMapping {
 
     ResolvedArtifact getArtifact(long id);

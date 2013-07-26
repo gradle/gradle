@@ -33,9 +33,6 @@ import org.gradle.internal.id.LongIdGenerator;
 import java.io.File;
 import java.util.*;
 
-/**
- * By Szczepan Faber on 7/19/13
- */
 public class DefaultResolvedConfigurationBuilder implements
         ResolvedConfigurationBuilder, ResolvedConfigurationResults, ResolvedContentsMapping {
 

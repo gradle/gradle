@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 
 import java.util.Set;
 
-/**
- * By Szczepan Faber on 7/19/13
- */
 public interface ResolvedConfigurationResults {
     boolean hasError();
 

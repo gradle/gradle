@@ -25,9 +25,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * By Szczepan Faber on 7/20/13
- */
 public class DefaultTransientConfigurationResults implements TransientConfigurationResults {
 
     final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();

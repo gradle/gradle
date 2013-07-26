@@ -25,9 +25,6 @@ import java.util.List;
 
 import static com.google.common.collect.Sets.newHashSet;
 
-/**
- * By Szczepan Faber on 7/20/13
- */
 class TransientResultsStore {
     private List<ResolutionResultEvent> events = new LinkedList<ResolutionResultEvent>();
     private final Object lock = new Object();

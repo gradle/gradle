@@ -22,9 +22,6 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
 import java.util.Map;
 
-/**
- * By Szczepan Faber on 7/20/13
- */
 public interface TransientConfigurationResults {
 
     Map<ModuleDependency, ResolvedDependency> getFirstLevelDependencies();
