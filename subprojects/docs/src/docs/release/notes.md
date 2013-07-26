@@ -436,13 +436,29 @@ default JVM arguments to include in the generated launcher scripts.
     
     applicationDefaultJvmArgs = ["-Dfile.encoding=UTF=8"]
 
-
 ### Improved OSGi support through Bnd library update
 
 The [OSGi plugin](userguide/osgi_plugin.html) uses the [Bnd](http://www.aqute.biz/Bnd/Bnd) tool to generate bundle manifests.
 The version used has changed from `1.50.0` to `2.1.0` with this release.
 
 The most significant improvement obtained through this upgrade is the improved accuracy of generated manifests for Java code that uses the “invokedynamic” byte code instruction.
+
+### Automatic string to enum value coercion in DSL (i)
+
+It is now possible to set enum value properties in the Gradle DSL using the name of the value as a string. 
+Gradle will automatically convert it the string to the corresponding enum value.
+For example, this can be used for setting the (new in 1.7) duplicate handling strategy for file copy operations.
+
+    task copyFiles(type: Copy) {
+        from 'source'
+        into 'destination'
+        duplicatesStrategy 'exclude'
+    }
+
+The `duplicatesStrategy` property is being set here via the
+[`CopySpec.setDuplicatesStrategy(DuplicatesStrategy)`](javadoc/org/gradle/api/file/CopySpec.html#setDuplicatesStrategy%28org.gradle.api.file.DuplicatesStrategy%29) method,
+which takes an enum value of type [`DuplicatesStrategy`](javadoc/org/gradle/api/file/DuplicatesStrategy.html)
+In the Gradle DSL, the value can be set using the (case-insensitive) name of the desired enum value.
 
 ## Fixed issues
 
