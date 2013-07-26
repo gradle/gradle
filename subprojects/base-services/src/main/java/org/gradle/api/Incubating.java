@@ -26,7 +26,6 @@ import java.lang.annotation.RetentionPolicy;
  * change at any time.
  */
 @Documented
-@Inherited
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Incubating {
 }
