@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.externalresource
+package org.gradle.api.internal.externalresource.cached
 
-import org.gradle.api.internal.externalresource.cached.CachedExternalResource
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter
+import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
