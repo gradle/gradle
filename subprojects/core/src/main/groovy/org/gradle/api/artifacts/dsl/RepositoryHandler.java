@@ -94,7 +94,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * <pre>
      * repositories {
      *   jcenter {
-     *     artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
+     *     artifactUrls = ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
      *   }
      *   jcenter {
      *     name = "nonDefaultName"
