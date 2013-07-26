@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfigurationMeta
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
@@ -45,37 +44,30 @@ import java.util.*;
 public class DependencyGraphBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
     private final DependencyToModuleVersionIdResolver dependencyResolver;
-    private final CacheLockingManager cacheLockingManager;
     private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
     private final InternalConflictResolver conflictResolver;
     private final ModuleToModuleVersionResolver moduleResolver;
-    private DefaultResolvedConfigurationBuilder builder;
 
-    public DependencyGraphBuilder(ResolvedArtifactFactory resolvedArtifactFactory,
-                                  DependencyToModuleVersionIdResolver dependencyResolver,
+    public DependencyGraphBuilder(DependencyToModuleVersionIdResolver dependencyResolver,
                                   ModuleToModuleVersionResolver moduleResolver,
                                   ModuleConflictResolver conflictResolver,
-                                  CacheLockingManager cacheLockingManager,
                                   DependencyToConfigurationResolver dependencyToConfigurationResolver) {
-        this.builder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory);
         this.dependencyResolver = dependencyResolver;
         this.moduleResolver = moduleResolver;
-        this.cacheLockingManager = cacheLockingManager;
         this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
         this.conflictResolver = new InternalConflictResolver(conflictResolver);
     }
 
-    public DefaultLenientConfiguration resolve(ConfigurationInternal configuration, ResolvedConfigurationListener listener) throws ResolveException {
+    public void resolve(ConfigurationInternal configuration,
+                        ResolvedConfigurationListener listener,
+                        ResolvedConfigurationBuilder configurationBuilder) throws ResolveException {
         DefaultBuildableModuleVersionResolveResult rootModule = new DefaultBuildableModuleVersionResolveResult();
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
-        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, builder);
+        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, configurationBuilder);
         traverseGraph(resolveState);
 
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, builder, cacheLockingManager);
-        assembleResult(resolveState, builder, listener);
-
-        return result;
+        assembleResult(resolveState, configurationBuilder, listener);
     }
 
     /**

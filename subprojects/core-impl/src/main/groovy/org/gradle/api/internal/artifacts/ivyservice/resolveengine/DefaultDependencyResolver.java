@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleR
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,12 +77,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
         
-                DependencyGraphBuilder graphBuilder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
-                ResolvedConfigurationListener newResultsBuilder = new ResolutionResultBuilder();
-                DefaultResolvedConfigurationBuilder oldResultsBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory);
-                graphBuilder.resolve(configuration, newResultsBuilder, oldResultsBuilder);
-                DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldResultsBuilder, cacheLockingManager);
-                return new ResolverResults(new DefaultResolvedConfiguration(result), newResultsBuilder.getResult());
+                DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
+                ResolutionResultBuilder newGraphBuilder = new ResolutionResultBuilder();
+                DefaultResolvedConfigurationBuilder oldGraphBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory);
+                builder.resolve(configuration, newGraphBuilder, oldGraphBuilder);
+                DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldGraphBuilder, cacheLockingManager);
+                return new ResolverResults(new DefaultResolvedConfiguration(result), newGraphBuilder.getResult());
             }
         });
     }
