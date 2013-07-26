@@ -27,7 +27,6 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.m2.DefaultPomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
-import org.apache.ivy.plugins.parser.m2.PomReader.PomDependencyData;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -249,7 +248,7 @@ public class GradlePomModuleDescriptorBuilder {
         return "jar".equals(packaging) || JAR_PACKAGINGS.contains(packaging);
     }
 
-    public void addDependency(PomDependencyData dep) {
+    public void addDependency(PomReader.PomDependencyData dep) {
         String scope = dep.getScope();
         if ((scope != null) && (scope.length() > 0) && !MAVEN2_CONF_MAPPING.containsKey(scope)) {
             // unknown scope, defaulting to 'compile'
@@ -422,12 +421,12 @@ public class GradlePomModuleDescriptorBuilder {
         }
     }
 
-    private String getDefaultVersion(PomDependencyData dep) {
+    private String getDefaultVersion(PomReader.PomDependencyData dep) {
         String key = getDependencyMgtExtraInfoKeyForVersion(dep.getGroupId(), dep.getArtifactId());
         return (String) ivyModuleDescriptor.getExtraInfo().get(key);
     }
 
-    private String getDefaultScope(PomDependencyData dep) {
+    private String getDefaultScope(PomReader.PomDependencyData dep) {
         String key = getDependencyMgtExtraInfoKeyForScope(dep.getGroupId(), dep.getArtifactId());
         String result = (String) ivyModuleDescriptor.getExtraInfo().get(key);
         if ((result == null) || !MAVEN2_CONF_MAPPING.containsKey(result)) {

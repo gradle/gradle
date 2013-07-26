@@ -23,7 +23,6 @@ import org.apache.ivy.plugins.matcher.GlobPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
-import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -44,7 +43,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         settings.setDefaultCache(temporaryFolder.createDir("ivy/cache"))
     }
 
-    def testEmptyDependencies() throws Exception {
+    def "parses Ivy descriptor with empty dependencies section"() throws Exception {
         when:
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
@@ -76,7 +75,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         0 == md.getDependencies().length
     }
 
-    public void testBadConfs() throws IOException {
+    public void "fails when configuration extends an unknown configuration"() throws IOException {
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
     <info organisation="myorg"
@@ -94,10 +93,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         def e = thrown(ParseException)
-        assertThat(e.message, Matchers.startsWith("unknown configuration 'invalidConf'"))
+        e.message == "unknown configuration 'invalidConf'. It is extended by A in ${file.toURI()}"
     }
 
-    public void testCyclicConfs() throws IOException {
+    public void "fails when there is a cycle in configuration hierarchy"() throws IOException {
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
     <info organisation="myorg"
@@ -116,10 +115,42 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         def e = thrown(ParseException)
-        assertThat(e.message, Matchers.startsWith("illegal cycle detected in configuration extension: A => B => A"))
+        e.message == "illegal cycle detected in configuration extension: A => B => A in ${file.toURI()}"
     }
 
-    public void testFull() throws Exception {
+    public void "fails when descriptor contains badly formed XML"() {
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <info
+</ivy-module>
+"""
+
+        when:
+        parser.parseDescriptor(settings, file, true)
+
+        then:
+        def e = thrown(ParseException)
+        e.message.contains('Element type "info"')
+        e.message.endsWith("in ${file.toURI()}")
+    }
+
+    public void "fails when descriptor does not match schema"() {
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <not-an-ivy-file/>
+</ivy-module>
+"""
+
+        when:
+        parser.parseDescriptor(settings, file, true)
+
+        then:
+        def e = thrown(ParseException)
+        e.message.contains('unknown tag not-an-ivy-file')
+        e.message.endsWith("in ${file.toURI()}")
+    }
+
+    public void "parses a full Ivy descriptor"() throws Exception {
         def file = temporaryFolder.file("ivy.xml")
         file.text = resources.getResource("test-full.xml").text
 
