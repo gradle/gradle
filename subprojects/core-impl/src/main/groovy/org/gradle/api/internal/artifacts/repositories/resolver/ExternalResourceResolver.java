@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolverDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.MetaDataOnlyExternalResource;
 import org.gradle.api.internal.externalresource.MissingExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
@@ -47,7 +48,6 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -196,16 +196,16 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     private ModuleDescriptor parse(Artifact artifact, ExternalResource resource) throws ParseException {
         ModuleRevisionId dependencyRevisionId = artifact.getModuleRevisionId();
 
-        LocallyAvailableResource moduleDescriptor;
+        LocallyAvailableExternalResource cachedResource;
         try {
-            moduleDescriptor = repositoryCacheManager.downloadAndCacheArtifactFile(artifact, resourceDownloader, resource);
+            cachedResource = repositoryCacheManager.downloadAndCacheArtifactFile(artifact, resourceDownloader, resource);
         } catch (IOException e) {
             // TODO:DAZ Work out if/when/why this happens
             LOGGER.warn("Problem while downloading module descriptor: {}: {}", resource, e.getMessage());
             return null;
         }
 
-        return metaDataParser.parseModuleDescriptor(dependencyRevisionId, moduleDescriptor, resource, new ExternalResourceResolverDependencyResolver(this));
+        return metaDataParser.parseModuleDescriptor(dependencyRevisionId, cachedResource, new ExternalResourceResolverDependencyResolver(this));
     }
 
     private void checkDescriptorConsistency(ModuleRevisionId mrid, ModuleDescriptor md,
@@ -426,7 +426,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
             return null;
         }
 
-        return repositoryCacheManager.downloadAndCacheArtifactFile(artifact, resourceDownloader, artifactRef.resource).getFile();
+        return repositoryCacheManager.downloadAndCacheArtifactFile(artifact, resourceDownloader, artifactRef.resource).getLocalResource().getFile();
     }
 
     private ExternalResource getResource(String source, Artifact target, boolean forDownload) {

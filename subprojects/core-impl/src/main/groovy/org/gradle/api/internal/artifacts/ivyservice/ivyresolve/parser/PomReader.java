@@ -32,6 +32,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import javax.xml.parsers.DocumentBuilder;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -41,7 +42,7 @@ import java.util.*;
  * Copied from org.apache.ivy.plugins.parser.m2.PomReader.
  */
 public class PomReader {
-    
+
     private static final String PACKAGING = "packaging";
     private static final String DEPENDENCY = "dependency";
     private static final String DEPENDENCIES = "dependencies";
@@ -71,15 +72,15 @@ public class PomReader {
     private static final String TYPE = "type";
 
     private HashMap properties = new HashMap();
-    
+
     private final Element projectElement;
     private final Element parentElement;
-    
+
     public PomReader(URL descriptorURL, Resource res) throws IOException, SAXException {
         InputStream stream = new AddDTDFilterInputStream(URLHandlerRegistry.getDefault().openStream(descriptorURL));
         try {
-            Document pomDomDoc = XMLHelper.parseToDom(stream, res, new EntityResolver() {
-                public InputSource resolveEntity(String publicId, String systemId) 
+            Document pomDomDoc = parseToDom(stream, res, new EntityResolver() {
+                public InputSource resolveEntity(String publicId, String systemId)
                                 throws SAXException, IOException {
                     if ((systemId != null) && systemId.endsWith("m2-entities.ent")) {
                         return new InputSource(org.apache.ivy.plugins.parser.m2.PomReader.class.getResourceAsStream("m2-entities.ent"));
@@ -89,26 +90,35 @@ public class PomReader {
             });
             projectElement = pomDomDoc.getDocumentElement();
             if (!PROJECT.equals(projectElement.getNodeName()) && !MODEL.equals(projectElement.getNodeName())) {
-                throw new SAXParseException("project must be the root tag" , res.getName() , 
+                throw new SAXParseException("project must be the root tag" , res.getName() ,
                                             res.getName(), 0, 0);
             }
             parentElement = getFirstChildElement(projectElement , PARENT);
         } finally {
-            if (stream != null) {
-                try {
-                    stream.close();
-                } catch (IOException e) {
-                    // ignore
-                }
+            try {
+                stream.close();
+            } catch (IOException e) {
+                // ignore
             }
         }
     }
 
+    public static Document parseToDom(InputStream stream, Resource res, EntityResolver entityResolver)
+                    throws IOException, SAXException {
+        DocumentBuilder docBuilder = XMLHelper.getDocBuilder(entityResolver);
+        Document pomDomDoc;
+        try {
+            pomDomDoc = docBuilder.parse(stream, res.getName());
+        } finally {
+            stream.close();
+        }
+        return pomDomDoc;
+    }
 
     public boolean hasParent() {
         return parentElement != null;
     }
-    
+
     /**
      * Add a property if not yet set and value is not null.
      * This garantee that property keep the first value that is put on it and that the properties
@@ -120,12 +130,12 @@ public class PomReader {
         }
     }
 
-    
+
     public String getGroupId() {
         String groupId = getFirstChildText(projectElement , GROUP_ID);
         if (groupId == null) {
             groupId = getFirstChildText(parentElement, GROUP_ID);
-        } 
+        }
         return replaceProps(groupId);
 
     }
@@ -139,7 +149,7 @@ public class PomReader {
     }
 
 
-    
+
     public String getArtifactId() {
         String val = getFirstChildText(projectElement , ARTIFACT_ID);
         if (val == null) {
@@ -152,7 +162,7 @@ public class PomReader {
         String val = getFirstChildText(parentElement , ARTIFACT_ID);
         if (val == null) {
             val = getFirstChildText(projectElement, ARTIFACT_ID);
-        } 
+        }
         return replaceProps(val);
     }
 
@@ -161,7 +171,7 @@ public class PomReader {
         String val = getFirstChildText(projectElement , VERSION);
         if (val == null) {
             val = getFirstChildText(parentElement, VERSION);
-        } 
+        }
         return replaceProps(val);
     }
 
@@ -169,11 +179,11 @@ public class PomReader {
         String val = getFirstChildText(parentElement , VERSION);
         if (val == null) {
             val = getFirstChildText(projectElement, VERSION);
-        } 
+        }
         return replaceProps(val);
     }
 
-    
+
     public String getPackaging() {
         String val = getFirstChildText(projectElement , PACKAGING);
         if (val == null) {
@@ -181,7 +191,7 @@ public class PomReader {
         }
         return val;
     }
-    
+
     public String getHomePage() {
         String val = getFirstChildText(projectElement , HOMEPAGE);
         if (val == null) {
@@ -210,24 +220,24 @@ public class PomReader {
             if (LICENSE.equals(license.getNodeName())) {
                 String name = getFirstChildText(license, LICENSE_NAME);
                 String url = getFirstChildText(license, LICENSE_URL);
-                
+
                 if ((name == null) && (url == null)) {
                     // move to next license
                     continue;
                 }
-                
+
                 if (name == null) {
                     // The license name is required in Ivy but not in a POM!
                     name = "Unknown License";
                 }
-                
+
                 lics.add(new License(name, url));
             }
         }
         return (License[]) lics.toArray(new License[lics.size()]);
     }
 
-    
+
     public ModuleRevisionId getRelocation() {
         Element distrMgt = getFirstChildElement(projectElement, DISTRIBUTION_MGT);
         Element relocation = getFirstChildElement(distrMgt , RELOCATION);
@@ -243,7 +253,7 @@ public class PomReader {
             return ModuleRevisionId.newInstance(relocGroupId, relocArtId, relocVersion);
         }
     }
-    
+
     public List /* <PomDependencyData> */ getDependencies() {
         Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCIES);
         LinkedList dependencies = new LinkedList();
@@ -258,7 +268,7 @@ public class PomReader {
         }
         return dependencies;
     }
-    
+
 
     public List /* <PomDependencyMgt> */ getDependencyMgt() {
         Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCY_MGT);
@@ -278,11 +288,11 @@ public class PomReader {
 
     public class PomDependencyMgtElement implements PomDependencyMgt {
         private final Element depElement;
-        
+
         PomDependencyMgtElement(Element depElement) {
-            this.depElement = depElement; 
+            this.depElement = depElement;
         }
-        
+
         /* (non-Javadoc)
          * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getGroupId()
          */
@@ -306,12 +316,12 @@ public class PomReader {
             String val = getFirstChildText(depElement , VERSION);
             return replaceProps(val);
         }
-        
+
         public String getScope() {
             String val = getFirstChildText(depElement , SCOPE);
             return replaceProps(val);
         }
-        
+
         public List /*<ModuleId>*/ getExcludedModules() {
             Element exclusionsElement = getFirstChildElement(depElement, EXCLUSIONS);
             LinkedList exclusions = new LinkedList();
@@ -331,7 +341,7 @@ public class PomReader {
             return exclusions;
         }
     }
-    
+
     public List /* <PomPluginElement> */ getPlugins() {
         LinkedList plugins = new LinkedList();
 
@@ -339,7 +349,7 @@ public class PomReader {
         if (buildElement == null) {
             return plugins;
         }
-        
+
         Element pluginsElement = getFirstChildElement(buildElement, PLUGINS);
         if (pluginsElement != null) {
             NodeList childs = pluginsElement.getChildNodes();
@@ -355,11 +365,11 @@ public class PomReader {
 
     public class PomPluginElement implements PomDependencyMgt {
         private Element pluginElement;
-        
+
         PomPluginElement(Element pluginElement) {
-            this.pluginElement = pluginElement; 
+            this.pluginElement = pluginElement;
         }
-        
+
         public String getGroupId() {
             String val = getFirstChildText(pluginElement , GROUP_ID);
             return replaceProps(val);
@@ -374,45 +384,45 @@ public class PomReader {
             String val = getFirstChildText(pluginElement , VERSION);
             return replaceProps(val);
         }
-        
+
         public String getScope() {
             return null; // not used
         }
-        
+
         public List /*<ModuleId>*/ getExcludedModules() {
             return Collections.EMPTY_LIST; // probably not used?
         }
     }
-    
-    
+
+
     public class PomDependencyData extends PomDependencyMgtElement {
         private final Element depElement;
         PomDependencyData(Element depElement) {
             super(depElement);
             this.depElement = depElement;
         }
-        
+
         public String getScope() {
             String val = getFirstChildText(depElement , SCOPE);
             return replaceProps(val);
         }
-        
+
         public String getClassifier() {
             String val = getFirstChildText(depElement , CLASSIFIER);
             return replaceProps(val);
         }
-        
+
         public String getType() {
             String val = getFirstChildText(depElement, TYPE);
             return replaceProps(val);
         }
 
         public boolean isOptional() {
-            Element e = getFirstChildElement(depElement, OPTIONAL); 
+            Element e = getFirstChildElement(depElement, OPTIONAL);
             return (e != null) && "true".equalsIgnoreCase(getTextContent(e));
         }
     }
-    
+
     /**
      * @return the content of the properties tag into the pom.
      */
@@ -428,8 +438,8 @@ public class PomReader {
         }
         return pomProperties;
     }
-    
-   
+
+
     private String replaceProps(String val) {
         if (val == null) {
             return null;
@@ -440,11 +450,11 @@ public class PomReader {
 
     private static String getTextContent(Element element) {
         StringBuffer result = new StringBuffer();
-        
+
         NodeList childNodes = element.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node child = childNodes.item(i);
-            
+
             switch (child.getNodeType()) {
                 case Node.CDATA_SECTION_NODE:
                 case Node.TEXT_NODE:
@@ -454,10 +464,10 @@ public class PomReader {
                     break;
             }
         }
-        
+
         return result.toString();
     }
-    
+
     private static String getFirstChildText(Element parentElem, String name) {
         Element node = getFirstChildElement(parentElem, name);
         if (node != null) {
@@ -480,7 +490,7 @@ public class PomReader {
         }
         return null;
     }
-    
+
     private static List/* <Element> */getAllChilds(Element parent) {
         List r = new LinkedList();
         if (parent != null) {
@@ -501,10 +511,10 @@ public class PomReader {
 
         private int count;
         private byte[] prefix = DOCTYPE.getBytes();
-        
+
         private AddDTDFilterInputStream(InputStream in) throws IOException {
             super(new BufferedInputStream(in));
-            
+
             this.in.mark(MARK);
 
             // TODO: we should really find a better solution for this...
@@ -512,14 +522,14 @@ public class PomReader {
             int byte1 = this.in.read();
             int byte2 = this.in.read();
             int byte3 = this.in.read();
-            
+
             if (byte1 == 239 && byte2 == 187 && byte3 == 191) {
                 // skip the UTF-8 BOM
                 this.in.mark(MARK);
             } else {
                 this.in.reset();
             }
-            
+
             int bytesToSkip = 0;
             LineNumberReader reader = new LineNumberReader(new InputStreamReader(this.in, "UTF-8"), 100);
             String firstLine = reader.readLine();
@@ -532,7 +542,7 @@ public class PomReader {
                     bytesToSkip = xmlDecl.getBytes().length;
                 }
             }
-            
+
             this.in.reset();
             for (int i = 0; i < bytesToSkip; i++) {
                 this.in.read();
@@ -543,15 +553,15 @@ public class PomReader {
             if (count < prefix.length) {
                 return prefix[count++];
             }
-            
+
             int result = super.read();
             return result;
         }
-        
+
         public int read(byte[] b, int off, int len) throws IOException {
             if (b == null) {
                 throw new NullPointerException();
-            } else if ((off < 0) || (off > b.length) || (len < 0) 
+            } else if ((off < 0) || (off > b.length) || (len < 0)
                     || ((off + len) > b.length) || ((off + len) < 0)) {
                 throw new IndexOutOfBoundsException();
             } else if (len == 0) {
@@ -559,17 +569,17 @@ public class PomReader {
             }
 
             int nbrBytesCopied = 0;
-            
+
             if (count < prefix.length) {
                 int nbrBytesFromPrefix = Math.min(prefix.length - count, len);
                 System.arraycopy(prefix, count, b, off, nbrBytesFromPrefix);
                 nbrBytesCopied = nbrBytesFromPrefix;
             }
-            
+
             if (nbrBytesCopied < len) {
                 nbrBytesCopied += in.read(b, off + nbrBytesCopied, len - nbrBytesCopied);
             }
-            
+
             count += nbrBytesCopied;
             return nbrBytesCopied;
         }

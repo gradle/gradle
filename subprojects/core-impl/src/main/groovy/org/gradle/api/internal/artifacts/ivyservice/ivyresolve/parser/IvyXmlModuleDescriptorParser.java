@@ -40,6 +40,7 @@ import org.apache.ivy.util.extendable.ExtendableItemHelper;
 import org.apache.ivy.util.url.URLHandlerRegistry;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.UrlExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -74,8 +75,8 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
 
-    public DefaultModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableResource localResource, ExternalResource resource, boolean validate) throws ParseException, IOException {
-        Parser parser = new Parser(this, ivySettings, resource, localResource.getFile().toURI().toURL());
+    public DefaultModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws ParseException, IOException {
+        Parser parser = new Parser(this, ivySettings, resource, resource.getLocalResource().getFile().toURI().toURL());
         parser.setValidate(validate);
         parser.parse();
         return parser.getModuleDescriptor();
@@ -83,8 +84,8 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
 
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, File descriptorFile, boolean validate) throws ParseException, IOException {
         LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(descriptorFile);
-        ExternalResource externalResource = new DefaultLocallyAvailableExternalResource(descriptorFile.toURI().toString(), localResource);
-        return parseDescriptor(ivySettings, localResource, externalResource, validate);
+        LocallyAvailableExternalResource resource = new DefaultLocallyAvailableExternalResource(descriptorFile.toURI().toString(), localResource);
+        return parseDescriptor(ivySettings, resource, validate);
     }
 
     public boolean accept(ExternalResource res) {

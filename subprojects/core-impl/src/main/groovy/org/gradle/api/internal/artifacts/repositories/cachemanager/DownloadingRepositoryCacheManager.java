@@ -33,7 +33,9 @@ import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -126,17 +128,17 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         }
     }
 
-    public LocallyAvailableResource downloadAndCacheArtifactFile(final Artifact artifact, ExternalResourceDownloader resourceDownloader, final ExternalResource resource) throws IOException {
+    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(final Artifact artifact, ExternalResourceDownloader resourceDownloader, final ExternalResource resource) throws IOException {
         final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             resourceDownloader.download(artifact, resource, tmpFile);
-            return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<LocallyAvailableResource>() {
-                public LocallyAvailableResource create() {
+            return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<LocallyAvailableExternalResource>() {
+                public LocallyAvailableExternalResource create() {
                     LocallyAvailableResource cachedResource = fileStore.move(artifact.getId(), tmpFile);
                     File fileInFileStore = cachedResource.getFile();
                     ExternalResourceMetaData metaData = resource.getMetaData();
                     artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
-                    return cachedResource;
+                    return new DefaultLocallyAvailableExternalResource(resource.getName(), cachedResource, metaData);
                 }
             });
         } finally {

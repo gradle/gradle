@@ -33,6 +33,7 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.slf4j.Logger;
@@ -67,12 +68,12 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
 
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, File descriptorFile, boolean validate) throws ParseException, IOException {
         LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(descriptorFile);
-        ExternalResource externalResource = new DefaultLocallyAvailableExternalResource(descriptorFile.toURI().toString(), localResource);
-        return parseDescriptor(ivySettings, localResource, externalResource, validate);
+        LocallyAvailableExternalResource resource = new DefaultLocallyAvailableExternalResource(descriptorFile.toURI().toString(), localResource);
+        return parseDescriptor(ivySettings, resource, validate);
     }
 
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableResource localResource, ExternalResource resource, boolean validate) throws ParseException, IOException {
-        URL descriptorURL = new URL(localResource.getFile().toURI().toASCIIString());
+    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws ParseException, IOException {
+        URL descriptorURL = new URL(resource.getLocalResource().getFile().toURI().toASCIIString());
         Resource encodedResource = encodedUrlResource(descriptorURL);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, ivySettings);
 

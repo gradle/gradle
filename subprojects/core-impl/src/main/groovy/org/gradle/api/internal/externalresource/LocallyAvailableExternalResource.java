@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
+package org.gradle.api.internal.externalresource;
 
-import java.text.ParseException;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 
-public interface MetaDataParser {
-    ModuleDescriptor parseModuleDescriptor(ModuleRevisionId dependencyRevisionId, LocallyAvailableExternalResource resource, DependencyResolver resolver) throws ParseException;
+/**
+ * Represents an external resource whose meta-data and content is available locally. The content and meta-data may be a copy of some original resource and the original may or may not be a local
+ * resource.
+ */
+public interface LocallyAvailableExternalResource extends ExternalResource {
+    LocallyAvailableResource getLocalResource();
 }

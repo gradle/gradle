@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +28,7 @@ import java.text.ParseException;
 public interface ModuleDescriptorParser {
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, File descriptorFile, boolean validate) throws ParseException, IOException;
 
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableResource localResource, ExternalResource resource, boolean validate) throws ParseException, IOException;
+    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws ParseException, IOException;
 
     public boolean accept(ExternalResource res);
 }

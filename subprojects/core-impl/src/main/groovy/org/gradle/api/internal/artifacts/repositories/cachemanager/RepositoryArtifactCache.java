@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,12 +31,13 @@ public interface RepositoryArtifactCache {
 
     /**
      * Downloads the artifact file, moving it into the correct location in the cache.
+     *
      * @param artifact The artifact this resource represents
      * @param resourceDownloader An action to use for downloading the resource
      * @param resource The artifact resource
      * @return The cached resource
      */
-    LocallyAvailableResource downloadAndCacheArtifactFile(Artifact artifact, ExternalResourceDownloader resourceDownloader, ExternalResource resource) throws IOException;
+    LocallyAvailableExternalResource downloadAndCacheArtifactFile(Artifact artifact, ExternalResourceDownloader resourceDownloader, ExternalResource resource) throws IOException;
 
     interface ExternalResourceDownloader {
         public void download(Artifact artifact, ExternalResource resource, File dest) throws IOException;
