@@ -23,11 +23,11 @@ import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.testing.TestReports;
+import org.gradle.api.tasks.testing.TestTaskReports;
 
-public class DefaultTestReports extends TaskReportContainer<Report> implements TestReports {
+public class DefaultTestTaskReports extends TaskReportContainer<Report> implements TestTaskReports {
 
-    public DefaultTestReports(Task task) {
+    public DefaultTestTaskReports(Task task) {
         super(ConfigurableReport.class, task);
 
         add(DefaultJUnitXmlReport.class, "junitXml", task);

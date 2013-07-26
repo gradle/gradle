@@ -23,7 +23,7 @@ import org.gradle.api.reporting.ReportContainer;
 /**
  * The reports produced by the {@link Test} task.
  */
-public interface TestReports extends ReportContainer<Report> {
+public interface TestTaskReports extends ReportContainer<Report> {
 
     /**
      * A HTML report indicate the results of the test execution.
