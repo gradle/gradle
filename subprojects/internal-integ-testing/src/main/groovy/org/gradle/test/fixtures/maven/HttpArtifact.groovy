@@ -46,6 +46,10 @@ abstract class HttpArtifact extends HttpResource {
         return new BasicHttpResource(server, getSha1File(), "${path}.sha1")
     }
 
+    URI getUri() {
+        return new URI("http://localhost:${server.port}/${path}")
+    }
+
     protected String getPath() {
         "${modulePath}/${file.name}"
     }

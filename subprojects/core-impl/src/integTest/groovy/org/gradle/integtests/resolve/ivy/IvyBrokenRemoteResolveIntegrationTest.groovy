@@ -57,7 +57,7 @@ task showMissing << { println configurations.missing.files }
         succeeds('showMissing')
     }
 
-    public void "reports and recovers from broken module"() {
+    public void "reports and recovers from failed Ivy descriptor download"() {
         server.start()
 
         given:
@@ -175,5 +175,35 @@ task retrieve(type: Sync) {
         then:
         succeeds "retrieve"
         file('libs').assertHasDescendants('projectA-1.2.jar')
+    }
+
+    public void "reports Ivy descriptor that cannot be parsed"() {
+        server.start()
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyHttpRepo.uri}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task showBroken << { println configurations.compile.files }
+"""
+
+        and:
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
+        module.ivyFile.text = "<ivy-module>"
+
+        when:
+        module.expectIvyGet()
+
+        then:
+        fails "showBroken"
+        failure
+            .assertResolutionFailure(":compile")
+            .assertHasCause("invalid version null in ${module.ivyFileUri}")
     }
 }
