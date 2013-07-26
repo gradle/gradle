@@ -39,6 +39,7 @@ import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.apache.ivy.util.extendable.ExtendableItemHelper;
 import org.apache.ivy.util.url.URLHandlerRegistry;
 import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.UrlExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -81,7 +82,9 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
     }
 
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, File descriptorFile, boolean validate) throws ParseException, IOException {
-        return parseDescriptor(ivySettings, new DefaultLocallyAvailableResource(descriptorFile), new UrlExternalResource(descriptorFile.toURI().toURL()), validate);
+        LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(descriptorFile);
+        ExternalResource externalResource = new LocallyAvailableExternalResource(descriptorFile.toURI().toString(), localResource);
+        return parseDescriptor(ivySettings, localResource, externalResource, validate);
     }
 
     public boolean accept(ExternalResource res) {

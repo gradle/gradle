@@ -32,7 +32,7 @@ import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.UrlExternalResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.slf4j.Logger;
@@ -66,7 +66,9 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
     }
 
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, File descriptorFile, boolean validate) throws ParseException, IOException {
-        return parseDescriptor(ivySettings, new DefaultLocallyAvailableResource(descriptorFile), new UrlExternalResource(descriptorFile.toURI().toURL()), validate);
+        LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(descriptorFile);
+        ExternalResource externalResource = new LocallyAvailableExternalResource(descriptorFile.toURI().toString(), localResource);
+        return parseDescriptor(ivySettings, localResource, externalResource, validate);
     }
 
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableResource localResource, ExternalResource resource, boolean validate) throws ParseException, IOException {
