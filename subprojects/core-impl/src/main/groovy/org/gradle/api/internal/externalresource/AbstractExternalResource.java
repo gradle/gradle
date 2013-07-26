@@ -22,6 +22,9 @@ import org.gradle.api.Transformer;
 import java.io.*;
 
 public abstract class AbstractExternalResource implements ExternalResource {
+    /**
+     * Opens an unbuffered input stream to read the contents of this resource.
+     */
     protected abstract InputStream openStream() throws IOException;
 
     public void writeTo(File destination) throws IOException {
