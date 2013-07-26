@@ -20,8 +20,11 @@ import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.GradleVersion
 
+/**
+ * Tests that task classes compiled against earlier versions of Gradle are still compatible.
+ */
 @TargetVersions('0.9-rc-3+')
-class PluginCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
+class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
     def "can use plugin compiled using previous Gradle version"() {
         given:
         file("producer/build.gradle") << """
