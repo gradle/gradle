@@ -18,16 +18,14 @@ package org.gradle.api.internal.externalresource.transport.file;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.hash.HashValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,9 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileResourceConnector implements ExternalResourceLister, ExternalResourceAccessor, ExternalResourceUploader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileResourceConnector.class);
-
     public List<String> list(String parent) throws IOException {
         File dir = getFile(parent);
         if (dir.exists() && dir.isDirectory()) {
