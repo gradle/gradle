@@ -23,6 +23,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -103,7 +104,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public MavenArtifactRepository createJCenterRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository();
-        mavenRepository.setUrl(RepositoryHandler.BINTRAY_JCENTER_URL);
+        mavenRepository.setUrl(DefaultRepositoryHandler.BINTRAY_JCENTER_URL);
         return mavenRepository;
     }
 

@@ -65,6 +65,6 @@ task repoNames << {
         succeeds "check", "repoNames"
 
         and:
-        output.contains([DefaultRepositoryHandler.DEFAULT_BINTRAY_JCENTER_REPO_NAME, "otherJcenter"].toString())
+        output.contains(["BintrayJCenter", "otherJcenter"].toString())
     }
 }

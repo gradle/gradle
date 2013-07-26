@@ -85,11 +85,12 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action);
 
     /**
-     * Adds a repository which looks in Bintray's JCenter repository for dependencies. The URL used to access this repository is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#BINTRAY_JCENTER_URL}. The behavior of this resolver
-     * is otherwise the same as the ones added by {@link #maven(org.gradle.api.Action)}.
-     *
-     * <p>Examples:
+     * Adds a repository which looks in Bintray's JCenter repository for dependencies.
+     * <p>
+     * The URL used to access this repository is {@literal "http://jcenter.bintray.com/"}.
+     * The behavior of this resolver is otherwise the same as the ones added by {@link #maven(org.gradle.api.Action)}.
+     * <p>
+     * Examples:
      * <pre>
      * repositories {
      *   jcenter {
@@ -101,7 +102,6 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *   }
      * }
      * </pre>
-     * </p>
      *
      * @param action a configuration action
      * @return the added repository
@@ -110,17 +110,17 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     MavenArtifactRepository jcenter(Action<MavenArtifactRepository> action);
 
     /**
-     * Adds a repository which looks in Bintray's JCenter repository for dependencies. The URL used to access this repository is {@value
-     * org.gradle.api.artifacts.ArtifactRepositoryContainer#BINTRAY_JCENTER_URL}. The name of the repository is {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_BINTRAY_JCENTER_REPO_NAME}.
+     * Adds a repository which looks in Bintray's JCenter repository for dependencies.
+     * <p>
+     * The URL used to access this repository is {@literal "http://jcenter.bintray.com/"}.
      * The behavior of this resolver is otherwise the same as the ones added by {@link #mavenCentral()}.
-     *
-     * <p>Examples:
+     * <p>
+     * Examples:
      * <pre>
      * repositories {
      *     jcenter()
      * }
      * </pre>
-     * </p>
      *
      * @return the added resolver
      * @see #jcenter(Action)
