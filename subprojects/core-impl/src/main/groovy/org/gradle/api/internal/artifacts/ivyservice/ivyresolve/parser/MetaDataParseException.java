@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
+import org.gradle.api.GradleException;
+import org.gradle.api.internal.Contextual;
 
-public interface MetaDataParser {
-    ModuleDescriptor parseModuleDescriptor(ModuleRevisionId dependencyRevisionId, LocallyAvailableExternalResource resource, DependencyResolver resolver) throws MetaDataParseException;
+@Contextual
+public class MetaDataParseException extends GradleException {
+    public MetaDataParseException(String message) {
+        super(message);
+    }
+
+    public MetaDataParseException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

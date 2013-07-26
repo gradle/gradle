@@ -22,10 +22,6 @@ import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
-import org.gradle.internal.UncheckedException;
-
-import java.io.IOException;
-import java.text.ParseException;
 
 public class DefaultMetaDataParser implements MetaDataParser {
     private final ParserRegistry parserRegistry;
@@ -34,15 +30,11 @@ public class DefaultMetaDataParser implements MetaDataParser {
         this.parserRegistry = parserRegistry;
     }
 
-    public ModuleDescriptor parseModuleDescriptor(ModuleRevisionId moduleRevisionId, LocallyAvailableExternalResource resource, DependencyResolver resolver) throws ParseException {
-        try {
-            IvySettings ivySettings = IvyContextualiser.getIvyContext().getSettings();
-            ParserSettings parserSettings = new ModuleScopedParserSettings(ivySettings, resolver, moduleRevisionId);
-            ModuleDescriptorParser parser = parserRegistry.forResource(resource);
-            return parser.parseDescriptor(parserSettings, resource, true);
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+    public ModuleDescriptor parseModuleDescriptor(ModuleRevisionId moduleRevisionId, LocallyAvailableExternalResource resource, DependencyResolver resolver) throws MetaDataParseException {
+        IvySettings ivySettings = IvyContextualiser.getIvyContext().getSettings();
+        ParserSettings parserSettings = new ModuleScopedParserSettings(ivySettings, resolver, moduleRevisionId);
+        ModuleDescriptorParser parser = parserRegistry.forResource(resource);
+        return parser.parseDescriptor(parserSettings, resource, true);
     }
 
 }

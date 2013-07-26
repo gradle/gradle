@@ -67,11 +67,7 @@ public class ModuleDescriptorStore {
 
     private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
         ParserSettings settings = IvyContextualiser.getIvyContext().getSettings();
-        try {
-            return parser.parseDescriptor(settings, moduleDescriptorFile, false);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return parser.parseDescriptor(settings, moduleDescriptorFile, false);
     }
 
     private String getFilePath(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {

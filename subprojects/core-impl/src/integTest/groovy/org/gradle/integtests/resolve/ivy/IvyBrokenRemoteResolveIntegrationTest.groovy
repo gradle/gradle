@@ -204,6 +204,7 @@ task showBroken << { println configurations.compile.files }
         fails "showBroken"
         failure
             .assertResolutionFailure(":compile")
+            .assertHasCause("Could not parse Ivy file ${module.ivyFileUri}")
             .assertHasCause("invalid version null in ${module.ivyFileUri}")
     }
 }

@@ -25,8 +25,6 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
-import java.text.ParseException
-
 class GradlePomModuleDescriptorParserTest extends Specification {
     @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser()
@@ -169,15 +167,14 @@ class GradlePomModuleDescriptorParserTest extends Specification {
     <modelVersion
 </project>
 """
-//        and:
-//        ivySettings.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
 
         when:
         parsePom()
 
         then:
-        ParseException e = thrown()
-        e.message.contains('Element type "modelVersion"')
+        def e = thrown(MetaDataParseException)
+        e.message == "Could not parse POM ${pomFile.toURI()}"
+        e.cause.message.contains('Element type "modelVersion"')
     }
 
     private ModuleDescriptor parsePom() {

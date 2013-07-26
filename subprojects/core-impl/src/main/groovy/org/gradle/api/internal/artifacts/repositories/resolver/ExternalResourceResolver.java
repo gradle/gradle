@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveEx
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyResolverIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolverDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
@@ -54,7 +55,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.*;
 
 import static org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache.ExternalResourceDownloader;
@@ -183,7 +183,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
                 }
                 LOGGER.debug("Ivy file found for module '{}' in repository '{}'.", moduleRevisionId, getName());
                 result.resolved(nsMd, isChanging(nsMd), null);
-            } catch (ParseException e) {
+            } catch (MetaDataParseException e) {
                 result.failed(new ModuleVersionResolveException(moduleRevisionId, e));
             }
         }
@@ -193,7 +193,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         return getSettings().getVersionMatcher();
     }
 
-    private ModuleDescriptor parse(Artifact artifact, ExternalResource resource) throws ParseException {
+    private ModuleDescriptor parse(Artifact artifact, ExternalResource resource) {
         ModuleRevisionId dependencyRevisionId = artifact.getModuleRevisionId();
 
         LocallyAvailableExternalResource cachedResource;
@@ -209,7 +209,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     }
 
     private void checkDescriptorConsistency(ModuleRevisionId mrid, ModuleDescriptor md,
-                                            ResolvedArtifact ivyRef) throws ParseException {
+                                            ResolvedArtifact ivyRef) throws MetaDataParseException {
         List<String> errors = new ArrayList<String>();
         if (!mrid.getOrganisation().equals(md.getModuleRevisionId().getOrganisation())) {
             errors.add("bad organisation: expected='" + mrid.getOrganisation() + "' found='" + md.getModuleRevisionId().getOrganisation() + "'");
@@ -231,7 +231,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
             errors.add("bad status: '" + md.getStatus() + "'; ");
         }
         if (errors.size() > 0) {
-            throw new ParseException(String.format("inconsistent module descriptor file found in '%s': %s", ivyRef.resource, errors.toString()), 0);
+            throw new MetaDataParseException(String.format("inconsistent module descriptor file found in '%s': %s", ivyRef.resource, errors.toString()));
         }
     }
 
@@ -271,16 +271,11 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     protected ResourceMDParser getRMDParser() {
         return new ResourceMDParser() {
             public MDResolvedResource parse(ExternalResource resource, Artifact artifact) {
-                try {
-                    ModuleDescriptor md = ExternalResourceResolver.this.parse(artifact, resource);
-                    if (md == null) {
-                        return null;
-                    } else {
-                        return new MDResolvedResource(resource, artifact, md);
-                    }
-                } catch (ParseException e) {
-                    LOGGER.warn("Failed to parse the file '{}': {}", resource, e.getMessage());
+                ModuleDescriptor md = ExternalResourceResolver.this.parse(artifact, resource);
+                if (md == null) {
                     return null;
+                } else {
+                    return new MDResolvedResource(resource, artifact, md);
                 }
             }
         };

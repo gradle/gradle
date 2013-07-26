@@ -92,8 +92,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parser.parseDescriptor(settings, file, true)
 
         then:
-        def e = thrown(ParseException)
-        e.message == "unknown configuration 'invalidConf'. It is extended by A in ${file.toURI()}"
+        def e = thrown(MetaDataParseException)
+        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.cause.message == "unknown configuration 'invalidConf'. It is extended by A in ${file.toURI()}"
     }
 
     public void "fails when there is a cycle in configuration hierarchy"() throws IOException {
@@ -114,8 +115,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parser.parseDescriptor(settings, file, true)
 
         then:
-        def e = thrown(ParseException)
-        e.message == "illegal cycle detected in configuration extension: A => B => A in ${file.toURI()}"
+        def e = thrown(MetaDataParseException)
+        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.cause.message == "illegal cycle detected in configuration extension: A => B => A in ${file.toURI()}"
     }
 
     public void "fails when descriptor contains badly formed XML"() {
@@ -129,9 +131,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parser.parseDescriptor(settings, file, true)
 
         then:
-        def e = thrown(ParseException)
-        e.message.contains('Element type "info"')
-        e.message.endsWith("in ${file.toURI()}")
+        def e = thrown(MetaDataParseException)
+        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.cause.message.contains('Element type "info"')
     }
 
     public void "fails when descriptor does not match schema"() {
@@ -145,9 +147,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parser.parseDescriptor(settings, file, true)
 
         then:
-        def e = thrown(ParseException)
-        e.message.contains('unknown tag not-an-ivy-file')
-        e.message.endsWith("in ${file.toURI()}")
+        def e = thrown(MetaDataParseException)
+        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.cause.message.contains('unknown tag not-an-ivy-file')
     }
 
     public void "parses a full Ivy descriptor"() throws Exception {

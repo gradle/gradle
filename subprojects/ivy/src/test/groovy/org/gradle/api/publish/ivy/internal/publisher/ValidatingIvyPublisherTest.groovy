@@ -132,8 +132,7 @@ public class ValidatingIvyPublisherTest extends Specification {
 
         then:
         def e = thrown InvalidIvyPublicationException
-        e.message.startsWith "Invalid publication 'pub-name': Problem occurred while parsing ivy file: " +
-                "Cannot add artifact 'name.ext(type)' to configuration 'unknown' of module the-group#the-artifact;the-version because this configuration doesn't exist!"
+        e.message == "Invalid publication 'pub-name': Could not parse Ivy file ${ivyFile.toURI()}"
     }
 
     def "validates artifact attributes"() {

@@ -47,7 +47,7 @@ abstract class HttpArtifact extends HttpResource {
     }
 
     URI getUri() {
-        return new URI("http://localhost:${server.port}/${path}")
+        return new URI("http://localhost:${server.port}${path}")
     }
 
     protected String getPath() {

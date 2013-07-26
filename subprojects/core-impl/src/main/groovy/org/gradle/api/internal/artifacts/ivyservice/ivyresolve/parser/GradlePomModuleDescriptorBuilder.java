@@ -179,7 +179,7 @@ public class GradlePomModuleDescriptorBuilder {
         parserSettings = ivySettings;
     }
 
-    public ModuleDescriptor getModuleDescriptor() {
+    public DefaultModuleDescriptor getModuleDescriptor() {
         return ivyModuleDescriptor;
     }
 

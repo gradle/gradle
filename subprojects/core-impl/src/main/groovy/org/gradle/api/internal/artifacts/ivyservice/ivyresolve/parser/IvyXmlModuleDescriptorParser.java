@@ -38,12 +38,9 @@ import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.apache.ivy.util.extendable.ExtendableItemHelper;
 import org.apache.ivy.util.url.URLHandlerRegistry;
-import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.UrlExternalResource;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TextUtil;
 import org.slf4j.Logger;
@@ -55,7 +52,6 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -67,7 +63,7 @@ import java.util.*;
 /**
  * Copied from org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser into Gradle codebase.
  */
-public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
+public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser {
     static final String[] DEPENDENCY_REGULAR_ATTRIBUTES =
             new String[] {"org", "name", "branch", "branchConstraint", "rev", "revConstraint", "force", "transitive", "changing", "conf"};
 
@@ -75,17 +71,16 @@ public class IvyXmlModuleDescriptorParser implements ModuleDescriptorParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
 
-    public DefaultModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws ParseException, IOException {
+    protected DefaultModuleDescriptor doParseDescriptor(ParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = new Parser(this, ivySettings, resource, resource.getLocalResource().getFile().toURI().toURL());
         parser.setValidate(validate);
         parser.parse();
         return parser.getModuleDescriptor();
     }
 
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, File descriptorFile, boolean validate) throws ParseException, IOException {
-        LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(descriptorFile);
-        LocallyAvailableExternalResource resource = new DefaultLocallyAvailableExternalResource(descriptorFile.toURI().toString(), localResource);
-        return parseDescriptor(ivySettings, resource, validate);
+    @Override
+    protected String getTypeName() {
+        return "Ivy file";
     }
 
     public boolean accept(ExternalResource res) {
