@@ -46,7 +46,7 @@ public class HttpResourceLister implements ExternalResourceLister {
             return null;
         }
         try {
-            return resource.read(new Transformer<List<String>, InputStream>() {
+            return resource.withContent(new Transformer<List<String>, InputStream>() {
                 public List<String> transform(InputStream inputStream) {
                     String contentType = resource.getContentType();
                     ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();

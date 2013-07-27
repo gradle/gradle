@@ -75,12 +75,12 @@ public interface ExternalResource {
     /**
      * Executes the given action against the contents of this resource.
      */
-    void read(Action<? super InputStream> readAction) throws IOException;
+    void withContent(Action<? super InputStream> readAction) throws IOException;
 
     /**
      * Executes the given action against the contents of this resource.
      */
-    <T> T read(Transformer<? extends T, ? super InputStream> readAction) throws IOException;
+    <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws IOException;
 
     void close() throws IOException;
 

@@ -45,7 +45,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
         }
     }
 
-    public void read(Action<? super InputStream> readAction) throws IOException {
+    public void withContent(Action<? super InputStream> readAction) throws IOException {
         InputStream input = openStream();
         try {
             readAction.execute(input);
@@ -54,7 +54,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
         }
     }
 
-    public <T> T read(Transformer<? extends T, ? super InputStream> readAction) throws IOException {
+    public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws IOException {
         InputStream input = openStream();
         try {
             return readAction.transform(input);

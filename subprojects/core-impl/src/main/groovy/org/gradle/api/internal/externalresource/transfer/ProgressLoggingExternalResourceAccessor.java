@@ -82,12 +82,12 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             }
         }
 
-        public void read(Action<? super InputStream> readAction) throws IOException {
-            resource.read(readAction);
+        public void withContent(Action<? super InputStream> readAction) throws IOException {
+            resource.withContent(readAction);
         }
 
-        public <T> T read(Transformer<? extends T, ? super InputStream> readAction) throws IOException {
-            return resource.read(readAction);
+        public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws IOException {
+            return resource.withContent(readAction);
         }
 
         public void close() throws IOException {

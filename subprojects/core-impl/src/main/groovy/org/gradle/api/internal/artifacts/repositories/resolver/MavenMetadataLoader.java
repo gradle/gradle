@@ -66,7 +66,7 @@ class MavenMetadataLoader {
 
     private void parseMavenMetadataInto(ExternalResource metadataResource, final MavenMetadata mavenMetadata) throws IOException, SAXException, ParserConfigurationException {
         LOGGER.debug("parsing maven-metadata: {}", metadataResource);
-        metadataResource.read(new ErroringAction<InputStream>() {
+        metadataResource.withContent(new ErroringAction<InputStream>() {
             public void doExecute(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
                 XMLHelper.parse(inputStream, null, new ContextualSAXHandler() {
                     public void endElement(String uri, String localName, String qName)

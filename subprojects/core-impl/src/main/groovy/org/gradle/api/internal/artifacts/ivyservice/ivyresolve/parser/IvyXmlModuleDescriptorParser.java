@@ -451,7 +451,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         public void parse() throws ParseException, IOException {
-            getResource().read(new Action<InputStream>() {
+            getResource().withContent(new Action<InputStream>() {
                 public void execute(InputStream inputStream) {
                     URL schemaURL = validate ? getSchemaURL() : null;
                     InputSource inSrc = new InputSource(inputStream);

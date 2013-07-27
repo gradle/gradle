@@ -31,7 +31,7 @@ class HttpResourceListerTest extends Specification {
         when:
         lister.list("http://testrepo/")
         then:
-        1 * externalResource.read(_) >> {Transformer action -> return action.transform(new ByteArrayInputStream("<a href='child'/>".bytes))}
+        1 * externalResource.withContent(_) >> {Transformer action -> return action.transform(new ByteArrayInputStream("<a href='child'/>".bytes))}
         1 * externalResource.getContentType() >> "text/html"
         1 * externalResource.close()
     }

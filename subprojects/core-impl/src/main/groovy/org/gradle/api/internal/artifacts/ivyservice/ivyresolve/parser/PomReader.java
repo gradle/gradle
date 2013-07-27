@@ -77,7 +77,7 @@ public class PomReader {
 
     public PomReader(final LocallyAvailableExternalResource resource) throws IOException, SAXException {
         final String systemId = resource.getLocalResource().getFile().toURI().toASCIIString();
-        Document pomDomDoc = resource.read(new Transformer<Document, InputStream>() {
+        Document pomDomDoc = resource.withContent(new Transformer<Document, InputStream>() {
             public Document transform(InputStream inputStream) {
                 try {
                     return parseToDom(inputStream, systemId);

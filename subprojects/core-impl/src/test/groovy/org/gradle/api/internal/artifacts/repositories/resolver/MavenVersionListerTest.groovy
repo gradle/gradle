@@ -51,7 +51,7 @@ class MavenVersionListerTest extends Specification {
 
         and:
         1 * repository.getResource(metaDataResource) >> resource
-        1 * resource.read(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
+        1 * resource.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>
@@ -83,7 +83,7 @@ class MavenVersionListerTest extends Specification {
 
         and:
         1 * repository.getResource('prefix1/org/acme/testproject/maven-metadata.xml') >> resource1
-        1 * resource1.read(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
+        1 * resource1.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>
@@ -94,7 +94,7 @@ class MavenVersionListerTest extends Specification {
 </metadata>""".bytes))
         }
         1 * repository.getResource('prefix2/org/acme/testproject/maven-metadata.xml') >> resource2
-        1 * resource2.read(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
+        1 * resource2.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>
@@ -119,7 +119,7 @@ class MavenVersionListerTest extends Specification {
 
         and:
         1 * repository.getResource(metaDataResource) >> resource
-        1 * resource.read(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
+        1 * resource.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>
@@ -164,7 +164,7 @@ class MavenVersionListerTest extends Specification {
         e.cause.cause instanceof SAXParseException
         1 * resource.close()
         1 * repository.getResource(metaDataResource) >> resource;
-        1 * resource.read(_) >> { Action action -> action.execute(new ByteArrayInputStream("yo".bytes)) }
+        1 * resource.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("yo".bytes)) }
         0 * repository._
     }
 
