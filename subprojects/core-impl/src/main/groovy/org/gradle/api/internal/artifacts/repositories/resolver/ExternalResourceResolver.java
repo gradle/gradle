@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import com.google.common.base.Joiner;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
@@ -49,6 +50,7 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
+import org.gradle.internal.SystemProperties;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -231,7 +233,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
             errors.add("bad status: '" + md.getStatus() + "'; ");
         }
         if (errors.size() > 0) {
-            throw new MetaDataParseException(String.format("inconsistent module descriptor file found in '%s': %s", ivyRef.resource, errors.toString()));
+            throw new MetaDataParseException(String.format("inconsistent module descriptor file found in %s: %s", ivyRef.resource, Joiner.on(SystemProperties.getLineSeparator()).join(errors)));
         }
     }
 

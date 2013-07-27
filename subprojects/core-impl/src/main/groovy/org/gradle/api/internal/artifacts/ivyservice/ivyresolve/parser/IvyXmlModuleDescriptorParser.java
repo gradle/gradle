@@ -37,7 +37,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.apache.ivy.util.extendable.ExtendableItemHelper;
-import org.apache.ivy.util.url.URLHandlerRegistry;
+import org.gradle.api.Action;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.UrlExternalResource;
@@ -450,40 +450,31 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             this.validate = validate;
         }
 
-        public void parse() throws ParseException,
-                IOException {
-            try {
-                URL schemaURL = validate ? getSchemaURL() : null;
-                InputStream xmlStream = URLHandlerRegistry.getDefault().openStream(descriptorURL);
-                try {
-                    InputSource inSrc = new InputSource(xmlStream);
+        public void parse() throws ParseException, IOException {
+            getResource().read(new Action<InputStream>() {
+                public void execute(InputStream inputStream) {
+                    URL schemaURL = validate ? getSchemaURL() : null;
+                    InputSource inSrc = new InputSource(inputStream);
                     inSrc.setSystemId(descriptorURL.toExternalForm());
-                    XMLHelper.parse(inSrc, schemaURL, this, null);
-                } finally {
                     try {
-                        xmlStream.close();
-                    } catch (IOException e) {
-                        // ignored
+                        XMLHelper.parse(inSrc, schemaURL, Parser.this, null);
+                    } catch (Exception e) {
+                        throw new MetaDataParseException("Ivy file", getResource(), e);
                     }
                 }
-                checkConfigurations();
-                replaceConfigurationWildcards();
-                getMd().setModuleArtifact(DefaultArtifact.newIvyArtifact(getMd().getResolvedModuleRevisionId(), getMd().getPublicationDate()));
-                if (!artifactsDeclared) {
-                    String[] configurationNames = getMd().getConfigurationsNames();
-                    for (String configurationName : configurationNames) {
-                        getMd().addArtifact(configurationName, new MDArtifact(getMd(), getMd().getModuleRevisionId().getName(), "jar", "jar"));
-                    }
+            });
+            checkErrors();
+            checkConfigurations();
+            replaceConfigurationWildcards();
+            getMd().setModuleArtifact(DefaultArtifact.newIvyArtifact(getMd().getResolvedModuleRevisionId(), getMd().getPublicationDate()));
+            if (!artifactsDeclared) {
+                String[] configurationNames = getMd().getConfigurationsNames();
+                for (String configurationName : configurationNames) {
+                    getMd().addArtifact(configurationName, new MDArtifact(getMd(), getMd().getModuleRevisionId().getName(), "jar", "jar"));
                 }
-                getMd().check();
-            } catch (ParserConfigurationException ex) {
-                throw new IllegalStateException(ex.getMessage() + " in " + getResource().getName(), ex);
-            } catch (Exception ex) {
-                checkErrors();
-                ParseException pe = new ParseException(ex.getMessage() + " in " + getResource().getName(), 0);
-                pe.initCause(ex);
-                throw pe;
             }
+            checkErrors();
+            getMd().check();
         }
 
         public void startElement(String uri, String localName, String qName, Attributes attributes)
@@ -1177,7 +1168,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         private URL getSchemaURL() {
-            return getClass().getResource("ivy.xsd");
+            URL resource = getClass().getClassLoader().getResource("org/apache/ivy/plugins/parser/xml/ivy.xsd");
+            assert resource != null;
+            return resource;
         }
 
         private String elvis(String value, String defaultValue) {

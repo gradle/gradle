@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.Contextual;
+import org.gradle.api.internal.externalresource.ExternalResource;
 
 @Contextual
 public class MetaDataParseException extends GradleException {
@@ -25,7 +26,7 @@ public class MetaDataParseException extends GradleException {
         super(message);
     }
 
-    public MetaDataParseException(String message, Throwable cause) {
-        super(message, cause);
+    public MetaDataParseException(String typeName, ExternalResource resource, Throwable cause) {
+        super(String.format("Could not parse %s %s", typeName, resource.getName()), cause);
     }
 }

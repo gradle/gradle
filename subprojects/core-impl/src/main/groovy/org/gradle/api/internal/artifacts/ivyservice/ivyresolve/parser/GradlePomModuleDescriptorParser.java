@@ -26,7 +26,6 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.namespace.NameSpaceHelper;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
-import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -35,10 +34,6 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.net.URL;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
@@ -65,11 +60,9 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     protected DefaultModuleDescriptor doParseDescriptor(ParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
-        URL descriptorURL = new URL(resource.getLocalResource().getFile().toURI().toASCIIString());
-        Resource encodedResource = encodedUrlResource(descriptorURL);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, ivySettings);
 
-        PomReader domReader = new PomReader(descriptorURL, encodedResource);
+        PomReader domReader = new PomReader(resource);
         domReader.setProperty("parent.version", domReader.getParentVersion());
         domReader.setProperty("parent.groupId", domReader.getParentGroupId());
         domReader.setProperty("project.parent.version", domReader.getParentVersion());
@@ -245,17 +238,5 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             dd = NameSpaceHelper.toSystem(dd, ivySettings.getContextNamespace());
             return resolver.getDependency(dd, data);
         }
-    }
-
-    private Resource encodedUrlResource(final URL url) {
-        Object proxy = Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{Resource.class}, new InvocationHandler() {
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                if ("getName".equals(method.getName())) {
-                    return url.toString();
-                }
-                throw new UnsupportedOperationException();
-            }
-        });
-        return (Resource) proxy;
     }
 }

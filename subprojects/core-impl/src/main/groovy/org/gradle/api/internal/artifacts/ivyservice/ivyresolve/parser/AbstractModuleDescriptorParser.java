@@ -39,7 +39,7 @@ public abstract class AbstractModuleDescriptorParser implements ModuleDescriptor
         } catch (MetaDataParseException e) {
             throw e;
         } catch (Exception e) {
-            throw new MetaDataParseException(String.format("Could not parse %s %s", getTypeName(), resource.getName()), e);
+            throw new MetaDataParseException(getTypeName(), resource, e);
         }
     }
 

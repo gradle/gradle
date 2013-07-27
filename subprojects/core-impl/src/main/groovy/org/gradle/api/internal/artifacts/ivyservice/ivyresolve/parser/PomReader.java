@@ -20,9 +20,9 @@ import org.apache.ivy.core.module.descriptor.License;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
-import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.util.XMLHelper;
-import org.apache.ivy.util.url.URLHandlerRegistry;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -34,7 +34,6 @@ import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
 import java.io.*;
-import java.net.URL;
 import java.util.*;
 
 
@@ -71,48 +70,42 @@ public class PomReader {
     private static final String PLUGIN = "plugin";
     private static final String TYPE = "type";
 
-    private HashMap properties = new HashMap();
+    private Map<String, String> properties = new HashMap<String, String>();
 
     private final Element projectElement;
     private final Element parentElement;
 
-    public PomReader(URL descriptorURL, Resource res) throws IOException, SAXException {
-        InputStream stream = new AddDTDFilterInputStream(URLHandlerRegistry.getDefault().openStream(descriptorURL));
-        try {
-            Document pomDomDoc = parseToDom(stream, res, new EntityResolver() {
-                public InputSource resolveEntity(String publicId, String systemId)
-                                throws SAXException, IOException {
-                    if ((systemId != null) && systemId.endsWith("m2-entities.ent")) {
-                        return new InputSource(org.apache.ivy.plugins.parser.m2.PomReader.class.getResourceAsStream("m2-entities.ent"));
-                    }
-                    return null;
+    public PomReader(final LocallyAvailableExternalResource resource) throws IOException, SAXException {
+        final String systemId = resource.getLocalResource().getFile().toURI().toASCIIString();
+        Document pomDomDoc = resource.read(new Transformer<Document, InputStream>() {
+            public Document transform(InputStream inputStream) {
+                try {
+                    return parseToDom(inputStream, systemId);
+                } catch (Exception e) {
+                    throw new MetaDataParseException("POM", resource, e);
                 }
-            });
-            projectElement = pomDomDoc.getDocumentElement();
-            if (!PROJECT.equals(projectElement.getNodeName()) && !MODEL.equals(projectElement.getNodeName())) {
-                throw new SAXParseException("project must be the root tag" , res.getName() ,
-                                            res.getName(), 0, 0);
             }
-            parentElement = getFirstChildElement(projectElement , PARENT);
-        } finally {
-            try {
-                stream.close();
-            } catch (IOException e) {
-                // ignore
-            }
+        });
+        projectElement = pomDomDoc.getDocumentElement();
+        if (!PROJECT.equals(projectElement.getNodeName()) && !MODEL.equals(projectElement.getNodeName())) {
+            throw new SAXParseException("project must be the root tag", systemId, systemId, 0, 0);
         }
+        parentElement = getFirstChildElement(projectElement, PARENT);
     }
 
-    public static Document parseToDom(InputStream stream, Resource res, EntityResolver entityResolver)
-                    throws IOException, SAXException {
+    public static Document parseToDom(InputStream stream, String systemId) throws IOException, SAXException {
+        EntityResolver entityResolver = new EntityResolver() {
+            public InputSource resolveEntity(String publicId, String systemId)
+                    throws SAXException, IOException {
+                if ((systemId != null) && systemId.endsWith("m2-entities.ent")) {
+                    return new InputSource(org.apache.ivy.plugins.parser.m2.PomReader.class.getResourceAsStream("m2-entities.ent"));
+                }
+                return null;
+            }
+        };
+        InputStream dtdStream = new AddDTDFilterInputStream(stream);
         DocumentBuilder docBuilder = XMLHelper.getDocBuilder(entityResolver);
-        Document pomDomDoc;
-        try {
-            pomDomDoc = docBuilder.parse(stream, res.getName());
-        } finally {
-            stream.close();
-        }
-        return pomDomDoc;
+        return docBuilder.parse(dtdStream, systemId);
     }
 
     public boolean hasParent() {
@@ -214,9 +207,8 @@ public class PomReader {
             return new License[0];
         }
         licenses.normalize();
-        List/*<License>*/ lics = new ArrayList();
-        for (Iterator it = getAllChilds(licenses).iterator(); it.hasNext();) {
-            Element license = (Element) it.next();
+        List<License> lics = new ArrayList<License>();
+        for (Element license : getAllChilds(licenses)) {
             if (LICENSE.equals(license.getNodeName())) {
                 String name = getFirstChildText(license, LICENSE_NAME);
                 String url = getFirstChildText(license, LICENSE_URL);
@@ -234,7 +226,7 @@ public class PomReader {
                 lics.add(new License(name, url));
             }
         }
-        return (License[]) lics.toArray(new License[lics.size()]);
+        return lics.toArray(new License[lics.size()]);
     }
 
 
@@ -254,9 +246,9 @@ public class PomReader {
         }
     }
 
-    public List /* <PomDependencyData> */ getDependencies() {
+    public List<PomDependencyData> getDependencies() {
         Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCIES);
-        LinkedList dependencies = new LinkedList();
+        List<PomDependencyData> dependencies = new LinkedList<PomDependencyData>();
         if (dependenciesElement != null) {
             NodeList childs = dependenciesElement.getChildNodes();
             for (int i = 0; i < childs.getLength(); i++) {
@@ -270,10 +262,10 @@ public class PomReader {
     }
 
 
-    public List /* <PomDependencyMgt> */ getDependencyMgt() {
+    public List<PomDependencyMgt> getDependencyMgt() {
         Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCY_MGT);
         dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
-        LinkedList dependencies = new LinkedList();
+        List<PomDependencyMgt> dependencies = new LinkedList<PomDependencyMgt>();
         if (dependenciesElement != null) {
             NodeList childs = dependenciesElement.getChildNodes();
             for (int i = 0; i < childs.getLength(); i++) {
@@ -322,9 +314,9 @@ public class PomReader {
             return replaceProps(val);
         }
 
-        public List /*<ModuleId>*/ getExcludedModules() {
+        public List<ModuleId> getExcludedModules() {
             Element exclusionsElement = getFirstChildElement(depElement, EXCLUSIONS);
-            LinkedList exclusions = new LinkedList();
+            List<ModuleId> exclusions = new LinkedList<ModuleId>();
             if (exclusionsElement != null) {
                 NodeList childs = exclusionsElement.getChildNodes();
                 for (int i = 0; i < childs.getLength(); i++) {
@@ -342,8 +334,8 @@ public class PomReader {
         }
     }
 
-    public List /* <PomPluginElement> */ getPlugins() {
-        LinkedList plugins = new LinkedList();
+    public List<PomPluginElement> getPlugins() {
+        List<PomPluginElement> plugins = new LinkedList<PomPluginElement>();
 
         Element buildElement = getFirstChildElement(projectElement, "build");
         if (buildElement == null) {
@@ -389,8 +381,8 @@ public class PomReader {
             return null; // not used
         }
 
-        public List /*<ModuleId>*/ getExcludedModules() {
-            return Collections.EMPTY_LIST; // probably not used?
+        public List<ModuleId> getExcludedModules() {
+            return Collections.emptyList(); // probably not used?
         }
     }
 
@@ -426,19 +418,17 @@ public class PomReader {
     /**
      * @return the content of the properties tag into the pom.
      */
-    public Map/* <String,String> */getPomProperties() {
-        Map pomProperties = new HashMap();
+    public Map<String, String> getPomProperties() {
+        Map<String, String> pomProperties = new HashMap<String, String>();
         Element propsEl = getFirstChildElement(projectElement, PROPERTIES);
         if (propsEl != null) {
             propsEl.normalize();
         }
-        for (Iterator it = getAllChilds(propsEl).iterator(); it.hasNext();) {
-            Element prop = (Element) it.next();
+        for (Element prop : getAllChilds(propsEl)) {
             pomProperties.put(prop.getNodeName(), getTextContent(prop));
         }
         return pomProperties;
     }
-
 
     private String replaceProps(String val) {
         if (val == null) {
@@ -449,7 +439,7 @@ public class PomReader {
     }
 
     private static String getTextContent(Element element) {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
 
         NodeList childNodes = element.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
@@ -491,14 +481,14 @@ public class PomReader {
         return null;
     }
 
-    private static List/* <Element> */getAllChilds(Element parent) {
-        List r = new LinkedList();
+    private static List<Element> getAllChilds(Element parent) {
+        List<Element> r = new LinkedList<Element>();
         if (parent != null) {
             NodeList childs = parent.getChildNodes();
             for (int i = 0; i < childs.getLength(); i++) {
                 Node node = childs.item(i);
                 if (node instanceof Element) {
-                    r.add(node);
+                    r.add((Element) node);
                 }
             }
         }
@@ -554,8 +544,7 @@ public class PomReader {
                 return prefix[count++];
             }
 
-            int result = super.read();
-            return result;
+            return super.read();
         }
 
         public int read(byte[] b, int off, int len) throws IOException {

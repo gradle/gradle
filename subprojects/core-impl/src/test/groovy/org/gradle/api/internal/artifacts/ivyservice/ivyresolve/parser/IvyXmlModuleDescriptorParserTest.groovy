@@ -27,8 +27,6 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
-import java.text.ParseException
-
 import static org.junit.Assert.*
 
 class IvyXmlModuleDescriptorParserTest extends Specification {
@@ -94,7 +92,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         then:
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse Ivy file ${file.toURI()}"
-        e.cause.message == "unknown configuration 'invalidConf'. It is extended by A in ${file.toURI()}"
+        e.cause.message == "unknown configuration 'invalidConf'. It is extended by A"
     }
 
     public void "fails when there is a cycle in configuration hierarchy"() throws IOException {
@@ -117,7 +115,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         then:
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse Ivy file ${file.toURI()}"
-        e.cause.message == "illegal cycle detected in configuration extension: A => B => A in ${file.toURI()}"
+        e.cause.message == "illegal cycle detected in configuration extension: A => B => A"
     }
 
     public void "fails when descriptor contains badly formed XML"() {
