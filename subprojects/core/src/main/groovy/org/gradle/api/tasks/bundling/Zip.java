@@ -70,5 +70,9 @@ public class Zip extends AbstractArchiveTask {
         this.entryCompression = entryCompression;
     }
 
+    /**
+     * Do not use - kept for binary compatibility.
+     */
+    @SuppressWarnings("UnusedDeclaration")
     protected class ZipCopyActionImpl {}
 }
