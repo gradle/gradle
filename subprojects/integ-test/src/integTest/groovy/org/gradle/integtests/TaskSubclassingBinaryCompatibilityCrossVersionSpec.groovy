@@ -35,7 +35,7 @@ import org.gradle.util.GradleVersion
  */
 @TargetVersions('0.9-rc-3+')
 class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
-    def "can use plugin compiled using previous Gradle version"() {
+    def "can use task subclass compiled using previous Gradle version"() {
         given:
         def taskClasses = [
                 DefaultTask, SourceTask, ConventionTask,
