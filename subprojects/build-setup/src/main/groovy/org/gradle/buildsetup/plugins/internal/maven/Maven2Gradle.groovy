@@ -496,7 +496,7 @@ project('$entry.key').projectDir = """ + '"$rootDir/' + "${entry.value}" + '" as
     }
 
 /**
- * Construct and return the signature of a dependency, including it's version and
+ * Construct and return the signature of a dependency, including its version and
  * classifier if it exists
  */
     private def contructSignature(mavenDependency) {

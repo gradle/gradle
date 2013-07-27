@@ -104,7 +104,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     /**
      * Process the specified file or directory.  Note that the startFile parameter
-     * may be either a directory or a file.  If it is a directory, then it's contents
+     * may be either a directory or a file.  If it is a directory, then its contents
      * (but not the directory itself) will be checked with isAllowed and notified to
      * the listener.  If it is a file, the file will be checked and notified.
      */

@@ -73,7 +73,7 @@ import java.util.Set;
  *
  * <p>A task may have dependencies on other tasks or might be scheduled to always run after another task.
  * Gradle ensures that all task dependencies and ordering rules are honored when executing tasks, so that the task is executed after
- * all of it's dependencies and any "must run after" tasks have been executed.</p>
+ * all of its dependencies and any "must run after" tasks have been executed.</p>
  *
  * <p>Dependencies to a task are controlled using {@link #dependsOn(Object...)} or {@link #setDependsOn(Iterable)},
  * and {@link #mustRunAfter(Object...)} or {@link #setMustRunAfter(Iterable)} are used to specify ordering between tasks. You can use objects
