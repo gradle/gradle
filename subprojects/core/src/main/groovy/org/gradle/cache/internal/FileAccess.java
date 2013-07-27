@@ -54,7 +54,7 @@ public interface FileAccess {
     void updateFile(Runnable action) throws LockTimeoutException, FileIntegrityViolationException, InsufficientLockModeException;
 
     /**
-     * Runs the given action under an exclusive lock on the target file, without checking it's integrity. If the given action fails, the lock is marked as uncleanly unlocked.
+     * Runs the given action under an exclusive lock on the target file, without checking its integrity. If the given action fails, the lock is marked as uncleanly unlocked.
      *
      * <p>This method should be used when it is of no consequence if the target was not previously unlocked, e.g. the content is being replaced.
      *

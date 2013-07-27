@@ -33,7 +33,7 @@ public interface TestFramework {
 
     /**
      * Returns a factory which is used to create a {@link org.gradle.api.internal.tasks.testing.TestClassProcessor} in
-     * each worker process. This factory is serialized across to the worker process, and then it's {@link
+     * each worker process. This factory is serialized across to the worker process, and then its {@link
      * org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory#create(org.gradle.internal.service.ServiceRegistry)}
      * method is called to create the test processor.
      */
