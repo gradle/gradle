@@ -41,7 +41,7 @@ public interface TaskExecutionPlan {
     List<Task> getTasks();
 
     /**
-     * Provides a ready-to-execute task. A task is ready-to-execute if all of it's dependencies have been completed successfully.
+     * Provides a ready-to-execute task. A task is ready-to-execute if all of its dependencies have been completed successfully.
      * This method blocks until the at least one task is ready-to-execute.
      * If no tasks remain, null will be returned.
      * @return The task, or null if no matching tasks remain.

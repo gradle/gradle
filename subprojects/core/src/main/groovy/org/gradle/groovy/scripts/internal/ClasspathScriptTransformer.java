@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * The classpath script transformer uses Groovy's AST support to implement a two-phase
  * compilation of a script into a "class path script" and an "everything else script".
- * The classpath script can then be executed and it's results taken into account (in
+ * The classpath script can then be executed and its results taken into account (in
  * particular, to update the classpath) before the remainder of the script is executed.
  */
 public abstract class ClasspathScriptTransformer extends AbstractScriptTransformer {

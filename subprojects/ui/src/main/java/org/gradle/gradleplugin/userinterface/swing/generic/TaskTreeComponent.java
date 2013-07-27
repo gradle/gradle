@@ -114,7 +114,7 @@ public class TaskTreeComponent {
 
     /**
      * This renders our projects and tasks. This removes the icon and optionally shows the description in a different color. Since there's quite a bit of code for handling rendering tree cells, I'm
-     * just going to mooch off of the DefaultTreeCellRenderer. I'll just modify it's behavior a little (I probably don't need that or the description since it's not going to draw a selection or
+     * just going to mooch off of the DefaultTreeCellRenderer. I'll just modify its behavior a little (I probably don't need that or the description since it's not going to draw a selection or
      * highlight).
      */
     private class Renderer implements TreeCellRenderer {

@@ -33,7 +33,7 @@ public interface FileTree extends FileCollection {
      * that any changes to this tree are reflected in the filtered tree.</p>
      *
      * <p>The given closure is used to configure the filter. A {@link org.gradle.api.tasks.util.PatternFilterable} is
-     * passed to the closure as it's delegate. Only files which match the specified include patterns will be included in
+     * passed to the closure as its delegate. Only files which match the specified include patterns will be included in
      * the filtered tree. Any files which match the specified exclude patterns will be excluded from the filtered
      * tree.</p>
      *

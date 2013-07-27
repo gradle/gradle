@@ -120,7 +120,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
 
     /**
      * Locates an object by name, failing if there is no such object. The given configure closure is executed against
-     * the object before it is returned from this method. The object is passed to the closure as it's delegate.
+     * the object before it is returned from this method. The object is passed to the closure as its delegate.
      *
      * @param name The object name
      * @param configureClosure The closure to use to configure the object.
