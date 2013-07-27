@@ -70,4 +70,5 @@ public class Zip extends AbstractArchiveTask {
         this.entryCompression = entryCompression;
     }
 
+    protected class ZipCopyActionImpl {}
 }

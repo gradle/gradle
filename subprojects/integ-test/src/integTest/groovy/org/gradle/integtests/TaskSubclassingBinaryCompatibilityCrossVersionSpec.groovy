@@ -17,10 +17,17 @@ package org.gradle.integtests
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceTask
+import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.tasks.bundling.War
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.plugins.ear.Ear
 import org.gradle.util.GradleVersion
 
 /**
@@ -31,7 +38,8 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
     def "can use plugin compiled using previous Gradle version"() {
         given:
         def taskClasses = [
-                DefaultTask, SourceTask, ConventionTask
+                DefaultTask, SourceTask, ConventionTask,
+                Copy, Sync, Zip, Jar, Tar, War, Ear
         ]
 
         Map<String, Class> subclasses = taskClasses.collectEntries { ["custom" + it.simpleName, it] }
