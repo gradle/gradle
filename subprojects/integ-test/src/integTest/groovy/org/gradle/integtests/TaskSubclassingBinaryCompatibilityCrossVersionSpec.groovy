@@ -15,6 +15,9 @@
  */
 package org.gradle.integtests
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.internal.ConventionTask
+import org.gradle.api.tasks.SourceTask
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 
 import org.gradle.integtests.fixtures.TargetVersions
@@ -27,39 +30,37 @@ import org.gradle.util.GradleVersion
 class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
     def "can use plugin compiled using previous Gradle version"() {
         given:
+        def taskClasses = [
+                DefaultTask, SourceTask, ConventionTask
+        ]
+
+        Map<String, Class> subclasses = taskClasses.collectEntries { ["custom" + it.simpleName, it] }
+
         file("producer/build.gradle") << """
-apply plugin: 'groovy'
-dependencies {
-    ${previous.version < GradleVersion.version("1.4-rc-1") ? "groovy" : "compile" } localGroovy()
-    compile gradleApi()
-}
-"""
+            apply plugin: 'groovy'
+            dependencies {
+                ${previous.version < GradleVersion.version("1.4-rc-1") ? "groovy" : "compile" } localGroovy()
+                compile gradleApi()
+            }
+        """
+
         file("producer/src/main/groovy/SomePlugin.groovy") << """
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.*
-import org.gradle.api.internal.ConventionTask
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.*
+            import org.gradle.api.internal.ConventionTask
 
-class SomePlugin implements Plugin<Project> {
-    void apply(Project p) {
-        p.tasks.add('do-stuff', CustomTask)
-        p.tasks.add('customConventionTask', CustomConventionTask)
-        p.tasks.add('customSourceTask', CustomSourceTask)
-    }
-}
+            class SomePlugin implements Plugin<Project> {
+                void apply(Project p) { """ <<
+                subclasses.collect { "p.tasks.add('${it.key}', ${it.key.capitalize()})" }.join("\n") << """
+                }
+            }
+            """ <<
 
-class CustomTask extends DefaultTask {
-    @TaskAction void go() { }
-}
-
-// ConventionTask leaks a lot of internal API so test for compatibility
-class CustomConventionTask extends ConventionTask {}
-
-// Same reason here, but less direct
-class CustomSourceTask extends SourceTask {}
-
-"""
+                subclasses.collect {
+                    "class ${it.key.capitalize()} extends ${it.value.name} {}"
+                }.join("\n")
 
         buildFile << """
 buildscript {
@@ -71,6 +72,6 @@ apply plugin: SomePlugin
 
         expect:
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current withTasks 'do-stuff' run()
+        version current withTasks 'tasks' run()
     }
 }
