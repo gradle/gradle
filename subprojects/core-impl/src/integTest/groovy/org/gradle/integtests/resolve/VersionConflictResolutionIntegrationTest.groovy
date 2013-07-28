@@ -556,6 +556,8 @@ task checkDeps(dependsOn: configurations.compile) << {
 
     def root = result.root
     assert root.id.version == '1.3'
+    assert root.selectionReason.description == 'root'
+    assert !root.selectionReason.conflictResolution //current behavior, feels incorrect
 
     def other = result.allModuleVersions.find { it.id.name == 'other' }
 
