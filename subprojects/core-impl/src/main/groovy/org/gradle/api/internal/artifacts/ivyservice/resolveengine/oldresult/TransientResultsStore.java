@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifierSerializer;
 import org.gradle.api.internal.cache.BinaryStore;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.io.*;
 
@@ -28,6 +30,8 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 class TransientResultsStore {
+
+    private final static Logger LOG = Logging.getLogger(TransientResultsStore.class);
 
     private static final short NEW_DEP = 1;
     private static final short ROOT = 2;
@@ -93,6 +97,7 @@ class TransientResultsStore {
             if (cache != null) {
                 return cache;
             }
+            LOG.info("Loading dependency resolution results from disk (old model).");
             cache = new DefaultTransientConfigurationResults();
             output = null;
             try {
