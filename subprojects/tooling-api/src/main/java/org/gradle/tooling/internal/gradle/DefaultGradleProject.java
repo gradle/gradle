@@ -35,6 +35,7 @@ public class DefaultGradleProject implements InternalGradleProject, GradleProjec
     private GradleProject parent;
     private List<? extends GradleProject> children = new LinkedList<GradleProject>();
     private List<GradleTask> tasks = new LinkedList<GradleTask>();
+    private DefaultGradleScript buildScript = new DefaultGradleScript();
 
     public DefaultGradleProject() {}
 
@@ -112,6 +113,10 @@ public class DefaultGradleProject implements InternalGradleProject, GradleProjec
         }
 
         return null;
+    }
+
+    public DefaultGradleScript getBuildScript() {
+        return buildScript;
     }
 
     public String toString() {
