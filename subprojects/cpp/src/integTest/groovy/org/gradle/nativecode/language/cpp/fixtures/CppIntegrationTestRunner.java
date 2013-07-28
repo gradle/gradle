@@ -52,7 +52,7 @@ public class CppIntegrationTestRunner extends AbstractMultiTestRunner {
         }
 
         @Override
-        protected boolean isEnabled(TestDetails testDetails) {
+        protected boolean isTestEnabled(TestDetails testDetails) {
             return enabled;
         }
 

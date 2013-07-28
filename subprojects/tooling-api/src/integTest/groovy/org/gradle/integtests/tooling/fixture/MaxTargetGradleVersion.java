@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.fixture;
 import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
 public @interface MaxTargetGradleVersion {
     String value();

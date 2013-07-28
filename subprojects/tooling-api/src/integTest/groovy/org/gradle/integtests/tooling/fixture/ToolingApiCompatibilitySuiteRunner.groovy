@@ -66,6 +66,11 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             return "${displayName(GradleVersion.version(toolingApi.version))} -> ${displayName(gradle.version)}"
         }
 
+        @Override
+        String toString() {
+            return displayName
+        }
+
         private String displayName(GradleVersion version) {
             if (version == GradleVersion.current()) {
                 return "current"
@@ -74,7 +79,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         }
 
         @Override
-        protected boolean isEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
+        protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
             if (!gradle.daemonSupported) {
                 return false
             }
@@ -144,6 +149,9 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowClass(OperatingSystem)
             sharedClassLoader.allowClass(Requires)
             sharedClassLoader.allowClass(TestPrecondition)
+            sharedClassLoader.allowClass(MaxTargetGradleVersion)
+            sharedClassLoader.allowClass(MinTargetGradleVersion)
+            sharedClassLoader.allowClass(MinToolingApiVersion)
             sharedClassLoader.allowResources(target.name.replace('.', '/'))
 
             def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
