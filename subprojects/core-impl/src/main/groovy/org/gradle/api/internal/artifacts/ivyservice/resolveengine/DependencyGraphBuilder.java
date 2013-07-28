@@ -367,6 +367,7 @@ public class DependencyGraphBuilder {
             if (artifacts.isEmpty()) {
                 artifacts = childConfiguration.getArtifacts();
             }
+            //TODO SF merge with addChild
             result.addParentSpecificArtifacts(child, parent, artifacts);
 
             if (parent == resolveState.root.getResult()) {
