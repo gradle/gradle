@@ -23,7 +23,6 @@ import org.gradle.util.*
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
-    private ToolingApiDistributionResolver resolver
 
     ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
         super(target, includesAllPermutations(target))
@@ -39,20 +38,16 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
     @Override
     protected void createExecutions() {
-        resolver = new ToolingApiDistributionResolver().withDefaultRepository()
-
-        add(new Permutation(resolver.resolve(current.version.version), current))
-        previous.each {
-            if (it.toolingApiSupported) {
-                add(new Permutation(resolver.resolve(current.version.version), it))
-                add(new Permutation(resolver.resolve(it.version.version), current))
+        def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
+        try {
+            add(new Permutation(resolver.resolve(current.version.version), current))
+            previous.each {
+                if (it.toolingApiSupported) {
+                    add(new Permutation(resolver.resolve(current.version.version), it))
+                    add(new Permutation(resolver.resolve(it.version.version), current))
+                }
             }
-        }
-    }
-
-    @Override
-    protected void executionsCreated() {
-        if (resolver != null) {
+        } finally {
             resolver.stop()
         }
     }
@@ -79,7 +74,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         }
 
         @Override
-        protected boolean isEnabled() {
+        protected boolean isEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
             if (!gradle.daemonSupported) {
                 return false
             }
@@ -90,15 +85,15 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
                 // So, for windows we'll only run tests against target gradle that supports ttl
                 return false
             }
-            MinToolingApiVersion minToolingApiVersion = target.getAnnotation(MinToolingApiVersion)
+            MinToolingApiVersion minToolingApiVersion = testDetails.getAnnotation(MinToolingApiVersion)
             if (minToolingApiVersion && GradleVersion.version(toolingApi.version) < extractVersion(minToolingApiVersion)) {
                 return false
             }
-            MinTargetGradleVersion minTargetGradleVersion = target.getAnnotation(MinTargetGradleVersion)
+            MinTargetGradleVersion minTargetGradleVersion = testDetails.getAnnotation(MinTargetGradleVersion)
             if (minTargetGradleVersion && gradle.version < extractVersion(minTargetGradleVersion)) {
                 return false
             }
-            MaxTargetGradleVersion maxTargetGradleVersion = target.getAnnotation(MaxTargetGradleVersion)
+            MaxTargetGradleVersion maxTargetGradleVersion = testDetails.getAnnotation(MaxTargetGradleVersion)
             if (maxTargetGradleVersion && gradle.version > extractVersion(maxTargetGradleVersion)) {
                 return false
             }

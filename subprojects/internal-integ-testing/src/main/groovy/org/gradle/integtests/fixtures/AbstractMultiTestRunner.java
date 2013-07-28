@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.api.Nullable;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
@@ -27,6 +28,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -74,13 +76,9 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
 
     private void initExecutions() {
         if (executions.isEmpty()) {
-            try {
-                createExecutions();
-                for (Execution execution : executions) {
-                    execution.init(target);
-                }
-            } finally {
-                executionsCreated();
+            createExecutions();
+            for (Execution execution : executions) {
+                execution.init(target);
             }
         }
     }
@@ -101,8 +99,6 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
 
     protected abstract void createExecutions();
 
-    protected void executionsCreated() {}
-
     protected void add(Execution execution) {
         executions.add(execution);
     }
@@ -114,7 +110,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
 
         final void init(Class<?> target) {
             this.target = target;
-            if (isEnabled()) {
+            if (isEnabled(new ClassBackedTestDetails(target))) {
                 try {
                     assertCanExecute();
                     runner = createExecutionRunner();
@@ -225,7 +221,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         private void map(Description source, Description parent) {
             for (Description child : source.getChildren()) {
                 Description mappedChild;
-                if (child.getMethodName()!= null) {
+                if (child.getMethodName() != null) {
                     mappedChild = Description.createSuiteDescription(String.format("%s [%s](%s)", child.getMethodName(), getDisplayName(), child.getClassName()));
                     parent.addChild(mappedChild);
                 } else {
@@ -244,7 +240,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         /**
          * Returns true if this execution should be executed, false if it should be ignored. Default is true.
          */
-        protected boolean isEnabled() {
+        protected boolean isEnabled(TestDetails testDetails) {
             return true;
         }
 
@@ -300,6 +296,31 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                 notifier.fireTestFailure(new Failure(description, failure));
                 notifier.fireTestFinished(description);
             }
+        }
+    }
+
+    public interface TestDetails {
+        /**
+         * Locates the given annotation for the test. May be inherited from test class.
+         */
+        @Nullable
+        <A extends Annotation> A getAnnotation(Class<A> type);
+    }
+
+    private static class ClassBackedTestDetails implements TestDetails {
+        private final Class<?> testClass;
+
+        private ClassBackedTestDetails(Class<?> testClass) {
+            this.testClass = testClass;
+        }
+
+        @Override
+        public String toString() {
+            return testClass.toString();
+        }
+
+        public <A extends Annotation> A getAnnotation(Class<A> type) {
+            return testClass.getAnnotation(type);
         }
     }
 }

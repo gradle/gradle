@@ -123,7 +123,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
         }
 
         @Override
-        protected boolean isEnabled() {
+        protected boolean isEnabled(TestDetails testDetails) {
             return false;
         }
 

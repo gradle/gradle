@@ -17,13 +17,12 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.util.DefaultClassLoaderFactory
-import org.gradle.api.file.FileCollection
 
 class ExternalToolingApiDistribution implements ToolingApiDistribution {
     private final String version
-    private final FileCollection classpath
+    private final Collection<File> classpath
 
-    ExternalToolingApiDistribution(String version, FileCollection classpath) {
+    ExternalToolingApiDistribution(String version, Collection<File> classpath) {
         this.version = version
         this.classpath = classpath
     }
@@ -32,7 +31,7 @@ class ExternalToolingApiDistribution implements ToolingApiDistribution {
         version
     }
     
-    FileCollection getClasspath() {
+    Collection<File> getClasspath() {
         classpath
     }
     

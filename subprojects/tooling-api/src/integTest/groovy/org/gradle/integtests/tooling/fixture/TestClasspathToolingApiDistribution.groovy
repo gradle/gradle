@@ -17,14 +17,13 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.util.GradleVersion
-import org.gradle.api.file.FileCollection
 
 class TestClasspathToolingApiDistribution implements ToolingApiDistribution {
     String getVersion() {
         GradleVersion.current().version
     }
 
-    FileCollection getClasspath() {
+    Collection<File> getClasspath() {
         null
     }
 
