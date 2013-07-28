@@ -107,18 +107,14 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         private Runner runner;
         protected Class<?> target;
         private final Map<Description, Description> descriptionTranslations = new HashMap<Description, Description>();
+        private final Set<Description> disabledTests = new LinkedHashSet<Description>();
 
         final void init(Class<?> target) {
             this.target = target;
-            if (isEnabled(new ClassBackedTestDetails(target))) {
-                try {
-                    assertCanExecute();
-                    runner = createExecutionRunner();
-                } catch (Throwable t) {
-                    runner = new CannotExecuteRunner(getDisplayName(), target, t);
-                }
-            } else {
-                runner = new IgnoredExecutionRunner(getDisplayName(), target);
+            try {
+                runner = createExecutionRunner();
+            } catch (Throwable t) {
+                runner = new CannotExecuteRunner(getDisplayName(), target, t);
             }
         }
 
@@ -154,9 +150,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         }
 
         final void addDescriptions(Description parent) {
-            if (runner != null) {
-                map(runner.getDescription(), parent);
-            }
+            map(runner.getDescription(), parent);
         }
 
         final void run(final RunNotifier notifier) {
@@ -193,6 +187,44 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                 }
             });
 
+            boolean classEnabled = isEnabled(new ClassBackedTestDetails(target));
+            if (!classEnabled) {
+                for (Description description : descriptionTranslations.keySet()) {
+                    if (description.getMethodName() == null) {
+                        continue;
+                    }
+                    disabledTests.add(description);
+                }
+            }
+
+            runEnabledTests(nested);
+
+            for (Description disabledTest : disabledTests) {
+                nested.fireTestStarted(disabledTest);
+                nested.fireTestIgnored(disabledTest);
+            }
+        }
+
+        private void runEnabledTests(RunNotifier nested) {
+            try {
+                if (!disabledTests.isEmpty()) {
+                    ((Filterable) runner).filter(new Filter() {
+                        @Override
+                        public boolean shouldRun(Description description) {
+                            return !disabledTests.contains(description);
+                        }
+
+                        @Override
+                        public String describe() {
+                            return "disabled tests";
+                        }
+                    });
+                }
+            } catch (NoTestsRemainException e) {
+                return;
+            }
+
+            assertCanExecute();
             runner.run(nested);
         }
 
@@ -224,6 +256,9 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                 if (child.getMethodName() != null) {
                     mappedChild = Description.createSuiteDescription(String.format("%s [%s](%s)", child.getMethodName(), getDisplayName(), child.getClassName()));
                     parent.addChild(mappedChild);
+                    if (!isTestEnabled(new TestDescriptionBackedTestDetails(source, child))) {
+                        disabledTests.add(child);
+                    }
                 } else {
                     mappedChild = Description.createSuiteDescription(child.getClassName());
                 }
@@ -245,6 +280,13 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         }
 
         /**
+         * Returns true if the given test should be executed, false if it should be ignored. Default is true.
+         */
+        protected boolean isTestEnabled(TestDetails testDetails) {
+            return true;
+        }
+
+        /**
          * Checks that this execution can be executed, throwing an exception if not.
          */
         protected void assertCanExecute() {
@@ -255,24 +297,6 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
          */
         protected List<? extends Class<?>> loadTargetClasses() {
             return Collections.singletonList(target);
-        }
-
-        private static class IgnoredExecutionRunner extends Runner {
-            private final Description description;
-
-            public IgnoredExecutionRunner(String displayName, Class<?> testClass) {
-                description = Description.createSuiteDescription(String.format("%s(%s)", displayName, testClass.getName()));
-            }
-
-            @Override
-            public Description getDescription() {
-                return description;
-            }
-
-            @Override
-            public void run(RunNotifier notifier) {
-                notifier.fireTestIgnored(description);
-            }
         }
 
         private static class CannotExecuteRunner extends Runner {
@@ -305,6 +329,24 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
          */
         @Nullable
         <A extends Annotation> A getAnnotation(Class<A> type);
+    }
+
+    private static class TestDescriptionBackedTestDetails implements TestDetails {
+        private final Description parent;
+        private final Description test;
+
+        private TestDescriptionBackedTestDetails(Description parent, Description test) {
+            this.parent = parent;
+            this.test = test;
+        }
+
+        public <A extends Annotation> A getAnnotation(Class<A> type) {
+            A annotation = test.getAnnotation(type);
+            if (annotation != null) {
+                return annotation;
+            }
+            return parent.getAnnotation(type);
+        }
     }
 
     private static class ClassBackedTestDetails implements TestDetails {
