@@ -19,35 +19,72 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifierSerializer;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.io.*;
 
 import static com.google.common.collect.Sets.newHashSet;
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 class TransientResultsStore {
-    private List<ResolutionResultEvent> events = new LinkedList<ResolutionResultEvent>();
+
+    private static final short NEW_DEP = 1;
+    private static final short ROOT = 2;
+    private static final short FIRST_LVL = 3;
+    private static final short PARENT_CHILD = 4;
+    private static final short PARENT_ARTIFACT = 5;
+
     private final Object lock = new Object();
     private DefaultTransientConfigurationResults cache;
 
+    private DataOutput output;
+    private ByteArrayOutputStream eventsStream;
+
+    TransientResultsStore() {
+        eventsStream = new ByteArrayOutputStream();
+        output = new DataOutputStream(eventsStream);
+    }
+
+    private void writeId(short type, ResolvedConfigurationIdentifier... ids) {
+        try {
+            output.writeShort(type);
+            ResolvedConfigurationIdentifierSerializer s = new ResolvedConfigurationIdentifierSerializer();
+            for (ResolvedConfigurationIdentifier id : ids) {
+                s.write(output, id);
+            }
+        } catch (IOException e) {
+            throw throwAsUncheckedException(e);
+        }
+    }
+
     public void resolvedDependency(ResolvedConfigurationIdentifier id) {
-        events.add(new NewResolvedDependency(id));
+        writeId(NEW_DEP, id);
     }
 
     public void done(ResolvedConfigurationIdentifier id) {
-        events.add(new ResolutionDone(id));
+        writeId(ROOT, id);
+        try {
+            eventsStream.close();
+        } catch (IOException e) {
+            throw throwAsUncheckedException(e);
+        }
     }
 
     public void firstLevelDependency(ResolvedConfigurationIdentifier id) {
-        events.add(new FirstLevelDependency(id));
+        writeId(FIRST_LVL, id);
     }
 
     public void parentChildMapping(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child) {
-        events.add(new ParentChildMapping(parent, child));
+        writeId(PARENT_CHILD, parent, child);
     }
 
     public void parentSpecificArtifact(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, long artifactId) {
-        events.add(new ParentSpecificArtifact(child, parent, artifactId));
+        writeId(PARENT_ARTIFACT, child, parent);
+        try {
+            output.writeLong(artifactId);
+        } catch (IOException e) {
+            throw throwAsUncheckedException(e);
+        }
     }
 
     public TransientConfigurationResults load(ResolvedContentsMapping mapping) {
@@ -56,76 +93,43 @@ class TransientResultsStore {
                 return cache;
             }
             cache = new DefaultTransientConfigurationResults();
-            for (ResolutionResultEvent e : events) {
-                if (e instanceof NewResolvedDependency) {
-                    NewResolvedDependency ev = (NewResolvedDependency) e;
-                    cache.allDependencies.put(ev.id, new DefaultResolvedDependency(ev.id.getId(), ev.id.getConfiguration()));
-                } else if (e instanceof ParentChildMapping) {
-                    ParentChildMapping ev = (ParentChildMapping) e;
-                    DefaultResolvedDependency parent = cache.allDependencies.get(ev.parent);
-                    DefaultResolvedDependency child = cache.allDependencies.get(ev.child);
-                    parent.addChild(child);
-                } else if (e instanceof FirstLevelDependency) {
-                    FirstLevelDependency ev = (FirstLevelDependency) e;
-                    cache.firstLevelDependencies.put(mapping.getModuleDependency(ev.id), cache.allDependencies.get(ev.id));
-                } else if (e instanceof ResolutionDone) {
-                    ResolutionDone ev = (ResolutionDone) e;
-                    cache.root = cache.allDependencies.get(ev.id);
-                } else if (e instanceof ParentSpecificArtifact) {
-                    ParentSpecificArtifact ev = (ParentSpecificArtifact) e;
-                    DefaultResolvedDependency child = cache.allDependencies.get(ev.child);
-                    DefaultResolvedDependency parent = cache.allDependencies.get(ev.parent);
-                    child.addParentSpecificArtifacts(parent, newHashSet(mapping.getArtifact(ev.artifactId)));
-                } else {
-                    throw new IllegalStateException("Unknown resolution event: " + e);
+            DataInput input = new DataInputStream(new ByteArrayInputStream(eventsStream.toByteArray()));
+            eventsStream = null;
+            output = null;
+            try {
+                while (true) {
+                    ResolvedConfigurationIdentifierSerializer s = new ResolvedConfigurationIdentifierSerializer();
+                    short type = input.readShort();
+                    ResolvedConfigurationIdentifier id;
+                    switch (type) {
+                        case 1:
+                            id = s.read(input);
+                            cache.allDependencies.put(id, new DefaultResolvedDependency(id.getId(), id.getConfiguration()));
+                            break;
+                        case 2:
+                            id = s.read(input);
+                            cache.root = cache.allDependencies.get(id);
+                            //root should be the last
+                            return cache;
+                        case 3:
+                            id = s.read(input);
+                            cache.firstLevelDependencies.put(mapping.getModuleDependency(id), cache.allDependencies.get(id));
+                            break;
+                        case 4:
+                            DefaultResolvedDependency parent = cache.allDependencies.get(s.read(input));
+                            DefaultResolvedDependency child = cache.allDependencies.get(s.read(input));
+                            parent.addChild(child);
+                            break;
+                        case 5:
+                            DefaultResolvedDependency c = cache.allDependencies.get(s.read(input));
+                            DefaultResolvedDependency p = cache.allDependencies.get(s.read(input));
+                            c.addParentSpecificArtifacts(p, newHashSet(mapping.getArtifact(input.readLong())));
+                            break;
+                    }
                 }
+            } catch (IOException e) {
+                throw throwAsUncheckedException(e);
             }
-            return cache;
-        }
-    }
-
-    private static interface ResolutionResultEvent {}
-
-    private static class NewResolvedDependency implements ResolutionResultEvent {
-        private ResolvedConfigurationIdentifier id;
-        public NewResolvedDependency(ResolvedConfigurationIdentifier id) {
-            this.id = id;
-        }
-    }
-
-    private static class ResolutionDone implements ResolutionResultEvent {
-        private ResolvedConfigurationIdentifier id;
-        public ResolutionDone(ResolvedConfigurationIdentifier id) {
-            this.id = id;
-        }
-    }
-
-    private static class FirstLevelDependency implements ResolutionResultEvent {
-        private ResolvedConfigurationIdentifier id;
-        public FirstLevelDependency(ResolvedConfigurationIdentifier id) {
-            this.id = id;
-        }
-    }
-
-    private static class ParentChildMapping implements ResolutionResultEvent {
-        private ResolvedConfigurationIdentifier parent;
-        private ResolvedConfigurationIdentifier child;
-
-        public ParentChildMapping(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child) {
-            this.parent = parent;
-            this.child = child;
-        }
-    }
-
-    private static class ParentSpecificArtifact implements ResolutionResultEvent {
-        private ResolvedConfigurationIdentifier child;
-        private ResolvedConfigurationIdentifier parent;
-        private long artifactId;
-
-        public ParentSpecificArtifact(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, long artifactId) {
-            this.child = child;
-            this.parent = parent;
-            this.artifactId = artifactId;
         }
     }
 }
