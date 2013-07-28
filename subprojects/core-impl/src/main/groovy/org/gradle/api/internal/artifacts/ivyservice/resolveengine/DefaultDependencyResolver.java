@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictCon
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.cache.BinaryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,15 +46,18 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final ProjectModuleRegistry projectModuleRegistry;
     private final CacheLockingManager cacheLockingManager;
     private final IvyContextManager ivyContextManager;
+    private final ResolutionResultsStoreFactory storeFactory;
 
     public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory,
-                                     ProjectModuleRegistry projectModuleRegistry, CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager) {
+                                     ProjectModuleRegistry projectModuleRegistry, CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
+                                     ResolutionResultsStoreFactory storeFactory) {
         this.ivyFactory = ivyFactory;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.projectModuleRegistry = projectModuleRegistry;
         this.cacheLockingManager = cacheLockingManager;
         this.ivyContextManager = ivyContextManager;
+        this.storeFactory = storeFactory;
     }
 
     public ResolverResults resolve(final ConfigurationInternal configuration, final List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
@@ -79,7 +83,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         
                 DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
                 ResolutionResultBuilder newGraphBuilder = new ResolutionResultBuilder();
-                DefaultResolvedConfigurationBuilder oldGraphBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory);
+                BinaryStore binaryStore = storeFactory.createStore(configuration);
+                DefaultResolvedConfigurationBuilder oldGraphBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, binaryStore);
                 builder.resolve(configuration, newGraphBuilder, oldGraphBuilder);
                 DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldGraphBuilder, cacheLockingManager);
                 return new ResolverResults(new DefaultResolvedConfiguration(result), newGraphBuilder.getResult());

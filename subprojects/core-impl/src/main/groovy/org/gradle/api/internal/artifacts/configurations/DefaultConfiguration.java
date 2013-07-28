@@ -411,6 +411,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolutionStrategy;
     }
 
+    public String getPath() {
+        return path;
+    }
+
     public Configuration resolutionStrategy(Closure closure) {
         ConfigureUtil.configure(closure, resolutionStrategy);
         return this;

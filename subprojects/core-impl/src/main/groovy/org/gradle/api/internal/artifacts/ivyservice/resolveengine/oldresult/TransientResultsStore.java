@@ -20,6 +20,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifierSerializer;
+import org.gradle.api.internal.cache.BinaryStore;
 
 import java.io.*;
 
@@ -37,12 +38,12 @@ class TransientResultsStore {
     private final Object lock = new Object();
     private DefaultTransientConfigurationResults cache;
 
-    private DataOutput output;
-    private ByteArrayOutputStream eventsStream;
+    private DataOutputStream output;
+    private DataInputStream input;
 
-    TransientResultsStore() {
-        eventsStream = new ByteArrayOutputStream();
-        output = new DataOutputStream(eventsStream);
+    TransientResultsStore(BinaryStore store) {
+        this.output = store.getOutput();
+        this.input = store.getInput();
     }
 
     private void writeId(short type, ResolvedConfigurationIdentifier... ids) {
@@ -50,7 +51,7 @@ class TransientResultsStore {
             output.writeShort(type);
             ResolvedConfigurationIdentifierSerializer s = new ResolvedConfigurationIdentifierSerializer();
             for (ResolvedConfigurationIdentifier id : ids) {
-                s.write(output, id);
+                s.write((DataOutput) output, id);
             }
         } catch (IOException e) {
             throw throwAsUncheckedException(e);
@@ -64,7 +65,7 @@ class TransientResultsStore {
     public void done(ResolvedConfigurationIdentifier id) {
         writeId(ROOT, id);
         try {
-            eventsStream.close();
+            output.close();
         } catch (IOException e) {
             throw throwAsUncheckedException(e);
         }
@@ -93,8 +94,6 @@ class TransientResultsStore {
                 return cache;
             }
             cache = new DefaultTransientConfigurationResults();
-            DataInput input = new DataInputStream(new ByteArrayInputStream(eventsStream.toByteArray()));
-            eventsStream = null;
             output = null;
             try {
                 while (true) {
@@ -103,26 +102,26 @@ class TransientResultsStore {
                     ResolvedConfigurationIdentifier id;
                     switch (type) {
                         case 1:
-                            id = s.read(input);
+                            id = s.read((DataInput) input);
                             cache.allDependencies.put(id, new DefaultResolvedDependency(id.getId(), id.getConfiguration()));
                             break;
                         case 2:
-                            id = s.read(input);
+                            id = s.read((DataInput) input);
                             cache.root = cache.allDependencies.get(id);
                             //root should be the last
                             return cache;
                         case 3:
-                            id = s.read(input);
+                            id = s.read((DataInput) input);
                             cache.firstLevelDependencies.put(mapping.getModuleDependency(id), cache.allDependencies.get(id));
                             break;
                         case 4:
-                            DefaultResolvedDependency parent = cache.allDependencies.get(s.read(input));
-                            DefaultResolvedDependency child = cache.allDependencies.get(s.read(input));
+                            DefaultResolvedDependency parent = cache.allDependencies.get(s.read((DataInput) input));
+                            DefaultResolvedDependency child = cache.allDependencies.get(s.read((DataInput) input));
                             parent.addChild(child);
                             break;
                         case 5:
-                            DefaultResolvedDependency c = cache.allDependencies.get(s.read(input));
-                            DefaultResolvedDependency p = cache.allDependencies.get(s.read(input));
+                            DefaultResolvedDependency c = cache.allDependencies.get(s.read((DataInput) input));
+                            DefaultResolvedDependency p = cache.allDependencies.get(s.read((DataInput) input));
                             c.addParentSpecificArtifacts(p, newHashSet(mapping.getArtifact(input.readLong())));
                             break;
                     }

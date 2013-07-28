@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.internal.Factory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
@@ -43,10 +44,11 @@ public class DefaultResolvedConfigurationBuilder implements
 
     private ResolvedArtifactFactory resolvedArtifactFactory;
 
-    private final TransientResultsStore store = new TransientResultsStore();
+    private final TransientResultsStore store;
 
-    public DefaultResolvedConfigurationBuilder(ResolvedArtifactFactory resolvedArtifactFactory) {
+    public DefaultResolvedConfigurationBuilder(ResolvedArtifactFactory resolvedArtifactFactory, BinaryStore binaryStore) {
         this.resolvedArtifactFactory = resolvedArtifactFactory;
+        this.store = new TransientResultsStore(binaryStore);
     }
 
     public void addUnresolvedDependency(UnresolvedDependency unresolvedDependency) {

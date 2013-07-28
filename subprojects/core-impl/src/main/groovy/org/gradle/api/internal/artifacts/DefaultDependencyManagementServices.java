@@ -47,6 +47,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.*;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
@@ -271,14 +272,18 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 new DefaultProjectModuleRegistry(
                         get(PublishModuleDescriptorConverter.class)),
                 get(CacheLockingManager.class),
-                get(IvyContextManager.class)
-        );
+                get(IvyContextManager.class),
+                get(ResolutionResultsStoreFactory.class));
         return new ErrorHandlingArtifactDependencyResolver(
                 new ShortcircuitEmptyConfigsArtifactDependencyResolver(
                         new SelfResolvingDependencyResolver(
                                 new CacheLockingArtifactDependencyResolver(
                                         get(CacheLockingManager.class),
                                         resolver))));
+    }
+
+    protected ResolutionResultsStoreFactory createResolutionResultsStoreFactory() {
+        return new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider());
     }
 
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
