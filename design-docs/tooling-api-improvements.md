@@ -43,6 +43,30 @@ to use this same mechanism is one step in this direction.
 
 # Implementation plan
 
+## Story: Expose the build script of a project
+
+This story exposes some basic information about the build script of a project.
+
+1. Add a `GradleScript` type with the following properties:
+    1. A `file` property with type `File`.
+2. Add a `buildScript` property to `GradleProject` with type `GradleScript`.
+3. Include an `@since` javadoc tag and an `@Incubating` annotation on the new types and methods.
+4. Change `GradleProjectBuilder` to populate the model.
+
+An example usage:
+
+    GradleProject project = connection.getModel(GradleProject.class);
+    System.out.println("project " + project.getPath() + " uses script " + project.getBuildScript().getFile());
+
+### Test coverage
+
+- Add a new `ToolingApiSpecification` integration test class that covers:
+    - A project with standard build script location
+    - A project with customized build script location
+- Verify that a decent error message is received when using a Gradle version that does not expose the build scripts.
+    - Request `GradleProject` directly.
+    - Using `GradleProject` for an `EclipseProject` or `IdeaModule`.
+
 ## Story: Expose the publications of a project
 
 This story allows an IDE to map dependencies between different Gradle builds and and between Gradle and non-Gradle builds.
@@ -78,28 +102,6 @@ An example usage:
     - A project that uses the `maven` plugin and defines a single remote `mavenDeployer` repository on the `uploadArchives` task.
     - A project that defines a single Ivy repository on the `uploadArchives` task.
 - Verify that a decent error message is received when using a Gradle version that does not expose the publications.
-
-## Story: Expose the build script of a project
-
-This story exposes some basic information about the build script of a project.
-
-1. Add a `GradleScript` type with the following properties:
-    1. A `file` property with type `File`.
-2. Add a `buildScript` property to `GradleProject` with type `GradleScript`.
-3. Include an `@since` javadoc tag and an `@Incubating` annotation on the new types and methods.
-4. Change `GradleProjectBuilder` to populate the model.
-
-An example usage:
-
-    GradleProject project = connection.getModel(GradleProject.class);
-    System.out.println("project " + project.getPath() + " uses script " + project.getBuildScript().getFile());
-
-### Test coverage
-
-- Add a new `ToolingApiSpecification` integration test class that covers:
-    - A project with standard build script location
-    - A project with customized build script location
-- Verify that a decent error message is received when using a Gradle version that does not expose the build scripts.
 
 ## Story: Expose the compile details of a build script
 
