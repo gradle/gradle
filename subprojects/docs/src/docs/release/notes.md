@@ -2,6 +2,10 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Tooling API
+
+Information about the build script for a project is now available via the `GradleProject` tooling API model.
+
 ### Preparing for Gradle 2.0
 
 We've started some initial preparations for a Gradle 2.0 release early next year. At this stage, we're cleaning up the API and marking a
