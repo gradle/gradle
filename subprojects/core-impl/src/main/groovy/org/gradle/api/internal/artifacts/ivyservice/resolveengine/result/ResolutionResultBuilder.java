@@ -17,12 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
-import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.*;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
+import org.gradle.internal.Factory;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -43,7 +41,11 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     }
 
     public ResolutionResult getResult() {
-        return new DefaultResolutionResult(rootModule);
+        return new DefaultResolutionResult(new Factory<ResolvedModuleVersionResult>() {
+            public ResolvedModuleVersionResult create() {
+                return rootModule;
+            }
+        });
     }
 
     public void resolvedModuleVersion(ModuleVersionSelection moduleVersion) {

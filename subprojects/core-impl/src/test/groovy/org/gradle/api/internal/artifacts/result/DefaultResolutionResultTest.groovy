@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.result
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import org.gradle.internal.Factory;
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.*
 
 class DefaultResolutionResultTest extends Specification {
@@ -36,8 +37,8 @@ class DefaultResolutionResultTest extends Specification {
         dep2.selected.addDependency(dep3).addDependency(dep4)
 
         when:
-        def deps = new DefaultResolutionResult(root).allDependencies
-        def modules = new DefaultResolutionResult(root).allModuleVersions
+        def deps = new DefaultResolutionResult({root} as Factory).allDependencies
+        def modules = new DefaultResolutionResult({root} as Factory).allModuleVersions
 
         then:
         deps == [dep1, dep2, dep3, dep4] as Set
@@ -55,7 +56,7 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('root').addDependency(dep).addDependency(newDependency('dep2')).addDependency(dep3)
         dep.selected.addDependency(dep3)
 
-        def result = new DefaultResolutionResult(root)
+        def result = new DefaultResolutionResult({root} as Factory)
 
         when:
         def deps = []
@@ -79,8 +80,8 @@ class DefaultResolutionResultTest extends Specification {
         dep1.selected.addDependency(new DefaultResolvedDependencyResult(newSelector('a', 'a', '1'), root, dep1.selected))
 
         when:
-        def deps = new DefaultResolutionResult(root).allDependencies
-        def modules = new DefaultResolutionResult(root).allModuleVersions
+        def deps = new DefaultResolutionResult({root} as Factory).allDependencies
+        def modules = new DefaultResolutionResult({root} as Factory).allModuleVersions
 
         then:
         deps.size() == 2
@@ -95,7 +96,7 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('root').addDependency(dep1).addDependency(dep2)
 
         when:
-        def result = new DefaultResolutionResult(root)
+        def result = new DefaultResolutionResult({root} as Factory)
 
         then:
         result.allDependencies == [dep1, dep2] as Set
