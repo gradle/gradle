@@ -32,8 +32,7 @@ import spock.lang.Specification
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and provider, including the current Gradle version under test.
  *
- * <p>A test class can be annotated with the following annotations to specify which versions the test is compatible with. Note that at this stage,
- * the annotation cannot be applied to a test method.
+ * <p>A test class or test method can be annotated with the following annotations to specify which versions the test is compatible with:
  * </p>
  *
  * <ul>
