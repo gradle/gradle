@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 
-@MaxTargetGradleVersion('1.0-milestone-4')
+@TargetGradleVersion('<=1.0-milestone-4')
 class UnsupportedModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
     def "fails gracefully when unsupported model requested"() {
         when:

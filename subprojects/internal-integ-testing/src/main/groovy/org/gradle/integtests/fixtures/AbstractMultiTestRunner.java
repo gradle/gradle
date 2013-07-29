@@ -150,7 +150,14 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         }
 
         final void addDescriptions(Description parent) {
-            map(runner.getDescription(), parent);
+            try {
+                map(runner.getDescription(), parent);
+            } catch(Throwable t) {
+                descriptionTranslations.clear();
+                disabledTests.clear();
+                runner = new CannotExecuteRunner(getDisplayName(), target, t);
+                map(runner.getDescription(), parent);
+            }
         }
 
         final void run(final RunNotifier notifier) {
@@ -186,16 +193,6 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                     notifier.fireTestFinished(translated);
                 }
             });
-
-            boolean classEnabled = isEnabled(new ClassBackedTestDetails(target));
-            if (!classEnabled) {
-                for (Description description : descriptionTranslations.keySet()) {
-                    if (description.getMethodName() == null) {
-                        continue;
-                    }
-                    disabledTests.add(description);
-                }
-            }
 
             runEnabledTests(nested);
 
@@ -273,13 +270,6 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         protected abstract String getDisplayName();
 
         /**
-         * Returns true if this execution should be executed, false if it should be ignored. Default is true.
-         */
-        protected boolean isEnabled(TestDetails testDetails) {
-            return true;
-        }
-
-        /**
          * Returns true if the given test should be executed, false if it should be ignored. Default is true.
          */
         protected boolean isTestEnabled(TestDetails testDetails) {
@@ -340,29 +330,17 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             this.test = test;
         }
 
+        @Override
+        public String toString() {
+            return test.toString();
+        }
+
         public <A extends Annotation> A getAnnotation(Class<A> type) {
             A annotation = test.getAnnotation(type);
             if (annotation != null) {
                 return annotation;
             }
             return parent.getAnnotation(type);
-        }
-    }
-
-    private static class ClassBackedTestDetails implements TestDetails {
-        private final Class<?> testClass;
-
-        private ClassBackedTestDetails(Class<?> testClass) {
-            this.testClass = testClass;
-        }
-
-        @Override
-        public String toString() {
-            return testClass.toString();
-        }
-
-        public <A extends Annotation> A getAnnotation(Class<A> type) {
-            return testClass.getAnnotation(type);
         }
     }
 }

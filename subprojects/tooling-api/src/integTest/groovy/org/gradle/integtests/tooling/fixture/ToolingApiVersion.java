@@ -17,9 +17,15 @@ package org.gradle.integtests.tooling.fixture;
 
 import java.lang.annotation.*;
 
+/**
+ * Specifies the range of tooling API versions that the given tooling API test can work with.
+ */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
-public @interface MinToolingApiVersion {
+public @interface ToolingApiVersion {
+    /**
+     * The requested tooling API version, in '>=nnn' or '<=nnn' format.
+     */
     String value();
 }

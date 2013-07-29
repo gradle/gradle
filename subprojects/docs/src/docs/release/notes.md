@@ -6,7 +6,7 @@ Here are the new features introduced in this Gradle release.
 
 Information about the build script for a project is now available via the `GradleProject` tooling API model.
 
-### Preparing for Gradle 2.0
+### Early preparations for Gradle 2.0
 
 We've started some initial preparations for a Gradle 2.0 release early next year. At this stage, we're cleaning up the API and marking a
 number of features as deprecated, for removal in Gradle 2.0. You'll find more details below.
@@ -113,6 +113,10 @@ The following classes will be removed in Gradle 2.0. They are no longer used:
 -->
 
 ## Potential breaking changes
+
+### Upgraded to Ant 1.9.2
+
+The version of Ant used by Gradle has been upgraded to Ant 1.9.2. This should be backwards compatible.
 
 ### Changes in task arguments evaluation
 

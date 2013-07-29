@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -25,15 +27,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
 
     ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
-        super(target, includesAllPermutations(target))
-    }
-
-    static String includesAllPermutations(Class target) {
-        if (target.getAnnotation(IncludeAllPermutations)) {
-            return "all";
-        } else {
-            return null; //just use whatever is the default
-        }
+        super(target)
     }
 
     @Override
@@ -63,7 +57,12 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
         @Override
         protected String getDisplayName() {
-            return "${displayName(GradleVersion.version(toolingApi.version))} -> ${displayName(gradle.version)}"
+            return "${displayName(toolingApi.version)} -> ${displayName(gradle.version)}"
+        }
+
+        @Override
+        String toString() {
+            return displayName
         }
 
         private String displayName(GradleVersion version) {
@@ -74,7 +73,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         }
 
         @Override
-        protected boolean isEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
+        protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
             if (!gradle.daemonSupported) {
                 return false
             }
@@ -85,16 +84,12 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
                 // So, for windows we'll only run tests against target gradle that supports ttl
                 return false
             }
-            MinToolingApiVersion minToolingApiVersion = testDetails.getAnnotation(MinToolingApiVersion)
-            if (minToolingApiVersion && GradleVersion.version(toolingApi.version) < extractVersion(minToolingApiVersion)) {
+            ToolingApiVersion toolingApiVersion = testDetails.getAnnotation(ToolingApiVersion)
+            if (!toVersionSpec(toolingApiVersion).isSatisfiedBy(toolingApi.version)) {
                 return false
             }
-            MinTargetGradleVersion minTargetGradleVersion = testDetails.getAnnotation(MinTargetGradleVersion)
-            if (minTargetGradleVersion && gradle.version < extractVersion(minTargetGradleVersion)) {
-                return false
-            }
-            MaxTargetGradleVersion maxTargetGradleVersion = testDetails.getAnnotation(MaxTargetGradleVersion)
-            if (maxTargetGradleVersion && gradle.version > extractVersion(maxTargetGradleVersion)) {
+            TargetGradleVersion targetGradleVersion = testDetails.getAnnotation(TargetGradleVersion)
+            if (!toVersionSpec(targetGradleVersion).isSatisfiedBy(gradle.version)) {
                 return false
             }
 
@@ -108,6 +103,22 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
                 return GradleVersion.current()
             }
             return GradleVersion.version(annotation.value())
+        }
+
+        private Spec<GradleVersion> toVersionSpec(annotation) {
+            if (annotation == null) {
+                return Specs.SATISFIES_ALL
+            }
+            String value = annotation.value().trim()
+            if (value.startsWith('>=')) {
+                def minVersion = GradleVersion.version(value.substring(2))
+                return { version -> version >= minVersion } as Spec
+            } else if (value.startsWith('<=')) {
+                def maxVersion = GradleVersion.version(value.substring(2))
+                return { version -> version <= maxVersion } as Spec
+            } else {
+                throw new RuntimeException("Unsupported version range '$value' specified in @${annotation.class.simpleName}. Supported formats: '>=nnn' or '<=nnn'")
+            }
         }
 
         @Override
@@ -144,6 +155,8 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowClass(OperatingSystem)
             sharedClassLoader.allowClass(Requires)
             sharedClassLoader.allowClass(TestPrecondition)
+            sharedClassLoader.allowClass(TargetGradleVersion)
+            sharedClassLoader.allowClass(ToolingApiVersion)
             sharedClassLoader.allowResources(target.name.replace('.', '/'))
 
             def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)

@@ -32,14 +32,12 @@ import spock.lang.Specification
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and provider, including the current Gradle version under test.
  *
- * <p>A test class can be annotated with the following annotations to specify which versions the test is compatible with. Note that at this stage,
- * the annotation cannot be applied to a test method.
+ * <p>A test class or test method can be annotated with the following annotations to specify which versions the test is compatible with:
  * </p>
  *
  * <ul>
- *     <li>{@link MinToolingApiVersion} - specifies the minimum tooling API consumer version that the test is compatible with.
- *     <li>{@link MinTargetGradleVersion} - specifies the minimum tooling API provider version that the test is compatible with.
- *     <li>{@link MaxTargetGradleVersion} - specifies the maximum tooling API provider version that the test is compatible with.
+ *     <li>{@link ToolingApiVersion} - specifies the tooling API consumer versions that the test is compatible with.
+ *     <li>{@link TargetGradleVersion} - specifies the tooling API provider versions that the test is compatible with.
  * </ul>
  */
 @RunWith(ToolingApiCompatibilitySuiteRunner)

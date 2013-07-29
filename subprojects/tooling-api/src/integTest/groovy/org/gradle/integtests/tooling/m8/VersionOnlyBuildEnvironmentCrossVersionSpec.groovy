@@ -16,14 +16,14 @@
 
 package org.gradle.integtests.tooling.m8
 
-import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.build.BuildEnvironment
 
-@MinToolingApiVersion('1.0-milestone-8')
-@MaxTargetGradleVersion('1.0-milestone-7')
+@ToolingApiVersion('>=1.0-milestone-8')
+@TargetGradleVersion('<=1.0-milestone-7')
 class VersionOnlyBuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
     def "informs about version"() {

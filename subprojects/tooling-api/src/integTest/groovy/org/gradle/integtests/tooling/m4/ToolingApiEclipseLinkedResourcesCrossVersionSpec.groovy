@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.tooling.m4
 
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-@MinToolingApiVersion('1.0-milestone-4')
-@MinTargetGradleVersion('1.0-milestone-4')
+@ToolingApiVersion('>=1.0-milestone-4')
+@TargetGradleVersion('>=1.0-milestone-4')
 class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecification {
     def "can build linked resources"() {
 
