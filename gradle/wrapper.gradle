@@ -15,18 +15,26 @@
  */
 
 def wrapperUpdateTask = { name, label ->
-    task "${name}Wrapper"(type: Wrapper) {
+    def wrapperTaskName = "${name}Wrapper"
+    def configureWrapperTaskName = "configure${wrapperTaskName.capitalize()}"
+
+    task "$configureWrapperTaskName" {
+        doLast {
+            configure(tasks."$wrapperTaskName") {
+                def version = new groovy.json.JsonSlurper().parseText(new URL("http://services.gradle.org/versions/$label").text)
+                if (version.empty) {
+                    throw new GradleException("Cannot update wrapper to '${label}' version as there is currently no version of that label")
+                }
+                println "updating wrapper to $label version: $version.version (downloadUrl: $version.downloadUrl)"
+                distributionUrl version.downloadUrl
+            }
+        }
+    }
+
+    task "${wrapperTaskName}"(type: Wrapper, dependsOn: configureWrapperTaskName) {
         group = "wrapper"
 		def jvmOpts = "-Xmx1024m -XX:MaxPermSize=256m -Dfile.encoding=UTF-8"
         inputs.property("jvmOpts", jvmOpts)        
-		doFirst {
-            def version = new groovy.json.JsonSlurper().parseText(new URL("http://services.gradle.org/versions/$label").text)
-            if (version.empty) {
-                throw new GradleException("Cannot update wrapper to '${label}' version as there is currently no version of that label")
-            }
-            println "updating wrapper to $label version: $version.version (downloadUrl: $version.downloadUrl)"
-            distributionUrl version.downloadUrl
-        }
         doLast {
             def optsEnvVar = "DEFAULT_JVM_OPTS"
             scriptFile.write scriptFile.text.replace("$optsEnvVar=\"\"", "$optsEnvVar=\"$jvmOpts\"")
