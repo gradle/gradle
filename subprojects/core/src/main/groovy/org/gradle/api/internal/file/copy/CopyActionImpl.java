@@ -23,5 +23,6 @@ package org.gradle.api.internal.file.copy;
  * Has to exist to maintain binary compatibility.
  */
 @SuppressWarnings("UnusedDeclaration")
+@Deprecated
 public interface CopyActionImpl {
 }
