@@ -24,7 +24,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.testing.DefaultTestReports;
+import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
@@ -107,7 +107,7 @@ import static java.util.Arrays.asList;
  * }
  * </pre>
  */
-public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestReports> {
+public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestTaskReports> {
 
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
@@ -130,7 +130,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private TestReporter testReporter;
 
     @Nested
-    private final DefaultTestReports reports;
+    private final DefaultTestTaskReports reports;
 
     @Inject
     public Test(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory, FileResolver fileResolver,
@@ -146,7 +146,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
         testReporter = new DefaultTestReport();
 
-        reports = instantiator.newInstance(DefaultTestReports.class, this);
+        reports = instantiator.newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().setEnabled(true);
         reports.getHtml().setEnabled(true);
     }
@@ -1063,7 +1063,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The reports that this task potentially produces
      */
-    public TestReports getReports() {
+    public TestTaskReports getReports() {
         return reports;
     }
 
@@ -1072,7 +1072,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The configuration
      * @return The reports that this task potentially produces
      */
-    public TestReports reports(Closure closure) {
+    public TestTaskReports reports(Closure closure) {
         reports.configure(closure);
         return reports;
     }

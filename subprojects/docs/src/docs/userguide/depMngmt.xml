@@ -658,7 +658,7 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend="sub:maven_jcenter">Maven jcenter repository</link>
+                    <link linkend="sub:maven_jcenter">Maven JCenter repository</link>
                 </td>
                 <td>A pre-configured repository that looks for dependencies in Bintray's JCenter.</td>
             </tr>
@@ -700,15 +700,15 @@
         </section>
 
         <section id='sub:maven_jcenter'>
-            <title>Maven jcenter repository</title>
+            <title>Maven JCenter repository</title>
             <para><ulink url='http://bintray.com'>Bintray</ulink>'s JCenter is an up-to-date collection of all popular Maven OSS artifacts, including artifacts published directly to Bintray.
             </para>
-            <para>To add the jcenter Maven repository (<ulink url='http://jcenter.bintray.com'/>) simply add this to your build script:
+            <para>To add the JCenter Maven repository (<ulink url='http://jcenter.bintray.com'/>) simply add this to your build script:
             </para>
             <sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Adding Bintray's JCenter Maven repository">
                 <sourcefile file="build.gradle" snippet="maven-jcenter"/>
             </sample>
-            <para>Now Gradle will look for your dependencies in the jcenter repository.
+            <para>Now Gradle will look for your dependencies in the JCenter repository.
             </para>
         </section>
 

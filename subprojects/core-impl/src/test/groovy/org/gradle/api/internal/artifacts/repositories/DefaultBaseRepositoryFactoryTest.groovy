@@ -15,12 +15,14 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories
+
 import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
@@ -134,10 +136,10 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
 
     def testCreateJCenterRepo() {
         given:
-        def jcenterUrl = new URI(RepositoryHandler.BINTRAY_JCENTER_URL)
+        def jcenterUrl = new URI(DefaultRepositoryHandler.BINTRAY_JCENTER_URL)
 
         when:
-        fileResolver.resolveUri(RepositoryHandler.BINTRAY_JCENTER_URL) >> jcenterUrl
+        fileResolver.resolveUri(DefaultRepositoryHandler.BINTRAY_JCENTER_URL) >> jcenterUrl
 
         then:
         def repo = factory.createJCenterRepository()

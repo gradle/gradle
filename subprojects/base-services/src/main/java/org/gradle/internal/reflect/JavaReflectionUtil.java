@@ -170,21 +170,32 @@ public class JavaReflectionUtil {
     }
 
     public static <A extends Annotation> A getAnnotation(Class<?> type, Class<A> annotationType) {
-        A annotation = type.getAnnotation(annotationType);
-        if (annotation != null) {
-            return annotation;
+        return getAnnotation(type, annotationType, true);
+    }
+
+    private static <A extends Annotation> A getAnnotation(Class<?> type, Class<A> annotationType, boolean checkType) {
+        A annotation;
+        if (checkType) {
+            annotation = type.getAnnotation(annotationType);
+            if (annotation != null) {
+                return annotation;
+            }
         }
 
         if (annotationType.getAnnotation(Inherited.class) != null) {
             for (Class<?> anInterface : type.getInterfaces()) {
-                annotation = getAnnotation(anInterface, annotationType);
+                annotation = getAnnotation((Class<?>) anInterface, (Class<A>) annotationType, true);
                 if (annotation != null) {
                     return annotation;
                 }
             }
         }
 
-        return null;
+        if (type.isInterface() || type.equals(Object.class)) {
+            return null;
+        } else {
+            return getAnnotation((Class<?>) type.getSuperclass(), (Class<A>) annotationType, false);
+        }
     }
 
 }

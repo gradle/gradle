@@ -139,6 +139,9 @@ class JavaReflectionUtilTest extends Specification {
 
         getAnnotation(OverrideFirst, InheritedAnnotation).value() == "HasAnnotations"
         getAnnotation(OverrideLast, InheritedAnnotation).value() == "default"
+
+        getAnnotation(InheritsInterface, InheritedAnnotation).value() == "default"
+        getAnnotation(InheritsInterface, NotInheritedAnnotation) == null
     }
 
 }
@@ -175,3 +178,6 @@ interface HasAnnotations {}
 
 class OverrideFirst implements HasAnnotations, RootInterface, SubInterface {}
 class OverrideLast implements RootInterface, SubInterface, HasAnnotations {}
+
+class SuperWithInterface implements RootInterface {}
+class InheritsInterface extends SuperWithInterface {}

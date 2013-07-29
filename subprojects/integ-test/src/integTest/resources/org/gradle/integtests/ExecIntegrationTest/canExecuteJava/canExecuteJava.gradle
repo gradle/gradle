@@ -10,12 +10,14 @@ task javaexecTask(type: JavaExec, dependsOn: classes) {
     doLast {
         assert testFile.exists()
     }
+    assert delegate instanceof ExtensionAware
 }
 
 task javaexecByMethod(dependsOn: classes) {
     ext.testFile = file("$buildDir/$name")
     doFirst {
         javaexec {
+            assert !(delegate instanceof ExtensionAware)
             classpath(sourceSets.main.output.classesDir)
             main 'org.gradle.TestMain'
             args projectDir, testFile

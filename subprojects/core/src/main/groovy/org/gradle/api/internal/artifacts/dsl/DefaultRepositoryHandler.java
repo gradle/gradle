@@ -38,6 +38,9 @@ import static org.gradle.util.CollectionUtils.flattenToList;
 
 public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandler {
 
+    public static final String DEFAULT_BINTRAY_JCENTER_REPO_NAME = "BintrayJCenter";
+    public static final String BINTRAY_JCENTER_URL = "http://jcenter.bintray.com/";
+
     public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
     private static final String MAVEN_REPO_DEFAULT_NAME = "maven";
     private static final String IVY_REPO_DEFAULT_NAME = "ivy";

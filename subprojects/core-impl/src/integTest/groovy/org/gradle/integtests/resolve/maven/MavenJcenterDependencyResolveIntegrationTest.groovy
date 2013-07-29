@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -68,6 +67,6 @@ task repoNames << {
         succeeds "check", "repoNames"
 
         and:
-        output.contains([DefaultRepositoryHandler.DEFAULT_BINTRAY_JCENTER_REPO_NAME, "otherJcenter"].toString())
+        output.contains(["BintrayJCenter", "otherJcenter"].toString())
     }
 }

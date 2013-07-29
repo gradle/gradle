@@ -12,6 +12,7 @@ task execTask(type: Exec) {
     doLast {
         assert testFile.exists()
     }
+    assert delegate instanceof ExtensionAware
 }
 
 task execByMethod {
@@ -21,6 +22,7 @@ task execByMethod {
         exec {
             executable Jvm.current().getJavaExecutable()
             args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
+            assert !(delegate instanceof ExtensionAware)
         }
     }
     doLast {
