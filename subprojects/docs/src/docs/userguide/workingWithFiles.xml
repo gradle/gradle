@@ -168,7 +168,7 @@
         <para>Many objects in Gradle have properties which accept a set of input files. For example, the
             <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task has a <literal>source</literal> property,
             which defines the source files to compile. You can set the value of this property using any of the types
-            supported by the <link linkend="sec:file_collections">files()</link> method, which we have seen in above.
+            supported by the <link linkend="sec:file_collections">files()</link> method, which was shown above.
             This means you can set the property using, for example, a <classname>File</classname>, <classname>String</classname>,
             collection, <classname>FileCollection</classname> or even a closure.
             Here are some examples:
@@ -188,14 +188,14 @@
     <section id="sec:copying_files">
         <title>Copying files</title>
         <para>You can use the <apilink class="org.gradle.api.tasks.Copy"/> task to copy files. The copy task is very flexible, and allows
-            you to, for example, filter the contents of the files as they are copied, and to map the files names.
+            you to, for example, filter the contents of the files as they are copied, and map to the file names.
         </para>
         <para>To use the <literal>Copy</literal> task, you must provide a set of source files to copy, and a destination directory to copy
             the files to. You may also specify how to transform the files as they are copied. You do all this using a
             <firstterm>copy spec</firstterm>. A copy spec is represented by the <apilink class="org.gradle.api.file.CopySpec"/> interface. The
             <literal>Copy</literal> task implements this interface.
             You specify the source files using the <apilink class="org.gradle.api.file.CopySpec" method="from(java.lang.Object...)"/>
-            method. To specify the destination directory, you use the <apilink class="org.gradle.api.file.CopySpec" method="into(java.lang.Object)"/>
+            method. To specify the destination directory, use the <apilink class="org.gradle.api.file.CopySpec" method="into(java.lang.Object)"/>
             method.
         </para>
         <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy task">
@@ -238,7 +238,7 @@
         <section>
             <title>Using the <classname>CopySpec</classname> class</title>
             <para>Copy specs form a hierarchy. A copy spec inherits its destination path, include patterns, exclude patterns, copy actions,
-                name mappings, filters.</para>
+                name mappings and filters.</para>
             <sample id="nestedCopySpecs" dir="userguide/files/copy" title="Nested copy specs">
                 <sourcefile file="build.gradle" snippet="nested-specs"/>
             </sample>
@@ -390,7 +390,7 @@
 
         <section>
             <title>Sharing content between multiple archives</title>
-            <para>Using the <apilink class="org.gradle.api.Project" method="copySpec"/> method to share content between archives.</para>
+            <para>You can use the <apilink class="org.gradle.api.Project" method="copySpec"/> method to share content between archives.</para>
         </section>
 
         <para>Often you will want to publish an archive, so that it is usable from another project. This process is
