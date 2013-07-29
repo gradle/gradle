@@ -6,6 +6,7 @@
  */
 dependencies {
     publishCompile libraries.slf4j_api
+    compile libraries.guava
     testCompile libraries.groovy
 }
 

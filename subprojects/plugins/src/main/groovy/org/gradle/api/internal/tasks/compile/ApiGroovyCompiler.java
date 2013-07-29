@@ -66,7 +66,7 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         // would end up on the compile class path of every compile task for that source set, which may not be desirable.
         spec.setClasspath(Iterables.concat(spec.getClasspath(), Collections.singleton(spec.getDestinationDir())));
 
-        URLClassLoader classPathLoader = new TransformingClassLoader(new DefaultClassPath(spec.getClasspath()));
+        URLClassLoader classPathLoader = new GroovyCompileTransformingClassLoader(new DefaultClassPath(spec.getClasspath()));
         GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
 
         FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());

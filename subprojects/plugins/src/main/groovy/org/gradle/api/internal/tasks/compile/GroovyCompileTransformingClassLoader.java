@@ -16,16 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import com.google.common.io.ByteStreams;
 import org.codehaus.groovy.transform.GroovyASTTransformationClass;
-import org.gradle.api.GradleException;
+import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.util.MutableURLClassLoader;
 import org.objectweb.asm.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,39 +28,15 @@ import java.util.List;
  * Transforms @GroovyASTTransformationClass(classes = {classLiterals}) into @GroovyASTTransformationClass([classNames]),
  * to work around GROOVY-5416.
  */
-class TransformingClassLoader extends MutableURLClassLoader {
+class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
     private static final String ANNOTATION_DESCRIPTOR = Type.getType(GroovyASTTransformationClass.class).getDescriptor();
 
-    public TransformingClassLoader(ClassPath classpath) {
+    public GroovyCompileTransformingClassLoader(ClassPath classpath) {
         super(null, classpath);
     }
 
     @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
-        URL resource = findResource(name.replace(".", "/") + ".class");
-        if (resource == null) {
-            throw new ClassNotFoundException(name);
-        }
-        byte[] bytes;
-        try {
-            bytes = loadBytecode(resource);
-            bytes = transform(bytes);
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not load class '%s' from %s.", name, resource), e);
-        }
-        return super.defineClass(name, bytes, 0, bytes.length);
-    }
-
-    private byte[] loadBytecode(URL resource) throws IOException {
-        InputStream inputStream = resource.openStream();
-        try {
-            return ByteStreams.toByteArray(inputStream);
-        } finally {
-            inputStream.close();
-        }
-    }
-
-    private byte[] transform(byte[] bytes) {
+    protected byte[] transform(byte[] bytes) {
         // First scan for annotation, and short circuit transformation if not present
         ClassReader classReader = new ClassReader(bytes);
 

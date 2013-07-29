@@ -21,13 +21,13 @@ import org.codehaus.groovy.transform.GroovyASTTransformationClass
 import org.gradle.util.ClasspathUtil
 import org.gradle.internal.classpath.DefaultClassPath
 
-class TransformingClassLoaderTest extends Specification {
-    TransformingClassLoader loader
+class GroovyCompileTransformingClassLoaderTest extends Specification {
+    GroovyCompileTransformingClassLoader loader
     Class<?> classAnnotation
 
     def setup() {
         def classPath = new DefaultClassPath(ClasspathUtil.getClasspathForClass(getClass()), ClasspathUtil.getClasspathForClass(GroovyASTTransformationClass))
-        loader = new TransformingClassLoader(classPath)
+        loader = new GroovyCompileTransformingClassLoader(classPath)
         classAnnotation = loader.loadClass(GroovyASTTransformationClass.name)
     }
 
@@ -83,14 +83,14 @@ class TransformingClassLoaderTest extends Specification {
 @interface WithNamesSpecified {
 }
 
-@GroovyASTTransformationClass(classes = [TransformingClassLoaderTest.Transformer])
+@GroovyASTTransformationClass(classes = [GroovyCompileTransformingClassLoaderTest.Transformer])
 @interface WithClassSpecified {
 }
 
-@GroovyASTTransformationClass(classes = [TransformingClassLoaderTest.Transformer, Runnable])
+@GroovyASTTransformationClass(classes = [GroovyCompileTransformingClassLoaderTest.Transformer, Runnable])
 @interface WithClassesSpecified {
 }
 
-@GroovyASTTransformationClass(value = "some-type", classes = [TransformingClassLoaderTest.Transformer, Runnable])
+@GroovyASTTransformationClass(value = "some-type", classes = [GroovyCompileTransformingClassLoaderTest.Transformer, Runnable])
 @interface WithBothSpecified {
 }
