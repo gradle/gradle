@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.api.Project
 import org.gradle.api.internal.AbstractTask
-import org.gradle.tooling.internal.eclipse.DefaultEclipseProject
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProject
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 

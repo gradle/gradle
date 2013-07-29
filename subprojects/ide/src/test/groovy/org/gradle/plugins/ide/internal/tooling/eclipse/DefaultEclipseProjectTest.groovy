@@ -13,31 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.ide.internal.tooling.eclipse
 
-package org.gradle.tooling.internal.idea;
+import spock.lang.Specification
 
-import org.gradle.tooling.model.idea.IdeaSourceDirectory;
+class DefaultEclipseProjectTest extends Specification {
+    def usesPathForToStringValue() {
+        def project = new DefaultEclipseProject("name", ":path", null, null, [])
 
-import java.io.File;
-import java.io.Serializable;
-
-public class DefaultIdeaSourceDirectory implements IdeaSourceDirectory, Serializable {
-
-    private File directory;
-
-    public File getDirectory() {
-        return directory;
-    }
-
-    public DefaultIdeaSourceDirectory setDirectory(File directory) {
-        this.directory = directory;
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return "DefaultIdeaSourceDirectory{"
-                + "directory=" + directory
-                + '}';
+        expect:
+        project.toString() == "project ':path'"
     }
 }

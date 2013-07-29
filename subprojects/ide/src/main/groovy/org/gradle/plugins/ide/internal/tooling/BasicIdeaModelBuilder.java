@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
-import org.gradle.tooling.internal.idea.DefaultIdeaProject;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 public class BasicIdeaModelBuilder implements ToolingModelBuilder {

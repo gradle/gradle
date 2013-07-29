@@ -13,32 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.eclipse;
 
-import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
+package org.gradle.plugins.ide.internal.tooling.idea;
+
+import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultEclipseSourceDirectory implements EclipseSourceDirectoryVersion1, Serializable {
-    private final String path;
-    private final File directory;
+public class DefaultIdeaSourceDirectory implements IdeaSourceDirectory, Serializable {
 
-    public DefaultEclipseSourceDirectory(String path, File directory) {
-        this.path = path;
-        this.directory = directory;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("source directory '%s'", path);
-    }
+    private File directory;
 
     public File getDirectory() {
         return directory;
     }
 
-    public String getPath() {
-        return path;
+    public DefaultIdeaSourceDirectory setDirectory(File directory) {
+        this.directory = directory;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultIdeaSourceDirectory{"
+                + "directory=" + directory
+                + '}';
     }
 }

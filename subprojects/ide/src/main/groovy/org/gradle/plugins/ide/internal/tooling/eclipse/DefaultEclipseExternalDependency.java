@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.eclipse;
+package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
