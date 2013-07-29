@@ -20,6 +20,9 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.UnsupportedMethodException
+import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.idea.IdeaProject
 
 @ToolingApiVersion('>=1.8-rc-1')
 @TargetGradleVersion('>=1.8-rc-1')
@@ -39,5 +42,32 @@ class BuildScriptModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         project.buildScript.sourceFile == custom
+    }
+
+    @TargetGradleVersion('<=1.7')
+    def "gives reasonable error message when target Gradle version does not provide build script details"() {
+        when:
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
+        project.buildScript
+
+        then:
+        UnsupportedMethodException e = thrown()
+        e.message.startsWith('Unsupported method: GradleProject.getBuildScript().')
+
+        when:
+        EclipseProject eclipseProject = withConnection { it.getModel(EclipseProject.class) }
+        eclipseProject.gradleProject.buildScript
+
+        then:
+        e = thrown()
+        e.message.startsWith('Unsupported method: GradleProject.getBuildScript().')
+
+        when:
+        IdeaProject ideaProject = withConnection { it.getModel(IdeaProject.class) }
+        ideaProject.modules.each { it.gradleProject.buildScript }
+
+        then:
+        e = thrown()
+        e.message.startsWith('Unsupported method: GradleProject.getBuildScript().')
     }
 }
