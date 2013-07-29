@@ -20,7 +20,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Matchers
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -62,15 +61,15 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
         temporaryFolder.file("settings.gradle").exists()
     }
 
-    def "escapes strings"() {
+    def "escapes strings and encodes contents using UTF-8"() {
         setup:
-        buildTemplateFile.text = '${ref_userguide_java_tutorial.groovyComment}'
-        settingsTemplateFile.text = '${rootProjectName.groovyString}'
+        buildTemplateFile.text = '${somePath.groovyComment}'
+        settingsTemplateFile.text = '${someValue.groovyString}'
         when:
         descriptor.generateProject()
         then:
-        temporaryFolder.file("build.gradle").assertContents(Matchers.strictlyEqual(/C:\\Programe Files\\gradle/))
-        temporaryFolder.file("settings.gradle").assertContents(Matchers.strictlyEqual(/a\'b\\c-√æず∫ʙぴ₦ガき∆ç√∫/))
+        temporaryFolder.file("build.gradle").getText('utf-8') == /C:\\Programe Files\\gradle/
+        temporaryFolder.file("settings.gradle").getText('utf-8') == /a\'b\\c-√æず∫ʙぴ₦ガき∆ç√∫/
     }
 
     class TestTemplateBasedProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
@@ -91,11 +90,11 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
 
         @Override
         protected Map getAdditionalBuildFileTemplateBindings() {
-            return [ref_userguide_java_tutorial: "C:\\Programe Files\\gradle"]
+            return [somePath: "C:\\Programe Files\\gradle"]
         }
 
         protected Map getAdditionalSettingsFileTemplateBindings() {
-            return [rootProjectName: "a\'b\\c-√æず∫ʙぴ₦ガき∆ç√∫"]
+            return [someValue: "a\'b\\c-√æず∫ʙぴ₦ガき∆ç√∫"]
         }
 
         String getId() {
