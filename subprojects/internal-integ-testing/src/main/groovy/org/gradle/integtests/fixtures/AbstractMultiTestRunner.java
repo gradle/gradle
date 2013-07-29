@@ -136,17 +136,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                     return new BlockJUnit4ClassRunner(testClass);
                 }
             };
-            return new Suite(runnerBuilder, targetClasses.toArray(new Class<?>[targetClasses.size()])) {
-                @Override
-                public void run(RunNotifier notifier) {
-                    before();
-                    try {
-                        super.run(notifier);
-                    } finally {
-                        after();
-                    }
-                }
-            };
+            return new Suite(runnerBuilder, targetClasses.toArray(new Class<?>[targetClasses.size()]));
         }
 
         final void addDescriptions(Description parent) {
@@ -162,39 +152,14 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
 
         final void run(final RunNotifier notifier) {
             RunNotifier nested = new RunNotifier();
-            nested.addListener(new RunListener() {
-                @Override
-                public void testStarted(Description description) {
-                    Description translated = translateDescription(description);
-                    notifier.fireTestStarted(translated);
-                }
+            NestedRunListener nestedListener = new NestedRunListener(notifier);
+            nested.addListener(nestedListener);
 
-                @Override
-                public void testFailure(Failure failure) {
-                    Description translated = translateDescription(failure.getDescription());
-                    notifier.fireTestFailure(new Failure(translated, failure.getException()));
-                }
-
-                @Override
-                public void testAssumptionFailure(Failure failure) {
-                    Description translated = translateDescription(failure.getDescription());
-                    notifier.fireTestAssumptionFailed(new Failure(translated, failure.getException()));
-                }
-
-                @Override
-                public void testIgnored(Description description) {
-                    Description translated = translateDescription(description);
-                    notifier.fireTestIgnored(translated);
-                }
-
-                @Override
-                public void testFinished(Description description) {
-                    Description translated = translateDescription(description);
-                    notifier.fireTestFinished(translated);
-                }
-            });
-
-            runEnabledTests(nested);
+            try {
+                runEnabledTests(nested);
+            } finally {
+                nestedListener.cleanup();
+            }
 
             for (Description disabledTest : disabledTests) {
                 nested.fireTestStarted(disabledTest);
@@ -221,7 +186,6 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                 return;
             }
 
-            assertCanExecute();
             runner.run(nested);
         }
 
@@ -309,6 +273,56 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                 notifier.fireTestStarted(description);
                 notifier.fireTestFailure(new Failure(description, failure));
                 notifier.fireTestFinished(description);
+            }
+        }
+
+        private class NestedRunListener extends RunListener {
+            private final RunNotifier notifier;
+            boolean started;
+
+            public NestedRunListener(RunNotifier notifier) {
+                this.notifier = notifier;
+            }
+
+            @Override
+            public void testStarted(Description description) {
+                Description translated = translateDescription(description);
+                notifier.fireTestStarted(translated);
+                if (!started) {
+                    started = true;
+                    assertCanExecute();
+                    before();
+                }
+            }
+
+            @Override
+            public void testFailure(Failure failure) {
+                Description translated = translateDescription(failure.getDescription());
+                notifier.fireTestFailure(new Failure(translated, failure.getException()));
+            }
+
+            @Override
+            public void testAssumptionFailure(Failure failure) {
+                Description translated = translateDescription(failure.getDescription());
+                notifier.fireTestAssumptionFailed(new Failure(translated, failure.getException()));
+            }
+
+            @Override
+            public void testIgnored(Description description) {
+                Description translated = translateDescription(description);
+                notifier.fireTestIgnored(translated);
+            }
+
+            @Override
+            public void testFinished(Description description) {
+                Description translated = translateDescription(description);
+                notifier.fireTestFinished(translated);
+            }
+
+            public void cleanup() {
+                if (started) {
+                    after();
+                }
             }
         }
     }

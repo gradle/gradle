@@ -59,13 +59,13 @@ public class CppIntegrationTestRunner extends AbstractMultiTestRunner {
         @Override
         protected void assertCanExecute() {
             if (!toolChain.isAvailable()) {
-                throw new RuntimeException("ToolChain not available");
+                throw new RuntimeException(String.format("Tool chain %s not available", toolChain.getDisplayName()));
             }
         }
 
         @Override
         protected void before() {
-            System.out.println(String.format("Using compiler %s", toolChain.getDisplayName()));
+            System.out.println(String.format("Using tool chain %s", toolChain.getDisplayName()));
             toolChain.initialiseEnvironment();
             AbstractBinariesIntegrationSpec.setToolChain(toolChain);
         }
