@@ -17,12 +17,12 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.junit.Assume
 
-@MinToolingApiVersion('1.0-milestone-8')
+@ToolingApiVersion('>=1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
 

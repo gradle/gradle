@@ -17,17 +17,18 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.util.DefaultClassLoaderFactory
+import org.gradle.util.GradleVersion
 
 class ExternalToolingApiDistribution implements ToolingApiDistribution {
-    private final String version
+    private final GradleVersion version
     private final Collection<File> classpath
 
     ExternalToolingApiDistribution(String version, Collection<File> classpath) {
-        this.version = version
+        this.version = GradleVersion.version(version)
         this.classpath = classpath
     }
 
-    String getVersion() {
+    GradleVersion getVersion() {
         version
     }
     
@@ -41,6 +42,6 @@ class ExternalToolingApiDistribution implements ToolingApiDistribution {
     }
     
     String toString() {
-        "Tooling API $version"
+        "Tooling API $version.version"
     }
 }

@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.tooling.r16
 
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.UnknownModelException
 
-@MinToolingApiVersion('1.6-rc-1')
+@ToolingApiVersion('>=1.6-rc-1')
 class UnknownModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
     def "fails gracefully when unknown model requested"() {
         when:

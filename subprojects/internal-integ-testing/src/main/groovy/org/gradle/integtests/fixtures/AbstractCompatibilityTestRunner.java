@@ -42,17 +42,14 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
     protected final List<GradleDistribution> previous;
 
     protected AbstractCompatibilityTestRunner(Class<?> target) {
-        this(target, null);
+        this(target, System.getProperty(VERSIONS_SYSPROP_NAME, "latest"));
     }
 
-    protected AbstractCompatibilityTestRunner(Class<?> target, String versionStr) {
+    private AbstractCompatibilityTestRunner(Class<?> target, String versionStr) {
         super(target);
         validateTestName(target);
 
         previous = new ArrayList<GradleDistribution>();
-        if (versionStr == null) {
-            versionStr = System.getProperty(VERSIONS_SYSPROP_NAME, "latest");
-        }
         final ReleasedVersionDistributions previousVersions = new ReleasedVersionDistributions();
         if (versionStr.equals("latest")) {
             previous.add(previousVersions.getMostRecentFinalRelease());

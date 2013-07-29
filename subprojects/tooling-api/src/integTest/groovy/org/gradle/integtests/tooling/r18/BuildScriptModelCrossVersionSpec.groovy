@@ -17,11 +17,11 @@
 package org.gradle.integtests.tooling.r18
 
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 
-@MinToolingApiVersion('1.8-rc-1')
+@ToolingApiVersion('>=1.8-rc-1')
 @MinTargetGradleVersion('1.8-rc-1')
 class BuildScriptModelCrossVersionSpec extends ToolingApiSpecification {
     def "GradleProject provides details about the project's build script"() {

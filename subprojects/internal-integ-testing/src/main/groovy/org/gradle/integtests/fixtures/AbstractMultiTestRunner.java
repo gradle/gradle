@@ -150,7 +150,14 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         }
 
         final void addDescriptions(Description parent) {
-            map(runner.getDescription(), parent);
+            try {
+                map(runner.getDescription(), parent);
+            } catch(Throwable t) {
+                descriptionTranslations.clear();
+                disabledTests.clear();
+                runner = new CannotExecuteRunner(getDisplayName(), target, t);
+                map(runner.getDescription(), parent);
+            }
         }
 
         final void run(final RunNotifier notifier) {

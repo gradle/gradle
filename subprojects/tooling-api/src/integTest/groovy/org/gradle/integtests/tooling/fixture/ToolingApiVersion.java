@@ -18,6 +18,11 @@ package org.gradle.integtests.tooling.fixture;
 import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
-public @interface IncludeAllPermutations {}
+public @interface ToolingApiVersion {
+    /**
+     * The requested tooling API version, in '>=nnn' or '<=nnn' format.
+     */
+    String value();
+}
