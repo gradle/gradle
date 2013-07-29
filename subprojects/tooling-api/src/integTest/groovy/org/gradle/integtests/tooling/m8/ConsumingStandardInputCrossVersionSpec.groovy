@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.m8
 
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
@@ -24,7 +24,7 @@ import org.gradle.tooling.model.GradleProject
 import spock.lang.Timeout
 
 @ToolingApiVersion('>=1.0-milestone-8')
-@MinTargetGradleVersion('1.0-milestone-8')
+@TargetGradleVersion('>=1.0-milestone-8')
 class ConsumingStandardInputCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

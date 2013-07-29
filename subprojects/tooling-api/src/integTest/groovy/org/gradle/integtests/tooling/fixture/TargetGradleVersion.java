@@ -17,9 +17,12 @@ package org.gradle.integtests.tooling.fixture;
 
 import java.lang.annotation.*;
 
+/**
+ * Specifies the range of target Gradle versions that the given tooling API test can work with.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
-public @interface MinTargetGradleVersion {
+public @interface TargetGradleVersion {
     String value();
 }

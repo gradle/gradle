@@ -84,16 +84,12 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
                 // So, for windows we'll only run tests against target gradle that supports ttl
                 return false
             }
-            ToolingApiVersion minToolingApiVersion = testDetails.getAnnotation(ToolingApiVersion)
-            if (!toVersionSpec(minToolingApiVersion).isSatisfiedBy(toolingApi.version)) {
+            ToolingApiVersion toolingApiVersion = testDetails.getAnnotation(ToolingApiVersion)
+            if (!toVersionSpec(toolingApiVersion).isSatisfiedBy(toolingApi.version)) {
                 return false
             }
-            MinTargetGradleVersion minTargetGradleVersion = testDetails.getAnnotation(MinTargetGradleVersion)
-            if (minTargetGradleVersion && gradle.version < extractVersion(minTargetGradleVersion)) {
-                return false
-            }
-            MaxTargetGradleVersion maxTargetGradleVersion = testDetails.getAnnotation(MaxTargetGradleVersion)
-            if (maxTargetGradleVersion && gradle.version > extractVersion(maxTargetGradleVersion)) {
+            TargetGradleVersion targetGradleVersion = testDetails.getAnnotation(TargetGradleVersion)
+            if (!toVersionSpec(targetGradleVersion).isSatisfiedBy(gradle.version)) {
                 return false
             }
 
@@ -159,8 +155,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowClass(OperatingSystem)
             sharedClassLoader.allowClass(Requires)
             sharedClassLoader.allowClass(TestPrecondition)
-            sharedClassLoader.allowClass(MaxTargetGradleVersion)
-            sharedClassLoader.allowClass(MinTargetGradleVersion)
+            sharedClassLoader.allowClass(TargetGradleVersion)
             sharedClassLoader.allowClass(ToolingApiVersion)
             sharedClassLoader.allowResources(target.name.replace('.', '/'))
 

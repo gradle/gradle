@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Issue
 
-@MinTargetGradleVersion('1.0-milestone-5')
+@TargetGradleVersion('>=1.0-milestone-5')
 class EclipseModelWithFlatRepoCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue("GRADLE-1621")

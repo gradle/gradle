@@ -15,13 +15,13 @@
  */
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 
 @ToolingApiVersion('>=1.0-milestone-5')
-@MinTargetGradleVersion('1.0-milestone-5')
+@TargetGradleVersion('>=1.0-milestone-5')
 class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

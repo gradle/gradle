@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.tooling.r11rc1
 
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -24,7 +24,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 
 @ToolingApiVersion('>=1.1-rc-2')
-@MinTargetGradleVersion('1.1-rc-2')
+@TargetGradleVersion('>=1.1-rc-2')
 class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
 
     def "idea libraries contain gradle module information"() {

@@ -36,9 +36,8 @@ import spock.lang.Specification
  * </p>
  *
  * <ul>
- *     <li>{@link ToolingApiVersion} - specifies the minimum tooling API consumer version that the test is compatible with.
- *     <li>{@link MinTargetGradleVersion} - specifies the minimum tooling API provider version that the test is compatible with.
- *     <li>{@link MaxTargetGradleVersion} - specifies the maximum tooling API provider version that the test is compatible with.
+ *     <li>{@link ToolingApiVersion} - specifies the tooling API consumer versions that the test is compatible with.
+ *     <li>{@link TargetGradleVersion} - specifies the tooling API provider versions that the test is compatible with.
  * </ul>
  */
 @RunWith(ToolingApiCompatibilitySuiteRunner)

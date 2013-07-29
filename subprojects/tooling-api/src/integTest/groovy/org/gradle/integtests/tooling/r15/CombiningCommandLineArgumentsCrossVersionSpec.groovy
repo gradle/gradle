@@ -20,13 +20,13 @@
 
 package org.gradle.integtests.tooling.r15
 
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import spock.lang.Issue
 
 @ToolingApiVersion(">=1.0")
-@MinTargetGradleVersion("1.5")
+@TargetGradleVersion(">=1.5")
 class CombiningCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue("GRADLE-2635")

@@ -17,9 +17,9 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.build.BuildEnvironment
@@ -27,7 +27,7 @@ import org.gradle.tooling.model.internal.Exceptions
 import spock.lang.IgnoreIf
 
 @ToolingApiVersion('>=1.0-milestone-8')
-@MaxTargetGradleVersion('1.0-milestone-7') //the configuration was not supported for old versions
+@TargetGradleVersion('<=1.0-milestone-7') //the configuration was not supported for old versions
 class StrictLongRunningOperationCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
