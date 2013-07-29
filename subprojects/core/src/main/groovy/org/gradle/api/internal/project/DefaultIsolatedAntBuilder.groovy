@@ -18,6 +18,7 @@ package org.gradle.api.internal.project
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.ant.BasicAntBuilder
+import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.util.*
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.classpath.DefaultClassPath

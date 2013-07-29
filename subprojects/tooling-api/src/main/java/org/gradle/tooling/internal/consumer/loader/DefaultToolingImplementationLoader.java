@@ -34,7 +34,7 @@ import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.util.FilteringClassLoader;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.MultiParentClassLoader;
-import org.gradle.util.MutableURLClassLoader;
+import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

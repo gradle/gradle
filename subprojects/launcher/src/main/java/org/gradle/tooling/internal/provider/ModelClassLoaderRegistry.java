@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.MapMaker;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.util.MutableURLClassLoader;
+import org.gradle.internal.classloader.MutableURLClassLoader;
 
 import java.net.URL;
 import java.util.ArrayList;

@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.util.*;

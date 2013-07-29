@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.WrapUtil
-import org.gradle.util.MutableURLClassLoader
+import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.util.ConfigureUtil
 
 import spock.lang.Specification

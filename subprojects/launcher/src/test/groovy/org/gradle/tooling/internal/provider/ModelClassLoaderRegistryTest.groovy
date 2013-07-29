@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.util.MutableURLClassLoader
+import org.gradle.internal.classloader.MutableURLClassLoader
 
 import java.util.concurrent.CopyOnWriteArraySet
 

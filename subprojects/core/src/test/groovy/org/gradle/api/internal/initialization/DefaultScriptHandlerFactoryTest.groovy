@@ -24,7 +24,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.groovy.scripts.ScriptSource
 
 import spock.lang.Specification
-import org.gradle.util.MutableURLClassLoader
+import org.gradle.internal.classloader.MutableURLClassLoader
 
 class DefaultScriptHandlerFactoryTest extends Specification {
     private final DependencyMetaDataProvider metaDataProvider = Mock()

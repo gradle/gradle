@@ -20,6 +20,7 @@ import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.*
 

@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.MutableURLClassLoader;
+import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;

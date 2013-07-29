@@ -22,7 +22,7 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
-import org.gradle.util.MutableURLClassLoader;
+import org.gradle.internal.classloader.MutableURLClassLoader;
 
 import java.lang.reflect.Method;
 
