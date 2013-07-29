@@ -43,6 +43,8 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
         @TaskAction
         void execute(IncrementalTaskInputs inputs) {
+            assert !(inputs instanceof ExtensionAware)
+
             if (project.hasProperty('forceFail')) {
                 throw new RuntimeException('failed')
             }

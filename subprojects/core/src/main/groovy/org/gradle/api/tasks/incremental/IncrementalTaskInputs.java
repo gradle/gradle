@@ -18,6 +18,7 @@ package org.gradle.api.tasks.incremental;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.NonExtensible;
 
 /**
  * Provides access to any input files that need to be processed by an incremental task.
@@ -68,6 +69,7 @@ import org.gradle.api.Incubating;
  * </ul>
  */
 @Incubating
+@NonExtensible
 public interface IncrementalTaskInputs {
     /**
      * Indicates if it was possible for Gradle to determine which exactly which input files were out of date compared to a previous execution.
