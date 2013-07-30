@@ -20,6 +20,7 @@ import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
@@ -46,6 +47,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final RepositoryCacheManager localCacheManager;
     private final RepositoryCacheManager downloadingCacheManager;
     private final MetaDataParser metaDataParser;
+    private final ModuleMetadataProcessor metadataProcessor;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -55,7 +57,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         ProgressLoggerFactory progressLoggerFactory,
                                         RepositoryCacheManager localCacheManager,
                                         RepositoryCacheManager downloadingCacheManager,
-                                        MetaDataParser metaDataParser) {
+                                        MetaDataParser metaDataParser,
+                                        ModuleMetadataProcessor metadataProcessor) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
@@ -65,6 +68,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.localCacheManager = localCacheManager;
         this.downloadingCacheManager = downloadingCacheManager;
         this.metaDataParser = metaDataParser;
+        this.metadataProcessor = metadataProcessor;
     }
 
     public ArtifactRepository createRepository(Object userDescription) {
@@ -93,7 +97,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
-        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, metaDataParser);
+        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, metaDataParser, metadataProcessor);
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
@@ -117,13 +121,13 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, instantiator, metaDataParser
+                locallyAvailableResourceFinder, instantiator, metaDataParser, metadataProcessor
         );
     }
 
     public MavenArtifactRepository createMavenRepository() {
         return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, metaDataParser
+                locallyAvailableResourceFinder, metaDataParser, metadataProcessor
         );
     }
 
@@ -138,5 +142,4 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private PasswordCredentials createPasswordCredentials() {
         return instantiator.newInstance(DefaultPasswordCredentials.class);
     }
-
 }

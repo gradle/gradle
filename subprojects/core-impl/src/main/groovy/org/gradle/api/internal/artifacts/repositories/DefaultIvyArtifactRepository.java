@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
@@ -50,10 +51,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final MetaDataProvider metaDataProvider;
     private final Instantiator instantiator;
     private final MetaDataParser metaDataParser;
+    private final ModuleMetadataProcessor metadataProcessor;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, Instantiator instantiator,
-                                        MetaDataParser metaDataParser) {
+                                        MetaDataParser metaDataParser, ModuleMetadataProcessor metadataProcessor) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -63,6 +65,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiator;
         this.metaDataParser = metaDataParser;
+        this.metadataProcessor = metadataProcessor;
     }
 
     public DependencyResolver createLegacyDslObject() {
@@ -105,10 +108,10 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             throw new InvalidUserDataException("You may only specify 'file', 'http' and 'https' urls for an Ivy repository.");
         }
         if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
-            return new IvyResolver(getName(), transportFactory.createHttpTransport(getName(), getCredentials()), locallyAvailableResourceFinder, metaDataParser);
+            return new IvyResolver(getName(), transportFactory.createHttpTransport(getName(), getCredentials()), locallyAvailableResourceFinder, metaDataParser, metadataProcessor);
         }
         if (WrapUtil.toSet("file").containsAll(schemes)) {
-            return new IvyResolver(getName(), transportFactory.createFileTransport(getName()), locallyAvailableResourceFinder, metaDataParser);
+            return new IvyResolver(getName(), transportFactory.createFileTransport(getName()), locallyAvailableResourceFinder, metaDataParser, metadataProcessor);
         }
         throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single Ivy repository. Please declare 2 separate repositories.");
     }
