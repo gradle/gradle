@@ -38,7 +38,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyResolverIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolverDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -172,19 +174,20 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
             }
         } else {
             try {
-                ModuleDescriptor nsMd;
-                if (ivyRef instanceof MDResolvedResource) {
-                    nsMd = ((MDResolvedResource) ivyRef).moduleDescriptor;
+                ModuleVersionMetaData moduleVersionMetaData;
+                if (ivyRef instanceof DownloadedAndParsedResolvedArtifact) {
+                    moduleVersionMetaData = ((DownloadedAndParsedResolvedArtifact) ivyRef).moduleVersionMetaData;
                 } else {
-                    nsMd = parse(ivyRef.artifact, ivyRef.resource);
+                    moduleVersionMetaData = parse(ivyRef.artifact, ivyRef.resource);
                 }
+                ModuleDescriptor descriptor = moduleVersionMetaData.getDescriptor();
 
                 // check descriptor data is in sync with resource revision and names
                 if (isCheckconsistency()) {
-                    checkDescriptorConsistency(moduleRevisionId, nsMd, ivyRef);
+                    checkDescriptorConsistency(moduleRevisionId, descriptor, ivyRef);
                 }
                 LOGGER.debug("Ivy file found for module '{}' in repository '{}'.", moduleRevisionId, getName());
-                result.resolved(nsMd, isChanging(nsMd), null);
+                result.resolved(descriptor, isChanging(descriptor), null);
             } catch (MetaDataParseException e) {
                 result.failed(new ModuleVersionResolveException(moduleRevisionId, e));
             }
@@ -195,7 +198,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         return getSettings().getVersionMatcher();
     }
 
-    private ModuleDescriptor parse(Artifact artifact, ExternalResource resource) {
+    private ModuleVersionMetaData parse(Artifact artifact, ExternalResource resource) {
         ModuleRevisionId dependencyRevisionId = artifact.getModuleRevisionId();
 
         LocallyAvailableExternalResource cachedResource;
@@ -207,7 +210,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
             return null;
         }
 
-        return metaDataParser.parseModuleDescriptor(dependencyRevisionId, cachedResource, new ExternalResourceResolverDependencyResolver(this));
+        return metaDataParser.parseModuleMetaData(dependencyRevisionId, cachedResource, new ExternalResourceResolverDependencyResolver(this));
     }
 
     private void checkDescriptorConsistency(ModuleRevisionId mrid, ModuleDescriptor md,
@@ -240,7 +243,15 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     protected ResolvedArtifact findIvyFileRef(DependencyDescriptor dd) {
         ModuleRevisionId mrid = dd.getDependencyRevisionId();
         Artifact artifact = DefaultArtifact.newIvyArtifact(mrid, null);
-        return findResourceUsingPatterns(mrid, ivyPatterns, artifact, getRMDParser(), null, true);
+        return findResourceUsingPatterns(mrid, ivyPatterns, artifact, getMetaDataArtifactModuleDescriptorParser(), null, true);
+    }
+
+    protected ResourceMDParser getMetaDataArtifactModuleDescriptorParser() {
+        return new ResourceMDParser() {
+            public ModuleVersionMetaData parse(ExternalResource resource, Artifact artifact) {
+                return ExternalResourceResolver.this.parse(artifact, resource);
+            }
+        };
     }
 
     private ResolvedArtifact findFirstArtifactRef(ModuleDescriptor md) {
@@ -266,29 +277,16 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
 
     private ResolvedArtifact getArtifactRef(Artifact artifact, Date date, boolean forDownload) {
         ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
-        ResourceMDParser parser = getDefaultRMDParser();
+        ResourceMDParser parser = getJarArtifactModuleDescriptorParser();
         return findResourceUsingPatterns(moduleRevisionId, getArtifactPatterns(), artifact, parser, date, forDownload);
     }
 
-    protected ResourceMDParser getRMDParser() {
+    protected ResourceMDParser getJarArtifactModuleDescriptorParser() {
         return new ResourceMDParser() {
-            public MDResolvedResource parse(ExternalResource resource, Artifact artifact) {
-                ModuleDescriptor md = ExternalResourceResolver.this.parse(artifact, resource);
-                if (md == null) {
-                    return null;
-                } else {
-                    return new MDResolvedResource(resource, artifact, md);
-                }
-            }
-        };
-    }
-
-    protected ResourceMDParser getDefaultRMDParser() {
-        return new ResourceMDParser() {
-            public MDResolvedResource parse(ExternalResource resource, Artifact artifact) {
+            public ModuleVersionMetaData parse(ExternalResource resource, Artifact artifact) {
                 DefaultModuleDescriptor md = DefaultModuleDescriptor.newDefaultInstance(artifact.getModuleRevisionId());
                 md.setStatus("integration");
-                return new MDResolvedResource(resource, artifact, md);
+                return new ModuleDescriptorAdapter(artifact.getModuleRevisionId(), md);
             }
         };
     }
@@ -367,20 +365,19 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
                 continue;
             }
             if (versionMatcher.needModuleDescriptor(mrid, foundMrid)) {
-                MDResolvedResource parsedResource = rmdparser.parse(resource, artifact);
-                if (parsedResource == null) {
+                ModuleVersionMetaData metaData = rmdparser.parse(resource, artifact);
+                if (metaData == null) {
                     LOGGER.debug(name + ": impossible to get module descriptor resource: " + description);
                     discardResource(resource);
                     continue;
                 }
-                ModuleDescriptor md = parsedResource.moduleDescriptor;
-                if (!versionMatcher.accept(mrid, md)) {
+                if (!versionMatcher.accept(mrid, metaData.getDescriptor())) {
                     LOGGER.debug(name + ": md rejected by version matcher: " + description);
                     discardResource(resource);
                     continue;
                 }
 
-                return parsedResource;
+                return new DownloadedAndParsedResolvedArtifact(resource, artifact, metaData);
             }
             return new ResolvedArtifact(resource, artifact);
         }
@@ -676,10 +673,10 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     }
 
     public interface ResourceMDParser {
-        MDResolvedResource parse(ExternalResource resource, Artifact artifact);
+        ModuleVersionMetaData parse(ExternalResource resource, Artifact artifact);
     }
 
-    public static class ResolvedArtifact {
+    protected static class ResolvedArtifact {
         private final ExternalResource resource;
         private final Artifact artifact;
 
@@ -689,12 +686,12 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         }
     }
 
-    public static class MDResolvedResource extends ResolvedArtifact {
-        private final ModuleDescriptor moduleDescriptor;
+    private static class DownloadedAndParsedResolvedArtifact extends ResolvedArtifact {
+        private final ModuleVersionMetaData moduleVersionMetaData;
 
-        public MDResolvedResource(ExternalResource resource, Artifact artifact, ModuleDescriptor moduleDescriptor) {
+        public DownloadedAndParsedResolvedArtifact(ExternalResource resource, Artifact artifact, ModuleVersionMetaData moduleVersionMetaData) {
             super(resource, artifact);
-            this.moduleDescriptor = moduleDescriptor;
+            this.moduleVersionMetaData = moduleVersionMetaData;
         }
     }
 

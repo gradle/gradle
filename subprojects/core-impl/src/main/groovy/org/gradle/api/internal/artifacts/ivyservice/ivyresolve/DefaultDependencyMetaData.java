@@ -26,7 +26,7 @@ import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.Field;
 
-class DefaultDependencyMetaData implements DependencyMetaData {
+public class DefaultDependencyMetaData implements DependencyMetaData {
     private final DependencyDescriptor dependencyDescriptor;
     private final DefaultModuleVersionSelector requested;
 
