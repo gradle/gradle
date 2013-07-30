@@ -22,7 +22,6 @@ import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.internal.tooling.idea.*;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
@@ -76,7 +75,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     private void buildDependencies(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule) {
         ideaModule.setOffline(offlineDependencyResolution);
         Set<Dependency> resolved = ideaModule.resolveDependencies();
-        List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
+        List<DefaultIdeaDependency> dependencies = new LinkedList<DefaultIdeaDependency>();
         for (Dependency dependency : resolved) {
             if (dependency instanceof SingleEntryModuleLibrary) {
                 SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
@@ -93,7 +92,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 dependencies.add(defaultDependency);
             } else if (dependency instanceof ModuleDependency) {
                 ModuleDependency d = (ModuleDependency) dependency;
-                IdeaDependency defaultDependency = new DefaultIdeaModuleDependency()
+                DefaultIdeaModuleDependency defaultDependency = new DefaultIdeaModuleDependency()
                         .setExported(d.getExported())
                         .setScope(new DefaultIdeaDependencyScope(d.getScope()))
                         .setDependencyModule(modules.get(d.getName()));

@@ -17,26 +17,18 @@
 package org.gradle.plugins.ide.internal.tooling.idea;
 
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
-import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.idea.IdeaLanguageLevel;
-import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.tooling.model.idea.IdeaProject;
-import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedList;
 
-public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Serializable {
-
-//    public static final long serialVersionUID = 1L;
-
-    private String id;
+public class DefaultIdeaProject implements InternalIdeaProject, Serializable {
     private String name;
     private String description;
-    private Collection<? extends IdeaModule> children = new LinkedList<IdeaModule>();
+    private Collection<DefaultIdeaModule> children = new LinkedList<DefaultIdeaModule>();
     private IdeaLanguageLevel languageLevel;
     private String jdkName;
 
@@ -88,17 +80,18 @@ public class DefaultIdeaProject implements InternalIdeaProject, IdeaProject, Ser
         throw new UnsupportedOperationException("This method should not be used.");
     }
 
-    public DefaultIdeaProject setChildren(Collection<? extends IdeaModule> children) {
-        this.children = children;
+    public DefaultIdeaProject setChildren(Collection<? extends DefaultIdeaModule> children) {
+        this.children.clear();
+        this.children.addAll(children);
         return this;
     }
 
-    public DomainObjectSet<? extends IdeaModule> getChildren() {
-        return new ImmutableDomainObjectSet<IdeaModule>(children);
+    public Collection<DefaultIdeaModule> getChildren() {
+        return children;
     }
 
-    public DomainObjectSet<? extends IdeaModule> getModules() {
-        return new ImmutableDomainObjectSet<IdeaModule>(children);
+    public Collection<DefaultIdeaModule> getModules() {
+        return children;
     }
 
     @Override

@@ -17,15 +17,13 @@
 package org.gradle.plugins.ide.internal.tooling.idea;
 
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
-import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.tooling.model.idea.IdeaModuleDependency;
+import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 
-import java.io.Serializable;
-
-public class DefaultIdeaModuleDependency implements IdeaModuleDependency, Serializable {
-
+@LegacyConsumerInterface("org.gradle.tooling.model.idea.IdeaModuleDependency")
+public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
+    private static final long serialVersionUID = 0;
     private IdeaDependencyScope scope;
-    private IdeaModule dependencyModule;
+    private DefaultIdeaModule dependencyModule;
     private boolean exported;
 
     public IdeaDependencyScope getScope() {
@@ -37,11 +35,11 @@ public class DefaultIdeaModuleDependency implements IdeaModuleDependency, Serial
         return this;
     }
 
-    public IdeaModule getDependencyModule() {
+    public DefaultIdeaModule getDependencyModule() {
         return dependencyModule;
     }
 
-    public DefaultIdeaModuleDependency setDependencyModule(IdeaModule dependencyModule) {
+    public DefaultIdeaModuleDependency setDependencyModule(DefaultIdeaModule dependencyModule) {
         this.dependencyModule = dependencyModule;
         return this;
     }

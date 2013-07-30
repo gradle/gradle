@@ -16,25 +16,22 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.HierarchicalElement;
-import org.gradle.tooling.model.Task;
-import org.gradle.tooling.model.idea.*;
-import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
+import org.gradle.tooling.model.idea.IdeaCompilerOutput;
+import org.gradle.tooling.model.idea.IdeaContentRoot;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultIdeaModule implements Serializable, IdeaModule {
-
+public class DefaultIdeaModule implements Serializable {
     private String name;
     private List<? extends IdeaContentRoot> contentRoots = new LinkedList<IdeaContentRoot>();
-    private IdeaProject parent;
+    private DefaultIdeaProject parent;
 
-    private List<IdeaDependency> dependencies = new LinkedList<IdeaDependency>();
+    private List<DefaultIdeaDependency> dependencies = new LinkedList<DefaultIdeaDependency>();
     private GradleProject gradleProject;
 
     private IdeaCompilerOutput compilerOutput;
@@ -48,8 +45,8 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
-    public DomainObjectSet<? extends IdeaContentRoot> getContentRoots() {
-        return new ImmutableDomainObjectSet<IdeaContentRoot>(contentRoots);
+    public Collection<? extends IdeaContentRoot> getContentRoots() {
+        return contentRoots;
     }
 
     public DefaultIdeaModule setContentRoots(List<? extends IdeaContentRoot> contentRoots) {
@@ -57,34 +54,30 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return this;
     }
 
-    public IdeaProject getParent() {
+    public DefaultIdeaProject getParent() {
         return parent;
     }
 
-    public IdeaProject getProject() {
+    public DefaultIdeaProject getProject() {
         return parent;
     }
 
-    public DefaultIdeaModule setParent(IdeaProject parent) {
+    public DefaultIdeaModule setParent(DefaultIdeaProject parent) {
         this.parent = parent;
         return this;
     }
 
-    public DomainObjectSet<IdeaDependency> getDependencies() {
-        return new ImmutableDomainObjectSet<IdeaDependency>(dependencies);
+    public Collection<DefaultIdeaDependency> getDependencies() {
+        return dependencies;
     }
 
-    public DefaultIdeaModule setDependencies(List<IdeaDependency> dependencies) {
+    public DefaultIdeaModule setDependencies(List<DefaultIdeaDependency> dependencies) {
         this.dependencies = dependencies;
         return this;
     }
 
-    public DomainObjectSet<? extends Task> getTasks() {
-        throw new RuntimeException("not yet implemented");
-    }
-
-    public DomainObjectSet<? extends HierarchicalElement> getChildren() {
-        return new ImmutableDomainObjectSet<HierarchicalElement>(Collections.<HierarchicalElement>emptySet());
+    public Collection<Object> getChildren() {
+        return Collections.emptySet();
     }
 
     public String getDescription() {
