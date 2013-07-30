@@ -21,6 +21,7 @@ import org.apache.ivy.core.cache.CacheMetadataOptions;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
@@ -95,7 +96,7 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
         return new ResolvedModuleRevision(resolver, resolver, descriptor, report);
     }
 
-    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(Artifact artifact, ExternalResourceDownloader resourceDownloader, ExternalResource resource) throws IOException {
+    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(ArtifactRevisionId artifactId, ExternalResourceDownloader resourceDownloader, ExternalResource resource) throws IOException {
         // Does not download, copy or cache local files.
         assert resource.isLocal();
         File file = new File(resource.getName());

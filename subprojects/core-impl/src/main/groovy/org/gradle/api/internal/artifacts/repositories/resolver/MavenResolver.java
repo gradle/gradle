@@ -160,9 +160,9 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     protected ResolvedArtifact findIvyFileRef(DependencyDescriptor dd) {
         if (isUsepoms()) {
             ModuleRevisionId moduleRevisionId = dd.getDependencyRevisionId();
-            //we might need a own implementation of DefaultArtifact here as there is no way to pass extraAttributes AND isMetaData to DefaultArtifact
-            Artifact pomArtifact = new DefaultArtifact(moduleRevisionId, null, moduleRevisionId.getName(), "pom", "pom", moduleRevisionId.getExtraAttributes());
-            return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, getMetaDataArtifactModuleDescriptorParser(), null, true);
+            ArtifactRevisionId artifactRevisionId = ArtifactRevisionId.newInstance(moduleRevisionId, moduleRevisionId.getName(), "pom", "pom", moduleRevisionId.getExtraAttributes());
+            Artifact pomArtifact = new DefaultArtifact(artifactRevisionId, null, null, true);
+            return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, true);
         }
 
         return null;

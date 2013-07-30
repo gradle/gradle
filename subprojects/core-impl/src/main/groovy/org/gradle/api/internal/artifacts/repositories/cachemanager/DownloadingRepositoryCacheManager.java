@@ -128,13 +128,13 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         }
     }
 
-    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(final Artifact artifact, ExternalResourceDownloader resourceDownloader, final ExternalResource resource) throws IOException {
+    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(final ArtifactRevisionId artifactId, ExternalResourceDownloader resourceDownloader, final ExternalResource resource) throws IOException {
         final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
-            resourceDownloader.download(artifact, resource, tmpFile);
-            return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<LocallyAvailableExternalResource>() {
+            resourceDownloader.download(resource, tmpFile);
+            return cacheLockingManager.useCache(String.format("Store %s", artifactId), new Factory<LocallyAvailableExternalResource>() {
                 public LocallyAvailableExternalResource create() {
-                    LocallyAvailableResource cachedResource = fileStore.move(artifact.getId(), tmpFile);
+                    LocallyAvailableResource cachedResource = fileStore.move(artifactId, tmpFile);
                     File fileInFileStore = cachedResource.getFile();
                     ExternalResourceMetaData metaData = resource.getMetaData();
                     artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);

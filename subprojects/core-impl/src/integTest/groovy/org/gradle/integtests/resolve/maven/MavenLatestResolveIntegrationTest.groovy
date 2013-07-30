@@ -20,8 +20,9 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 class MavenLatestResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "can use latest version selector with release versions"() {
         given:
-        def moduleA = mavenRepo().module('group', 'projectA', '1.0').publish()
-        def moduleAA = mavenRepo().module('group', 'projectA', '1.2').publish()
+        mavenRepo().module('group', 'projectA', '1.0').publish()
+        def moduleAA = mavenRepo().module('group', 'projectA', '1.2').dependsOn('projectB').publish()
+        def moduleB = mavenRepo().module('group', 'projectB').publish()
 
         and:
         buildFile << """
@@ -39,7 +40,7 @@ task retrieve(type: Sync) {
 
         then:
         def buildDir = file('build')
-        buildDir.assertHasDescendants(moduleAA.artifactFile.name)
+        buildDir.assertHasDescendants(moduleAA.artifactFile.name, moduleB.artifactFile.name)
     }
 
     def "cannot use latest version selector if highest version is snapshot (looks like a bug)"() {
