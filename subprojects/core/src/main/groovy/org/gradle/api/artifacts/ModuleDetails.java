@@ -18,9 +18,31 @@ package org.gradle.api.artifacts;
 import java.util.List;
 
 // has some similarity with org.gradle.api.artifacts.Module
+
+/**
+ * Details of a resolved module. Some details can be changed
+ * via metadata rules (see {@link org.gradle.api.artifacts.dsl.ModuleHandler}.
+ */
 public interface ModuleDetails {
+    /**
+     * Returns the group of the module.
+     *
+     * @return the group of the module.
+     */
     String getGroup();
+
+    /**
+     * Returns the name of the module.
+     *
+     * @return the name of the module
+     */
     String getName();
+
+    /**
+     * Returns the version of the module.
+     *
+     * @return the version of the module
+     */
     String getVersion();
     boolean isChanging();
     String getStatus();

@@ -27,7 +27,7 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.util.ChecksumHelper;
 import org.gradle.api.artifacts.ArtifactIdentifier;
-import org.gradle.api.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;

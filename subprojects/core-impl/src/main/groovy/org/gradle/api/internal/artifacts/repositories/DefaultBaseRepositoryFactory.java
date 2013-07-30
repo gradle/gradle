@@ -20,7 +20,7 @@ import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;

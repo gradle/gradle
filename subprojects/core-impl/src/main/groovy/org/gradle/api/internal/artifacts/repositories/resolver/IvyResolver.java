@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.gradle.api.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;

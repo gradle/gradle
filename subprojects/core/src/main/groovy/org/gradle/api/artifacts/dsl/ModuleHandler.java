@@ -18,6 +18,17 @@ package org.gradle.api.artifacts.dsl;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleDetails;
 
+/**
+ * Configuration options related to modules resolved from a repository.
+ */
 public interface ModuleHandler {
+    /**
+     * Adds a rule to post-process the metadata of each resolved module.
+     * This allows to, for example, set the module's status and status scheme
+     * from within the build script, overriding any value specified in the
+     * module's descriptor.
+     *
+     * @param action the rule to be added
+     */
     void eachModule(Action<? super ModuleDetails> action);
 }

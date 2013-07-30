@@ -21,7 +21,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.gradle.api.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;

@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
