@@ -15,14 +15,14 @@
  */
 package org.gradle.execution;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.taskpath.ResolvedTaskPath;
 import org.gradle.execution.taskpath.TaskPathResolver;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.NameMatcher;
 
 import java.util.Collection;
@@ -33,21 +33,14 @@ public class TaskSelector {
     private final TaskNameResolver taskNameResolver;
     private final GradleInternal gradle;
     private final TaskPathResolver taskPathResolver = new TaskPathResolver();
-    private final Function<TaskSelectionResult, Task> resolableTaskToTaskFunction;
 
     public TaskSelector(GradleInternal gradle) {
         this(gradle, new TaskNameResolver());
-
     }
 
     public TaskSelector(GradleInternal gradle, TaskNameResolver taskNameResolver) {
         this.taskNameResolver = taskNameResolver;
         this.gradle = gradle;
-        resolableTaskToTaskFunction = new Function<TaskSelectionResult, Task>() {
-            public Task apply(TaskSelectionResult selectionResult) {
-                return selectionResult.getTask();
-            }
-        };
     }
 
     public TaskSelection getSelection(String path) {
@@ -64,14 +57,13 @@ public class TaskSelector {
         Set<TaskSelectionResult> tasks = tasksByName.get(taskPath.getTaskName());
         if (!tasks.isEmpty()) {
             // An exact match
-            return new TaskSelection(path, new HashSet<Task>(Collections2.transform(tasks, resolableTaskToTaskFunction)));
+            return new TaskSelection(path, tasks);
         }
 
         NameMatcher matcher = new NameMatcher();
         String actualName = matcher.find(taskPath.getTaskName(), tasksByName.keySet());
         if (actualName != null) {
-            final Collection<Task> transform1 = Collections2.transform(tasksByName.get(actualName), resolableTaskToTaskFunction);
-            return new TaskSelection(taskPath.getPrefix() + actualName, new HashSet<Task>(transform1));
+            return new TaskSelection(taskPath.getPrefix() + actualName, tasksByName.get(actualName));
         }
 
         throw new TaskSelectionException(matcher.formatErrorMessage("task", project));
@@ -79,11 +71,10 @@ public class TaskSelector {
 
     public static class TaskSelection {
         private String taskName;
-        private Set tasks;
-
-        public TaskSelection(String taskName, Set<Task> tasks) {
+        private Collection<TaskSelectionResult> taskSelectionResult;
+        public TaskSelection(String taskName, Set<TaskSelectionResult> tasks) {
             this.taskName = taskName;
-            this.tasks = tasks;
+            taskSelectionResult = tasks;
         }
 
         public String getTaskName() {
@@ -91,7 +82,11 @@ public class TaskSelector {
         }
 
         public Set<Task> getTasks() {
-            return tasks;
+            return new HashSet<Task>(CollectionUtils.collect(taskSelectionResult, new Transformer<Task, TaskSelectionResult>() {
+                public Task transform(TaskSelectionResult original) {
+                    return original.getTask();
+                }
+            }));
         }
     }
 }

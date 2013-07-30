@@ -19,6 +19,7 @@ package org.gradle.execution.commandline
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
+import org.gradle.execution.TaskSelectionResult
 import org.gradle.execution.TaskSelector
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -47,7 +48,7 @@ class CommandLineTaskParserSpec extends Specification {
 
     def "parses a single task"() {
         given:
-        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', [task] as Set)
+        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', asTaskSelectionResults(task))
 
         when:
         def out = parser.parseTasks(['foo'], selector)
@@ -57,9 +58,17 @@ class CommandLineTaskParserSpec extends Specification {
         out.get('foo task') == [task] as Set
     }
 
+    Set<TaskSelectionResult> asTaskSelectionResults(SomeTask... someTasks) {
+        return someTasks.collect {task ->
+            TaskSelectionResult mock = Mock(TaskSelectionResult)
+            _ * mock.task >> task
+            mock
+        }
+    }
+
     def "parses single task with multiple matches"() {
         given:
-        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', [task, task2] as Set)
+        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', asTaskSelectionResults(task, task2))
 
         when:
         def out = parser.parseTasks(['foo'], selector)
@@ -71,8 +80,8 @@ class CommandLineTaskParserSpec extends Specification {
 
     def "parses multiple matching tasks"() {
         given:
-        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', [task, task2] as Set)
-        selector.getSelection('bar') >> new TaskSelector.TaskSelection('bar task', [task3] as Set)
+        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', asTaskSelectionResults(task, task2))
+        selector.getSelection('bar') >> new TaskSelector.TaskSelection('bar task', asTaskSelectionResults(task3))
 
         when:
         def out = parser.parseTasks(['foo', 'bar'], selector)
@@ -85,9 +94,9 @@ class CommandLineTaskParserSpec extends Specification {
 
     def "configures tasks if configuration options specified"() {
         given:
-        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', [task, task2] as Set)
-        selector.getSelection('bar') >> new TaskSelector.TaskSelection('bar task', [task3] as Set)
-        selector.getSelection('lastTask') >> new TaskSelector.TaskSelection('last task', [task3] as Set)
+        selector.getSelection('foo') >> new TaskSelector.TaskSelection('foo task', asTaskSelectionResults(task, task2))
+        selector.getSelection('bar') >> new TaskSelector.TaskSelection('bar task', asTaskSelectionResults(task3))
+        selector.getSelection('lastTask') >> new TaskSelector.TaskSelection('last task', asTaskSelectionResults(task3))
 
         when:
         def out = parser.parseTasks(['foo', '--all', 'bar', '--include', 'stuff', 'lastTask'], selector)
