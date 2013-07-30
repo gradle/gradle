@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationCont
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
+import org.gradle.api.internal.artifacts.dsl.DefaultModuleHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
@@ -295,6 +296,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         private DefaultRepositoryHandler repositoryHandler;
         private ConfigurationContainerInternal configurationContainer;
         private DependencyHandler dependencyHandler;
+        private DefaultModuleHandler moduleHandler;
         private DefaultArtifactHandler artifactHandler;
         private BaseRepositoryFactory baseRepositoryFactory;
 
@@ -326,7 +328,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         get(ProgressLoggerFactory.class),
                         get(LocalFileRepositoryCacheManager.class),
                         get(DownloadingRepositoryCacheManager.class),
-                        new DefaultMetaDataParser(new ParserRegistry())
+                        new DefaultMetaDataParser(new ParserRegistry()),
+                        getModuleHandler()
                 );
             }
 
@@ -354,6 +357,14 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 dependencyHandler = new DefaultDependencyHandler(getConfigurationContainer(), parent.get(DependencyFactory.class), projectFinder);
             }
             return dependencyHandler;
+        }
+
+        public DefaultModuleHandler getModuleHandler() {
+            if (moduleHandler == null) {
+                Instantiator instantiator = parent.get(Instantiator.class);
+                moduleHandler = instantiator.newInstance(DefaultModuleHandler.class);
+            }
+            return moduleHandler;
         }
 
         public ArtifactHandler getArtifactHandler() {
