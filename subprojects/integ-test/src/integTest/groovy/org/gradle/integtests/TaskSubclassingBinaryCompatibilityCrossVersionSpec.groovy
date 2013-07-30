@@ -31,6 +31,11 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
                 "Copy", "Sync", "Zip", "Jar", "Tar", "War", "Ear"
         ]
 
+        // Ear plugin added in m8.
+        if (previous.version < GradleVersion.version("1.0-milestone-8")) {
+            taskClasses.remove("Ear")
+        }
+
         Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it, it] }
 
         file("producer/build.gradle") << """
