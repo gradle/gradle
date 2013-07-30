@@ -51,7 +51,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * </table>
      *
      * <p>Examples:
-     * <pre>
+     * <pre autoTested=''>
      * repositories {
      *     flatDir name: 'libs', dirs: "$projectDir/libs"
      *     flatDir dirs: ["$projectDir/libs1", "$projectDir/libs2"]
@@ -89,7 +89,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * The behavior of this resolver is otherwise the same as the ones added by {@link #maven(org.gradle.api.Action)}.
      * <p>
      * Examples:
-     * <pre>
+     * <pre autoTested="">
      * repositories {
      *   jcenter {
      *     artifactUrls = ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
@@ -114,7 +114,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * The behavior of this resolver is otherwise the same as the ones added by {@link #mavenCentral()}.
      * <p>
      * Examples:
-     * <pre>
+     * <pre autoTested="">
      * repositories {
      *     jcenter()
      * }
@@ -148,7 +148,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * </table>
      *
      * <p>Examples:
-     * <pre>
+     * <pre autoTested="">
      * repositories {
      *     mavenCentral artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
      *     mavenCentral name: "nonDefaultName", artifactUrls: ["http://www.mycompany.com/artifacts1"]
@@ -167,7 +167,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
      *
      * <p>Examples:
-     * <pre>
+     * <pre autoTested="">
      * repositories {
      *     mavenCentral()
      * }
@@ -184,7 +184,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
      *
      * <p>Examples:
-     * <pre>
+     * <pre autoTested="">
      * repositories {
      *     mavenLocal()
      * }
@@ -227,7 +227,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * </table>
      *
      * <p>Examples:
-     * <pre>
+     * <pre autoTested="">
      * repositories {
      *     mavenRepo url: "http://www.mycompany.com/repository", artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
      *     mavenRepo name: "nonDefaultName", url: "http://www.mycompany.com/repository"
