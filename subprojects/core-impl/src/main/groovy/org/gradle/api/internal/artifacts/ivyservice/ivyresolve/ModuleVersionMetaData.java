@@ -35,4 +35,8 @@ public interface ModuleVersionMetaData {
     ConfigurationMetaData getConfiguration(String name);
 
     boolean isChanging();
+
+    String getStatus();
+
+    List<String> getStatusScheme();
 }

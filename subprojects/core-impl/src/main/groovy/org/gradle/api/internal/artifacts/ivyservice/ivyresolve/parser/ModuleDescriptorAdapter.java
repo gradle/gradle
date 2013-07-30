@@ -22,17 +22,24 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfigurationMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
 
+import java.util.Arrays;
 import java.util.List;
 
-public class ModuleDescriptorAdapter implements ModuleVersionMetaData {
+public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
+    private static final List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
+
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleDescriptor moduleDescriptor;
+    private boolean changing;
+    private String status;
+    private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
 
     public ModuleDescriptorAdapter(ModuleRevisionId moduleRevisionId, ModuleDescriptor moduleDescriptor) {
         this.moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
         this.moduleDescriptor = moduleDescriptor;
+        status = moduleDescriptor.getStatus();
     }
 
     public ModuleVersionIdentifier getId() {
@@ -43,6 +50,30 @@ public class ModuleDescriptorAdapter implements ModuleVersionMetaData {
         return moduleDescriptor;
     }
 
+    public boolean isChanging() {
+        return changing;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public List<String> getStatusScheme() {
+        return statusScheme;
+    }
+
+    public void setChanging(boolean changing) {
+        this.changing = changing;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setStatusScheme(List<String> statusScheme) {
+        this.statusScheme = statusScheme;
+    }
+
     // The methods will require implementing when we stop handing around ModuleDescriptor and make ModuleVersionMetaData our key internal API.
     public List<DependencyMetaData> getDependencies() {
         // TODO:DAZ
@@ -50,11 +81,6 @@ public class ModuleDescriptorAdapter implements ModuleVersionMetaData {
     }
 
     public ConfigurationMetaData getConfiguration(String name) {
-        // TODO:DAZ
-        throw new UnsupportedOperationException();
-    }
-
-    public boolean isChanging() {
         // TODO:DAZ
         throw new UnsupportedOperationException();
     }

@@ -25,7 +25,9 @@ import org.gradle.util.CollectionUtils;
 import java.util.*;
 
 // TODO - split out a buildable ModuleVersionMetaData implementation
-public class DefaultBuildableModuleVersionMetaDataResolveResult implements BuildableModuleVersionMetaDataResolveResult, ModuleVersionMetaData {
+public class DefaultBuildableModuleVersionMetaDataResolveResult implements BuildableModuleVersionMetaDataResolveResult, MutableModuleVersionMetaData {
+    private static final List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
+
     private ModuleDescriptor moduleDescriptor;
     private boolean changing;
     private State state = State.Unknown;
@@ -34,12 +36,16 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
     private ModuleVersionResolveException failure;
     private ModuleVersionIdentifier moduleVersionIdentifier;
+    private String status;
+    private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
 
     public void reset(State state) {
         this.state = state;
         moduleDescriptor = null;
         changing = false;
         failure = null;
+        status = null;
+        statusScheme = DEFAULT_STATUS_SCHEME;
     }
 
     public void resolved(ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource) {
@@ -54,6 +60,7 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         this.moduleDescriptor = descriptor;
         this.changing = changing;
         this.moduleSource = moduleSource;
+        this.status = moduleDescriptor.getStatus();
     }
 
     public void missing() {
@@ -78,7 +85,7 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         return failure;
     }
 
-    public ModuleVersionMetaData getMetaData() throws ModuleVersionResolveException {
+    public MutableModuleVersionMetaData getMetaData() throws ModuleVersionResolveException {
         assertResolved();
         return this;
     }
@@ -159,6 +166,28 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     public void setModuleSource(ModuleSource moduleSource) {
         assertResolved();
         this.moduleSource = moduleSource;
+    }
+
+    public String getStatus() {
+        assertResolved();
+        return status;
+    }
+
+    public List<String> getStatusScheme() {
+        assertResolved();
+        return statusScheme;
+    }
+
+    public void setChanging(boolean changing) {
+        this.changing = changing;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setStatusScheme(List<String> statusScheme) {
+        this.statusScheme = statusScheme;
     }
 
     private class DefaultConfigurationMetaData implements ConfigurationMetaData {
