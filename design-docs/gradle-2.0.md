@@ -108,6 +108,7 @@ types and to offer a more consistent DSL.
 
 * Remove all methods that accept a `Closure` when an `Action` overload is available. Add missing overloads where appropriate.
 * Remove all methods that accept a `String` or `Object` when a enum overload is available. Add missing overloads where appropriate.
+* Remove CharSequence -> Enum conversion code in `DefaultTaskLogging`.
 * Remove all set methods that contain no custom logic.
 
 ## Remove tooling API support for some older versions
