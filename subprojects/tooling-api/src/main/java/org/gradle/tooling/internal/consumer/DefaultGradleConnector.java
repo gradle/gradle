@@ -116,8 +116,4 @@ public class DefaultGradleConnector extends GradleConnector {
     ConnectionFactory getConnectionFactory() {
         return connectionFactory;
     }
-
-    void setDistribution(Distribution distribution) {
-        this.distribution = distribution;
-    }
 }
