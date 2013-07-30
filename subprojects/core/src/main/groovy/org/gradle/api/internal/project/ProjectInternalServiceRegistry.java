@@ -20,6 +20,7 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.ModuleHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.ClassGenerator;
@@ -159,6 +160,10 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     protected DependencyHandler createDependencyHandler() {
         return get(DependencyResolutionServices.class).getDependencyHandler();
+    }
+
+    protected ModuleHandler createModuleHandler() {
+        return get(DependencyResolutionServices.class).getModuleHandler();
     }
 
     protected ScriptHandlerInternal createScriptHandler() {

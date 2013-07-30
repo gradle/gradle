@@ -21,6 +21,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.ModuleHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -1321,6 +1322,24 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure the closure to use to configure the dependencies.
      */
     void dependencies(Closure configureClosure);
+
+    /**
+     * Returns the module handler for this project. The returned module handler can be used for adding rules
+     * that process module metadata.
+     *
+     * @return the module handler for this project
+     */
+    ModuleHandler getModules();
+
+    /**
+     * Configures module metadata for this project.
+     *
+     * <p>This method executes the given closure against the {@link ModuleHandler} for this project. The {@link
+     * ModuleHandler} is passed to the closure as the closure's delegate.
+     *
+     * @param configureClosure the closure to use to configure module metadata
+     */
+    void modules(Closure configureClosure);
 
     /**
      * Returns the plugins container for this project. The returned container can be used to manage the plugins which
