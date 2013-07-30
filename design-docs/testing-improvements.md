@@ -289,6 +289,8 @@ Test output is associated with the correct test when test cases are run concurre
 - Test cases spawn threads that produce output
 - When generating JUnit XML report with output per test case, output is correctly associated to test cases
 
+## Story: HTML test report shows number of ignored tests
+
 ## Story: HTML test report shows output per test
 
 ## Story: HTML test report shows aggregated output (out + err)
