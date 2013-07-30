@@ -15,7 +15,7 @@
  */
 
 package org.gradle.api.publish.maven
-import org.gradle.test.fixtures.publish.Identifier
+import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 
 class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishIntegTest {

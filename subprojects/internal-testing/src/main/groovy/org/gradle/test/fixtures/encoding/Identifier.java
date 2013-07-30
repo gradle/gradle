@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.publish;
+package org.gradle.test.fixtures.encoding;
 
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.GUtil;
 
 public class Identifier {
     private static final String PUNCTUATION_CHARS = "-'!@#$%^&*()_+=,.?{}[]<>";
@@ -28,7 +27,7 @@ public class Identifier {
     private final String suffix;
 
     public Identifier(String suffix) {
-        this.suffix = GUtil.elvis(suffix, "");
+        this.suffix = suffix == null ? "" : suffix;
     }
 
     public Identifier withPunctuation() {

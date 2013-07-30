@@ -15,7 +15,7 @@
  */
 
 package org.gradle.api.publish.ivy
-import org.gradle.test.fixtures.publish.Identifier
+import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 
 class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTest {

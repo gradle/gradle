@@ -18,6 +18,7 @@ package org.gradle.buildsetup.plugins.internal
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -68,8 +69,8 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
         when:
         descriptor.generateProject()
         then:
-        temporaryFolder.file("build.gradle").getText('utf-8') == /C:\\Programe Files\\gradle/
-        temporaryFolder.file("settings.gradle").getText('utf-8') == /a\'b\\c-√æず∫ʙぴ₦ガき∆ç√∫/
+        temporaryFolder.file("build.gradle").assertContents(Matchers.strictlyEqual(/C:\\Programe Files\\gradle/))
+        temporaryFolder.file("settings.gradle").assertContents(Matchers.strictlyEqual(new Identifier(/a\'b\\c/).withNonAscii().toString()))
     }
 
     class TestTemplateBasedProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
@@ -94,7 +95,7 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
         }
 
         protected Map getAdditionalSettingsFileTemplateBindings() {
-            return [someValue: "a\'b\\c-√æず∫ʙぴ₦ガき∆ç√∫"]
+            return [rootProjectName: new Identifier("a\'b\\c").withNonAscii().toString()]
         }
 
         String getId() {
