@@ -16,10 +16,8 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import spock.lang.Ignore
 
 class IvyCustomStatusResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    @Ignore("not yet implemented")
     def "can resolve module with custom status"() {
         given:
         buildFile <<
@@ -29,10 +27,19 @@ repositories {
       url "${ivyRepo.uri}"
   }
 }
+
 configurations { compile }
+
 dependencies {
   compile 'org.test:projectA:1.0'
 }
+
+modules {
+  eachModule { details ->
+    details.statusScheme = ["gold", "silver", "bronze"]
+  }
+}
+
 task retrieve(type: Sync) {
   from configurations.compile
   into 'libs'
@@ -40,7 +47,7 @@ task retrieve(type: Sync) {
 """
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.0').withStatus("gold").publish()
+        ivyRepo.module('org.test', 'projectA', '1.0').withStatus("silver").publish()
         run 'retrieve'
 
         then:
