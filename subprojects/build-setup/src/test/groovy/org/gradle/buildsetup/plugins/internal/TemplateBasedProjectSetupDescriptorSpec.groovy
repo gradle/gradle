@@ -69,8 +69,8 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
         when:
         descriptor.generateProject()
         then:
-        temporaryFolder.file("build.gradle").assertContents(Matchers.strictlyEqual(/C:\\Programe Files\\gradle/))
-        temporaryFolder.file("settings.gradle").assertContents(Matchers.strictlyEqual(new Identifier(/a\'b\\c/).withNonAscii().toString()))
+        temporaryFolder.file("build.gradle").getText('utf-8') == /C:\\Programe Files\\gradle/
+        temporaryFolder.file("settings.gradle").getText('utf-8') == new Identifier(/a\'b\\c/).withNonAscii().toString()
     }
 
     class TestTemplateBasedProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
@@ -95,7 +95,7 @@ class TemplateBasedProjectSetupDescriptorSpec extends Specification {
         }
 
         protected Map getAdditionalSettingsFileTemplateBindings() {
-            return [rootProjectName: new Identifier("a\'b\\c").withNonAscii().toString()]
+            return [someValue: new Identifier("a\'b\\c").withNonAscii().toString()]
         }
 
         String getId() {
