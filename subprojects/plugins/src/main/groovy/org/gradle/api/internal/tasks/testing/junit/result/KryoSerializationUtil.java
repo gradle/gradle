@@ -18,10 +18,9 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 
-import java.io.*;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
 public abstract class KryoSerializationUtil {
