@@ -81,7 +81,7 @@ public class JUnitXmlResultWriter {
         writer.endCDATA();
     }
 
-    private void writeOutputs(SimpleXmlWriter writer, String className, Object testId, TestOutputEvent.Destination destination) throws IOException {
+    private void writeOutputs(SimpleXmlWriter writer, String className, long testId, TestOutputEvent.Destination destination) throws IOException {
         writer.startCDATA();
         testResultsProvider.writeTestOutput(className, testId, destination, writer);
         writer.endCDATA();

@@ -73,7 +73,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         classOutputProviders.get(className).writeNonTestOutput(className, destination, writer);
     }
 
-    public void writeTestOutput(String className, Object testId, TestOutputEvent.Destination destination, Writer writer) {
+    public void writeTestOutput(String className, long testId, TestOutputEvent.Destination destination, Writer writer) {
         classOutputProviders.get(className).writeTestOutput(className, testId, destination, writer);
     }
 }

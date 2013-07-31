@@ -36,7 +36,7 @@ public interface TestResultsProvider {
      *
      * Write all output for the given test case name of the test class.
      */
-    void writeTestOutput(String className, Object testId, TestOutputEvent.Destination destination, Writer writer);
+    void writeTestOutput(String className, long testId, TestOutputEvent.Destination destination, Writer writer);
 
     /**
      * Visits the results of each test class, in no specific order. Each class is visited exactly once.

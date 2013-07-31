@@ -21,14 +21,14 @@ import org.gradle.api.tasks.testing.TestResult;
 import java.util.List;
 
 public class TestMethodResult {
-    private final Object id;
+    private final long id;
     private final String name;
     private final TestResult.ResultType resultType;
     private final long duration;
     private final long endTime;
     private final List<Throwable> exceptions;
 
-    public TestMethodResult(Object id, String name, TestResult result) {
+    public TestMethodResult(long id, String name, TestResult result) {
         this.id = id;
         this.name = name;
         resultType = result.getResultType();
@@ -37,7 +37,10 @@ public class TestMethodResult {
         exceptions = result.getExceptions();
     }
 
-    public TestMethodResult(Object id, String name, TestResult.ResultType resultType, long duration, long endTime, List<Throwable> exceptions) {
+    public TestMethodResult(long id, String name, TestResult.ResultType resultType, long duration, long endTime, List<Throwable> exceptions) {
+        if (id < 0) {
+            throw new IllegalArgumentException("id must be positive");
+        }
         this.id = id;
         this.name = name;
         this.resultType = resultType;
@@ -66,7 +69,7 @@ public class TestMethodResult {
         return endTime;
     }
 
-    public Object getId() {
+    public long getId() {
         return id;
     }
 }

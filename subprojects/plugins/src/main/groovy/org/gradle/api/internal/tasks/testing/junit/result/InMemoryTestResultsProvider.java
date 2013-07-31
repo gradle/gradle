@@ -42,7 +42,7 @@ public class InMemoryTestResultsProvider implements TestResultsProvider {
         outputReader.writeNonTestOutput(className, destination, writer);
     }
 
-    public void writeTestOutput(String className, Object testId, TestOutputEvent.Destination destination, Writer writer) {
+    public void writeTestOutput(String className, long testId, TestOutputEvent.Destination destination, Writer writer) {
         outputReader.writeTestOutput(className, testId, destination, writer);
     }
 

@@ -39,10 +39,10 @@ class TestOutputStoreSpec extends Specification {
     def "flushes all output when output finishes"() {
         when:
         def writer = output.writer()
-        writer.onOutput(descriptor("Class1", "method1"), StdOut, "[out]")
-        writer.onOutput(descriptor("Class2", "method1"), StdErr, "[err]")
-        writer.onOutput(descriptor("Class1", "method1"), StdErr, "[err]")
-        writer.onOutput(descriptor("Class1", "method1"), StdOut, "[out2]")
+        writer.onOutput(11, descriptor("Class1", "method1"), StdOut, "[out]")
+        writer.onOutput(21, descriptor("Class2", "method1"), StdErr, "[err]")
+        writer.onOutput(11, descriptor("Class1", "method1"), StdErr, "[err]")
+        writer.onOutput(11, descriptor("Class1", "method1"), StdOut, "[out2]")
         writer.finishOutputs()
         def reader = output.reader()
 
@@ -65,7 +65,7 @@ class TestOutputStoreSpec extends Specification {
     def "can query whether output is available for a test class"() {
         when:
         def writer = output.writer()
-        writer.onOutput(descriptor("Class1", "method1"), StdOut, "[out]")
+        writer.onOutput(11, descriptor("Class1", "method1"), StdOut, "[out]")
         writer.finishOutputs()
         def reader = output.reader()
 

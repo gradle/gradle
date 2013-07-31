@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.tasks.testing.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -28,6 +29,9 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     private final Map<String, TestClassResult> results;
     private final TestOutputStore.Writer outputWriter;
+
+    private final Map<Object, Long> idMappings = new HashMap<Object, Long>();
+    private long internalIdCounter;
 
     public TestReportDataCollector(Map<String, TestClassResult> results, TestOutputStore.Writer outputWriter) {
         this.results = results;
@@ -43,9 +47,8 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         if (!testDescriptor.isComposite()) {
-            TestDescriptorInternal testDescriptorInternal = (TestDescriptorInternal) testDescriptor;
             String className = testDescriptor.getClassName();
-            TestMethodResult methodResult = new TestMethodResult(testDescriptorInternal.getId(), testDescriptor.getName(), result);
+            TestMethodResult methodResult = new TestMethodResult(getInternalId((TestDescriptorInternal) testDescriptor), testDescriptor.getName(), result);
             TestClassResult classResult = results.get(className);
             if (classResult == null) {
                 classResult = new TestClassResult(className, result.getStartTime());
@@ -68,7 +71,17 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             classResult = new TestClassResult(className, 0);
             results.put(className, classResult);
         }
-        outputWriter.onOutput(testDescriptorInternal, outputEvent.getDestination(), outputEvent.getMessage());
+
+        outputWriter.onOutput(getInternalId(testDescriptorInternal), testDescriptorInternal, outputEvent.getDestination(), outputEvent.getMessage());
     }
 
+    private long getInternalId(TestDescriptorInternal testDescriptor) {
+        Object id = testDescriptor.getId();
+        Long internalId = idMappings.get(id);
+        if (internalId == null) {
+            internalId = internalIdCounter++;
+            idMappings.put(id, internalId);
+        }
+        return internalId;
+    }
 }

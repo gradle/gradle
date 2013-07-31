@@ -71,7 +71,7 @@ public class TestOutputStore {
     public class Writer {
         private final Output output;
 
-        private final Map<String, Map<Object, TestCaseRegion>> index = new LinkedHashMap<String, Map<Object, TestCaseRegion>>();
+        private final Map<String, Map<Long, TestCaseRegion>> index = new LinkedHashMap<String, Map<Long, TestCaseRegion>>();
 
         public Writer() {
             try {
@@ -86,31 +86,30 @@ public class TestOutputStore {
             writeIndex();
         }
 
-        public void onOutput(final TestDescriptorInternal testDescriptor, TestOutputEvent.Destination destination, final String message) {
+        public void onOutput(long internalId, TestDescriptorInternal testDescriptor, TestOutputEvent.Destination destination, final String message) {
             String className = testDescriptor.getClassName();
             String name = testDescriptor.getName();
 
             // This is a rather weak contract, but given the current inputs is the best we can do
             boolean isClassLevelOutput = name.equals(className);
 
-            Object testId = testDescriptor.getId();
             boolean stdout = destination == TestOutputEvent.Destination.StdOut;
 
-            mark(className, testId, stdout);
+            mark(className, internalId, stdout);
 
             output.writeBoolean(stdout);
             output.writeBoolean(isClassLevelOutput);
             writeString(className, messageStorageCharset, output);
-            writeObject(testId, output);
+            output.writeLong(internalId, true);
             writeString(message, messageStorageCharset, output);
         }
 
-        private void mark(String className, Object testId, boolean isStdout) {
+        private void mark(String className, long testId, boolean isStdout) {
             if (!index.containsKey(className)) {
-                index.put(className, new LinkedHashMap<Object, TestCaseRegion>());
+                index.put(className, new LinkedHashMap<Long, TestCaseRegion>());
             }
 
-            Map<Object, TestCaseRegion> testCaseRegions = index.get(className);
+            Map<Long, TestCaseRegion> testCaseRegions = index.get(className);
             if (!testCaseRegions.containsKey(testId)) {
                 TestCaseRegion region = new TestCaseRegion();
                 testCaseRegions.put(testId, region);
@@ -137,14 +136,14 @@ public class TestOutputStore {
 
             indexOutput.writeInt(index.size(), true);
 
-            for (Map.Entry<String, Map<Object, TestCaseRegion>> classEntry : index.entrySet()) {
+            for (Map.Entry<String, Map<Long, TestCaseRegion>> classEntry : index.entrySet()) {
                 String className = classEntry.getKey();
-                Map<Object, TestCaseRegion> regions = classEntry.getValue();
+                Map<Long, TestCaseRegion> regions = classEntry.getValue();
 
                 indexOutput.writeString(className);
                 indexOutput.writeInt(regions.size(), true);
 
-                for (Map.Entry<Object, TestCaseRegion> testCaseEntry : regions.entrySet()) {
+                for (Map.Entry<Long, TestCaseRegion> testCaseEntry : regions.entrySet()) {
                     Object id = testCaseEntry.getKey();
                     TestCaseRegion region = testCaseEntry.getValue();
                     writeObject(id, indexOutput);
@@ -274,11 +273,11 @@ public class TestOutputStore {
             doRead(className, null, false, destination, writer);
         }
 
-        public void writeTestOutput(String className, Object testId, TestOutputEvent.Destination destination, java.io.Writer writer) {
+        public void writeTestOutput(String className, Long testId, TestOutputEvent.Destination destination, java.io.Writer writer) {
             doRead(className, testId, false, destination, writer);
         }
 
-        private void doRead(String className, Object testId, boolean allClassOutput, TestOutputEvent.Destination destination, java.io.Writer writer) {
+        private void doRead(String className, Long testId, boolean allClassOutput, TestOutputEvent.Destination destination, java.io.Writer writer) {
 
             Index targetIndex = index.children.get(className);
             if (targetIndex != null && testId != null) {
@@ -312,25 +311,25 @@ public class TestOutputStore {
 
                         if (stdout != readStdout || (ignoreClassLevel && isClassLevel) || (ignoreTestLevel && !isClassLevel)) {
                             skipNext(input);
-                            skipNext(input);
+                            input.readLong(true);
                             skipNext(input);
                             continue;
                         }
 
                         String readClassName = readString(messageStorageCharset, input);
                         if (!className.equals(readClassName)) {
-                            skipNext(input);
+                            input.readLong(true);
                             skipNext(input);
                             continue;
                         }
 
                         boolean shouldWrite;
                         if (testId == null) {
-                            skipNext(input);
+                            input.readLong(true);
                             shouldWrite = true;
                         } else {
-                            Object readTestId = readObject(input);
-                            shouldWrite = testId.equals(readTestId);
+                            long readTestId = input.readLong(true);
+                            shouldWrite = testId.longValue() == readTestId;
                         }
 
                         if (shouldWrite) {

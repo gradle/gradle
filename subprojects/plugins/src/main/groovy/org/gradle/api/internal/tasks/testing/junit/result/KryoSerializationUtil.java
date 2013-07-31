@@ -87,4 +87,9 @@ public abstract class KryoSerializationUtil {
         input.skip(length);
     }
 
+    public static void skipLong(Input input) {
+        input.skip(8);
+    }
+
+
 }
