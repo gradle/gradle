@@ -69,7 +69,7 @@ public class PerformanceTestRunner {
         def releasedDistributions = new ReleasedVersionDistributions()
         def releasedVersions = releasedDistributions.all*.version.version
         def mostRecentFinalRelease = releasedDistributions.mostRecentFinalRelease.version.version
-        def currentBaseVersion = GradleVersion.current().versionBase
+        def currentBaseVersion = GradleVersion.current().getBaseVersion().version
         def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()
         allVersions.remove(currentBaseVersion)
 

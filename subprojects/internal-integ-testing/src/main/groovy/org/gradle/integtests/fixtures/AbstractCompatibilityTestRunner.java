@@ -70,11 +70,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
             String[] versions = versionStr.split(",");
             List<GradleVersion> gradleVersions = CollectionUtils.sort(collect(Arrays.asList(versions), new Transformer<GradleVersion, String>() {
                 public GradleVersion transform(String versionString) {
-                    GradleVersion gradleVersion = GradleVersion.version(versionString);
-                    if (!gradleVersion.isValid()) {
-                        throw new RuntimeException("Specified Gradle version '" + versionString + "' is not a valid Gradle version");
-                    }
-                    return gradleVersion;
+                    return GradleVersion.version(versionString);
                 }
             }), Collections.reverseOrder());
 

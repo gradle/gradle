@@ -20,7 +20,6 @@ import groovy.lang.GroovySystem;
 import org.apache.ivy.Ivy;
 import org.apache.tools.ant.Main;
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
@@ -40,10 +39,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GradleVersion implements Comparable<GradleVersion> {
-    public final static String URL = "http://www.gradle.org";
-    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}([-+]\\d{4})?))?");
+    public static final String URL = "http://www.gradle.org";
+    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}([-+]\\d{4})?))?");
+    private static final int STAGE_MILESTONE = 0;
 
     private final String version;
+    private final int majorPart;
     private final String buildTime;
     private final String commitId;
     private final String buildNumber;
@@ -85,11 +86,17 @@ public class GradleVersion implements Comparable<GradleVersion> {
         }
     }
 
+
     public static GradleVersion current() {
         return CURRENT;
     }
 
-    public static GradleVersion version(String version) {
+    /**
+     * Parses the given string into a GradleVersion.
+     *
+     * @throws IllegalArgumentException On unrecognized version string.
+     */
+    public static GradleVersion version(String version) throws IllegalArgumentException {
         return new GradleVersion(version, null, null, null);
     }
 
@@ -100,38 +107,37 @@ public class GradleVersion implements Comparable<GradleVersion> {
         this.buildTime = buildTime == null ? null : formatBuildTime(buildTime);
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
-            // Unrecognized version
-            versionPart = null;
-            snapshot = null;
-            stage = null;
-            return;
+            throw new IllegalArgumentException(String.format("'%s' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')", version));
         }
 
         versionPart = matcher.group(1);
+        majorPart = Integer.parseInt(matcher.group(2), 10);
 
-        if (matcher.group(3) != null) {
-            int stageNumber = 0;
-            if (matcher.group(4).equals("milestone")) {
-                stageNumber = 1;
-            } else if (matcher.group(4).equals("preview")) {
+        if (matcher.group(4) != null) {
+            int stageNumber;
+            if (matcher.group(5).equals("milestone")) {
+                stageNumber = STAGE_MILESTONE;
+            } else if (matcher.group(5).equals("preview")) {
                 stageNumber = 2;
-            } else if (matcher.group(4).equals("rc")) {
+            } else if (matcher.group(5).equals("rc")) {
                 stageNumber = 3;
+            } else {
+                stageNumber = 1;
             }
-            String stageString = matcher.group(5);
+            String stageString = matcher.group(6);
             stage = new Stage(stageNumber, stageString);
         } else {
             stage = null;
         }
 
-        if (matcher.group(7) != null) {
+        if (matcher.group(8) != null) {
             try {
-                if (matcher.group(8) != null) {
-                    snapshot = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(7)).getTime();
+                if (matcher.group(9) != null) {
+                    snapshot = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(8)).getTime();
                 } else {
                     SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
                     format.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    snapshot = format.parse(matcher.group(7)).getTime();
+                    snapshot = format.parse(matcher.group(8)).getTime();
                 }
             } catch (ParseException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -161,36 +167,36 @@ public class GradleVersion implements Comparable<GradleVersion> {
     }
 
     public boolean isSnapshot() {
-        return versionPart == null || snapshot != null;
+        return snapshot != null;
     }
 
     /**
-     * The base version number of the overall version.
+     * The base version of this version. For pre-release versions, this is the target version.
      *
      * For example, the version base of '1.2-rc-1' is '1.2'.
      *
-     * @return The version base, or null if the version is unrecognised.
+     * @return The version base
      */
-    @Nullable
-    public String getVersionBase() {
-        return versionPart;
+    public GradleVersion getBaseVersion() {
+        if (stage == null && snapshot == null) {
+            return this;
+        }
+        if (stage != null && stage.stage == STAGE_MILESTONE) {
+            return version(versionPart + "-milestone-" + stage.number);
+        }
+        return version(versionPart);
     }
 
-    public int getMajor() {
-        if (isValid()) {
-            return Integer.valueOf(versionPart.split("\\.", 2)[0], 10);
-        } else {
-            return -1;
+    public GradleVersion getNextMajor() {
+        if (stage != null && stage.stage == STAGE_MILESTONE) {
+            return version(majorPart + ".0");
         }
+        return version((majorPart + 1) + ".0");
     }
 
     public int compareTo(GradleVersion gradleVersion) {
-        assertCanQueryParts();
-        gradleVersion.assertCanQueryParts();
-
         String[] majorVersionParts = versionPart.split("\\.");
         String[] otherMajorVersionParts = gradleVersion.versionPart.split("\\.");
-
 
         for (int i = 0; i < majorVersionParts.length && i < otherMajorVersionParts.length; i++) {
             int part = Integer.parseInt(majorVersionParts[i]);
@@ -234,12 +240,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
         }
 
         return 0;
-    }
-
-    private void assertCanQueryParts() {
-        if (versionPart == null) {
-            throw new IllegalArgumentException(String.format("Cannot compare unrecognized Gradle version '%s'.", version));
-        }
     }
 
     @Override

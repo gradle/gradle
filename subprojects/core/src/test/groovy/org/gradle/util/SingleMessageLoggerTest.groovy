@@ -103,15 +103,12 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
 
     def "deprecation message has next major version"() {
         given:
-        def major = GradleVersion.current().major
-
-        expect:
-        major != -1
+        def major = GradleVersion.current().nextMajor
 
         when:
         SingleMessageLogger.nagUserOfDeprecated("foo", "bar")
 
         then:
-        appender.toString() == "[WARN foo has been deprecated and is scheduled to be removed in Gradle ${major + 1}.0. bar.]"
+        appender.toString() == "[WARN foo has been deprecated and is scheduled to be removed in Gradle ${major.version}. bar.]"
     }
 }

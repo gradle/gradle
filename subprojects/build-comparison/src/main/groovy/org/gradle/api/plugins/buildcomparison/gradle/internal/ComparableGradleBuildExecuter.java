@@ -57,7 +57,7 @@ public class ComparableGradleBuildExecuter {
             return true;
         } else {
             // Special handling for snapshots/RCs of the minimum version
-            return version.getVersionBase().equals(PROJECT_OUTCOMES_MINIMUM_VERSION.getVersionBase());
+            return version.getBaseVersion().equals(PROJECT_OUTCOMES_MINIMUM_VERSION);
         }
     }
 

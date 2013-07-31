@@ -59,9 +59,6 @@ public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSp
             throw new IllegalArgumentException("gradleVersion cannot be null");
         }
         GradleVersion version = GradleVersion.version(gradleVersion);
-        if (!version.isValid()) {
-            throw new IllegalArgumentException(String.format("%s is not a valid Gradle version string (examples: '1.0', 1.0-rc-1'", gradleVersion));
-        }
         this.gradleVersion = version.getVersion();
     }
 

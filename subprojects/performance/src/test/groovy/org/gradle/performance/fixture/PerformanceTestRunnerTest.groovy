@@ -30,7 +30,7 @@ class PerformanceTestRunnerTest extends ResultSpecification {
     final dataCollector = Stub(DataCollector)
     final currentGradle = Stub(GradleDistribution)
     final mostRecentRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
-    final currentVersionBase = GradleVersion.current().versionBase
+    final currentVersionBase = GradleVersion.current().baseVersion.version
 
     def "runs test and builds results"() {
         given:

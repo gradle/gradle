@@ -27,16 +27,30 @@ import spock.lang.Specification
 class GradleVersionTest extends Specification {
     final GradleVersion version = GradleVersion.current()
 
-    def "valid versions"() {
-        expect:
-        version.valid
-        !GradleVersion.version("asdfasdfas").valid
-        GradleVersion.version("1.0").valid
+    def "parsing fails for unrecognized version string"() {
+        when:
+        GradleVersion.version(versionString)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "'$versionString' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')"
+
+        where:
+        versionString << [
+                "",
+                "something",
+                "1",
+                "1-beta",
+                "1.0-\n"
+        ]
     }
 
-    def currentVersionHasNonNullVersion() {
+    def "current version has non-null parts"() {
         expect:
         version.version
+        version.buildTime
+        version.nextMajor
+        version.baseVersion
     }
 
     @Issue("http://issues.gradle.org/browse/GRADLE-1892")
@@ -91,28 +105,6 @@ class GradleVersionTest extends Specification {
                 '2.1-rc-1',
                 '1.2',
                 '1.2.1']
-    }
-
-    def canOnlyQueryVersionStringForUnrecognizedVersion(String version) {
-        def gradleVersion = GradleVersion.version(version)
-
-        expect:
-        gradleVersion.version == version
-        gradleVersion.snapshot
-
-        when:
-        gradleVersion > GradleVersion.version('1.2')
-
-        then:
-        IllegalArgumentException e = thrown()
-        e.message == "Cannot compare unrecognized Gradle version '${version}'."
-
-        where:
-        version << [
-                'abc',
-                '3.0-status-5-master',
-                'user-master',
-        ]
     }
 
     def canCompareMajorVersions() {
@@ -170,8 +162,9 @@ class GradleVersionTest extends Specification {
         a                 | b
         '1.0-milestone-2' | '1.0-milestone-1'
         '1.0-preview-2'   | '1.0-preview-1'
-        '1.0-rc-2'        | '1.0-rc-1'
         '1.0-preview-1'   | '1.0-milestone-7'
+        '1.0-rc-1'        | '1.0-milestone-7'
+        '1.0-rc-2'        | '1.0-rc-1'
         '1.0-rc-7'        | '1.0-rc-1'
         '1.0'             | '1.0-rc-7'
     }
@@ -212,28 +205,53 @@ class GradleVersionTest extends Specification {
 
     def "can get version base"() {
         expect:
-        GradleVersion.version(v).versionBase == base
+        GradleVersion.version(v).baseVersion == GradleVersion.version(base)
 
         where:
-        v                         | base
-        "1.0"                     | "1.0"
-        "1.0-rc-1"                | "1.0"
-        '0.9-20101220100000+1000' | "0.9"
-        '0.9-20101220100000'      | "0.9"
-        "asdfasd"                 | null
+        v                                     | base
+        "1.0"                                 | "1.0"
+        "1.0-rc-1"                            | "1.0"
+        "1.2.3.4"                             | "1.2.3.4"
+        '0.9'                                 | "0.9"
+        '0.9.2'                               | "0.9.2"
+        '0.9-20101220100000+1000'             | "0.9"
+        '0.9-20101220100000'                  | "0.9"
+        '20.17-20101220100000+1000'           | "20.17"
     }
 
-    def "can get version major"() {
+    def "milestones are treated as base versions"() {
         expect:
-        GradleVersion.version(v).major == major
+        GradleVersion.version(v).baseVersion == GradleVersion.version(base)
 
         where:
-        v                         | major
-        "1.0"                     | 1
-        "1.0-rc-1"                | 1
-        '0.9-20101220100000+1000' | 0
-        '0.9-20101220100000'      | 0
-        "asdfasd"                 | -1
+        v                                     | base
+        '1.0-milestone-3'                     | "1.0-milestone-3"
+        '1.0-milestone-3-20121012100000+1000' | "1.0-milestone-3"
+        '2.0-milestone-3'                     | "2.0-milestone-3"
+    }
+
+    def "can get next major version"() {
+        expect:
+        GradleVersion.version(v).nextMajor == GradleVersion.version(major)
+
+        where:
+        v                                     | major
+        "1.0"                                 | "2.0"
+        "1.0-rc-1"                            | "2.0"
+        '0.9-20101220100000+1000'             | "1.0"
+        '0.9-20101220100000'                  | "1.0"
+        '20.17-20101220100000+1000'           | "21.0"
+    }
+
+    def "milestones are part of previous major version"() {
+        expect:
+        GradleVersion.version(v).nextMajor == GradleVersion.version(major)
+
+        where:
+        v                                     | major
+        '1.0-milestone-3'                     | "1.0"
+        '1.0-milestone-3-20121012100000+1000' | "1.0"
+        '2.0-milestone-3'                     | "2.0" // not that we're planning to do this
     }
 
     def prettyPrint() {

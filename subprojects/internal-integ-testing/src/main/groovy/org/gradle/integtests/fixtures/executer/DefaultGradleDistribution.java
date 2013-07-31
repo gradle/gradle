@@ -162,7 +162,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     protected boolean isVersion(String otherVersionString) {
         GradleVersion otherVersion = GradleVersion.version(otherVersionString);
-        return version.compareTo(otherVersion) == 0 || (version.isSnapshot() && version.getVersionBase().equals(otherVersion.getVersionBase()));
+        return version.compareTo(otherVersion) == 0 || (version.isSnapshot() && version.getBaseVersion().equals(otherVersion.getBaseVersion()));
     }
 
 }
