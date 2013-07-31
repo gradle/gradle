@@ -25,7 +25,7 @@ import java.lang.annotation.*;
 @Inherited
 public @interface TargetGradleVersion {
     /**
-     * The requested target Gradle version. Can use '>=nnn' or '<=nnn' or space-separated list of patterns.
+     * The requested target Gradle version. Can use '>=nnn', '<=nnn' or '&lt;nnn' or space-separated list of patterns.
      */
     String value();
 }
