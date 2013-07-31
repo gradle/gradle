@@ -42,6 +42,8 @@ public class JUnitXmlResultWriter {
 
     public void write(TestClassResult result, OutputStream output) {
         String className = result.getClassName();
+        long classId = result.getId();
+
         try {
             SimpleXmlWriter writer = new SimpleXmlWriter(output, "  ");
             writer.startElement("testsuite")
@@ -56,13 +58,13 @@ public class JUnitXmlResultWriter {
             writer.startElement("properties");
             writer.endElement();
 
-            writeTests(writer, result.getResults(), className);
+            writeTests(writer, result.getResults(), className, classId);
 
             writer.startElement("system-out");
-            writeOutputs(writer, className, outputAssociation.equals(TestOutputAssociation.WITH_SUITE), TestOutputEvent.Destination.StdOut);
+            writeOutputs(writer, classId, outputAssociation.equals(TestOutputAssociation.WITH_SUITE), TestOutputEvent.Destination.StdOut);
             writer.endElement();
             writer.startElement("system-err");
-            writeOutputs(writer, className, outputAssociation.equals(TestOutputAssociation.WITH_SUITE), TestOutputEvent.Destination.StdErr);
+            writeOutputs(writer, classId, outputAssociation.equals(TestOutputAssociation.WITH_SUITE), TestOutputEvent.Destination.StdErr);
             writer.endElement();
 
             writer.endElement();
@@ -71,23 +73,23 @@ public class JUnitXmlResultWriter {
         }
     }
 
-    private void writeOutputs(SimpleXmlWriter writer, String className, boolean allClassOutput, TestOutputEvent.Destination destination) throws IOException {
+    private void writeOutputs(SimpleXmlWriter writer, long classId, boolean allClassOutput, TestOutputEvent.Destination destination) throws IOException {
         writer.startCDATA();
         if (allClassOutput) {
-            testResultsProvider.writeAllOutput(className, destination, writer);
+            testResultsProvider.writeAllOutput(classId, destination, writer);
         } else {
-            testResultsProvider.writeNonTestOutput(className, destination, writer);
+            testResultsProvider.writeNonTestOutput(classId, destination, writer);
         }
         writer.endCDATA();
     }
 
-    private void writeOutputs(SimpleXmlWriter writer, String className, long testId, TestOutputEvent.Destination destination) throws IOException {
+    private void writeOutputs(SimpleXmlWriter writer, long classId, long testId, TestOutputEvent.Destination destination) throws IOException {
         writer.startCDATA();
-        testResultsProvider.writeTestOutput(className, testId, destination, writer);
+        testResultsProvider.writeTestOutput(classId, testId, destination, writer);
         writer.endCDATA();
     }
 
-    private void writeTests(SimpleXmlWriter writer, Iterable<TestMethodResult> methodResults, String className) throws IOException {
+    private void writeTests(SimpleXmlWriter writer, Iterable<TestMethodResult> methodResults, String className, long classId) throws IOException {
         for (TestMethodResult methodResult : methodResults) {
             String testCase = methodResult.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
             writer.startElement(testCase)
@@ -107,10 +109,10 @@ public class JUnitXmlResultWriter {
 
             if (outputAssociation.equals(TestOutputAssociation.WITH_TESTCASE)) {
                 writer.startElement("system-out");
-                writeOutputs(writer, className, methodResult.getId(), TestOutputEvent.Destination.StdOut);
+                writeOutputs(writer, classId, methodResult.getId(), TestOutputEvent.Destination.StdOut);
                 writer.endElement();
                 writer.startElement("system-err");
-                writeOutputs(writer, className, methodResult.getId(), TestOutputEvent.Destination.StdErr);
+                writeOutputs(writer, classId, methodResult.getId(), TestOutputEvent.Destination.StdErr);
                 writer.endElement();
             }
 

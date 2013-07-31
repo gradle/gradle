@@ -64,6 +64,7 @@ public class TestResultSerializer {
     }
 
     private void write(TestClassResult classResult, Output output) throws IOException {
+        output.writeLong(classResult.getId(), true);
         output.writeString(classResult.getClassName());
         output.writeLong(classResult.getStartTime());
         output.writeInt(classResult.getResults().size(), true);
@@ -120,9 +121,10 @@ public class TestResultSerializer {
     }
 
     private TestClassResult readClassResult(Input input) throws IOException, ClassNotFoundException {
+        long id = input.readLong();
         String className = input.readString();
         long startTime = input.readLong();
-        TestClassResult result = new TestClassResult(className, startTime);
+        TestClassResult result = new TestClassResult(id, className, startTime);
         int testMethodCount = input.readInt(true);
         for (int i = 0; i < testMethodCount; i++) {
             TestMethodResult methodResult = readMethodResult(input);

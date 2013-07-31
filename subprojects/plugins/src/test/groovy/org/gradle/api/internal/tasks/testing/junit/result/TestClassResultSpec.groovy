@@ -23,7 +23,7 @@ import spock.lang.Specification
 class TestClassResultSpec extends Specification {
 
     def "provides test class result information"() {
-        def result = new TestClassResult('class', 100)
+        def result = new TestClassResult(1, 'class', 100)
         assert result.duration == 0
 
         when:

@@ -31,7 +31,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     private final TestOutputStore.Writer outputWriter;
 
     private final Map<Object, Long> idMappings = new HashMap<Object, Long>();
-    private long internalIdCounter;
+    private long internalIdCounter = 1;
 
     public TestReportDataCollector(Map<String, TestClassResult> results, TestOutputStore.Writer outputWriter) {
         this.results = results;
@@ -41,9 +41,11 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     public void beforeSuite(TestDescriptor suite) {
     }
 
-    public void afterSuite(TestDescriptor suite, TestResult result) {}
+    public void afterSuite(TestDescriptor suite, TestResult result) {
+    }
 
-    public void beforeTest(TestDescriptor testDescriptor) {}
+    public void beforeTest(TestDescriptor testDescriptor) {
+    }
 
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         if (!testDescriptor.isComposite()) {
@@ -51,7 +53,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             TestMethodResult methodResult = new TestMethodResult(getInternalId((TestDescriptorInternal) testDescriptor), testDescriptor.getName(), result);
             TestClassResult classResult = results.get(className);
             if (classResult == null) {
-                classResult = new TestClassResult(className, result.getStartTime());
+                classResult = new TestClassResult(internalIdCounter++, className, result.getStartTime());
                 results.put(className, classResult);
             }
             classResult.add(methodResult);
@@ -68,11 +70,20 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         TestDescriptorInternal testDescriptorInternal = (TestDescriptorInternal) testDescriptor;
         TestClassResult classResult = results.get(className);
         if (classResult == null) {
-            classResult = new TestClassResult(className, 0);
+            classResult = new TestClassResult(internalIdCounter++, className, 0);
             results.put(className, classResult);
         }
 
-        outputWriter.onOutput(getInternalId(testDescriptorInternal), testDescriptorInternal, outputEvent.getDestination(), outputEvent.getMessage());
+        String name = testDescriptor.getName();
+
+        // This is a rather weak contract, but given the current inputs is the best we can do
+        boolean isClassLevelOutput = name.equals(className);
+
+        if (isClassLevelOutput) {
+            outputWriter.onOutput(classResult.getId(), outputEvent);
+        } else {
+            outputWriter.onOutput(classResult.getId(), getInternalId(testDescriptorInternal), outputEvent);
+        }
     }
 
     private long getInternalId(TestDescriptorInternal testDescriptor) {

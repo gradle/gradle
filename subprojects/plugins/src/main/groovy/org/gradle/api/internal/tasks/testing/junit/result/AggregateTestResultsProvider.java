@@ -31,34 +31,34 @@ import static org.gradle.util.CollectionUtils.any;
 public class AggregateTestResultsProvider implements TestResultsProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(AggregateTestResultsProvider.class);
     private final Iterable<TestResultsProvider> providers;
-    private Map<String, TestResultsProvider> classOutputProviders;
+    private Map<Long, TestResultsProvider> classOutputProviders;
 
     public AggregateTestResultsProvider(Iterable<TestResultsProvider> providers) {
         this.providers = providers;
     }
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {
-        classOutputProviders = new HashMap<String, TestResultsProvider>();
+        classOutputProviders = new HashMap<Long, TestResultsProvider>();
         for (final TestResultsProvider provider : providers) {
             provider.visitClasses(new Action<TestClassResult>() {
                 public void execute(TestClassResult classResult) {
-                    if (classOutputProviders.containsKey(classResult.getClassName())) {
+                    if (classOutputProviders.containsKey(classResult.getId())) {
                         LOGGER.warn("Discarding duplicate results for test class {}.", classResult.getClassName());
                         return;
                     }
-                    classOutputProviders.put(classResult.getClassName(), provider);
+                    classOutputProviders.put(classResult.getId(), provider);
                     visitor.execute(classResult);
                 }
             });
         }
     }
 
-    public boolean hasOutput(String className, TestOutputEvent.Destination destination) {
-        return classOutputProviders.get(className).hasOutput(className, destination);
+    public boolean hasOutput(long id, TestOutputEvent.Destination destination) {
+        return classOutputProviders.get(id).hasOutput(id, destination);
     }
 
-    public void writeAllOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
-        classOutputProviders.get(className).writeAllOutput(className, destination, writer);
+    public void writeAllOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
+        classOutputProviders.get(id).writeAllOutput(id, destination, writer);
     }
 
     public boolean isHasResults() {
@@ -69,11 +69,11 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         });
     }
     
-    public void writeNonTestOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
-        classOutputProviders.get(className).writeNonTestOutput(className, destination, writer);
+    public void writeNonTestOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
+        classOutputProviders.get(id).writeNonTestOutput(id, destination, writer);
     }
 
-    public void writeTestOutput(String className, long testId, TestOutputEvent.Destination destination, Writer writer) {
-        classOutputProviders.get(className).writeTestOutput(className, testId, destination, writer);
+    public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
+        classOutputProviders.get(classId).writeTestOutput(classId, testId, destination, writer);
     }
 }

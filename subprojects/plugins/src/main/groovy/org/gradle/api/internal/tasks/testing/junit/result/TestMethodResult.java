@@ -38,8 +38,8 @@ public class TestMethodResult {
     }
 
     public TestMethodResult(long id, String name, TestResult.ResultType resultType, long duration, long endTime, List<Throwable> exceptions) {
-        if (id < 0) {
-            throw new IllegalArgumentException("id must be positive");
+        if (id < 1) {
+            throw new IllegalArgumentException("id must be > 0");
         }
         this.id = id;
         this.name = name;
@@ -47,6 +47,10 @@ public class TestMethodResult {
         this.duration = duration;
         this.endTime = endTime;
         this.exceptions = exceptions;
+    }
+
+    public long getId() {
+        return id;
     }
 
     public String getName() {
@@ -67,9 +71,5 @@ public class TestMethodResult {
 
     public long getEndTime() {
         return endTime;
-    }
-
-    public long getId() {
-        return id;
     }
 }

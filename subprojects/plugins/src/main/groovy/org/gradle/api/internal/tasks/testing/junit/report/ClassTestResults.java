@@ -25,14 +25,20 @@ import java.util.TreeSet;
  * Test results for a given class.
  */
 public class ClassTestResults extends CompositeTestResults {
+    private final long id;
     private final String name;
     private final PackageTestResults packageResults;
     private final Set<TestResult> results = new TreeSet<TestResult>();
 
-    public ClassTestResults(String name, PackageTestResults packageResults) {
+    public ClassTestResults(long id, String name, PackageTestResults packageResults) {
         super(packageResults);
+        this.id = id;
         this.name = name;
         this.packageResults = packageResults;
+    }
+
+    public long getId() {
+        return id;
     }
 
     @Override

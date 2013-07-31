@@ -54,10 +54,10 @@ public class DefaultTestReport implements TestReporter {
         final AllTestResults model = new AllTestResults();
         resultsProvider.visitClasses(new Action<TestClassResult>() {
             public void execute(TestClassResult classResult) {
-                model.addTestClass(classResult.getClassName());
+                model.addTestClass(classResult.getId(), classResult.getClassName());
                 List<TestMethodResult> collectedResults = classResult.getResults();
                 for (TestMethodResult collectedResult : collectedResults) {
-                    final TestResult testResult = model.addTest(classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
+                    final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
                     if (collectedResult.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
                         testResult.ignored();
                     } else {
@@ -94,7 +94,7 @@ public class DefaultTestReport implements TestReporter {
             for (PackageTestResults packageResults : model.getPackages()) {
                 generatePage(packageResults, new PackagePageRenderer(), new File(reportDir, packageResults.getName() + ".html"));
                 for (ClassTestResults classResults : packageResults.getClasses()) {
-                    generatePage(classResults, new ClassPageRenderer(classResults.getName(), resultsProvider), new File(reportDir, classResults.getName() + ".html"));
+                    generatePage(classResults, new ClassPageRenderer(classResults.getId(), resultsProvider), new File(reportDir, classResults.getName() + ".html"));
                 }
             }
         } catch (Exception e) {

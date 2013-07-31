@@ -30,29 +30,29 @@ import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 class BuildableTestResultsProvider implements TestResultsProvider {
 
     long timestamp = 0
-    Map<String, BuildableTestClassResult> testClasses = [:]
+    Map<Long, BuildableTestClassResult> testClasses = [:]
     long idCounter = 1
 
     BuildableTestClassResult testClassResult(String className, Closure configClosure = {}) {
-        BuildableTestClassResult testSuite = new BuildableTestClassResult(className, timestamp)
+        BuildableTestClassResult testSuite = new BuildableTestClassResult(idCounter++, className, timestamp)
         testSuite.with(configClosure)
-        testClasses[className] = testSuite
+        testClasses[testSuite.id] = testSuite
     }
 
-    void writeAllOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
-        doWrite(className, 0, true, destination, writer)
+    void writeAllOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
+        doWrite(id, 0, true, destination, writer)
     }
 
-    void writeNonTestOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
-        doWrite(className, 0, false, destination, writer)
+    void writeNonTestOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
+        doWrite(id, 0, false, destination, writer)
     }
 
-    void writeTestOutput(String className, long testId, TestOutputEvent.Destination destination, Writer writer) {
-        doWrite(className, testId, false, destination, writer)
+    void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
+        doWrite(classId, testId, false, destination, writer)
     }
 
-    void doWrite(String className, long testId, boolean allClassOutput, TestOutputEvent.Destination destination, Writer writer) {
-        BuildableTestClassResult testCase = testClasses[className]
+    void doWrite(long classId, long testId, boolean allClassOutput, TestOutputEvent.Destination destination, Writer writer) {
+        BuildableTestClassResult testCase = testClasses[classId]
         testCase.outputEvents.each { BuildableOutputEvent event ->
             if (event.testOutputEvent.destination == destination && (allClassOutput || testId == event.testId)) {
                 writer.append(event.testOutputEvent.message)
@@ -70,8 +70,8 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         !testClasses.isEmpty()
     }
 
-    boolean hasOutput(String className, TestOutputEvent.Destination destination) {
-        testClasses[className]?.outputEvents?.find { it.testOutputEvent.destination == destination }
+    boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
+        testClasses[classId]?.outputEvents?.find { it.testOutputEvent.destination == destination }
     }
 
     static class BuildableOutputEvent {
@@ -89,8 +89,8 @@ class BuildableTestResultsProvider implements TestResultsProvider {
 
         long duration = 1000
 
-        BuildableTestClassResult(String className, long startTime) {
-            super(className, startTime)
+        BuildableTestClassResult(long id, String className, long startTime) {
+            super(id, className, startTime)
         }
 
         BuildableTestMethodResult testcase(String name, Closure configClosure = {}) {

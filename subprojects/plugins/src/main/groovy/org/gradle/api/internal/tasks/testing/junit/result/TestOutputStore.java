@@ -20,7 +20,6 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.*;
@@ -71,7 +70,7 @@ public class TestOutputStore {
     public class Writer {
         private final Output output;
 
-        private final Map<String, Map<Long, TestCaseRegion>> index = new LinkedHashMap<String, Map<Long, TestCaseRegion>>();
+        private final Map<Long, Map<Long, TestCaseRegion>> index = new LinkedHashMap<Long, Map<Long, TestCaseRegion>>();
 
         public Writer() {
             try {
@@ -86,30 +85,26 @@ public class TestOutputStore {
             writeIndex();
         }
 
-        public void onOutput(long internalId, TestDescriptorInternal testDescriptor, TestOutputEvent.Destination destination, final String message) {
-            String className = testDescriptor.getClassName();
-            String name = testDescriptor.getName();
-
-            // This is a rather weak contract, but given the current inputs is the best we can do
-            boolean isClassLevelOutput = name.equals(className);
-
-            boolean stdout = destination == TestOutputEvent.Destination.StdOut;
-
-            mark(className, internalId, stdout);
-
-            output.writeBoolean(stdout);
-            output.writeBoolean(isClassLevelOutput);
-            writeString(className, messageStorageCharset, output);
-            output.writeLong(internalId, true);
-            writeString(message, messageStorageCharset, output);
+        public void onOutput(long classId, TestOutputEvent outputEvent) {
+            onOutput(classId, 0, outputEvent);
         }
 
-        private void mark(String className, long testId, boolean isStdout) {
-            if (!index.containsKey(className)) {
-                index.put(className, new LinkedHashMap<Long, TestCaseRegion>());
+        public void onOutput(long classId, long testId, TestOutputEvent outputEvent) {
+            boolean stdout = outputEvent.getDestination() == TestOutputEvent.Destination.StdOut;
+            mark(classId, testId, stdout);
+
+            output.writeBoolean(stdout);
+            output.writeLong(classId, true);
+            output.writeLong(testId, true);
+            writeString(outputEvent.getMessage(), messageStorageCharset, output);
+        }
+
+        private void mark(long classId, long testId, boolean isStdout) {
+            if (!index.containsKey(classId)) {
+                index.put(classId, new LinkedHashMap<Long, TestCaseRegion>());
             }
 
-            Map<Long, TestCaseRegion> testCaseRegions = index.get(className);
+            Map<Long, TestCaseRegion> testCaseRegions = index.get(classId);
             if (!testCaseRegions.containsKey(testId)) {
                 TestCaseRegion region = new TestCaseRegion();
                 testCaseRegions.put(testId, region);
@@ -136,11 +131,11 @@ public class TestOutputStore {
 
             indexOutput.writeInt(index.size(), true);
 
-            for (Map.Entry<String, Map<Long, TestCaseRegion>> classEntry : index.entrySet()) {
-                String className = classEntry.getKey();
+            for (Map.Entry<Long, Map<Long, TestCaseRegion>> classEntry : index.entrySet()) {
+                Long classId = classEntry.getKey();
                 Map<Long, TestCaseRegion> regions = classEntry.getValue();
 
-                indexOutput.writeString(className);
+                indexOutput.writeLong(classId, true);
                 indexOutput.writeInt(regions.size(), true);
 
                 for (Map.Entry<Long, TestCaseRegion> testCaseEntry : regions.entrySet()) {
@@ -162,7 +157,7 @@ public class TestOutputStore {
     }
 
     private static class Index {
-        final ImmutableMap<?, Index> children;
+        final ImmutableMap<Long, Index> children;
         final Region stdOut;
         final Region stdErr;
 
@@ -176,25 +171,20 @@ public class TestOutputStore {
             this.stdErr = stdErr;
         }
 
-        private Index(ImmutableMap<?, Index> children, Region stdOut, Region stdErr) {
+        private Index(ImmutableMap<Long, Index> children, Region stdOut, Region stdErr) {
             this.children = children;
             this.stdOut = stdOut;
             this.stdErr = stdErr;
         }
     }
 
-    private static class IndexBuilder<K> {
+    private static class IndexBuilder {
         final Region stdOut = new Region();
         final Region stdErr = new Region();
-        final Class<K> keyType;
 
-        private final ImmutableMap.Builder<K, Index> children = ImmutableMap.builder();
+        private final ImmutableMap.Builder<Long, Index> children = ImmutableMap.builder();
 
-        private IndexBuilder(Class<K> keyType) {
-            this.keyType = keyType;
-        }
-
-        void add(K key, Index index) {
+        void add(long key, Index index) {
             if (stdOut.start < 0) {
                 stdOut.start = index.stdOut.start;
             }
@@ -234,14 +224,14 @@ public class TestOutputStore {
                 throw new UncheckedIOException(e);
             }
 
-            IndexBuilder<String> rootBuilder = null;
+            IndexBuilder rootBuilder = null;
             try {
                 int numClasses = input.readInt(true);
-                rootBuilder = new IndexBuilder<String>(String.class);
+                rootBuilder = new IndexBuilder();
 
                 for (int classCounter = 0; classCounter < numClasses; ++classCounter) {
-                    String className = input.readString();
-                    IndexBuilder<Long> classBuilder = new IndexBuilder<Long>(Long.class);
+                    long classId = input.readLong(true);
+                    IndexBuilder classBuilder = new IndexBuilder();
 
                     int numEntries = input.readInt(true);
                     for (int entryCounter = 0; entryCounter < numEntries; ++entryCounter) {
@@ -251,7 +241,7 @@ public class TestOutputStore {
                         classBuilder.add(testId, new Index(stdOut, stdErr));
                     }
 
-                    rootBuilder.add(className, classBuilder.build());
+                    rootBuilder.add(classId, classBuilder.build());
                 }
             } finally {
                 input.close();
@@ -260,8 +250,8 @@ public class TestOutputStore {
             index = rootBuilder.build();
         }
 
-        public boolean hasOutput(String className, TestOutputEvent.Destination destination) {
-            Index classIndex = index.children.get(className);
+        public boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
+            Index classIndex = index.children.get(classId);
             if (classIndex == null) {
                 return false;
             } else {
@@ -270,22 +260,22 @@ public class TestOutputStore {
             }
         }
 
-        public void writeAllOutput(String className, TestOutputEvent.Destination destination, java.io.Writer writer) {
-            doRead(className, null, true, destination, writer);
+        public void writeAllOutput(long classId, TestOutputEvent.Destination destination, java.io.Writer writer) {
+            doRead(classId, 0, true, destination, writer);
         }
 
-        public void writeNonTestOutput(String className, TestOutputEvent.Destination destination, java.io.Writer writer) {
-            doRead(className, null, false, destination, writer);
+        public void writeNonTestOutput(long classId, TestOutputEvent.Destination destination, java.io.Writer writer) {
+            doRead(classId, 0, false, destination, writer);
         }
 
-        public void writeTestOutput(String className, Long testId, TestOutputEvent.Destination destination, java.io.Writer writer) {
-            doRead(className, testId, false, destination, writer);
+        public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, java.io.Writer writer) {
+            doRead(classId, testId, false, destination, writer);
         }
 
-        private void doRead(String className, Long testId, boolean allClassOutput, TestOutputEvent.Destination destination, java.io.Writer writer) {
+        private void doRead(long classId, long testId, boolean allClassOutput, TestOutputEvent.Destination destination, java.io.Writer writer) {
 
-            Index targetIndex = index.children.get(className);
-            if (targetIndex != null && testId != null) {
+            Index targetIndex = index.children.get(classId);
+            if (targetIndex != null && testId != 0) {
                 targetIndex = targetIndex.children.get(testId);
             }
 
@@ -300,8 +290,8 @@ public class TestOutputStore {
                 return;
             }
 
-            boolean ignoreClassLevel = !allClassOutput && testId != null;
-            boolean ignoreTestLevel = !allClassOutput && testId == null;
+            boolean ignoreClassLevel = !allClassOutput && testId != 0;
+            boolean ignoreTestLevel = !allClassOutput && testId == 0;
 
             final File file = getOutputsFile();
             try {
@@ -312,36 +302,32 @@ public class TestOutputStore {
                 try {
                     while (input.total() <= region.stop) {
                         boolean readStdout = input.readBoolean();
-                        boolean isClassLevel = input.readBoolean();
+                        long readClassId = input.readLong(true);
+                        long readTestId = input.readLong(true);
 
-                        if (stdout != readStdout || (ignoreClassLevel && isClassLevel) || (ignoreTestLevel && !isClassLevel)) {
-                            skipNext(input);
-                            input.readLong(true);
-                            skipNext(input);
-                            continue;
-                        }
+                        boolean isClassLevel = readTestId == 0;
 
-                        String readClassName = readString(messageStorageCharset, input);
-                        if (!className.equals(readClassName)) {
-                            input.readLong(true);
+                        if (stdout != readStdout || classId != readClassId) {
                             skipNext(input);
                             continue;
                         }
 
-                        boolean shouldWrite;
-                        if (testId == null) {
-                            input.readLong(true);
-                            shouldWrite = true;
-                        } else {
-                            long readTestId = input.readLong(true);
-                            shouldWrite = testId.longValue() == readTestId;
+                        if (ignoreClassLevel && isClassLevel) {
+                            skipNext(input);
+                            continue;
                         }
 
-                        if (shouldWrite) {
+                        if (ignoreTestLevel && !isClassLevel) {
+                            skipNext(input);
+                            continue;
+                        }
+
+                        if (testId == 0 || testId == readTestId) {
                             String message = readString(messageStorageCharset, input);
                             writer.write(message);
                         } else {
                             skipNext(input);
+                            continue;
                         }
                     }
                 } finally {

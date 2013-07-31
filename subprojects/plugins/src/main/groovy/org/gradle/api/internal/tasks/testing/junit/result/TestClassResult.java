@@ -26,10 +26,19 @@ public class TestClassResult {
     private final String className;
     private final long startTime;
     private int failuresCount;
+    private long id;
 
-    public TestClassResult(String className, long startTime) {
+    public TestClassResult(long id, String className, long startTime) {
+        if (id < 1) {
+            throw new IllegalArgumentException("id must be > 0");
+        }
+        this.id = id;
         this.className = className;
         this.startTime = startTime;
+    }
+
+    public long getId() {
+        return id;
     }
 
     public String getClassName() {

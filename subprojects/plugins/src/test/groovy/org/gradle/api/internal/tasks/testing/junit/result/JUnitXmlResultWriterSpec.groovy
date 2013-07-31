@@ -44,7 +44,7 @@ class JUnitXmlResultWriterSpec extends Specification {
     private startTime = 1353344968049
 
     def "writes xml JUnit result"() {
-        TestClassResult result = new TestClassResult("com.foo.FooTest", startTime)
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
         result.add(new TestMethodResult(1, "some test", new DefaultTestResult(SUCCESS, startTime + 10, startTime + 25, 1, 1, 0, emptyList())))
         result.add(new TestMethodResult(2, "some test two", new DefaultTestResult(SUCCESS, startTime + 15, startTime + 30, 1, 1, 0, emptyList())))
         result.add(new TestMethodResult(3, "some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
@@ -88,7 +88,7 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     def "writes results with empty outputs"() {
-        TestClassResult result = new TestClassResult("com.foo.FooTest", startTime)
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
         result.add(new TestMethodResult(1, "some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         _ * provider.writeAllOutput(_, _, _)
 
@@ -107,7 +107,7 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     def "encodes xml"() {
-        TestClassResult result = new TestClassResult("com.foo.FooTest", startTime)
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
         result.add(new TestMethodResult(1, "some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
         provider.writeAllOutput(_, StdErr, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
         provider.writeAllOutput(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
@@ -124,7 +124,7 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     def "writes results with no tests"() {
-        TestClassResult result = new TestClassResult("com.foo.IgnoredTest", startTime)
+        TestClassResult result = new TestClassResult(1, "com.foo.IgnoredTest", startTime)
 
         when:
         def xml = getXml(result)

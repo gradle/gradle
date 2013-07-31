@@ -26,10 +26,10 @@ import java.io.IOException;
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
     private final TestResultsProvider resultsProvider;
-    private final String className;
+    private final long classId;
 
-    public ClassPageRenderer(String className, TestResultsProvider provider) {
-        this.className = className;
+    public ClassPageRenderer(long classId, TestResultsProvider provider) {
+        this.classId = classId;
         this.resultsProvider = provider;
     }
 
@@ -84,27 +84,27 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                 renderTests(writer);
             }
         });
-        if (resultsProvider.hasOutput(className, TestOutputEvent.Destination.StdOut)) {
+        if (resultsProvider.hasOutput(classId, TestOutputEvent.Destination.StdOut)) {
             addTab("Standard output", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
                 protected void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
                     htmlWriter.startElement("span").attribute("class", "code")
                         .startElement("pre")
                         .characters("");
-                    resultsProvider.writeAllOutput(className, TestOutputEvent.Destination.StdOut, htmlWriter);
+                    resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdOut, htmlWriter);
                         htmlWriter.endElement()
                     .endElement();
                 }
             });
         }
-        if (resultsProvider.hasOutput(className, TestOutputEvent.Destination.StdErr)) {
+        if (resultsProvider.hasOutput(classId, TestOutputEvent.Destination.StdErr)) {
             addTab("Standard error", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
                 protected void doExecute(SimpleHtmlWriter element) throws Exception {
                     element.startElement("span").attribute("class", "code")
                     .startElement("pre")
                         .characters("");
-                    resultsProvider.writeAllOutput(className, TestOutputEvent.Destination.StdErr, element);
+                    resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdErr, element);
                     element.endElement()
                     .endElement();
                 }

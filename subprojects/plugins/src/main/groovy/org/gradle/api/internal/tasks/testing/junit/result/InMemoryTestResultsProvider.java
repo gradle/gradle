@@ -30,20 +30,20 @@ public class InMemoryTestResultsProvider implements TestResultsProvider {
         this.outputReader = outputReader;
     }
 
-    public boolean hasOutput(String className, TestOutputEvent.Destination destination) {
-        return outputReader.hasOutput(className, destination);
+    public boolean hasOutput(long id, TestOutputEvent.Destination destination) {
+        return outputReader.hasOutput(id, destination);
     }
 
-    public void writeAllOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
-        outputReader.writeAllOutput(className, destination, writer);
+    public void writeAllOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
+        outputReader.writeAllOutput(id, destination, writer);
     }
 
-    public void writeNonTestOutput(String className, TestOutputEvent.Destination destination, Writer writer) {
-        outputReader.writeNonTestOutput(className, destination, writer);
+    public void writeNonTestOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
+        outputReader.writeNonTestOutput(id, destination, writer);
     }
 
-    public void writeTestOutput(String className, long testId, TestOutputEvent.Destination destination, Writer writer) {
-        outputReader.writeTestOutput(className, testId, destination, writer);
+    public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
+        outputReader.writeTestOutput(classId, testId, destination, writer);
     }
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {

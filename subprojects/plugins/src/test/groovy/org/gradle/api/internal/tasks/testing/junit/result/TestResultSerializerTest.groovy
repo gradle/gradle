@@ -27,13 +27,13 @@ class TestResultSerializerTest extends Specification {
     private TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
     def "can write and read results"() {
-        def class1 = new TestClassResult('Class1', 1234)
+        def class1 = new TestClassResult(1, 'Class1', 1234)
         def failure = new RuntimeException("broken")
         def method1 = new TestMethodResult(1, "method1", TestResult.ResultType.SUCCESS, 100, 2300, [])
         def method2 = new TestMethodResult(2, "method2", TestResult.ResultType.FAILURE, 200, 2700, [failure])
         class1.add(method1)
         class1.add(method2)
-        def class2 = new TestClassResult('Class2', 5678)
+        def class2 = new TestClassResult(2, 'Class2', 5678)
         def results = [class1, class2]
 
         when:
@@ -70,7 +70,7 @@ class TestResultSerializerTest extends Specification {
     }
 
     def "can write and read exceptions that are not serializable"() {
-        def class1 = new TestClassResult('Class1', 1234)
+        def class1 = new TestClassResult(1, 'Class1', 1234)
         def failure = new RuntimeException("broken") {
             final Object field = new Object()
         }
