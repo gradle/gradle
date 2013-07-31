@@ -31,8 +31,8 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
                 "Copy", "Sync", "Zip", "Jar", "Tar", "War", "Ear"
         ]
 
-        // Ear plugin added in m8.
-        if (previous.version < GradleVersion.version("1.0-milestone-8")) {
+        // Ear plugin added in m4.
+        if (previous.version < GradleVersion.version("1.0-milestone-4")) {
             taskClasses.remove("Ear")
         }
 
@@ -52,7 +52,7 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             import org.gradle.api.DefaultTask
             import org.gradle.api.tasks.*
             import org.gradle.api.tasks.bundling.*
-            import org.gradle.plugins.ear.Ear
+            ${taskClasses.contains("Ear") ? "import org.gradle.plugins.ear.Ear" : ""}
             import org.gradle.api.internal.ConventionTask
 
             class SomePlugin implements Plugin<Project> {
