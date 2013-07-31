@@ -24,7 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.gradle.util.CollectionUtils.any;
 
@@ -32,6 +34,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(AggregateTestResultsProvider.class);
     private final Iterable<TestResultsProvider> providers;
     private Map<Long, TestResultsProvider> classOutputProviders;
+    private Map<Long, Long> idMappings;
 
     public AggregateTestResultsProvider(Iterable<TestResultsProvider> providers) {
         this.providers = providers;
@@ -39,17 +42,34 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {
         classOutputProviders = new HashMap<Long, TestResultsProvider>();
+        idMappings = new HashMap<Long, Long>();
+        final Set<String> seenClasses = new HashSet<String>();
+        final long[] newIdCounter = {1};
         for (final TestResultsProvider provider : providers) {
             provider.visitClasses(new Action<TestClassResult>() {
                 public void execute(TestClassResult classResult) {
-                    if (classOutputProviders.containsKey(classResult.getId())) {
+                    if (seenClasses.contains(classResult.getClassName())) {
                         LOGGER.warn("Discarding duplicate results for test class {}.", classResult.getClassName());
                         return;
                     }
-                    classOutputProviders.put(classResult.getId(), provider);
-                    visitor.execute(classResult);
+
+                    long newId = newIdCounter[0]++;
+                    classOutputProviders.put(newId, provider);
+                    idMappings.put(newId, classResult.getId());
+                    TestClassResult newIdResult = new OverlayedIdTestClassResult(newId, classResult);
+                    visitor.execute(newIdResult);
                 }
             });
+        }
+    }
+
+    private static class OverlayedIdTestClassResult extends TestClassResult {
+        public OverlayedIdTestClassResult(long id, TestClassResult delegate) {
+            super(id, delegate.getClassName(), delegate.getStartTime());
+
+            for (TestMethodResult result : delegate.getResults()) {
+                add(result);
+            }
         }
     }
 
