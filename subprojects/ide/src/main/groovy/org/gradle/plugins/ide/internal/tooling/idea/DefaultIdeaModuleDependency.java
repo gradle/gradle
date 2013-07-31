@@ -17,11 +17,8 @@
 package org.gradle.plugins.ide.internal.tooling.idea;
 
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
-import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 
-@LegacyConsumerInterface("org.gradle.tooling.model.idea.IdeaModuleDependency")
 public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
-    private static final long serialVersionUID = 0;
     private IdeaDependencyScope scope;
     private DefaultIdeaModule dependencyModule;
     private boolean exported;
