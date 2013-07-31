@@ -76,8 +76,8 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
 
         then:
-        1 * writer.onOutput(0, test, StdErr, "err")
-        1 * writer.onOutput(1, test2, StdOut, "out")
+        1 * writer.onOutput(1, 2, new DefaultTestOutputEvent(StdErr, "err"))
+        1 * writer.onOutput(1, 3, new DefaultTestOutputEvent(StdOut, "out"))
         0 * writer._
     }
 

@@ -37,4 +37,32 @@ public class DefaultTestOutputEvent implements Serializable, TestOutputEvent {
     public String getMessage() {
         return message;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultTestOutputEvent that = (DefaultTestOutputEvent) o;
+
+        if (destination != that.destination) {
+            return false;
+        }
+        if (!message.equals(that.message)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = destination.hashCode();
+        result = 31 * result + message.hashCode();
+        return result;
+    }
 }

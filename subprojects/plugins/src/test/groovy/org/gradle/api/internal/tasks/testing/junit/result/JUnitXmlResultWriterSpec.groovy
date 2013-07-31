@@ -50,8 +50,8 @@ class JUnitXmlResultWriterSpec extends Specification {
         result.add(new TestMethodResult(3, "some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
         result.add(new TestMethodResult(4, "some skipped test", new DefaultTestResult(SKIPPED, startTime + 35, startTime + 45, 1, 0, 1, asList())))
 
-        provider.writeAllOutput("com.foo.FooTest", StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
-        provider.writeAllOutput("com.foo.FooTest", StdErr, _) >> { args -> args[2].write("err") }
+        provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
+        provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
 
         when:
         def xml = getXml(result)

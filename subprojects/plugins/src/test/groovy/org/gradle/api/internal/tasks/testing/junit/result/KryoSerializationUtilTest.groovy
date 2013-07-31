@@ -55,24 +55,5 @@ class KryoSerializationUtilTest extends Specification {
         readString(utf8, input) == "abc"
     }
 
-    def "can write then read object"() {
-        given:
-        def gen = new CompositeIdGenerator("1", new LongIdGenerator())
-        def id1 = gen.generateId()
-        def id2 = gen.generateId()
-        def id3 = gen.generateId()
-
-        when:
-        write({
-            writeObject(id1, it)
-            writeObject(id2, it)
-            writeObject(id3, it)
-        } as Action<Output>)
-
-        then:
-        readObject(input) == id1
-        skipNext(input)
-        readObject(input) == id3
-    }
 
 }

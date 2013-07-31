@@ -121,7 +121,7 @@ public class TestResultSerializer {
     }
 
     private TestClassResult readClassResult(Input input) throws IOException, ClassNotFoundException {
-        long id = input.readLong();
+        long id = input.readLong(true);
         String className = input.readString();
         long startTime = input.readLong();
         TestClassResult result = new TestClassResult(id, className, startTime);
