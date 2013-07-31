@@ -23,7 +23,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion(">=1.2-rc-1")
+@ToolingApiVersion(">=1.2")
 @TargetGradleVersion("<=1.1")
 class UnsupportedOperationFeedbackCrossVersionSpec extends ToolingApiSpecification {
     def "fails when attempting to run tasks when building a model"() {

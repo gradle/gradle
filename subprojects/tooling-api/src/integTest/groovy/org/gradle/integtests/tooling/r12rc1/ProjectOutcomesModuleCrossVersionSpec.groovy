@@ -22,8 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 
-@ToolingApiVersion(">=1.2-rc-1")
-@TargetGradleVersion(">=1.2-rc-1")
+@ToolingApiVersion(">=1.2")
+@TargetGradleVersion(">=1.2")
 class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
     def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
         given:
