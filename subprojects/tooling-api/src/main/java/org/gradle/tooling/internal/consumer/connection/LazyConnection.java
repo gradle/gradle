@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
-import org.gradle.tooling.internal.consumer.ModelProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -45,8 +44,6 @@ public class LazyConnection implements ConsumerConnection {
     private ConsumerConnection connection;
 
     ConsumerConnectionParameters connectionParameters;
-
-    ModelProvider modelProvider = new ModelProvider();
 
     public LazyConnection(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, boolean verboseLogging) {
         this.distribution = distribution;
@@ -91,7 +88,7 @@ public class LazyConnection implements ConsumerConnection {
     public <T> T run(final Class<T> type, final ConsumerOperationParameters operationParameters) {
         return withConnection(new ConnectionAction<T>() {
             public T run(ConsumerConnection connection) {
-                return modelProvider.provide(connection, type, operationParameters);
+                return connection.run(type, operationParameters);
             }
         });
     }

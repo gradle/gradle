@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.LoggingProvider
-import org.gradle.tooling.internal.consumer.ModelProvider
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
@@ -38,7 +37,6 @@ class LazyConnectionTest extends Specification {
 
     def setup() {
         connection.connectionParameters = connectionParams
-        connection.modelProvider = Mock(ModelProvider)
     }
 
     def createsConnectionOnDemandToBuildModel() {
@@ -48,7 +46,7 @@ class LazyConnectionTest extends Specification {
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
-        1 * connection.modelProvider.provide(!null, SomeModel, params)
+        1 * consumerConnection.run(SomeModel, params)
         0 * _._
     }
 
@@ -60,8 +58,8 @@ class LazyConnectionTest extends Specification {
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
-        1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
-        1 * connection.modelProvider.provide(consumerConnection, String, params)
+        1 * consumerConnection.run(SomeModel, params)
+        1 * consumerConnection.run(String, params)
         0 * _._
     }
 
@@ -73,7 +71,7 @@ class LazyConnectionTest extends Specification {
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
-        1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
+        1 * consumerConnection.run(SomeModel, params)
         1 * consumerConnection.stop()
         0 * _._
     }

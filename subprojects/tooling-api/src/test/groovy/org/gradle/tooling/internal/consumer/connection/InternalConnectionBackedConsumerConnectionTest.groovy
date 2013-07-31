@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.UnknownModelException
+import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
@@ -101,4 +102,15 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         e.message == /The version of Gradle you are using (1.0-milestone-8) does not support building a model of type 'CustomModel'./
     }
 
+    def "fails when both tasks and model requested"() {
+        given:
+        parameters.tasks >> ['a']
+
+        when:
+        connection.run(GradleProject.class, parameters)
+
+        then:
+        UnsupportedOperationConfigurationException e = thrown()
+        e.message.startsWith("Unsupported configuration: modelBuilder.forTasks()")
+    }
 }

@@ -171,6 +171,21 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         e.message == /The version of Gradle you are using (1.0-milestone-5) does not support building a model of type 'CustomModel'./
     }
 
+    def "fails when both tasks and model requested"() {
+        metaData.version >> "1.0-milestone-5"
+        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
+
+        given:
+        parameters.tasks >> ['a']
+
+        when:
+        connection.run(GradleProject.class, parameters)
+
+        then:
+        UnsupportedOperationConfigurationException e = thrown()
+        e.message.startsWith("Unsupported configuration: modelBuilder.forTasks()")
+    }
+
     def "fails when stdin provided"() {
         metaData.version >> "1.0-milestone-5"
         def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)

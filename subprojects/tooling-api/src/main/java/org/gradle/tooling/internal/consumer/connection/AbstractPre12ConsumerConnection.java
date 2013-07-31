@@ -23,6 +23,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParamet
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.model.internal.Exceptions;
 
 /**
  * An adapter to a pre 1.2 provider.
@@ -44,6 +45,10 @@ public abstract class AbstractPre12ConsumerConnection extends AbstractConsumerCo
             doRunBuild(operationParameters);
             return null;
         } else {
+            if (operationParameters.getTasks() != null) {
+                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()", getVersionDetails().getVersion());
+            }
+
             Object model = doGetModel(type, operationParameters);
             return adapter.adapt(type, model, new PropertyHandlerFactory().forVersion(getVersionDetails()));
         }
