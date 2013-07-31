@@ -22,7 +22,7 @@ class AllTestResultsTest extends Specification {
 
     def addsTest() {
         when:
-        def test = results.addTest('org.gradle.Test', 'test', 90)
+        def test = results.addTest(1, 'org.gradle.Test', 'test', 90)
 
         then:
         test.name == 'test'
@@ -33,7 +33,7 @@ class AllTestResultsTest extends Specification {
     
     def addsTestInDefaultPackage() {
         when:
-        def test = results.addTest('Test', 'test', 90)
+        def test = results.addTest(1, 'Test', 'test', 90)
 
         then:
         test.name == 'test'
