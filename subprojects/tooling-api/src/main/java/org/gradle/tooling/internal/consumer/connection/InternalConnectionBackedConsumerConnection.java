@@ -29,6 +29,9 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 
+/**
+ * An adapter for a {@link InternalConnection} based provider.
+ */
 public class InternalConnectionBackedConsumerConnection extends AbstractPre12ConsumerConnection {
     private final InternalConnection connection;
 

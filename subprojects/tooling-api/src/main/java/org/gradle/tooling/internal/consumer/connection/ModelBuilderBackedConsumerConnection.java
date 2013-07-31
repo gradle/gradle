@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.converters.PropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -25,6 +24,9 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 
+/**
+ * An adapter for a {@link ModelBuilder} based provider.
+ */
 public class ModelBuilderBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ModelBuilder builder;
     private final ProtocolToModelAdapter adapter;
@@ -38,7 +40,7 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         ModelIdentifier modelIdentifier = mapModelTypeToModelIdentifier(type);
         Object model = builder.getModel(modelIdentifier, operationParameters).getModel();
-        return adapter.adapt(type, model, new PropertyHandlerFactory().forVersion(getVersionDetails()));
+        return adapter.adapt(type, model);
     }
 
     private ModelIdentifier mapModelTypeToModelIdentifier(final Class<?> modelType) {

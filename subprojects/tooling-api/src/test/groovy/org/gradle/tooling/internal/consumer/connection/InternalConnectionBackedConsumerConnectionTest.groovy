@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
@@ -31,8 +32,11 @@ import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
 class InternalConnectionBackedConsumerConnectionTest extends Specification {
+    final ConnectionMetaDataVersion1 metaData = Stub() {
+        getVersion() >> '1.0-milestone-8'
+    }
     final InternalConnection target = Mock() {
-        getMetaData() >> Mock(ConnectionMetaDataVersion1)
+        getMetaData() >> metaData
     }
     final ConsumerOperationParameters parameters = Mock()
     final ProtocolToModelAdapter adapter = Mock()
@@ -67,16 +71,18 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
     }
 
     def "builds model using connection's getTheModel() method"() {
+        def model = Stub(GradleProject)
+
         when:
-        def result = connection.run(String.class, parameters)
+        def result = connection.run(GradleProject.class, parameters)
 
         then:
-        result == 'ok'
+        result == model
 
         and:
-        _ * modelMapping.getProtocolType(String.class) >> Integer.class
+        _ * modelMapping.getProtocolType(GradleProject.class) >> Integer.class
         1 * target.getTheModel(Integer.class, parameters) >> 12
-        1 * adapter.adapt(String.class, 12, _) >> 'ok'
+        1 * adapter.adapt(GradleProject.class, 12, _) >> model
         0 * target._
     }
 
@@ -88,4 +94,14 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         1 * target.executeBuild(parameters, parameters)
         0 * target._
     }
+
+    def "fails when unknown model is requested"() {
+        when:
+        connection.run(CustomModel.class, parameters)
+
+        then:
+        UnknownModelException e = thrown()
+        e.message == /The version of Gradle you are using (1.0-milestone-8) does not support building a model of type 'CustomModel'./
+    }
+
 }

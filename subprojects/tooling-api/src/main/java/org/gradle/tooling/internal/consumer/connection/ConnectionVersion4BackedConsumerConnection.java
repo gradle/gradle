@@ -30,7 +30,7 @@ import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.util.GradleVersion;
 
 /**
- * An implementation that wraps a protocol instance that has rigid compatibility policy.
+ * An adapter that wraps a {@link ConnectionVersion4} based provider.
  */
 public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12ConsumerConnection {
 

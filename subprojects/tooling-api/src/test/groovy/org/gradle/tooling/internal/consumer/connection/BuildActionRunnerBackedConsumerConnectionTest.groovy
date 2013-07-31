@@ -16,16 +16,13 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
-import org.gradle.tooling.internal.protocol.BuildActionRunner
-import org.gradle.tooling.internal.protocol.BuildResult
-import org.gradle.tooling.internal.protocol.ConfigurableConnection
-import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
-import org.gradle.tooling.internal.protocol.ConnectionVersion4
+import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -36,8 +33,11 @@ import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
 class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
+    final ConnectionMetaDataVersion1 metaData = Stub() {
+        getVersion() >> '1.2'
+    }
     final TestBuildActionRunner target = Mock() {
-        getMetaData() >> Mock(ConnectionMetaDataVersion1)
+        getMetaData() >> metaData
     }
     final ConsumerOperationParameters parameters = Stub()
     final ModelMapping modelMapping = Stub()
@@ -81,22 +81,30 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
     }
 
     def "builds model using connection's run() method"() {
-        BuildResult<String> result = Mock()
-
-        given:
-        result.model >> 12
+        BuildResult<String> result = Stub()
+        GradleProject adapted = Stub()
 
         when:
-        def model = connection.run(String.class, parameters)
+        def model = connection.run(GradleProject.class, parameters)
 
         then:
-        model == 'ok'
+        model == adapted
 
         and:
-        _ * modelMapping.getProtocolType(String.class) >> Integer.class
+        _ * modelMapping.getProtocolType(GradleProject.class) >> Integer.class
         1 * target.run(Integer.class, parameters) >> result
-        1 * adapter.adapt(String.class, 12, _) >> 'ok'
+        _ * result.model >> 12
+        1 * adapter.adapt(GradleProject.class, 12) >> adapted
         0 * target._
+    }
+
+    def "fails when unknown model is requested"() {
+        when:
+        connection.run(CustomModel.class, parameters)
+
+        then:
+        UnknownModelException e = thrown()
+        e.message == /The version of Gradle you are using (1.2) does not support building a model of type 'CustomModel'./
     }
 
     interface TestBuildActionRunner extends ConnectionVersion4, BuildActionRunner, ConfigurableConnection {

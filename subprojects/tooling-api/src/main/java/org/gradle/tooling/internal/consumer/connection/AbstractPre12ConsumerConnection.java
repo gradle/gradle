@@ -24,9 +24,10 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.model.internal.Exceptions;
 
 /**
- * A connection to a pre 1.2 provider.
+ * An adapter to a pre 1.2 provider.
  */
 public abstract class AbstractPre12ConsumerConnection extends AbstractConsumerConnection {
     private final ProtocolToModelAdapter adapter;
@@ -43,13 +44,19 @@ public abstract class AbstractPre12ConsumerConnection extends AbstractConsumerCo
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        VersionDetails versionDetails = getVersionDetails();
+        if (!versionDetails.isModelSupported(type)) {
+            //don't bother asking the provider for this model
+            throw Exceptions.unknownModel(type, versionDetails.getVersion());
+        }
+
         if (type.equals(Void.class)) {
             doRunBuild(operationParameters);
             return null;
         } else {
             Class<?> protocolType = modelMapping.getProtocolType(type);
             Object model = doGetModel(protocolType, operationParameters);
-            return adapter.adapt(type, model, new PropertyHandlerFactory().forVersion(getVersionDetails()));
+            return adapter.adapt(type, model, new PropertyHandlerFactory().forVersion(versionDetails));
         }
     }
 

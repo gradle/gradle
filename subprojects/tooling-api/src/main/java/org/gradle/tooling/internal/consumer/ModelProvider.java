@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
@@ -64,11 +63,6 @@ public class ModelProvider {
             EclipseProjectVersion3 project = connection.run(EclipseProjectVersion3.class, operationParameters);
             GradleProject gradleProject = new GradleProjectConverter().convert(project);
             return modelType.cast(gradleProject);
-        }
-        if (!version.isModelSupported(modelType)) {
-            //don't bother asking the provider for this model
-            throw new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'.",
-                    version.getVersion(), modelType.getSimpleName()));
         }
 
         return connection.run(modelType, operationParameters);

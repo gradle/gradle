@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.converters.PropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -29,8 +28,12 @@ import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
+import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
+/**
+ * An adapter for a {@link BuildActionRunner} based provider.
+ */
 public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final BuildActionRunner buildActionRunner;
     private final ModelMapping modelMapping;
@@ -44,9 +47,15 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        VersionDetails versionDetails = getVersionDetails();
+        if (!versionDetails.isModelSupported(type)) {
+            //don't bother asking the provider for this model
+            Exceptions.unknownModel(type, versionDetails.getVersion());
+        }
+
         Class<?> protocolType = modelMapping.getProtocolType(type);
         Object model = buildActionRunner.run(protocolType, operationParameters).getModel();
-        return adapter.adapt(type, model, new PropertyHandlerFactory().forVersion(getVersionDetails()));
+        return adapter.adapt(type, model);
     }
 
     private static class R12VersionDetails extends VersionDetails {

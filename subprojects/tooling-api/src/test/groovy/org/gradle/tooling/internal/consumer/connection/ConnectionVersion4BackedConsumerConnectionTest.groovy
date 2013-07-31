@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
@@ -125,5 +126,17 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         then:
         1 * target.executeBuild(parameters, parameters)
         0 * target._
+    }
+
+    def "fails when unknown model is requested"() {
+        metaData.version >> "1.0-milestone-5"
+        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
+
+        when:
+        connection.run(CustomModel.class, parameters)
+
+        then:
+        UnknownModelException e = thrown()
+        e.message == /The version of Gradle you are using (1.0-milestone-5) does not support building a model of type 'CustomModel'./
     }
 }

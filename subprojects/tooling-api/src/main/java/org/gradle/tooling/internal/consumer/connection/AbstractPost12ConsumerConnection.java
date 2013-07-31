@@ -21,6 +21,9 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConfigurableConnection;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
+/**
+ * An adapter for a post Gradle 1.2 provider.
+ */
 public abstract class AbstractPost12ConsumerConnection extends AbstractConsumerConnection {
     private final ConfigurableConnection configurableConnection;
 
