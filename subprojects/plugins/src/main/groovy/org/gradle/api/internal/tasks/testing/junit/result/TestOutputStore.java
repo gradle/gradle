@@ -144,9 +144,9 @@ public class TestOutputStore {
                 indexOutput.writeInt(regions.size(), true);
 
                 for (Map.Entry<Long, TestCaseRegion> testCaseEntry : regions.entrySet()) {
-                    Object id = testCaseEntry.getKey();
+                    long id = testCaseEntry.getKey();
                     TestCaseRegion region = testCaseEntry.getValue();
-                    writeObject(id, indexOutput);
+                    indexOutput.writeLong(id, true);
                     indexOutput.writeLong(region.stdOutRegion.start);
                     indexOutput.writeLong(region.stdOutRegion.stop);
                     indexOutput.writeLong(region.stdErrRegion.start);
@@ -162,7 +162,7 @@ public class TestOutputStore {
     }
 
     private static class Index {
-        final ImmutableMap<Object, Index> children;
+        final ImmutableMap<?, Index> children;
         final Region stdOut;
         final Region stdErr;
 
@@ -176,20 +176,25 @@ public class TestOutputStore {
             this.stdErr = stdErr;
         }
 
-        private Index(ImmutableMap<Object, Index> children, Region stdOut, Region stdErr) {
+        private Index(ImmutableMap<?, Index> children, Region stdOut, Region stdErr) {
             this.children = children;
             this.stdOut = stdOut;
             this.stdErr = stdErr;
         }
     }
 
-    private static class IndexBuilder {
+    private static class IndexBuilder<K> {
         final Region stdOut = new Region();
         final Region stdErr = new Region();
+        final Class<K> keyType;
 
-        private final ImmutableMap.Builder<Object, Index> children = ImmutableMap.builder();
+        private final ImmutableMap.Builder<K, Index> children = ImmutableMap.builder();
 
-        void add(Object name, Index index) {
+        private IndexBuilder(Class<K> keyType) {
+            this.keyType = keyType;
+        }
+
+        void add(K key, Index index) {
             if (stdOut.start < 0) {
                 stdOut.start = index.stdOut.start;
             }
@@ -203,7 +208,7 @@ public class TestOutputStore {
                 stdErr.stop = index.stdErr.stop;
             }
 
-            children.put(name, index);
+            children.put(key, index);
         }
 
         Index build() {
@@ -229,18 +234,18 @@ public class TestOutputStore {
                 throw new UncheckedIOException(e);
             }
 
-            IndexBuilder rootBuilder = null;
+            IndexBuilder<String> rootBuilder = null;
             try {
                 int numClasses = input.readInt(true);
-                rootBuilder = new IndexBuilder();
+                rootBuilder = new IndexBuilder<String>(String.class);
 
                 for (int classCounter = 0; classCounter < numClasses; ++classCounter) {
                     String className = input.readString();
-                    IndexBuilder classBuilder = new IndexBuilder();
+                    IndexBuilder<Long> classBuilder = new IndexBuilder<Long>(Long.class);
 
                     int numEntries = input.readInt(true);
                     for (int entryCounter = 0; entryCounter < numEntries; ++entryCounter) {
-                        Object testId = readObject(input);
+                        long testId = input.readLong(true);
                         Region stdOut = new Region(input.readLong(), input.readLong());
                         Region stdErr = new Region(input.readLong(), input.readLong());
                         classBuilder.add(testId, new Index(stdOut, stdErr));
