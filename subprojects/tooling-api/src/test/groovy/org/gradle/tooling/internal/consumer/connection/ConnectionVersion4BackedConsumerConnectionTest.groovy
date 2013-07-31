@@ -17,12 +17,14 @@ package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
+import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.internal.protocol.ProjectVersion3
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -125,6 +127,40 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
 
         then:
         1 * target.executeBuild(parameters, parameters)
+        0 * target._
+    }
+
+    def "builds partial BuildEnvironment model locally"() {
+        metaData.version >> "1.0-milestone-5"
+        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
+        BuildEnvironment model = Stub()
+
+        when:
+        def result = connection.run(BuildEnvironment.class, parameters)
+
+        then:
+        result == model
+
+        and:
+        1 * adapter.adapt(BuildEnvironment.class, {it instanceof VersionOnlyBuildEnvironment}, _) >> model
+        0 * target._
+    }
+
+    def "builds partial GradleProject model using the Eclipse model for a 1.0-m3 provider"() {
+        metaData.version >> "1.0-milestone-3"
+        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
+        EclipseProjectVersion3 protocolModel = Stub()
+        GradleProject model = Stub()
+
+        when:
+        def result = connection.run(GradleProject.class, parameters)
+
+        then:
+        result == model
+
+        and:
+        1 * target.getModel(EclipseProjectVersion3.class, parameters) >> protocolModel
+        1 * adapter.adapt(GradleProject.class, _, _) >> model
         0 * target._
     }
 

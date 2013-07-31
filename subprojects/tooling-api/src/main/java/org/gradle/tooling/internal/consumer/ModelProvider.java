@@ -16,14 +16,9 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.internal.Exceptions;
 
 public class ModelProvider {
@@ -49,20 +44,6 @@ public class ModelProvider {
             if (!version.supportsRunningTasksWhenBuildingModel()) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()");
             }
-        }
-
-        if (modelType == BuildEnvironment.class && !version.isModelSupported(BuildEnvironment.class)) {
-            //early versions of provider do not support BuildEnvironment model
-            //since we know the gradle version at least we can give back some result
-            VersionOnlyBuildEnvironment out = new VersionOnlyBuildEnvironment(version.getVersion());
-            return modelType.cast(out);
-        }
-        if (modelType == GradleProject.class && !version.isModelSupported(GradleProject.class)) {
-            //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
-            //this patch enables getting gradle tasks for target gradle version pre M5
-            EclipseProjectVersion3 project = connection.run(EclipseProjectVersion3.class, operationParameters);
-            GradleProject gradleProject = new GradleProjectConverter().convert(project);
-            return modelType.cast(gradleProject);
         }
 
         return connection.run(modelType, operationParameters);

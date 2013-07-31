@@ -28,20 +28,29 @@ import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
+import org.gradle.tooling.model.internal.Exceptions;
 
 /**
  * An adapter for a {@link InternalConnection} based provider.
  */
 public class InternalConnectionBackedConsumerConnection extends AbstractPre12ConsumerConnection {
     private final InternalConnection connection;
+    private final ModelMapping modelMapping;
 
     public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
-        super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()), modelMapping, adapter);
+        super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()), adapter);
         connection = (InternalConnection) delegate;
+        this.modelMapping = modelMapping;
     }
 
     @Override
-    protected Object doGetModel(Class<?> protocolType, ConsumerOperationParameters operationParameters) {
+    protected Object doGetModel(Class<?> modelType, ConsumerOperationParameters operationParameters) {
+        VersionDetails versionDetails = getVersionDetails();
+        if (!versionDetails.isModelSupported(modelType)) {
+            //don't bother asking the provider for this model
+            throw Exceptions.unknownModel(modelType, versionDetails.getVersion());
+        }
+        Class<?> protocolType = modelMapping.getProtocolType(modelType);
         return connection.getTheModel(protocolType, operationParameters);
     }
 
