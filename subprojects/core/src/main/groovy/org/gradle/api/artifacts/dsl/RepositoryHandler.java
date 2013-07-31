@@ -227,7 +227,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * </table>
      *
      * <p>Examples:
-     * <pre autoTested="">
+     * <pre>
      * repositories {
      *     mavenRepo url: "http://www.mycompany.com/repository", artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
      *     mavenRepo name: "nonDefaultName", url: "http://www.mycompany.com/repository"
