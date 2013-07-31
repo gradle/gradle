@@ -19,8 +19,6 @@ package org.gradle.api.internal.tasks.testing.junit.result
 import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
 import org.gradle.api.Action
-import org.gradle.internal.id.CompositeIdGenerator
-import org.gradle.internal.id.LongIdGenerator
 import spock.lang.Specification
 
 import java.nio.charset.Charset
