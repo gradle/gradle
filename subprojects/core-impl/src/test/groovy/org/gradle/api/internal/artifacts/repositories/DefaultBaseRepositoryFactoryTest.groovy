@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
@@ -37,18 +38,19 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     static final URI TEST_REPO_URL = new URI('http://www.gradle.org/')
     static final URI TEST_REPO2_URL = new URI('http://www.gradleware.com/')
 
-    final LocalMavenRepositoryLocator localMavenRepoLocator = Mock(LocalMavenRepositoryLocator)
-    final FileResolver fileResolver = Mock(FileResolver)
-    final RepositoryTransportFactory transportFactory = Mock(RepositoryTransportFactory)
-    final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock(LocallyAvailableResourceFinder)
-    final RepositoryCacheManager localCacheManager = Mock(RepositoryCacheManager)
-    final RepositoryCacheManager downloadingCacheManager = Mock(RepositoryCacheManager)
-    final ProgressLoggerFactory progressLoggerFactory = Mock(ProgressLoggerFactory)
-    final MetaDataParser metaDataParser = Mock(MetaDataParser)
+    final LocalMavenRepositoryLocator localMavenRepoLocator = Mock()
+    final FileResolver fileResolver = Mock()
+    final RepositoryTransportFactory transportFactory = Mock()
+    final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
+    final RepositoryCacheManager localCacheManager = Mock()
+    final RepositoryCacheManager downloadingCacheManager = Mock()
+    final ProgressLoggerFactory progressLoggerFactory = Mock()
+    final MetaDataParser metaDataParser = Mock()
+    final ModuleMetadataProcessor metadataProcessor = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
-            progressLoggerFactory, localCacheManager, downloadingCacheManager, metaDataParser
+            progressLoggerFactory, localCacheManager, downloadingCacheManager, metaDataParser, metadataProcessor
     )
 
 //    @Before public void setup() {
