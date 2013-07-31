@@ -24,5 +24,8 @@ import java.lang.annotation.*;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
 public @interface TargetGradleVersion {
+    /**
+     * The requested target Gradle version. Can use '>=nnn' or '<=nnn' or space-separated list of patterns.
+     */
     String value();
 }

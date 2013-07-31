@@ -110,16 +110,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             if (annotation == null) {
                 return Specs.SATISFIES_ALL
             }
-            String value = annotation.value().trim()
-            if (value.startsWith('>=')) {
-                def minVersion = GradleVersion.version(value.substring(2))
-                return { version -> version >= minVersion } as Spec
-            } else if (value.startsWith('<=')) {
-                def maxVersion = GradleVersion.version(value.substring(2))
-                return { version -> version <= maxVersion } as Spec
-            } else {
-                throw new RuntimeException("Unsupported version range '$value' specified in @${annotation.class.simpleName}. Supported formats: '>=nnn' or '<=nnn'")
-            }
+            return GradleVersionSpec.toSpec(annotation.value())
         }
 
         @Override
