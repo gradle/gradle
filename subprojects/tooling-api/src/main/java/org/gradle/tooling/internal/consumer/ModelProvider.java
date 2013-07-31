@@ -25,24 +25,9 @@ public class ModelProvider {
     public <T> T provide(ConsumerConnection connection, Class<T> modelType, ConsumerOperationParameters operationParameters) {
         VersionDetails version = connection.getVersionDetails();
 
-        if (operationParameters.getJavaHome() != null) {
-            if(!version.supportsConfiguringJavaHome()) {
-                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJavaHome() and buildLauncher.setJavaHome()");
-            }
-        }
-        if (operationParameters.getJvmArguments() != null) {
-            if (!version.supportsConfiguringJvmArguments()) {
-                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJvmArguments() and buildLauncher.setJvmArguments()");
-            }
-        }
-        if (operationParameters.getStandardInput() != null) {
-            if (!version.supportsConfiguringStandardInput()) {
-                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()");
-            }
-        }
         if (modelType != Void.class && operationParameters.getTasks() != null) {
             if (!version.supportsRunningTasksWhenBuildingModel()) {
-                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()");
+                throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()", version.getVersion());
             }
         }
 

@@ -35,18 +35,6 @@ public abstract class VersionDetails {
         return false;
     }
 
-    public boolean supportsConfiguringJavaHome() {
-        return false;
-    }
-
-    public boolean supportsConfiguringJvmArguments() {
-        return false;
-    }
-
-    public boolean supportsConfiguringStandardInput() {
-        return false;
-    }
-
     public boolean supportsRunningTasksWhenBuildingModel() {
         return false;
     }

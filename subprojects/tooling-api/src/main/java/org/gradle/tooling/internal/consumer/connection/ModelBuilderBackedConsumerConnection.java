@@ -65,21 +65,6 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         }
 
         @Override
-        public boolean supportsConfiguringJavaHome() {
-            return true;
-        }
-
-        @Override
-        public boolean supportsConfiguringJvmArguments() {
-            return true;
-        }
-
-        @Override
-        public boolean supportsConfiguringStandardInput() {
-            return true;
-        }
-
-        @Override
         public boolean supportsGradleProjectModel() {
             return true;
         }

@@ -64,21 +64,6 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         }
 
         @Override
-        public boolean supportsConfiguringJavaHome() {
-            return true;
-        }
-
-        @Override
-        public boolean supportsConfiguringJvmArguments() {
-            return true;
-        }
-
-        @Override
-        public boolean supportsConfiguringStandardInput() {
-            return true;
-        }
-
-        @Override
         public boolean supportsGradleProjectModel() {
             return true;
         }

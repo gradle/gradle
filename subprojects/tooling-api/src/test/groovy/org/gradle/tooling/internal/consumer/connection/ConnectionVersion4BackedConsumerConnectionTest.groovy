@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.UnknownModelException
+import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
@@ -39,7 +40,7 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
     final ConnectionVersion4 target = Mock() {
         getMetaData() >> metaData
     }
-    final ConsumerOperationParameters parameters = Stub()
+    final ConsumerOperationParameters parameters = Mock()
     final ModelMapping modelMapping = Stub()
     final ProtocolToModelAdapter adapter = Mock()
 
@@ -50,9 +51,6 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         def details = connection.versionDetails
 
         expect:
-        !details.supportsConfiguringJavaHome()
-        !details.supportsConfiguringJvmArguments()
-        !details.supportsConfiguringStandardInput()
         !details.supportsGradleProjectModel()
         !details.supportsRunningTasksWhenBuildingModel()
 
@@ -80,9 +78,6 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         details.supportsGradleProjectModel()
 
         and:
-        !details.supportsConfiguringJavaHome()
-        !details.supportsConfiguringJvmArguments()
-        !details.supportsConfiguringStandardInput()
         !details.supportsRunningTasksWhenBuildingModel()
 
         and:
@@ -174,5 +169,50 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         then:
         UnknownModelException e = thrown()
         e.message == /The version of Gradle you are using (1.0-milestone-5) does not support building a model of type 'CustomModel'./
+    }
+
+    def "fails when stdin provided"() {
+        metaData.version >> "1.0-milestone-5"
+        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
+
+        given:
+        parameters.standardInput >> new ByteArrayInputStream("hi".bytes)
+
+        when:
+        connection.run(CustomModel.class, parameters)
+
+        then:
+        UnsupportedOperationConfigurationException e = thrown()
+        e.message.startsWith("Unsupported configuration: modelBuilder.setStandardInput()")
+    }
+
+    def "fails when Java home specified"() {
+        metaData.version >> "1.0-milestone-5"
+        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
+
+        given:
+        parameters.javaHome >> new File("java-home")
+
+        when:
+        connection.run(CustomModel.class, parameters)
+
+        then:
+        UnsupportedOperationConfigurationException e = thrown()
+        e.message.startsWith("Unsupported configuration: modelBuilder.setJavaHome()")
+    }
+
+    def "fails when JVM args specified"() {
+        metaData.version >> "1.0-milestone-5"
+        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
+
+        given:
+        parameters.jvmArguments >> ['-Dsome.arg']
+
+        when:
+        connection.run(CustomModel.class, parameters)
+
+        then:
+        UnsupportedOperationConfigurationException e = thrown()
+        e.message.startsWith("Unsupported configuration: modelBuilder.setJvmArguments()")
     }
 }

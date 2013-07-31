@@ -49,9 +49,6 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         def details = connection.versionDetails
 
         expect:
-        details.supportsConfiguringJavaHome()
-        details.supportsConfiguringJvmArguments()
-        details.supportsConfiguringStandardInput()
         details.supportsGradleProjectModel()
         details.supportsRunningTasksWhenBuildingModel()
 

@@ -38,15 +38,12 @@ public class Exceptions {
                 , method);
     }
 
-    public static UnsupportedOperationConfigurationException unsupportedOperationConfiguration(String operation) {
-        //we only need that cause for backwards-compatibility.
-        UnsupportedMethodException cause = new UnsupportedMethodException(operation);
+    public static UnsupportedOperationConfigurationException unsupportedOperationConfiguration(String operation, String targetVersion) {
         return new UnsupportedOperationConfigurationException(String.format("Unsupported configuration: %s."
                 + "\nYou configured the LongRunningOperation (ModelBuilder or BuildLauncher) with an unsupported option."
-                + "\nThe version of Gradle you connect to does not support this configuration option."
-                + "\nTo resolve the problem you can change/upgrade the target version of Gradle you connect to."
-                + "\nAlternatively, you may stop using this configuration option."
-                , operation), cause);
+                + "\nThe version of Gradle are using (%s) does not support this configuration option."
+                + "\nTo resolve the problem you can change/upgrade the target version of Gradle."
+                , operation, targetVersion));
     }
 
     public static UnknownModelException unknownModel(Class<?> modelType, String targetVersion) {

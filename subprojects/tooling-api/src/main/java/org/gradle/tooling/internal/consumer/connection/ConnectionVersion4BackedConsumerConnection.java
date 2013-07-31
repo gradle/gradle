@@ -55,6 +55,21 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
     }
 
     @Override
+    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        VersionDetails versionDetails = getVersionDetails();
+        if (operationParameters.getJavaHome() != null) {
+            throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJavaHome() and buildLauncher.setJavaHome()", versionDetails.getVersion());
+        }
+        if (operationParameters.getJvmArguments() != null) {
+            throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJvmArguments() and buildLauncher.setJvmArguments()", versionDetails.getVersion());
+        }
+        if (operationParameters.getStandardInput() != null) {
+            throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()", versionDetails.getVersion());
+        }
+        return super.run(type, operationParameters);
+    }
+
+    @Override
     protected Object doGetModel(Class<?> modelType, ConsumerOperationParameters operationParameters) {
         VersionDetails versionDetails = getVersionDetails();
         if (modelType == BuildEnvironment.class && !versionDetails.isModelSupported(BuildEnvironment.class)) {
