@@ -29,36 +29,6 @@ public abstract class KryoSerializationUtil {
     private KryoSerializationUtil() {
     }
 
-    public static void writeObject(Object object, Output output) {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(object);
-            oos.close();
-
-            byte[] bytes = baos.toByteArray();
-            output.writeInt(bytes.length, true);
-            output.writeBytes(bytes);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    public static Object readObject(Input input) {
-        try {
-            int size = input.readInt(true);
-            byte[] bytes = new byte[size];
-            input.readBytes(bytes);
-            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-            ObjectInputStream objectInputStream = new ObjectInputStream(bais);
-            Object object = objectInputStream.readObject();
-            objectInputStream.close();
-            return object;
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
     public static void writeString(String string, Charset charset, Output output) {
         byte[] bytes;
         try {
@@ -86,10 +56,5 @@ public abstract class KryoSerializationUtil {
         int length = input.readInt(true);
         input.skip(length);
     }
-
-    public static void skipLong(Input input) {
-        input.skip(8);
-    }
-
 
 }
