@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
@@ -25,6 +26,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.latest.LatestStrategy;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
+import org.apache.ivy.plugins.version.*;
 import org.apache.ivy.util.ChecksumHelper;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
@@ -39,6 +41,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveEx
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyResolverIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -86,6 +89,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     private RepositoryArtifactCache repositoryCacheManager;
     private String changingMatcherName;
     private String changingPattern;
+    private VersionMatcher versionMatcher;
 
     private final ExternalResourceRepository repository;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
@@ -197,7 +201,26 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     }
 
     private VersionMatcher getVersionMatcher() {
-        return new DefaultVersionMatcherAdapter(getSettings().getVersionMatcher());
+        if (versionMatcher == null) {
+            versionMatcher = createVersionMatcher();
+        }
+        return versionMatcher;
+    }
+
+    private VersionMatcher createVersionMatcher() {
+        List<AbstractVersionMatcher> matchers = Lists.newArrayList();
+        matchers.add(new ExactVersionMatcher());
+        matchers.add(new LatestVersionMatcher());
+        matchers.add(new SubVersionMatcher());
+        matchers.add(new VersionRangeMatcher());
+
+        ChainVersionMatcher chain = new ChainVersionMatcher();
+        for (AbstractVersionMatcher matcher : matchers) {
+            matcher.setSettings((IvySettings) getSettings());
+            chain.add(matcher);
+        }
+
+        return new DefaultVersionMatcherAdapter(chain);
     }
 
     private MutableModuleVersionMetaData getArtifactMetadata(Artifact artifact, ExternalResource resource) {
@@ -329,7 +352,6 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
 
     private ResolvedArtifact findLatestResource(ModuleRevisionId mrid, VersionList versions, Artifact artifact, boolean forDownload) {
         String name = getName();
-        VersionMatcher versionMatcher = getVersionMatcher();
         ModuleVersionIdentifier requestedVersion = DefaultModuleVersionIdentifier.newId(mrid);
 
         for (VersionList.ListedVersion listedVersion : versions.sortLatestFirst(getLatestStrategy())) {
@@ -338,12 +360,12 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
             ModuleRevisionId foundMrid = ModuleRevisionId.newInstance(mrid, version);
             ModuleVersionIdentifier foundVersion = DefaultModuleVersionIdentifier.newId(foundMrid);
 
-            if (!versionMatcher.accept(requestedVersion, foundVersion)) {
+            if (!getVersionMatcher().accept(requestedVersion, foundVersion)) {
                 LOGGER.debug(name + ": rejected by version matcher: " + version);
                 continue;
             }
 
-            boolean needsMetadata = versionMatcher.needModuleMetadata(requestedVersion, foundVersion);
+            boolean needsMetadata = getVersionMatcher().needModuleMetadata(requestedVersion, foundVersion);
             artifact = DefaultArtifact.cloneWithAnotherMrid(artifact, foundMrid);
             String resourcePath = listedVersion.getPattern().toPath(artifact);
             ExternalResource resource = getResource(resourcePath, artifact.getId(), forDownload || needsMetadata);
@@ -361,7 +383,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
                     continue;
                 }
                 metadataProcessor.process(new ModuleDetailsAdapter(metaData));
-                if (!versionMatcher.accept(requestedVersion, metaData)) {
+                if (!getVersionMatcher().accept(requestedVersion, metaData)) {
                     LOGGER.debug(name + ": md rejected by version matcher: " + description);
                     discardResource(resource);
                     continue;
