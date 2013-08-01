@@ -27,10 +27,6 @@ public class ChainVersionMatcher implements VersionMatcher {
         matchers.add(matcher);
     }
 
-    public String getName() {
-        return "chain";
-    }
-
     public boolean isDynamic(ModuleVersionIdentifier module) {
         for (VersionMatcher matcher : matchers) {
             if (matcher.isDynamic(module)) {
@@ -38,15 +34,6 @@ public class ChainVersionMatcher implements VersionMatcher {
             }
         }
         return false;
-    }
-
-    public int compare(ModuleVersionIdentifier requested, ModuleVersionIdentifier found, Comparator comparator) {
-        for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(requested)) {
-                return matcher.compare(requested, found, comparator);
-            }
-        }
-        throw new IllegalArgumentException("cannot compare module versions because requested version is not dynamic: " + requested);
     }
 
     public boolean accept(ModuleVersionIdentifier requested, ModuleVersionIdentifier found) {

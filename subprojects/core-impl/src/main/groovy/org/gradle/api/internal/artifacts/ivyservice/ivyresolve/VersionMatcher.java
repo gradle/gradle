@@ -48,29 +48,4 @@ public interface VersionMatcher {
      * implementation being: return accept(askedMrid, foundMD.getResolvedModuleRevisionId());
      */
     public boolean accept(ModuleVersionIdentifier requested, ModuleVersionMetaData found);
-
-    /**
-     * Compares a dynamic revision (askedMrid) with a static one (foundMrid) to indicate which one
-     * should be considered the greater. If there is not enough information to know which one is the
-     * greater, the dynamic one should be considered greater and this method should return 0. This
-     * method should never be called with a askdeMrid for which isDynamic returns false.
-     *
-     * @param askedMrid
-     *            the dynamic revision to compare
-     * @param foundMrid
-     *            the static revision to compare
-     * @param staticComparator
-     *            a comparator which can be used to compare static revisions
-     * @return 0 if it's not possible to know which one is greater, greater than 0 if askedMrid
-     *         should be considered greater, lower than 0 if it can't be consider greater
-     */
-    public int compare(ModuleVersionIdentifier requested, ModuleVersionIdentifier found,
-                       Comparator staticComparator);
-
-    /**
-     * Returns the version matcher name identifying this version matcher
-     *
-     * @return the version matcher name identifying this version matcher
-     */
-    public String getName();
 }

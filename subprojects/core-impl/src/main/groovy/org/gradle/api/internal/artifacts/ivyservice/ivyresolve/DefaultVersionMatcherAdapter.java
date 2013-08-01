@@ -18,8 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
-import java.util.Comparator;
-
 public class DefaultVersionMatcherAdapter implements VersionMatcher {
     private final org.apache.ivy.plugins.version.VersionMatcher delegate;
 
@@ -41,14 +39,6 @@ public class DefaultVersionMatcherAdapter implements VersionMatcher {
 
     public boolean accept(ModuleVersionIdentifier requested, ModuleVersionMetaData found) {
         return delegate.accept(toRevision(requested), found.getDescriptor());
-    }
-
-    public int compare(ModuleVersionIdentifier requested, ModuleVersionIdentifier found, Comparator comparator) {
-        return delegate.compare(toRevision(requested), toRevision(found), comparator);
-    }
-
-    public String getName() {
-        return delegate.getName();
     }
 
     private static ModuleRevisionId toRevision(ModuleVersionIdentifier version) {
