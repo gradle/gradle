@@ -16,22 +16,148 @@
 
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.BuildAction
-import spock.lang.Specification
+import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.internal.consumer.async.AsyncConnection
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
+import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
+import org.gradle.tooling.model.GradleProject
 
-class DefaultBuildActionExecuterTest extends Specification {
+class DefaultBuildActionExecuterTest extends ConcurrentSpec {
+    def asyncConnection = Mock(AsyncConnection)
+    def connection = Mock(ConsumerConnection)
+    def parameters = Mock(ConnectionParameters)
     def action = Mock(BuildAction)
-    def executer = new DefaultBuildActionExecuter(action, Stub(ConnectionParameters))
+    def executer = new DefaultBuildActionExecuter(action, asyncConnection, parameters)
 
     def "executes action and returns result"() {
+        ResultHandlerVersion1<GradleProject> adaptedHandler
+        ResultHandler<GradleProject> handler = Mock()
+        GradleProject result = Mock()
+
         when:
-        def result = executer.run()
+        executer.run(handler)
 
         then:
-        result == 'result'
+        1 * asyncConnection.run(!null, !null) >> {args ->
+            AsyncConnection.ConnectionAction<GradleProject> action = args[0]
+            action.run(connection)
+            adaptedHandler = args[1]
+        }
+        1 * action.execute(_) >> result
 
-        and:
-        1 * action.execute(_) >> 'result'
+        when:
+        adaptedHandler.onComplete(result)
+
+        then:
+        1 * handler.onComplete(result)
         0 * _._
     }
+
+    def "notifies handler of failure"() {
+        ResultHandlerVersion1<GradleProject> adaptedHandler
+        ResultHandler<GradleProject> handler = Mock()
+        RuntimeException failure = new RuntimeException()
+        GradleConnectionException wrappedFailure
+
+        when:
+        executer.run(handler)
+
+        then:
+        1 * asyncConnection.run(!null, !null) >> {args ->
+            adaptedHandler = args[1]
+            adaptedHandler.onFailure(failure)
+        }
+
+        and:
+        1 * handler.onFailure(!null) >> {args -> wrappedFailure = args[0] }
+        _ * asyncConnection.displayName >> '[connection]'
+        wrappedFailure.message == 'Could not run build action using [connection].'
+        wrappedFailure.cause.is(failure)
+        0 * _._
+    }
+
+    def "running action does not block"() {
+        GradleProject result = Mock()
+        ResultHandler<GradleProject> handler = Mock()
+
+        given:
+        asyncConnection.run(!null, !null) >> { args ->
+            def wrappedHandler = args[1]
+            start {
+                thread.blockUntil.dispatched
+                instant.resultAvailable
+                wrappedHandler.onComplete(result)
+            }
+        }
+        handler.onComplete(result) >> {
+            instant.resultReceived
+        }
+
+        when:
+        async {
+            executer.run(handler)
+            instant.dispatched
+            thread.blockUntil.resultReceived
+        }
+
+        then:
+        instant.dispatched < instant.resultAvailable
+        instant.resultAvailable < instant.resultReceived
+    }
+
+    def "run() blocks until result is available"() {
+        GradleProject result = Mock()
+
+        given:
+        asyncConnection.run(!null, !null) >> { args ->
+            def handler = args[1]
+            start {
+                thread.block()
+                instant.resultAvailable
+                handler.onComplete(result)
+            }
+        }
+
+        when:
+        def model
+        operation.fetchResult {
+            model = executer.run()
+        }
+
+        then:
+        model == result
+
+        and:
+        operation.fetchResult.end > instant.resultAvailable
+    }
+
+    def "run() blocks until request fails"() {
+        RuntimeException failure = new RuntimeException()
+
+        given:
+        asyncConnection.run(!null, !null) >> { args ->
+            def handler = args[1]
+            start {
+                thread.block()
+                instant.failureAvailable
+                handler.onFailure(failure)
+            }
+        }
+
+        when:
+        operation.fetchResult {
+            executer.run()
+        }
+
+        then:
+        GradleConnectionException e = thrown()
+        e.cause.is(failure)
+
+        and:
+        operation.fetchResult.end > instant.failureAvailable
+    }
+
 }

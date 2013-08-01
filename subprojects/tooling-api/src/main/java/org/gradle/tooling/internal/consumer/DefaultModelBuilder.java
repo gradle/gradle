@@ -19,6 +19,7 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
@@ -47,21 +48,30 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
     }
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
-        connection.run(modelType, operationParameters, new ResultHandlerAdapter<T>(handler) {
-            @Override
-            protected String connectionFailureMessage(Throwable failure) {
-                String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
-                if (!(failure instanceof UnsupportedMethodException)
-                        && failure instanceof UnsupportedOperationException) {
-                    message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
-                }
-                return message;
+        connection.run(new AsyncConnection.ConnectionAction<T>() {
+            public T run(ConsumerConnection connection) {
+                return connection.run(modelType, operationParameters);
             }
-        });
+        }, new ResultHandlerAdapter<T>(handler));
     }
 
     public DefaultModelBuilder<T> forTasks(String... tasks) {
         operationParameters.setTasks(Arrays.asList(tasks));
         return this;
+    }
+
+    private class ResultHandlerAdapter<T> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<T> {
+        public ResultHandlerAdapter(ResultHandler<? super T> handler) {
+            super(handler);
+        }
+
+        @Override
+        protected String connectionFailureMessage(Throwable failure) {
+            String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
+            if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
+                message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
+            }
+            return message;
+        }
     }
 }

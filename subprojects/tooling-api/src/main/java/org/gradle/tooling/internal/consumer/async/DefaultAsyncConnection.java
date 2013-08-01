@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.async;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
@@ -45,28 +44,20 @@ public class DefaultAsyncConnection implements AsyncConnection {
         return connection.getVersionDetails();
     }
 
-    public <T> void run(final Class<T> type, final ConsumerOperationParameters operationParameters, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException {
-        runLater(handler, new ConnectionAction<T>() {
-            public T run() {
-                return connection.run(type, operationParameters);
-            }
-        });
-    }
-
     public void stop() {
         closed.set(true);
         executor.stop();
         connection.stop();
     }
 
-    private <T> void runLater(final ResultHandlerVersion1<? super T> handler, final ConnectionAction<T> action) {
+    public <T> void run(final AsyncConnection.ConnectionAction<? extends T> action, final ResultHandlerVersion1<? super T> handler) {
         onStartOperation();
 
         executor.execute(new Runnable() {
             public void run() {
                 T result;
                 try {
-                    result = action.run();
+                    result = action.run(connection);
                 } catch (Throwable t) {
                     handler.onFailure(t);
                     return;
@@ -80,9 +71,5 @@ public class DefaultAsyncConnection implements AsyncConnection {
         if (closed.get()) {
             throw new IllegalStateException("This connection has been closed.");
         }
-    }
-
-    private interface ConnectionAction<T> {
-        T run();
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.Task;
 
@@ -66,11 +67,21 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        connection.run(Void.class, operationParameters, new ResultHandlerAdapter<Void>(handler) {
-            @Override
-            protected String connectionFailureMessage(Throwable failure) {
-                return String.format("Could not execute build using %s.", connection.getDisplayName());
+        connection.run(new AsyncConnection.ConnectionAction<Void>() {
+            public Void run(ConsumerConnection connection) {
+                return connection.run(Void.class, operationParameters);
             }
-        });
+        }, new ResultHandlerAdapter(handler));
+    }
+
+    private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
+        public ResultHandlerAdapter(ResultHandler<? super Void> handler) {
+            super(handler);
+        }
+
+        @Override
+        protected String connectionFailureMessage(Throwable failure) {
+            return String.format("Could not execute build using %s.", connection.getDisplayName());
+        }
     }
 }

@@ -19,18 +19,21 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.consumer.async.AsyncConnection
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.internal.Exceptions
 
 class DefaultModelBuilderTest extends ConcurrentSpec {
-    final AsyncConnection protocolConnection = Mock()
+    final AsyncConnection asyncConnection = Mock()
+    final ConsumerConnection connection = Mock()
     final ConnectionParameters parameters = Mock()
-    final DefaultModelBuilder<GradleProject> builder = new DefaultModelBuilder<GradleProject>(GradleProject, protocolConnection, parameters)
+    final DefaultModelBuilder<GradleProject> builder = new DefaultModelBuilder<GradleProject>(GradleProject, asyncConnection, parameters)
 
-    def getModelDelegatesToProtocolConnectionToFetchModel() {
-        ResultHandlerVersion1<ProjectVersion3> adaptedHandler
+    def "requests model from consumer connection"() {
+        ResultHandlerVersion1<GradleProject> adaptedHandler
         ResultHandler<GradleProject> handler = Mock()
         GradleProject result = Mock()
 
@@ -38,13 +41,22 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         builder.get(handler)
 
         then:
-        1 * protocolConnection.run(GradleProject, !null, !null) >> {args ->
-            def params = args[1]
+        1 * asyncConnection.run(!null, !null) >> {args ->
+            AsyncConnection.ConnectionAction<GradleProject> action = args[0]
+            action.run(connection)
+            adaptedHandler = args[1]
+        }
+        1 * connection.run(GradleProject, _) >> {args ->
+            ConsumerOperationParameters params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
+            assert params.standardInput == null
+            assert params.javaHome == null
+            assert params.jvmArguments == null
+            assert params.arguments == null
             assert params.progressListener != null
             assert params.tasks == null
-            adaptedHandler = args[2]
+            return result
         }
 
         when:
@@ -55,7 +67,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def canConfigureTheOperation() {
+    def "can configure the operation"() {
         ResultHandler<GradleProject> handler = Mock()
         ResultHandlerVersion1<ProjectVersion3> adaptedHandler
         GradleProject result = Mock()
@@ -64,13 +76,18 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         builder.forTasks('a', 'b').get(handler)
 
         then:
-        1 * protocolConnection.run(GradleProject, !null, !null) >> {args ->
-            def params = args[1]
+        1 * asyncConnection.run(!null, !null) >> {args ->
+            AsyncConnection.ConnectionAction<GradleProject> action = args[0]
+            action.run(connection)
+            adaptedHandler = args[1]
+        }
+        1 * connection.run(GradleProject, _) >> {args ->
+            ConsumerOperationParameters params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
             assert params.progressListener != null
             assert params.tasks == ['a', 'b']
-            adaptedHandler = args[2]
+            return result
         }
 
         when:
@@ -81,7 +98,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def getModelWrapsFailureToFetchModel() {
+    def "wraps failure to fetch model"() {
         ResultHandler<GradleProject> handler = Mock()
         ResultHandlerVersion1<ProjectVersion3> adaptedHandler
         RuntimeException failure = new RuntimeException()
@@ -91,14 +108,16 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         builder.get(handler)
 
         then:
-        1 * protocolConnection.run(!null, !null, !null) >> {args -> adaptedHandler = args[2]}
+        1 * asyncConnection.run(!null, !null) >> {args ->
+            adaptedHandler = args[1]
+        }
 
         when:
         adaptedHandler.onFailure(failure)
 
         then:
         1 * handler.onFailure(!null) >> {args -> wrappedFailure = args[0] }
-        _ * protocolConnection.displayName >> '[connection]'
+        _ * asyncConnection.displayName >> '[connection]'
         wrappedFailure.message == 'Could not fetch model of type \'GradleProject\' using [connection].'
         wrappedFailure.cause.is(failure)
         0 * _._
@@ -114,7 +133,9 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         builder.get(handler)
 
         then:
-        1 * protocolConnection.run(!null, !null, !null) >> {args -> adaptedHandler = args[2]}
+        1 * asyncConnection.run(!null, !null) >> {args ->
+            adaptedHandler = args[1]
+        }
 
         when:
         adaptedHandler.onFailure(failure)
@@ -125,22 +146,51 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         wrappedFailure.cause.is(failure)
     }
 
-    def getModelBlocksUntilResultReceivedFromProtocolConnection() {
+    def "fetching model does not block"() {
+        GradleProject result = Mock()
+        ResultHandler<GradleProject> handler = Mock()
+
+        given:
+        asyncConnection.run(!null, !null) >> { args ->
+            def wrappedHandler = args[1]
+            start {
+                thread.blockUntil.dispatched
+                instant.resultAvailable
+                wrappedHandler.onComplete(result)
+            }
+        }
+        handler.onComplete(result) >> {
+            instant.resultReceived
+        }
+
+        when:
+        async {
+            builder.get(handler)
+            instant.dispatched
+            thread.blockUntil.resultReceived
+        }
+
+        then:
+        instant.dispatched < instant.resultAvailable
+        instant.resultAvailable < instant.resultReceived
+    }
+
+    def "get() blocks until model is available"() {
         GradleProject result = Mock()
 
         given:
-        protocolConnection.run(!null, !null, !null) >> { args ->
-            def handler = args[2]
+        asyncConnection.run(!null, !null) >> { args ->
+            def handler = args[1]
             start {
                 thread.block()
-                instant.handleResult
+                instant.resultAvailable
                 handler.onComplete(result)
             }
         }
 
         when:
         def model
-        operation.buildResult {
+        operation.fetchResult {
             model = builder.get()
         }
 
@@ -148,24 +198,24 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         model == result
 
         and:
-        operation.buildResult.end > instant.handleResult
+        operation.fetchResult.end > instant.resultAvailable
     }
 
-    def getModelBlocksUntilFailureReceivedFromProtocolConnectionAndRethrowsFailure() {
+    def "get() blocks until request fails"() {
         RuntimeException failure = new RuntimeException()
 
         given:
-        protocolConnection.run(!null, !null, !null) >> { args ->
-            def handler = args[2]
+        asyncConnection.run(!null, !null) >> { args ->
+            def handler = args[1]
             start {
                 thread.block()
-                instant.handlingResult
+                instant.failureAvailable
                 handler.onFailure(failure)
             }
         }
 
         when:
-        operation.buildResult {
+        operation.fetchResult {
             builder.get()
         }
 
@@ -174,7 +224,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         e.cause.is(failure)
 
         and:
-        operation.buildResult.end > instant.handlingResult
+        operation.fetchResult.end > instant.failureAvailable
     }
 }
 

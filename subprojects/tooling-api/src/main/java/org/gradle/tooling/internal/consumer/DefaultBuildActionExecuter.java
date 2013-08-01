@@ -17,14 +17,18 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.*;
+import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<DefaultBuildActionExecuter<T>> implements BuildActionExecuter<T> {
     private final BuildAction<T> buildAction;
+    private final AsyncConnection connection;
 
-    public DefaultBuildActionExecuter(BuildAction<T> buildAction, ConnectionParameters parameters) {
+    public DefaultBuildActionExecuter(BuildAction<T> buildAction, AsyncConnection connection, ConnectionParameters parameters) {
         super(new ConsumerOperationParameters(parameters));
         this.buildAction = buildAction;
+        this.connection = connection;
     }
 
     @Override
@@ -33,11 +37,23 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
     }
 
     public T run() throws GradleConnectionException {
-        return buildAction.execute(new BuildController() {
-        });
+        BlockingResultHandler<Object> handler = new BlockingResultHandler<Object>(Object.class);
+        run(handler);
+        return (T) handler.getResult();
     }
 
     public void run(ResultHandler<? super T> handler) throws IllegalStateException {
-        throw new UnsupportedOperationException();
+        connection.run(new AsyncConnection.ConnectionAction<T>() {
+                           public T run(ConsumerConnection connection) {
+                               return buildAction.execute(new BuildController() {
+                               });
+                           }
+                       }, new ResultHandlerAdapter<T>(handler) {
+                           @Override
+                           protected String connectionFailureMessage(Throwable failure) {
+                               return String.format("Could not run build action using %s.", connection.getDisplayName());
+                           }
+                       }
+        );
     }
 }

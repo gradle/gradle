@@ -15,16 +15,26 @@
  */
 package org.gradle.tooling.internal.consumer.async;
 
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
 public interface AsyncConnection {
-    <T> void run(Class<T> type, ConsumerOperationParameters operationParameters, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException, IllegalStateException;
+    /**
+     * Runs some operation asynchronously against a consumer connection, and notifies the provided handler when complete.
+     */
+    <T> void run(ConnectionAction<? extends T> action, ResultHandlerVersion1<? super T> handler);
 
+    /**
+     * Stops this connection, blocking until all operations on the connection have completed.
+     */
     void stop();
 
     String getDisplayName();
-    
+
     VersionDetails getVersionDetails();
+
+    interface ConnectionAction<T> {
+        T run(ConsumerConnection connection);
+    }
 }
