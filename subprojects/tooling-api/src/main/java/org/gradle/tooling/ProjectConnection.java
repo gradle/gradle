@@ -15,6 +15,8 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
+
 /**
  * Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.
  *
@@ -97,6 +99,18 @@ public interface ProjectConnection {
      * @since 1.0-milestone-3
      */
     <T> ModelBuilder<T> model(Class<T> modelType);
+
+    /**
+     * Creates an executer which can be used to run the given action. The action is serialized into the build
+     * process and executed, then its result is serialized back to the caller.
+     *
+     * @param buildAction The action to run.
+     * @param <T> The result type.
+     * @return The builder.
+     * @since 1.8
+     */
+    @Incubating
+    <T> BuildActionExecuter<T> action(BuildAction<T> buildAction);
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

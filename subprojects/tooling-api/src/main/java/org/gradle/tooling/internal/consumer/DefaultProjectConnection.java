@@ -15,10 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.ModelBuilder;
-import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.*;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 
 class DefaultProjectConnection implements ProjectConnection {
@@ -52,4 +49,9 @@ class DefaultProjectConnection implements ProjectConnection {
         }
         return new DefaultModelBuilder<T>(modelType, connection, parameters);
     }
+
+    public <T> BuildActionExecuter<T> action(final BuildAction<T> buildAction) {
+        return new DefaultBuildActionExecuter<T>(buildAction);
+    }
+
 }

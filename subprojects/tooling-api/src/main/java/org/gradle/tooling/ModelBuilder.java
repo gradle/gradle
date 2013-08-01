@@ -70,7 +70,7 @@ public interface ModelBuilder<T> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
-     * @since 1.0-rc-1
+     * @since 1.0
      */
     ModelBuilder<T> withArguments(String ... arguments);
 

@@ -105,7 +105,7 @@ public interface BuildLauncher extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
-     * @since 1.0-rc-1
+     * @since 1.0
      */
     BuildLauncher withArguments(String ... arguments);
 
