@@ -41,6 +41,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveEx
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChainVersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyResolverIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExactVersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
@@ -213,13 +214,13 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         matchers.add(new VersionRangeMatcher());
         matchers.add(new SubVersionMatcher());
         matchers.add(new LatestVersionMatcher());
-        matchers.add(new ExactVersionMatcher());
 
         ChainVersionMatcher chain = new ChainVersionMatcher();
         for (AbstractVersionMatcher matcher : matchers) {
             matcher.setSettings((IvySettings) getSettings());
             chain.add(new DefaultVersionMatcherAdapter(matcher));
         }
+        chain.add(new ExactVersionMatcher());
 
         return chain;
     }
