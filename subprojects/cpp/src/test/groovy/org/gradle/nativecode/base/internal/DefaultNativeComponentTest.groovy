@@ -57,7 +57,7 @@ class DefaultNativeComponentTest extends Specification {
         component.flavors == [Flavor.DEFAULT] as Set
     }
 
-    def "flavors can be added"() {
+    def "flavors can be added and will replace default flavor"() {
         when:
         component.flavors({
             it.create("flavor1")
@@ -68,7 +68,7 @@ class DefaultNativeComponentTest extends Specification {
         component.flavors.create("flavor3")
 
         then:
-        component.flavors == [Flavor.DEFAULT, flavor("flavor1"), flavor("flavor2"), flavor("flavor3")] as Set
+        component.flavors == [flavor("flavor1"), flavor("flavor2"), flavor("flavor3")] as Set
     }
 
     def flavor(String name) {

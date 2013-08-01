@@ -119,33 +119,33 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     def "variants"() {
         when:
         sample variants
-        run "installEnglishExecutable"
+        run "installEnglishMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloEnglishSharedLibraryLibCpp", ":linkHelloEnglishSharedLibrary", ":helloEnglishSharedLibrary"
-        executedAndNotSkipped ":compileEnglishExecutableExeCpp", ":linkEnglishExecutable", ":englishExecutable"
+        executedAndNotSkipped ":compileEnglishHelloSharedLibraryLibCpp", ":linkEnglishHelloSharedLibrary", ":englishHelloSharedLibrary"
+        executedAndNotSkipped ":compileEnglishMainExecutableExeCpp", ":linkEnglishMainExecutable", ":englishMainExecutable"
 
         and:
-        executable("cpp/variants/build/binaries/englishExecutable/english").assertExists()
-        sharedLibrary("cpp/variants/build/binaries/helloEnglishSharedLibrary/helloEnglish").assertExists()
+        executable("cpp/variants/build/binaries/mainExecutable/english/main").assertExists()
+        sharedLibrary("cpp/variants/build/binaries/helloSharedLibrary/english/hello").assertExists()
 
         and:
-        normaliseLineSeparators(executable("cpp/variants/build/install/englishExecutable/english").exec().out) == "Hello world!\n"
+        normaliseLineSeparators(installation("cpp/variants/build/install/mainExecutable/english").exec().out) == "Hello world!\n"
 
         when:
         sample variants
-        run "installFrenchExecutable"
+        run "installFrenchMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloFrenchStaticLibraryLibCpp", ":createHelloFrenchStaticLibrary", ":helloFrenchStaticLibrary"
-        executedAndNotSkipped ":compileFrenchExecutableExeCpp", ":linkFrenchExecutable", ":frenchExecutable"
+        executedAndNotSkipped ":compileFrenchHelloSharedLibraryLibCpp", ":linkFrenchHelloSharedLibrary", ":frenchHelloSharedLibrary"
+        executedAndNotSkipped ":compileFrenchMainExecutableExeCpp", ":linkFrenchMainExecutable", ":frenchMainExecutable"
 
         and:
-        executable("cpp/variants/build/binaries/frenchExecutable/french").assertExists()
-        staticLibrary("cpp/variants/build/binaries/helloFrenchStaticLibrary/helloFrench").assertExists()
+        executable("cpp/variants/build/binaries/mainExecutable/french/main").assertExists()
+        sharedLibrary("cpp/variants/build/binaries/helloSharedLibrary/french/hello").assertExists()
 
         and:
-        normaliseLineSeparators(executable("cpp/variants/build/install/frenchExecutable/french").exec().out) == "Bonjour monde!\n"
+        normaliseLineSeparators(installation("cpp/variants/build/install/mainExecutable/french").exec().out) == "Bonjour monde!\n"
     }
 
     def multiProject() {

@@ -15,20 +15,34 @@
  */
 
 package org.gradle.nativecode.base.internal
-
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativecode.base.Executable
 import spock.lang.Specification
 
 class DefaultExecutableBinaryTest extends Specification {
-    def "has useful string representation"() {
-        def executable = Stub(Executable) {
-            getName() >> "bigExe"
-        }
-        def binary = new DefaultExecutableBinary(executable, new DefaultFlavor("default"), Stub(ToolChainInternal))
-        def flavoredBinary = new DefaultExecutableBinary(executable, new DefaultFlavor("theFlavor"), Stub(ToolChainInternal))
+    def flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
 
-        expect:
-        binary.toString() == "executable 'bigExe'"
-        flavoredBinary.toString() == "executable 'theFlavorBigExe'"
+    def "has useful string representation"() {
+        given:
+        def executable = Stub(Executable) {
+            getName() >> "bigOne"
+            getFlavors() >> flavorContainer
+        }
+        flavorContainer.add(new DefaultFlavor("flavorOne"))
+
+        when:
+        def binary = new DefaultExecutableBinary(executable, new DefaultFlavor("flavorOne"), Stub(ToolChainInternal))
+
+        then:
+        binary.toString() == "executable 'bigOneExecutable'"
+
+        when:
+        flavorContainer.add(new DefaultFlavor("flavorTwo"))
+
+        and:
+        def flavoredBinary = new DefaultExecutableBinary(executable, new DefaultFlavor("flavorTwo"), Stub(ToolChainInternal))
+
+        then:
+        flavoredBinary.toString() == "executable 'flavorTwoBigOneExecutable'"
     }
 }

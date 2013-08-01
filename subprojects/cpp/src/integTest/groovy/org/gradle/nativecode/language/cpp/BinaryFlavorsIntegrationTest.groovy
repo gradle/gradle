@@ -24,58 +24,65 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
+
+        write("main", helloWorldApp.mainSource)
+        write("hello", helloWorldApp.libraryHeader)
+        helloWorldApp.librarySources.each {
+            write("hello", it)
+        }
     }
 
-     def "build multiple flavors of executable binary"() {
-        given:
-        helloWorldApp.sourceFiles.each { sourceFile ->
-            write("main", sourceFile)
-        }
-
-        and:
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+     def "build multiple flavors of executable binary and link library with no defined flavor"() {
+        when:
         buildFile << """
             apply plugin: "cpp"
             sources {
                 main {}
+                hello {}
+            }
+            libraries {
+                hello {
+                    source sources.hello
+                    binaries.withType(StaticLibraryBinary) {
+                        define "FRENCH"
+                    }
+                }
             }
             executables {
                 main {
                     source sources.main
                     flavors {
+                        english {}
                         french {}
                     }
                     binaries.all {
                         if (flavor == flavors.french) {
-                            define "FRENCH"
+                            lib libraries.hello.static
+                        } else {
+                            lib libraries.hello.shared
                         }
                     }
                 }
             }
         """
 
-        when:
-        succeeds "mainExecutable"
+        and:
+        succeeds "installEnglishMainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
+        installation("build/install/mainExecutable/english").exec().out == helloWorldApp.englishOutput
 
         when:
-        succeeds "frenchMainExecutable"
+        succeeds "installFrenchMainExecutable"
 
         then:
-        executable("build/binaries/frenchMainExecutable/main").exec().out == helloWorldApp.frenchOutput
+        installation("build/install/mainExecutable/french").exec().out == helloWorldApp.frenchOutput
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build multiple flavors of shared library binary and link into executable with same flavor"() {
-        given:
-        write("main", helloWorldApp.mainSource)
-        write("hello", helloWorldApp.libraryHeader)
-        helloWorldApp.librarySources.each {
-            write("hello", it)
-        }
-
-        and:
+        when:
         buildFile << """
             apply plugin: "cpp"
             sources {
@@ -86,6 +93,7 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
                 hello {
                     source sources.hello
                     flavors {
+                        english {}
                         french {}
                     }
                     binaries.all {
@@ -99,6 +107,7 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
                 main {
                     source sources.main
                     flavors {
+                        english {}
                         french {}
                     }
                     binaries.all {
@@ -108,32 +117,21 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
             }
         """
 
-        when:
-        succeeds "installMainExecutable"
+        and:
+        succeeds "installEnglishMainExecutable"
 
         then:
-        def install = installation("build/install/mainExecutable")
-        install.assertInstalled()
-        install.exec().out == helloWorldApp.englishOutput
+        installation("build/install/mainExecutable/english").assertInstalled().exec().out == helloWorldApp.englishOutput
 
         when:
         succeeds "installFrenchMainExecutable"
 
         then:
-        def frenchInstall = installation("build/install/frenchMainExecutable")
-        frenchInstall.assertInstalled()
-        frenchInstall.exec().out == helloWorldApp.frenchOutput
+        installation("build/install/mainExecutable/french").assertInstalled().exec().out == helloWorldApp.frenchOutput
     }
 
     def "build multiple flavors of static library binary and link into executable with same flavor"() {
-        given:
-        write("main", helloWorldApp.mainSource)
-        write("hello", helloWorldApp.libraryHeader)
-        helloWorldApp.librarySources.each {
-            write("hello", it)
-        }
-
-        and:
+        when:
         buildFile << """
             apply plugin: "cpp"
             sources {
@@ -144,6 +142,7 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
                 hello {
                     source sources.hello
                     flavors {
+                        english {}
                         french {}
                     }
                     binaries.all {
@@ -157,6 +156,7 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
                 main {
                     source sources.main
                     flavors {
+                        english {}
                         french {}
                     }
                     binaries.all {
@@ -166,27 +166,20 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
             }
         """
 
-        when:
-        succeeds "mainExecutable"
+        and:
+        succeeds "englishMainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
+        executable("build/binaries/mainExecutable/english/main").exec().out == helloWorldApp.englishOutput
 
         when:
         succeeds "frenchMainExecutable"
 
         then:
-        executable("build/binaries/frenchMainExecutable/main").exec().out == helloWorldApp.frenchOutput
+        executable("build/binaries/mainExecutable/french/main").exec().out == helloWorldApp.frenchOutput
     }
 
     def "build fails when library has no matching flavour"() {
-        given:
-        write("main", helloWorldApp.mainSource)
-        write("hello", helloWorldApp.libraryHeader)
-        helloWorldApp.librarySources.each {
-            write("hello", it)
-        }
-
         when:
         buildFile << """
             apply plugin: "cpp"
@@ -198,6 +191,7 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
                 hello {
                     source sources.hello
                     flavors {
+                        english {}
                         french {}
                     }
                 }
@@ -206,6 +200,7 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
                 main {
                     source sources.main
                     flavors {
+                        english {}
                         german {}
                     }
                     binaries.all {

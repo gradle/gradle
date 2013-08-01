@@ -24,7 +24,7 @@ import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryNamingScheme;
-import org.gradle.language.base.internal.TaskNamerForBinaries;
+import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativecode.base.Flavor;
 import org.gradle.nativecode.base.NativeComponent;
 import org.gradle.nativecode.base.NativeDependencySet;
@@ -42,22 +42,23 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final ArrayList<Object> assemblerArgs = new ArrayList<Object>();
     private final ArrayList<Object> linkerArgs = new ArrayList<Object>();
     private final ArrayList<Object> defines = new ArrayList<Object>();
-    private final TaskNamerForBinaries namer;
-    private final String shortName;
-    private final String typeWords;
-    private final String name;
+    private final DefaultBinaryNamingScheme namer;
+    private final String description;
     private final Flavor flavor;
     private final ToolChainInternal toolChain;
     private BuildBinaryTask builderTask;
     private File outputFile;
 
     protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, String typeString, ToolChainInternal toolChain) {
-        this.shortName = flavor.isDefault() ? owner.getName() : GUtil.toLowerCamelCase(String.format("%s %s", flavor.getName(), owner.getName()));
-        this.name = shortName + StringUtils.capitalize(typeString);
-        this.typeWords = GUtil.toWords(typeString);
+        // TODO:DAZ Would be better to inject the Namer here, rather than trying to construct out of context
+        // TODO:DAZ Make static/shared a dimension in the variant space, rather than a special case
+        String baseName = owner.getName() + StringUtils.capitalize(typeString);
+        List<String> nameDimensions = owner.getFlavors().size() > 1 ? Collections.singletonList(flavor.getName()) : Collections.<String>emptyList();
+        namer = new DefaultBinaryNamingScheme(baseName, nameDimensions);
+
         this.flavor = flavor;
         this.toolChain = toolChain;
-        namer = new TaskNamerForBinaries(name);
+        this.description = String.format("%s '%s'", GUtil.toWords(typeString), namer.getLifecycleTaskName());
         owner.getSource().all(new Action<LanguageSourceSet>() {
             public void execute(LanguageSourceSet sourceSet) {
                 source.add(sourceSet);
@@ -67,7 +68,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
 
     @Override
     public String toString() {
-        return String.format("%s '%s'", typeWords, shortName);
+        return description;
     }
 
     public Flavor getFlavor() {
@@ -84,7 +85,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     }
 
     public String getName() {
-        return name;
+        return namer.getLifecycleTaskName();
     }
 
     public ToolChainInternal getToolChain() {

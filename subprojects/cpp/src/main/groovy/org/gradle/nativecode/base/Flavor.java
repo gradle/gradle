@@ -25,10 +25,10 @@ import org.gradle.nativecode.base.internal.DefaultFlavor;
  */
 @Incubating
 public interface Flavor extends Named {
-    Flavor DEFAULT = new DefaultFlavor("default");
+    Flavor DEFAULT = new DefaultFlavor("default", true);
 
     /**
-     * Is this the default variant for the component?
+     * Is this the automatically created default flavor for the component?
      */
     boolean isDefault();
 }

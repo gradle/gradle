@@ -20,13 +20,23 @@ import org.gradle.nativecode.base.Flavor;
 
 public class DefaultFlavor implements Flavor {
     private final String name;
+    private final boolean isDefault;
 
     public DefaultFlavor(String name) {
+        this(name, false);
+    }
+
+    public DefaultFlavor(String name, boolean isDefault) {
         this.name = name;
+        this.isDefault = isDefault;
     }
 
     public String getName() {
         return name;
+    }
+
+    public boolean isDefault() {
+        return isDefault;
     }
 
     @Override
@@ -51,9 +61,5 @@ public class DefaultFlavor implements Flavor {
     @Override
     public int hashCode() {
         return name.hashCode();
-    }
-
-    public boolean isDefault() {
-        return Flavor.DEFAULT.getName().equals(name);
     }
 }

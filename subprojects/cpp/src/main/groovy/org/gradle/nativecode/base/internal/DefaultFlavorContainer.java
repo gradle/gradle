@@ -21,9 +21,33 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativecode.base.Flavor;
 import org.gradle.nativecode.base.FlavorContainer;
 
+import java.util.Collection;
+
 public class DefaultFlavorContainer extends AbstractNamedDomainObjectContainer<Flavor> implements FlavorContainer {
+    boolean hasDefault;
     public DefaultFlavorContainer(Instantiator instantiator) {
         super(Flavor.class, instantiator);
+        add(Flavor.DEFAULT);
+        hasDefault = true;
+    }
+
+    @Override
+    public boolean add(Flavor o) {
+        removeDefault();
+        return super.add(o);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends Flavor> c) {
+        removeDefault();
+        return super.addAll(c);
+    }
+
+    private void removeDefault() {
+        if (hasDefault) {
+            remove(Flavor.DEFAULT);
+            hasDefault = false;
+        }
     }
 
     @Override

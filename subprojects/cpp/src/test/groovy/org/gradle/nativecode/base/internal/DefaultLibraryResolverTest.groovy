@@ -15,44 +15,45 @@
  */
 
 package org.gradle.nativecode.base.internal
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.nativecode.base.Flavor
-import org.gradle.nativecode.base.Library
-import org.gradle.nativecode.base.NativeBinary
-import org.gradle.nativecode.base.NativeDependencySet
-import org.gradle.nativecode.base.SharedLibraryBinary
-import org.gradle.nativecode.base.StaticLibraryBinary
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.nativecode.base.*
 import spock.lang.Specification
 
 class DefaultLibraryResolverTest extends Specification {
+    final flavor1 = new DefaultFlavor("flavor1")
+    final flavor2 = new DefaultFlavor("flavor2")
+    final flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
+
     def library = Mock(Library)
-    def resolver = new DefaultLibraryResolver(library)
     def sharedDeps = Mock(NativeDependencySet)
     def staticDeps = Mock(NativeDependencySet)
-    def defaultStaticBinary = Stub(StaticLibraryBinary) {
-        getFlavor() >> Flavor.DEFAULT
+
+    def staticBinary1 = Stub(StaticLibraryBinary) {
+        getFlavor() >> flavor1
     }
-    def flavoredStaticBinary = Stub(StaticLibraryBinary) {
-        getFlavor() >> new DefaultFlavor("another")
+    def staticBinary2 = Stub(StaticLibraryBinary) {
+        getFlavor() >> flavor2
     }
-    def defaultSharedBinary = Stub(SharedLibraryBinary) {
-        getFlavor() >> Flavor.DEFAULT
+    def sharedBinary1 = Stub(SharedLibraryBinary) {
+        getFlavor() >> flavor1
     }
-    def flavoredSharedBinary = Stub(SharedLibraryBinary) {
-        getFlavor() >> new DefaultFlavor("another")
+    def sharedBinary2 = Stub(SharedLibraryBinary) {
+        getFlavor() >> flavor2
     }
 
-    final allBinaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class, [defaultStaticBinary, flavoredStaticBinary, flavoredSharedBinary, defaultSharedBinary])
+    def "setup"() {
+        library.flavors >> flavorContainer
+    }
 
-    def "returns library dependencies for default flavor"() {
+    def "returns library dependencies for library with single default flavor"() {
         when:
-        library.getBinaries() >> allBinaries
+        library.getBinaries() >> binaries(staticBinary1, sharedBinary1)
 
         and:
-        defaultSharedBinary.resolve() >> sharedDeps
-        defaultStaticBinary.resolve() >> staticDeps
+        sharedBinary1.resolve() >> sharedDeps
+        staticBinary1.resolve() >> staticDeps
 
         then:
         resolver.resolve() == sharedDeps;
@@ -60,31 +61,68 @@ class DefaultLibraryResolverTest extends Specification {
         resolver.withType(StaticLibraryBinary.class).resolve() == staticDeps
     }
 
-    def "returns static library with defined flavor"() {
-        final flavor = new DefaultFlavor("another")
+    def "returns library dependencies for library with single explicit flavor"() {
         when:
-        library.getBinaries() >> allBinaries
+        flavorContainer.addAll([flavor2])
+        library.getBinaries() >> binaries(staticBinary2, sharedBinary2)
 
         and:
-        flavoredSharedBinary.resolve() >> sharedDeps
-        flavoredStaticBinary.resolve() >> staticDeps
+        sharedBinary2.resolve() >> sharedDeps
+        staticBinary2.resolve() >> staticDeps
 
         then:
-        resolver.withFlavor(flavor).resolve() == sharedDeps;
-        resolver.withFlavor(flavor).withType(SharedLibraryBinary.class).resolve() == sharedDeps
-        resolver.withFlavor(flavor).withType(StaticLibraryBinary.class).resolve() == staticDeps
+        resolver.withFlavor(flavor1).resolve() == sharedDeps;
+        resolver.withFlavor(flavor1).withType(SharedLibraryBinary.class).resolve() == sharedDeps
+        resolver.withFlavor(flavor1).withType(StaticLibraryBinary.class).resolve() == staticDeps
+
+        and:
+        resolver.withFlavor(flavor2).resolve() == sharedDeps;
+        resolver.withFlavor(flavor2).withType(SharedLibraryBinary.class).resolve() == sharedDeps
+        resolver.withFlavor(flavor2).withType(StaticLibraryBinary.class).resolve() == staticDeps
+    }
+
+    def "returns matching library dependencies for library with multiple flavors"() {
+        when:
+        flavorContainer.addAll([flavor1, flavor2])
+        library.getBinaries() >> binaries(staticBinary1, staticBinary2, sharedBinary1, sharedBinary2)
+
+        and:
+        sharedBinary2.resolve() >> sharedDeps
+        staticBinary2.resolve() >> staticDeps
+
+        then:
+        resolver.withFlavor(flavor2).resolve() == sharedDeps;
+        resolver.withFlavor(flavor2).withType(SharedLibraryBinary.class).resolve() == sharedDeps
+        resolver.withFlavor(flavor2).withType(StaticLibraryBinary.class).resolve() == staticDeps
+
+        when:
+        sharedBinary1.resolve() >> sharedDeps
+        staticBinary1.resolve() >> staticDeps
+
+        then:
+        resolver.withFlavor(flavor1).resolve() == sharedDeps;
+        resolver.withFlavor(flavor1).withType(SharedLibraryBinary.class).resolve() == sharedDeps
+        resolver.withFlavor(flavor1).withType(StaticLibraryBinary.class).resolve() == staticDeps
     }
 
     def "fails when no library found with defined flavor"() {
-        final flavor = new DefaultFlavor("different")
         when:
-        library.getBinaries() >> allBinaries
+        flavorContainer.addAll([flavor1, flavor2])
+        library.getBinaries() >> binaries(sharedBinary1, sharedBinary2)
 
         and:
-        resolver.withFlavor(flavor).resolve();
+        resolver.withFlavor(new DefaultFlavor("different")).resolve();
 
         then:
         def e = thrown InvalidUserDataException
         e.message == "No shared library binary available for $library with flavor 'different'"
+    }
+
+    def getResolver() {
+        return new DefaultLibraryResolver(library)
+    }
+
+    def binaries(NativeBinary... values) {
+        return new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class, values as List)
     }
 }

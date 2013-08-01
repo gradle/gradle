@@ -18,6 +18,7 @@ package org.gradle.nativecode.base.internal
 
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativecode.base.Library
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -26,20 +27,33 @@ import spock.lang.Specification
 class DefaultSharedLibraryBinaryTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     final toolChain = Stub(ToolChainInternal)
+    def flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
     final library = Stub(Library) {
         getName() >> "main"
+        getFlavors() >> flavorContainer
     }
-    final binary = new DefaultSharedLibraryBinary(library, new DefaultFlavor("default"), toolChain)
-    final flavoredBinary = new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavor"), toolChain)
 
     def "has useful string representation"() {
-        expect:
-        binary.toString() == "shared library 'main'"
-        flavoredBinary.toString() == "shared library 'flavorMain'"
+        when:
+        flavorContainer.add new DefaultFlavor("flavorOne")
+
+        then:
+        sharedLibrary.toString() == "shared library 'mainSharedLibrary'"
+
+        when: "library has multiple flavors"
+        flavorContainer.add new DefaultFlavor("flavorTwo")
+
+        then:
+        sharedLibrary.toString() == "shared library 'flavorOneMainSharedLibrary'"
+    }
+
+    private DefaultSharedLibraryBinary getSharedLibrary() {
+        new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain)
     }
 
     def "can convert binary to a native dependency"() {
         given:
+        def binary = sharedLibrary
         def binaryFile = tmpDir.createFile("binary.run")
         def linkFile = tmpDir.createFile("binary.link")
         def lifecycleTask = Stub(Task)
@@ -59,11 +73,11 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         and:
         nativeDependency.linkFiles.files == [linkFile] as Set
         nativeDependency.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        nativeDependency.linkFiles.toString() == "shared library 'main'"
+        nativeDependency.linkFiles.toString() == "shared library 'mainSharedLibrary'"
 
         and:
         nativeDependency.runtimeFiles.files == [binaryFile] as Set
         nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        nativeDependency.runtimeFiles.toString() == "shared library 'main'"
+        nativeDependency.runtimeFiles.toString() == "shared library 'mainSharedLibrary'"
     }
 }

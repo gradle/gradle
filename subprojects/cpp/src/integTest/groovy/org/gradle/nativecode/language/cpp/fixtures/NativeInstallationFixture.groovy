@@ -27,7 +27,7 @@ class NativeInstallationFixture {
     }
 
     Map<String, ?> exec(Object... args) {
-        installDir.assertIsDir()
+        assertInstalled()
         if (OperatingSystem.current().windows) {
             def exe = installDir.listFiles().find { it.file && it.name.endsWith(".exe") }
             return exe.exec(args)
@@ -37,7 +37,7 @@ class NativeInstallationFixture {
         }
     }
 
-    void assertInstalled() {
+    NativeInstallationFixture assertInstalled() {
         installDir.assertIsDir()
         if (OperatingSystem.current().windows) {
             def exe = installDir.listFiles().find { it.file && it.name.endsWith(".exe") }
@@ -49,9 +49,10 @@ class NativeInstallationFixture {
             assert script
             libDir.file(script.name).assertIsFile()
         }
+        this
     }
 
-    void assertIncludesLibraries(String... names) {
+    NativeInstallationFixture assertIncludesLibraries(String... names) {
         installDir.assertIsDir()
         def expected = names.collect { OperatingSystem.current().getSharedLibraryName(it) } as Set
         if (OperatingSystem.current().windows) {
@@ -63,5 +64,6 @@ class NativeInstallationFixture {
             def libs = libDir.listFiles().findAll { it.file && it.name.contains(".") }.collect { it.name }
             assert libs as Set == expected as Set
         }
+        this
     }
 }

@@ -19,7 +19,9 @@ package org.gradle.nativecode.base;
 import org.gradle.api.NamedDomainObjectContainer;
 
 /**
- * A container of native executables.
+ * A container of flavors.
+ * If now flavor is explicitly configured, will contain a single {@link Flavor#DEFAULT}.
+ * Any flavors explicitly configured will overwrite the default flavor.
  */
 public interface FlavorContainer extends NamedDomainObjectContainer<Flavor> {
 }

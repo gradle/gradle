@@ -41,7 +41,6 @@ public class DefaultNativeComponent implements NativeComponent {
         this.sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
         binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);
         flavors = instantiator.newInstance(DefaultFlavorContainer.class, instantiator);
-        flavors.create("default");
     }
 
     public String getName() {

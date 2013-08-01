@@ -18,24 +18,38 @@ package org.gradle.nativecode.base.internal
 
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativecode.base.Library
 import spock.lang.Specification
 
 class DefaultStaticLibraryBinaryTest extends Specification {
+    def flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
     def library = Stub(Library) {
         getName() >> "main"
+        getFlavors() >> flavorContainer
     }
     def toolChain = Stub(ToolChainInternal)
-    def binary = new DefaultStaticLibraryBinary(library, new DefaultFlavor("default"), toolChain)
-    def flavoredBinary = new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavor"), toolChain)
 
     def "has useful string representation"() {
-        expect:
-        binary.toString() == "static library 'main'"
-        flavoredBinary.toString() == "static library 'flavorMain'"
+        when:
+        flavorContainer.add new DefaultFlavor("flavorOne")
+
+        then:
+        staticLibrary.toString() == "static library 'mainStaticLibrary'"
+
+        when: "library has multiple flavors"
+        flavorContainer.add new DefaultFlavor("flavorTwo")
+
+        then:
+        staticLibrary.toString() == "static library 'flavorOneMainStaticLibrary'"
+    }
+
+    def getStaticLibrary() {
+        new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain)
     }
 
     def "can convert binary to a native dependency"() {
+        final binary = staticLibrary
         given:
         def headers = Stub(SourceDirectorySet)
         library.headers >> headers
@@ -50,11 +64,11 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         and:
         nativeDependency.linkFiles.files == [binary.outputFile] as Set
         nativeDependency.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        nativeDependency.linkFiles.toString() == "static library 'main'"
+        nativeDependency.linkFiles.toString() == "static library 'mainStaticLibrary'"
 
         and:
         nativeDependency.runtimeFiles.files.isEmpty()
         nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)).isEmpty()
-        nativeDependency.runtimeFiles.toString() == "static library 'main'"
+        nativeDependency.runtimeFiles.toString() == "static library 'mainStaticLibrary'"
     }
 }

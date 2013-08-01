@@ -23,20 +23,46 @@ import org.gradle.nativecode.base.*
 import spock.lang.Specification
 
 class DefaultNativeBinaryTest extends Specification {
+    def flavor1 = new DefaultFlavor("flavor1")
     def component = new DefaultNativeComponent("name", new DirectInstantiator())
 
-    def "can generate names for binary"() {
-        expect:
-        def binary = new TestBinary(component, "flavor", "type")
-        binary.namingScheme.getTaskName("link") == 'linkFlavorNameType'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileFlavorNameTypeCpp'
-    }
+    def "does not use flavor in names name when component has only default flavor"() {
+        when:
+        def binary = new TestBinary(component, Flavor.DEFAULT, "type")
 
-    def "uses short name for default flavor"() {
-        expect:
-        def binary = new TestBinary(component, Flavor.DEFAULT.name, "type")
+        then:
+        component.flavors == [Flavor.DEFAULT] as Set
+
+        and:
+        binary.namingScheme.lifecycleTaskName == 'nameType'
+        binary.namingScheme.outputDirectoryBase == 'nameType'
         binary.namingScheme.getTaskName("link") == 'linkNameType'
         binary.namingScheme.getTaskName("compile", "cpp") == 'compileNameTypeCpp'
+    }
+
+    def "does not use flavor in names when component has only one configured flavor"() {
+        when:
+        component.flavors.add(flavor1)
+
+        then:
+        def binary = new TestBinary(component, flavor1, "type")
+        binary.namingScheme.lifecycleTaskName == 'nameType'
+        binary.namingScheme.outputDirectoryBase == 'nameType'
+        binary.namingScheme.getTaskName("link") == 'linkNameType'
+        binary.namingScheme.getTaskName("compile", "cpp") == 'compileNameTypeCpp'
+    }
+
+    def "includes flavor in names when component has multiple flavors"() {
+        when:
+        component.flavors.add(Flavor.DEFAULT)
+        component.flavors.add(flavor1)
+
+        then:
+        def binary = new TestBinary(component, flavor1, "type")
+        binary.namingScheme.lifecycleTaskName == 'flavor1NameType'
+        binary.namingScheme.outputDirectoryBase == 'nameType/flavor1'
+        binary.namingScheme.getTaskName("link") == 'linkFlavor1NameType'
+        binary.namingScheme.getTaskName("compile", "cpp") == 'compileFlavor1NameTypeCpp'
     }
 
     def "binary uses source from its owner component"() {
@@ -75,14 +101,14 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     def "can add a resolved library as a dependency of the binary"() {
-        def binary = new TestBinary(component, "flavor")
+        def binary = new TestBinary(component, flavor1)
         def library = Mock(Library)
         def resolver = Mock(ConfigurableLibraryResolver)
         def dependency = Stub(NativeDependencySet)
 
         given:
         library.shared >> resolver
-        resolver.withFlavor(new DefaultFlavor("flavor")) >> resolver
+        resolver.withFlavor(flavor1) >> resolver
         resolver.resolve() >> dependency
 
         when:
@@ -122,8 +148,8 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     class TestBinary extends DefaultNativeBinary {
-        TestBinary(NativeComponent owner, String flavor = "default", String type = "type") {
-            super(owner, new DefaultFlavor(flavor), type, null)
+        TestBinary(NativeComponent owner, Flavor flavor = Flavor.DEFAULT, String type = "type") {
+            super(owner, flavor, type, null)
         }
 
         @Override

@@ -40,6 +40,11 @@ class DefaultLibraryResolver implements ConfigurableLibraryResolver {
 
     public NativeDependencySet resolve() {
         for (LibraryBinary candidate : library.getBinaries().withType(type)) {
+            // If the library has only 1 flavor, then flavor is not important
+            if (library.getFlavors().size() == 1) {
+                return candidate.resolve();
+            }
+            // Otherwise match on the flavor
             if (flavor.equals(candidate.getFlavor())) {
                 return candidate.resolve();
             }

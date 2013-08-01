@@ -21,7 +21,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.language.base.internal.BinaryNamingScheme;
-import org.gradle.language.base.internal.TaskNamerForBinaries;
+import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.language.jvm.ClassDirectoryBinary;
 
 import java.io.File;
@@ -77,10 +77,10 @@ public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement i
         return String.format("classes '%s'", baseName);
     }
 
-    private static class ClassesNamingScheme extends TaskNamerForBinaries {
+    private static class ClassesNamingScheme extends DefaultBinaryNamingScheme {
         private ClassesNamingScheme(String baseName) {
             super(baseName);
-            withMainCollapsed();
+            collapseMain();
         }
 
         @Override

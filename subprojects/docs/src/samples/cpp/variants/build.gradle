@@ -4,7 +4,6 @@ sources {
     exe {}
     lib {}
 }
-
 libraries {
     // Define some common settings for all shared library binaries
     all {
@@ -12,30 +11,29 @@ libraries {
             define "DLL_EXPORT"
         }
     }
-    helloEnglish {
+    hello {
         source sources.lib
-    }
-    helloFrench {
-        source sources.lib
+        flavors {
+            english {}
+            french {}
+        }
         binaries.all {
-            define "FRENCH"
+            if (flavor == flavors.french) {
+                define "FRENCH"
+            }
         }
     }
 }
 
 executables {
-    english {
+    main {
         source sources.exe
-        binaries.all {
-            // Wire the 'helloEnglish' shared library binary into the 'english' executable binary
-            lib libraries.helloEnglish.shared
+        flavors {
+            english {}
+            french {}
         }
-    }
-    french {
-        source sources.exe
         binaries.all {
-            // Wire the 'helloFrench' static library binary into the 'french' executable binary
-            lib libraries.helloFrench.static
+            lib libraries.hello
         }
     }
 }
