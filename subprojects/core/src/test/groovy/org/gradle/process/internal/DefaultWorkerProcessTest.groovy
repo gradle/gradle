@@ -82,7 +82,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
                 workerProcess.start()
                 fail()
             } catch (ExecException e) {
-                assertThat(e.message, equalTo("Timeout after waiting 1.0 seconds for $execHandle (STARTED, running: true) to connect." as String))
+                assertThat(e.message, equalTo(String.format("Timeout after waiting %.1f seconds for $execHandle (STARTED, running: true) to connect." as String, 1d)))
             }
         }
     }
