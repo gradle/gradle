@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResu
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChainVersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyResolverIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionMatcher;
@@ -209,18 +210,18 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
 
     private VersionMatcher createVersionMatcher() {
         List<AbstractVersionMatcher> matchers = Lists.newArrayList();
-        matchers.add(new ExactVersionMatcher());
-        matchers.add(new LatestVersionMatcher());
-        matchers.add(new SubVersionMatcher());
         matchers.add(new VersionRangeMatcher());
+        matchers.add(new SubVersionMatcher());
+        matchers.add(new LatestVersionMatcher());
+        matchers.add(new ExactVersionMatcher());
 
         ChainVersionMatcher chain = new ChainVersionMatcher();
         for (AbstractVersionMatcher matcher : matchers) {
             matcher.setSettings((IvySettings) getSettings());
-            chain.add(matcher);
+            chain.add(new DefaultVersionMatcherAdapter(matcher));
         }
 
-        return new DefaultVersionMatcherAdapter(chain);
+        return chain;
     }
 
     private MutableModuleVersionMetaData getArtifactMetadata(Artifact artifact, ExternalResource resource) {
