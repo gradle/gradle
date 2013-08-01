@@ -20,7 +20,6 @@ import spock.lang.Ignore
 import spock.lang.Issue
 
 class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    @Ignore
     @Issue("GRADLE-2502")
     def "latest.integration selects highest version regardless of status"() {
         given:
@@ -44,7 +43,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:group, module:projectA, version:latest.integration.'
+        failureHasCause 'Could not find any version that matches org.test:projectA:latest.integration.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withNoMetaData().publish()
@@ -67,8 +66,30 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         file('libs').assertHasDescendants('projectA-1.3.jar')
+    }
+
+    @Ignore
+    @Issue("GRADLE-2502")
+    def "latest.integration selects highest version regardless of status even if metadata is missing"() {
+        given:
+        buildFile << """
+  repositories {
+      ivy {
+          url "${ivyRepo.uri}"
+      }
+  }
+  configurations { compile }
+  dependencies {
+      compile 'org.test:projectA:latest.integration'
+  }
+  task retrieve(type: Sync) {
+      from configurations.compile
+      into 'libs'
+  }
+  """
 
         when:
+        ivyRepo.module('org.test', 'projectA', '1.1').withStatus('integration').publish()
         ivyRepo.module('org.test', 'projectA', '1.4').withNoMetaData().publish()
         run 'retrieve'
 
@@ -179,7 +200,6 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         file('libs').assertHasDescendants('projectA-1.1.jar')
     }
 
-    @Ignore
     @Issue("GRADLE-2502")
     def "version selector ending in + selects highest matching version"() {
         given:
@@ -228,6 +248,30 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         file('libs').assertHasDescendants('projectA-1.2.9.jar')
+    }
+
+    @Ignore
+    @Issue("GRADLE-2502")
+    def "version selector ending in + selects highest matching version even if metadata is missing"() {
+        given:
+        buildFile << """
+  repositories {
+      ivy {
+          url "${ivyRepo.uri}"
+      }
+  }
+  configurations { compile }
+  dependencies {
+      compile 'org.test:projectA:1.2+'
+  }
+  task retrieve(type: Sync) {
+      from configurations.compile
+      into 'libs'
+  }
+  """
+        and:
+        ivyRepo.module('org.test', 'projectA', '1.2.1').publish()
+        ivyRepo.module('org.test', 'projectA', '2.0').publish()
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.2.12').withNoMetaData().publish()
@@ -237,7 +281,6 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         file('libs').assertHasDescendants('projectA-1.2.12.jar')
     }
 
-    @Ignore
     @Issue("GRADLE-2502")
     def "version range selects highest matching version"() {
         given:
@@ -258,7 +301,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   """
         and:
         ivyRepo.module('org.test', 'projectA', '1.1.2').publish()
-        ivyRepo.module('org.test', 'projectA', '2.0').publish()
+        ivyRepo.module('org.test', 'projectA', '2.1').publish()
 
         when:
         runAndFail 'retrieve'
@@ -286,6 +329,29 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         file('libs').assertHasDescendants('projectA-1.3.jar')
+    }
+
+    @Ignore
+    @Issue("GRADLE-2502")
+    def "version range selects highest matching version even if metadata is missing"() {
+        given:
+        buildFile << """
+  repositories {
+      ivy {
+          url "${ivyRepo.uri}"
+      }
+  }
+  configurations { compile }
+  dependencies {
+      compile 'org.test:projectA:[1.2,2.0]'
+  }
+  task retrieve(type: Sync) {
+      from configurations.compile
+      into 'libs'
+  }
+  """
+        and:
+        ivyRepo.module('org.test', 'projectA', '1.2.1').publish()
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.3.12').withNoMetaData().publish()
