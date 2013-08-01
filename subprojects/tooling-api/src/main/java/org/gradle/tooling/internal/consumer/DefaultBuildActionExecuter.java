@@ -17,16 +17,19 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.*;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-class DefaultBuildActionExecuter<T> implements BuildActionExecuter<T> {
+class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<DefaultBuildActionExecuter<T>> implements BuildActionExecuter<T> {
     private final BuildAction<T> buildAction;
 
-    public DefaultBuildActionExecuter(BuildAction<T> buildAction) {
+    public DefaultBuildActionExecuter(BuildAction<T> buildAction, ConnectionParameters parameters) {
+        super(new ConsumerOperationParameters(parameters));
         this.buildAction = buildAction;
+    }
+
+    @Override
+    protected DefaultBuildActionExecuter<T> getThis() {
+        return this;
     }
 
     public T run() throws GradleConnectionException {
@@ -35,34 +38,6 @@ class DefaultBuildActionExecuter<T> implements BuildActionExecuter<T> {
     }
 
     public void run(ResultHandler<? super T> handler) throws IllegalStateException {
-        throw new UnsupportedOperationException();
-    }
-
-    public LongRunningOperation setStandardOutput(OutputStream outputStream) {
-        throw new UnsupportedOperationException();
-    }
-
-    public LongRunningOperation setStandardError(OutputStream outputStream) {
-        throw new UnsupportedOperationException();
-    }
-
-    public LongRunningOperation setStandardInput(InputStream inputStream) {
-        throw new UnsupportedOperationException();
-    }
-
-    public LongRunningOperation setJavaHome(File javaHome) throws IllegalArgumentException {
-        throw new UnsupportedOperationException();
-    }
-
-    public LongRunningOperation setJvmArguments(String... jvmArguments) {
-        throw new UnsupportedOperationException();
-    }
-
-    public LongRunningOperation withArguments(String... arguments) {
-        throw new UnsupportedOperationException();
-    }
-
-    public LongRunningOperation addProgressListener(ProgressListener listener) {
         throw new UnsupportedOperationException();
     }
 }

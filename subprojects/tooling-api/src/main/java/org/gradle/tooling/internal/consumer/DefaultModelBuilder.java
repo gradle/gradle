@@ -17,27 +17,27 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
-import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
 
-public class DefaultModelBuilder<T> implements ModelBuilder<T> {
+public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<DefaultModelBuilder<T>> implements ModelBuilder<T> {
     private final Class<T> modelType;
     private final AsyncConnection connection;
-    private ConsumerOperationParameters operationParameters;
 
     public DefaultModelBuilder(Class<T> modelType, AsyncConnection connection, ConnectionParameters parameters) {
-        operationParameters = new ConsumerOperationParameters(parameters);
+        super(new ConsumerOperationParameters(parameters));
         this.modelType = modelType;
         this.connection = connection;
+    }
+
+    @Override
+    protected DefaultModelBuilder<T> getThis() {
+        return this;
     }
 
     public T get() throws GradleConnectionException {
@@ -58,41 +58,6 @@ public class DefaultModelBuilder<T> implements ModelBuilder<T> {
                 return message;
             }
         });
-    }
-
-    public DefaultModelBuilder<T> withArguments(String... arguments) {
-        operationParameters.setArguments(arguments);
-        return this;
-    }
-
-    public DefaultModelBuilder<T> setStandardOutput(OutputStream outputStream) {
-        operationParameters.setStandardOutput(outputStream);
-        return this;
-    }
-
-    public DefaultModelBuilder<T> setStandardError(OutputStream outputStream) {
-        operationParameters.setStandardError(outputStream);
-        return this;
-    }
-
-    public DefaultModelBuilder<T> setStandardInput(InputStream inputStream) {
-        operationParameters.setStandardInput(inputStream);
-        return this;
-    }
-
-    public DefaultModelBuilder<T> setJavaHome(File javaHome) {
-        operationParameters.setJavaHome(javaHome);
-        return this;
-    }
-
-    public DefaultModelBuilder<T> setJvmArguments(String... jvmArguments) {
-        operationParameters.setJvmArguments(jvmArguments);
-        return this;
-    }
-
-    public DefaultModelBuilder<T> addProgressListener(ProgressListener listener) {
-        operationParameters.addProgressListener(listener);
-        return this;
     }
 
     public DefaultModelBuilder<T> forTasks(String... tasks) {

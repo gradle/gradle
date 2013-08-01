@@ -51,7 +51,7 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public <T> BuildActionExecuter<T> action(final BuildAction<T> buildAction) {
-        return new DefaultBuildActionExecuter<T>(buildAction);
+        return new DefaultBuildActionExecuter<T>(buildAction, parameters);
     }
 
 }

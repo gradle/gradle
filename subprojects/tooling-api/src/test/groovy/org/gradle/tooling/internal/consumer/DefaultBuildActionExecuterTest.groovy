@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class DefaultBuildActionExecuterTest extends Specification {
     def action = Mock(BuildAction)
-    def executer = new DefaultBuildActionExecuter(action)
+    def executer = new DefaultBuildActionExecuter(action, Stub(ConnectionParameters))
 
     def "executes action and returns result"() {
         when:

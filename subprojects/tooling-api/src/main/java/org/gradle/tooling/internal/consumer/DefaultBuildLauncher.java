@@ -16,28 +16,28 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.Task;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-class DefaultBuildLauncher implements BuildLauncher {
+class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
     private final AsyncConnection connection;
-    private ConsumerOperationParameters operationParameters;
 
     public DefaultBuildLauncher(AsyncConnection connection, ConnectionParameters parameters) {
-        operationParameters = new ConsumerOperationParameters(parameters);
+        super(new ConsumerOperationParameters(parameters));
         operationParameters.setTasks(Collections.<String>emptyList());
         this.connection = connection;
+    }
+
+    @Override
+    protected DefaultBuildLauncher getThis() {
+        return this;
     }
 
     public BuildLauncher forTasks(String... tasks) {
@@ -56,41 +56,6 @@ class DefaultBuildLauncher implements BuildLauncher {
             taskPaths.add(task.getPath());
         }
         operationParameters.setTasks(taskPaths);
-        return this;
-    }
-
-    public BuildLauncher withArguments(String... arguments) {
-        operationParameters.setArguments(arguments);
-        return this;
-    }
-
-    public DefaultBuildLauncher setStandardError(OutputStream outputStream) {
-        operationParameters.setStandardError(outputStream);
-        return this;
-    }
-
-    public DefaultBuildLauncher setStandardOutput(OutputStream outputStream) {
-        operationParameters.setStandardOutput(outputStream);
-        return this;
-    }
-
-    public DefaultBuildLauncher setStandardInput(InputStream inputStream) {
-        operationParameters.setStandardInput(inputStream);
-        return this;
-    }
-
-    public DefaultBuildLauncher setJavaHome(File javaHome) {
-        operationParameters.setJavaHome(javaHome);
-        return this;
-    }
-
-    public DefaultBuildLauncher setJvmArguments(String... jvmArguments) {
-        operationParameters.setJvmArguments(jvmArguments);
-        return this;
-    }
-
-    public DefaultBuildLauncher addProgressListener(ProgressListener listener) {
-        operationParameters.addProgressListener(listener);
         return this;
     }
 
