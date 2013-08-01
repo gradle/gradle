@@ -88,7 +88,7 @@ modules {
     def "resolve fails if status doesn't match custom status scheme"() {
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus("silver").publish()
         buildFile <<
-                """
+"""
 modules {
     eachModule { details ->
         details.statusScheme = ["gold", "bronze"]
@@ -104,7 +104,7 @@ modules {
     def "rule can change status"() {
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus("silver").publish()
         buildFile <<
-                """
+"""
 modules {
     eachModule { details ->
         details.status = "milestone"
