@@ -18,8 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
-import java.util.Comparator;
-
 // initially derived from org.apache.ivy.plugins.version.VersionMatcher
 public interface VersionMatcher {
     /**
