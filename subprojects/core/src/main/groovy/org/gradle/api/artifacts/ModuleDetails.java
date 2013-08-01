@@ -15,14 +15,14 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
 import java.util.List;
-
-// has some similarity with org.gradle.api.artifacts.Module
 
 /**
  * Details of a resolved module. Some details can be changed
  * via metadata rules (see {@link org.gradle.api.artifacts.dsl.ModuleHandler}.
  */
+@Incubating
 public interface ModuleDetails {
     /**
      * Returns the group of the module.

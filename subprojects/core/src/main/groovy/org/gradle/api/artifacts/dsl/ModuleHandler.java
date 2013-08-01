@@ -16,11 +16,13 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleDetails;
 
 /**
  * Configuration options related to modules resolved from a repository.
  */
+@Incubating
 public interface ModuleHandler {
     /**
      * Adds a rule to post-process the metadata of each resolved module.

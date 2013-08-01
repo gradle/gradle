@@ -1329,6 +1329,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return the module handler for this project
      */
+    @Incubating
     ModuleHandler getModules();
 
     /**
@@ -1339,6 +1340,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure the closure to use to configure module metadata
      */
+    @Incubating
     void modules(Closure configureClosure);
 
     /**
