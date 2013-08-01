@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve
+package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 import static org.hamcrest.Matchers.containsString
 
-class ModuleMetadataRulesIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyModuleMetadataRulesIntegrationTest extends AbstractDependencyResolutionTest {
     def setup() {
         buildFile <<
 """
