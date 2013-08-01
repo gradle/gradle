@@ -17,15 +17,15 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 
+/**
+ * Implementations must be thread-safe.
+ */
 public interface ConsumerConnection {
 
     void stop();
     
     String getDisplayName();
-    
-    VersionDetails getVersionDetails();
 
     <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
 }

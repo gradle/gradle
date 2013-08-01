@@ -16,9 +16,11 @@
 package org.gradle.tooling.internal.consumer.async;
 
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
+/**
+ * Implementations must be thread-safe.
+ */
 public interface AsyncConnection {
     /**
      * Runs some operation asynchronously against a consumer connection, and notifies the provided handler when complete.
@@ -31,8 +33,6 @@ public interface AsyncConnection {
     void stop();
 
     String getDisplayName();
-
-    VersionDetails getVersionDetails();
 
     interface ConnectionAction<T> {
         T run(ConsumerConnection connection);

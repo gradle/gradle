@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.async;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,10 +37,6 @@ public class DefaultAsyncConnection implements AsyncConnection {
 
     public String getDisplayName() {
         return connection.getDisplayName();
-    }
-
-    public VersionDetails getVersionDetails() {
-        return connection.getVersionDetails();
     }
 
     public void stop() {

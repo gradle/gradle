@@ -21,7 +21,6 @@ import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -76,13 +75,6 @@ public class LazyConnection implements ConsumerConnection {
 
     public String getDisplayName() {
         return distribution.getDisplayName();
-    }
-
-    public VersionDetails getVersionDetails() {
-        if (connection == null) {
-            throw new IllegalStateException("Cannot provide version details just yet. You need to execute build or acquire some model first.");
-        }
-        return connection.getVersionDetails();
     }
 
     public <T> T run(final Class<T> type, final ConsumerOperationParameters operationParameters) {
