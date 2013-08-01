@@ -86,6 +86,6 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         task.with {
             description = "Run CodeNarc analysis for $sourceSet.name classes"
         }
-        task.setSource( sourceSet.allGroovy )
+        task.setSource(sourceSet.allGroovy)
     }
 }

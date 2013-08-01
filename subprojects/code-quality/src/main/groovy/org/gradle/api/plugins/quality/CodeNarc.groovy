@@ -168,6 +168,4 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     CodeNarcReports reports(Closure closure) {
         reports.configure(closure)
     }
-
-
 }

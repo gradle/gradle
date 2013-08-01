@@ -38,7 +38,6 @@ class CodeNarcExtension extends CodeQualityExtension {
      */
     int maxPriority3Violations
 
-
     /**
      * The format type of the CodeNarc report. One of <tt>html</tt>, <tt>xml</tt>, <tt>text</tt>, <tt>console</tt>.
      */

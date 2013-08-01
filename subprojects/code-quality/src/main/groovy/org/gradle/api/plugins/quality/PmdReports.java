@@ -20,7 +20,7 @@ import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
 
 /**
- * The reporting configuration for the the {@link Pmd} task.
+ * The reporting configuration for the {@link Pmd} task.
  */
 public interface PmdReports extends ReportContainer<SingleFileReport> {
 
