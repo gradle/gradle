@@ -53,7 +53,7 @@ public interface ExternalDependency extends Dependency {
      *
      * @return The Gradle module information for this dependency, or {@code null} if the dependency does not
      * originate from a remote repository.
-     * @since 1.1-rc-1
+     * @since 1.1
      */
     @Nullable
     @Incubating
