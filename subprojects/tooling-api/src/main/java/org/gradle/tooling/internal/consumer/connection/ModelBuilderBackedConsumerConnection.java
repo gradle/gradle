@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -23,6 +25,7 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.util.GradleVersion;
 
 /**
  * An adapter for a {@link ModelBuilder} based provider.
@@ -35,6 +38,15 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         super(delegate, new R16VersionDetails(delegate.getMetaData().getVersion()));
         this.adapter = adapter;
         builder = (ModelBuilder) delegate;
+    }
+
+    @Override
+    public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        if (GradleVersion.version(getVersionDetails().getVersion()).getBaseVersion().compareTo(GradleVersion.version("1.8")) >= 0) {
+            return action.execute(new BuildController() {
+            });
+        }
+        return super.run(action, operationParameters);
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
@@ -66,11 +78,6 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
 
         @Override
         public boolean supportsGradleProjectModel() {
-            return true;
-        }
-
-        @Override
-        public boolean supportsRunningTasksWhenBuildingModel() {
             return true;
         }
 

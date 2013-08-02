@@ -17,6 +17,7 @@
 package org.gradle.tooling.model.internal;
 
 import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
@@ -49,5 +50,9 @@ public class Exceptions {
     public static UnknownModelException unknownModel(Class<?> modelType, String targetVersion) {
         throw new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'.",
                 targetVersion, modelType.getSimpleName()));
+    }
+
+    public static UnsupportedVersionException unsupportedFeature(String feature, String targetVersion) {
+        throw new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support %s.", targetVersion, feature));
     }
 }

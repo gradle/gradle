@@ -50,8 +50,7 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
                            }
 
                            public T run(ConsumerConnection connection) {
-                               return buildAction.execute(new BuildController() {
-                               });
+                               return connection.run(buildAction, operationParameters);
                            }
                        }, new ResultHandlerAdapter<T>(handler) {
                            @Override

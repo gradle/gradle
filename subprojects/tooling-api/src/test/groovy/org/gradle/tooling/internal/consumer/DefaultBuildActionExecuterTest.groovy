@@ -33,7 +33,7 @@ class DefaultBuildActionExecuterTest extends ConcurrentSpec {
     def action = Mock(BuildAction)
     def executer = new DefaultBuildActionExecuter(action, asyncConnection, parameters)
 
-    def "executes action and returns result"() {
+    def "delegates to connection to run action"() {
         ResultHandlerVersion1<GradleProject> adaptedHandler
         ResultHandler<GradleProject> handler = Mock()
         GradleProject result = Mock()
@@ -47,7 +47,7 @@ class DefaultBuildActionExecuterTest extends ConcurrentSpec {
             action.run(connection)
             adaptedHandler = args[1]
         }
-        1 * action.execute(_) >> result
+        1 * connection.run(action, _) >> result
 
         when:
         adaptedHandler.onComplete(result)

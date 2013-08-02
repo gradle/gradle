@@ -52,9 +52,6 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         details.supportsGradleProjectModel()
 
         and:
-        !details.supportsRunningTasksWhenBuildingModel()
-
-        and:
         details.isModelSupported(HierarchicalEclipseProject)
         details.isModelSupported(EclipseProject)
         details.isModelSupported(IdeaProject)

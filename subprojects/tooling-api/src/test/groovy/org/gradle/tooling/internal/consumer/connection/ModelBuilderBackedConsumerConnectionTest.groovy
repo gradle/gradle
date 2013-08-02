@@ -48,7 +48,6 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
 
         expect:
         details.supportsGradleProjectModel()
-        details.supportsRunningTasksWhenBuildingModel()
 
         and:
         details.isModelSupported(HierarchicalEclipseProject)

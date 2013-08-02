@@ -35,10 +35,6 @@ public abstract class VersionDetails {
         return false;
     }
 
-    public boolean supportsRunningTasksWhenBuildingModel() {
-        return false;
-    }
-
     public boolean supportsGradleProjectModel() {
         return false;
     }

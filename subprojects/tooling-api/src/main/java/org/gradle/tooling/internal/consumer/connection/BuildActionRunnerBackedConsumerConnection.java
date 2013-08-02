@@ -69,11 +69,6 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         }
 
         @Override
-        public boolean supportsRunningTasksWhenBuildingModel() {
-            return true;
-        }
-
-        @Override
         public boolean isModelSupported(Class<?> modelType) {
             return modelType.equals(ProjectOutcomes.class)
                     || modelType.equals(HierarchicalEclipseProject.class)

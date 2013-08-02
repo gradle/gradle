@@ -52,7 +52,6 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
 
         expect:
         !details.supportsGradleProjectModel()
-        !details.supportsRunningTasksWhenBuildingModel()
 
         and:
         details.isModelSupported(HierarchicalEclipseProject)
@@ -76,9 +75,6 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
 
         expect:
         details.supportsGradleProjectModel()
-
-        and:
-        !details.supportsRunningTasksWhenBuildingModel()
 
         and:
         details.isModelSupported(HierarchicalEclipseProject)
