@@ -18,17 +18,14 @@ package org.gradle.api.internal.tasks.testing.junit.result
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.tasks.testing.TestOutputEvent
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
-import spock.lang.Specification
+import org.gradle.test.fixtures.file.WorkspaceTest
 
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 
-class TestOutputStoreSpec extends Specification {
-    @Rule
-    private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    private output = new TestOutputStore(temp.testDirectory)
+class TestOutputStoreSpec extends WorkspaceTest {
+
+    private output = new TestOutputStore(testDirectory)
 
     TestDescriptorInternal descriptor(String className, Object testId) {
         Stub(TestDescriptorInternal) {
@@ -78,6 +75,33 @@ class TestOutputStoreSpec extends Specification {
         reader.hasOutput(1, StdOut)
         !reader.hasOutput(1, StdErr)
         !reader.hasOutput(2, StdErr)
+    }
+
+    def "invalid output & index file states"() {
+        // neither file
+        expect:
+        output.reader() // no exception
+
+        when:
+        output.indexFile.createNewFile()
+        output.reader()
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        output.indexFile.delete()
+        output.outputsFile.createNewFile()
+        output.reader()
+
+        then:
+        thrown(IllegalStateException)
+
+        when: // both files
+        output.indexFile.createNewFile()
+
+        then:
+        noExceptionThrown()
     }
 
     String collectOutput(TestOutputStore.Reader reader, long classId, TestOutputEvent.Destination destination) {

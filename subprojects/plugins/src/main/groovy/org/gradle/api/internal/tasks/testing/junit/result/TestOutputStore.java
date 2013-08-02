@@ -39,11 +39,11 @@ public class TestOutputStore {
         this.messageStorageCharset = Charset.forName("UTF-8");
     }
 
-    private File getOutputsFile() {
+    File getOutputsFile() {
         return new File(resultsDir, "output.bin");
     }
 
-    private File getIndexFile() {
+    File getIndexFile() {
         return new File(resultsDir, getOutputsFile().getName() + ".idx");
     }
 
@@ -212,42 +212,52 @@ public class TestOutputStore {
 
         public Reader() {
             File indexFile = getIndexFile();
-            if (!indexFile.exists()) {
-                index = new Index();
-                return;
-            }
+            File outputsFile = getOutputsFile();
 
-            Input input;
-            try {
-                input = new Input(new FileInputStream(indexFile));
-            } catch (FileNotFoundException e) {
-                throw new UncheckedIOException(e);
-            }
-
-            IndexBuilder rootBuilder = null;
-            try {
-                int numClasses = input.readInt(true);
-                rootBuilder = new IndexBuilder();
-
-                for (int classCounter = 0; classCounter < numClasses; ++classCounter) {
-                    long classId = input.readLong(true);
-                    IndexBuilder classBuilder = new IndexBuilder();
-
-                    int numEntries = input.readInt(true);
-                    for (int entryCounter = 0; entryCounter < numEntries; ++entryCounter) {
-                        long testId = input.readLong(true);
-                        Region stdOut = new Region(input.readLong(), input.readLong());
-                        Region stdErr = new Region(input.readLong(), input.readLong());
-                        classBuilder.add(testId, new Index(stdOut, stdErr));
-                    }
-
-                    rootBuilder.add(classId, classBuilder.build());
+            if (outputsFile.exists()) {
+                if (!indexFile.exists()) {
+                    throw new IllegalStateException(String.format("Test outputs data file '{}' exists but the index file '{}' does not", outputsFile, indexFile));
                 }
-            } finally {
-                input.close();
+
+                Input input;
+                try {
+                    input = new Input(new FileInputStream(indexFile));
+                } catch (FileNotFoundException e) {
+                    throw new UncheckedIOException(e);
+                }
+
+                IndexBuilder rootBuilder = null;
+                try {
+                    int numClasses = input.readInt(true);
+                    rootBuilder = new IndexBuilder();
+
+                    for (int classCounter = 0; classCounter < numClasses; ++classCounter) {
+                        long classId = input.readLong(true);
+                        IndexBuilder classBuilder = new IndexBuilder();
+
+                        int numEntries = input.readInt(true);
+                        for (int entryCounter = 0; entryCounter < numEntries; ++entryCounter) {
+                            long testId = input.readLong(true);
+                            Region stdOut = new Region(input.readLong(), input.readLong());
+                            Region stdErr = new Region(input.readLong(), input.readLong());
+                            classBuilder.add(testId, new Index(stdOut, stdErr));
+                        }
+
+                        rootBuilder.add(classId, classBuilder.build());
+                    }
+                } finally {
+                    input.close();
+                }
+
+                index = rootBuilder.build();
+            } else { // no outputs file
+                if (indexFile.exists()) {
+                    throw new IllegalStateException(String.format("Test outputs data file '{}' does not exist but the index file '{}' does", outputsFile, indexFile));
+                }
+
+                index = new Index();
             }
 
-            index = rootBuilder.build();
         }
 
         public boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
