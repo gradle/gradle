@@ -29,7 +29,6 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.search.ModuleEntry;
 import org.apache.ivy.core.search.OrganisationEntry;
 import org.apache.ivy.core.search.RevisionEntry;
-import org.apache.ivy.plugins.latest.LatestStrategy;
 import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
@@ -240,7 +239,7 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
             throw new IllegalArgumentException(
                 "unknown descriptor rule '" + descriptorRule
                 + "'. Allowed rules are: "
-                + Arrays.asList(new String[]{BasicResolver.DESCRIPTOR_REQUIRED, BasicResolver.DESCRIPTOR_OPTIONAL}));
+                + Arrays.asList(BasicResolver.DESCRIPTOR_REQUIRED, BasicResolver.DESCRIPTOR_OPTIONAL));
         }
     }
 
@@ -250,22 +249,6 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
 
     public void setChecksums(String checksums) {
         resolver.setChecksums(checksums);
-    }
-
-    public LatestStrategy getLatestStrategy() {
-        return resolver.getLatestStrategy();
-    }
-
-    public void setLatestStrategy(LatestStrategy latestStrategy) {
-        resolver.setLatestStrategy(latestStrategy);
-    }
-
-    public void setLatest(String strategyName) {
-        resolver.setLatest(strategyName);
-    }
-
-    public String getLatest() {
-        return resolver.getLatest();
     }
 
     public void setChangingMatcher(String changingMatcherName) {
