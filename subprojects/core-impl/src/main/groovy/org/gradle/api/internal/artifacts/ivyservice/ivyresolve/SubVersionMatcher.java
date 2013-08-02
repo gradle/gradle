@@ -39,7 +39,7 @@ public class SubVersionMatcher implements VersionMatcher {
     }
 
     public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator) {
-        if (foundVersion.startsWith(requestedVersion.substring(0, requestedVersion.length() - 1))) {
+        if (accept(requestedVersion, foundVersion)) {
             return 1;
         }
         return staticComparator.compare(requestedVersion, foundVersion);

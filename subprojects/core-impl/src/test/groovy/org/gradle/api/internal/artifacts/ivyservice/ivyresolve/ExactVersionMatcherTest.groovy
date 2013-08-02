@@ -26,7 +26,7 @@ class ExactVersionMatcherTest extends Specification {
         !matcher.isDynamic("[1.0,2.0]")
     }
 
-    def "doesn't need module metadata"() {
+    def "doesn't need metadata"() {
         expect:
         !matcher.needModuleMetadata("1.0", "1.0")
         !matcher.needModuleMetadata("[1.0,2.0]", "2.0")
