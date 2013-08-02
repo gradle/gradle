@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-class CopyContractTest extends AbstractCopyTaskContractTest {
+class CopyTest extends AbstractCopyTaskContractTest {
 
     private Copy task = project.tasks.create(TEST_TASK_NAME, Copy)
 
