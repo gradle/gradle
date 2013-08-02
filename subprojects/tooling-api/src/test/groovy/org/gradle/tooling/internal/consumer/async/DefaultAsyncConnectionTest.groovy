@@ -17,12 +17,15 @@
 package org.gradle.tooling.internal.consumer.async
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.tooling.internal.consumer.connection.ConnectionAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 
 class DefaultAsyncConnectionTest extends ConcurrentSpec {
-    def consumerConnection = Mock(ConsumerConnection)
-    def action = Mock(AsyncConnection.ConnectionAction)
+    def consumerConnection = Mock(ConsumerConnection) {
+        getDisplayName() >> "[connection]"
+    }
+    def action = Mock(ConnectionAction)
     def handler = Mock(ResultHandlerVersion1)
     def connection = new DefaultAsyncConnection(consumerConnection, executorFactory)
 
@@ -64,5 +67,15 @@ class DefaultAsyncConnectionTest extends ConcurrentSpec {
             throw failure
         }
         1 * handler.onFailure(failure)
+    }
+
+    def "cannot use connection after it has stopped"() {
+        when:
+        connection.stop()
+        connection.run(action, handler)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot use [connection] as it has been stopped.'
     }
 }

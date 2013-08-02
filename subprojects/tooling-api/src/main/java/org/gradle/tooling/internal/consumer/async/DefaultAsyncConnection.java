@@ -15,12 +15,13 @@
  */
 package org.gradle.tooling.internal.consumer.async;
 
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ServiceLifecycle;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.tooling.internal.consumer.connection.ConnectionAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Adapts a {@link ConsumerConnection} to an {@link AsyncConnection}.
@@ -28,11 +29,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DefaultAsyncConnection implements AsyncConnection {
     private final ConsumerConnection connection;
     private final StoppableExecutor executor;
-    private final AtomicBoolean closed = new AtomicBoolean();
+    private final ServiceLifecycle lifecycle;
 
     public DefaultAsyncConnection(ConsumerConnection connection, ExecutorFactory executorFactory) {
         this.connection = connection;
         executor = executorFactory.create("Connection worker");
+        lifecycle = new ServiceLifecycle(connection.getDisplayName());
     }
 
     public String getDisplayName() {
@@ -40,31 +42,25 @@ public class DefaultAsyncConnection implements AsyncConnection {
     }
 
     public void stop() {
-        closed.set(true);
-        executor.stop();
-        connection.stop();
+        CompositeStoppable.stoppable(lifecycle, executor, connection).stop();
     }
 
-    public <T> void run(final AsyncConnection.ConnectionAction<? extends T> action, final ResultHandlerVersion1<? super T> handler) {
-        onStartOperation();
-
-        executor.execute(new Runnable() {
+    public <T> void run(final ConnectionAction<? extends T> action, final ResultHandlerVersion1<? super T> handler) {
+        lifecycle.use(new Runnable() {
             public void run() {
-                T result;
-                try {
-                    result = action.run(connection);
-                } catch (Throwable t) {
-                    handler.onFailure(t);
-                    return;
-                }
-                handler.onComplete(result);
+                executor.execute(new Runnable() {
+                    public void run() {
+                        T result;
+                        try {
+                            result = action.run(connection);
+                        } catch (Throwable t) {
+                            handler.onFailure(t);
+                            return;
+                        }
+                        handler.onComplete(result);
+                    }
+                });
             }
         });
-    }
-
-    private void onStartOperation() {
-        if (closed.get()) {
-            throw new IllegalStateException("This connection has been closed.");
-        }
     }
 }
