@@ -76,6 +76,8 @@ public class PerformanceTestRunner {
         // A target version may be something that is yet unreleased, so filter that out
         allVersions.removeAll { !releasedVersions.contains(it) }
 
+        assert !allVersions.isEmpty()
+
         allVersions.each { it ->
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
