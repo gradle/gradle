@@ -198,6 +198,7 @@ This new behavior results in faster builds when there are no tests. No negative 
 On behalf of the Gradle community, the Gradle development team would like to thank the following people who contributed to this version of Gradle:
 
 * [Kyle Mahan](https://github.com/kylewm) - some Javadoc fixes
+* [Stephane Gallés](https://github.com/sgalles) - Documentation improvements
 
 Contributions are an important part of the continuous improvement of Gradle. 
 
