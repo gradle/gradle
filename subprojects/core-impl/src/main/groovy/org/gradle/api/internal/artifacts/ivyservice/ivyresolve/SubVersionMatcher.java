@@ -17,9 +17,16 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import java.util.Comparator;
 
+/**
+ * Version matcher for dynamic version selectors ending in '+'.
+ */
 public class SubVersionMatcher implements VersionMatcher {
     public boolean isDynamic(String version) {
         return version.endsWith("+");
+    }
+
+    public boolean needModuleMetadata(String requestedVersion, String foundVersion) {
+        return false;
     }
 
     public boolean accept(String requestedVersion, String foundVersion) {
@@ -27,18 +34,14 @@ public class SubVersionMatcher implements VersionMatcher {
         return foundVersion.startsWith(prefix);
     }
 
+    public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion) {
+        return accept(requestedVersion, foundVersion.getId().getVersion());
+    }
+
     public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator) {
         if (foundVersion.startsWith(requestedVersion.substring(0, requestedVersion.length() - 1))) {
             return 1;
         }
         return staticComparator.compare(requestedVersion, foundVersion);
-    }
-
-    public boolean needModuleMetadata(String requestedVersion, String foundVersion) {
-        return false;
-    }
-
-    public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion) {
-        return accept(requestedVersion, foundVersion.getId().getVersion());
     }
 }
