@@ -129,26 +129,30 @@ public class TestOutputStore {
                 throw new UncheckedIOException(e);
             }
 
-            indexOutput.writeInt(index.size(), true);
 
-            for (Map.Entry<Long, Map<Long, TestCaseRegion>> classEntry : index.entrySet()) {
-                Long classId = classEntry.getKey();
-                Map<Long, TestCaseRegion> regions = classEntry.getValue();
+            try {
+                indexOutput.writeInt(index.size(), true);
 
-                indexOutput.writeLong(classId, true);
-                indexOutput.writeInt(regions.size(), true);
+                for (Map.Entry<Long, Map<Long, TestCaseRegion>> classEntry : index.entrySet()) {
+                    Long classId = classEntry.getKey();
+                    Map<Long, TestCaseRegion> regions = classEntry.getValue();
 
-                for (Map.Entry<Long, TestCaseRegion> testCaseEntry : regions.entrySet()) {
-                    long id = testCaseEntry.getKey();
-                    TestCaseRegion region = testCaseEntry.getValue();
-                    indexOutput.writeLong(id, true);
-                    indexOutput.writeLong(region.stdOutRegion.start);
-                    indexOutput.writeLong(region.stdOutRegion.stop);
-                    indexOutput.writeLong(region.stdErrRegion.start);
-                    indexOutput.writeLong(region.stdErrRegion.stop);
+                    indexOutput.writeLong(classId, true);
+                    indexOutput.writeInt(regions.size(), true);
+
+                    for (Map.Entry<Long, TestCaseRegion> testCaseEntry : regions.entrySet()) {
+                        long id = testCaseEntry.getKey();
+                        TestCaseRegion region = testCaseEntry.getValue();
+                        indexOutput.writeLong(id, true);
+                        indexOutput.writeLong(region.stdOutRegion.start);
+                        indexOutput.writeLong(region.stdOutRegion.stop);
+                        indexOutput.writeLong(region.stdErrRegion.start);
+                        indexOutput.writeLong(region.stdErrRegion.stop);
+                    }
                 }
+            } finally {
+                indexOutput.close();
             }
-            indexOutput.close();
         }
     }
 
