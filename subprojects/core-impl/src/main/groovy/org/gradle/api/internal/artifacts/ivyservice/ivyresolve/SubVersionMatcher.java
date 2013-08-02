@@ -18,10 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import java.util.Comparator;
 
 public class SubVersionMatcher implements VersionMatcher {
-    public String getName() {
-        return "sub-version";
-    }
-
     public boolean isDynamic(String version) {
         return version.endsWith("+");
     }
