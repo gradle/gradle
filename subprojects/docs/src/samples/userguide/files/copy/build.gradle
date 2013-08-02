@@ -47,6 +47,20 @@ task copyMethod << {
 }
 // END SNIPPET copy-method
 
+// START SNIPPET copy-method-with-dependency
+task copyMethodWithExplicitDependencies{
+    inputs.file copyTask // up-to-date check for inputs, plus add copyTask as dependency
+    outputs.dir 'some-dir' // up-to-date check for outputs
+    doLast{
+        copy {
+            // Copy the output of copyTask
+            from copyTask
+            into 'some-dir'
+        }
+    }
+}
+// END SNIPPET copy-method-with-dependency
+
 configurations { runtime }
 
 // START SNIPPET nested-specs
@@ -99,4 +113,5 @@ task filter(type: Copy) {
 task test {
     dependsOn tasks.withType(Copy)
     dependsOn copyMethod
+    dependsOn copyMethodWithExplicitDependencies
 }
