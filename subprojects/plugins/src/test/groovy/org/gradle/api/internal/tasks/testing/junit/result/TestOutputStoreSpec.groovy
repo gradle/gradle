@@ -41,7 +41,7 @@ class TestOutputStoreSpec extends WorkspaceTest {
         writer.onOutput(2, 1, output(StdErr, "[err]"))
         writer.onOutput(1, 1, output(StdErr, "[err]"))
         writer.onOutput(1, 1, output(StdOut, "[out2]"))
-        writer.finishOutputs()
+        writer.close()
         def reader = output.reader()
 
         then:
@@ -57,7 +57,7 @@ class TestOutputStoreSpec extends WorkspaceTest {
     def "writes nothing for unknown test class"() {
         when:
         def writer = output.writer()
-        writer.finishOutputs()
+        writer.close()
 
         then:
         def reader = output.reader()
@@ -68,7 +68,7 @@ class TestOutputStoreSpec extends WorkspaceTest {
         when:
         def writer = output.writer()
         writer.onOutput(1, 1, output(StdOut, "[out]"))
-        writer.finishOutputs()
+        writer.close()
         def reader = output.reader()
 
         then:

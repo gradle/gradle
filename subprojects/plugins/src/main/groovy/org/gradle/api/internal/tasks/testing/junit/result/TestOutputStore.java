@@ -67,7 +67,7 @@ public class TestOutputStore {
         Region stdErrRegion = new Region();
     }
 
-    public class Writer {
+    public class Writer implements Closeable {
         private final Output output;
 
         private final Map<Long, Map<Long, TestCaseRegion>> index = new LinkedHashMap<Long, Map<Long, TestCaseRegion>>();
@@ -80,7 +80,7 @@ public class TestOutputStore {
             }
         }
 
-        public void finishOutputs() {
+        public void close() {
             output.close();
             writeIndex();
         }

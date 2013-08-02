@@ -439,7 +439,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         } finally {
             testListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector, testCountLogger));
             testOutputListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector));
-            outputWriter.finishOutputs();
+            outputWriter.close();
         }
 
         new TestResultSerializer(binaryResultsDir).write(results.values());
