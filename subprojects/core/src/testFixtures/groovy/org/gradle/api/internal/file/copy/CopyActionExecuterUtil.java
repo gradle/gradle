@@ -21,11 +21,11 @@ import org.gradle.api.tasks.WorkResult;
 
 import java.util.Arrays;
 
-public class CopySpecContentVisitorTestDriver {
+public class CopyActionExecuterUtil {
 
     public static WorkResult visit(CopyAction visitor, final Iterable<FileCopyDetailsInternal> detailses) {
-        return visitor.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
-            public void execute(Action<? super FileCopyDetailsInternal> action) {
+        return visitor.execute(new CopyActionProcessingStream() {
+            public void process(Action<? super FileCopyDetailsInternal> action) {
                 for (FileCopyDetailsInternal detailsInternal : detailses) {
                     action.execute(detailsInternal);
                 }

@@ -34,10 +34,10 @@ public class FileCopyAction implements CopyAction {
         boolean flag;
     }
 
-    public WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
+    public WorkResult execute(CopyActionProcessingStream stream) {
         final BooleanHolder didWorkHolder = new BooleanHolder();
 
-        stream.execute(new Action<FileCopyDetailsInternal>() {
+        stream.process(new Action<FileCopyDetailsInternal>() {
             public void execute(FileCopyDetailsInternal details) {
                 File target = fileResolver.resolve(details.getRelativePath().getPathString());
                 boolean copied = details.copyTo(target);

@@ -52,8 +52,8 @@ class CopyActionExecuterTest extends WorkspaceTest {
         Action<FileCopyDetailsInternal> action = Mock(Action)
         def workResult = true
         def copyAction = new CopyAction() {
-            WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
-                stream.execute(action)
+            WorkResult execute(CopyActionProcessingStream stream) {
+                stream.process(action)
                 new SimpleWorkResult(workResult)
             }
         }

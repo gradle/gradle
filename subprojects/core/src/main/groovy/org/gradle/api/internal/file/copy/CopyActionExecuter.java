@@ -15,11 +15,6 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.Action;
-import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -39,35 +34,8 @@ public class CopyActionExecuter {
                 new NormalizingCopyActionDecorator(action)
         );
 
-        return effectiveVisitor.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
-            public void execute(final Action<? super FileCopyDetailsInternal> action) {
-                spec.walk(new Action<CopySpecInternal>() {
-                    public void execute(final CopySpecInternal spec) {
-                        FileTree source = spec.getSource();
-                        source.visit(new FileVisitor() {
-                            public void visitDir(FileVisitDetails dirDetails) {
-                                visit(dirDetails);
-                            }
-
-                            public void visitFile(FileVisitDetails fileDetails) {
-                                visit(fileDetails);
-                            }
-
-                            private void visit(FileVisitDetails visitDetails) {
-                                DefaultFileCopyDetails details = instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, spec, fileSystem);
-                                for (Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
-                                    action.execute(details);
-                                    if (details.isExcluded()) {
-                                        return;
-                                    }
-                                }
-                                action.execute(details);
-                            }
-                        });
-                    }
-                });
-            }
-        });
+        CopyActionProcessingStream processingStream = new CopySpecBackCopyActionProcessingStream(spec, instantiator, fileSystem);
+        return effectiveVisitor.execute(processingStream);
     }
 
 }

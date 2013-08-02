@@ -30,7 +30,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 
-import static org.gradle.api.internal.file.copy.CopySpecContentVisitorTestDriver.visit;
+import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit;
 
 @RunWith(JMock.class)
 public class FileCopyActionTest {

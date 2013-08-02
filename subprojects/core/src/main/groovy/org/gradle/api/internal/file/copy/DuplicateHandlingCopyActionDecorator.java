@@ -36,12 +36,12 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
         this.delegate = delegate;
     }
 
-    public WorkResult execute(final Action<Action<? super FileCopyDetailsInternal>> stream) {
+    public WorkResult execute(final CopyActionProcessingStream stream) {
         final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
 
-        return delegate.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
-            public void execute(final Action<? super FileCopyDetailsInternal> delegateAction) {
-                stream.execute(new Action<FileCopyDetailsInternal>() {
+        return delegate.execute(new CopyActionProcessingStream() {
+            public void process(final Action<? super FileCopyDetailsInternal> action) {
+                stream.process(new Action<FileCopyDetailsInternal>() {
                     public void execute(FileCopyDetailsInternal details) {
                         if (!details.isDirectory()) {
                             DuplicatesStrategy strategy = details.getDuplicatesStrategy();
@@ -57,7 +57,7 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
                             }
                         }
 
-                        delegateAction.execute(details);
+                        action.execute(details);
                     }
                 });
             }

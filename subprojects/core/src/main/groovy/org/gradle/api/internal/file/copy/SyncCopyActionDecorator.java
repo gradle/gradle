@@ -38,15 +38,15 @@ public class SyncCopyActionDecorator implements CopyAction {
         this.delegate = delegate;
     }
 
-    public WorkResult execute(final Action<Action<? super FileCopyDetailsInternal>> stream) {
+    public WorkResult execute(final CopyActionProcessingStream stream) {
         final Set<RelativePath> visited = new HashSet<RelativePath>();
 
-        WorkResult didWork = delegate.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
-            public void execute(final Action<? super FileCopyDetailsInternal> delegateAction) {
-                stream.execute(new Action<FileCopyDetailsInternal>() {
+        WorkResult didWork = delegate.execute(new CopyActionProcessingStream() {
+            public void process(final Action<? super FileCopyDetailsInternal> action) {
+                stream.process(new Action<FileCopyDetailsInternal>() {
                     public void execute(FileCopyDetailsInternal details) {
                         visited.add(details.getRelativePath());
-                        delegateAction.execute(details);
+                        action.execute(details);
                     }
                 });
             }

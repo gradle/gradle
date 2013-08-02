@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.Action;
 
-public interface CopyAction {
+public interface CopyActionProcessingStream {
 
-    public WorkResult execute(CopyActionProcessingStream stream);
+    void process(Action<? super FileCopyDetailsInternal> action);
 
 }

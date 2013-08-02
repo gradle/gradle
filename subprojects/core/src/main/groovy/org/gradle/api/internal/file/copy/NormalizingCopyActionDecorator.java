@@ -42,13 +42,13 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         this.delegate = delegate;
     }
 
-    public WorkResult execute(final Action<Action<? super FileCopyDetailsInternal>> stream) {
+    public WorkResult execute(final CopyActionProcessingStream stream) {
         final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
         final ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs = ArrayListMultimap.create();
 
-        WorkResult result = delegate.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
-            public void execute(final Action<? super FileCopyDetailsInternal> delegateAction) {
-                stream.execute(new Action<FileCopyDetailsInternal>() {
+        WorkResult result = delegate.execute(new CopyActionProcessingStream() {
+            public void process(final Action<? super FileCopyDetailsInternal> action) {
+                stream.process(new Action<FileCopyDetailsInternal>() {
                     public void execute(FileCopyDetailsInternal details) {
                         if (details.isDirectory()) {
                             RelativePath path = details.getRelativePath();
@@ -56,8 +56,8 @@ public class NormalizingCopyActionDecorator implements CopyAction {
                                 pendingDirs.put(path, details);
                             }
                         } else {
-                            maybeVisit(details.getRelativePath().getParent(), details.getCopySpec(), delegateAction);
-                            delegateAction.execute(details);
+                            maybeVisit(details.getRelativePath().getParent(), details.getCopySpec(), action);
+                            action.execute(details);
                         }
                     }
                 });
@@ -66,7 +66,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
                     List<FileCopyDetailsInternal> detailsList = new ArrayList<FileCopyDetailsInternal>(pendingDirs.get(path));
                     for (FileCopyDetailsInternal details : detailsList) {
                         if (details.getCopySpec().getIncludeEmptyDirs()) {
-                            maybeVisit(path, details.getCopySpec(), delegateAction);
+                            maybeVisit(path, details.getCopySpec(), action);
                         }
                     }
                 }

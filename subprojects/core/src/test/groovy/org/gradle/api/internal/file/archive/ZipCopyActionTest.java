@@ -19,7 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.Actions;
+import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 import org.gradle.test.fixtures.file.TestFile;
@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
-import static org.gradle.api.internal.file.copy.CopySpecContentVisitorTestDriver.visit;
+import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -95,7 +95,11 @@ public class ZipCopyActionTest {
         visitor = new ZipCopyAction(invalidZipFile, ZipStoredCompressor.INSTANCE);
 
         try {
-            visitor.execute(Actions.<Action<? super FileCopyDetailsInternal>>doNothing());
+            visitor.execute(new CopyActionProcessingStream() {
+                public void process(Action<? super FileCopyDetailsInternal> action) {
+                    // nothing
+                }
+            });
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo(String.format("Could not create ZIP '%s'.", zipFile)));
@@ -116,8 +120,8 @@ public class ZipCopyActionTest {
     }
 
     private void zip(final FileCopyDetailsInternal... files) {
-        visitor.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
-            public void execute(Action<? super FileCopyDetailsInternal> action) {
+        visitor.execute(new CopyActionProcessingStream() {
+            public void process(Action<? super FileCopyDetailsInternal> action) {
                 for (FileCopyDetailsInternal f : files) {
                     if (f.isDirectory()) {
                         action.execute(f);

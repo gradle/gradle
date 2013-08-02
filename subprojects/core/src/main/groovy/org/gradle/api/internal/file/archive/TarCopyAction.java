@@ -24,6 +24,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
@@ -41,7 +42,7 @@ public class TarCopyAction implements CopyAction {
         this.compressor = compressor;
     }
 
-    public WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
+    public WorkResult execute(CopyActionProcessingStream stream) {
         final TarOutputStream tarOutStr;
 
         try {
@@ -52,7 +53,7 @@ public class TarCopyAction implements CopyAction {
             throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);
         }
 
-        stream.execute(new Action<FileCopyDetailsInternal>() {
+        stream.process(new Action<FileCopyDetailsInternal>() {
             public void execute(FileCopyDetailsInternal details) {
                 if (details.isDirectory()) {
                     visitDir(details);

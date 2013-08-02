@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
@@ -40,7 +41,7 @@ public class ZipCopyAction implements CopyAction {
         this.compressor = compressor;
     }
 
-    public WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
+    public WorkResult execute(CopyActionProcessingStream stream) {
         final ZipOutputStream zipOutStr;
 
         try {
@@ -49,7 +50,7 @@ public class ZipCopyAction implements CopyAction {
             throw new GradleException(String.format("Could not create ZIP '%s'.", zipFile), e);
         }
 
-        stream.execute(new Action<FileCopyDetailsInternal>() {
+        stream.process(new Action<FileCopyDetailsInternal>() {
             public void execute(FileCopyDetailsInternal details) {
                 if (details.isDirectory()) {
                     visitDir(details);

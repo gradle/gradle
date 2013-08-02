@@ -36,8 +36,8 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
     def fileSystem = Mock(FileSystem)
     def delegateAction = Mock(Action)
     def delegate = new CopyAction() {
-        WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
-            stream.execute(delegateAction)
+        WorkResult execute(CopyActionProcessingStream stream) {
+            stream.process(delegateAction)
             return new SimpleWorkResult(true)
         }
     }

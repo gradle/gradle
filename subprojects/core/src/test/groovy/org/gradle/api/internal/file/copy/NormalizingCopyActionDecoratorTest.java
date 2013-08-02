@@ -29,15 +29,15 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.gradle.api.internal.file.copy.CopySpecContentVisitorTestDriver.visit;
+import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit;
 
 @RunWith(JMock.class)
 public class NormalizingCopyActionDecoratorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Action<FileCopyDetailsInternal> delegateAction = (Action<FileCopyDetailsInternal>) context.mock(Action.class);
     private final CopyAction delegate = new CopyAction() {
-        public WorkResult execute(Action<Action<? super FileCopyDetailsInternal>> stream) {
-            stream.execute(delegateAction);
+        public WorkResult execute(CopyActionProcessingStream stream) {
+            stream.process(delegateAction);
             return new SimpleWorkResult(true);
         }
     };
@@ -74,8 +74,8 @@ public class NormalizingCopyActionDecoratorTest {
 
         allowGetIncludeEmptyDirs();
 
-        decorator.execute(new Action<Action<? super FileCopyDetailsInternal>>() {
-            public void execute(Action<? super FileCopyDetailsInternal> action) {
+        decorator.execute(new CopyActionProcessingStream() {
+            public void process(Action<? super FileCopyDetailsInternal> action) {
 
                 context.checking(new Expectations() {{
                     one(delegateAction).execute(with(hasPath("a")));
