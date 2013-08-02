@@ -622,8 +622,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * a finalizer task.</p>
      *
      * @param finalizedBy The tasks that finalize this task.
-     *
-     * @return the task object this method is applied to
      */
     @Incubating
     void setFinalizedBy(Iterable<?> finalizedBy);
