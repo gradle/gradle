@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.*;
 
@@ -27,40 +26,49 @@ public class ChainVersionMatcher implements VersionMatcher {
         matchers.add(matcher);
     }
 
-    public boolean isDynamic(ModuleVersionIdentifier module) {
+    public boolean isDynamic(String version) {
         for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(module)) {
+            if (matcher.isDynamic(version)) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean accept(ModuleVersionIdentifier requested, ModuleVersionIdentifier found) {
+    public boolean accept(String requestedVersion, String foundVersion) {
         for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(requested)) {
-                return matcher.accept(requested, found);
+            if (matcher.isDynamic(requestedVersion)) {
+                return matcher.accept(requestedVersion, foundVersion);
             }
         }
-        return matchers.getLast().accept(requested, found);
+        return matchers.getLast().accept(requestedVersion, foundVersion);
     }
 
-    public boolean needModuleMetadata(ModuleVersionIdentifier requested, ModuleVersionIdentifier found) {
+    public boolean needModuleMetadata(String requestedVersion, String foundVersion) {
         for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(requested)) {
-                return matcher.needModuleMetadata(requested, found);
+            if (matcher.isDynamic(requestedVersion)) {
+                return matcher.needModuleMetadata(requestedVersion, foundVersion);
             }
         }
-        return matchers.getLast().needModuleMetadata(requested, found);
+        return matchers.getLast().needModuleMetadata(requestedVersion, foundVersion);
     }
 
-    public boolean accept(ModuleVersionIdentifier requested, ModuleVersionMetaData found) {
+    public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion) {
         for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(requested)) {
-                return matcher.accept(requested, found);
+            if (matcher.isDynamic(requestedVersion)) {
+                return matcher.accept(requestedVersion, foundVersion);
             }
         }
-        return matchers.getLast().accept(requested, found);
+        return matchers.getLast().accept(requestedVersion, foundVersion);
+    }
+
+    public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator) {
+        for (VersionMatcher matcher : matchers) {
+            if (matcher.isDynamic(requestedVersion)) {
+                return matcher.compare(requestedVersion, foundVersion, staticComparator);
+            }
+        }
+        throw new IllegalArgumentException("Cannot compare versions because requested version is not dynamic: " + requestedVersion);
     }
 }
 

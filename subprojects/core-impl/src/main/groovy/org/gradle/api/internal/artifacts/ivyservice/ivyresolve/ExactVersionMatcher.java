@@ -15,22 +15,26 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import java.util.Comparator;
 
 public class ExactVersionMatcher implements VersionMatcher {
-    public boolean isDynamic(ModuleVersionIdentifier requested) {
+    public boolean isDynamic(String requestedVersion) {
         return false;
     }
 
-    public boolean needModuleMetadata(ModuleVersionIdentifier requested, ModuleVersionIdentifier found) {
+    public boolean needModuleMetadata(String requestedVersion, String foundVersion) {
         return false;
     }
 
-    public boolean accept(ModuleVersionIdentifier requested, ModuleVersionIdentifier found) {
-        return requested.getVersion().equals(found.getVersion());
+    public boolean accept(String requestedVersion, String foundVersion) {
+        return requestedVersion.equals(foundVersion);
     }
 
-    public boolean accept(ModuleVersionIdentifier requested, ModuleVersionMetaData found) {
-        return accept(requested, found.getId());
+    public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion) {
+        return accept(requestedVersion, foundVersion.getId().getVersion());
+    }
+
+    public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator) {
+        return 0;
     }
 }

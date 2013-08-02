@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import java.util.Comparator;
 
 // initially derived from org.apache.ivy.plugins.version.VersionMatcher
 public interface VersionMatcher {
@@ -24,26 +24,34 @@ public interface VersionMatcher {
      * Indicates if the given asked ModuleRevisionId should be considered as dynamic for the current
      * VersionMatcher or not.
      */
-    public boolean isDynamic(ModuleVersionIdentifier module);
+    public boolean isDynamic(String version);
 
     /**
      * Indicates if this version matcher considers that the module revision found matches the asked
      * one.
      */
-    public boolean accept(ModuleVersionIdentifier requested, ModuleVersionIdentifier found);
+    public boolean accept(String requestedVersion, String foundVersion);
 
     /**
      * Indicates if this VersionMatcher needs module descriptors to determine if a module revision
      * matches the asked one. Note that returning true in this method may imply big performance
      * issues.
      */
-    public boolean needModuleMetadata(ModuleVersionIdentifier requested, ModuleVersionIdentifier found);
+    public boolean needModuleMetadata(String requestedVersion, String foundVersion);
 
     /**
      * Indicates if this version matcher considers that the module found matches the asked one. This
      * method can be called even needModuleDescriptor(ModuleRevisionId askedMrid, ModuleRevisionId
      * foundMrid) returns false, so it is required to implement it in any case, a usual default
-     * implementation being: return accept(askedMrid, foundMD.getResolvedModuleRevisionId());
+     * implementation being: return accept(requestedVersion, foundVersion.getId().getVersion());
      */
-    public boolean accept(ModuleVersionIdentifier requested, ModuleVersionMetaData found);
+    public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion);
+
+    /**
+     * Compares a dynamic revision (requestedVersion) with a static one (foundVersion) to indicate which one
+     * should be considered the greater. If there is not enough information to know which one is the
+     * greater, the dynamic one should be considered greater and this method should return 0. This
+     * method should never be called with a askdeMrid for which isDynamic returns false.
+     */
+    public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator);
 }
