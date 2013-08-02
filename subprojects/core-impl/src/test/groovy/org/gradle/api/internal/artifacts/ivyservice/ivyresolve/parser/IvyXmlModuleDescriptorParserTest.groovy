@@ -155,7 +155,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         file.text = resources.getResource("test-full.xml").text
 
         when:
-        ModuleDescriptor md = parser.parseDescriptor(settings, file, false)
+        ModuleDescriptor md = parser.parseDescriptor(settings, file, true)
 
         then:
         assertNotNull(md)

@@ -26,12 +26,10 @@
 	       e:attr1="value1">
 	       
 		<license name="MyLicense" url="http://www.my.org/mymodule/mylicense.html"/>
-		<repository name="ivyrep" url="http://www.jayasoft.fr/org/ivyrep/" pattern="[organisation]/[module]/ivy-[revision].xml" ivys="true" artifacts="false"/>
-		
 		<ivyauthor name="jayasoft" url="http://www.jayasoft.org/"/>
 		<ivyauthor name="myorg" url="http://www.myorg.org/"/>
+		<repository name="ivyrep" url="http://www.jayasoft.fr/org/ivyrep/" pattern="[organisation]/[module]/ivy-[revision].xml" ivys="true" artifacts="false"/>
 
-		
 		<description homepage="http://www.my.org/mymodule/">			
 	This module is <b>great</b> !<br/>
 	You can use it especially with myconf1 and myconf2, and myconf4 is not too bad too.
