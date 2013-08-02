@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.async;
 
-import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.connection.ConnectionAction;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
 /**
@@ -23,7 +23,10 @@ import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
  */
 public interface AsyncConnection {
     /**
-     * Runs some operation asynchronously against a consumer connection, and notifies the provided handler when complete.
+     * Runs some operation asynchronously against a consumer connection. Notifies the provided handler when
+     * complete. Note that the action may have completed by the time this method returns.
+     *
+     * @throws IllegalStateException When this connection has been stopped or is stopping.
      */
     <T> void run(ConnectionAction<? extends T> action, ResultHandlerVersion1<? super T> handler);
 
@@ -33,8 +36,4 @@ public interface AsyncConnection {
     void stop();
 
     String getDisplayName();
-
-    interface ConnectionAction<T> {
-        T run(ConsumerConnection connection);
-    }
 }

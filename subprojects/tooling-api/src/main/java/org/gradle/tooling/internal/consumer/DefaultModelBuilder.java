@@ -19,6 +19,7 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.connection.ConnectionAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -48,7 +49,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
     }
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
-        connection.run(new AsyncConnection.ConnectionAction<T>() {
+        connection.run(new ConnectionAction<T>() {
             public T run(ConsumerConnection connection) {
                 return connection.run(modelType, operationParameters);
             }

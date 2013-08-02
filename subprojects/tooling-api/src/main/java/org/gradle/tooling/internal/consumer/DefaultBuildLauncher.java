@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.connection.ConnectionAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.Task;
@@ -67,7 +68,7 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        connection.run(new AsyncConnection.ConnectionAction<Void>() {
+        connection.run(new ConnectionAction<Void>() {
             public Void run(ConsumerConnection connection) {
                 return connection.run(Void.class, operationParameters);
             }

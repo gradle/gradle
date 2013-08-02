@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.*;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.connection.ConnectionAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
@@ -43,7 +44,7 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
     }
 
     public void run(ResultHandler<? super T> handler) throws IllegalStateException {
-        connection.run(new AsyncConnection.ConnectionAction<T>() {
+        connection.run(new ConnectionAction<T>() {
                            public T run(ConsumerConnection connection) {
                                return buildAction.execute(new BuildController() {
                                });
