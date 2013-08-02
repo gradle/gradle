@@ -18,6 +18,10 @@ and this is documented in the deprecation descriptions below. However, some depr
 you use has been deprecated, and there doesn't seem to be a replacement for it that you can use , please let us know as soon as possible via the
 [forums](http://forums.gradle.org).
 
+### New duplicate final handling strategies
+
+TODO - placeholder
+
 <!--
 ### Example new and noteworthy
 -->
@@ -197,7 +201,7 @@ This new behavior results in faster builds when there are no tests. No negative 
 
 On behalf of the Gradle community, the Gradle development team would like to thank the following people who contributed to this version of Gradle:
 
-* [Kyle Mahan](https://github.com/kylewm) - some Javadoc fixes
+* [Kyle Mahan](https://github.com/kylewm) - some Javadoc fixes & duplicate file handling improvements
 * [Stephane Gallés](https://github.com/sgalles) - Documentation improvements
 * [Bobby Warner](https://github.com/bobbywarner) - Documentation improvements
 
