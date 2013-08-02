@@ -204,6 +204,7 @@ On behalf of the Gradle community, the Gradle development team would like to tha
 * [Kyle Mahan](https://github.com/kylewm) - some Javadoc fixes & duplicate file handling improvements
 * [Stephane Gallés](https://github.com/sgalles) - Documentation improvements
 * [Bobby Warner](https://github.com/bobbywarner) - Documentation improvements
+* [Jeremy Maness](https://github.com/jmaness) - Support for Ivy 2.3 content in ivy.xml (GRADLE-2743)
 
 Contributions are an important part of the continuous improvement of Gradle. 
 
