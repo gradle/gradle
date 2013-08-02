@@ -144,8 +144,9 @@ public class TestReport extends DefaultTask {
                     return new BinaryResultBackedTestResultsProvider(dir);
                 }
             }));
-        } finally {
+        } catch (RuntimeException e) {
             stoppable(resultsProviders).stop();
+            throw e;
         }
     }
 }
