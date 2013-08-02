@@ -18,17 +18,17 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class MavenLatestResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def "can use latest version selector with release versions"() {
+    def "latest selector works correctly when (only) release versions are present"() {
         given:
         mavenRepo().module('group', 'projectA', '1.0').publish()
-        def moduleAA = mavenRepo().module('group', 'projectA', '1.2').dependsOn('projectB').publish()
-        def moduleB = mavenRepo().module('group', 'projectB').publish()
+        def highest = mavenRepo().module('group', 'projectA', '2.2').publish()
+        mavenRepo().module('group', 'projectA', '1.4').publish()
 
         and:
         buildFile << """
 configurations { compile }
 repositories { maven { url "${mavenRepo().uri}" } }
-dependencies { compile 'group:projectA:latest.foo' } // interestingly, status name doesn't matter
+dependencies { compile 'group:projectA:latest.$status' }
 task retrieve(type: Sync) {
     from configurations.compile
     into 'build'
@@ -40,10 +40,33 @@ task retrieve(type: Sync) {
 
         then:
         def buildDir = file('build')
-        buildDir.assertHasDescendants(moduleAA.artifactFile.name, moduleB.artifactFile.name)
+        buildDir.assertHasDescendants(highest.artifactFile.name)
+
+        where:
+        status << ["integration", "milestone", "release"]
     }
 
-    def "cannot use latest version selector if highest version is snapshot (looks like a bug)"() {
+    def "latest selector with unknown status leads to failure"() {
+        mavenRepo().module('group', 'projectA', '1.0').publish()
+
+        buildFile << """
+configurations { compile }
+repositories { maven { url "${mavenRepo().uri}" } }
+dependencies { compile 'group:projectA:latest.foo' }
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'build'
+}
+"""
+
+        expect:
+        fails 'retrieve'
+        // would be better if metadata validation failed (status not contained in status scheme)
+        failure.assertHasCause("Could not find any version that matches group:projectA:latest.foo.")
+    }
+
+    // describes the actual (not the desired) behavior
+    def "latest selector doesn't work correctly if highest version is snapshot"() {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.0').publish()
         def moduleAA = mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publish()
