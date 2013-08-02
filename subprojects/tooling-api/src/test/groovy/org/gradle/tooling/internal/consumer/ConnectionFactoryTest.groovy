@@ -42,6 +42,7 @@ class ConnectionFactoryTest extends Specification {
         result.connection.connection instanceof LoggingInitializerConnection
         result.connection.connection.connection instanceof ProgressLoggingConnection
         result.connection.connection.connection.connection instanceof LazyConnection
+        _ * distribution.displayName >> "[some distribution]"
         0 * _._
     }
 }

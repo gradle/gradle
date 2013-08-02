@@ -21,6 +21,7 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.consumer.async.AsyncConnection
+import org.gradle.tooling.internal.consumer.connection.ConnectionAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
@@ -42,7 +43,7 @@ class DefaultBuildActionExecuterTest extends ConcurrentSpec {
 
         then:
         1 * asyncConnection.run(!null, !null) >> {args ->
-            AsyncConnection.ConnectionAction<GradleProject> action = args[0]
+            ConnectionAction<GradleProject> action = args[0]
             action.run(connection)
             adaptedHandler = args[1]
         }
