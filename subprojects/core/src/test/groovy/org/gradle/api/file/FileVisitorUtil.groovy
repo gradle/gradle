@@ -15,6 +15,7 @@
  */
 package org.gradle.api.file
 
+import org.apache.tools.ant.util.SymbolicLinkUtils
 import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 
@@ -110,5 +111,54 @@ class FileVisitorUtil {
             visited[it.name] = it.mode
         }
         assertThat(visited, equalTo(filesWithPermissions))
+    }
+
+    static void assertVisitsSymbolicLinks(MinimalFileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs, Iterable<String> expectedLinks) {
+        assertVisitsSymbolicLinks(new FileTreeAdapter(tree), expectedFiles, expectedDirs, expectedLinks)
+    }
+
+    static void assertVisitsSymbolicLinks(FileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs, Iterable<String> expectedLinks) {
+        Set files = [] as Set
+        Set dirs = [] as Set
+        Set links = [] as Set
+        final SymbolicLinkUtils linkUtil = SymbolicLinkUtils.getSymbolicLinkUtils();
+        FileVisitor visitor = [
+                visitFile: {FileVisitDetails details ->
+                    if (details.relativePath.parent.parent) {
+                        assertThat(dirs, hasItem(details.relativePath.parent.pathString))
+                    }
+                    assertTrue(details.relativePath.isFile())
+                    if (linkUtil.isSymbolicLink(details.file) || linkUtil.isDanglingSymbolicLink(details.file)) {
+                        assertTrue(links.add(details.relativePath.pathString))
+                    } else {
+                        assertTrue(files.add(details.relativePath.pathString))
+                        assertTrue("File " + details.relativePath + " " + details.file + "should be a file.", details.file.file)
+                        ByteArrayOutputStream outstr = new ByteArrayOutputStream()
+                        details.copyTo(outstr)
+                        assertEquals(details.file.text, outstr.toString())
+                    }
+                },
+                visitDir: {FileVisitDetails details ->
+                    if (details.relativePath.parent.parent) {
+                        assertThat(dirs, hasItem(details.relativePath.parent.pathString))
+                    }
+                    assertTrue(dirs.add(details.relativePath.pathString))
+                    assertFalse(details.relativePath.isFile())
+                    assertTrue(details.file.directory)
+                }
+        ] as FileVisitor
+
+        tree.visit(visitor)
+
+        assertThat(files, equalTo(expectedFiles as Set))
+        assertThat(dirs, equalTo(expectedDirs as Set))
+        assertThat(links, equalTo(expectedLinks as Set))
+
+        files = [] as Set
+        tree.visit {FileVisitDetails details ->
+            assertTrue(files.add(details.relativePath.pathString))
+        }
+
+        assertThat(files, equalTo(expectedFiles + expectedDirs + expectedLinks as Set))
     }
 }

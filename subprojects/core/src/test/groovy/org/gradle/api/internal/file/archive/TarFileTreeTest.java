@@ -19,12 +19,18 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.FileResource;
 import org.gradle.api.internal.file.MaybeCompressedFileResource;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.Resources;
+import org.gradle.util.Requires;
+import org.gradle.util.TestPrecondition;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +40,7 @@ import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTy
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -44,6 +51,7 @@ public class TarFileTreeTest {
     private final TestFile rootDir = tmpDir.getTestDirectory().file("root");
     private final TestFile expandDir = tmpDir.getTestDirectory().file("tmp");
     private final TarFileTree tree = new TarFileTree(new MaybeCompressedFileResource(new FileResource(tarFile)), expandDir);
+    private final FileSystem fs = FileSystems.getDefault();
 
     @Test
     public void displayName() {
@@ -137,5 +145,28 @@ public class TarFileTreeTest {
         expected.put("folder", 0755);
 
         assertVisitsPermissions(tree, expected);
+    }
+
+    @Test
+    @Requires(TestPrecondition.SYMLINKS)
+    public void symbolicLinkToFileIsUntared() throws IOException {
+        TestFile target = rootDir.file("subdir/target.txt").write("content");
+        TestFile link  = rootDir.file("subdir/link.txt");
+        fs.createSymbolicLink(link, new File("target.txt"));
+        assertThat(link.isDirectory(), is(false));
+        assertThat(link.isFile(), is(true));
+        rootDir.usingNativeTools().tarTo(tarFile);
+        assertVisitsSymbolicLinks(tree, toList("root/subdir/target.txt"), toList("root", "root/subdir"), toList("root/subdir/link.txt"));
+    }
+
+    @Test
+    @Requires(TestPrecondition.SYMLINKS)
+    public void symbolicLinkToDirectoryIsUntared() throws IOException {
+        TestFile targetDir = rootDir.file("subdir");
+        targetDir.file("file1.txt").write("content");
+        TestFile linkDir  = rootDir.file("linkdir");
+        fs.createSymbolicLink(linkDir, new File("subdir"));
+        rootDir.usingNativeTools().tarTo(tarFile);
+        assertVisitsSymbolicLinks(tree, toList("root/subdir/file1.txt"), toList("root", "root/subdir"), toList("root/linkdir"));
     }
 }

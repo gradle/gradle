@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
 import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertThat;
 
 public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
@@ -636,6 +637,28 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         tar.assertContainsFile('file1.txt')
         tar.assertContainsFile('file2.txt')
         tar.content("file1.txt") == "dir1/file1.txt"
+    }
+
+    def untarCanHandleSymbolicLinks() {
+        given:
+        buildFile << '''
+            task copy(type: Copy) {
+                //the input file comes from the resources to make sure it contains symbolic links
+                //Copying of symbolic links works only if symbolic link is copied after the target
+                from tarTree('compressedTarWithSymbolicLinks.tar').matching {
+		    include '**/target.txt'
+                }
+                from tarTree('compressedTarWithSymbolicLinks.tar').matching {
+		    include '**/link.txt'
+                }
+                into 'build/symbolic'
+            }
+'''
+        when:
+        run 'copy'
+        then:
+        assertThat(file('build/symbolic/root/subdir/link.txt').name, equalTo('target.txt'))
+        file('build/symbolic/root/subdir/target.txt').text == file('build/symbolic/root/subdir/link.txt').text
     }
 
     private def createTar(String name, Closure cl) {
