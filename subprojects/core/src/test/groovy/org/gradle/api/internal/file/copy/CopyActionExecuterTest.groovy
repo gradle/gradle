@@ -36,7 +36,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
             createDir("b1").createFile("b1")
         }
 
-        def resolver = new BaseDirFileResolver(testDirectory)
+        def resolver = new BaseDirFileResolver(FileSystems.getDefault(), testDirectory)
         def copySpec = new DestinationRootCopySpec(resolver, new DefaultCopySpec(resolver, new DirectInstantiator()))
         copySpec.with {
             into "out"

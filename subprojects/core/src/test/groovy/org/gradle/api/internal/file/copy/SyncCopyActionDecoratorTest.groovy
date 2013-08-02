@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.copy
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.WorkspaceTest
 
@@ -25,7 +26,7 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
     FileCopier copier
 
     def setup() {
-        copier = new FileCopier(new DirectInstantiator(), new BaseDirFileResolver(testDirectory))
+        copier = new FileCopier(new DirectInstantiator(), new BaseDirFileResolver(FileSystems.getDefault(), testDirectory))
     }
 
     void deletesExtraFilesFromDestinationDirectoryAtTheEndOfVisit() {

@@ -55,7 +55,7 @@ public class FileCopier {
     }
 
     private FileCopyAction getCopyVisitor(File destination) {
-        return new FileCopyAction(new BaseDirFileResolver(destination));
+        return new FileCopyAction(new BaseDirFileResolver(FileSystems.getDefault(), destination));
     }
 
     private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {

@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -68,7 +69,7 @@ public class Copy extends AbstractCopyTask {
         if (destinationDir == null) {
             throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
-        return new FileCopyAction(new BaseDirFileResolver(destinationDir));
+        return new FileCopyAction(new BaseDirFileResolver(FileSystems.getDefault(), destinationDir));
     }
 
     @Override

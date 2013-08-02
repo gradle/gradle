@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.*;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -35,7 +36,7 @@ public class Sync extends AbstractCopyTask {
         if (destinationDir == null) {
             throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
-        return new SyncCopyActionDecorator(destinationDir, new FileCopyAction(new BaseDirFileResolver(destinationDir)));
+        return new SyncCopyActionDecorator(destinationDir, new FileCopyAction(new BaseDirFileResolver(FileSystems.getDefault(), destinationDir)));
     }
 
     @Override
