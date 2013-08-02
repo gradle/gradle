@@ -20,12 +20,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.test.fixtures.file.WorkspaceTest
 import org.gradle.util.HelperUtil
-import org.jmock.Expectations
 import org.junit.Test
-import spock.lang.Specification
-
-import static org.hamcrest.Matchers.sameInstance
-import static org.junit.Assert.assertThat
 
 class AbstractCopyTaskTest extends WorkspaceTest {
 
