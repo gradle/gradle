@@ -18,8 +18,9 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.plugins.latest.LatestRevisionStrategy
 import org.gradle.api.Action
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExactVersionMatcher
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LatestVersionStrategy
 import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.resource.ResourceException
@@ -135,7 +136,9 @@ class MavenVersionListerTest extends Specification {
     }
 
     private static List<VersionList.ListedVersion> sort(VersionList versionList) {
-        versionList.sortLatestFirst(new LatestRevisionStrategy())
+        def latestStrategy = new LatestVersionStrategy()
+        latestStrategy.versionMatcher = new ExactVersionMatcher()
+        versionList.sortLatestFirst(latestStrategy)
     }
 
     def "visit throws ResourceNotFoundException when maven-metadata not available"() {

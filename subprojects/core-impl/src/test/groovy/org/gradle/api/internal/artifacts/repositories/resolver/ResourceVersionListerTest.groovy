@@ -17,7 +17,8 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.plugins.latest.LatestRevisionStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExactVersionMatcher
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LatestVersionStrategy
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.resource.ResourceException
 import org.gradle.api.internal.resource.ResourceNotFoundException
@@ -148,9 +149,10 @@ class ResourceVersionListerTest extends Specification {
         0 * repo._
     }
 
-
-    private List<VersionList.ListedVersion> sort(VersionList versionList) {
-        versionList.sortLatestFirst(new LatestRevisionStrategy())
+    private static List<VersionList.ListedVersion> sort(VersionList versionList) {
+        def latestStrategy = new LatestVersionStrategy()
+        latestStrategy.versionMatcher = new ExactVersionMatcher()
+        versionList.sortLatestFirst(latestStrategy)
     }
 
     def "visit substitutes non revision placeholders from pattern before hitting repository"() {

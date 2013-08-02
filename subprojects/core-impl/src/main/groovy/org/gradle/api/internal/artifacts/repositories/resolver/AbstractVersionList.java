@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.plugins.latest.LatestStrategy;
+import com.google.common.collect.Lists;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LatestStrategy;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,9 +28,8 @@ abstract class AbstractVersionList implements VersionList {
     }
 
     public List<ListedVersion> sortLatestFirst(LatestStrategy latestStrategy) {
-        List<ListedVersion> versions = new ArrayList<ListedVersion>(getVersions());
-        ListedVersion[] artifactInfos = getVersions().toArray(new ListedVersion[versions.size()]);
-        List<ListedVersion> sorted = latestStrategy.sort(artifactInfos);
+        List<ListedVersion> versions = Lists.newArrayList(getVersions());
+        List<ListedVersion> sorted = latestStrategy.sort(versions);
         Collections.reverse(sorted);
 
         return sorted;
