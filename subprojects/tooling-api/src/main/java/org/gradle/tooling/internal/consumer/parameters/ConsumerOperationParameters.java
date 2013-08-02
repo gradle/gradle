@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+// TODO:ADAM - Need to make an immutable copy before passing to connection
 public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1, BuildParameters {
 
     private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();

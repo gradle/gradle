@@ -20,7 +20,6 @@ import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -31,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Creates the actual connection implementation on demand.
  */
-public class LazyConnection implements ConsumerConnection {
+public class LazyConnection implements ConsumerActionExecuter {
     private final Distribution distribution;
     private final ToolingImplementationLoader implementationLoader;
     private final LoggingProvider loggingProvider;
@@ -77,15 +76,7 @@ public class LazyConnection implements ConsumerConnection {
         return distribution.getDisplayName();
     }
 
-    public <T> T run(final Class<T> type, final ConsumerOperationParameters operationParameters) {
-        return withConnection(new ConnectionAction<T>() {
-            public T run(ConsumerConnection connection) {
-                return connection.run(type, operationParameters);
-            }
-        });
-    }
-
-    private <T> T withConnection(ConnectionAction<T> action) {
+    public <T> T run(org.gradle.tooling.internal.consumer.connection.ConnectionAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         try {
             ConsumerConnection connection = onStartAction();
             return action.run(connection);
@@ -120,9 +111,5 @@ public class LazyConnection implements ConsumerConnection {
         } finally {
             lock.unlock();
         }
-    }
-
-    private interface ConnectionAction<T> {
-        T run(ConsumerConnection connection);
     }
 }

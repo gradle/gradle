@@ -28,51 +28,40 @@ import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 /**
  * Provides some high-level progress information.
  */
-public class ProgressLoggingConnection implements ConsumerConnection {
-    private final ConsumerConnection connection;
+public class ProgressLoggingConnection implements ConsumerActionExecuter {
+    private final ConsumerActionExecuter actionExecuter;
     private final LoggingProvider loggingProvider;
 
-    public ProgressLoggingConnection(ConsumerConnection connection, LoggingProvider loggingProvider) {
-        this.connection = connection;
+    public ProgressLoggingConnection(ConsumerActionExecuter actionExecuter, LoggingProvider loggingProvider) {
+        this.actionExecuter = actionExecuter;
         this.loggingProvider = loggingProvider;
     }
 
     public void stop() {
-        connection.stop();
+        actionExecuter.stop();
     }
 
     public String getDisplayName() {
-        return connection.getDisplayName();
+        return actionExecuter.getDisplayName();
     }
 
-    public <T> T run(final Class<T> type, final ConsumerOperationParameters operationParameters) {
-        return run("Build", operationParameters, new BuildAction<T>() {
-            public T run(ConsumerConnection connection) {
-                return connection.run(type, operationParameters);
-            }
-        });
-    }
-
-    private <T> T run(String description, ConsumerOperationParameters parameters, BuildAction<T> action) {
+    public <T> T run(ConnectionAction<T> action) throws UnsupportedOperationException, IllegalStateException {
+        ConsumerOperationParameters parameters = action.getParameters();
         ProgressListenerAdapter listener = new ProgressListenerAdapter(parameters.getProgressListener());
         ListenerManager listenerManager = loggingProvider.getListenerManager();
         listenerManager.addListener(listener);
         try {
             ProgressLogger progressLogger = loggingProvider.getProgressLoggerFactory().newOperation(ProgressLoggingConnection.class);
-            progressLogger.setDescription(description);
+            progressLogger.setDescription("Build");
             progressLogger.started();
             try {
-                return action.run(connection);
+                return actionExecuter.run(action);
             } finally {
                 progressLogger.completed();
             }
         } finally {
             listenerManager.removeListener(listener);
         }
-    }
-
-    private interface BuildAction<T> {
-        T run(ConsumerConnection connection);
     }
 
     private static class ProgressListenerAdapter implements ProgressListener {

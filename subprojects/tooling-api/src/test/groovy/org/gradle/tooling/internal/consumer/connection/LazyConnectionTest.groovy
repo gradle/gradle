@@ -27,13 +27,12 @@ class LazyConnectionTest extends Specification {
     final Distribution distribution = Mock()
     final ToolingImplementationLoader implementationLoader = Mock()
     final ConsumerOperationParameters params = Mock()
+    final ConnectionAction<String> action = Mock()
     final ConsumerConnectionParameters connectionParams = Mock()
     final ConsumerConnection consumerConnection = Mock()
     final LoggingProvider loggingProvider = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final LazyConnection connection = new LazyConnection(distribution, implementationLoader, loggingProvider, false)
-
-    static class SomeModel {}
 
     def setup() {
         connection.connectionParameters = connectionParams
@@ -41,37 +40,39 @@ class LazyConnectionTest extends Specification {
 
     def createsConnectionOnDemandToBuildModel() {
         when:
-        connection.run(SomeModel, params)
+        connection.run(action)
 
         then:
-        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
+        1 * loggingProvider.progressLoggerFactory >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
-        1 * consumerConnection.run(SomeModel, params)
+        1 * action.run(consumerConnection)
         0 * _._
     }
 
     def reusesConnection() {
+        def action2 = Mock(ConnectionAction)
+
         when:
-        connection.run(SomeModel, params)
-        connection.run(String, params)
+        connection.run(action)
+        connection.run(action2)
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
-        1 * consumerConnection.run(SomeModel, params)
-        1 * consumerConnection.run(String, params)
+        1 * action.run(consumerConnection)
+        1 * action2.run(consumerConnection)
         0 * _._
     }
 
     def stopsConnectionOnStop() {
         when:
-        connection.run(SomeModel, params)
+        connection.run(action)
         connection.stop()
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams) >> consumerConnection
-        1 * consumerConnection.run(SomeModel, params)
+        1 * action.run(consumerConnection)
         1 * consumerConnection.stop()
         0 * _._
     }
@@ -88,7 +89,7 @@ class LazyConnectionTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        connection.run(SomeModel, params)
+        connection.run(action)
 
         then:
         RuntimeException e = thrown()

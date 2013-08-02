@@ -69,6 +69,10 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
 
     public void run(final ResultHandler<? super Void> handler) {
         connection.run(new ConnectionAction<Void>() {
+            public ConsumerOperationParameters getParameters() {
+                return operationParameters;
+            }
+
             public Void run(ConsumerConnection connection) {
                 return connection.run(Void.class, operationParameters);
             }

@@ -20,29 +20,29 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ServiceLifecycle;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConnectionAction;
-import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecuter;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
 /**
- * Adapts a {@link ConsumerConnection} to an {@link AsyncConnection}.
+ * Adapts a {@link ConsumerActionExecuter} to an {@link AsyncConnection}.
  */
 public class DefaultAsyncConnection implements AsyncConnection {
-    private final ConsumerConnection connection;
+    private final ConsumerActionExecuter actionExecuter;
     private final StoppableExecutor executor;
     private final ServiceLifecycle lifecycle;
 
-    public DefaultAsyncConnection(ConsumerConnection connection, ExecutorFactory executorFactory) {
-        this.connection = connection;
+    public DefaultAsyncConnection(ConsumerActionExecuter actionExecuter, ExecutorFactory executorFactory) {
+        this.actionExecuter = actionExecuter;
         executor = executorFactory.create("Connection worker");
-        lifecycle = new ServiceLifecycle(connection.getDisplayName());
+        lifecycle = new ServiceLifecycle(actionExecuter.getDisplayName());
     }
 
     public String getDisplayName() {
-        return connection.getDisplayName();
+        return actionExecuter.getDisplayName();
     }
 
     public void stop() {
-        CompositeStoppable.stoppable(lifecycle, executor, connection).stop();
+        CompositeStoppable.stoppable(lifecycle, executor, actionExecuter).stop();
     }
 
     public <T> void run(final ConnectionAction<? extends T> action, final ResultHandlerVersion1<? super T> handler) {
@@ -52,7 +52,7 @@ public class DefaultAsyncConnection implements AsyncConnection {
                     public void run() {
                         T result;
                         try {
-                            result = action.run(connection);
+                            result = actionExecuter.run(action);
                         } catch (Throwable t) {
                             handler.onFailure(t);
                             return;

@@ -17,31 +17,30 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.SynchronizedLogging;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 /**
  * The idea is to initialize the logging infrastructure before we actually build the model or run a build.
  */
-public class LoggingInitializerConnection implements ConsumerConnection {
+public class LoggingInitializerConnection implements ConsumerActionExecuter {
 
-    private final ConsumerConnection connection;
+    private final ConsumerActionExecuter actionExecuter;
     private final SynchronizedLogging synchronizedLogging;
 
-    public LoggingInitializerConnection(ConsumerConnection connection, SynchronizedLogging synchronizedLogging) {
-        this.connection = connection;
+    public LoggingInitializerConnection(ConsumerActionExecuter actionExecuter, SynchronizedLogging synchronizedLogging) {
+        this.actionExecuter = actionExecuter;
         this.synchronizedLogging = synchronizedLogging;
     }
 
     public void stop() {
-        connection.stop();
+        actionExecuter.stop();
     }
 
     public String getDisplayName() {
-        return connection.getDisplayName();
+        return actionExecuter.getDisplayName();
     }
 
-    public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(ConnectionAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         synchronizedLogging.init();
-        return connection.run(type, operationParameters);
+        return actionExecuter.run(action);
     }
 }

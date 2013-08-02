@@ -18,16 +18,16 @@ package org.gradle.tooling.internal.consumer.async
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.internal.consumer.connection.ConnectionAction
-import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
+import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecuter
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 
 class DefaultAsyncConnectionTest extends ConcurrentSpec {
-    def consumerConnection = Mock(ConsumerConnection) {
-        getDisplayName() >> "[connection]"
+    def actionExecuter = Mock(ConsumerActionExecuter) {
+        getDisplayName() >> "[executer]"
     }
     def action = Mock(ConnectionAction)
     def handler = Mock(ResultHandlerVersion1)
-    def connection = new DefaultAsyncConnection(consumerConnection, executorFactory)
+    def connection = new DefaultAsyncConnection(actionExecuter, executorFactory)
 
     def cleanup() {
         connection.stop()
@@ -41,7 +41,7 @@ class DefaultAsyncConnectionTest extends ConcurrentSpec {
         }
 
         then:
-        1 * action.run(consumerConnection) >> {
+        1 * actionExecuter.run(action) >> {
             thread.blockUntil.dispatched
             instant.actionStarted
             return "result"
@@ -63,7 +63,7 @@ class DefaultAsyncConnectionTest extends ConcurrentSpec {
         }
 
         then:
-        1 * action.run(consumerConnection) >> {
+        1 * actionExecuter.run(action) >> {
             throw failure
         }
         1 * handler.onFailure(failure)
@@ -76,6 +76,6 @@ class DefaultAsyncConnectionTest extends ConcurrentSpec {
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'Cannot use [connection] as it has been stopped.'
+        e.message == 'Cannot use [executer] as it has been stopped.'
     }
 }

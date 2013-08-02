@@ -50,6 +50,10 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
         connection.run(new ConnectionAction<T>() {
+            public ConsumerOperationParameters getParameters() {
+                return operationParameters;
+            }
+
             public T run(ConsumerConnection connection) {
                 return connection.run(modelType, operationParameters);
             }

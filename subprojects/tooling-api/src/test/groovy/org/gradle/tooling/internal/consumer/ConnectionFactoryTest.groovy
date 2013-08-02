@@ -39,9 +39,9 @@ class ConnectionFactoryTest extends Specification {
         then:
         result instanceof DefaultProjectConnection
         result.connection instanceof DefaultAsyncConnection
-        result.connection.connection instanceof LoggingInitializerConnection
-        result.connection.connection.connection instanceof ProgressLoggingConnection
-        result.connection.connection.connection.connection instanceof LazyConnection
+        result.connection.actionExecuter instanceof LoggingInitializerConnection
+        result.connection.actionExecuter.actionExecuter instanceof ProgressLoggingConnection
+        result.connection.actionExecuter.actionExecuter.actionExecuter instanceof LazyConnection
         _ * distribution.displayName >> "[some distribution]"
         0 * _._
     }
