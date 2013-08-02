@@ -30,7 +30,7 @@ Doing so helps to ensure that:
 4. Once received, the pull request will be reviewed by a Gradle core developer. Your pull request will likely get more attention if you:
     1. Have first discussed the change on the Gradle Developer list.
     2. Have followed all of the Contribution Guidelines, below.
-5. After review, and usually after a number of iterations of development, you pull request may be merged into the Gradle distribution.
+5. After review, and usually after a number of iterations of development, your pull request may be merged into the Gradle distribution.
 
 ## Contribution Guidelines
 
