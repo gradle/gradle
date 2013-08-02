@@ -40,6 +40,14 @@ class ExactVersionMatcherTest extends Specification {
         !matcher.accept("2.0", "3.0")
     }
 
+    def "accepts the same candidate versions whether or not metadata is available"() {
+        expect:
+        matcher.accept("1.0", "1.0")
+        matcher.accept("2.0", "2.0")
+        !matcher.accept("1.0", "1.1")
+        !matcher.accept("2.0", "3.0")
+    }
+
     def "doesn't support compare operation (because it doesn't support dynamic selectors)"() {
         when:
         matcher.compare("[1.0,3.0]", "2.0", null)
