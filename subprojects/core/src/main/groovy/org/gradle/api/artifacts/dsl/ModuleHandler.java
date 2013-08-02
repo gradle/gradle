@@ -17,7 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ComponentMetaDataDetails;
+import org.gradle.api.artifacts.ComponentMetadataDetails;
 
 /**
  * Configuration options related to modules resolved from a repository.
@@ -32,5 +32,5 @@ public interface ModuleHandler {
      *
      * @param action the rule to be added
      */
-    void eachModule(Action<? super ComponentMetaDataDetails> action);
+    void eachModule(Action<? super ComponentMetadataDetails> action);
 }

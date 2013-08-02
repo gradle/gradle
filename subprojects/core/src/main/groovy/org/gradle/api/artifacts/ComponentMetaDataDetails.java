@@ -19,36 +19,62 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * Details of a resolved module. Some details can be changed
+ * Details about the metadata of a resolved component. Some details can be changed
  * via metadata rules (see {@link org.gradle.api.artifacts.dsl.ModuleHandler}.
  */
 @Incubating
-public interface ComponentMetaDataDetails {
+public interface ComponentMetadataDetails {
     /**
-     * Returns the group of the module.
+     * Returns the identifier of the component.
      *
-     * @return the group of the module.
+     * @return the identifier of the component.
      */
-    String getGroup();
+    ModuleVersionIdentifier getId();
 
     /**
-     * Returns the name of the module.
+     * Tells whether the component is changing or immutable.
      *
-     * @return the name of the module
+     * @return whether the component is changing or immutable.
      */
-    String getName();
-
-    /**
-     * Returns the version of the module.
-     *
-     * @return the version of the module
-     */
-    String getVersion();
     boolean isChanging();
+
+    /**
+     * Returns the status of the component. Must
+     * match one of the values in {@link #getStatusScheme()}.
+     *
+     * @return the status of the component
+     */
     String getStatus();
+
+    /**
+     * Returns the status scheme of the component. Values are
+     * ordered from least to most mature status.
+     * Defaults to {@code ["integration", "milestone", "release"]}.
+     *
+     * @return the status scheme of the component
+     */
     List<String> getStatusScheme();
 
+    /**
+     * Sets whether the component is changing or immutable.
+     *
+     * @param changing whether the component is changing or immutable
+     */
     void setChanging(boolean changing);
+
+    /**
+     * Sets the status of the component. Must
+     * match one of the values in {@link #getStatusScheme()}.
+     *
+     * @param status the status of the component
+     */
     void setStatus(String status);
+
+    /**
+     * Sets the status scheme of the component. Values are ordered
+     * from least to most mature status.
+     *
+     * @param statusScheme the status scheme of the component
+     */
     void setStatusScheme(List<String> statusScheme);
 }

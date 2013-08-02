@@ -16,19 +16,19 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ComponentMetaDataDetails;
+import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.ModuleHandler;
 import org.gradle.listener.ActionBroadcast;
 
 public class DefaultModuleHandler implements ModuleHandler, ModuleMetadataProcessor {
-    private final ActionBroadcast<ComponentMetaDataDetails> moduleRules = new ActionBroadcast<ComponentMetaDataDetails>();
+    private final ActionBroadcast<ComponentMetadataDetails> moduleRules = new ActionBroadcast<ComponentMetadataDetails>();
 
-    public void eachModule(Action<? super ComponentMetaDataDetails> action) {
+    public void eachModule(Action<? super ComponentMetadataDetails> action) {
         moduleRules.add(action);
     }
 
-    public void process(ComponentMetaDataDetails details) {
+    public void process(ComponentMetadataDetails details) {
         moduleRules.execute(details);
     }
 }
