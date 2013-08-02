@@ -27,9 +27,6 @@ public class LatestVersionMatcher implements VersionMatcher {
     }
 
     public boolean needModuleMetadata(String requestedVersion, String foundVersion) {
-        // TODO we shouldn't download descriptor when latest.lowestStatus is requested
-        // one way to achieve this would be to split up this method into needStatus() and needStatusScheme()
-        // in cases where only the latter was needed, we would only fire metadata rules but wouldn't download descriptor
         return true;
     }
 
