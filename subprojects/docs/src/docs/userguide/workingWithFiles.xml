@@ -206,7 +206,9 @@
             <link linkend="sec:file_collections">files()</link> method does. When an argument resolves to a directory,
             everything under that directory (but not the directory itself) is recursively copied into the destination
             directory. When an argument resolves to a file, that file is copied into the destination directory.
-            When an argument resolves to a non-existing file, that argument is ignored.
+            When an argument resolves to a non-existing file, that argument is ignored. When an argument resolves to 
+            a task (or explicitly its output), the output of the task is used as the argument for the <literal>from()</literal>
+            method and this task is automatically added as a dependency of the <literal>Copy</literal> task.            
             The <literal>into()</literal> accepts
             any of the arguments that the <link linkend="sec:locating_files">file()</link> method does. Here is another
             example:
@@ -219,10 +221,23 @@
             <sourcefile file="build.gradle" snippet="copy-task-with-patterns"/>
         </sample>
         <para>You can also use the <apilink class="org.gradle.api.Project" method="copy"/> method to copy files. It works the
-            same way as the task.</para>
-        <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method">
+            same way as the task with some major limitations though. First, the <literal>copy()</literal> method can not automatically handle the up-to-date
+            check of the copied files.
+        </para>
+        <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method without up-to-date check">
             <sourcefile file="build.gradle" snippet="copy-method"/>
         </sample>
+        <para>Secondly, the <literal>copy()</literal> method can not automatically add a task as a dependency when used as an argument
+            of <literal>from()</literal>. Actually, in this situation, if this task is not explicitly declared as a dependency of the
+            task enclosing the use of the <literal>copy()</literal> method, the dependent task will not be executed and either an out of
+            date file will be copied or no file will be copied. Here is a verbose example of <literal>copy()</literal>
+            method with up-to-date check and task dependency manually added to be at par with the <literal>Copy()</literal> task :
+        </para>
+        <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method with up-to-date check">
+            <sourcefile file="build.gradle" snippet="copy-method-with-dependency"/>
+        </sample>
+        <para>The bottom line is that the <literal>Copy()</literal> task should be preferred over the <literal>copy()</literal> method most of the time.
+        </para>
         <section>
             <title>Renaming files</title>
             <sample id="renameOnCopy" dir="userguide/files/copy" title="Renaming files as they are copied">
