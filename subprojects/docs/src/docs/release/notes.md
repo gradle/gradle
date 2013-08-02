@@ -199,6 +199,7 @@ On behalf of the Gradle community, the Gradle development team would like to tha
 
 * [Kyle Mahan](https://github.com/kylewm) - some Javadoc fixes
 * [Stephane Gallés](https://github.com/sgalles) - Documentation improvements
+* [Bobby Warner](https://github.com/bobbywarner) - Documentation improvements
 
 Contributions are an important part of the continuous improvement of Gradle. 
 
