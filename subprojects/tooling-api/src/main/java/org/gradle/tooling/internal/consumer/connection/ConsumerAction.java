@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-/**
- * Implementations must be thread-safe.
- */
-public interface ConsumerActionExecuter {
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
-    void stop();
-    
-    String getDisplayName();
+public interface ConsumerAction<T> {
+    ConsumerOperationParameters getParameters();
 
-    <T> T run(ConnectionAction<T> action) throws UnsupportedOperationException, IllegalStateException;
+    T run(ConsumerConnection connection);
 }

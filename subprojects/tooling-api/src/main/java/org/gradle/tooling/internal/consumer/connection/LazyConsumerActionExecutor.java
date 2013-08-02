@@ -28,9 +28,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Creates the actual connection implementation on demand.
+ * Creates the actual executor implementation on demand.
  */
-public class LazyConnection implements ConsumerActionExecuter {
+public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     private final Distribution distribution;
     private final ToolingImplementationLoader implementationLoader;
     private final LoggingProvider loggingProvider;
@@ -43,7 +43,7 @@ public class LazyConnection implements ConsumerActionExecuter {
 
     ConsumerConnectionParameters connectionParameters;
 
-    public LazyConnection(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, boolean verboseLogging) {
+    public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, boolean verboseLogging) {
         this.distribution = distribution;
         this.implementationLoader = implementationLoader;
         this.loggingProvider = loggingProvider;
@@ -76,7 +76,7 @@ public class LazyConnection implements ConsumerActionExecuter {
         return distribution.getDisplayName();
     }
 
-    public <T> T run(org.gradle.tooling.internal.consumer.connection.ConnectionAction<T> action) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         try {
             ConsumerConnection connection = onStartAction();
             return action.run(connection);

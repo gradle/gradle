@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.internal.consumer.async.AsyncConnection;
-import org.gradle.tooling.internal.consumer.connection.ConnectionAction;
+import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -29,9 +29,9 @@ import java.util.Arrays;
 
 public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<DefaultModelBuilder<T>> implements ModelBuilder<T> {
     private final Class<T> modelType;
-    private final AsyncConnection connection;
+    private final AsyncConsumerActionExecutor connection;
 
-    public DefaultModelBuilder(Class<T> modelType, AsyncConnection connection, ConnectionParameters parameters) {
+    public DefaultModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(new ConsumerOperationParameters(parameters));
         this.modelType = modelType;
         this.connection = connection;
@@ -49,7 +49,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
     }
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
-        connection.run(new ConnectionAction<T>() {
+        connection.run(new ConsumerAction<T>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }

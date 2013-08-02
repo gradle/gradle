@@ -21,26 +21,26 @@ import org.gradle.tooling.internal.consumer.SynchronizedLogging;
 /**
  * The idea is to initialize the logging infrastructure before we actually build the model or run a build.
  */
-public class LoggingInitializerConnection implements ConsumerActionExecuter {
+public class LoggingInitializerConsumerActionExecutor implements ConsumerActionExecutor {
 
-    private final ConsumerActionExecuter actionExecuter;
+    private final ConsumerActionExecutor actionExecutor;
     private final SynchronizedLogging synchronizedLogging;
 
-    public LoggingInitializerConnection(ConsumerActionExecuter actionExecuter, SynchronizedLogging synchronizedLogging) {
-        this.actionExecuter = actionExecuter;
+    public LoggingInitializerConsumerActionExecutor(ConsumerActionExecutor actionExecutor, SynchronizedLogging synchronizedLogging) {
+        this.actionExecutor = actionExecutor;
         this.synchronizedLogging = synchronizedLogging;
     }
 
     public void stop() {
-        actionExecuter.stop();
+        actionExecutor.stop();
     }
 
     public String getDisplayName() {
-        return actionExecuter.getDisplayName();
+        return actionExecutor.getDisplayName();
     }
 
-    public <T> T run(ConnectionAction<T> action) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         synchronizedLogging.init();
-        return actionExecuter.run(action);
+        return actionExecutor.run(action);
     }
 }

@@ -19,40 +19,40 @@ import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ServiceLifecycle;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.tooling.internal.consumer.connection.ConnectionAction;
-import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecuter;
+import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
+import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecutor;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
 /**
- * Adapts a {@link ConsumerActionExecuter} to an {@link AsyncConnection}.
+ * Adapts a {@link ConsumerActionExecutor} to an {@link AsyncConsumerActionExecutor}.
  */
-public class DefaultAsyncConnection implements AsyncConnection {
-    private final ConsumerActionExecuter actionExecuter;
+public class DefaultAsyncConsumerActionExecutor implements AsyncConsumerActionExecutor {
+    private final ConsumerActionExecutor actionExecutor;
     private final StoppableExecutor executor;
     private final ServiceLifecycle lifecycle;
 
-    public DefaultAsyncConnection(ConsumerActionExecuter actionExecuter, ExecutorFactory executorFactory) {
-        this.actionExecuter = actionExecuter;
+    public DefaultAsyncConsumerActionExecutor(ConsumerActionExecutor actionExecutor, ExecutorFactory executorFactory) {
+        this.actionExecutor = actionExecutor;
         executor = executorFactory.create("Connection worker");
-        lifecycle = new ServiceLifecycle(actionExecuter.getDisplayName());
+        lifecycle = new ServiceLifecycle(actionExecutor.getDisplayName());
     }
 
     public String getDisplayName() {
-        return actionExecuter.getDisplayName();
+        return actionExecutor.getDisplayName();
     }
 
     public void stop() {
-        CompositeStoppable.stoppable(lifecycle, executor, actionExecuter).stop();
+        CompositeStoppable.stoppable(lifecycle, executor, actionExecutor).stop();
     }
 
-    public <T> void run(final ConnectionAction<? extends T> action, final ResultHandlerVersion1<? super T> handler) {
+    public <T> void run(final ConsumerAction<? extends T> action, final ResultHandlerVersion1<? super T> handler) {
         lifecycle.use(new Runnable() {
             public void run() {
                 executor.execute(new Runnable() {
                     public void run() {
                         T result;
                         try {
-                            result = actionExecuter.run(action);
+                            result = actionExecutor.run(action);
                         } catch (Throwable t) {
                             handler.onFailure(t);
                             return;

@@ -17,8 +17,8 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.internal.consumer.async.AsyncConnection;
-import org.gradle.tooling.internal.consumer.connection.ConnectionAction;
+import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.Task;
@@ -29,9 +29,9 @@ import java.util.Collections;
 import java.util.List;
 
 class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
-    private final AsyncConnection connection;
+    private final AsyncConsumerActionExecutor connection;
 
-    public DefaultBuildLauncher(AsyncConnection connection, ConnectionParameters parameters) {
+    public DefaultBuildLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(new ConsumerOperationParameters(parameters));
         operationParameters.setTasks(Collections.<String>emptyList());
         this.connection = connection;
@@ -68,7 +68,7 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        connection.run(new ConnectionAction<Void>() {
+        connection.run(new ConsumerAction<Void>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }

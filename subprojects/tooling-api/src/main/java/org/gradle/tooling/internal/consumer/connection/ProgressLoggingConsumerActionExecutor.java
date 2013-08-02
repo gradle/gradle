@@ -28,34 +28,34 @@ import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 /**
  * Provides some high-level progress information.
  */
-public class ProgressLoggingConnection implements ConsumerActionExecuter {
-    private final ConsumerActionExecuter actionExecuter;
+public class ProgressLoggingConsumerActionExecutor implements ConsumerActionExecutor {
+    private final ConsumerActionExecutor actionExecutor;
     private final LoggingProvider loggingProvider;
 
-    public ProgressLoggingConnection(ConsumerActionExecuter actionExecuter, LoggingProvider loggingProvider) {
-        this.actionExecuter = actionExecuter;
+    public ProgressLoggingConsumerActionExecutor(ConsumerActionExecutor actionExecutor, LoggingProvider loggingProvider) {
+        this.actionExecutor = actionExecutor;
         this.loggingProvider = loggingProvider;
     }
 
     public void stop() {
-        actionExecuter.stop();
+        actionExecutor.stop();
     }
 
     public String getDisplayName() {
-        return actionExecuter.getDisplayName();
+        return actionExecutor.getDisplayName();
     }
 
-    public <T> T run(ConnectionAction<T> action) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         ConsumerOperationParameters parameters = action.getParameters();
         ProgressListenerAdapter listener = new ProgressListenerAdapter(parameters.getProgressListener());
         ListenerManager listenerManager = loggingProvider.getListenerManager();
         listenerManager.addListener(listener);
         try {
-            ProgressLogger progressLogger = loggingProvider.getProgressLoggerFactory().newOperation(ProgressLoggingConnection.class);
+            ProgressLogger progressLogger = loggingProvider.getProgressLoggerFactory().newOperation(ProgressLoggingConsumerActionExecutor.class);
             progressLogger.setDescription("Build");
             progressLogger.started();
             try {
-                return actionExecuter.run(action);
+                return actionExecutor.run(action);
             } finally {
                 progressLogger.completed();
             }

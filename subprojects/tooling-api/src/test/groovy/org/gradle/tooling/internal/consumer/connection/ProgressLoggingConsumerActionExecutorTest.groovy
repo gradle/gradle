@@ -23,16 +23,16 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1
 import spock.lang.Specification
 
-class ProgressLoggingConnectionTest extends Specification {
-    final ConsumerActionExecuter target = Mock()
-    final ConnectionAction<String> action = Mock()
+class ProgressLoggingConsumerActionExecutorTest extends Specification {
+    final ConsumerActionExecutor target = Mock()
+    final ConsumerAction<String> action = Mock()
     final ConsumerOperationParameters params = Mock()
     final ProgressListenerVersion1 listener = Mock()
     final ProgressLogger progressLogger = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ListenerManager listenerManager = Mock()
     final LoggingProvider loggingProvider = Mock()
-    final ProgressLoggingConnection connection = new ProgressLoggingConnection(target, loggingProvider)
+    final ProgressLoggingConsumerActionExecutor connection = new ProgressLoggingConsumerActionExecutor(target, loggingProvider)
 
     def notifiesProgressListenerOfStartAndEndOfFetchingModel() {
         when:
@@ -42,7 +42,7 @@ class ProgressLoggingConnectionTest extends Specification {
         1 * loggingProvider.listenerManager >> listenerManager
         1 * loggingProvider.progressLoggerFactory >> progressLoggerFactory
         1 * listenerManager.addListener(!null)
-        1 * progressLoggerFactory.newOperation(ProgressLoggingConnection.class) >> progressLogger
+        1 * progressLoggerFactory.newOperation(ProgressLoggingConsumerActionExecutor.class) >> progressLogger
         1 * progressLogger.setDescription('Build')
         1 * progressLogger.started()
         1 * target.run(action)

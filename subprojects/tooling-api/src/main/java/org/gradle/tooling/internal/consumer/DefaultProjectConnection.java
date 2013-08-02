@@ -16,13 +16,13 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.*;
-import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 
 class DefaultProjectConnection implements ProjectConnection {
-    private final AsyncConnection connection;
+    private final AsyncConsumerActionExecutor connection;
     private final ConnectionParameters parameters;
 
-    public DefaultProjectConnection(AsyncConnection connection, ConnectionParameters parameters) {
+    public DefaultProjectConnection(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         this.connection = connection;
         this.parameters = parameters;
     }

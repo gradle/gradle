@@ -23,16 +23,16 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParamet
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import spock.lang.Specification
 
-class LazyConnectionTest extends Specification {
+class LazyConsumerActionExecutorTest extends Specification {
     final Distribution distribution = Mock()
     final ToolingImplementationLoader implementationLoader = Mock()
     final ConsumerOperationParameters params = Mock()
-    final ConnectionAction<String> action = Mock()
+    final ConsumerAction<String> action = Mock()
     final ConsumerConnectionParameters connectionParams = Mock()
     final ConsumerConnection consumerConnection = Mock()
     final LoggingProvider loggingProvider = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
-    final LazyConnection connection = new LazyConnection(distribution, implementationLoader, loggingProvider, false)
+    final LazyConsumerActionExecutor connection = new LazyConsumerActionExecutor(distribution, implementationLoader, loggingProvider, false)
 
     def setup() {
         connection.connectionParameters = connectionParams
@@ -50,7 +50,7 @@ class LazyConnectionTest extends Specification {
     }
 
     def reusesConnection() {
-        def action2 = Mock(ConnectionAction)
+        def action2 = Mock(ConsumerAction)
 
         when:
         connection.run(action)

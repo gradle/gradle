@@ -17,8 +17,8 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.internal.consumer.async.AsyncConnection;
-import org.gradle.tooling.internal.consumer.async.DefaultAsyncConnection;
+import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.async.DefaultAsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.*;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 
@@ -32,10 +32,10 @@ public class ConnectionFactory {
 
     public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {
         SynchronizedLogging synchronizedLogging = new SynchronizedLogging();
-        ConsumerActionExecuter lazyConnection = new LazyConnection(distribution, toolingImplementationLoader, synchronizedLogging, parameters.getVerboseLogging());
-        ConsumerActionExecuter progressLoggingConnection = new ProgressLoggingConnection(lazyConnection, synchronizedLogging);
-        ConsumerActionExecuter initializingConnection = new LoggingInitializerConnection(progressLoggingConnection, synchronizedLogging);
-        AsyncConnection asyncConnection = new DefaultAsyncConnection(initializingConnection, executorFactory);
+        ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, synchronizedLogging, parameters.getVerboseLogging());
+        ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(lazyConnection, synchronizedLogging);
+        ConsumerActionExecutor initializingConnection = new LoggingInitializerConsumerActionExecutor(progressLoggingConnection, synchronizedLogging);
+        AsyncConsumerActionExecutor asyncConnection = new DefaultAsyncConsumerActionExecutor(initializingConnection, executorFactory);
         return new DefaultProjectConnection(asyncConnection, parameters);
     }
 

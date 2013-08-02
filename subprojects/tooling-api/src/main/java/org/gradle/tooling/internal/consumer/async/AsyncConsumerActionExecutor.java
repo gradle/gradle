@@ -15,20 +15,20 @@
  */
 package org.gradle.tooling.internal.consumer.async;
 
-import org.gradle.tooling.internal.consumer.connection.ConnectionAction;
+import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
 /**
  * Implementations must be thread-safe.
  */
-public interface AsyncConnection {
+public interface AsyncConsumerActionExecutor {
     /**
      * Runs some operation asynchronously against a consumer connection. Notifies the provided handler when
      * complete. Note that the action may have completed by the time this method returns.
      *
      * @throws IllegalStateException When this connection has been stopped or is stopping.
      */
-    <T> void run(ConnectionAction<? extends T> action, ResultHandlerVersion1<? super T> handler);
+    <T> void run(ConsumerAction<? extends T> action, ResultHandlerVersion1<? super T> handler);
 
     /**
      * Stops this connection, blocking until all operations on the connection have completed.

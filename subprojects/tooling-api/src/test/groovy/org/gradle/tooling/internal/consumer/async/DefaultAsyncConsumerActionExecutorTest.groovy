@@ -17,17 +17,17 @@
 package org.gradle.tooling.internal.consumer.async
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.tooling.internal.consumer.connection.ConnectionAction
-import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecuter
+import org.gradle.tooling.internal.consumer.connection.ConsumerAction
+import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecutor
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 
-class DefaultAsyncConnectionTest extends ConcurrentSpec {
-    def actionExecuter = Mock(ConsumerActionExecuter) {
+class DefaultAsyncConsumerActionExecutorTest extends ConcurrentSpec {
+    def actionExecuter = Mock(ConsumerActionExecutor) {
         getDisplayName() >> "[executer]"
     }
-    def action = Mock(ConnectionAction)
+    def action = Mock(ConsumerAction)
     def handler = Mock(ResultHandlerVersion1)
-    def connection = new DefaultAsyncConnection(actionExecuter, executorFactory)
+    def connection = new DefaultAsyncConsumerActionExecutor(actionExecuter, executorFactory)
 
     def cleanup() {
         connection.stop()

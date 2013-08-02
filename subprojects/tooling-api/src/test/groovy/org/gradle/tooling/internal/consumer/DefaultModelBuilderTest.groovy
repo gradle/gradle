@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
-import org.gradle.tooling.internal.consumer.async.AsyncConnection
-import org.gradle.tooling.internal.consumer.connection.ConnectionAction
+import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
+import org.gradle.tooling.internal.consumer.connection.ConsumerAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.protocol.ProjectVersion3
@@ -28,7 +28,7 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.internal.Exceptions
 
 class DefaultModelBuilderTest extends ConcurrentSpec {
-    final AsyncConnection asyncConnection = Mock()
+    final AsyncConsumerActionExecutor asyncConnection = Mock()
     final ConsumerConnection connection = Mock()
     final ConnectionParameters parameters = Mock()
     final DefaultModelBuilder<GradleProject> builder = new DefaultModelBuilder<GradleProject>(GradleProject, asyncConnection, parameters)
@@ -43,7 +43,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
 
         then:
         1 * asyncConnection.run(!null, !null) >> {args ->
-            ConnectionAction<GradleProject> action = args[0]
+            ConsumerAction<GradleProject> action = args[0]
             action.run(connection)
             adaptedHandler = args[1]
         }
@@ -78,7 +78,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
 
         then:
         1 * asyncConnection.run(!null, !null) >> {args ->
-            ConnectionAction<GradleProject> action = args[0]
+            ConsumerAction<GradleProject> action = args[0]
             action.run(connection)
             adaptedHandler = args[1]
         }
