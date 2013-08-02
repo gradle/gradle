@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.SimpleVersioned;
-
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Matcher;
@@ -97,7 +95,7 @@ public class VersionRangeMatcher implements VersionMatcher {
             if (version1.equals(version2)) {
                 return 0;
             }
-            Versioned latest = latestStrategy.findLatest(Arrays.asList(new SimpleVersioned(version1), new SimpleVersioned(version2)));
+            Versioned latest = latestStrategy.findLatest(Arrays.asList(new VersionInfo(version1), new VersionInfo(version2)));
             return latest.getVersion() == version1 ? -1 : 1;
         }
     };
