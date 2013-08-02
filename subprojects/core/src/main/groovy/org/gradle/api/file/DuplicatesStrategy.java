@@ -38,6 +38,22 @@ public enum DuplicatesStrategy {
      * If an attempt is made to create a duplicate file/entry during an operation, ignore the item.
      * This will leave the file/entry that was first copied/created in place.
      */
-    EXCLUDE
+    EXCLUDE,
+
+    /**
+     * Do not attempt to prevent duplicates, but log a warning message when multiple items 
+     * are to be created at the same path.
+     * <p>
+     * This behaves exactly as INCLUDE otherwise.
+     */
+    WARN,
+
+    /**
+     * Throw a {@link DuplicateFileCopyingException} when subsequent items are to be created at the same path.
+     * <p> 
+     * Use this strategy when duplicates are an error condition that should cause the build to fail.
+     */
+    FAIL
+
 
 }

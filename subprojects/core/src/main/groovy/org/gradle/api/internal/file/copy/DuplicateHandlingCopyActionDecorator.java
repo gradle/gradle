@@ -17,8 +17,11 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.DuplicateFileCopyingException;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 
 import java.util.HashSet;
@@ -26,6 +29,7 @@ import java.util.Set;
 
 public class DuplicateHandlingCopyActionDecorator implements CopyAction {
 
+    private final static Logger LOGGER = Logging.getLogger(DuplicateHandlingCopyActionDecorator.class);
     private final CopyAction delegate;
 
     public DuplicateHandlingCopyActionDecorator(CopyAction delegate) {
@@ -45,6 +49,10 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
                             if (!visitedFiles.add(details.getRelativePath())) {
                                 if (strategy == DuplicatesStrategy.EXCLUDE) {
                                     return;
+                                } else if (strategy == DuplicatesStrategy.FAIL) {
+                                    throw new DuplicateFileCopyingException(String.format("Encountered duplicate path \"%s\" during copy operation configured with DuplicatesStrategy.FAIL", details.getRelativePath()));
+                                } else if (strategy == DuplicatesStrategy.WARN) {
+                                    LOGGER.warn("Encountered duplicate path \"{}\" during copy operation configured with DuplicatesStrategy.WARN", details.getRelativePath());
                                 }
                             }
                         }

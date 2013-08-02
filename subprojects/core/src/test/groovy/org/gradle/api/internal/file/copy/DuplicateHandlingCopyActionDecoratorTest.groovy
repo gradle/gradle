@@ -23,6 +23,9 @@ import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.logging.ConfigureLogging
+import org.gradle.logging.TestAppender
+import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -38,6 +41,9 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
             return new SimpleWorkResult(true)
         }
     }
+
+    def appender = new TestAppender()
+    @Rule ConfigureLogging logging = new ConfigureLogging(appender)
 
     @Shared Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
     def driver = new CopyActionExecuter(instantiator, fileSystem)
@@ -101,6 +107,66 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
         1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
+
+    def duplicatesFailByDefaultConfiguration() {
+        given:
+        files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
+        actions {}
+        copySpec.duplicatesStrategy >> DuplicatesStrategy.FAIL
+
+        when:
+        visit()
+
+        then:
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        thrown(DuplicateFileCopyingException)
+    }
+
+    def duplicatesWarnByDefaultConfiguration() {
+        given:
+        files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
+        actions {}
+        copySpec.duplicatesStrategy >> DuplicatesStrategy.WARN
+
+        when:
+        visit()
+
+        then:
+        2 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        appender.toString().contains('WARN Encountered duplicate path "/root/path/file1.txt"')
+    }
+
+
+    def duplicatesWarnByPerFileConfiguration() {
+        given:
+        files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
+        actions { it.duplicatesStrategy = 'warn' }
+
+        when:
+        visit()
+
+        then:
+        2 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        appender.toString().contains('WARN Encountered duplicate path "/root/path/file1.txt"')
+    }
+
+    def duplicatesFailByPerFileConfiguration() {
+        given:
+        files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
+        actions { it.duplicatesStrategy = 'fail' }
+
+        when:
+        visit()
+
+        then:
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        thrown(DuplicateFileCopyingException)
+    }
+
 
     void files(String... fileNames) {
         copySpec.destPath >> new RelativePath(false, '/root')
