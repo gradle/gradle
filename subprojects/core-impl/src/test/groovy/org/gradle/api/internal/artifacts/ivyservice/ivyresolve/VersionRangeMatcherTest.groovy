@@ -148,8 +148,8 @@ public class VersionRangeMatcherTest extends Specification {
         matcher.compare(range, "2.5", comparator) > 0
 
         where:
-        range       | _
-        "[1.0,)"    | _
-        "]1.0,)"    | _
+        range    | _
+        "[1.0,)" | _
+        "]1.0,)" | _
     }
 }
