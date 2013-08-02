@@ -35,6 +35,6 @@ public class ExactVersionMatcher implements VersionMatcher {
     }
 
     public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator) {
-        return 0;
+        throw new UnsupportedOperationException("compare");
     }
 }
