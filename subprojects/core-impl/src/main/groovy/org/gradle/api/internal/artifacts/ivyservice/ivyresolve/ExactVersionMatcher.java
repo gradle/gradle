@@ -17,6 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import java.util.Comparator;
 
+/**
+ * Version matcher for "static" version selectors (1.0, 1.2.3, etc.).
+ */
 public class ExactVersionMatcher implements VersionMatcher {
     public boolean isDynamic(String requestedVersion) {
         return false;
