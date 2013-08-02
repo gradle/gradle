@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.copy.CopyAction
+import org.gradle.test.fixtures.file.WorkspaceTest
 import org.gradle.util.HelperUtil
 import org.jmock.Expectations
 import org.junit.Test
@@ -26,7 +27,7 @@ import spock.lang.Specification
 import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
 
-class AbstractCopyTaskTest extends Specification {
+class AbstractCopyTaskTest extends WorkspaceTest {
 
     TestCopyTask task
 
@@ -45,40 +46,39 @@ class AbstractCopyTaskTest extends Specification {
         task.source.is(defaultSource)
     }
 
-    @Test
     public void doesNotUseDefaultSourceWhenSourceHasBeenSpecifiedOnSpec() {
-        final FileTree source = context.mock(FileTree.class, "source");
-        context.checking(new Expectations() {
-            {
-                one(task.action).hasSource();
-                will(returnValue(true));
-                one(task.action).getAllSource();
-                will(returnValue(source));
-            }
-        });
-        assertThat(task.getSource(), sameInstance((FileCollection) source));
-    }
+        when:
+        FileTree source = Mock(FileTree)
+        task.defaultSource = source
+        task.from "foo"
 
+        then:
+        !task.source.is(source)
+    }
 
     @Test
     public void copySpecMethodsDelegateToMainSpecOfCopyAction() {
-        context.checking(new Expectations() {
-            {
-                one(task.action).include("include");
-                one(task.action).from("source");
-            }
-        });
+        given:
+        file("include") << "bar"
 
-        assertThat(task.include("include"), sameInstance((AbstractCopyTask) task));
-        assertThat(task.from("source"), sameInstance((AbstractCopyTask) task));
+        expect:
+        task.rootSpec.source.isEmpty()
+
+        when:
+        task.from testDirectory.absolutePath
+        task.include "include"
+
+        then:
+        task.mainSpec.getIncludes() == ["include"].toSet()
+        task.mainSpec.source.files == task.project.fileTree(testDirectory).files
     }
 
     static class TestCopyTask extends AbstractCopyTask {
-        CopyAction contentVisitor
+        CopyAction copyAction
         FileCollection defaultSource
 
         protected CopyAction createCopyAction() {
-            contentVisitor
+            copyAction
         }
 
     }
