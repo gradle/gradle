@@ -15,15 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.api.artifacts.ModuleDetails;
+import org.gradle.api.artifacts.ComponentMetaDataDetails;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
 
 import java.util.List;
 
-public class ModuleDetailsAdapter implements ModuleDetails {
+public class ComponentMetaDataDetailsAdapter implements ComponentMetaDataDetails {
     private final MutableModuleVersionMetaData metadata;
 
-    public ModuleDetailsAdapter(MutableModuleVersionMetaData metadata) {
+    public ComponentMetaDataDetailsAdapter(MutableModuleVersionMetaData metadata) {
         this.metadata = metadata;
     }
 

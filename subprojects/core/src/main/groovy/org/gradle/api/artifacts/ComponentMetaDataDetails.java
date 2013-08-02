@@ -23,7 +23,7 @@ import java.util.List;
  * via metadata rules (see {@link org.gradle.api.artifacts.dsl.ModuleHandler}.
  */
 @Incubating
-public interface ModuleDetails {
+public interface ComponentMetaDataDetails {
     /**
      * Returns the group of the module.
      *

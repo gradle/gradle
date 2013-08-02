@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ModuleDetails;
+import org.gradle.api.artifacts.ComponentMetaDataDetails;
 
 public interface ModuleMetadataProcessor {
-    void process(ModuleDetails details);
+    void process(ComponentMetaDataDetails details);
 }
