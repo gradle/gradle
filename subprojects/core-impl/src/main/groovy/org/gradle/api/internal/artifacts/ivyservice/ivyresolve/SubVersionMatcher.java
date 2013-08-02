@@ -21,27 +21,27 @@ import java.util.Comparator;
  * Version matcher for dynamic version selectors ending in '+'.
  */
 public class SubVersionMatcher implements VersionMatcher {
-    public boolean isDynamic(String version) {
-        return version.endsWith("+");
+    public boolean isDynamic(String selector) {
+        return selector.endsWith("+");
     }
 
-    public boolean needModuleMetadata(String requestedVersion, String foundVersion) {
+    public boolean needModuleMetadata(String selector, String candidate) {
         return false;
     }
 
-    public boolean accept(String requestedVersion, String foundVersion) {
-        String prefix = requestedVersion.substring(0, requestedVersion.length() - 1);
-        return foundVersion.startsWith(prefix);
+    public boolean accept(String selector, String candidate) {
+        String prefix = selector.substring(0, selector.length() - 1);
+        return candidate.startsWith(prefix);
     }
 
-    public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion) {
-        return accept(requestedVersion, foundVersion.getId().getVersion());
+    public boolean accept(String selector, ModuleVersionMetaData candidate) {
+        return accept(selector, candidate.getId().getVersion());
     }
 
-    public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator) {
-        if (accept(requestedVersion, foundVersion)) {
+    public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
+        if (accept(selector, candidate)) {
             return 1;
         }
-        return staticComparator.compare(requestedVersion, foundVersion);
+        return candidateComparator.compare(selector, candidate);
     }
 }

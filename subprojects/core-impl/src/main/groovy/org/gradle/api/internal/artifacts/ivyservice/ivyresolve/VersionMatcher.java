@@ -28,25 +28,25 @@ public interface VersionMatcher {
     /**
      * Indicates if the given version selector is recognized as dynamic by this version matcher.
      */
-    public boolean isDynamic(String version);
+    public boolean isDynamic(String selector);
 
     /**
      * Indicates if the given version selector matches the given candidate version.
      */
-    public boolean accept(String requestedVersion, String foundVersion);
+    public boolean accept(String selector, String candidate);
 
     /**
      * Indicates if module metadata is required to determine if the given version
      * selector matches the given candidate version.
      */
-    public boolean needModuleMetadata(String requestedVersion, String foundVersion);
+    public boolean needModuleMetadata(String selector, String candidate);
 
     /**
      * Indicates if the given version selector matches the given given candidate version
      * (whose metadata is provided). This method may be called even if {@link #needModuleMetadata}
      * returned false. A good default implementation is to delegate to {@link #accept(String, String)}.
      */
-    public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion);
+    public boolean accept(String selector, ModuleVersionMetaData candidate);
 
     /**
      * Compares a dynamic version selector with a candidate version to indicate which is greater. If there is
@@ -54,5 +54,5 @@ public interface VersionMatcher {
      * and this method should return 0. This method will never be called for a version selector for which
      * {@link #isDynamic} returned false.
      */
-    public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator);
+    public int compare(String selector, String candidate, Comparator<String> candidateComparator);
 }

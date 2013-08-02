@@ -26,49 +26,49 @@ public class ChainVersionMatcher implements VersionMatcher {
         matchers.add(matcher);
     }
 
-    public boolean isDynamic(String version) {
+    public boolean isDynamic(String selector) {
         for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(version)) {
+            if (matcher.isDynamic(selector)) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean accept(String requestedVersion, String foundVersion) {
+    public boolean accept(String selector, String candidate) {
         for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(requestedVersion)) {
-                return matcher.accept(requestedVersion, foundVersion);
+            if (matcher.isDynamic(selector)) {
+                return matcher.accept(selector, candidate);
             }
         }
-        return matchers.getLast().accept(requestedVersion, foundVersion);
+        return matchers.getLast().accept(selector, candidate);
     }
 
-    public boolean needModuleMetadata(String requestedVersion, String foundVersion) {
+    public boolean needModuleMetadata(String selector, String candidate) {
         for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(requestedVersion)) {
-                return matcher.needModuleMetadata(requestedVersion, foundVersion);
+            if (matcher.isDynamic(selector)) {
+                return matcher.needModuleMetadata(selector, candidate);
             }
         }
-        return matchers.getLast().needModuleMetadata(requestedVersion, foundVersion);
+        return matchers.getLast().needModuleMetadata(selector, candidate);
     }
 
-    public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion) {
+    public boolean accept(String selector, ModuleVersionMetaData candidate) {
         for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(requestedVersion)) {
-                return matcher.accept(requestedVersion, foundVersion);
+            if (matcher.isDynamic(selector)) {
+                return matcher.accept(selector, candidate);
             }
         }
-        return matchers.getLast().accept(requestedVersion, foundVersion);
+        return matchers.getLast().accept(selector, candidate);
     }
 
-    public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator) {
+    public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
         for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(requestedVersion)) {
-                return matcher.compare(requestedVersion, foundVersion, staticComparator);
+            if (matcher.isDynamic(selector)) {
+                return matcher.compare(selector, candidate, candidateComparator);
             }
         }
-        throw new IllegalArgumentException("Cannot compare versions because requested version is not dynamic: " + requestedVersion);
+        throw new IllegalArgumentException("Cannot compare versions because requested version is not dynamic: " + selector);
     }
 }
 

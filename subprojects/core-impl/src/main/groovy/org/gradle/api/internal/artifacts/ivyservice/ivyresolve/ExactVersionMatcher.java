@@ -21,23 +21,23 @@ import java.util.Comparator;
  * Version matcher for "static" version selectors (1.0, 1.2.3, etc.).
  */
 public class ExactVersionMatcher implements VersionMatcher {
-    public boolean isDynamic(String requestedVersion) {
+    public boolean isDynamic(String selector) {
         return false;
     }
 
-    public boolean needModuleMetadata(String requestedVersion, String foundVersion) {
+    public boolean needModuleMetadata(String selector, String candidate) {
         return false;
     }
 
-    public boolean accept(String requestedVersion, String foundVersion) {
-        return requestedVersion.equals(foundVersion);
+    public boolean accept(String selector, String candidate) {
+        return selector.equals(candidate);
     }
 
-    public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion) {
-        return accept(requestedVersion, foundVersion.getId().getVersion());
+    public boolean accept(String selector, ModuleVersionMetaData candidate) {
+        return accept(selector, candidate.getId().getVersion());
     }
 
-    public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator) {
+    public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
         throw new UnsupportedOperationException("compare");
     }
 }

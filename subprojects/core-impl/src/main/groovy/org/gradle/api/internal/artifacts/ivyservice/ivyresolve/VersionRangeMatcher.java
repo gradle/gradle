@@ -110,28 +110,28 @@ public class VersionRangeMatcher implements VersionMatcher {
         return "version-range";
     }
 
-    public boolean isDynamic(String version) {
-        return ALL_RANGE.matcher(version).matches();
+    public boolean isDynamic(String selector) {
+        return ALL_RANGE.matcher(selector).matches();
     }
 
-    public boolean accept(String requestedVersion, String foundVersion) {
+    public boolean accept(String selector, String candidate) {
         Matcher matcher;
-        matcher = FINITE_RANGE.matcher(requestedVersion);
+        matcher = FINITE_RANGE.matcher(selector);
         if (matcher.matches()) {
             String lower = matcher.group(1);
             String upper = matcher.group(2);
-            return isUpper(lower, foundVersion, requestedVersion.startsWith(OPEN_INC))
-                    && isLower(upper, foundVersion, requestedVersion.endsWith(CLOSE_INC));
+            return isUpper(lower, candidate, selector.startsWith(OPEN_INC))
+                    && isLower(upper, candidate, selector.endsWith(CLOSE_INC));
         }
-        matcher = LOWER_INFINITE_RANGE.matcher(requestedVersion);
+        matcher = LOWER_INFINITE_RANGE.matcher(selector);
         if (matcher.matches()) {
             String upper = matcher.group(1);
-            return isLower(upper, foundVersion, requestedVersion.endsWith(CLOSE_INC));
+            return isLower(upper, candidate, selector.endsWith(CLOSE_INC));
         }
-        matcher = UPPER_INFINITE_RANGE.matcher(requestedVersion);
+        matcher = UPPER_INFINITE_RANGE.matcher(selector);
         if (matcher.matches()) {
             String lower = matcher.group(1);
-            return isUpper(lower, foundVersion, requestedVersion.startsWith(OPEN_INC));
+            return isUpper(lower, candidate, selector.startsWith(OPEN_INC));
         }
         return false;
     }
@@ -146,38 +146,38 @@ public class VersionRangeMatcher implements VersionMatcher {
         return result >= (inclusive ? 0 : 1);
     }
 
-    public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator) {
+    public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
         Matcher m;
-        m = UPPER_INFINITE_RANGE.matcher(requestedVersion);
+        m = UPPER_INFINITE_RANGE.matcher(selector);
         if (m.matches()) {
             // no upper limit, the dynamic requestedVersion can always be considered greater
             return 1;
         }
         String upper;
-        m = FINITE_RANGE.matcher(requestedVersion);
+        m = FINITE_RANGE.matcher(selector);
         if (m.matches()) {
             upper = m.group(2);
         } else {
-            m = LOWER_INFINITE_RANGE.matcher(requestedVersion);
+            m = LOWER_INFINITE_RANGE.matcher(selector);
             if (m.matches()) {
                 upper = m.group(1);
             } else {
                 throw new IllegalArgumentException(
-                        "impossible to compare: askedMrid is not a dynamic requestedVersion: " + requestedVersion);
+                        "impossible to compare: askedMrid is not a dynamic requestedVersion: " + selector);
             }
         }
-        int c = staticComparator.compare(upper, foundVersion);
+        int c = candidateComparator.compare(upper, candidate);
         // if the comparison consider them equal, we must return -1, because we can't consider the
         // dynamic requestedVersion to be greater. Otherwise we can safely return the result of the static
         // comparison
         return c == 0 ? -1 : c;
     }
 
-    public boolean needModuleMetadata(String requestedVersion, String foundVersion) {
+    public boolean needModuleMetadata(String selector, String candidate) {
         return false;
     }
 
-    public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion) {
-        return accept(requestedVersion, foundVersion.getId().getVersion());
+    public boolean accept(String selector, ModuleVersionMetaData candidate) {
+        return accept(selector, candidate.getId().getVersion());
     }
 }

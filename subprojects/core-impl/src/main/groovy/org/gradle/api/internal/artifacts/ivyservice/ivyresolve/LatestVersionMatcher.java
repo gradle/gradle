@@ -18,26 +18,26 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import java.util.Comparator;
 
 public class LatestVersionMatcher implements VersionMatcher {
-    public boolean isDynamic(String version) {
-        return version.startsWith("latest.");
+    public boolean isDynamic(String selector) {
+        return selector.startsWith("latest.");
     }
 
-    public boolean accept(String requestedVersion, String foundVersion) {
+    public boolean accept(String selector, String candidate) {
         return true;
     }
 
-    public boolean needModuleMetadata(String requestedVersion, String foundVersion) {
+    public boolean needModuleMetadata(String selector, String candidate) {
         return true;
     }
 
-    public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion) {
-        String requestedStatus = requestedVersion.substring("latest.".length());
-        int requestedIndex = foundVersion.getStatusScheme().indexOf(requestedStatus);
-        int foundIndex = foundVersion.getStatusScheme().indexOf(foundVersion.getStatus());
-        return requestedIndex >=0 && requestedIndex <= foundIndex;
+    public boolean accept(String selector, ModuleVersionMetaData candidate) {
+        String selectorStatus = selector.substring("latest.".length());
+        int selectorStatusIndex = candidate.getStatusScheme().indexOf(selectorStatus);
+        int candidateStatusIndex = candidate.getStatusScheme().indexOf(candidate.getStatus());
+        return selectorStatusIndex >=0 && selectorStatusIndex <= candidateStatusIndex;
     }
 
-    public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator) {
-        return needModuleMetadata(requestedVersion, foundVersion) ? 0 : 1;
+    public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
+        return needModuleMetadata(selector, candidate) ? 0 : 1;
     }
 }
