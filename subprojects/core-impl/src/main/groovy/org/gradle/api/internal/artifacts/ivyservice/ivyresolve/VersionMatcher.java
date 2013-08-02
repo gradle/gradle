@@ -18,40 +18,41 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import java.util.Comparator;
 
-// initially derived from org.apache.ivy.plugins.version.VersionMatcher
+/**
+ * Compares version selectors against candidate versions, indicating
+ * whether they match or not.
+ *
+ * <p>This interface was initially derived from {@code org.apache.ivy.plugins.version.VersionMatcher}.
+ */
 public interface VersionMatcher {
     /**
-     * Indicates if the given asked ModuleRevisionId should be considered as dynamic for the current
-     * VersionMatcher or not.
+     * Indicates if the given version selector is recognized as dynamic by this version matcher.
      */
     public boolean isDynamic(String version);
 
     /**
-     * Indicates if this version matcher considers that the module revision found matches the asked
-     * one.
+     * Indicates if the given version selector matches the given candidate version.
      */
     public boolean accept(String requestedVersion, String foundVersion);
 
     /**
-     * Indicates if this VersionMatcher needs module descriptors to determine if a module revision
-     * matches the asked one. Note that returning true in this method may imply big performance
-     * issues.
+     * Indicates if module metadata is required to determine if the given version
+     * selector matches the given candidate version.
      */
     public boolean needModuleMetadata(String requestedVersion, String foundVersion);
 
     /**
-     * Indicates if this version matcher considers that the module found matches the asked one. This
-     * method can be called even needModuleDescriptor(ModuleRevisionId askedMrid, ModuleRevisionId
-     * foundMrid) returns false, so it is required to implement it in any case, a usual default
-     * implementation being: return accept(requestedVersion, foundVersion.getId().getVersion());
+     * Indicates if the given version selector matches the given given candidate version
+     * (whose metadata is provided). This method may be called even if {@link #needModuleMetadata}
+     * returned false. A good default implementation is to delegate to {@link #accept(String, String)}.
      */
     public boolean accept(String requestedVersion, ModuleVersionMetaData foundVersion);
 
     /**
-     * Compares a dynamic revision (requestedVersion) with a static one (foundVersion) to indicate which one
-     * should be considered the greater. If there is not enough information to know which one is the
-     * greater, the dynamic one should be considered greater and this method should return 0. This
-     * method should never be called with a askdeMrid for which isDynamic returns false.
+     * Compares a dynamic version selector with a candidate version to indicate which is greater. If there is
+     * not enough information to know which is greater, the version selector should be considered greater
+     * and this method should return 0. This method will never be called for a version selector for which
+     * {@link #isDynamic} returned false.
      */
     public int compare(String requestedVersion, String foundVersion, Comparator<String> staticComparator);
 }
