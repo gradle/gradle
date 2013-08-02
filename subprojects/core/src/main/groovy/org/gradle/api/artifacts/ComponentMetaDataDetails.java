@@ -20,7 +20,7 @@ import java.util.List;
 
 /**
  * Details about the metadata of a resolved component. Some details can be changed
- * via metadata rules (see {@link org.gradle.api.artifacts.dsl.ModuleHandler}.
+ * via metadata rules (see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}.
  */
 @Incubating
 public interface ComponentMetadataDetails {

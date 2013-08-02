@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
-import org.gradle.api.artifacts.dsl.ModuleHandler;
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.listener.ActionBroadcast;
 
-public class DefaultModuleHandler implements ModuleHandler, ModuleMetadataProcessor {
+public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ModuleMetadataProcessor {
     private final ActionBroadcast<ComponentMetadataDetails> moduleRules = new ActionBroadcast<ComponentMetadataDetails>();
 
-    public void eachModule(Action<? super ComponentMetadataDetails> action) {
-        moduleRules.add(action);
+    public void eachComponent(Action<? super ComponentMetadataDetails> rule) {
+        moduleRules.add(rule);
     }
 
     public void process(ComponentMetadataDetails details) {

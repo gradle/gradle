@@ -23,7 +23,7 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.dsl.ModuleHandler;
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -126,7 +126,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private DependencyHandler dependencyHandler;
 
-    private ModuleHandler moduleHandler;
+    private ComponentMetadataHandler componentMetadataHandler;
 
     private ConfigurationContainerInternal configurationContainer;
 
@@ -190,7 +190,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         pluginContainer = services.get(PluginContainer.class);
         artifactHandler = services.get(ArtifactHandler.class);
         dependencyHandler = services.get(DependencyHandler.class);
-        moduleHandler = services.get(ModuleHandler.class);
+        componentMetadataHandler = services.get(ComponentMetadataHandler.class);
         scriptHandler = services.get(ScriptHandler.class);
         scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
         projectRegistry = services.get(ProjectRegistry.class);
@@ -754,8 +754,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return dependencyHandler;
     }
 
-    public ModuleHandler getModules() {
-        return moduleHandler;
+    public ComponentMetadataHandler getComponentMetadata() {
+        return componentMetadataHandler;
     }
 
     public void setDependencyHandler(DependencyHandler dependencyHandler) {
@@ -881,8 +881,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         ConfigureUtil.configure(configureClosure, getDependencies());
     }
 
-    public void modules(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getModules());
+    public void componentMetadata(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getComponentMetadata());
     }
 
     public void artifacts(Closure configureClosure) {

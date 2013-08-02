@@ -15,28 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.api.artifacts.ComponentMetaDataDetails;
+import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
 
 import java.util.List;
 
-public class ComponentMetaDataDetailsAdapter implements ComponentMetaDataDetails {
+public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails {
     private final MutableModuleVersionMetaData metadata;
 
-    public ComponentMetaDataDetailsAdapter(MutableModuleVersionMetaData metadata) {
+    public ComponentMetadataDetailsAdapter(MutableModuleVersionMetaData metadata) {
         this.metadata = metadata;
     }
 
-    public String getGroup() {
-        return metadata.getId().getGroup();
-    }
-
-    public String getName() {
-        return metadata.getId().getName();
-    }
-
-    public String getVersion() {
-        return metadata.getId().getVersion();
+    public ModuleVersionIdentifier getId() {
+        return metadata.getId();
     }
 
     public boolean isChanging() {

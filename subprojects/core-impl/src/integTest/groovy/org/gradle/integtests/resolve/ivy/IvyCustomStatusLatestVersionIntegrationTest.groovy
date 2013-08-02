@@ -30,8 +30,8 @@ configurations { compile }
 dependencies {
   compile 'org.test:projectA:latest.$status'
 }
-modules {
-  eachModule { details ->
+componentMetadata {
+  eachComponent { details ->
       details.statusScheme = ["bronze", "silver", "gold", "platin"]
   }
 }

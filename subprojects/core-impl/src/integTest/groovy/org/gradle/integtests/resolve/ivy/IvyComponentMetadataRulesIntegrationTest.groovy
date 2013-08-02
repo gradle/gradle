@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 import static org.hamcrest.Matchers.containsString
 
-class IvyModuleMetadataRulesIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyComponentMetadataRulesIntegrationTest extends AbstractDependencyResolutionTest {
     def setup() {
         buildFile <<
 """
@@ -46,13 +46,13 @@ task resolve(type: Sync) {
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus("release").publish()
         buildFile <<
 """
-modules {
-    eachModule { details ->
-        assert group == "org.test"
-        assert name == "projectA"
-        assert version == "1.0"
-        assert status == "release"
-        assert statusScheme == ["integration", "milestone", "release"]
+componentMetadata {
+    eachComponent { details ->
+        assert details.id.group == "org.test"
+        assert details.id.name == "projectA"
+        assert details.id.version == "1.0"
+        assert details.status == "release"
+        assert details.statusScheme == ["integration", "milestone", "release"]
     }
 }
 """
@@ -65,8 +65,8 @@ modules {
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus("silver").publish()
         buildFile <<
 """
-modules {
-    eachModule { details ->
+componentMetadata {
+    eachComponent { details ->
         details.statusScheme = ["gold", "silver", "bronze"]
     }
 }
@@ -89,8 +89,8 @@ modules {
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus("silver").publish()
         buildFile <<
 """
-modules {
-    eachModule { details ->
+componentMetadata {
+    eachComponent { details ->
         details.statusScheme = ["gold", "bronze"]
     }
 }
@@ -105,8 +105,8 @@ modules {
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus("silver").publish()
         buildFile <<
 """
-modules {
-    eachModule { details ->
+componentMetadata {
+    eachComponent { details ->
         details.status = "milestone"
     }
 }

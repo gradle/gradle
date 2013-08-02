@@ -21,7 +21,7 @@ import org.gradle.api.*
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.artifacts.dsl.ModuleHandler
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -88,7 +88,7 @@ class DefaultProjectTest {
     ConfigurationContainerInternal configurationContainerMock = context.mock(ConfigurationContainerInternal.class)
     RepositoryHandler repositoryHandlerMock = context.mock(RepositoryHandler.class)
     DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
-    ModuleHandler moduleHandlerMock = context.mock(ModuleHandler)
+    ComponentMetadataHandler moduleHandlerMock = context.mock(ComponentMetadataHandler)
     PluginContainer pluginContainerMock = context.mock(PluginContainer)
     ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
     DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
@@ -129,7 +129,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ConfigurationContainerInternal); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
-            allowing(serviceRegistryMock).get(ModuleHandler); will(returnValue(moduleHandlerMock))
+            allowing(serviceRegistryMock).get(ComponentMetadataHandler); will(returnValue(moduleHandlerMock))
             allowing(serviceRegistryMock).get(SoftwareComponentContainer); will(returnValue(softwareComponentsMock))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
             allowing(serviceRegistryMock).getFactory(AntBuilder); will(returnValue(antBuilderFactoryMock))

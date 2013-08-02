@@ -20,17 +20,17 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 
 /**
- * Configuration options related to modules resolved from a repository.
+ * Allows to modify the metadata of depended-on software components.
  */
 @Incubating
-public interface ModuleHandler {
+public interface ComponentMetadataHandler {
     /**
-     * Adds a rule to post-process the metadata of each resolved module.
-     * This allows to, for example, set the module's status and status scheme
+     * Adds a rule to modify the metadata of depended-on software components.
+     * For example, this allows to set a component's status and status scheme
      * from within the build script, overriding any value specified in the
-     * module's descriptor.
+     * component's descriptor.
      *
-     * @param action the rule to be added
+     * @param rule the rule to be added
      */
-    void eachModule(Action<? super ComponentMetadataDetails> action);
+    void eachComponent(Action<? super ComponentMetadataDetails> rule);
 }

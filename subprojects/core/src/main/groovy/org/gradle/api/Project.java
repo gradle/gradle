@@ -21,7 +21,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.dsl.ModuleHandler;
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -1324,24 +1324,24 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void dependencies(Closure configureClosure);
 
     /**
-     * Returns the module handler for this project. The returned module handler can be used for adding rules
-     * that process module metadata.
+     * Returns the component metadata handler for this project. The returned handler can be used for adding rules
+     * that modify the metadata of depended-on software components.
      *
-     * @return the module handler for this project
+     * @return the component metadata handler for this project
      */
     @Incubating
-    ModuleHandler getModules();
+    ComponentMetadataHandler getComponentMetadata();
 
     /**
      * Configures module metadata for this project.
      *
-     * <p>This method executes the given closure against the {@link ModuleHandler} for this project. The {@link
-     * ModuleHandler} is passed to the closure as the closure's delegate.
+     * <p>This method executes the given closure against the {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler} for this project. The {@link
+     * org.gradle.api.artifacts.dsl.ComponentMetadataHandler} is passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure module metadata
      */
     @Incubating
-    void modules(Closure configureClosure);
+    void componentMetadata(Closure configureClosure);
 
     /**
      * Returns the plugins container for this project. The returned container can be used to manage the plugins which
