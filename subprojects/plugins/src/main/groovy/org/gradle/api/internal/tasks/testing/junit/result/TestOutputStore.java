@@ -21,13 +21,13 @@ import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.GFileUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static org.gradle.api.internal.tasks.testing.junit.result.KryoSerializationUtil.*;
 
 public class TestOutputStore {
 
@@ -94,9 +94,17 @@ public class TestOutputStore {
             mark(classId, testId, stdout);
 
             output.writeBoolean(stdout);
-            output.writeLong(classId, true);
-            output.writeLong(testId, true);
-            writeString(outputEvent.getMessage(), messageStorageCharset, output);
+            output.writeLong(classId);
+            output.writeLong(testId);
+
+            byte[] bytes;
+            try {
+                bytes = outputEvent.getMessage().getBytes(messageStorageCharset.name());
+            } catch (UnsupportedEncodingException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+            output.writeInt(bytes.length);
+            output.writeBytes(bytes);
         }
 
         private void mark(long classId, long testId, boolean isStdout) {
@@ -210,9 +218,13 @@ public class TestOutputStore {
         }
     }
 
-    public class Reader {
+    public class Reader implements Closeable {
+
+        private final static int RECORD_HEADER_LENGTH = 1 + 8 + 8 + 4; // bool(1) + long(8) + long(8) + int(4)
 
         private final Index index;
+        private final RandomAccessFile dataFile;
+        private byte[] recordHeaderBuffer = new byte[RECORD_HEADER_LENGTH];
 
         public Reader() {
             File indexFile = getIndexFile();
@@ -259,9 +271,19 @@ public class TestOutputStore {
                     throw new IllegalStateException(String.format("Test outputs data file '{}' does not exist but the index file '{}' does", outputsFile, indexFile));
                 }
 
+                GFileUtils.touch(getOutputsFile());
                 index = new Index();
             }
 
+            try {
+                dataFile = new RandomAccessFile(getOutputsFile(), "r");
+            } catch (FileNotFoundException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        public void close() throws IOException {
+            dataFile.close();
         }
 
         public boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
@@ -287,7 +309,6 @@ public class TestOutputStore {
         }
 
         private void doRead(long classId, long testId, boolean allClassOutput, TestOutputEvent.Destination destination, java.io.Writer writer) {
-
             Index targetIndex = index.children.get(classId);
             if (targetIndex != null && testId != 0) {
                 targetIndex = targetIndex.children.get(testId);
@@ -307,64 +328,60 @@ public class TestOutputStore {
             boolean ignoreClassLevel = !allClassOutput && testId != 0;
             boolean ignoreTestLevel = !allClassOutput && testId == 0;
 
-            final File file = getOutputsFile();
             try {
-                // NOTE: could potentially hold this stream open instead of open/close
-                //       if the reader had a dispose lifecycle.
-                Input input = new Input(new FileInputStream(file));
-                skip(input, region.start);
-                try {
-                    while (input.total() <= region.stop) {
-                        boolean readStdout = input.readBoolean();
-                        long readClassId = input.readLong(true);
-                        long readTestId = input.readLong(true);
+                dataFile.seek(region.start);
 
-                        boolean isClassLevel = readTestId == 0;
-
-                        if (stdout != readStdout || classId != readClassId) {
-                            skipNext(input);
-                            continue;
-                        }
-
-                        if (ignoreClassLevel && isClassLevel) {
-                            skipNext(input);
-                            continue;
-                        }
-
-                        if (ignoreTestLevel && !isClassLevel) {
-                            skipNext(input);
-                            continue;
-                        }
-
-                        if (testId == 0 || testId == readTestId) {
-                            String message = readString(messageStorageCharset, input);
-                            writer.write(message);
-                        } else {
-                            skipNext(input);
-                            continue;
-                        }
-                    }
-                } finally {
+                while (dataFile.getFilePointer() <= region.stop) {
+                    dataFile.read(recordHeaderBuffer);
+                    Input input = new Input(recordHeaderBuffer);
+                    boolean readStdout = input.readBoolean();
+                    long readClassId = input.readLong();
+                    long readTestId = input.readLong();
+                    int readLength = input.readInt();
                     input.close();
+
+                    boolean isClassLevel = readTestId == 0;
+
+                    if (stdout != readStdout || classId != readClassId) {
+                        dataFile.skipBytes(readLength);
+                        continue;
+                    }
+
+                    if (ignoreClassLevel && isClassLevel) {
+                        dataFile.skipBytes(readLength);
+                        continue;
+                    }
+
+                    if (ignoreTestLevel && !isClassLevel) {
+                        dataFile.skipBytes(readLength);
+                        continue;
+                    }
+
+                    if (testId == 0 || testId == readTestId) {
+                        byte[] stringBytes = new byte[readLength];
+                        dataFile.read(stringBytes);
+                        String message;
+                        try {
+                            message = new String(stringBytes, messageStorageCharset.name());
+                        } catch (UnsupportedEncodingException e) {
+                            // shouldn't happen
+                            throw UncheckedException.throwAsUncheckedException(e);
+                        }
+
+                        writer.write(message);
+                    } else {
+                        dataFile.skipBytes(readLength);
+                        continue;
+                    }
                 }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+            } catch (IOException e1) {
+                throw new UncheckedIOException(e1);
             }
+
         }
     }
 
-    // Workaround for https://code.google.com/p/kryo/issues/detail?id=119
-    // Present in Kryo 2.21
-    private long skip(Input input, long count) {
-        long remaining = count;
-        while (remaining > 0) {
-            int skip = Math.min(Integer.MAX_VALUE, (int) remaining);
-            input.skip(skip);
-            remaining -= skip;
-        }
-        return count;
-    }
-
+    // IMPORTANT: return must be closed when done with.
     public Reader reader() {
         return new Reader();
     }

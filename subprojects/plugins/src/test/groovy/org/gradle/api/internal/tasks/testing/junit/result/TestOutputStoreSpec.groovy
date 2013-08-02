@@ -75,33 +75,39 @@ class TestOutputStoreSpec extends WorkspaceTest {
         reader.hasOutput(1, StdOut)
         !reader.hasOutput(1, StdErr)
         !reader.hasOutput(2, StdErr)
+
+        cleanup:
+        reader.close()
     }
 
-    def "invalid output & index file states"() {
+    def "can open empty reader"() {
         // neither file
         expect:
-        output.reader() // no exception
+        output.reader().close() // no exception
+    }
 
+    def "exception if no output file"() {
         when:
         output.indexFile.createNewFile()
-        output.reader()
+        def reader = output.reader()
 
         then:
         thrown(IllegalStateException)
 
+        cleanup:
+        reader?.close()
+    }
+
+    def "exception if no index file, but index"() {
         when:
-        output.indexFile.delete()
         output.outputsFile.createNewFile()
-        output.reader()
+        def reader = output.reader()
 
         then:
         thrown(IllegalStateException)
 
-        when: // both files
-        output.indexFile.createNewFile()
-
-        then:
-        noExceptionThrown()
+        cleanup:
+        reader?.close()
     }
 
     String collectOutput(TestOutputStore.Reader reader, long classId, TestOutputEvent.Destination destination) {

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Writer;
 
 public class BinaryResultBackedTestResultsProvider implements TestResultsProvider {
@@ -53,5 +54,9 @@ public class BinaryResultBackedTestResultsProvider implements TestResultsProvide
 
     public void visitClasses(final Action<? super TestClassResult> visitor) {
         resultSerializer.read(visitor);
+    }
+
+    public void close() throws IOException {
+        outputReader.close();
     }
 }

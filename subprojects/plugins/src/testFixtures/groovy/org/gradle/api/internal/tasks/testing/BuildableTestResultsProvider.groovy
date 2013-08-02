@@ -165,6 +165,10 @@ class BuildableTestResultsProvider implements TestResultsProvider {
             s.print(text);
         }
     }
+
+    void close() throws IOException {
+        // nothing
+    }
 }
 
 

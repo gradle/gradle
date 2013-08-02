@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
+import java.io.IOException;
 import java.io.Writer;
 
 public class InMemoryTestResultsProvider implements TestResultsProvider {
@@ -54,5 +55,9 @@ public class InMemoryTestResultsProvider implements TestResultsProvider {
 
     public boolean isHasResults() {
         return results.iterator().hasNext();
+    }
+
+    public void close() throws IOException {
+        outputReader.close();
     }
 }

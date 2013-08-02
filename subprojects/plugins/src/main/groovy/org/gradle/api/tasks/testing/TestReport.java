@@ -32,8 +32,10 @@ import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
+import static org.gradle.internal.CompositeStoppable.stoppable;
 import static org.gradle.util.CollectionUtils.collect;
 
 /**
@@ -122,19 +124,28 @@ public class TestReport extends DefaultTask {
     @TaskAction
     void generateReport() {
         TestResultsProvider resultsProvider = createAggregateProvider();
-        if (resultsProvider.isHasResults()) {
-            DefaultTestReport testReport = new DefaultTestReport();
-            testReport.generateReport(resultsProvider, getDestinationDir());
-        } else {
-            setDidWork(false);
+        try {
+            if (resultsProvider.isHasResults()) {
+                DefaultTestReport testReport = new DefaultTestReport();
+                testReport.generateReport(resultsProvider, getDestinationDir());
+            } else {
+                setDidWork(false);
+            }
+        } finally {
+            stoppable(resultsProvider).stop();
         }
     }
 
     private TestResultsProvider createAggregateProvider() {
-        return new AggregateTestResultsProvider(collect(getTestResultDirs(), new Transformer<TestResultsProvider, File>() {
-            public TestResultsProvider transform(File dir) {
-                return new BinaryResultBackedTestResultsProvider(dir);
-            }
-        }));
+        List<TestResultsProvider> resultsProviders = new LinkedList<TestResultsProvider>();
+        try {
+            return new AggregateTestResultsProvider(collect(getTestResultDirs(), resultsProviders, new Transformer<TestResultsProvider, File>() {
+                public TestResultsProvider transform(File dir) {
+                    return new BinaryResultBackedTestResultsProvider(dir);
+                }
+            }));
+        } finally {
+            stoppable(resultsProviders).stop();
+        }
     }
 }

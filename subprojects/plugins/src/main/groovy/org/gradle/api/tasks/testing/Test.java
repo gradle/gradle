@@ -45,6 +45,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -68,44 +69,25 @@ import java.util.*;
 import static java.util.Arrays.asList;
 
 /**
- * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
- * The sample below shows various configuration options.
+ * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs. The sample below shows various configuration options.
  *
- * <pre autoTested=''>
- * apply plugin: 'java' // adds 'test' task
+ * <pre autoTested=''> apply plugin: 'java' // adds 'test' task
  *
- * test {
- *   // enable TestNG support (default is JUnit)
- *   useTestNG()
+ * test { // enable TestNG support (default is JUnit) useTestNG()
  *
- *   // set a system property for the test JVM(s)
- *   systemProperty 'some.prop', 'value'
+ * // set a system property for the test JVM(s) systemProperty 'some.prop', 'value'
  *
- *   // explicitly include or exclude tests
- *   include 'org/foo/**'
- *   exclude 'org/boo/**'
+ * // explicitly include or exclude tests include 'org/foo/**' exclude 'org/boo/**'
  *
- *   // show standard out and standard error of the test JVM(s) on the console
- *   testLogging.showStandardStreams = true
+ * // show standard out and standard error of the test JVM(s) on the console testLogging.showStandardStreams = true
  *
- *   // set heap size for the test JVM(s)
- *   minHeapSize = "128m"
- *   maxHeapSize = "512m"
+ * // set heap size for the test JVM(s) minHeapSize = "128m" maxHeapSize = "512m"
  *
- *   // set JVM arguments for the test JVM(s)
- *   jvmArgs '-XX:MaxPermSize=256m'
+ * // set JVM arguments for the test JVM(s) jvmArgs '-XX:MaxPermSize=256m'
  *
- *   // listen to events in the test execution lifecycle
- *   beforeTest { descriptor ->
- *      logger.lifecycle("Running test: " + descriptor)
- *   }
+ * // listen to events in the test execution lifecycle beforeTest { descriptor -> logger.lifecycle("Running test: " + descriptor) }
  *
- *   // listen to standard out and standard error of the test JVM(s)
- *   onOutput { descriptor, event ->
- *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
- *   }
- * }
- * </pre>
+ * // listen to standard out and standard error of the test JVM(s) onOutput { descriptor, event -> logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message ) } } </pre>
  */
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestTaskReports> {
 
@@ -461,22 +443,27 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         }
 
         new TestResultSerializer(binaryResultsDir).write(results.values());
+
         TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore.reader());
 
-        JUnitXmlReport junitXml = reports.getJunitXml();
-        if (junitXml.isEnabled()) {
-            TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
-                    ? TestOutputAssociation.WITH_TESTCASE
-                    : TestOutputAssociation.WITH_SUITE;
-            Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation);
-            binary2JUnitXmlReportGenerator.generate();
-        }
+        try {
+            JUnitXmlReport junitXml = reports.getJunitXml();
+            if (junitXml.isEnabled()) {
+                TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
+                        ? TestOutputAssociation.WITH_TESTCASE
+                        : TestOutputAssociation.WITH_SUITE;
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation);
+                binary2JUnitXmlReportGenerator.generate();
+            }
 
-        DirectoryReport html = reports.getHtml();
-        if (!html.isEnabled()) {
-            getLogger().info("Test report disabled, omitting generation of the HTML test report.");
-        } else {
-            testReporter.generateReport(testResultsProvider, html.getDestination());
+            DirectoryReport html = reports.getHtml();
+            if (!html.isEnabled()) {
+                getLogger().info("Test report disabled, omitting generation of the HTML test report.");
+            } else {
+                testReporter.generateReport(testResultsProvider, html.getDestination());
+            }
+        } finally {
+            CompositeStoppable.stoppable(testResultsProvider).stop();
         }
 
         testFramework = null;
@@ -682,8 +669,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Returns the root folder for the test results in XML format.
      *
-     * @deprecated Replaced by {@code getReports().getJunitXml().getDestination()}
      * @return the test result directory, containing the test results in XML format.
+     * @deprecated Replaced by {@code getReports().getJunitXml().getDestination()}
      */
     @Deprecated
     public File getTestResultsDir() {
@@ -694,8 +681,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Sets the root folder for the test results.
      *
-     * @deprecated Replaced by {@code getReports().getJunitXml().setDestination()}
      * @param testResultsDir The root folder
+     * @deprecated Replaced by {@code getReports().getJunitXml().setDestination()}
      */
     @Deprecated
     public void setTestResultsDir(File testResultsDir) {
@@ -855,19 +842,15 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Specifies that JUnit should be used to execute the tests.
-     * <p>
-     * To configure TestNG specific options, see {@link #useJUnit(groovy.lang.Closure)}.
+     * Specifies that JUnit should be used to execute the tests. <p> To configure TestNG specific options, see {@link #useJUnit(groovy.lang.Closure)}.
      */
     public void useJUnit() {
         useJUnit(null);
     }
 
     /**
-     * Specifies that JUnit should be used to execute the tests, configuring JUnit specific options.
-     * <p>
-     * The supplied closure configures an instance of {@link org.gradle.api.tasks.testing.junit.JUnitOptions},
-     * which can be used to configure how JUnit runs.
+     * Specifies that JUnit should be used to execute the tests, configuring JUnit specific options. <p> The supplied closure configures an instance of {@link
+     * org.gradle.api.tasks.testing.junit.JUnitOptions}, which can be used to configure how JUnit runs.
      *
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
@@ -876,19 +859,15 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Specifies that TestNG should be used to execute the tests.
-     * <p>
-     * To configure TestNG specific options, see {@link #useTestNG(Closure)}.
+     * Specifies that TestNG should be used to execute the tests. <p> To configure TestNG specific options, see {@link #useTestNG(Closure)}.
      */
     public void useTestNG() {
         useTestNG(null);
     }
 
     /**
-     * Specifies that TestNG should be used to execute the tests, configuring TestNG specific options.
-     * <p>
-     * The supplied closure configures an instance of {@link org.gradle.api.tasks.testing.testng.TestNGOptions},
-     * which can be used to configure how TestNG runs.
+     * Specifies that TestNG should be used to execute the tests, configuring TestNG specific options. <p> The supplied closure configures an instance of {@link
+     * org.gradle.api.tasks.testing.testng.TestNGOptions}, which can be used to configure how TestNG runs.
      *
      * @param testFrameworkConfigure A closure used to configure the TestNG options.
      */
@@ -1069,6 +1048,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Configures the reports that this task potentially produces.
+     *
      * @param closure The configuration
      * @return The reports that this task potentially produces
      */

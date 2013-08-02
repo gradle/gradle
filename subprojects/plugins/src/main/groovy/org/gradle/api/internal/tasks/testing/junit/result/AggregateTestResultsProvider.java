@@ -19,9 +19,11 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.internal.CompositeStoppable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -95,5 +97,9 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
 
     public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
         classOutputProviders.get(classId).writeTestOutput(classId, testId, destination, writer);
+    }
+
+    public void close() throws IOException {
+        CompositeStoppable.stoppable(providers).stop();
     }
 }
