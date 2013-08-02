@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
@@ -101,5 +102,9 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
     public static ModuleVersionSelector newSelector(String group, String name, String version) {
         return new DefaultModuleVersionSelector(group, name, version);
+    }
+
+    public static ModuleVersionSelector newSelector(ModuleRevisionId module) {
+        return newSelector(module.getOrganisation(), module.getName(), module.getRevision());
     }
 }
