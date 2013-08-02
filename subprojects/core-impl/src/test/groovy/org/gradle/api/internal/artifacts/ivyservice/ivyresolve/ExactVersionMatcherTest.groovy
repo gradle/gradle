@@ -20,7 +20,7 @@ import spock.lang.Specification
 class ExactVersionMatcherTest extends Specification {
     def matcher = new ExactVersionMatcher()
 
-    def "doesn't classify any version as dynamic"() {
+    def "doesn't classify any selector as dynamic"() {
         expect:
         !matcher.isDynamic("1.2.3")
         !matcher.isDynamic("[1.0,2.0]")
@@ -32,7 +32,7 @@ class ExactVersionMatcherTest extends Specification {
         !matcher.needModuleMetadata("[1.0,2.0]", "2.0")
     }
 
-    def "only accepts exactly matching versions"() {
+    def "accepts candidate versions that literally match the selector"() {
         expect:
         matcher.accept("1.0", "1.0")
         matcher.accept("2.0", "2.0")
@@ -40,7 +40,7 @@ class ExactVersionMatcherTest extends Specification {
         !matcher.accept("2.0", "3.0")
     }
 
-    def "doesn't support compare operation (because it doesn't support dynamic versions)"() {
+    def "doesn't support compare operation (because it doesn't support dynamic selectors)"() {
         when:
         matcher.compare("[1.0,3.0]", "2.0", null)
 
