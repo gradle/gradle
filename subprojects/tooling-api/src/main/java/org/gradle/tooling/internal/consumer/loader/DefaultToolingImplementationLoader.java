@@ -27,10 +27,7 @@ import org.gradle.tooling.internal.consumer.connection.*;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.BuildActionRunner;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.InternalConnection;
-import org.gradle.tooling.internal.protocol.ModelBuilder;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.util.FilteringClassLoader;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.MultiParentClassLoader;
@@ -73,7 +70,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
             AbstractConsumerConnection adaptedConnection;
-            if (connection instanceof ModelBuilder) {
+            if (connection instanceof ModelBuilder && connection instanceof ClientBuildActionExecutor) {
+                adaptedConnection = new ActionAwareConsumerConnection(connection, adapter);
+            } else if (connection instanceof ModelBuilder) {
                 adaptedConnection = new ModelBuilderBackedConsumerConnection(connection, adapter);
             } else if (connection instanceof BuildActionRunner) {
                 adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, modelMapping, adapter);

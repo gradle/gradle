@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.protocol;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 
 /**
- * Mixed into a provider connection, to allow models about a build to be requested by the client.
+ * Mixed into a provider connection, to allow tooling models to be requested by the client.
  *
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
@@ -27,6 +27,7 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  * <p>Provider compatibility: This interface is implemented by all provider versions from 1.6-rc-1.</p>
  *
  * @since 1.6-rc-1
+ * @see ConnectionVersion4
  */
 public interface ModelBuilder extends InternalProtocolInterface {
     /**

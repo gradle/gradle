@@ -28,6 +28,7 @@ package org.gradle.tooling.internal.protocol;
  *
  * @since 1.2-rc-1
  * @deprecated 1.6-rc-1. Use {@link ModelBuilder} instead.
+ * @see ConnectionVersion4
  */
 @Deprecated
 public interface BuildActionRunner extends InternalProtocolInterface {

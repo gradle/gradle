@@ -21,12 +21,14 @@ import org.gradle.messaging.actor.ActorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.Distribution
-import org.gradle.tooling.internal.consumer.connection.ConnectionVersion4BackedConsumerConnection
+import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection
+import org.gradle.tooling.internal.consumer.connection.ConnectionVersion4BackedConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.InternalConnectionBackedConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import org.gradle.tooling.internal.protocol.*
+import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -34,7 +36,8 @@ import org.slf4j.Logger
 import spock.lang.Specification
 
 class DefaultToolingImplementationLoaderTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     Distribution distribution = Mock()
     ProgressLoggerFactory loggerFactory = Mock()
 
@@ -63,7 +66,8 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
         where:
         connectionImplementation  | adapter
-        TestConnection.class      | ModelBuilderBackedConsumerConnection.class
+        TestConnection.class      | ActionAwareConsumerConnection.class
+        TestR16Connection.class   | ModelBuilderBackedConsumerConnection.class
         TestR12Connection.class   | BuildActionRunnerBackedConsumerConnection.class
         TestR10M8Connection.class | InternalConnectionBackedConsumerConnection.class
         TestR10M3Connection.class | ConnectionVersion4BackedConsumerConnection.class
@@ -103,91 +107,40 @@ class TestMetaData implements ConnectionMetaDataVersion1 {
     }
 }
 
-class TestConnection implements ConnectionVersion4, BuildActionRunner, ConfigurableConnection, ModelBuilder {
-    boolean configured
-
-    void configure(ConnectionParameters parameters) {
-        configured = parameters.verboseLogging
-    }
-
-    def <T> BuildResult<T> run(Class<T> type, BuildParameters parameters) {
+class TestConnection extends TestR16Connection implements ClientBuildActionExecutor {
+    def <T> BuildResult<T> run(ClientBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         throw new UnsupportedOperationException()
     }
+}
 
+class TestR16Connection extends TestR12Connection implements ModelBuilder {
     BuildResult<Object> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw new UnsupportedOperationException()
     }
-
-    void stop() {
-        throw new UnsupportedOperationException()
-    }
-
-    ConnectionMetaDataVersion1 getMetaData() {
-        return new TestMetaData()
-    }
-
-    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
-    }
-
-    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
-    }
 }
 
-class TestR12Connection implements ConnectionVersion4, BuildActionRunner, ConfigurableConnection {
-    boolean configured
-
+class TestR12Connection extends TestR10M8Connection implements BuildActionRunner, ConfigurableConnection {
     void configure(ConnectionParameters parameters) {
         configured = parameters.verboseLogging
+    }
+
+    @Override
+    void configureLogging(boolean verboseLogging) {
+        throw new UnsupportedOperationException()
     }
 
     def <T> BuildResult<T> run(Class<T> type, BuildParameters parameters) {
         throw new UnsupportedOperationException()
     }
-
-    void stop() {
-        throw new UnsupportedOperationException()
-    }
-
-    ConnectionMetaDataVersion1 getMetaData() {
-        return new TestMetaData()
-    }
-
-    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
-    }
-
-    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
-    }
 }
 
-class TestR10M8Connection implements InternalConnection {
-    boolean configured
-
-    void configureLogging(boolean verboseLogging) {
-        configured = verboseLogging
-    }
-
+class TestR10M8Connection extends TestR10M3Connection implements InternalConnection {
     def <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) {
         throw new UnsupportedOperationException()
     }
 
-    void stop() {
-        throw new UnsupportedOperationException()
-    }
-
-    ConnectionMetaDataVersion1 getMetaData() {
-        return new TestMetaData()
-    }
-
-    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
-    }
-
-    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
+    void configureLogging(boolean verboseLogging) {
+        configured = verboseLogging
     }
 }
 

@@ -18,12 +18,13 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.*;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection, ModelBuilder {
+public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection, ModelBuilder, ClientBuildActionExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
     private final ProviderConnection connection;
@@ -70,6 +71,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     @Deprecated
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 parameters) {
+        logTargetVersion();
         return run(type, parameters);
     }
 
@@ -78,11 +80,11 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     @Deprecated
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
+        logTargetVersion();
         return run(type, parameters);
     }
 
     private <T> T run(Class<T> type, BuildOperationParametersVersion1 parameters) {
-        logTargetVersion();
         String modelName = new ModelMapping().getModelNameFromProtocolType(type);
         return (T) connection.run(modelName, new AdaptedOperationParameters(parameters));
     }
@@ -106,6 +108,14 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, operationParameters, BuildLogLevelMixIn.class);
         Object result = connection.run(modelIdentifier.getName(), providerParameters);
         return new ProviderBuildResult<Object>(result);
+    }
+
+    /**
+     * This is used by consumers 1.8-rc-1 and later.
+     */
+    public BuildResult<?> run(ClientBuildAction action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
+        logTargetVersion();
+        return new ProviderBuildResult<Object>(action.execute());
     }
 
     private void logTargetVersion() {

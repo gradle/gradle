@@ -25,6 +25,7 @@ package org.gradle.tooling.internal.protocol;
  *
  * @since 1.0-milestone-8
  * @deprecated 1.2-rc-1. Use {@link BuildActionRunner} instead.
+ * @see ConnectionVersion4
  */
 @Deprecated
 public interface InternalConnection extends ConnectionVersion4, InternalProtocolInterface {
