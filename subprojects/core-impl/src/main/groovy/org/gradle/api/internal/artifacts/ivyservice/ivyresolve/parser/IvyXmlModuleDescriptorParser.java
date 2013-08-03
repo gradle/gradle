@@ -31,12 +31,10 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.namespace.NameSpaceHelper;
 import org.apache.ivy.plugins.namespace.Namespace;
-import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
-import org.apache.ivy.util.extendable.ExtendableItemHelper;
 import org.gradle.api.Action;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -71,7 +69,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
 
-    protected DefaultModuleDescriptor doParseDescriptor(ParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
+    protected DefaultModuleDescriptor doParseDescriptor(GradleParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = new Parser(this, ivySettings, resource, resource.getLocalResource().getFile().toURI().toURL());
         parser.setValidate(validate);
         parser.parse();
@@ -417,7 +415,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private static final List ALLOWED_VERSIONS = Arrays.asList("1.0", "1.1", "1.2", "1.3", "1.4", "2.0", "2.1", "2.2");
 
         /* how and what do we have to parse */
-        private final ParserSettings parserSettings;
+        private final GradleParserSettings parserSettings;
         private final RelativeUrlResolver relativeUrlResolver = new NormalRelativeUrlResolver();
         private final URL descriptorURL;
         private boolean validate = true;
@@ -434,7 +432,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private String descriptorVersion;
         private String[] publicationsDefaultConf;
 
-        public Parser(IvyXmlModuleDescriptorParser moduleDescriptorParser, ParserSettings ivySettings, ExternalResource res, URL descriptorURL) {
+        public Parser(IvyXmlModuleDescriptorParser moduleDescriptorParser, GradleParserSettings ivySettings, ExternalResource res, URL descriptorURL) {
             super(moduleDescriptorParser, res);
             parserSettings = ivySettings;
             this.descriptorURL = descriptorURL;
@@ -951,7 +949,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 }
             }
 
-            getMd().setStatus(elvis(substitute(attributes.getValue("status")), parserSettings.getStatusManager().getDefaultStatus()));
+            getMd().setStatus(elvis(substitute(attributes.getValue("status")), parserSettings.getDefaultStatus()));
             getMd().setDefault(Boolean.valueOf(substitute(attributes.getValue("default"))));
             String pubDate = substitute(attributes.getValue("publication"));
             if (pubDate != null && pubDate.length() > 0) {
@@ -1186,7 +1184,19 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         private Map getExtraAttributes(Attributes attributes, String[] ignoredAttributeNames) {
-            return ExtendableItemHelper.getExtraAttributes(parserSettings, attributes, ignoredAttributeNames);
+            return getExtraAttributes(parserSettings, attributes, ignoredAttributeNames);
+        }
+
+        public static Map getExtraAttributes(
+                GradleParserSettings settings, Attributes attributes, String[] ignoredAttNames) {
+            Map ret = new HashMap();
+            Collection ignored = Arrays.asList(ignoredAttNames);
+            for (int i = 0; i < attributes.getLength(); i++) {
+                if (!ignored.contains(attributes.getQName(i))) {
+                    ret.put(attributes.getQName(i), settings.substitute(attributes.getValue(i)));
+                }
+            }
+            return ret;
         }
 
         private void fillExtraAttributes(DefaultExtendableItem item, Attributes attributes, String[] ignoredAttNames) {

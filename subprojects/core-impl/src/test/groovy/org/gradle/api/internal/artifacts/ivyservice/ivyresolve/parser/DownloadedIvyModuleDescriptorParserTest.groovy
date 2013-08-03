@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.apache.ivy.core.settings.IvySettings
-import org.apache.ivy.plugins.parser.ParserSettings
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -25,6 +24,7 @@ import spock.lang.Specification
 class DownloadedIvyModuleDescriptorParserTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     final DownloadedIvyModuleDescriptorParser parser = new DownloadedIvyModuleDescriptorParser()
+    final parserSettings = new ModuleScopedGradleParserSettings(new IvySettings(), null, null)
 
     def "discards the default attribute"() {
         def ivyFile = tmpDir.createFile("ivy.xml")
@@ -33,10 +33,8 @@ class DownloadedIvyModuleDescriptorParserTest extends Specification {
     <info organisation="org" module="someModule" revision="1.2" default="true"/>
 </ivy-module>
 """
-        ParserSettings settings = new IvySettings()
-
         when:
-        def descriptor = parser.parseDescriptor(settings, ivyFile, true)
+        def descriptor = parser.parseDescriptor(parserSettings, ivyFile, true)
 
         then:
         !descriptor.default

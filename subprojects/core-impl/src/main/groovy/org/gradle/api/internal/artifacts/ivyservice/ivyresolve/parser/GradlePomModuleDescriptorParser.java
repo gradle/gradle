@@ -24,7 +24,6 @@ import org.apache.ivy.core.resolve.ResolveEngine;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.namespace.NameSpaceHelper;
-import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -59,8 +58,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return "gradle pom parser";
     }
 
-    protected DefaultModuleDescriptor doParseDescriptor(ParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, ivySettings);
+    protected DefaultModuleDescriptor doParseDescriptor(GradleParserSettings parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, parserSettings);
 
         PomReader domReader = new PomReader(resource);
         domReader.setProperty("parent.version", domReader.getParentVersion());
@@ -83,7 +82,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     domReader.getParentGroupId(),
                     domReader.getParentArtifactId(),
                     domReader.getParentVersion());
-            ResolvedModuleRevision parentModule = parseOtherPom(ivySettings, parentModRevID);
+            ResolvedModuleRevision parentModule = parseOtherPom(parserSettings, parentModRevID);
             if (parentModule != null) {
                 parentDescr = parentModule.getDescriptor();
             } else {
@@ -101,8 +100,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         String groupId = domReader.getGroupId();
         String artifactId = domReader.getArtifactId();
         String version = domReader.getVersion();
-        ModuleScopedParserSettings scopedSettings = (ModuleScopedParserSettings) ivySettings;
-        mdBuilder.setModuleRevId(scopedSettings.getCurrentRevisionId(), groupId, artifactId, version);
+        mdBuilder.setModuleRevId(parserSettings.getCurrentRevisionId(), groupId, artifactId, version);
 
         mdBuilder.setHomePage(domReader.getHomePage());
         mdBuilder.setDescription(domReader.getDescription());
@@ -118,7 +116,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                         mdBuilder.getModuleDescriptor().getModuleRevisionId(), relocation);
                 LOGGER.warn("Please update your dependency to directly use the correct version '{}'.", relocation);
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
-                ResolvedModuleRevision relocatedModule = parseOtherPom(ivySettings, relocation);
+                ResolvedModuleRevision relocatedModule = parseOtherPom(parserSettings, relocation);
                 if (relocatedModule == null) {
                     throw new ParseException("impossible to load module "
                             + relocation + " to which "
@@ -178,7 +176,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                             dep.getGroupId(),
                             dep.getArtifactId(),
                             dep.getVersion());
-                    ResolvedModuleRevision importModule = parseOtherPom(ivySettings, importModRevID);
+                    ResolvedModuleRevision importModule = parseOtherPom(parserSettings, importModRevID);
                     if (importModule != null) {
                         ModuleDescriptor importDescr = importModule.getDescriptor();
 
@@ -219,7 +217,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return mdBuilder.getModuleDescriptor();
     }
 
-    private ResolvedModuleRevision parseOtherPom(ParserSettings ivySettings,
+    private ResolvedModuleRevision parseOtherPom(GradleParserSettings ivySettings,
                                                  ModuleRevisionId parentModRevID) throws ParseException {
         DependencyDescriptor dd = new DefaultDependencyDescriptor(parentModRevID, true);
         ResolveData data = IvyContext.getContext().getResolveData();

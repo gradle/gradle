@@ -35,10 +35,11 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
-    IvySettings settings = new IvySettings()
+    IvySettings ivySettings = new IvySettings()
+    GradleParserSettings settings = new ModuleScopedGradleParserSettings(ivySettings, null, null)
 
     def setup() {
-        settings.setDefaultCache(temporaryFolder.createDir("ivy/cache"))
+        ivySettings.setDefaultCache(temporaryFolder.createDir("ivy/cache"))
     }
 
     def "parses Ivy descriptor with empty dependencies section"() throws Exception {

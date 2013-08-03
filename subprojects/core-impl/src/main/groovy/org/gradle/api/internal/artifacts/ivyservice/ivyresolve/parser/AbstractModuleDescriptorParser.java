@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.plugins.parser.ParserSettings;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
@@ -27,13 +26,13 @@ import org.gradle.internal.resource.local.LocallyAvailableResource;
 import java.io.File;
 
 public abstract class AbstractModuleDescriptorParser implements ModuleDescriptorParser {
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
+    public ModuleDescriptor parseDescriptor(GradleParserSettings ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
         LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(descriptorFile);
         LocallyAvailableExternalResource resource = new DefaultLocallyAvailableExternalResource(descriptorFile.toURI().toString(), localResource);
         return parseDescriptor(ivySettings, resource, validate);
     }
 
-    public DefaultModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
+    public DefaultModuleDescriptor parseDescriptor(GradleParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
         try {
             return doParseDescriptor(ivySettings, resource, validate);
         } catch (MetaDataParseException e) {
@@ -45,5 +44,5 @@ public abstract class AbstractModuleDescriptorParser implements ModuleDescriptor
 
     protected abstract String getTypeName();
 
-    protected abstract DefaultModuleDescriptor doParseDescriptor(ParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws Exception;
+    protected abstract DefaultModuleDescriptor doParseDescriptor(GradleParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws Exception;
 }

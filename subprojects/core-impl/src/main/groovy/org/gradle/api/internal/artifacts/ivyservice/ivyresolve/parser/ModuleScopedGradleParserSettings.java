@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +15,23 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.RelativeUrlResolver;
-import org.apache.ivy.core.cache.ResolutionCacheManager;
-import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.module.status.StatusManager;
-import org.apache.ivy.plugins.conflict.ConflictManager;
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.namespace.Namespace;
-import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-
-import java.io.File;
-import java.util.Map;
 
 /**
  * ParserSettings that control the scope of searches carried out during parsing.
  * If the parser asks for a resolver for the currently resolving revision, the resolver scope is only the repository where the module was resolved.
  * If the parser asks for a resolver for a different revision, the resolver scope is all repositories.
  */
-public class ModuleScopedParserSettings implements ParserSettings {
-    private final ParserSettings settings;
+public class ModuleScopedGradleParserSettings implements GradleParserSettings {
+    private final IvySettings settings;
     private final DependencyResolver currentResolver;
     private final ModuleRevisionId currentRevisionId;
 
-    public ModuleScopedParserSettings(ParserSettings settings, DependencyResolver currentResolver, ModuleRevisionId currentRevisionId) {
+    public ModuleScopedGradleParserSettings(IvySettings settings, DependencyResolver currentResolver, ModuleRevisionId currentRevisionId) {
         this.settings = settings;
         this.currentResolver = currentResolver;
         this.currentRevisionId = currentRevisionId;
@@ -56,47 +48,23 @@ public class ModuleScopedParserSettings implements ParserSettings {
         return settings.getResolver(mRevId);
     }
 
-    public ConflictManager getConflictManager(String name) {
-        return settings.getConflictManager(name);
-    }
-
     public String substitute(String value) {
         return settings.substitute(value);
-    }
-
-    public Map substitute(Map strings) {
-        return settings.substitute(strings);
-    }
-
-    public ResolutionCacheManager getResolutionCacheManager() {
-        return settings.getResolutionCacheManager();
     }
 
     public PatternMatcher getMatcher(String matcherName) {
         return settings.getMatcher(matcherName);
     }
 
+    public String getDefaultStatus() {
+        return settings.getStatusManager().getDefaultStatus();
+    }
+
     public Namespace getNamespace(String namespace) {
         return settings.getNamespace(namespace);
     }
 
-    public StatusManager getStatusManager() {
-        return settings.getStatusManager();
-    }
-
-    public RelativeUrlResolver getRelativeUrlResolver() {
-        return settings.getRelativeUrlResolver();
-    }
-
-    public File resolveFile(String filename) {
-        return settings.resolveFile(filename);
-    }
-
-    public String getDefaultBranch(ModuleId moduleId) {
-        return settings.getDefaultBranch(moduleId);
-    }
-
     public Namespace getContextNamespace() {
-        return settings.getContextNamespace();
+        return Namespace.SYSTEM_NAMESPACE;
     }
 }

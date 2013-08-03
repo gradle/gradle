@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
@@ -33,7 +32,7 @@ public class DefaultMetaDataParser implements MetaDataParser {
 
     public MutableModuleVersionMetaData parseModuleMetaData(ModuleRevisionId moduleRevisionId, LocallyAvailableExternalResource resource, DependencyResolver resolver) throws MetaDataParseException {
         IvySettings ivySettings = IvyContextualiser.getIvyContext().getSettings();
-        ParserSettings parserSettings = new ModuleScopedParserSettings(ivySettings, resolver, moduleRevisionId);
+        GradleParserSettings parserSettings = new ModuleScopedGradleParserSettings(ivySettings, resolver, moduleRevisionId);
         ModuleDescriptorParser parser = parserRegistry.forResource(resource);
         ModuleDescriptor moduleDescriptor = parser.parseDescriptor(parserSettings, resource, true);
         return new ModuleDescriptorAdapter(moduleRevisionId, moduleDescriptor);

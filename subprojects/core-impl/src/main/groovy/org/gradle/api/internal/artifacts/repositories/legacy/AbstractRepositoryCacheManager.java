@@ -32,7 +32,6 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleScopedParserSettings;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
@@ -75,7 +74,7 @@ abstract class AbstractRepositoryCacheManager implements RepositoryCacheManager 
         ModuleRevisionId moduleRevisionId = moduleArtifact.getId().getModuleRevisionId();
         try {
             IvySettings ivySettings = IvyContextualiser.getIvyContext().getSettings();
-            ParserSettings parserSettings = new ModuleScopedParserSettings(ivySettings, resolver, moduleRevisionId);
+            ParserSettings parserSettings = new LegacyResolverParserSettings(ivySettings, resolver, moduleRevisionId);
             ModuleDescriptorParser parser = ModuleDescriptorParserRegistry.getInstance().getParser(resource);
             return parser.parseDescriptor(parserSettings, new URL(artifactFile.toURI().toASCIIString()), resource, options.isValidate());
         } catch (IOException e) {

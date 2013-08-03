@@ -17,13 +17,15 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.parser.ParserSettings;
+import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleParserSettings;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleScopedGradleParserSettings;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -66,8 +68,9 @@ public class ModuleDescriptorStore {
     }
 
     private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
-        ParserSettings settings = IvyContextualiser.getIvyContext().getSettings();
-        return parser.parseDescriptor(settings, moduleDescriptorFile, false);
+        IvySettings settings = IvyContextualiser.getIvyContext().getSettings();
+        GradleParserSettings parserSettings = new ModuleScopedGradleParserSettings(settings, null, null);
+        return parser.parseDescriptor(parserSettings, moduleDescriptorFile, false);
     }
 
     private String getFilePath(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {

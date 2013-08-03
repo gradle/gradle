@@ -17,16 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.plugins.parser.ParserSettings;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
 import java.io.File;
 
 public interface ModuleDescriptorParser {
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException;
+    public ModuleDescriptor parseDescriptor(GradleParserSettings ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException;
 
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException;
+    public ModuleDescriptor parseDescriptor(GradleParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException;
 
     public boolean accept(ExternalResource res);
 }
