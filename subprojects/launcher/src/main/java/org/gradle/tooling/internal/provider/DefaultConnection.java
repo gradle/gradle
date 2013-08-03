@@ -29,6 +29,9 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
     private final ProviderConnection connection;
 
+    /**
+     * This is used by consumers 1.0-milestone-3 and later
+     */
     public DefaultConnection() {
         LOGGER.debug("Tooling API provider {} created.", GradleVersion.current().getVersion());
         connection = new ProviderConnection();
@@ -50,11 +53,18 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         connection.configure(providerConnectionParameters);
     }
 
+    /**
+     * This is used by consumers 1.0-milestone-3 and later
+     */
     public ConnectionMetaDataVersion1 getMetaData() {
         return new DefaultConnectionMetaData();
     }
 
+    /**
+     * This is used by consumers 1.0-milestone-3 and later
+     */
     public void stop() {
+        connection.stop();
     }
 
     /**
@@ -92,9 +102,10 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     /**
      * This is used by consumers 1.2-rc-1 to 1.5
      */
+    @Deprecated
     public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
         logTargetVersion();
-        ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
+        ProviderOperationParameters providerParameters = toProviderParameters(buildParameters);
         String modelName = new ModelMapping().getModelNameFromProtocolType(type);
         T result = (T) connection.run(modelName, providerParameters);
         return new ProviderBuildResult<T>(result);
@@ -105,7 +116,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         logTargetVersion();
-        ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, operationParameters, BuildLogLevelMixIn.class);
+        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         Object result = connection.run(modelIdentifier.getName(), providerParameters);
         return new ProviderBuildResult<Object>(result);
     }
@@ -113,13 +124,19 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     /**
      * This is used by consumers 1.8-rc-1 and later.
      */
-    public BuildResult<?> run(ClientBuildAction action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
+    public <T> BuildResult<T> run(ClientBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         logTargetVersion();
-        return new ProviderBuildResult<Object>(action.execute());
+        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
+        Object results = connection.run(action, providerParameters);
+        return new ProviderBuildResult<T>((T) results);
     }
 
     private void logTargetVersion() {
-        LOGGER.info("Tooling API uses target gradle version: {}.", GradleVersion.current().getVersion());
+        LOGGER.info("Tooling API is using target Gradle version: {}.", GradleVersion.current().getVersion());
+    }
+
+    private ProviderOperationParameters toProviderParameters(BuildParameters buildParameters) {
+        return adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
     }
 
     private static class VerboseLoggingOnlyConnectionParameters {

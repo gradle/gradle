@@ -19,8 +19,11 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildController;
 import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
@@ -36,6 +39,7 @@ import org.gradle.messaging.remote.internal.Message;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
+import org.gradle.tooling.internal.protocol.ClientBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
@@ -48,11 +52,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ProviderConnection {
+public class ProviderConnection implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
     private final ModelClassLoaderRegistry classLoaderRegistry;
@@ -62,6 +68,9 @@ public class ProviderConnection {
         //we can still keep this state:
         embeddedExecuterSupport = new EmbeddedExecuterSupport();
         classLoaderRegistry = new ModelClassLoaderRegistry();
+    }
+
+    public void stop() {
     }
 
     public void configure(ProviderConnectionParameters parameters) {
@@ -113,6 +122,18 @@ public class ProviderConnection {
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    public Object run(ClientBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
+        Parameters params = initParams(providerParameters);
+        BuildAction<ToolingModel> action = new BuildAction<ToolingModel>() {
+            public ToolingModel run(BuildController buildController) {
+                ((DefaultGradleLauncher) buildController.getLauncher()).getGradle().getServices().get(ModelClassLoaderRegistry.class);
+                return new ToolingModel(Arrays.<URL>asList(), GUtil.serialize("hi!"));
+            }
+        };
+        run(action, providerParameters, params.properties);
+        return clientAction.execute();
     }
 
     private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {
