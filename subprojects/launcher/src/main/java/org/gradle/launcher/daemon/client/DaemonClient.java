@@ -169,7 +169,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             LOGGER.debug("Unable to perform initial dispatch/receive with the daemon.", e);
             //We might fail hard here on the assumption that something weird happened to the daemon.
             //However, since we haven't yet started running the build, we can recover by just trying again...
-            throw new DaemonInitialConnectException("Problem when attempted to send and receive first result from the daemon.");
+            throw new DaemonInitialConnectException("Problem when attempted to send and receive first result from the daemon.", e);
         }
         if (result == null) {
             throw new DaemonInitialConnectException("The first result from the daemon was empty. Most likely the process died immediately after connection.");

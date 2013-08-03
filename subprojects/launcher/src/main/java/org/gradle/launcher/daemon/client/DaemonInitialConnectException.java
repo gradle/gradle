@@ -21,4 +21,8 @@ class DaemonInitialConnectException extends GradleException {
     public DaemonInitialConnectException(String message) {
         super(message);
     }
+
+    public DaemonInitialConnectException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

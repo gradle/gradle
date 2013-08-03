@@ -70,7 +70,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             return connection;
         }
 
-        return createConnection(constraint);
+        return startDaemon(constraint);
     }
 
     private DaemonClientConnection findConnection(List<DaemonInfo> daemonInfos, ExplainingSpec<DaemonContext> constraint) {
@@ -91,7 +91,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    public DaemonClientConnection createConnection(ExplainingSpec<DaemonContext> constraint) {
+    public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint) {
         LOGGER.info("Starting Gradle daemon");
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle Daemon: {}", startupInfo);
@@ -134,13 +134,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         Runnable onFailure = new Runnable() {
             public void run() {
                 LOGGER.info(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE + daemonInfo);
-                try {
-                    daemonRegistry.remove(daemonInfo.getAddress());
-                } catch (Exception e) {
-                    //If we cannot remove then the file is corrupt or the registry is empty. We can ignore it here.
-                    LOGGER.info("Problem removing the address from the registry due to: " + e + ". It will be cleaned up later.");
-                    //TODO SF, actually we probably want always safely remove so it would be good to reduce the duplication.
-                }
+                daemonRegistry.remove(daemonInfo.getAddress());
             }
         };
         Connection<Object> connection;
