@@ -32,6 +32,7 @@ import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceLocator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
@@ -40,6 +41,8 @@ import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
+
+import java.util.List;
 
 /**
  * Contains the services shared by all builds in a given process.
@@ -52,6 +55,10 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     public GlobalServicesRegistry(ServiceRegistry loggingServices) {
         super(loggingServices);
         add(NativeServices.getInstance());
+        List<PluginServiceRegistry> pluginServiceFactories = new ServiceLocator(get(ClassLoaderRegistry.class).getPluginsClassLoader()).getAll(PluginServiceRegistry.class);
+        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
+            add(pluginServiceRegistry.createGlobalServices(this));
+        }
     }
 
     protected GradleLauncherFactory createGradleLauncherFactory() {
