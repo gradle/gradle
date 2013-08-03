@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.cachemanager
+package org.gradle.api.internal.artifacts.repositories.legacy
+
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.plugins.repository.Resource
 import org.apache.ivy.plugins.repository.ResourceDownloader
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.internal.filestore.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResource
@@ -30,7 +30,6 @@ import spock.lang.Specification
 
 class DownloadingRepositoryCacheManagerTest extends Specification {
     FileStore<ArtifactRevisionId> fileStore = Mock()
-    CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex = Mock()
     CacheLockingManager lockingManager = Mock()
     TemporaryFileProvider tmpFileProvider = Mock()
     ArtifactRevisionId artifactId = Mock()
@@ -38,7 +37,7 @@ class DownloadingRepositoryCacheManagerTest extends Specification {
     ResourceDownloader resourceDownloader = Mock()
     Resource resource = Mock();
     LocallyAvailableResource fileStoreEntry = Mock()
-    DownloadingRepositoryCacheManager downloadingRepositoryCacheManager = new DownloadingRepositoryCacheManager("TestCacheManager", fileStore, artifactUrlCachedResolutionIndex, tmpFileProvider, lockingManager)
+    DownloadingRepositoryCacheManager downloadingRepositoryCacheManager = new DownloadingRepositoryCacheManager("TestCacheManager", fileStore, tmpFileProvider, lockingManager)
 
     @Rule TestNameTestDirectoryProvider temporaryFolder;
 

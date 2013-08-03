@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.cachemanager;
+package org.gradle.api.internal.artifacts.repositories.legacy;
 
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.CacheDownloadOptions;
@@ -21,7 +21,6 @@ import org.apache.ivy.core.cache.CacheMetadataOptions;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
@@ -30,13 +29,8 @@ import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
-import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.ParseException;
 
 /**
@@ -46,10 +40,6 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
 
     public LocalFileRepositoryCacheManager(String name) {
         super(name);
-    }
-
-    public boolean isLocal() {
-        return true;
     }
 
     public EnhancedArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver, ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
@@ -94,13 +84,5 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
 
         ModuleDescriptor descriptor = parseModuleDescriptor(resolver, moduleArtifact, options, file, resolvedResource.getResource());
         return new ResolvedModuleRevision(resolver, resolver, descriptor, report);
-    }
-
-    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(ArtifactRevisionId artifactId, ExternalResourceDownloader resourceDownloader, ExternalResource resource) throws IOException {
-        // Does not download, copy or cache local files.
-        assert resource.isLocal();
-        File file = new File(resource.getName());
-        assert file.isFile();
-        return new DefaultLocallyAvailableExternalResource(resource.getName(), new DefaultLocallyAvailableResource(file));
     }
 }

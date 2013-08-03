@@ -16,22 +16,21 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -43,32 +42,26 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
-    private final ProgressLoggerFactory progressLoggerFactory;
-    private final RepositoryCacheManager localCacheManager;
-    private final RepositoryCacheManager downloadingCacheManager;
     private final MetaDataParser metaDataParser;
     private final ModuleMetadataProcessor metadataProcessor;
+    private final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
                                         Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                        ProgressLoggerFactory progressLoggerFactory,
-                                        RepositoryCacheManager localCacheManager,
-                                        RepositoryCacheManager downloadingCacheManager,
                                         MetaDataParser metaDataParser,
-                                        ModuleMetadataProcessor metadataProcessor) {
+                                        ModuleMetadataProcessor metadataProcessor,
+                                        LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.progressLoggerFactory = progressLoggerFactory;
-        this.localCacheManager = localCacheManager;
-        this.downloadingCacheManager = downloadingCacheManager;
         this.metaDataParser = metaDataParser;
         this.metadataProcessor = metadataProcessor;
+        this.legacyDependencyResolverRepositoryFactory = legacyDependencyResolverRepositoryFactory;
     }
 
     public ArtifactRepository createRepository(Object userDescription) {
@@ -87,13 +80,10 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
             return repository;
         }
 
-        DependencyResolver result;
         if (userDescription instanceof DependencyResolver) {
-            result = (DependencyResolver) userDescription;
-        } else {
-            throw new InvalidUserDataException(String.format("Cannot create a DependencyResolver instance from %s", userDescription));
+            return legacyDependencyResolverRepositoryFactory.createRepository((DependencyResolver) userDescription);
         }
-        return new CustomResolverArtifactRepository(result, progressLoggerFactory, localCacheManager, downloadingCacheManager);
+        throw new InvalidUserDataException(String.format("Cannot create a DependencyResolver instance from %s", userDescription));
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {

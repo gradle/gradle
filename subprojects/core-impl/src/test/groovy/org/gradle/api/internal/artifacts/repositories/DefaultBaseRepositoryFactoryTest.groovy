@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
-import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
+import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
@@ -42,15 +42,15 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final FileResolver fileResolver = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
-    final RepositoryCacheManager localCacheManager = Mock()
-    final RepositoryCacheManager downloadingCacheManager = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final MetaDataParser metaDataParser = Mock()
     final ModuleMetadataProcessor metadataProcessor = Mock()
+    final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory = Mock()
+
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
-            progressLoggerFactory, localCacheManager, downloadingCacheManager, metaDataParser, metadataProcessor
+            metaDataParser, metadataProcessor, legacyDependencyResolverRepositoryFactory
     )
 
 //    @Before public void setup() {
@@ -88,14 +88,14 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     }
 
     def testCreateResolverWithResolverDescription() {
-        when:
+        def repository = Mock(ArtifactRepository)
         def resolver = Mock(DependencyResolver)
 
-        then:
-        ArtifactRepository repository = factory.createRepository(resolver)
+        when:
+        legacyDependencyResolverRepositoryFactory.createRepository(resolver) >> repository
 
-        repository instanceof FixedResolverArtifactRepository
-        repository.resolver == resolver
+        then:
+        factory.createRepository(resolver) == repository
     }
 
     def testCreateResolverWithArtifactRepositoryDescription() {

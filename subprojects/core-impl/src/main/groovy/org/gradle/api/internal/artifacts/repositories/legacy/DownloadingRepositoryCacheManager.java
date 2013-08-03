@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.cachemanager;
+package org.gradle.api.internal.artifacts.repositories.legacy;
 
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.CacheDownloadOptions;
@@ -33,15 +33,9 @@ import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
-import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.filestore.FileStore;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,15 +50,13 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
     private static final Logger LOGGER = LoggerFactory.getLogger(DownloadingRepositoryCacheManager.class);
 
     private final FileStore<ArtifactRevisionId> fileStore;
-    private final CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex;
     private final TemporaryFileProvider temporaryFileProvider;
     private final CacheLockingManager cacheLockingManager;
 
-    public DownloadingRepositoryCacheManager(String name, FileStore<ArtifactRevisionId> fileStore, CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex,
+    public DownloadingRepositoryCacheManager(String name, FileStore<ArtifactRevisionId> fileStore,
                                              TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
         super(name);
         this.fileStore = fileStore;
-        this.artifactUrlCachedResolutionIndex = artifactUrlCachedResolutionIndex;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cacheLockingManager = cacheLockingManager;
     }
@@ -121,24 +113,6 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
             return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<File>() {
                 public File create() {
                     return fileStore.move(artifact.getId(), tmpFile).getFile();
-                }
-            });
-        } finally {
-            tmpFile.delete();
-        }
-    }
-
-    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(final ArtifactRevisionId artifactId, ExternalResourceDownloader resourceDownloader, final ExternalResource resource) throws IOException {
-        final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
-        try {
-            resourceDownloader.download(resource, tmpFile);
-            return cacheLockingManager.useCache(String.format("Store %s", artifactId), new Factory<LocallyAvailableExternalResource>() {
-                public LocallyAvailableExternalResource create() {
-                    LocallyAvailableResource cachedResource = fileStore.move(artifactId, tmpFile);
-                    File fileInFileStore = cachedResource.getFile();
-                    ExternalResourceMetaData metaData = resource.getMetaData();
-                    artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
-                    return new DefaultLocallyAvailableExternalResource(resource.getName(), cachedResource, metaData);
                 }
             });
         } finally {

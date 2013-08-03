@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.cachemanager;
+package org.gradle.api.internal.artifacts.repositories.legacy;
 
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.CacheMetadataOptions;
@@ -40,7 +40,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.ParseException;
 
-abstract class AbstractRepositoryCacheManager implements RepositoryArtifactCache, RepositoryCacheManager {
+abstract class AbstractRepositoryCacheManager implements RepositoryCacheManager {
     protected final String name;
 
     public AbstractRepositoryCacheManager(String name) {

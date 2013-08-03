@@ -27,8 +27,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
+import org.gradle.api.internal.artifacts.repositories.legacy.EnhancedArtifactDownloadReport;
+import org.gradle.api.internal.artifacts.repositories.legacy.LocalFileRepositoryCacheManager;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +65,7 @@ public class IvyDependencyResolverAdapter implements IvyAwareModuleVersionReposi
     }
 
     public boolean isLocal() {
-        return ((RepositoryArtifactCache) resolver.getRepositoryCacheManager()).isLocal();
+        return resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager;
     }
 
     public void setSettings(IvySettings settings) {

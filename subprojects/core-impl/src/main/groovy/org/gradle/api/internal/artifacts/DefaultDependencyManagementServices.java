@@ -51,8 +51,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDepende
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.*;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryArtifactCache;
+import org.gradle.api.internal.artifacts.repositories.legacy.CustomIvyResolverRepositoryFactory;
+import org.gradle.api.internal.artifacts.repositories.legacy.DownloadingRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryArtifactCache;
+import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
+import org.gradle.api.internal.artifacts.repositories.legacy.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedArtifactIndex;
@@ -230,20 +234,33 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return finderFactory.create();
     }
 
-    protected LocalFileRepositoryCacheManager createLocalRepositoryCacheManager() {
-        return new LocalFileRepositoryCacheManager("local");
+    protected LegacyDependencyResolverRepositoryFactory createCustomerResolverRepositoryFactory() {
+        return new CustomIvyResolverRepositoryFactory(
+                get(ProgressLoggerFactory.class),
+                new LocalFileRepositoryCacheManager("local"),
+                new DownloadingRepositoryCacheManager(
+                        "downloading",
+                        get(ArtifactRevisionIdFileStore.class),
+                        new TmpDirTemporaryFileProvider(),
+                        get(CacheLockingManager.class)
+                )
+        );
     }
 
-    protected DownloadingRepositoryCacheManager createDownloadingRepositoryCacheManager() {
-        return new DownloadingRepositoryCacheManager("downloading", get(ArtifactRevisionIdFileStore.class), get(ByUrlCachedExternalResourceIndex.class),
+    protected LocalFileRepositoryArtifactCache createLocalRepositoryArtifactCache() {
+        return new LocalFileRepositoryArtifactCache();
+    }
+
+    protected DownloadingRepositoryArtifactCache createDownloadingRepositoryArtifactCache() {
+        return new DownloadingRepositoryArtifactCache(get(ArtifactRevisionIdFileStore.class), get(ByUrlCachedExternalResourceIndex.class),
                 new TmpDirTemporaryFileProvider(), get(CacheLockingManager.class));
     }
 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
         return new RepositoryTransportFactory(
                 get(ProgressLoggerFactory.class),
-                get(LocalFileRepositoryCacheManager.class),
-                get(DownloadingRepositoryCacheManager.class),
+                get(LocalFileRepositoryArtifactCache.class),
+                get(DownloadingRepositoryArtifactCache.class),
                 new TmpDirTemporaryFileProvider(),
                 get(ByUrlCachedExternalResourceIndex.class)
         );
@@ -325,11 +342,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         instantiator,
                         get(RepositoryTransportFactory.class),
                         get(LocallyAvailableResourceFinder.class),
-                        get(ProgressLoggerFactory.class),
-                        get(LocalFileRepositoryCacheManager.class),
-                        get(DownloadingRepositoryCacheManager.class),
                         new DefaultMetaDataParser(new ParserRegistry()),
-                        getComponentMetadataHandler()
+                        getComponentMetadataHandler(),
+                        get(LegacyDependencyResolverRepositoryFactory.class)
                 );
             }
 
