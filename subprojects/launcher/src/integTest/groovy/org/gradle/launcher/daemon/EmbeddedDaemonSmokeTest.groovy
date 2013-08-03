@@ -22,7 +22,6 @@ import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
 import org.gradle.launcher.exec.DefaultBuildActionParameters
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.provider.ConfiguringBuildAction
-import org.gradle.tooling.internal.provider.ExecuteBuildAction
 import org.junit.Rule
 import spock.lang.Specification
 
