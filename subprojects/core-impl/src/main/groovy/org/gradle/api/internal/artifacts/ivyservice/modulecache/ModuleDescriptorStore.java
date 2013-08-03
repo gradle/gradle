@@ -69,7 +69,7 @@ public class ModuleDescriptorStore {
 
     private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
         IvySettings settings = IvyContextualiser.getIvyContext().getSettings();
-        GradleParserSettings parserSettings = new ModuleScopedGradleParserSettings(settings, null, null);
+        GradleParserSettings parserSettings = new ModuleScopedGradleParserSettings(settings.getDefaultResolver(), null, null, "integration");
         return parser.parseDescriptor(parserSettings, moduleDescriptorFile, false);
     }
 

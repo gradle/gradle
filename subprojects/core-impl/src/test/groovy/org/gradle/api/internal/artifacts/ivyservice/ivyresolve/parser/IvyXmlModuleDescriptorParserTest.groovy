@@ -17,10 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.apache.ivy.core.module.descriptor.*
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
+import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.junit.Rule
@@ -36,7 +38,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
     IvySettings ivySettings = new IvySettings()
-    GradleParserSettings settings = new ModuleScopedGradleParserSettings(ivySettings, null, null)
+    DependencyResolver mainResolver = Mock()
+    DependencyResolver moduleResolver = Mock()
+    ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance("org", "name", "revision")
+    GradleParserSettings settings = new ModuleScopedGradleParserSettings(mainResolver, moduleResolver, moduleRevisionId, "integration")
 
     def setup() {
         ivySettings.setDefaultCache(temporaryFolder.createDir("ivy/cache"))

@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 
 // TODO:Remove the ivy crap from here
@@ -30,10 +29,6 @@ public interface GradleParserSettings {
     String getDefaultStatus();
 
     DependencyResolver getResolver(ModuleRevisionId mRevId);
-
-    Namespace getNamespace(String namespace);
-
-    Namespace getContextNamespace();
 
     ModuleRevisionId getCurrentRevisionId();
 }

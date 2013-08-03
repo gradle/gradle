@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import org.apache.ivy.core.settings.IvySettings
+import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -24,7 +24,8 @@ import spock.lang.Specification
 class DownloadedIvyModuleDescriptorParserTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     final DownloadedIvyModuleDescriptorParser parser = new DownloadedIvyModuleDescriptorParser()
-    final parserSettings = new ModuleScopedGradleParserSettings(new IvySettings(), null, null)
+    final mainResolver = Mock(DependencyResolver)
+    final parserSettings = new ModuleScopedGradleParserSettings(mainResolver, null, null, "integration")
 
     def "discards the default attribute"() {
         def ivyFile = tmpDir.createFile("ivy.xml")

@@ -23,7 +23,6 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RestrictedDependencyResolver;
 
@@ -66,11 +65,4 @@ public class DisconnectedParserSettings implements GradleParserSettings {
         return ivySettings.getMatcher(matcherName);
     }
 
-    public Namespace getNamespace(String namespace) {
-        return ivySettings.getNamespace(namespace);
-    }
-
-    public Namespace getContextNamespace() {
-        return ivySettings.getContextNamespace();
-    }
 }

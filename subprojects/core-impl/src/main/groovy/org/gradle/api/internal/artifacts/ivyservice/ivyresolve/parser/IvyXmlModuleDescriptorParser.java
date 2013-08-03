@@ -29,7 +29,6 @@ import org.apache.ivy.core.resolve.ResolveEngine;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.namespace.NameSpaceHelper;
 import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
@@ -724,7 +723,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 // TODO: Throw exception here?
                 return null;
             } else {
-                dd = NameSpaceHelper.toSystem(dd, parserSettings.getContextNamespace());
                 ResolvedModuleRevision otherModule = resolver.getDependency(dd, data);
                 if (otherModule == null) {
                     throw new ParseException("Unable to find " + parentMrid.toString(), 0);
@@ -938,16 +936,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String branch = substitute(attributes.getValue("branch"));
             Map extraAttributes = getExtraAttributes(attributes, new String[]{"organisation", "module", "revision", "status", "publication", "branch", "namespace", "default", "resolver"});
             getMd().setModuleRevisionId(ModuleRevisionId.newInstance(org, module, branch, revision, extraAttributes));
-
-            String namespace = substitute(attributes.getValue("namespace"));
-            if (namespace != null) {
-                Namespace ns = parserSettings.getNamespace(namespace);
-                if (ns == null) {
-                    LOGGER.warn("namespace not found for " + getMd().getModuleRevisionId() + ": " + namespace);
-                } else {
-                    getMd().setNamespace(ns);
-                }
-            }
 
             getMd().setStatus(elvis(substitute(attributes.getValue("status")), parserSettings.getDefaultStatus()));
             getMd().setDefault(Boolean.valueOf(substitute(attributes.getValue("default"))));

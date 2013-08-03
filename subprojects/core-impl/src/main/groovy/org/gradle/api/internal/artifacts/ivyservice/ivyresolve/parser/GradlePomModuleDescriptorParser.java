@@ -23,7 +23,6 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveEngine;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.namespace.NameSpaceHelper;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -233,7 +232,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             // TODO: Throw exception here?
             return null;
         } else {
-            dd = NameSpaceHelper.toSystem(dd, ivySettings.getContextNamespace());
             return resolver.getDependency(dd, data);
         }
     }
