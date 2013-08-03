@@ -19,7 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.util.GFileUtils;

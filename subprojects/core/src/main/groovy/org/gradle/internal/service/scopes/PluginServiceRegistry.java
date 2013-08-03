@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project;
+package org.gradle.internal.service.scopes;
 
 import org.gradle.internal.service.ServiceRegistry;
 

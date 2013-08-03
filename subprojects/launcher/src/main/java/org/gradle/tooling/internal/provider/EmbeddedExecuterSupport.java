@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.internal.project.GlobalServicesRegistry;
+import org.gradle.internal.service.scopes.GlobalServicesRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;

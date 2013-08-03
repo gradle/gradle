@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project;
+package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
@@ -25,9 +25,9 @@ import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.initialization.*;
 import org.gradle.cli.CommandLineConverter;
-import org.gradle.internal.nativeplatform.*;
+import org.gradle.initialization.*;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;

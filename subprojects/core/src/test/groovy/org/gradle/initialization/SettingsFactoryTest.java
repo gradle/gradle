@@ -21,7 +21,7 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ThreadGlobalInstantiator;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;

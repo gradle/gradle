@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project
+package org.gradle.internal.service.scopes
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.*
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
+import org.gradle.api.internal.project.DefaultIsolatedAntBuilder
+import org.gradle.api.internal.project.IProjectFactory
+import org.gradle.api.internal.project.IsolatedAntBuilder
+import org.gradle.api.internal.project.ProjectFactory
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository

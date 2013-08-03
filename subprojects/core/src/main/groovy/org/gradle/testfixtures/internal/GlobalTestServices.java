@@ -15,7 +15,7 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.api.internal.project.GlobalServicesRegistry;
+import org.gradle.internal.service.scopes.GlobalServicesRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.service.DefaultServiceRegistry;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project
+package org.gradle.internal.service.scopes
 
 import org.gradle.api.AntBuilder
 import org.gradle.api.artifacts.dsl.ArtifactHandler
@@ -32,6 +32,8 @@ import org.gradle.api.internal.initialization.DefaultScriptHandler
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
 import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.PluginRegistry
+import org.gradle.api.internal.project.DefaultAntBuilderFactory
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal

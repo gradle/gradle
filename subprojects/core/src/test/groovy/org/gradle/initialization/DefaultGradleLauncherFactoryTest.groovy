@@ -17,7 +17,7 @@ package org.gradle.initialization
 
 import org.gradle.GradleLauncher
 import org.gradle.StartParameter
-import org.gradle.api.internal.project.GlobalServicesRegistry
+import org.gradle.internal.service.scopes.GlobalServicesRegistry
 import org.gradle.cli.CommandLineConverter
 import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification

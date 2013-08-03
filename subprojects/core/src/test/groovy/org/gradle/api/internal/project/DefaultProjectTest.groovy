@@ -43,6 +43,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.StandardOutputCapture
 import org.gradle.util.HelperUtil

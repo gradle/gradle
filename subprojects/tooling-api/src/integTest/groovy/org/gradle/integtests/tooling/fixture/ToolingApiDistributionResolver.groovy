@@ -20,9 +20,9 @@ import org.gradle.StartParameter
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.project.GlobalServicesRegistry
-import org.gradle.api.internal.project.ProjectInternalServiceRegistry
-import org.gradle.api.internal.project.TopLevelBuildServiceRegistry
+import org.gradle.internal.service.scopes.GlobalServicesRegistry
+import org.gradle.internal.service.scopes.ProjectInternalServiceRegistry
+import org.gradle.internal.service.scopes.TopLevelBuildServiceRegistry
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.CompositeStoppable

@@ -15,7 +15,7 @@
  */
 package org.gradle;
 
-import org.gradle.api.internal.project.GlobalServicesRegistry;
+import org.gradle.internal.service.scopes.GlobalServicesRegistry;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.util.DeprecationLogger;

@@ -24,6 +24,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.testfixtures.internal.GlobalTestServices;
 import org.gradle.testfixtures.internal.TestTopLevelBuildServiceRegistry;

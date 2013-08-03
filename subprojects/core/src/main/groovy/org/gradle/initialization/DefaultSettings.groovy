@@ -18,7 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ServiceRegistryFactory
+import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.groovy.scripts.ScriptSource
 
 public class DefaultSettings extends BaseSettings {
