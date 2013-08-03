@@ -72,7 +72,7 @@ import org.gradle.profile.ProfileListener;
 import org.gradle.util.ClassLoaderFactory;
 
 /**
- * Contains the singleton services which are shared by all builds executed by a single {@link org.gradle.GradleLauncher} invocation.
+ * Contains the singleton services for a single build invocation.
  */
 public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final StartParameter startParameter;
