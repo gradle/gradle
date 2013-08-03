@@ -38,12 +38,12 @@ import spock.lang.Specification
 
 import static org.hamcrest.Matchers.sameInstance
 
-public class GradleInternalServiceRegistryTest extends Specification {
+public class GradleScopeServicesTest extends Specification {
     private GradleInternal gradle = Mock()
     private ServiceRegistry parent = Mock()
     private ListenerManager listenerManager = Mock()
     private CacheRepository cacheRepository = Mock()
-    private GradleInternalServiceRegistry registry = new GradleInternalServiceRegistry(parent, gradle)
+    private GradleScopeServices registry = new GradleScopeServices(parent, gradle)
     private StartParameter startParameter = new StartParameter()
     private PluginRegistry pluginRegistryParent = Mock()
     private PluginRegistry pluginRegistryChild = Mock()
@@ -66,7 +66,7 @@ public class GradleInternalServiceRegistryTest extends Specification {
         ServiceRegistryFactory serviceRegistry = registry.createFor(project)
 
         then:
-        serviceRegistry instanceof ProjectInternalServiceRegistry
+        serviceRegistry instanceof ProjectScopeServices
     }
 
     def "provides a project registry"() {

@@ -47,12 +47,12 @@ import java.util.List;
 /**
  * Contains the services shared by all builds in a given process.
  */
-public class GlobalServicesRegistry extends DefaultServiceRegistry {
-    public GlobalServicesRegistry() {
+public class GlobalScopeServices extends DefaultServiceRegistry {
+    public GlobalScopeServices() {
         this(LoggingServiceRegistry.newProcessLogging());
     }
 
-    public GlobalServicesRegistry(ServiceRegistry loggingServices) {
+    public GlobalScopeServices(ServiceRegistry loggingServices) {
         super(loggingServices);
         add(NativeServices.getInstance());
         List<PluginServiceRegistry> pluginServiceFactories = new ServiceLocator(get(ClassLoaderRegistry.class).getPluginsClassLoader()).getAll(PluginServiceRegistry.class);

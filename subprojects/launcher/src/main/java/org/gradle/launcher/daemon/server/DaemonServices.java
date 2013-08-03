@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.internal.service.scopes.GlobalServicesRegistry;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -52,7 +52,7 @@ public class DaemonServices extends DefaultServiceRegistry {
 
         add(NativeServices.getInstance());
         add(new DaemonRegistryServices(configuration.getBaseDir()));
-        add(new GlobalServicesRegistry(loggingServices));
+        add(new GlobalScopeServices(loggingServices));
     }
 
     protected ExecutorFactory createExecutorFactory() {

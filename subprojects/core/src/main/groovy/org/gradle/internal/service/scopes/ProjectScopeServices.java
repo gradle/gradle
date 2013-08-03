@@ -67,10 +67,10 @@ import java.io.File;
 /**
  * Contains the services for a given project.
  */
-public class ProjectInternalServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class ProjectScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final ProjectInternal project;
 
-    public ProjectInternalServiceRegistry(ServiceRegistry parent, final ProjectInternal project) {
+    public ProjectScopeServices(ServiceRegistry parent, final ProjectInternal project) {
         super(parent);
         this.project = project;
     }
@@ -192,7 +192,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     public ServiceRegistryFactory createFor(Object domainObject) {
         if (domainObject instanceof TaskInternal) {
-            return new TaskInternalServiceRegistry(this, project, (TaskInternal)domainObject);
+            return new TaskScopeServices(this, project, (TaskInternal)domainObject);
         }
         throw new UnsupportedOperationException();
     }

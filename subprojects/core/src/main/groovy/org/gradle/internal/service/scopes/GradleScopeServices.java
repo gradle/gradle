@@ -41,10 +41,10 @@ import static java.util.Arrays.asList;
 /**
  * Contains the services for a given {@link GradleInternal} instance.
  */
-public class GradleInternalServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class GradleScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final GradleInternal gradle;
 
-    public GradleInternalServiceRegistry(ServiceRegistry parent, final GradleInternal gradle) {
+    public GradleScopeServices(ServiceRegistry parent, final GradleInternal gradle) {
         super(parent);
         this.gradle = gradle;
         add(new TaskExecutionServices(parent, gradle));
@@ -83,7 +83,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
 
     public ServiceRegistryFactory createFor(Object domainObject) {
         if (domainObject instanceof ProjectInternal) {
-            return new ProjectInternalServiceRegistry(this, (ProjectInternal) domainObject);
+            return new ProjectScopeServices(this, (ProjectInternal) domainObject);
         }
         throw new UnsupportedOperationException();
     }

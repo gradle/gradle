@@ -20,12 +20,12 @@ import org.gradle.StartParameter
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.internal.service.scopes.GlobalServicesRegistry
-import org.gradle.internal.service.scopes.ProjectInternalServiceRegistry
-import org.gradle.internal.service.scopes.TopLevelBuildServiceRegistry
+import org.gradle.internal.service.scopes.GlobalScopeServices
+import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.CompositeStoppable
+import org.gradle.internal.service.scopes.ProjectScopeServices
 import org.gradle.util.HelperUtil
 
 class ToolingApiDistributionResolver {
@@ -69,13 +69,13 @@ class ToolingApiDistributionResolver {
     }
 
     private DependencyResolutionServices createResolutionServices() {
-        GlobalServicesRegistry globalRegistry = new GlobalServicesRegistry()
+        GlobalScopeServices globalRegistry = new GlobalScopeServices()
         stopLater.add(globalRegistry)
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
-        TopLevelBuildServiceRegistry topLevelRegistry = new TopLevelBuildServiceRegistry(globalRegistry, startParameter)
+        BuildScopeServices topLevelRegistry = new BuildScopeServices(globalRegistry, startParameter)
         stopLater.add(topLevelRegistry)
-        ProjectInternalServiceRegistry projectRegistry = new ProjectInternalServiceRegistry(topLevelRegistry, HelperUtil.createRootProject())
+        ProjectScopeServices projectRegistry = new ProjectScopeServices(topLevelRegistry, HelperUtil.createRootProject())
         stopLater.add(projectRegistry)
         projectRegistry.get(DependencyResolutionServices)
     }

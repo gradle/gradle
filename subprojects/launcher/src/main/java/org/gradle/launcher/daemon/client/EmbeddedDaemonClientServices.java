@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.internal.service.scopes.GlobalServicesRegistry;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.Factory;
@@ -73,7 +73,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     public EmbeddedDaemonClientServices(ServiceRegistry loggingServices, boolean displayOutput) {
         super(loggingServices, System.in);
         this.displayOutput = displayOutput;
-        add(new GlobalServicesRegistry(loggingServices));
+        add(new GlobalScopeServices(loggingServices));
         add(EmbeddedDaemonFactory.class, new EmbeddedDaemonFactory());
     }
 

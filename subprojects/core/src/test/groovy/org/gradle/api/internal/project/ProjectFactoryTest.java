@@ -26,8 +26,8 @@ import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.testfixtures.internal.GlobalTestServices;
-import org.gradle.testfixtures.internal.TestTopLevelBuildServiceRegistry;
+import org.gradle.testfixtures.internal.TestBuildScopeServices;
+import org.gradle.testfixtures.internal.TestGlobalScopeServices;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.MultiParentClassLoader;
 import org.jmock.Expectations;
@@ -55,7 +55,7 @@ public class ProjectFactoryTest {
     private Factory<RepositoryHandler> repositoryHandlerFactory = context.mock(Factory.class);
     private RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
     private StartParameter startParameterStub = new StartParameter();
-    private ServiceRegistryFactory serviceRegistryFactory = new TestTopLevelBuildServiceRegistry(new GlobalTestServices(), startParameterStub, rootDir);
+    private ServiceRegistryFactory serviceRegistryFactory = new TestBuildScopeServices(new TestGlobalScopeServices(), startParameterStub, rootDir);
     private org.gradle.internal.reflect.Instantiator instantiatorMock = serviceRegistryFactory.get(org.gradle.internal.reflect.Instantiator.class);
     private GradleInternal gradle = context.mock(GradleInternal.class);
 

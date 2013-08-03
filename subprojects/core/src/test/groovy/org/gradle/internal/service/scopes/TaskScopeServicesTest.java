@@ -41,12 +41,12 @@ import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
-public class TaskInternalServiceRegistryTest {
+public class TaskScopeServicesTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final TaskInternal task = context.mock(TaskInternal.class);
-    private final TaskInternalServiceRegistry registry = new TaskInternalServiceRegistry(parent, project, task);
+    private final TaskScopeServices registry = new TaskScopeServices(parent, project, task);
 
     @Before
     public void setUp() {

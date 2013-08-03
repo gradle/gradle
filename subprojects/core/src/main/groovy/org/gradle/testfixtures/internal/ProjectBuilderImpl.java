@@ -36,7 +36,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 
 public class ProjectBuilderImpl {
-    private static final GlobalTestServices GLOBAL_SERVICES = new GlobalTestServices();
+    private static final TestGlobalScopeServices GLOBAL_SERVICES = new TestGlobalScopeServices();
     private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator();
 
     public Project createChildProject(String name, Project parent, File projectDir) {
@@ -63,7 +63,7 @@ public class ProjectBuilderImpl {
         StartParameter startParameter = new StartParameter();
         startParameter.setGradleUserHomeDir(new File(projectDir, "userHome"));
 
-        ServiceRegistryFactory topLevelRegistry = new TestTopLevelBuildServiceRegistry(GLOBAL_SERVICES, startParameter, homeDir);
+        ServiceRegistryFactory topLevelRegistry = new TestBuildScopeServices(GLOBAL_SERVICES, startParameter, homeDir);
         GradleInternal gradle = new DefaultGradle(null, startParameter, topLevelRegistry);
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry());

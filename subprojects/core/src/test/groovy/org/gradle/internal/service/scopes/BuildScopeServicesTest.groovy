@@ -60,7 +60,7 @@ import static org.hamcrest.Matchers.instanceOf
 import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
 
-public class TopLevelBuildServiceRegistryTest extends Specification {
+public class BuildScopeServicesTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     StartParameter startParameter = new StartParameter()
@@ -69,7 +69,7 @@ public class TopLevelBuildServiceRegistryTest extends Specification {
     ClosableCacheFactory cacheFactory = Mock()
     ClassLoaderRegistry classLoaderRegistry = Mock()
 
-    TopLevelBuildServiceRegistry registry = new TopLevelBuildServiceRegistry(parent, startParameter)
+    BuildScopeServices registry = new BuildScopeServices(parent, startParameter)
 
     def setup() {
         startParameter.gradleUserHomeDir = tmpDir.testDirectory
@@ -103,7 +103,7 @@ public class TopLevelBuildServiceRegistryTest extends Specification {
         GradleInternal gradle = Mock()
         ServiceRegistryFactory registry = this.registry.createFor(gradle)
         expect:
-        registry instanceof GradleInternalServiceRegistry
+        registry instanceof GradleScopeServices
     }
 
     def providesAListenerManager() {

@@ -19,6 +19,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.internal.service.ServiceRegistry;
 
 /**
- * Dependency management services with the same characteristic as {@link org.gradle.internal.service.scopes.TopLevelBuildServiceRegistry}.
+ * Dependency management services with the same characteristic as {@link org.gradle.internal.service.scopes.BuildScopeServices}.
  */
 public interface TopLevelDependencyManagementServices extends ServiceRegistry {}

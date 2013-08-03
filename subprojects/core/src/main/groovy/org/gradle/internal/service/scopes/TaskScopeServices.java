@@ -30,11 +30,11 @@ import org.gradle.logging.LoggingManagerInternal;
 /**
  * Contains the services for a given task.
  */
-public class TaskInternalServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class TaskScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final ProjectInternal project;
     private final TaskInternal taskInternal;
 
-    public TaskInternalServiceRegistry(ServiceRegistry parent, final ProjectInternal project, TaskInternal taskInternal) {
+    public TaskScopeServices(ServiceRegistry parent, final ProjectInternal project, TaskInternal taskInternal) {
         super(parent);
         this.project = project;
         this.taskInternal = taskInternal;

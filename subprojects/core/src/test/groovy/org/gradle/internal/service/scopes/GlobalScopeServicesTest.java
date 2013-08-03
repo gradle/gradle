@@ -44,8 +44,8 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class GlobalServicesRegistryTest {
-    private final GlobalServicesRegistry registry = new GlobalServicesRegistry();
+public class GlobalScopeServicesTest {
+    private final GlobalScopeServices registry = new GlobalScopeServices();
 
     @Test
     public void providesAGradleLauncherFactory() {

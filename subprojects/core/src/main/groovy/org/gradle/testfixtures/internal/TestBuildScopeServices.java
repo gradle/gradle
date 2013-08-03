@@ -17,7 +17,7 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.internal.service.scopes.TopLevelBuildServiceRegistry;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
@@ -25,10 +25,10 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
 
-public class TestTopLevelBuildServiceRegistry extends TopLevelBuildServiceRegistry {
+public class TestBuildScopeServices extends BuildScopeServices {
     private final File homeDir;
 
-    public TestTopLevelBuildServiceRegistry(ServiceRegistry parent, StartParameter startParameter, File homeDir) {
+    public TestBuildScopeServices(ServiceRegistry parent, StartParameter startParameter, File homeDir) {
         super(parent, startParameter);
         this.homeDir = homeDir;
     }

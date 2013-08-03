@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.internal.service.scopes.GlobalServicesRegistry;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -30,7 +30,7 @@ public class EmbeddedExecuterSupport {
 
     public EmbeddedExecuterSupport() {
         embeddedLogging = LoggingServiceRegistry.newEmbeddableLogging();
-        gradleLauncherFactory = new GlobalServicesRegistry(embeddedLogging).get(GradleLauncherFactory.class);
+        gradleLauncherFactory = new GlobalScopeServices(embeddedLogging).get(GradleLauncherFactory.class);
     }
 
     public BuildActionExecuter<BuildActionParameters> getExecuter() {

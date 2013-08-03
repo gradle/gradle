@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Manages lifecycle concerns while delegating actual evaluation to another evaluator
  * 
- * @see org.gradle.internal.service.scopes.TopLevelBuildServiceRegistry#createProjectEvaluator()
+ * @see org.gradle.internal.service.scopes.BuildScopeServices#createProjectEvaluator()
  */
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
     private static final Logger LOGGER = LoggerFactory.getLogger(LifecycleProjectEvaluator.class);

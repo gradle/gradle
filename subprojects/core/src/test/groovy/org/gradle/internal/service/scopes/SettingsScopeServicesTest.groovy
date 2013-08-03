@@ -27,10 +27,10 @@ import spock.lang.Specification
 
 import static org.hamcrest.Matchers.sameInstance
 
-class SettingsInternalServiceRegistryTest extends Specification {
+class SettingsScopeServicesTest extends Specification {
     private SettingsInternal settings = Mock()
     private ServiceRegistry parent = Stub()
-    private SettingsInternalServiceRegistry registry = new SettingsInternalServiceRegistry(parent, settings)
+    private SettingsScopeServices registry = new SettingsScopeServices(parent, settings)
     private PluginRegistry pluginRegistryParent = Mock()
     private PluginRegistry pluginRegistryChild = Mock()
 

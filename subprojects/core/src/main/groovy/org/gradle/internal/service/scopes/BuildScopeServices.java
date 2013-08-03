@@ -75,10 +75,10 @@ import org.gradle.util.ClassLoaderFactory;
 /**
  * Contains the singleton services for a single build invocation.
  */
-public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class BuildScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final StartParameter startParameter;
 
-    public TopLevelBuildServiceRegistry(final ServiceRegistry parent, final StartParameter startParameter) {
+    public BuildScopeServices(final ServiceRegistry parent, final StartParameter startParameter) {
         super(parent);
         this.startParameter = startParameter;
         add(StartParameter.class, startParameter);
@@ -255,10 +255,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     public ServiceRegistryFactory createFor(Object domainObject) {
         if (domainObject instanceof GradleInternal) {
-            return new GradleInternalServiceRegistry(this, (GradleInternal) domainObject);
+            return new GradleScopeServices(this, (GradleInternal) domainObject);
         }
         if (domainObject instanceof SettingsInternal) {
-            return new SettingsInternalServiceRegistry(this, (SettingsInternal) domainObject);
+            return new SettingsScopeServices(this, (SettingsInternal) domainObject);
         }
         throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.",
                 domainObject.getClass().getSimpleName()));

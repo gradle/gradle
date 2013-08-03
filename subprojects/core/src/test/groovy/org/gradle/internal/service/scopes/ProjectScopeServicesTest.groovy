@@ -55,7 +55,7 @@ import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegi
 
 import spock.lang.Specification
 
-class ProjectInternalServiceRegistryTest extends Specification {
+class ProjectScopeServicesTest extends Specification {
     ProjectInternal project = Mock()
     ConfigurationContainerInternal configurationContainer = Mock()
     GradleInternal gradle = Mock()
@@ -63,7 +63,7 @@ class ProjectInternalServiceRegistryTest extends Specification {
     ITaskFactory taskFactory = Mock()
     DependencyFactory dependencyFactory = Mock()
     ServiceRegistry parent = Stub()
-    ProjectInternalServiceRegistry registry = new ProjectInternalServiceRegistry(parent, project)
+    ProjectScopeServices registry = new ProjectScopeServices(parent, project)
     PluginRegistry pluginRegistry = Mock()
     DependencyResolutionServices dependencyResolutionServices = Stub()
     RepositoryHandler repositoryHandler = Mock()
@@ -90,7 +90,7 @@ class ProjectInternalServiceRegistryTest extends Specification {
 
     def "creates a registry for a task"() {
         expect:
-        registry.createFor(Stub(TaskInternal)) instanceof TaskInternalServiceRegistry
+        registry.createFor(Stub(TaskInternal)) instanceof TaskScopeServices
     }
 
     def "provides a TaskContainerFactory"() {
