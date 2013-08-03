@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.SettingsInternal;
@@ -22,8 +22,9 @@ import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;

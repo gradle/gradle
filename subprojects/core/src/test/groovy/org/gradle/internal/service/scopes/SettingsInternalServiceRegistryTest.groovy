@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization
+package org.gradle.internal.service.scopes
 
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.BaseDirFileResolver

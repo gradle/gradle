@@ -24,10 +24,10 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
@@ -69,18 +69,17 @@ class DefaultSettingsTest {
         fileResolver = context.mock(FileResolver.class)
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
 
-
-        SettingsInternalServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternalServiceRegistry.class)
+        ServiceRegistryFactory settingsServices = context.mock(ServiceRegistryFactory.class)
         context.checking{
                 one(serviceRegistryFactory).createFor(with(any(Settings.class)));
-                will(returnValue(settingsInternallServiceRegistry));
-                one(settingsInternallServiceRegistry).get(PluginContainer.class);
+                will(returnValue(settingsServices));
+                one(settingsServices).get(PluginContainer.class);
                 will(returnValue(pluginContainer));
-                one(settingsInternallServiceRegistry).get(FileResolver.class);
+                one(settingsServices).get(FileResolver.class);
                 will(returnValue(fileResolver));
-                one(settingsInternallServiceRegistry).get(ScriptPluginFactory.class);
+                one(settingsServices).get(ScriptPluginFactory.class);
                 will(returnValue(scriptPluginFactory));
-                one(settingsInternallServiceRegistry).get(ProjectDescriptorRegistry.class);
+                one(settingsServices).get(ProjectDescriptorRegistry.class);
                 will(returnValue(projectDescriptorRegistry));
         }
         settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,

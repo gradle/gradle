@@ -21,14 +21,14 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ThreadGlobalInstantiator;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -42,9 +42,7 @@ import static org.junit.Assert.assertSame;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class SettingsFactoryTest {
-    private JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     @Test
     public void createSettings() {
@@ -53,7 +51,7 @@ public class SettingsFactoryTest {
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
         StartParameter expectedStartParameter = new StartParameter();
         final ServiceRegistryFactory serviceRegistryFactory = context.mock(ServiceRegistryFactory.class);
-        final SettingsInternalServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternalServiceRegistry.class);
+        final ServiceRegistryFactory settingsInternallServiceRegistry = context.mock(ServiceRegistryFactory.class);
         final PluginContainer pluginContainer = context.mock(PluginContainer.class);
         final FileResolver fileResolver = context.mock(FileResolver.class);
         final ScriptPluginFactory scriptPluginFactory = context.mock(ScriptPluginFactory.class);
