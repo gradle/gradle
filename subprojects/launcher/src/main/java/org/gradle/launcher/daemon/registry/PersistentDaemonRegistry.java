@@ -126,12 +126,13 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                    assertCacheNotEmpty(oldValue);
-                    DaemonInfo daemonInfo = oldValue.getInfo(address);
-                    daemonInfo.setIdle(false);
+                    DaemonInfo daemonInfo = oldValue != null ? oldValue.getInfo(address) : null;
+                    if (daemonInfo != null) {
+                        daemonInfo.setIdle(false);
+                    }
+                    // Else, has been removed by something else - ignore
                     return oldValue;
-                }
-            });
+                }});
         } finally {
             lock.unlock();
         }
@@ -143,8 +144,11 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                    assertCacheNotEmpty(oldValue);
-                    oldValue.getInfo(address).setIdle(true);
+                    DaemonInfo daemonInfo = oldValue != null ? oldValue.getInfo(address) : null;
+                    if (daemonInfo != null) {
+                        daemonInfo.setIdle(true);
+                    }
+                    // Else, has been removed by something else - ignore
                     return oldValue;
                 }
             });
@@ -153,7 +157,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         }
     }
 
-    public synchronized void store(final Address address, final DaemonContext daemonContext, final String password, final boolean idle) {
+    public void store(final Address address, final DaemonContext daemonContext, final String password, final boolean idle) {
         lock.lock();
         LOGGER.debug("Storing daemon address: {}, context: {}", address, daemonContext);
         try {
@@ -175,11 +179,5 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public String toString() {
         return String.format("PersistentDaemonRegistry[file=%s]", registryFile);
-    }
-
-    private void assertCacheNotEmpty(Object value) {
-        if (value == null) {
-            throw new EmptyRegistryException("Registry is empty!");
-        }
     }
 }

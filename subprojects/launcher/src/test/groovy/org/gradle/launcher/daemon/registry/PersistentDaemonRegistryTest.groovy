@@ -29,17 +29,15 @@ import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockU
 
 class PersistentDaemonRegistryTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmp
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     
     int addressCounter = 0
     def lockManager = createDefaultFileLockManager()
+    def file = tmp.file("registry")
+    def registry = new PersistentDaemonRegistry(file, lockManager)
 
     def "corrupt registry file is ignored"() {
         given:
-        def file = tmp.file("registry")
-        def registry = new PersistentDaemonRegistry(file, lockManager)
-        
-        and:
         registry.store(address(), daemonContext(), "password", true)
 
         expect:
@@ -54,7 +52,6 @@ class PersistentDaemonRegistryTest extends Specification {
 
     def "safely removes from registry file"() {
         given:
-        def registry = new PersistentDaemonRegistry(tmp.file("registry"), lockManager)
         def address = address()
 
         and:
@@ -72,7 +69,6 @@ class PersistentDaemonRegistryTest extends Specification {
 
     def "safely removes if registry empty"() {
         given:
-        def registry = new PersistentDaemonRegistry(tmp.file("registry"), lockManager)
         def address = address()
 
         when:
@@ -81,7 +77,29 @@ class PersistentDaemonRegistryTest extends Specification {
         then:
         registry.all.empty
     }
-    
+
+    def "mark busy ignores entry that has been removed"() {
+        given:
+        def address = address()
+
+        when:
+        registry.markBusy(address)
+
+        then:
+        registry.all.empty
+    }
+
+    def "mark idle ignores entry that has been removed"() {
+        given:
+        def address = address()
+
+        when:
+        registry.markIdle(address)
+
+        then:
+        registry.all.empty
+    }
+
     DaemonContext daemonContext() {
         new DaemonContextBuilder([maybeGetPid: {null}] as ProcessEnvironment).with {
             daemonRegistryDir = tmp.createDir("daemons")
