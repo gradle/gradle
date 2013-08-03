@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.versioning;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import org.gradle.api.Nullable;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
@@ -62,6 +63,7 @@ public class ModelMapping {
         map.put(Void.class, Void.class.getName());
     }
 
+    @Nullable
     public Class<?> getProtocolType(Class<?> modelType) {
         if (MODEL_TO_PROTOCOL_MAP.containsValue(modelType)) {
             return modelType;
@@ -69,10 +71,12 @@ public class ModelMapping {
         return MODEL_TO_PROTOCOL_MAP.get(modelType);
     }
 
+    @Nullable
     public String getModelName(Class<?> modelType) {
         return MODEL_NAME_MAP.get(modelType);
     }
 
+    @Nullable
     public String getModelNameFromProtocolType(Class<?> protocolType) {
         Class<?> modelType = MODEL_TO_PROTOCOL_MAP.inverse().get(protocolType);
         if (modelType == null) {
@@ -81,6 +85,7 @@ public class ModelMapping {
         return MODEL_NAME_MAP.get(modelType);
     }
 
+    @Nullable
     public Class<?> getProtocolTypeFromModelName(String name) {
         Class<?> modelType = MODEL_NAME_MAP.inverse().get(name);
         if (modelType == null) {
