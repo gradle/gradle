@@ -16,10 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
@@ -30,12 +26,9 @@ public class DefaultMetaDataParser implements MetaDataParser {
         this.parserRegistry = parserRegistry;
     }
 
-    public MutableModuleVersionMetaData parseModuleMetaData(ModuleRevisionId moduleRevisionId, LocallyAvailableExternalResource resource, DependencyResolver resolver) throws MetaDataParseException {
-        IvySettings ivySettings = IvyContextualiser.getIvyContext().getSettings();
-        DescriptorParseContext parserSettings = new ModuleScopedDescriptorParseContext(ivySettings.getDefaultResolver(), resolver, moduleRevisionId, "integration");
+    public MutableModuleVersionMetaData parseModuleMetaData(LocallyAvailableExternalResource resource, DescriptorParseContext context) throws MetaDataParseException {
         ModuleDescriptorParser parser = parserRegistry.forResource(resource);
-        ModuleDescriptor moduleDescriptor = parser.parseDescriptor(parserSettings, resource, true);
-        return new ModuleDescriptorAdapter(moduleRevisionId, moduleDescriptor);
+        ModuleDescriptor moduleDescriptor = parser.parseDescriptor(context, resource, true);
+        return new ModuleDescriptorAdapter(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
     }
-
 }

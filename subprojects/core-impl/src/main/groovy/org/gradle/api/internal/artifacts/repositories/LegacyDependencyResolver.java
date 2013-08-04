@@ -34,7 +34,7 @@ import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 
 import java.io.File;
@@ -67,7 +67,7 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
         return resolver.toString();
     }
 
-    public IvyAwareModuleVersionRepository createResolver() {
+    public ConfiguredModuleVersionRepository createResolver() {
         return resolver;
     }
 

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
-
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ArtifactRevisionId
@@ -28,7 +27,7 @@ import spock.lang.Specification
 class GradlePomModuleDescriptorParserTest extends Specification {
     @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser()
-    final ModuleScopedDescriptorParseContext parseContext = Mock()
+    final parseContext = Mock(DescriptorParseContext)
     TestFile pomFile
 
     def "setup"() {

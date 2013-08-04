@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
 import org.gradle.internal.TimeProvider;
 import org.gradle.util.WrapUtil;
@@ -71,9 +72,18 @@ public class ResolveIvyFactory {
         ResolveData resolveData = createResolveData(ivy, configuration.getName());
 
         for (ResolutionAwareRepository repository : repositories) {
-            IvyAwareModuleVersionRepository moduleVersionRepository = repository.createResolver();
-            moduleVersionRepository.setSettings(ivySettings);
-            moduleVersionRepository.setResolveData(resolveData);
+            ConfiguredModuleVersionRepository moduleVersionRepository = repository.createResolver();
+
+            if (moduleVersionRepository instanceof IvyAwareModuleVersionRepository) {
+                IvyAwareModuleVersionRepository ivyAwareRepository = (IvyAwareModuleVersionRepository) moduleVersionRepository;
+                ivyAwareRepository.setSettings(ivySettings);
+                ivyAwareRepository.setResolveData(resolveData);
+            }
+            if (moduleVersionRepository instanceof ExternalResourceResolver) {
+                // TODO:DAZ this should be cache-locking
+                // TODO:DAZ Should have type for this
+                ((ExternalResourceResolver) moduleVersionRepository).setResolver(userResolverChain);
+            }
 
             LocalAwareModuleVersionRepository localAwareRepository;
             if (moduleVersionRepository.isLocal()) {

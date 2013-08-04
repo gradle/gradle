@@ -30,22 +30,10 @@ import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChainVersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyResolverIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExactVersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LatestVersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.SubVersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionRangeMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorAdapter;
-import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolverDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.*;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -63,12 +51,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache.ExternalResourceDownloader;
 
-// TODO:DAZ Implement ModuleVersionRepository directly, or add an API
-public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwareModuleVersionRepository{
+public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwareModuleVersionRepository, ConfiguredModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final MetaDataParser metaDataParser;
@@ -86,6 +76,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwar
     private RepositoryArtifactCache repositoryCacheManager;
     private String changingMatcherName;
     private String changingPattern;
+    private DependencyToModuleVersionResolver nestedResolver;
 
     private final ExternalResourceRepository repository;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
@@ -155,6 +146,10 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwar
     }
 
     public void setResolveData(ResolveData resolveData) {
+    }
+
+    public void setResolver(DependencyToModuleVersionResolver resolver) {
+        this.nestedResolver = resolver;
     }
 
     protected ExternalResourceRepository getRepository() {
@@ -236,7 +231,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwar
                 return null;
             }
 
-            return metaDataParser.parseModuleMetaData(dependencyRevisionId, cachedResource, new ExternalResourceResolverDependencyResolver(this));
+            return metaDataParser.parseModuleMetaData(cachedResource, new ExternalResourceResolverDescriptorParseContext(nestedResolver, this, dependencyRevisionId));
         } else {
             // Create dummy metadata where no metadata artifact exists
             DefaultModuleDescriptor md = DefaultModuleDescriptor.newDefaultInstance(artifact.getModuleRevisionId());
@@ -485,6 +480,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwar
         }
     }
 
+    // TODO:DAZ Remove the need for this, by using our own set of PatternMatchers
     public void setSettings(IvySettings settings) {
         this.settings = settings;
     }

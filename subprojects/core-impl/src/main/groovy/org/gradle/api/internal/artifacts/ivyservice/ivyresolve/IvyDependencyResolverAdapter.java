@@ -39,7 +39,7 @@ import java.text.ParseException;
 /**
  * A {@link ModuleVersionRepository} wrapper around an Ivy {@link DependencyResolver}.
  */
-public class IvyDependencyResolverAdapter implements IvyAwareModuleVersionRepository {
+public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepository, IvyAwareModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyDependencyResolverAdapter.class);
     private final DownloadOptions downloadOptions = new DownloadOptions();
     private final String identifier;

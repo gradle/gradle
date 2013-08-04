@@ -22,7 +22,6 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 
 import java.text.ParseException;
 
-// TODO:Remove the ivy crap from here
 public interface DescriptorParseContext {
 
     String substitute(String value);
