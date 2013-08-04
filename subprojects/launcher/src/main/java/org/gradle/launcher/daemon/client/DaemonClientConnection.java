@@ -27,13 +27,13 @@ public class DaemonClientConnection implements Connection<Object> {
     private final static Logger LOG = Logging.getLogger(DaemonClientConnection.class);
     private final Connection<Object> connection;
     private final String uid;
-    private final Runnable onFailure;
+    private final StaleAddressDetector staleAddressDetector;
     private boolean hasReceived;
 
-    public DaemonClientConnection(Connection<Object> connection, String uid, Runnable onFailure) {
+    public DaemonClientConnection(Connection<Object> connection, String uid, StaleAddressDetector staleAddressDetector) {
         this.connection = connection;
         this.uid = uid;
-        this.onFailure = onFailure;
+        this.staleAddressDetector = staleAddressDetector;
     }
 
     public void requestStop() {
@@ -51,11 +51,10 @@ public class DaemonClientConnection implements Connection<Object> {
             connection.dispatch(message);
         } catch (Exception e) {
             LOG.debug("Problem dispatching message to the daemon. Performing 'on failure' operation...");
-            if (!hasReceived) {
-                onFailure.run();
-                throw new StaleDaemonAddressException("Unable to dispatch the message to the daemon.", e);
+            if (!hasReceived && staleAddressDetector.maybeStaleAddress(e)) {
+                throw new StaleDaemonAddressException("Could not dispatch a message to the daemon.", e);
             }
-            throw new DaemonConnectionException("Unable to dispatch the message to the daemon.", e);
+            throw new DaemonConnectionException("Could not dispatch a message to the daemon.", e);
         }
     }
 
@@ -65,11 +64,10 @@ public class DaemonClientConnection implements Connection<Object> {
             return connection.receive();
         } catch (Exception e) {
             LOG.debug("Problem receiving message to the daemon. Performing 'on failure' operation...");
-            if (!hasReceived) {
-                onFailure.run();
-                throw new StaleDaemonAddressException("Unable to receive a message from the daemon.", e);
+            if (!hasReceived && staleAddressDetector.maybeStaleAddress(e)) {
+                throw new StaleDaemonAddressException("Could not receive a message from the daemon.", e);
             }
-            throw new DaemonConnectionException("Unable to receive the message to the daemon.", e);
+            throw new DaemonConnectionException("Could not receive a message from the daemon.", e);
         } finally {
             hasReceived = true;
         }
@@ -78,5 +76,12 @@ public class DaemonClientConnection implements Connection<Object> {
     public void stop() {
         LOG.debug("thread {}: connection stop", Thread.currentThread().getId());
         connection.stop();
+    }
+
+    interface StaleAddressDetector {
+        /**
+         * @return true if the failure should be considered due to a stale address.
+         */
+        boolean maybeStaleAddress(Exception failure);
     }
 }

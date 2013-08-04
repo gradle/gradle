@@ -20,6 +20,10 @@ package org.gradle.launcher.daemon.client;
  * Thrown when there is some problem using a daemon connection.
  */
 public class DaemonConnectionException extends RuntimeException {
+    public DaemonConnectionException(String message) {
+        super(message);
+    }
+
     public DaemonConnectionException(String message, Throwable cause) {
         super(message, cause);
     }

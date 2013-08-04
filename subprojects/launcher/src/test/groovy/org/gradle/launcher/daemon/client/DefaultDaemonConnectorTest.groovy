@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.api.GradleException
 import org.gradle.api.internal.specs.ExplainingSpec
 import org.gradle.api.internal.specs.ExplainingSpecs
 import org.gradle.launcher.daemon.context.DaemonContext
@@ -84,7 +83,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def theConnector
 
-    def getConnector() {
+    def DefaultDaemonConnector getConnector() {
         if (theConnector == null) {
             theConnector = createConnector()
         }
@@ -113,22 +112,6 @@ class DefaultDaemonConnectorTest extends Specification {
         expect:
         def connection = connector.maybeConnect({it.pid < 12} as ExplainingSpec)
         connection && connection.connection.num < 12
-    }
-
-    def "suspect address is removed from the registry on connect failure"() {
-        given:
-        startIdleDaemon()
-        assert !registry.all.empty
-
-        connector.connector.connect(_ as Address, _) >> { throw new ConnectException("Problem!", new RuntimeException("foo")) }
-
-        when:
-        def connection = connector.maybeConnect( { true } as ExplainingSpec)
-
-        then:
-        !connection
-
-        registry.all.empty
     }
 
     def "maybeConnect() returns null when no daemon matches spec"() {
@@ -192,6 +175,22 @@ class DefaultDaemonConnectorTest extends Specification {
         connector.connect(ExplainingSpecs.satisfyNone())
 
         then:
-        thrown(GradleException)
+        thrown(DaemonConnectionException)
+    }
+
+    def "suspect address is removed from the registry on connect failure"() {
+        given:
+        startIdleDaemon()
+        assert !registry.all.empty
+
+        connector.connector.connect(_ as Address, _) >> { throw new ConnectException("Problem!", new RuntimeException("foo")) }
+
+        when:
+        def connection = connector.maybeConnect( { true } as ExplainingSpec)
+
+        then:
+        !connection
+
+        registry.all.empty
     }
 }
