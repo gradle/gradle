@@ -53,7 +53,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == 'The version of Gradle you are using (1.6) does not support build actions.'
+        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support build actions."
     }
 
     static class CustomAction implements BuildAction<String> {
