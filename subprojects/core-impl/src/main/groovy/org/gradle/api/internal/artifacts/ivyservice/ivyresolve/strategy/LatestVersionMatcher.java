@@ -13,31 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
+
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
 import java.util.Comparator;
 
-/**
- * Version matcher for "static" version selectors (1.0, 1.2.3, etc.).
- */
-public class ExactVersionMatcher implements VersionMatcher {
+class LatestVersionMatcher implements VersionMatcher {
     public boolean isDynamic(String selector) {
-        return false;
-    }
-
-    public boolean needModuleMetadata(String selector, String candidate) {
-        return false;
+        return selector.startsWith("latest.");
     }
 
     public boolean accept(String selector, String candidate) {
-        return selector.equals(candidate);
+        return true;
+    }
+
+    public boolean needModuleMetadata(String selector, String candidate) {
+        return true;
     }
 
     public boolean accept(String selector, ModuleVersionMetaData candidate) {
-        return accept(selector, candidate.getId().getVersion());
+        String selectorStatus = selector.substring("latest.".length());
+        int selectorStatusIndex = candidate.getStatusScheme().indexOf(selectorStatus);
+        int candidateStatusIndex = candidate.getStatusScheme().indexOf(candidate.getStatus());
+        return selectorStatusIndex >=0 && selectorStatusIndex <= candidateStatusIndex;
     }
 
     public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
-        throw new UnsupportedOperationException("compare");
+        return needModuleMetadata(selector, candidate) ? 0 : 1;
     }
 }

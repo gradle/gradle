@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
+
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -32,7 +36,7 @@ import java.util.regex.Pattern;
  * accept(). Note that it can't work with latest time strategy, cause no time is known for the
  * limits of the range. Therefore only purely revision based LatestStrategy can be used.
  */
-public class VersionRangeMatcher implements VersionMatcher {
+class VersionRangeMatcher implements VersionMatcher {
     private static final String OPEN_INC = "[";
 
     private static final String OPEN_EXC = "]";

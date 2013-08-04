@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 
 import java.util.*;
 
-public class LatestVersionStrategy implements LatestStrategy {
+class LatestVersionStrategy implements LatestStrategy {
     /**
      * Compares two ModuleRevisionId by their revision. Revisions are compared using an algorithm
      * inspired by PHP version_compare one.

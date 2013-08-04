@@ -13,31 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
+
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
 import java.util.Comparator;
 
-public class LatestVersionMatcher implements VersionMatcher {
+/**
+ * Version matcher for dynamic version selectors ending in '+'.
+ */
+class SubVersionMatcher implements VersionMatcher {
     public boolean isDynamic(String selector) {
-        return selector.startsWith("latest.");
-    }
-
-    public boolean accept(String selector, String candidate) {
-        return true;
+        return selector.endsWith("+");
     }
 
     public boolean needModuleMetadata(String selector, String candidate) {
-        return true;
+        return false;
+    }
+
+    public boolean accept(String selector, String candidate) {
+        String prefix = selector.substring(0, selector.length() - 1);
+        return candidate.startsWith(prefix);
     }
 
     public boolean accept(String selector, ModuleVersionMetaData candidate) {
-        String selectorStatus = selector.substring("latest.".length());
-        int selectorStatusIndex = candidate.getStatusScheme().indexOf(selectorStatus);
-        int candidateStatusIndex = candidate.getStatusScheme().indexOf(candidate.getStatus());
-        return selectorStatusIndex >=0 && selectorStatusIndex <= candidateStatusIndex;
+        return accept(selector, candidate.getId().getVersion());
     }
 
     public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
-        return needModuleMetadata(selector, candidate) ? 0 : 1;
+        if (accept(selector, candidate)) {
+            return 1;
+        }
+        return candidateComparator.compare(selector, candidate);
     }
 }

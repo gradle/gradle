@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionRes
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -105,17 +106,8 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwar
         this.metaDataParser = metaDataParser;
         this.metadataProcessor = metadataProcessor;
 
-        LatestVersionStrategy latest = new LatestVersionStrategy();
-        latestStrategy = latest;
-
-        ChainVersionMatcher chain = new ChainVersionMatcher();
-        chain.add(new VersionRangeMatcher(latest));
-        chain.add(new SubVersionMatcher());
-        chain.add(new LatestVersionMatcher());
-        chain.add(new ExactVersionMatcher());
-        versionMatcher = chain;
-
-        latest.setVersionMatcher(versionMatcher);
+        latestStrategy = ResolveStrategy.INSTANCE.getLatestStrategy();
+        versionMatcher = ResolveStrategy.INSTANCE.getVersionMatcher();
     }
 
     public String getId() {

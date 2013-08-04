@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExactVersionMatcher
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LatestVersionStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy
 import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.resource.ResourceException

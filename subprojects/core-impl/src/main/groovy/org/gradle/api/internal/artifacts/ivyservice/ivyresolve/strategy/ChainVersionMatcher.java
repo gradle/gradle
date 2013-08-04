@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
 import java.util.*;
 
-public class ChainVersionMatcher implements VersionMatcher {
+class ChainVersionMatcher implements VersionMatcher {
     private final LinkedList<VersionMatcher> matchers = Lists.newLinkedList();
 
     public void add(VersionMatcher matcher) {

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 
 import java.util.Collections;
 import java.util.List;

@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
+
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
 import java.util.Comparator;
 
 /**
- * Version matcher for dynamic version selectors ending in '+'.
+ * Version matcher for "static" version selectors (1.0, 1.2.3, etc.).
  */
-public class SubVersionMatcher implements VersionMatcher {
+class ExactVersionMatcher implements VersionMatcher {
     public boolean isDynamic(String selector) {
-        return selector.endsWith("+");
+        return false;
     }
 
     public boolean needModuleMetadata(String selector, String candidate) {
@@ -30,8 +32,7 @@ public class SubVersionMatcher implements VersionMatcher {
     }
 
     public boolean accept(String selector, String candidate) {
-        String prefix = selector.substring(0, selector.length() - 1);
-        return candidate.startsWith(prefix);
+        return selector.equals(candidate);
     }
 
     public boolean accept(String selector, ModuleVersionMetaData candidate) {
@@ -39,9 +40,6 @@ public class SubVersionMatcher implements VersionMatcher {
     }
 
     public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
-        if (accept(selector, candidate)) {
-            return 1;
-        }
-        return candidateComparator.compare(selector, candidate);
+        throw new UnsupportedOperationException("compare");
     }
 }
