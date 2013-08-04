@@ -122,7 +122,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         0 * _
     }
     
-    def "tries to find a different daemon if getting the first result from the daemon fails"() {
+    def "tries to find a different daemon if connected to a stale daemon address"() {
         DaemonClientConnection connection2 = Mock()
 
         when:
@@ -130,7 +130,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
-        1 * connection.dispatch({it instanceof Build}) >> { throw new RuntimeException("Boo!")}
+        1 * connection.dispatch({it instanceof Build}) >> { throw new StaleDaemonAddressException("broken", new RuntimeException())}
         1 * connection.stop()
         2 * connection2.receive() >>> [Stub(BuildStarted), new Success('')]
         0 * connection._

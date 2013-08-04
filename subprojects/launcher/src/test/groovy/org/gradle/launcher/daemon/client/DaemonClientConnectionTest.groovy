@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.client
 
-import org.gradle.api.GradleException
 import org.gradle.messaging.remote.internal.Connection
 import spock.lang.Specification
 
@@ -61,7 +60,7 @@ class DaemonClientConnectionTest extends Specification {
         0 * onFailure.run()
     }
 
-    def "handles failed dispatch"() {
+    def "treats failure to dispatch before receiving as a stale address"() {
         given:
         delegate.dispatch("foo") >> { throw new FooException() }
 
@@ -69,12 +68,29 @@ class DaemonClientConnectionTest extends Specification {
         connection.dispatch("foo")
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(StaleDaemonAddressException)
         ex.cause instanceof FooException
         1 * onFailure.run()
+        0 * onFailure._
     }
 
-    def "handles failed receive"() {
+    def "handles failed dispatch"() {
+        given:
+        delegate.receive() >> "result"
+        delegate.dispatch("broken") >> { throw new FooException() }
+
+        when:
+        connection.receive()
+        connection.dispatch("broken")
+
+        then:
+        def ex = thrown(DaemonConnectionException)
+        ex.class == DaemonConnectionException
+        ex.cause instanceof FooException
+        0 * onFailure._
+    }
+
+    def "treats failure to receive first message as a stale address"() {
         given:
         delegate.receive() >> { throw new FooException() }
 
@@ -82,9 +98,26 @@ class DaemonClientConnectionTest extends Specification {
         connection.receive()
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(StaleDaemonAddressException)
         ex.cause instanceof FooException
         1 * onFailure.run()
+        0 * onFailure._
+    }
+
+    def "handles failed receive"() {
+        given:
+        1 * delegate.receive() >> "first"
+        delegate.receive() >> { throw new FooException() }
+
+        when:
+        connection.receive()
+        connection.receive()
+
+        then:
+        def ex = thrown(DaemonConnectionException)
+        ex.class == DaemonConnectionException
+        ex.cause instanceof FooException
+        0 * onFailure._
     }
 
     class FooException extends RuntimeException {}

@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.messaging.remote.internal.Connection;
@@ -24,10 +24,11 @@ import org.gradle.messaging.remote.internal.Connection;
  * A simple wrapper for the connection to a daemon plus its password.
  */
 public class DaemonClientConnection implements Connection<Object> {
-    final Connection<Object> connection;
-    private final String uid;
-    final Runnable onFailure;
     private final static Logger LOG = Logging.getLogger(DaemonClientConnection.class);
+    private final Connection<Object> connection;
+    private final String uid;
+    private final Runnable onFailure;
+    private boolean hasReceived;
 
     public DaemonClientConnection(Connection<Object> connection, String uid, Runnable onFailure) {
         this.connection = connection;
@@ -44,24 +45,33 @@ public class DaemonClientConnection implements Connection<Object> {
         return uid;
     }
 
-    public void dispatch(Object message) {
+    public void dispatch(Object message) throws DaemonConnectionException {
         LOG.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
         try {
             connection.dispatch(message);
         } catch (Exception e) {
             LOG.debug("Problem dispatching message to the daemon. Performing 'on failure' operation...");
-            onFailure.run();
-            throw new GradleException("Unable to dispatch the message to the daemon.", e);
+            if (!hasReceived) {
+                onFailure.run();
+                throw new StaleDaemonAddressException("Unable to dispatch the message to the daemon.", e);
+            }
+            throw new DaemonConnectionException("Unable to dispatch the message to the daemon.", e);
         }
     }
 
-    public Object receive() {
+    @Nullable
+    public Object receive() throws DaemonConnectionException {
         try {
             return connection.receive();
         } catch (Exception e) {
             LOG.debug("Problem receiving message to the daemon. Performing 'on failure' operation...");
-            onFailure.run();
-            throw new GradleException("Unable to receive a message from the daemon.", e);
+            if (!hasReceived) {
+                onFailure.run();
+                throw new StaleDaemonAddressException("Unable to receive a message from the daemon.", e);
+            }
+            throw new DaemonConnectionException("Unable to receive the message to the daemon.", e);
+        } finally {
+            hasReceived = true;
         }
     }
 

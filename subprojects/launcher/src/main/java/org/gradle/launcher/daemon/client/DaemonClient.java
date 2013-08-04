@@ -50,9 +50,10 @@ import java.util.Set;
  * <li>If the build is started, the client may send zero or more {@link ForwardInput} messages followed by exactly one {@link CloseInput} message.</li>
  * <li>The daemon sends exactly one {@link Result} message. It may no longer send any messages.</li>
  * <li>The client sends a {@link CloseInput} message, if not already sent. It may no longer send any {@link ForwardInput} messages.</li>
- * <li>The client sends a {@link Finished} message. It may no longer messages.</li>
+ * <li>The client sends a {@link Finished} message once it has received the {@link Result} message.
+ *     It may no longer send any messages.</li>
  * <li>The client closes the connection.</li>
- * <li>The daemon closes the connection.</li>
+ * <li>The daemon closes the connection once it has received the {@link Finished} message.</li>
  * </ul>
  *
  * <p>To stop a daemon:</p>
@@ -61,9 +62,10 @@ import java.util.Set;
  * <li>The client creates a connection to daemon.</li>
  * <li>The client sends exactly one {@link Stop} message.</li>
  * <li>The daemon sends exactly one {@link Result} message. It may no longer send any messages.</li>
- * <li>The client sends a {@link Finished} message. It may no longer messages.</li>
+ * <li>The client sends a {@link Finished} message once it has received the {@link Result} message.
+ *     It may no longer send any messages.</li>
  * <li>The client closes the connection.</li>
- * <li>The daemon closes the connection.</li>
+ * <li>The daemon closes the connection once it has received the {@link Finished} message.</li>
  * </ul>
  *
  * <p>
@@ -165,11 +167,11 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             LOGGER.info("Connected to the daemon. Dispatching {} request.", build);
             connection.dispatch(build);
             result = connection.receive();
-        } catch (Exception e) {
-            LOGGER.debug("Unable to perform initial dispatch/receive with the daemon.", e);
+        } catch (StaleDaemonAddressException e) {
+            LOGGER.debug("Connected to a stale daemon address.", e);
             //We might fail hard here on the assumption that something weird happened to the daemon.
             //However, since we haven't yet started running the build, we can recover by just trying again...
-            throw new DaemonInitialConnectException("Problem when attempted to send and receive first result from the daemon.", e);
+            throw new DaemonInitialConnectException("Connected to a stale daemon address.", e);
         }
         if (result == null) {
             throw new DaemonInitialConnectException("The first result from the daemon was empty. Most likely the process died immediately after connection.");
