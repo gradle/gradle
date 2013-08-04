@@ -32,7 +32,7 @@ public class DefaultMetaDataParser implements MetaDataParser {
 
     public MutableModuleVersionMetaData parseModuleMetaData(ModuleRevisionId moduleRevisionId, LocallyAvailableExternalResource resource, DependencyResolver resolver) throws MetaDataParseException {
         IvySettings ivySettings = IvyContextualiser.getIvyContext().getSettings();
-        GradleParserSettings parserSettings = new ModuleScopedGradleParserSettings(ivySettings.getDefaultResolver(), resolver, moduleRevisionId, "integration");
+        DescriptorParseContext parserSettings = new ModuleScopedDescriptorParseContext(ivySettings.getDefaultResolver(), resolver, moduleRevisionId, "integration");
         ModuleDescriptorParser parser = parserRegistry.forResource(resource);
         ModuleDescriptor moduleDescriptor = parser.parseDescriptor(parserSettings, resource, true);
         return new ModuleDescriptorAdapter(moduleRevisionId, moduleDescriptor);

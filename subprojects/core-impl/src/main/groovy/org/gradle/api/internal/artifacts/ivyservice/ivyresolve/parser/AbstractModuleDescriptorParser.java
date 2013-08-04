@@ -26,13 +26,13 @@ import org.gradle.internal.resource.local.LocallyAvailableResource;
 import java.io.File;
 
 public abstract class AbstractModuleDescriptorParser implements ModuleDescriptorParser {
-    public ModuleDescriptor parseDescriptor(GradleParserSettings ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
+    public ModuleDescriptor parseDescriptor(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
         LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(descriptorFile);
         LocallyAvailableExternalResource resource = new DefaultLocallyAvailableExternalResource(descriptorFile.toURI().toString(), localResource);
         return parseDescriptor(ivySettings, resource, validate);
     }
 
-    public DefaultModuleDescriptor parseDescriptor(GradleParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
+    public DefaultModuleDescriptor parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
         try {
             return doParseDescriptor(ivySettings, resource, validate);
         } catch (MetaDataParseException e) {
@@ -44,5 +44,5 @@ public abstract class AbstractModuleDescriptorParser implements ModuleDescriptor
 
     protected abstract String getTypeName();
 
-    protected abstract DefaultModuleDescriptor doParseDescriptor(GradleParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws Exception;
+    protected abstract DefaultModuleDescriptor doParseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws Exception;
 }

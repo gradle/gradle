@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
+
+import java.text.ParseException;
 
 // TODO:Remove the ivy crap from here
-public interface GradleParserSettings {
+public interface DescriptorParseContext {
 
     String substitute(String value);
 
@@ -28,7 +31,10 @@ public interface GradleParserSettings {
 
     String getDefaultStatus();
 
-    DependencyResolver getResolver(ModuleRevisionId mRevId);
+    // TODO:DAZ Wrap exception
+    ModuleDescriptor getModuleDescriptor(ModuleRevisionId mRevId) throws ParseException;
+
+    boolean artifactExists(Artifact artifact);
 
     ModuleRevisionId getCurrentRevisionId();
 }

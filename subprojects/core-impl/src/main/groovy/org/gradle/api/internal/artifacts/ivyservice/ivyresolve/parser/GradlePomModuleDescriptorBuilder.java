@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.Ivy;
-import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.apache.ivy.core.module.id.ArtifactId;
@@ -27,7 +26,6 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.parser.m2.DefaultPomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
@@ -164,9 +162,9 @@ public class GradlePomModuleDescriptorBuilder {
 
     private ModuleRevisionId mrid;
 
-    private GradleParserSettings parserSettings;
+    private DescriptorParseContext parserSettings;
 
-    public GradlePomModuleDescriptorBuilder(ExternalResource res, GradleParserSettings ivySettings) {
+    public GradlePomModuleDescriptorBuilder(ExternalResource res, DescriptorParseContext ivySettings) {
         ivyModuleDescriptor = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
         ivyModuleDescriptor.setResolvedPublicationDate(new Date(res.getLastModified()));
         for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
@@ -208,34 +206,22 @@ public class GradlePomModuleDescriptorBuilder {
 
     public void addMainArtifact(String artifactId, String packaging) {
         if ("pom".equals(packaging)) {
-            // no artifact defined! Add the default artifact only if it exists
-            DependencyResolver resolver = parserSettings.getResolver(mrid);
-
-            if (resolver != null) {
-                DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, "jar", "jar");
-
-                if (!ArtifactOrigin.isUnknown(resolver.locate(artifact))) {
-                    ivyModuleDescriptor.addArtifact("master", artifact);
-                }
+            DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, "jar", "jar");
+            if (parserSettings.artifactExists(artifact)) {
+                ivyModuleDescriptor.addArtifact("master", artifact);
             }
 
             return;
         }
 
         if (!isKnownJarPackaging(packaging)) {
-            // Look for an artifact with extension = packaging. This is deprecated.
-            DependencyResolver resolver = parserSettings.getResolver(mrid);
+            DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, packaging, packaging);
 
-            if (resolver != null) {
-                DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, packaging, packaging);
+            if (parserSettings.artifactExists(artifact)) {
+                ivyModuleDescriptor.addArtifact("master", artifact);
 
-                if (!ArtifactOrigin.isUnknown(resolver.locate(artifact))) {
-                    ivyModuleDescriptor.addArtifact("master", artifact);
-
-                    DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
-
-                    return;
-                }
+                DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
+                return;
             }
         }
 

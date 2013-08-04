@@ -13,34 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.IvyPatternHelper;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.*;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * ParserSettings that control the scope of searches carried out during parsing.
- * If the parser asks for a resolver for the currently resolving revision, the resolver scope is only the repository where the module was resolved.
- * If the parser asks for a resolver for a different revision, the resolver scope is all repositories.
- */
-public class ModuleScopedGradleParserSettings implements GradleParserSettings {
-    private final DependencyResolver mainResolver;
-    private final DependencyResolver moduleResolver;
-    private final ModuleRevisionId moduleRevisionId;
+public abstract class AbstractDescriptorParseContext implements DescriptorParseContext {
+    protected final String defaultStatus;
     private final Map<String, String> properties = new HashMap<String, String>();
-    private final String defaultStatus;
 
-    public ModuleScopedGradleParserSettings(DependencyResolver mainResolver, DependencyResolver moduleResolver, ModuleRevisionId moduleRevisionId, String defaultStatus) {
+    public AbstractDescriptorParseContext(String defaultStatus) {
         this.defaultStatus = defaultStatus;
-        this.mainResolver = mainResolver;
-        this.moduleResolver = moduleResolver;
-        this.moduleRevisionId = moduleRevisionId;
         populateProperties();
     }
 
@@ -52,17 +40,6 @@ public class ModuleScopedGradleParserSettings implements GradleParserSettings {
         for (String property : System.getProperties().stringPropertyNames()) {
             properties.put(property, System.getProperty(property));
         }
-    }
-
-    public ModuleRevisionId getCurrentRevisionId() {
-        return moduleRevisionId;
-    }
-
-    public DependencyResolver getResolver(ModuleRevisionId mRevId) {
-        if (mRevId.equals(moduleRevisionId)) {
-            return moduleResolver;
-        }
-        return mainResolver;
     }
 
     public String substitute(String value) {

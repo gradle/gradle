@@ -21,7 +21,7 @@ import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 
 public class DownloadedIvyModuleDescriptorParser extends IvyXmlModuleDescriptorParser {
     @Override
-    public DefaultModuleDescriptor parseDescriptor(GradleParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
+    public DefaultModuleDescriptor parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
         DefaultModuleDescriptor descriptor = super.parseDescriptor(ivySettings, resource, validate);
         descriptor.setDefault(false);
         return descriptor;

@@ -28,7 +28,7 @@ import spock.lang.Specification
 class GradlePomModuleDescriptorParserTest extends Specification {
     @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser()
-    final ModuleScopedGradleParserSettings parserSettings = Mock()
+    final ModuleScopedDescriptorParseContext parseContext = Mock()
     TestFile pomFile
 
     def "setup"() {
@@ -56,7 +56,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 </project>
 """
         and:
-        parserSettings.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
 
         when:
         def descriptor = parsePom()
@@ -89,7 +89,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 </project>
 """
         and:
-        parserSettings.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
 
         when:
         def descriptor = parsePom()
@@ -123,7 +123,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 </project>
 """
         and:
-        parserSettings.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
 
         when:
         def descriptor = parsePom()
@@ -149,7 +149,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 </project>
 """
         and:
-        parserSettings.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
 
         when:
         def descriptor = parsePom()
@@ -178,7 +178,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
     }
 
     private ModuleDescriptor parsePom() {
-        parser.parseDescriptor(parserSettings, pomFile, true)
+        parser.parseDescriptor(parseContext, pomFile, true)
     }
 
     private void hasArtifact(ModuleDescriptor descriptor, String name, String type, String ext, String classifier = null) {

@@ -23,9 +23,9 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleParserSettings;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleScopedGradleParserSettings;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleScopedDescriptorParseContext;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -69,7 +69,7 @@ public class ModuleDescriptorStore {
 
     private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
         IvySettings settings = IvyContextualiser.getIvyContext().getSettings();
-        GradleParserSettings parserSettings = new ModuleScopedGradleParserSettings(settings.getDefaultResolver(), null, null, "integration");
+        DescriptorParseContext parserSettings = new ModuleScopedDescriptorParseContext(settings.getDefaultResolver(), null, null, "integration");
         return parser.parseDescriptor(parserSettings, moduleDescriptorFile, false);
     }
 

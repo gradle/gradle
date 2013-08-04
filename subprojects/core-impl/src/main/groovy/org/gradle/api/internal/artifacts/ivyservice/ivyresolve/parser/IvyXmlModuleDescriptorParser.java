@@ -17,21 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.base.Joiner;
-import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.NormalRelativeUrlResolver;
 import org.apache.ivy.core.RelativeUrlResolver;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolveEngine;
-import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.gradle.api.Action;
@@ -68,7 +62,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
 
-    protected DefaultModuleDescriptor doParseDescriptor(GradleParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
+    protected DefaultModuleDescriptor doParseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = new Parser(this, ivySettings, resource, resource.getLocalResource().getFile().toURI().toURL());
         parser.setValidate(validate);
         parser.parse();
@@ -414,7 +408,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private static final List ALLOWED_VERSIONS = Arrays.asList("1.0", "1.1", "1.2", "1.3", "1.4", "2.0", "2.1", "2.2");
 
         /* how and what do we have to parse */
-        private final GradleParserSettings parserSettings;
+        private final DescriptorParseContext parserSettings;
         private final RelativeUrlResolver relativeUrlResolver = new NormalRelativeUrlResolver();
         private final URL descriptorURL;
         private boolean validate = true;
@@ -431,7 +425,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private String descriptorVersion;
         private String[] publicationsDefaultConf;
 
-        public Parser(IvyXmlModuleDescriptorParser moduleDescriptorParser, GradleParserSettings ivySettings, ExternalResource res, URL descriptorURL) {
+        public Parser(IvyXmlModuleDescriptorParser moduleDescriptorParser, DescriptorParseContext ivySettings, ExternalResource res, URL descriptorURL) {
             super(moduleDescriptorParser, res);
             parserSettings = ivySettings;
             this.descriptorURL = descriptorURL;
@@ -709,26 +703,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             ModuleId parentModuleId = new ModuleId(parentOrganisation, parentModule);
             ModuleRevisionId parentMrid = new ModuleRevisionId(parentModuleId, parentRevision);
 
-            DependencyDescriptor dd = new DefaultDependencyDescriptor(parentMrid, true);
-            ResolveData data = IvyContext.getContext().getResolveData();
-            if (data == null) {
-                ResolveEngine engine = IvyContext.getContext().getIvy().getResolveEngine();
-                ResolveOptions options = new ResolveOptions();
-                options.setDownload(false);
-                data = new ResolveData(engine, options);
-            }
-
-            DependencyResolver resolver = parserSettings.getResolver(parentMrid);
-            if (resolver == null) {
-                // TODO: Throw exception here?
-                return null;
-            } else {
-                ResolvedModuleRevision otherModule = resolver.getDependency(dd, data);
-                if (otherModule == null) {
-                    throw new ParseException("Unable to find " + parentMrid.toString(), 0);
-                }
-                return otherModule.getDescriptor();
-            }
+            return parserSettings.getModuleDescriptor(parentMrid);
         }
 
         private void publicationsStarted(Attributes attributes) {
@@ -1176,7 +1151,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         public static Map getExtraAttributes(
-                GradleParserSettings settings, Attributes attributes, String[] ignoredAttNames) {
+                DescriptorParseContext settings, Attributes attributes, String[] ignoredAttNames) {
             Map ret = new HashMap();
             Collection ignored = Arrays.asList(ignoredAttNames);
             for (int i = 0; i < attributes.getLength(); i++) {

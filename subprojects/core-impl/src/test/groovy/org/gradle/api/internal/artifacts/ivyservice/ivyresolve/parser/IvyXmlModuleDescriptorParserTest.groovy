@@ -15,14 +15,11 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
-
 import org.apache.ivy.core.module.descriptor.*
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
-import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.junit.Rule
@@ -37,14 +34,13 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
-    IvySettings ivySettings = new IvySettings()
-    DependencyResolver mainResolver = Mock()
-    DependencyResolver moduleResolver = Mock()
-    ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance("org", "name", "revision")
-    GradleParserSettings settings = new ModuleScopedGradleParserSettings(mainResolver, moduleResolver, moduleRevisionId, "integration")
+    DescriptorParseContext parseContext = Mock()
 
     def setup() {
-        ivySettings.setDefaultCache(temporaryFolder.createDir("ivy/cache"))
+        parseContext.substitute(_ as String) >> {String value -> value}
+        parseContext.getMatcher("exact") >> ExactPatternMatcher.INSTANCE
+        parseContext.getMatcher("glob") >> GlobPatternMatcher.INSTANCE
+        parseContext.getMatcher("regexp") >> RegexpPatternMatcher.INSTANCE
     }
 
     def "parses Ivy descriptor with empty dependencies section"() throws Exception {
@@ -61,7 +57,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     </dependencies>
 </ivy-module>
 """
-        ModuleDescriptor md = parser.parseDescriptor(settings, file, true)
+        ModuleDescriptor md = parser.parseDescriptor(parseContext, file, true)
+
+        and:
 
         then:
         md != null
@@ -93,7 +91,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseDescriptor(settings, file, true)
+        parser.parseDescriptor(parseContext, file, true)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -116,7 +114,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseDescriptor(settings, file, true)
+        parser.parseDescriptor(parseContext, file, true)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -132,7 +130,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseDescriptor(settings, file, true)
+        parser.parseDescriptor(parseContext, file, true)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -148,7 +146,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseDescriptor(settings, file, true)
+        parser.parseDescriptor(parseContext, file, true)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -161,7 +159,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         file.text = resources.getResource("test-full.xml").text
 
         when:
-        ModuleDescriptor md = parser.parseDescriptor(settings, file, true)
+        ModuleDescriptor md = parser.parseDescriptor(parseContext, file, true)
 
         then:
         assertNotNull(md)
@@ -242,7 +240,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseDescriptor(settings, file, false)
+        def descriptor = parser.parseDescriptor(parseContext, file, false)
         def dependency = descriptor.dependencies.first()
 
         then:
@@ -280,7 +278,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseDescriptor(settings, file, false)
+        def descriptor = parser.parseDescriptor(parseContext, file, false)
 
         then:
         def dependency1 = descriptor.dependencies[0]

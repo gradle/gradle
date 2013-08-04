@@ -23,9 +23,9 @@ import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 import java.io.File;
 
 public interface ModuleDescriptorParser {
-    public ModuleDescriptor parseDescriptor(GradleParserSettings ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException;
+    public ModuleDescriptor parseDescriptor(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException;
 
-    public ModuleDescriptor parseDescriptor(GradleParserSettings ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException;
+    public ModuleDescriptor parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException;
 
     public boolean accept(ExternalResource res);
 }

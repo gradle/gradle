@@ -25,7 +25,7 @@ class DownloadedIvyModuleDescriptorParserTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     final DownloadedIvyModuleDescriptorParser parser = new DownloadedIvyModuleDescriptorParser()
     final mainResolver = Mock(DependencyResolver)
-    final parserSettings = new ModuleScopedGradleParserSettings(mainResolver, null, null, "integration")
+    final parserSettings = new ModuleScopedDescriptorParseContext(mainResolver, null, null, "integration")
 
     def "discards the default attribute"() {
         def ivyFile = tmpDir.createFile("ivy.xml")
