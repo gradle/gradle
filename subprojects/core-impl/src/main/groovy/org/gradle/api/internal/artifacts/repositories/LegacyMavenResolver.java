@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 
 public class LegacyMavenResolver extends LegacyDependencyResolver {
     private final MavenResolver resolver;
 
-    public LegacyMavenResolver(MavenResolver resolver, IvyAwareModuleVersionRepository repository) {
-        super(resolver, repository);
+    public LegacyMavenResolver(MavenResolver resolver) {
+        super(resolver);
         this.resolver = resolver;
     }
 

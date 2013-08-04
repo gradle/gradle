@@ -19,10 +19,9 @@ import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
@@ -76,12 +75,12 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     }
 
     public IvyAwareModuleVersionRepository createResolver() {
-        return new ExternalResourceResolverAdapter(createRealResolver(), false);
+        return createRealResolver();
     }
 
     public DependencyResolver createLegacyDslObject() {
         IvyResolver resolver = createRealResolver();
-        return new LegacyDependencyResolver(resolver, new ExternalResourceResolverAdapter(resolver, false));
+        return new LegacyDependencyResolver(resolver);
     }
 
     private IvyResolver createRealResolver() {
@@ -90,7 +89,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
 
-        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createFileTransport(getName()), locallyAvailableResourceFinder, metaDataParser, metadataProcessor);
+        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createFileTransport(getName()), locallyAvailableResourceFinder, metaDataParser, metadataProcessor, false);
         for (File root : dirs) {
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");

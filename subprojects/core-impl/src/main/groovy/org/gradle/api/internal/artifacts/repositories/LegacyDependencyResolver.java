@@ -50,11 +50,9 @@ import java.util.Map;
  */
 public class LegacyDependencyResolver implements DependencyResolver, ResolutionAwareRepository {
     private final ExternalResourceResolver resolver;
-    private final IvyAwareModuleVersionRepository repository;
 
-    public LegacyDependencyResolver(ExternalResourceResolver resolver, IvyAwareModuleVersionRepository repository) {
+    public LegacyDependencyResolver(ExternalResourceResolver resolver) {
         this.resolver = resolver;
-        this.repository = repository;
     }
 
     public String getName() {
@@ -70,7 +68,7 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
     }
 
     public IvyAwareModuleVersionRepository createResolver() {
-        return repository;
+        return resolver;
     }
 
     public void setSettings(ResolverSettings ivy) {

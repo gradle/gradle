@@ -19,11 +19,10 @@ import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
@@ -88,15 +87,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     public DependencyResolver createLegacyDslObject() {
         MavenResolver resolver = createRealResolver();
-        return new LegacyMavenResolver(resolver, wrapResolver(resolver));
+        return new LegacyMavenResolver(resolver);
     }
 
     public IvyAwareModuleVersionRepository createResolver() {
-        return wrapResolver(createRealResolver());
-    }
-
-    private ExternalResourceResolverAdapter wrapResolver(MavenResolver resolver) {
-        return new ExternalResourceResolverAdapter(resolver, false);
+        return createRealResolver();
     }
 
     protected MavenResolver createRealResolver() {

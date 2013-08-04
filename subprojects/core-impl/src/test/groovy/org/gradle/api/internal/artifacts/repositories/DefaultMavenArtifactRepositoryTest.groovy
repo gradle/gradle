@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter
+
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -103,8 +103,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def repo = resolver.createResolver()
 
         then:
-        repo instanceof ExternalResourceResolverAdapter
-        repo.resolver.is(resolver.resolver)
+        repo.is(resolver.resolver)
     }
 
     def "creates repository with additional artifact URLs"() {

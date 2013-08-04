@@ -73,7 +73,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         updatePatterns();
     }
 
-    public void getDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
+    protected void getDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
         if (isSnapshotVersion(dd)) {
             getSnapshotDependency(dd, result);
         } else {

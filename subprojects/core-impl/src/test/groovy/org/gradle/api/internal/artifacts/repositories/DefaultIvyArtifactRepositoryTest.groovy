@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.repositories
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -58,7 +56,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         fileResolver.resolveUri('pattern1') >> new URI('scheme:resource1')
 
         when:
-        repository.createRealResolver()
+        repository.createResolver()
 
         then:
         InvalidUserDataException e = thrown()
@@ -75,7 +73,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         fileResolver.resolveUri('pattern2') >> new URI('file:resource2')
 
         when:
-        repository.createRealResolver()
+        repository.createResolver()
 
         then:
         InvalidUserDataException e = thrown()
@@ -94,7 +92,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> transport()
 
         when:
-        def resolver = repository.createRealResolver()
+        def resolver = repository.createResolver()
 
         then:
         with(resolver) {
@@ -119,7 +117,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createFileTransport('name') >> transport()
 
         when:
-        def resolver = repository.createRealResolver()
+        def resolver = repository.createResolver()
 
         then:
         with(resolver) {
@@ -154,8 +152,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def repo = wrapper.createResolver()
 
         then:
-        repo instanceof ExternalResourceResolverAdapter
-        repo.resolver.is(wrapper.resolver)
+        repo.is(wrapper.resolver)
     }
 
     def "uses gradle patterns with specified url and default layout"() {
@@ -167,7 +164,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> transport()
 
         when:
-        def resolver = repository.createRealResolver()
+        def resolver = repository.createResolver()
 
         then:
         with(resolver) {
@@ -189,7 +186,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> transport()
 
         when:
-        def resolver = repository.createRealResolver()
+        def resolver = repository.createResolver()
 
         then:
         with(resolver) {
@@ -215,7 +212,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> transport()
 
         when:
-        def resolver = repository.createRealResolver()
+        def resolver = repository.createResolver()
 
         then:
         with(resolver) {
@@ -242,7 +239,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> transport()
 
         when:
-        def resolver = repository.createRealResolver()
+        def resolver = repository.createResolver()
 
         then:
         with(resolver) {
@@ -266,7 +263,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> transport()
 
         when:
-        def resolver = repository.createRealResolver()
+        def resolver = repository.createResolver()
 
         then:
         with(resolver) {
@@ -292,7 +289,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         fileResolver.resolveUri('http://other/') >> new URI('http://other/')
 
         when:
-        def resolver = repository.createRealResolver()
+        def resolver = repository.createResolver()
 
         then:
         resolver.artifactPatterns == ['http://host/[layoutPattern]', 'http://other/[additionalPattern]']
@@ -304,7 +301,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> transport()
 
         when:
-        repository.createRealResolver()
+        repository.createResolver()
 
         then:
         InvalidUserDataException e = thrown()

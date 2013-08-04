@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.repositories
-
 import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -52,14 +50,12 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         repository.dirs('a', 'b')
 
         when:
-        def resolver = repository.createResolver()
+        def repo = repository.createResolver()
 
         then:
         1 * transportFactory.createFileTransport("repo-name") >> repositoryTransport
 
         and:
-        resolver instanceof ExternalResourceResolverAdapter
-        def repo = resolver.resolver
         repo instanceof IvyResolver
         def expectedPatterns = [
                 "$dir1.absolutePath/[artifact]-[revision](-[classifier]).[ext]",

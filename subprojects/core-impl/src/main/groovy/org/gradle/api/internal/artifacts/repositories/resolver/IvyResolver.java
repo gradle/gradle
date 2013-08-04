@@ -26,14 +26,22 @@ import java.net.URI;
 public class IvyResolver extends ExternalResourceResolver implements PatternBasedResolver {
 
     private final RepositoryTransport transport;
+    private final boolean dynamicResolve;
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                       MetaDataParser metaDataParser, ModuleMetadataProcessor metadataProcessor
+                       MetaDataParser metaDataParser, ModuleMetadataProcessor metadataProcessor,
+                       boolean dynamicResolve
     ) {
         super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, metaDataParser, metadataProcessor);
         this.transport = transport;
         this.transport.configureCacheManager(this);
+        this.dynamicResolve = dynamicResolve;
+    }
+
+    @Override
+    public boolean isDynamicResolveMode() {
+        return dynamicResolve;
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {

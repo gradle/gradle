@@ -21,6 +21,7 @@ import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
@@ -67,7 +68,7 @@ import java.util.*;
 import static org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache.ExternalResourceDownloader;
 
 // TODO:DAZ Implement ModuleVersionRepository directly, or add an API
-public class ExternalResourceResolver implements ModuleVersionPublisher {
+public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwareModuleVersionRepository{
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final MetaDataParser metaDataParser;
@@ -138,6 +139,10 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         this.name = name;
     }
 
+    public boolean isDynamicResolveMode() {
+        return false;
+    }
+
     public String toString() {
         return String.format("Repository '%s'", getName());
     }
@@ -145,9 +150,11 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
     public void setSettings(ResolverSettings ivy) {
         this.settings = ivy;
     }
-
     public ResolverSettings getSettings() {
         return settings;
+    }
+
+    public void setResolveData(ResolveData resolveData) {
     }
 
     protected ExternalResourceRepository getRepository() {
@@ -158,7 +165,11 @@ public class ExternalResourceResolver implements ModuleVersionPublisher {
         return repositoryCacheManager.isLocal();
     }
 
-    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result) {
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+        getDependency(dependency.getDescriptor(), result);
+    }
+
+    protected void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result) {
         ModuleRevisionId moduleRevisionId = dependencyDescriptor.getDependencyRevisionId();
         boolean isDynamic = versionMatcher.isDynamic(moduleRevisionId.getRevision());
 
