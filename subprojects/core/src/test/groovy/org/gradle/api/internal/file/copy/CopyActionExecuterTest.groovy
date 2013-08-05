@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.file.WorkspaceTest
 
 class CopyActionExecuterTest extends WorkspaceTest {
 
-    def "can execute test"() {
+    def "correctly executes copy actions, normalising and handling excludes"() {
         given:
         file("a").with {
             createFile("a")
