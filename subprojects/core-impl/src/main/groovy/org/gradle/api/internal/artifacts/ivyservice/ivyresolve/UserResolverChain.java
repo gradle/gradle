@@ -17,16 +17,18 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.plugins.latest.ArtifactInfo;
-import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
-import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 public class UserResolverChain implements DependencyToModuleVersionResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
@@ -34,11 +36,11 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
     private final List<LocalAwareModuleVersionRepository> moduleVersionRepositories = new ArrayList<LocalAwareModuleVersionRepository>();
     private final List<String> moduleVersionRepositoryNames = new ArrayList<String>();
     private final VersionMatcher versionMatcher;
-    private final ComparatorLatestStrategy comparatorLatestStrategy;
+    private final LatestStrategy latestStrategy;
 
-    public UserResolverChain(VersionMatcher versionMatcher, ComparatorLatestStrategy comparatorLatestStrategy) {
+    public UserResolverChain(VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.versionMatcher = versionMatcher;
-        this.comparatorLatestStrategy = comparatorLatestStrategy;
+        this.latestStrategy = latestStrategy;
     }
 
     public void add(LocalAwareModuleVersionRepository repository) {
@@ -87,7 +89,7 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
     }
 
     private ModuleResolution findLatestModule(DependencyMetaData dependency, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
-        boolean isStaticVersion = !versionMatcher.isDynamic(dependency.getDescriptor().getDependencyRevisionId());
+        boolean isStaticVersion = !versionMatcher.isDynamic(dependency.getRequested().getVersion());
         ModuleResolution best = null;
         while (!queue.isEmpty()) {
             RepositoryResolveState request = queue.removeFirst();
@@ -135,9 +137,8 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
             return two.module == null ? one : two;
         }
 
-        ComparatorLatestStrategy latestStrategy = comparatorLatestStrategy;
-        Comparator<ArtifactInfo> comparator = latestStrategy.getComparator();
-        int comparison = comparator.compare(one, two);
+        LatestStrategy latestStrategy = this.latestStrategy;
+        int comparison = latestStrategy.compare(one, two);
 
         if (comparison == 0) {
             if (one.isGeneratedModuleDescriptor() && !two.isGeneratedModuleDescriptor()) {
@@ -192,7 +193,7 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
         }
     }
 
-    private static class ModuleResolution implements ArtifactInfo {
+    private static class ModuleResolution implements Versioned {
         public final ModuleVersionRepository repository;
         public final ModuleVersionMetaData module;
         public final ModuleSource moduleSource;
@@ -207,11 +208,7 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
             return module.getDescriptor().isDefault();
         }
 
-        public long getLastModified() {
-            return module.getDescriptor().getResolvedPublicationDate().getTime();
-        }
-
-        public String getRevision() {
+        public String getVersion() {
             return module.getId().getVersion();
         }
     }

@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
-
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.plugins.version.VersionMatcher
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.*
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class LazyDependencyToModuleResolverTest extends Specification {
-    final DependencyToModuleVersionResolver target = Mock()
-    final VersionMatcher matcher = Mock()
+    final target = Mock(DependencyToModuleVersionResolver)
+    final matcher = Mock(VersionMatcher)
     final LazyDependencyToModuleResolver resolver = new LazyDependencyToModuleResolver(target, matcher)
 
     def "does not resolve module for static version dependency until requested"() {

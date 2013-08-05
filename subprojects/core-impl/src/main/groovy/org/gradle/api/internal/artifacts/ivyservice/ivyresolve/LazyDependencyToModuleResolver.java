@@ -18,12 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 /**
@@ -40,7 +40,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
     }
 
     public ModuleVersionIdResolveResult resolve(DependencyMetaData dependency) {
-        if (versionMatcher.isDynamic(dependency.getDescriptor().getDependencyRevisionId())) {
+        if (versionMatcher.isDynamic(dependency.getRequested().getVersion())) {
             DynamicVersionResolveResult result = new DynamicVersionResolveResult(dependency);
             result.resolve();
             return result;

@@ -19,31 +19,31 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.plugins.latest.ComparatorLatestStrategy
-import org.apache.ivy.plugins.version.VersionMatcher
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import spock.lang.Specification
 
 class UserResolverChainTest extends Specification {
-    final ModuleVersionSelector dependencyId = Stub()
-    final DependencyMetaData dependency = Stub()
-    final DependencyDescriptor dependencyDescriptor = Stub()
     final ModuleDescriptor descriptor = descriptor("1.2")
     final ModuleVersionIdentifier resolvedId = moduleVersionIdentifier(descriptor)
-    final VersionMatcher matcher = Stub()
-    final ComparatorLatestStrategy latestStrategy = Stub()
+    final dependencyId = Stub(ModuleVersionSelector)
+    final dependency = Stub(DependencyMetaData)
+    final dependencyDescriptor = Stub(DependencyDescriptor)
+    final matcher = Stub(VersionMatcher)
+    final latestStrategy = Stub(LatestStrategy)
+    final result = Mock(BuildableModuleVersionResolveResult)
+    final moduleSource = Mock(ModuleSource)
+
     final UserResolverChain resolver = new UserResolverChain(matcher, latestStrategy)
 
     ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
         def moduleRevId = moduleDescriptor.moduleRevisionId
         new DefaultModuleVersionIdentifier(moduleRevId.organisation, moduleRevId.name, moduleRevId.revision)
     }
-
-    final BuildableModuleVersionResolveResult result = Mock()
-    final ModuleSource moduleSource = Mock()
 
     def setup() {
         _ * dependencyId.group >> "group"

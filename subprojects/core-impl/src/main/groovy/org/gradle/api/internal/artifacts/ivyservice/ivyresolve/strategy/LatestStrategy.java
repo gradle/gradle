@@ -32,4 +32,10 @@ public interface LatestStrategy {
      * 'latest' depends on the strategy itself. Given artifacts info are all good candidate.
      */
     <T extends Versioned> List<T> sort(List<T> elements);
+
+    /**
+     * Compares two instances to see which is the 'latest'. Value returned is as per {@link java.util.Comparator}.
+     * The definition of 'latest' depends on the strategy itself.
+     */
+    <T extends Versioned> int compare(T one, T two);
 }

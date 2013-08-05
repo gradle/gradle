@@ -19,13 +19,14 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
-import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolveStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
@@ -59,12 +60,12 @@ public class ResolveIvyFactory {
         ResolutionRules resolutionRules = configuration.getResolutionStrategy().getResolutionRules();
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
-        IvySettings ivySettings = ivy.getSettings();
-        VersionMatcher versionMatcher = ivySettings.getVersionMatcher();
-        ComparatorLatestStrategy comparatorLatestStrategy = (ComparatorLatestStrategy) ivySettings.getDefaultLatestStrategy();
+        VersionMatcher versionMatcher = ResolveStrategy.INSTANCE.getVersionMatcher();
+        LatestStrategy comparatorLatestStrategy = ResolveStrategy.INSTANCE.getLatestStrategy();
 
         UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, comparatorLatestStrategy);
 
+        IvySettings ivySettings = ivy.getSettings();
         LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver("main", userResolverChain, cacheLockingManager);
         ivySettings.addResolver(loopbackDependencyResolver);
         ivySettings.setDefaultResolver(loopbackDependencyResolver.getName());

@@ -131,4 +131,8 @@ class LatestVersionStrategy implements LatestStrategy {
         List<T> sortedVersions = sort(elements);
         return sortedVersions.get(sortedVersions.size() - 1);
     }
+
+    public <T extends Versioned> int compare(T one, T two) {
+        return versionedElementComparator.compare(one, two);
+    }
 }

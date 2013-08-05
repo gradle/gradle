@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 
 class DefaultIvyAdapter implements IvyAdapter {
     private final VersionMatcher versionMatcher;
