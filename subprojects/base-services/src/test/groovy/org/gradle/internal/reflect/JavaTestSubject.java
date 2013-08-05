@@ -22,6 +22,8 @@ public class JavaTestSubject {
     private String myProp = "myValue";
     private boolean myBooleanProp = true;
 
+    public int publicField;
+
     public String getMyProperty() {
         return myProp;
     }
@@ -48,5 +50,13 @@ public class JavaTestSubject {
 
     protected String overridden() {
         return "parent";
+    }
+
+    protected String getProtectedProperty() {
+        return null;
+    }
+
+    private String getPrivateProperty() {
+        return null;
     }
 }

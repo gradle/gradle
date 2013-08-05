@@ -30,7 +30,6 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.ReflectionUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -44,6 +43,7 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.Callable;
 
+import static org.gradle.internal.reflect.JavaReflectionUtil.readField;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.toList;
 import static org.gradle.util.WrapUtil.toSet;
@@ -164,7 +164,7 @@ public class AnnotationProcessingTaskFactoryTest {
         TaskWithInputFile task = expectTaskCreated(TaskWithInputFile.class, existingFile);
         TaskWithInputFile task2 = expectTaskCreated(TaskWithInputFile.class, missingFile);
 
-        assertThat(ReflectionUtil.getProperty(task.getActions().get(0), "action"), sameInstance(ReflectionUtil.getProperty(task2.getActions().get(0), "action")));
+        assertThat(readField(task.getActions().get(0), Action.class, "action"), sameInstance(readField(task2.getActions().get(0), Action.class, "action")));
     }
     
     @Test

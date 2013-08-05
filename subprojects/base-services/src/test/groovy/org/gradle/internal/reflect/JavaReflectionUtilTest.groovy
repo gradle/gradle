@@ -30,6 +30,60 @@ import static org.gradle.internal.reflect.JavaReflectionUtil.*
 class JavaReflectionUtilTest extends Specification {
     JavaTestSubject myProperties = new JavaTestSubject()
 
+    def "read field"() {
+        expect:
+        readField(new JavaTestSubject(), boolean.class, "myBooleanProp")
+        readField(new JavaTestSubject(), String.class, "myProp") == "myValue"
+        readField(new JavaTestSubjectSubclass(), boolean.class, "myBooleanProp")
+        readField(new JavaTestSubjectSubclass(), String.class, "myProp") == "subclass"
+
+        when:
+        readField(new JavaTestSubject(), String.class, "myBooleanProp")
+
+        then:
+        def e = thrown UncheckedException
+        e.cause instanceof NoSuchFieldException
+
+        when:
+        readField(new JavaTestSubject(), String.class, "non existent")
+
+        then:
+        e = thrown UncheckedException
+        e.cause instanceof NoSuchFieldException
+
+        when:
+        readField(new JavaTestSubjectSubclass(), String.class, "non existent")
+
+        then:
+        e = thrown UncheckedException
+        e.cause instanceof NoSuchFieldException
+    }
+
+    def "property exists"() {
+        expect:
+        propertyExists(new JavaTestSubject(), Boolean, "myBooleanProperty")
+        !propertyExists(new JavaTestSubject(), String, "myBooleanProperty")
+        propertyExists(new JavaTestSubject(), String, "myProperty")
+        propertyExists(new JavaTestSubject(), Integer, "publicField")
+        !propertyExists(new JavaTestSubject(), String, "publicField")
+        !propertyExists(new JavaTestSubject(), Boolean, "myBooleanProp")
+        !propertyExists(new JavaTestSubject(), String, "protectedProperty")
+        !propertyExists(new JavaTestSubject(), String, "privateProperty")
+
+        and:
+        propertyExists(new JavaTestSubjectSubclass(), Boolean, "myBooleanProperty")
+        !propertyExists(new JavaTestSubjectSubclass(), String, "myBooleanProperty")
+        propertyExists(new JavaTestSubjectSubclass(), String, "myProperty")
+        propertyExists(new JavaTestSubjectSubclass(), Integer, "publicField")
+        !propertyExists(new JavaTestSubjectSubclass(), String, "publicField")
+        !propertyExists(new JavaTestSubjectSubclass(), Boolean, "myBooleanProp")
+        !propertyExists(new JavaTestSubjectSubclass(), String, "protectedProperty")
+        !propertyExists(new JavaTestSubjectSubclass(), String, "privateProperty")
+
+        and:
+        propertyExists(new JavaTestSubjectSubclass(), Boolean, "subclassBoolean")
+    }
+
     def "read property"() {
         expect:
         JavaReflectionUtil.readProperty(myProperties, "myProperty") == "myValue"

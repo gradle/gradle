@@ -18,8 +18,14 @@ package org.gradle.internal.reflect;
 
 public class JavaTestSubjectSubclass extends JavaTestSubject {
 
+    private String myProp = "subclass";
+
     @Override
     protected String overridden() {
         return "subclass";
+    }
+
+    public boolean getSubclassBoolean() {
+        return false;
     }
 }

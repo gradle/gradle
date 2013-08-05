@@ -22,7 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -52,7 +52,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     }
 
     private MappedProperty map(String propertyName, Value<?> value) {
-        if (!ReflectionUtil.hasProperty(_source, propertyName)) {
+        if (!JavaReflectionUtil.propertyExists(_source, Object.class, propertyName)) {
             throw new InvalidUserDataException(
                     "You can't map a property that does not exist: propertyName=" + propertyName);
         }

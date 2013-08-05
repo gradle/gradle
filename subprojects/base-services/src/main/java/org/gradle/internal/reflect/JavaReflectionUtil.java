@@ -24,29 +24,36 @@ import org.gradle.util.JavaMethod;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 
-/**
- * Simple implementations of some reflection capabilities. In contrast to org.gradle.util.ReflectionUtil, this class doesn't make use of Groovy.
- */
 public class JavaReflectionUtil {
     public static Object readProperty(Object target, String property) {
         try {
-            Method getterMethod;
-            try {
-                getterMethod = target.getClass().getMethod(toMethodName("get", property));
-            } catch (NoSuchMethodException e) {
-                try {
-                    getterMethod = target.getClass().getMethod(toMethodName("is", property));
-                } catch (NoSuchMethodException e2) {
-                    throw e;
-                }
+            Method getterMethod = findGetterMethod(target, property);
+            if (getterMethod == null) {
+                throw new NoSuchMethodException(String.format("could not find getter method for property '%s'", property));
+            } else {
+                return getterMethod.invoke(target);
             }
-            return getterMethod.invoke(target);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    private static Method findGetterMethod(Object target, String property) {
+        Method getterMethod;
+        try {
+            getterMethod = target.getClass().getMethod(toMethodName("get", property));
+        } catch (NoSuchMethodException e) {
+            try {
+                getterMethod = target.getClass().getMethod(toMethodName("is", property));
+            } catch (NoSuchMethodException e2) {
+                return null;
+            }
+        }
+        return getterMethod;
     }
 
     public static void writeProperty(Object target, String property, Object value) {
@@ -66,6 +73,46 @@ public class JavaReflectionUtil {
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    private static boolean primitiveWiseAssignable(Class<?> target, Class<?> actual) {
+        if (actual.isPrimitive()) {
+            return target.isAssignableFrom(getWrapperTypeForPrimitiveType(actual));
+        } else {
+            return target.isAssignableFrom(actual);
+        }
+    }
+
+    public static <T> T readField(Object target, Class<T> type, String name) {
+        Class<?> objectType = target.getClass();
+        while (objectType != null) {
+            try {
+                Field field = objectType.getDeclaredField(name);
+                if (type.isAssignableFrom(field.getType())) {
+                    field.setAccessible(true);
+                    Object value;
+                    try {
+                        value = field.get(target);
+                    } catch (IllegalAccessException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+
+                    if (type.isPrimitive()) {
+                        @SuppressWarnings("unchecked")
+                        T cast = (T) getWrapperTypeForPrimitiveType(type).cast(value);
+                        return cast;
+                    } else {
+                        return type.cast(value);
+                    }
+                }
+            } catch (NoSuchFieldException ignore) {
+                // ignore
+            }
+
+            objectType = objectType.getSuperclass();
+        }
+
+        throw UncheckedException.throwAsUncheckedException(new NoSuchFieldException("Could not find field '" + name + "' with type '" + type.getClass() + "' on class '" + target.getClass() + "'"));
     }
 
     private static String toMethodName(String prefix, String propertyName) {
@@ -131,6 +178,29 @@ public class JavaReflectionUtil {
     public static Method findMethod(Class<?> target, Spec<Method> predicate) {
         List<Method> methods = findAllMethodsInternal(target, predicate, new MultiMap<String, Method>(), new ArrayList<Method>(1), true);
         return methods.isEmpty() ? null : methods.get(0);
+    }
+
+    // Not hasProperty() because that's awkward with Groovy objects implementing it
+    public static boolean propertyExists(Object target, Class<?> returnType, String propertyName) {
+        Class<?> targetType = target.getClass();
+        Method getterMethod = findGetterMethod(target, propertyName);
+        if (getterMethod == null) {
+            try {
+                Field field = targetType.getField(propertyName);
+                if (primitiveWiseAssignable(returnType, field.getType())) {
+                    return true;
+                }
+            } catch (NoSuchFieldException ignore) {
+                // ignore
+            }
+        } else {
+            Class<?> methodReturnType = getterMethod.getReturnType();
+            if (primitiveWiseAssignable(returnType, methodReturnType)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static class MultiMap<K, V> extends HashMap<K, List<V>> {
@@ -204,4 +274,12 @@ public class JavaReflectionUtil {
         }
     }
 
+    public static boolean isClassAvailable(String className) {
+        try {
+            JavaReflectionUtil.class.getClassLoader().loadClass(className);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 }
