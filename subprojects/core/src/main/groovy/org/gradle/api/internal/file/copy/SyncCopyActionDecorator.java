@@ -52,38 +52,41 @@ public class SyncCopyActionDecorator implements CopyAction {
             }
         });
 
-        final BooleanHolder didDeleteHolder = new BooleanHolder();
-        FileVisitor fileVisitor = new FileVisitor() {
-            public void visitDir(FileVisitDetails dirDetails) {
-                maybeDelete(dirDetails, true);
-            }
-
-            public void visitFile(FileVisitDetails fileDetails) {
-                maybeDelete(fileDetails, false);
-            }
-
-            private void maybeDelete(FileVisitDetails fileDetails, boolean isDir) {
-                RelativePath path = fileDetails.getRelativePath();
-                if (!visited.contains(path)) {
-                    if (isDir) {
-                        GFileUtils.deleteDirectory(fileDetails.getFile());
-                    } else {
-                        GFileUtils.deleteQuietly(fileDetails.getFile());
-                    }
-                    didDeleteHolder.flag = true;
-                }
-            }
-        };
+        SyncCopyActionDecoratorFileVisitor fileVisitor = new SyncCopyActionDecoratorFileVisitor(visited);
 
         MinimalFileTree walker = new DirectoryFileTree(baseDestDir).postfix();
         walker.visit(fileVisitor);
         visited.clear();
 
-        return new SimpleWorkResult(didWork.getDidWork() || didDeleteHolder.flag);
+        return new SimpleWorkResult(didWork.getDidWork() || fileVisitor.didWork);
     }
 
-    private static class BooleanHolder {
-        boolean flag;
-    }
+    private static class SyncCopyActionDecoratorFileVisitor implements FileVisitor {
+        private final Set<RelativePath> visited;
+        private boolean didWork;
 
+        private SyncCopyActionDecoratorFileVisitor(Set<RelativePath> visited) {
+            this.visited = visited;
+        }
+
+        public void visitDir(FileVisitDetails dirDetails) {
+            maybeDelete(dirDetails, true);
+        }
+
+        public void visitFile(FileVisitDetails fileDetails) {
+            maybeDelete(fileDetails, false);
+        }
+
+        private void maybeDelete(FileVisitDetails fileDetails, boolean isDir) {
+            RelativePath path = fileDetails.getRelativePath();
+            if (!visited.contains(path)) {
+                if (isDir) {
+                    GFileUtils.deleteDirectory(fileDetails.getFile());
+                } else {
+                    GFileUtils.deleteQuietly(fileDetails.getFile());
+                }
+                didWork = true;
+            }
+        }
+    }
 }
