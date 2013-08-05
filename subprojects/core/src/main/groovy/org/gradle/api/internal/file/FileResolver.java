@@ -24,6 +24,7 @@ import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.net.URI;
+import java.util.List;
 
 public interface FileResolver {
     File resolve(Object path);
@@ -37,6 +38,8 @@ public interface FileResolver {
     FileCollection resolveFiles(Object... paths);
 
     FileTree resolveFilesAsTree(Object... paths);
+
+    FileTree compositeFileTree(List<FileTree> fileTrees);
 
     URI resolveUri(Object path);
 

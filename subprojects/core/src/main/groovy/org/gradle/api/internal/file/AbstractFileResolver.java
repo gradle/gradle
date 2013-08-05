@@ -244,6 +244,10 @@ public abstract class AbstractFileResolver implements FileResolver {
         return resolveFiles(paths).getAsFileTree();
     }
 
+    public FileTree compositeFileTree(List<FileTree> fileTrees) {
+        return new DefaultCompositeFileTree(fileTrees);
+    }
+
     public ReadableResource resolveResource(Object path) {
         if (path instanceof ReadableResource) {
             return (ReadableResource) path;
