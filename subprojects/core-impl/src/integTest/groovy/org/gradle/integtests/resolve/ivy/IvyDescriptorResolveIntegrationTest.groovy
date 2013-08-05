@@ -93,12 +93,14 @@ task check << {
         depModule.expectJarGet()
 
         then:
+        executer.withArgument("--debug")
         succeeds "check"
 
         when:
         server.resetExpectations()
 
         then:
+        executer.withArgument("--debug")
         succeeds "check"
 
         where:
