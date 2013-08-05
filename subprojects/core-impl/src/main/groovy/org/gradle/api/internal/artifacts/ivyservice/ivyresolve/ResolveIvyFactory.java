@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.Ivy;
+import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
@@ -56,7 +57,7 @@ public class ResolveIvyFactory {
         this.inMemoryCache = inMemoryCache;
     }
 
-    public IvyAdapter create(ConfigurationInternal configuration, Iterable<? extends ResolutionAwareRepository> repositories, Ivy ivy) {
+    public IvyAdapter create(ConfigurationInternal configuration, Iterable<? extends ResolutionAwareRepository> repositories) {
         ResolutionRules resolutionRules = configuration.getResolutionStrategy().getResolutionRules();
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
@@ -65,23 +66,14 @@ public class ResolveIvyFactory {
 
         UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, comparatorLatestStrategy);
 
-        IvySettings ivySettings = ivy.getSettings();
-        LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver("main", userResolverChain, cacheLockingManager);
-        ivySettings.addResolver(loopbackDependencyResolver);
-        ivySettings.setDefaultResolver(loopbackDependencyResolver.getName());
-
-        ResolveData resolveData = createResolveData(ivy, configuration.getName());
-
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleVersionRepository moduleVersionRepository = repository.createResolver();
 
             if (moduleVersionRepository instanceof IvyAwareModuleVersionRepository) {
-                IvyAwareModuleVersionRepository ivyAwareRepository = (IvyAwareModuleVersionRepository) moduleVersionRepository;
-                ivyAwareRepository.setSettings(ivySettings);
-                ivyAwareRepository.setResolveData(resolveData);
+                ivyContextualize((IvyAwareModuleVersionRepository) moduleVersionRepository, userResolverChain, configuration.getName());
             }
             if (moduleVersionRepository instanceof ExternalResourceResolver) {
-                // TODO:DAZ this should be cache-locking
+                // TODO:DAZ this should be cache-locking?
                 // TODO:DAZ Should have type for this
                 ((ExternalResourceResolver) moduleVersionRepository).setResolver(userResolverChain);
             }
@@ -103,6 +95,19 @@ public class ResolveIvyFactory {
         }
 
         return new DefaultIvyAdapter(versionMatcher, userResolverChain);
+    }
+
+    private void ivyContextualize(IvyAwareModuleVersionRepository ivyAwareRepository, UserResolverChain userResolverChain, String configurationName) {
+        // TODO:DAZ Fix it so that ivy is only initialised if/when required here
+        Ivy ivy = IvyContext.getContext().getIvy();
+        IvySettings ivySettings = ivy.getSettings();
+        LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver("main", userResolverChain, cacheLockingManager);
+        ivySettings.addResolver(loopbackDependencyResolver);
+        ivySettings.setDefaultResolver(loopbackDependencyResolver.getName());
+
+        ResolveData resolveData = createResolveData(ivy, configurationName);
+        ivyAwareRepository.setSettings(ivySettings);
+        ivyAwareRepository.setResolveData(resolveData);
     }
 
     private ResolveData createResolveData(Ivy ivy, String configurationName) {

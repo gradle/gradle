@@ -64,7 +64,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         LOGGER.debug("Resolving {}", configuration);
         return ivyContextManager.withIvy(new Transformer<ResolverResults, Ivy>() {
             public ResolverResults transform(Ivy ivy) {
-                IvyAdapter ivyAdapter = ivyFactory.create(configuration, repositories, ivy);
+                IvyAdapter ivyAdapter = ivyFactory.create(configuration, repositories);
 
                 DependencyToModuleVersionResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver();
                 dependencyResolver = new ClientModuleResolver(dependencyResolver);
@@ -80,7 +80,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                     conflictResolver = new LatestModuleConflictResolver();
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
-        
+
                 DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
                 ResolutionResultBuilder newGraphBuilder = new ResolutionResultBuilder();
                 BinaryStore binaryStore = storeFactory.createStore(configuration);
