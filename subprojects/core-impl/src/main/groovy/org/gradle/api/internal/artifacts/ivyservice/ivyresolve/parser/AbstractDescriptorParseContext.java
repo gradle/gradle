@@ -18,11 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolveStrategy;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractDescriptorParseContext implements DescriptorParseContext {
     protected final String defaultStatus;
@@ -38,7 +41,13 @@ public abstract class AbstractDescriptorParseContext implements DescriptorParseC
         properties.put("ivy.default.settings.dir", baseDir);
         properties.put("ivy.basedir", baseDir);
 
-        for (String property : System.getProperties().stringPropertyNames()) {
+        Set<String> propertyNames = CollectionUtils.collect(System.getProperties().entrySet(), new Transformer<String, Map.Entry<Object, Object>>() {
+            public String transform(Map.Entry<Object, Object> entry) {
+                return entry.getKey().toString();
+            }
+        });
+
+        for (String property : propertyNames) {
             properties.put(property, System.getProperty(property));
         }
     }
