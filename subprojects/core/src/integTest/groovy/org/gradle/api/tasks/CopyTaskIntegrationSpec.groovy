@@ -118,12 +118,9 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         ":copyTask" in nonSkippedTasks
-        with(file("out")) {
-            file("a.txt").exists()
-            file("b.txt").exists()
-            file("dirA").exists()
-            !file("dirB").exists()
-        }
+        def destinationDir = file("out")
+        destinationDir.assertHasDescendants("a.txt", "b.txt")
+        destinationDir.listFiles().findAll { it.directory }*.name.toSet() == ["dirA"].toSet()
     }
 
     def "include empty dirs is overridden by subsequent"() {
