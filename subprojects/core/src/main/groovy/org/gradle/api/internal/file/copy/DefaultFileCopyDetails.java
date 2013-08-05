@@ -45,8 +45,8 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         this.duplicatesStrategy = spec.getDuplicatesStrategy();
     }
 
-    public CopySpecInternal getCopySpec() {
-        return spec;
+    public boolean isIncludeEmptyDirs() {
+        return spec.getIncludeEmptyDirs();
     }
 
     public String getDisplayName() {

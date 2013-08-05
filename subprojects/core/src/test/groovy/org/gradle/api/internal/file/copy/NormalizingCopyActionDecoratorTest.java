@@ -42,22 +42,11 @@ public class NormalizingCopyActionDecoratorTest {
         }
     };
     private final NormalizingCopyActionDecorator decorator = new NormalizingCopyActionDecorator(delegate);
-    private final CopySpecInternal spec = context.mock(CopySpecInternal.class);
-
-
-    private void allowGetIncludeEmptyDirs() {
-        context.checking(new Expectations() {{
-            allowing(spec).getIncludeEmptyDirs();
-            will(returnValue(true));
-        }});
-    }
 
     @Test
     public void doesNotVisitADirectoryWhichHasBeenVisitedBefore() {
-        final FileCopyDetailsInternal details = file("dir", true);
-        final FileCopyDetailsInternal file = file("dir/file", false);
-
-        allowGetIncludeEmptyDirs();
+        final FileCopyDetailsInternal details = file("dir", true, true);
+        final FileCopyDetailsInternal file = file("dir/file", false, true);
 
         context.checking(new Expectations() {{
             one(delegateAction).execute(details);
@@ -69,10 +58,8 @@ public class NormalizingCopyActionDecoratorTest {
 
     @Test
     public void visitsDirectoryAncestorsWhichHaveNotBeenVisited() {
-        final FileCopyDetailsInternal dir1 = file("a/b/c", true);
-        final FileCopyDetailsInternal file1 = file("a/b/c/file", false);
-
-        allowGetIncludeEmptyDirs();
+        final FileCopyDetailsInternal dir1 = file("a/b/c", true, true);
+        final FileCopyDetailsInternal file1 = file("a/b/c/file", false, true);
 
         decorator.execute(new CopyActionProcessingStream() {
             public void process(Action<? super FileCopyDetailsInternal> action) {
@@ -87,8 +74,8 @@ public class NormalizingCopyActionDecoratorTest {
                 action.execute(dir1);
                 action.execute(file1);
 
-                final FileCopyDetailsInternal dir2 = file("a/b/d/e", true);
-                final FileCopyDetailsInternal file2 = file("a/b/d/e/file", false);
+                final FileCopyDetailsInternal dir2 = file("a/b/d/e", true, true);
+                final FileCopyDetailsInternal file2 = file("a/b/d/e/file", false, true);
 
                 context.checking(new Expectations() {{
                     one(delegateAction).execute(with(hasPath("a/b/d")));
@@ -104,9 +91,7 @@ public class NormalizingCopyActionDecoratorTest {
 
     @Test
     public void visitsFileAncestorsWhichHaveNotBeenVisited() {
-        final FileCopyDetailsInternal details = file("a/b/c", false);
-
-        allowGetIncludeEmptyDirs();
+        final FileCopyDetailsInternal details = file("a/b/c", false, true);
 
         context.checking(new Expectations() {{
             one(delegateAction).execute(with(hasPath("a")));
@@ -119,11 +104,9 @@ public class NormalizingCopyActionDecoratorTest {
 
     @Test
     public void visitsAnEmptyDirectoryIfCorrespondingOptionIsOn() {
-        final FileCopyDetailsInternal dir = file("dir", true);
+        final FileCopyDetailsInternal dir = file("dir", true, true);
 
         context.checking(new Expectations() {{
-            one(spec).getIncludeEmptyDirs();
-            will(returnValue(true));
             one(delegateAction).execute(dir);
         }});
 
@@ -132,26 +115,24 @@ public class NormalizingCopyActionDecoratorTest {
 
     @Test
     public void doesNotVisitAnEmptyDirectoryIfCorrespondingOptionIsOff() {
-        final FileCopyDetailsInternal dir = file("dir", true);
+        final FileCopyDetailsInternal dir = file("dir", true, false);
 
         context.checking(new Expectations() {{
-            one(spec).getIncludeEmptyDirs();
-            will(returnValue(false));
             exactly(0).of(delegateAction).execute(dir);
         }});
 
         visit(decorator, dir);
     }
 
-    private FileCopyDetailsInternal file(final String path, final boolean isDir) {
+    private FileCopyDetailsInternal file(final String path, final boolean isDir, final boolean includeEmptyDirs) {
         final FileCopyDetailsInternal details = context.mock(FileCopyDetailsInternal.class, path);
         context.checking(new Expectations() {{
             allowing(details).getRelativePath();
             will(returnValue(RelativePath.parse(false, path)));
             allowing(details).isDirectory();
             will(returnValue(isDir));
-            allowing(details).getCopySpec();
-            will(returnValue(spec));
+            allowing(details).isIncludeEmptyDirs();
+            will(returnValue(includeEmptyDirs));
         }});
         return details;
     }

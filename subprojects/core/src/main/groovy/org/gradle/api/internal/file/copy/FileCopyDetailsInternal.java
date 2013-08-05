@@ -20,6 +20,6 @@ import org.gradle.api.file.FileCopyDetails;
 
 public interface FileCopyDetailsInternal extends FileCopyDetails {
 
-    CopySpecInternal getCopySpec();
+    boolean isIncludeEmptyDirs();
 
 }
