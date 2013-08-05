@@ -24,13 +24,13 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
-public class CopySpecBackCopyActionProcessingStream implements CopyActionProcessingStream {
+public class CopySpecBackedCopyActionProcessingStream implements CopyActionProcessingStream {
 
     private final CopySpecInternal spec;
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
 
-    public CopySpecBackCopyActionProcessingStream(CopySpecInternal spec, Instantiator instantiator, FileSystem fileSystem) {
+    public CopySpecBackedCopyActionProcessingStream(CopySpecInternal spec, Instantiator instantiator, FileSystem fileSystem) {
         this.spec = spec;
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;

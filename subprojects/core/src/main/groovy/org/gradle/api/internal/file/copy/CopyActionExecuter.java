@@ -34,7 +34,7 @@ public class CopyActionExecuter {
                 new NormalizingCopyActionDecorator(action)
         );
 
-        CopyActionProcessingStream processingStream = new CopySpecBackCopyActionProcessingStream(spec, instantiator, fileSystem);
+        CopyActionProcessingStream processingStream = new CopySpecBackedCopyActionProcessingStream(spec, instantiator, fileSystem);
         return effectiveVisitor.execute(processingStream);
     }
 
