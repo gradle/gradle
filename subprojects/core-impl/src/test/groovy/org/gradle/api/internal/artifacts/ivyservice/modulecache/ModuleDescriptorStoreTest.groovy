@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
@@ -40,6 +41,7 @@ class ModuleDescriptorStoreTest extends Specification {
     IvyModuleDescriptorWriter ivyModuleDescriptorWriter = Mock()
     IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser = Mock()
     ModuleVersionIdentifier moduleVersionIdentifier = Mock()
+    def resolver = Mock(DependencyToModuleVersionResolver)
 
     def setup() {
         store = new ModuleDescriptorStore(pathKeyFileStore, ivyModuleDescriptorWriter, ivyXmlModuleDescriptorParser);
@@ -54,12 +56,12 @@ class ModuleDescriptorStoreTest extends Specification {
         when:
         pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId/ivy.xml") >> null
         then:
-        null == store.getModuleDescriptor(repository, moduleVersionIdentifier)
+        null == store.getModuleDescriptor(repository, moduleVersionIdentifier, resolver)
     }
 
     def "getModuleDescriptorFile uses PathKeyFileStore to get file"() {
         when:
-        store.getModuleDescriptor(repository, moduleVersionIdentifier);
+        store.getModuleDescriptor(repository, moduleVersionIdentifier, resolver);
         then:
         1 * pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId/ivy.xml") >> null
     }

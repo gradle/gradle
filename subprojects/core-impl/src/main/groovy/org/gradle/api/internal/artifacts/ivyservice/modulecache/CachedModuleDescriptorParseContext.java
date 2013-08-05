@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
+package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolveEngine;
-import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableModuleVersionResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultDependencyMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.AbstractDescriptorParseContext;
 
 import java.text.ParseException;
 
@@ -34,12 +31,12 @@ import java.text.ParseException;
  * Context used for parsing cached module descriptor files.
  * Will only be used for parsing ivy.xml files, as pom files are converted before caching.
  */
-public class CachedModuleDescriptorParseContext extends AbstractDescriptorParseContext {
-    private final DependencyResolver mainResolver;
+class CachedModuleDescriptorParseContext extends AbstractDescriptorParseContext {
+    private final DependencyToModuleVersionResolver resolver;
 
-    public CachedModuleDescriptorParseContext(DependencyResolver mainResolver, String defaultStatus) {
+    public CachedModuleDescriptorParseContext(DependencyToModuleVersionResolver resolver, String defaultStatus) {
         super(defaultStatus);
-        this.mainResolver = mainResolver;
+        this.resolver = resolver;
     }
 
     public ModuleRevisionId getCurrentRevisionId() {
@@ -51,19 +48,12 @@ public class CachedModuleDescriptorParseContext extends AbstractDescriptorParseC
     }
 
     public ModuleDescriptor getModuleDescriptor(ModuleRevisionId moduleRevisionId) throws ParseException {
-        DependencyDescriptor dd = new DefaultDependencyDescriptor(moduleRevisionId, true);
-        ResolveData data = IvyContext.getContext().getResolveData();
-        if (data == null) {
-            ResolveEngine engine = IvyContext.getContext().getIvy().getResolveEngine();
-            ResolveOptions options = new ResolveOptions();
-            options.setDownload(false);
-            data = new ResolveData(engine, options);
-        }
+        DefaultBuildableModuleVersionResolveResult result = new DefaultBuildableModuleVersionResolveResult();
+        resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(moduleRevisionId, true)), result);
 
-        ResolvedModuleRevision otherModule = mainResolver.getDependency(dd, data);
-        if (otherModule == null) {
+        if (result.getFailure() != null) {
             throw new ParseException("Unable to find " + moduleRevisionId.toString(), 0);
         }
-        return otherModule.getDescriptor();
+        return result.getMetaData().getDescriptor();
     }
 }

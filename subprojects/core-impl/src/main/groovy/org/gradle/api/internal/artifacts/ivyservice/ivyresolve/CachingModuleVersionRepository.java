@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.externalresource.cached.CachedArtifact;
@@ -43,6 +44,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
     private final CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex;
+    private final DependencyToModuleVersionResolver resolver;
 
     private final CachePolicy cachePolicy;
 
@@ -51,11 +53,13 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
                                           CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
+                                          DependencyToModuleVersionResolver resolver,
                                           CachePolicy cachePolicy, TimeProvider timeProvider) {
         this.delegate = delegate;
         this.moduleDescriptorCache = moduleDescriptorCache;
         this.moduleResolutionCache = moduleResolutionCache;
         this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
+        this.resolver = resolver;
         this.timeProvider = timeProvider;
         this.cachePolicy = cachePolicy;
     }
@@ -120,7 +124,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     public void lookupModuleInCache(ModuleVersionRepository repository, DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         ModuleRevisionId resolvedModuleVersionId = dependency.getDescriptor().getDependencyRevisionId();
         ModuleVersionIdentifier moduleVersionIdentifier = newId(resolvedModuleVersionId);
-        ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(repository, moduleVersionIdentifier);
+        ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(repository, moduleVersionIdentifier, resolver);
         if (cachedModuleDescriptor == null) {
             return;
         }

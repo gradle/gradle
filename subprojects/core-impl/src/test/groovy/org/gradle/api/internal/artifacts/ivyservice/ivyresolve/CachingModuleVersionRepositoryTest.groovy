@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex
@@ -31,12 +32,14 @@ import spock.lang.Unroll
 
 class CachingModuleVersionRepositoryTest extends Specification {
 
-    ModuleVersionRepository realRepo = Mock()
-    ModuleResolutionCache moduleResolutionCache = Mock()
-    ModuleDescriptorCache moduleDescriptorCache = Mock()
-    CachedArtifactIndex artifactAtRepositoryCache = Mock()
-    CachePolicy cachePolicy = Mock()
-    CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache, cachePolicy, new TrueTimeProvider())
+    final realRepo = Mock(ModuleVersionRepository)
+    final moduleResolutionCache = Mock(ModuleResolutionCache)
+    final moduleDescriptorCache = Mock(ModuleDescriptorCache)
+    final artifactAtRepositoryCache = Mock(CachedArtifactIndex)
+    final resolver = Mock(DependencyToModuleVersionResolver)
+    final cachePolicy = Mock(CachePolicy)
+    CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache,
+            resolver, cachePolicy, new TrueTimeProvider())
     int descriptorHash = 1234
     CachingModuleVersionRepository.CachingModuleSource moduleSource = Mock()
 

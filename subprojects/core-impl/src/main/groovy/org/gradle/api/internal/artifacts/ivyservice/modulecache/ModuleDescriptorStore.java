@@ -17,13 +17,11 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.CachedModuleDescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorParser;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
@@ -45,11 +43,12 @@ public class ModuleDescriptorStore {
         parser = ivyXmlModuleDescriptorParser;
     }
 
-    public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
+    // TODO:DAZ Persisted module descriptors should be self-contained: should not need to resolve included descriptors
+    public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver) {
         String filePath = getFilePath(repository, moduleVersionIdentifier);
         final LocallyAvailableResource resource = pathKeyFileStore.get(filePath);
         if (resource != null) {
-            return parseModuleDescriptorFile(resource.getFile());
+            return parseModuleDescriptorFile(resource.getFile(), resolver);
         }
         return null;
     }
@@ -67,9 +66,8 @@ public class ModuleDescriptorStore {
         });
     }
 
-    private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
-        IvySettings settings = IvyContextualiser.getIvyContext().getSettings();
-        DescriptorParseContext parserSettings = new CachedModuleDescriptorParseContext(settings.getDefaultResolver(), "integration");
+    private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile, DependencyToModuleVersionResolver resolver) {
+        DescriptorParseContext parserSettings = new CachedModuleDescriptorParseContext(resolver, "integration");
         return parser.parseDescriptor(parserSettings, moduleDescriptorFile, false);
     }
 

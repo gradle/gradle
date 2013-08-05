@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 
@@ -26,7 +27,8 @@ import java.math.BigInteger;
 public interface ModuleDescriptorCache {
     CachedModuleDescriptor cacheModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier resolvedModuleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleSource moduleSource, boolean isChanging);
 
-    CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier);
+    // TODO:DAZ Should not need a resolver to parse the cached descriptors: descriptor should be self-contained.
+    CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver);
 
     interface CachedModuleDescriptor {
         ResolvedModuleVersion getModuleVersion();

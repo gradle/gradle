@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
@@ -67,7 +68,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         return cacheLockingManager.createCache(artifactResolutionCacheFile, new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
     }
 
-    public CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
+    public CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver) {
         ModuleDescriptorCacheEntry moduleDescriptorCacheEntry = getCache().get(createKey(repository, moduleVersionIdentifier));
         if (moduleDescriptorCacheEntry == null) {
             return null;
@@ -75,7 +76,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         if (moduleDescriptorCacheEntry.isMissing) {
             return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, null, timeProvider);
         }
-        ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleVersionIdentifier);
+        ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleVersionIdentifier, resolver);
         if (descriptor == null) {
             // Descriptor file has been manually deleted - ignore the entry
             return null;

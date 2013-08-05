@@ -93,7 +93,7 @@ public class ResolveIvyFactory {
                 ModuleVersionRepository wrapperRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
                 wrapperRepository = startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
                 localAwareRepository = new CachingModuleVersionRepository(wrapperRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
-                        configuration.getResolutionStrategy().getCachePolicy(), timeProvider);
+                        userResolverChain, configuration.getResolutionStrategy().getCachePolicy(), timeProvider);
             }
             if (moduleVersionRepository.isDynamicResolveMode()) {
                 localAwareRepository = new IvyDynamicResolveModuleVersionRepository(localAwareRepository);
