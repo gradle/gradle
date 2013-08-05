@@ -21,10 +21,8 @@ import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.util.ChecksumHelper;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -33,8 +31,12 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResu
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.*;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorAdapter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolveStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -59,7 +61,7 @@ import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache.ExternalResourceDownloader;
 
-public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwareModuleVersionRepository, ConfiguredModuleVersionRepository {
+public class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final MetaDataParser metaDataParser;
@@ -73,7 +75,6 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwar
     private boolean force;
     private String checksums;
     private String name;
-    private ResolverSettings settings;
     private RepositoryArtifactCache repositoryCacheManager;
     private String changingMatcherName;
     private String changingPattern;
@@ -128,16 +129,6 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwar
 
     public String toString() {
         return String.format("Repository '%s'", getName());
-    }
-
-    public void setSettings(ResolverSettings ivy) {
-        this.settings = ivy;
-    }
-    public ResolverSettings getSettings() {
-        return settings;
-    }
-
-    public void setResolveData(ResolveData resolveData) {
     }
 
     public void setResolver(DependencyToModuleVersionResolver resolver) {
@@ -474,7 +465,6 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwar
 
     // TODO:DAZ Remove the need for this, by using our own set of PatternMatchers
     public void setSettings(IvySettings settings) {
-        this.settings = settings;
     }
 
     public void publish(ModuleVersionPublishMetaData moduleVersion) throws IOException {
@@ -613,7 +603,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, IvyAwar
         if (changingMatcherName == null || changingPattern == null) {
             return false; // TODO: tell from module metadata (rule)
         }
-        PatternMatcher matcher = settings.getMatcher(changingMatcherName);
+        PatternMatcher matcher = ResolveStrategy.INSTANCE.getPatternMatcher(changingMatcherName);
         if (matcher == null) {
             throw new IllegalStateException("unknown matcher '" + changingMatcherName
                     + "'. It is set as changing matcher in " + this);

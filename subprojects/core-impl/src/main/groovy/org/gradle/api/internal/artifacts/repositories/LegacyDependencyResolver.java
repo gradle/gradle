@@ -50,6 +50,7 @@ import java.util.Map;
  */
 public class LegacyDependencyResolver implements DependencyResolver, ResolutionAwareRepository {
     private final ExternalResourceResolver resolver;
+    private ResolverSettings settings;
 
     public LegacyDependencyResolver(ExternalResourceResolver resolver) {
         this.resolver = resolver;
@@ -71,12 +72,12 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
         return resolver;
     }
 
-    public void setSettings(ResolverSettings ivy) {
-        resolver.setSettings(ivy);
+    public void setSettings(ResolverSettings settings) {
+        this.settings = settings;
     }
 
     public ResolverSettings getSettings() {
-        return resolver.getSettings();
+        return settings;
     }
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
