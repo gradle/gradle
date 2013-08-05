@@ -56,10 +56,11 @@ task check << {
 
     def "merges values from included descriptor file"() {
         given:
-        final parentModule = ivyRepo.module("org.gradle.parent", "parent_module", "1.1").dependsOn("org.gradle.dep", "dep_module", "1.1").publish()
-        ivyRepo.module("org.gradle.dep", "dep_module", "1.1").publish()
+        server.start()
+        final parentModule = ivyHttpRepo.module("org.gradle.parent", "parent_module", "1.1").dependsOn("org.gradle.dep", "dep_module", "1.1").publish()
+        final depModule = ivyHttpRepo.module("org.gradle.dep", "dep_module", "1.1").publish()
 
-        final module = ivyRepo.module("org.gradle", "test", "1.45")
+        final module = ivyHttpRepo.module("org.gradle", "test", "1.45")
         final extendAttributes = ["organisation": "org.gradle.parent", "module": "parent_module", "revision": "1.1"]
         if (includeLocation) {
             extendAttributes["location"] = parentModule.ivyFile.absolutePath
@@ -69,9 +70,9 @@ task check << {
         }
         module.publish()
 
-        and:
+        when:
         buildFile << """
-repositories { ivy { url "${ivyRepo.uri}" } }
+repositories { ivy { url "${ivyHttpRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
@@ -82,7 +83,22 @@ task check << {
 }
 """
 
-        expect:
+        and:
+        module.expectIvyGet()
+        if (!includeLocation) {
+            parentModule.expectIvyGet()
+        }
+        depModule.expectIvyGet()
+        module.expectJarGet()
+        depModule.expectJarGet()
+
+        then:
+        succeeds "check"
+
+        when:
+        server.resetExpectations()
+
+        then:
         succeeds "check"
 
         where:

@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.ivy;
 
+import groovy.lang.Closure;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.Map;
@@ -37,6 +38,8 @@ public interface IvyModule {
     IvyModule dependsOn(Map<String, String> attributes);
 
     IvyModule artifact(Map<String, ?> options);
+
+    IvyModule withXml(Closure action);
 
     /**
      * Publishes ivy.xml plus all artifacts with different content to previous publication.

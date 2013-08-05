@@ -70,6 +70,11 @@ class IvyHttpModule implements IvyModule {
         return this
     }
 
+    IvyModule withXml(Closure action) {
+        backingModule.withXml(action)
+        return this
+    }
+
     String getIvyFileUri() {
         return "http://localhost:${server.port}$prefix/$ivyFile.name"
     }

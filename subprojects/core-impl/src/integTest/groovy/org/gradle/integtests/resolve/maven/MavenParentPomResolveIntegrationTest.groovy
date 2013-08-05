@@ -69,6 +69,16 @@ task retrieve(type: Sync) {
 
         then:
         file('libs').assertHasDescendants('child-1.0.jar', 'parent_dep-1.2.jar', 'child_dep-1.7.jar')
+
+        when:
+        server.resetExpectations()
+        file('libs').deleteDir()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('child-1.0.jar', 'parent_dep-1.2.jar', 'child_dep-1.7.jar')
     }
 
     @Issue("GRADLE-2641")
