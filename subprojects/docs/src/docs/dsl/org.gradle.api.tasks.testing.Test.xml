@@ -73,6 +73,10 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
+                <td>minHeapSize</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>jvmArgs</td>
                 <td><literal>[]</literal></td>
             </tr>
