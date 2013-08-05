@@ -46,7 +46,7 @@ public class BuildSourceBuilder {
 
     public ClassLoader buildAndCreateClassLoader(StartParameter startParameter) {
         ClassPath classpath = createBuildSourceClasspath(startParameter);
-        return new URLClassLoader(classpath.getAsURLArray(), classLoaderRegistry.getRootClassLoader());
+        return new URLClassLoader(classpath.getAsURLArray(), classLoaderRegistry.getGradleApiClassLoader());
     }
 
     ClassPath createBuildSourceClasspath(StartParameter startParameter) {

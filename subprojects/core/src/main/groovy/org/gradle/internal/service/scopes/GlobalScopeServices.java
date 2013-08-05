@@ -55,7 +55,7 @@ public class GlobalScopeServices extends DefaultServiceRegistry {
     public GlobalScopeServices(ServiceRegistry loggingServices) {
         super(loggingServices);
         add(NativeServices.getInstance());
-        List<PluginServiceRegistry> pluginServiceFactories = new ServiceLocator(get(ClassLoaderRegistry.class).getPluginsClassLoader()).getAll(PluginServiceRegistry.class);
+        List<PluginServiceRegistry> pluginServiceFactories = new ServiceLocator(get(ClassLoaderRegistry.class).getRuntimeClassLoader()).getAll(PluginServiceRegistry.class);
         for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
             add(pluginServiceRegistry.createGlobalServices(this));
         }

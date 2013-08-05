@@ -25,7 +25,7 @@ public class DefaultBuildClassLoaderRegistry implements BuildClassLoaderRegistry
     private final CachingClassLoader scriptClassLoader;
 
     public DefaultBuildClassLoaderRegistry(ClassLoaderRegistry registry) {
-        rootClassLoader = new MultiParentClassLoader(registry.getRootClassLoader());
+        rootClassLoader = new MultiParentClassLoader(registry.getGradleApiClassLoader());
         scriptClassLoader = new CachingClassLoader(rootClassLoader);
     }
 

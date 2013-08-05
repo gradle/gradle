@@ -263,7 +263,7 @@ public class BuildScopeServicesTest extends Specification {
     }
 
     private void expectScriptClassLoaderCreated() {
-        1 * classLoaderRegistry.rootClassLoader >> new MultiParentClassLoader()
+        1 * classLoaderRegistry.gradleApiClassLoader >> new MultiParentClassLoader()
     }
 
     private void allowGetGradleDistributionLocator() {

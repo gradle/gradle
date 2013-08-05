@@ -64,7 +64,11 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         rootClassLoader.allowPackage("javax.inject");
     }
 
-    public ClassLoader getRootClassLoader() {
+    public ClassLoader getRuntimeClassLoader() {
+        return getClass().getClassLoader();
+    }
+
+    public ClassLoader getGradleApiClassLoader() {
         return rootClassLoader;
     }
 

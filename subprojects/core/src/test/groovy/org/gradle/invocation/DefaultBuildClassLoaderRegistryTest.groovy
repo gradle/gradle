@@ -29,7 +29,7 @@ class DefaultBuildClassLoaderRegistryTest extends Specification {
         def additionalClassLoader = Mock(ClassLoader)
 
         given:
-        globalRegistry.rootClassLoader >> rootClassLoader
+        globalRegistry.gradleApiClassLoader >> rootClassLoader
 
         when:
         def registry = new DefaultBuildClassLoaderRegistry(globalRegistry)
