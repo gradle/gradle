@@ -95,6 +95,12 @@ public class JavaReflectionUtil {
         return new JavaMethod<T, R>(target, returnType, name, paramTypes);
     }
 
+    public static <T, R> JavaMethod<T, R> method(T target, Class<R> returnType, String name, Class<?>... paramTypes) {
+        @SuppressWarnings("unchecked")
+        Class<T> targetClass = (Class<T>) target.getClass();
+        return method(targetClass, returnType, name, paramTypes);
+    }
+
     public static <T, R> JavaMethod<T, R> method(Class<T> target, Class<R> returnType, Method method) {
         return new JavaMethod<T, R>(target, returnType, method);
     }

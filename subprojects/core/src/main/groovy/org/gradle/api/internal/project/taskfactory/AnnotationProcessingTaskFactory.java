@@ -32,7 +32,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.ReflectionUtil;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -217,7 +216,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         protected void doExecute(Task task, String methodName) {
-            ReflectionUtil.invoke(task, methodName);
+            JavaReflectionUtil.method(task, Object.class, methodName).invoke(task);
         }
     }
 
@@ -234,7 +233,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         protected void doExecute(Task task, String methodName) {
-            ReflectionUtil.invoke(task, methodName, taskArtifactState.getInputChanges());
+            JavaReflectionUtil.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, taskArtifactState.getInputChanges());
             taskArtifactState = null;
         }
     }
