@@ -30,25 +30,21 @@ public class FileCopyAction implements CopyAction {
         this.fileResolver = fileResolver;
     }
 
-    private static class BooleanHolder {
-        boolean flag;
-    }
-
     public WorkResult execute(CopyActionProcessingStream stream) {
-        final BooleanHolder didWorkHolder = new BooleanHolder();
-
-        stream.process(new Action<FileCopyDetailsInternal>() {
-            public void execute(FileCopyDetailsInternal details) {
-                File target = fileResolver.resolve(details.getRelativePath().getPathString());
-                boolean copied = details.copyTo(target);
-                if (copied) {
-                    didWorkHolder.flag = true;
-                }
-
-            }
-        });
-
-        return new SimpleWorkResult(didWorkHolder.flag);
+        FileCopyDetailsInternalAction action = new FileCopyDetailsInternalAction();
+        stream.process(action);
+        return new SimpleWorkResult(action.didWork);
     }
 
+    private class FileCopyDetailsInternalAction implements Action<FileCopyDetailsInternal> {
+        private boolean didWork;
+
+        public void execute(FileCopyDetailsInternal details) {
+            File target = fileResolver.resolve(details.getRelativePath().getPathString());
+            boolean copied = details.copyTo(target);
+            if (copied) {
+                didWork = true;
+            }
+        }
+    }
 }
