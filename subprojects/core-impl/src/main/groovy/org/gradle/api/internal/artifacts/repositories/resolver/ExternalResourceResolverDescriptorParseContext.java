@@ -25,8 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionRes
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.AbstractDescriptorParseContext;
 
-import java.text.ParseException;
-
 /**
  * ParserSettings that control the scope of searches carried out during parsing.
  * If the parser asks for a resolver for the currently resolving revision, the resolver scope is only the repository where the module was resolved.
@@ -48,13 +46,9 @@ public class ExternalResourceResolverDescriptorParseContext extends AbstractDesc
         return moduleRevisionId;
     }
 
-    public ModuleDescriptor getModuleDescriptor(ModuleRevisionId moduleRevisionId) throws ParseException {
+    public ModuleDescriptor getModuleDescriptor(ModuleRevisionId moduleRevisionId) {
         DefaultBuildableModuleVersionResolveResult result = new DefaultBuildableModuleVersionResolveResult();
         mainResolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(moduleRevisionId, true)), result);
-
-        if (result.getFailure() != null) {
-            throw new ParseException("Unable to find " + moduleRevisionId.toString(), 0);
-        }
         return result.getMetaData().getDescriptor();
     }
 

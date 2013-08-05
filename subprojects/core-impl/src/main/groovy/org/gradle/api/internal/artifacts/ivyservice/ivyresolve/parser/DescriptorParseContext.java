@@ -20,8 +20,6 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 
-import java.text.ParseException;
-
 public interface DescriptorParseContext {
 
     String substitute(String value);
@@ -30,8 +28,7 @@ public interface DescriptorParseContext {
 
     String getDefaultStatus();
 
-    // TODO:DAZ Wrap exception
-    ModuleDescriptor getModuleDescriptor(ModuleRevisionId mRevId) throws ParseException;
+    ModuleDescriptor getModuleDescriptor(ModuleRevisionId mRevId);
 
     boolean artifactExists(Artifact artifact);
 

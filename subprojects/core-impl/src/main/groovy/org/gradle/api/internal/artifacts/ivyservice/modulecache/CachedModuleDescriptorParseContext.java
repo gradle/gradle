@@ -25,8 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionRes
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.AbstractDescriptorParseContext;
 
-import java.text.ParseException;
-
 /**
  * Context used for parsing cached module descriptor files.
  * Will only be used for parsing ivy.xml files, as pom files are converted before caching.
@@ -47,13 +45,9 @@ class CachedModuleDescriptorParseContext extends AbstractDescriptorParseContext 
         throw new UnsupportedOperationException();
     }
 
-    public ModuleDescriptor getModuleDescriptor(ModuleRevisionId moduleRevisionId) throws ParseException {
+    public ModuleDescriptor getModuleDescriptor(ModuleRevisionId moduleRevisionId) {
         DefaultBuildableModuleVersionResolveResult result = new DefaultBuildableModuleVersionResolveResult();
         resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(moduleRevisionId, true)), result);
-
-        if (result.getFailure() != null) {
-            throw new ParseException("Unable to find " + moduleRevisionId.toString(), 0);
-        }
         return result.getMetaData().getDescriptor();
     }
 }

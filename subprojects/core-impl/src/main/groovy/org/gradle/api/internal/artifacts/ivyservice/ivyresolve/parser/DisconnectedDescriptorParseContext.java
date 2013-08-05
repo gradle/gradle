@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 
-import java.text.ParseException;
 import java.util.Date;
 
 /**
@@ -33,7 +32,7 @@ public class DisconnectedDescriptorParseContext extends AbstractDescriptorParseC
         super("integration");
     }
 
-    public ModuleDescriptor getModuleDescriptor(ModuleRevisionId mRevId) throws ParseException {
+    public ModuleDescriptor getModuleDescriptor(ModuleRevisionId mRevId) {
         return new DefaultModuleDescriptor(mRevId, "release", new Date());
     }
 
