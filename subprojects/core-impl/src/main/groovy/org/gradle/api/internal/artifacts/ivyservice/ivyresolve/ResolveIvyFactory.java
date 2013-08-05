@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolveStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -61,8 +61,8 @@ public class ResolveIvyFactory {
         ResolutionRules resolutionRules = configuration.getResolutionStrategy().getResolutionRules();
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
-        VersionMatcher versionMatcher = ResolveStrategy.INSTANCE.getVersionMatcher();
-        LatestStrategy comparatorLatestStrategy = ResolveStrategy.INSTANCE.getLatestStrategy();
+        VersionMatcher versionMatcher = ResolverStrategy.INSTANCE.getVersionMatcher();
+        LatestStrategy comparatorLatestStrategy = ResolverStrategy.INSTANCE.getLatestStrategy();
 
         UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, comparatorLatestStrategy);
 

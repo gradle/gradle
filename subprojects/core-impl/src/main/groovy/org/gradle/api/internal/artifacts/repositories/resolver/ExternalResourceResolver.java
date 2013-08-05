@@ -35,7 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolveStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -107,8 +107,8 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         this.metaDataParser = metaDataParser;
         this.metadataProcessor = metadataProcessor;
 
-        latestStrategy = ResolveStrategy.INSTANCE.getLatestStrategy();
-        versionMatcher = ResolveStrategy.INSTANCE.getVersionMatcher();
+        latestStrategy = ResolverStrategy.INSTANCE.getLatestStrategy();
+        versionMatcher = ResolverStrategy.INSTANCE.getVersionMatcher();
     }
 
     public String getId() {
@@ -603,7 +603,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         if (changingMatcherName == null || changingPattern == null) {
             return false; // TODO: tell from module metadata (rule)
         }
-        PatternMatcher matcher = ResolveStrategy.INSTANCE.getPatternMatcher(changingMatcherName);
+        PatternMatcher matcher = ResolverStrategy.INSTANCE.getPatternMatcher(changingMatcherName);
         if (matcher == null) {
             throw new IllegalStateException("unknown matcher '" + changingMatcherName
                     + "'. It is set as changing matcher in " + this);

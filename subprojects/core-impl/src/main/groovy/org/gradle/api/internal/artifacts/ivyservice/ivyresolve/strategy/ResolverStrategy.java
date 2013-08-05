@@ -21,14 +21,14 @@ import org.apache.ivy.plugins.matcher.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ResolveStrategy {
-    public static final ResolveStrategy INSTANCE = new ResolveStrategy();
+public class ResolverStrategy {
+    public static final ResolverStrategy INSTANCE = new ResolverStrategy();
 
     private final LatestStrategy latestStrategy;
     private final VersionMatcher versionMatcher;
     private final Map<String, PatternMatcher> matchers = new HashMap<String, PatternMatcher>();
 
-    private ResolveStrategy() {
+    private ResolverStrategy() {
         LatestVersionStrategy latest = new LatestVersionStrategy();
         latestStrategy = latest;
 

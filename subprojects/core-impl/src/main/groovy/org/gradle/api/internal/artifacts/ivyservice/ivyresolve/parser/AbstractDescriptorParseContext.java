@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolveStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -57,7 +57,7 @@ public abstract class AbstractDescriptorParseContext implements DescriptorParseC
     }
 
     public PatternMatcher getMatcher(String matcherName) {
-        return ResolveStrategy.INSTANCE.getPatternMatcher(matcherName);
+        return ResolverStrategy.INSTANCE.getPatternMatcher(matcherName);
     }
 
     public String getDefaultStatus() {
