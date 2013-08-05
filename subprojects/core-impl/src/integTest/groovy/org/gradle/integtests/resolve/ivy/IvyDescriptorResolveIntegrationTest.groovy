@@ -63,7 +63,7 @@ task check << {
         final module = ivyHttpRepo.module("org.gradle", "test", "1.45")
         final extendAttributes = ["organisation": "org.gradle.parent", "module": "parent_module", "revision": "1.1"]
         if (includeLocation) {
-            extendAttributes["location"] = parentModule.ivyFile.absolutePath
+            extendAttributes["location"] = parentModule.ivyFile.toURI().toURL()
         }
         module.withXml {
             asNode().info[0].appendNode("extends", extendAttributes)
