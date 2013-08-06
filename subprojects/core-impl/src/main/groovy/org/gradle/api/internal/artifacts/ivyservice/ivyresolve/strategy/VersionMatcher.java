@@ -21,21 +21,21 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMeta
 import java.util.Comparator;
 
 /**
- * Compares version selectors against candidate versions, indicating
- * whether they match or not.
+ * Compares version selectors against candidate versions, indicating whether they match or not.
  *
  * <p>This interface was initially derived from {@code org.apache.ivy.plugins.version.VersionMatcher}.
  */
 public interface VersionMatcher {
     /**
-     * Indicates if the given version selector is recognized as dynamic by this version matcher.
+     * Tells if this version matcher can handle the given version selector. If {@code false}
+     * is returned, none of the other methods will be called for the given selector.
      */
-    public boolean isDynamic(String selector);
+    public boolean canHandle(String selector);
 
     /**
-     * Indicates if the given version selector matches the given candidate version.
+     * Indicates if the given version selector is dynamic.
      */
-    public boolean accept(String selector, String candidate);
+    public boolean isDynamic(String selector);
 
     /**
      * Indicates if module metadata is required to determine if the given version
@@ -44,17 +44,26 @@ public interface VersionMatcher {
     public boolean needModuleMetadata(String selector, String candidate);
 
     /**
+     * Indicates if the given version selector matches the given candidate version.
+     * Only called if {@link #needModuleMetadata} returned {@code false} for the given selector
+     * and candidate version.
+     */
+    public boolean accept(String selector, String candidate);
+
+    /**
      * Indicates if the given version selector matches the given given candidate version
-     * (whose metadata is provided). This method may be called even if {@link #needModuleMetadata}
-     * returned false. A good default implementation is to delegate to {@link #accept(String, String)}.
+     * (whose metadata is provided). May also be called if {@link #isDynamic} returned
+     * {@code false} for the given selector, in which case it should return the same result as
+     * {@code accept(selector, candidate.getId().getVersion()}.
      */
     public boolean accept(String selector, ModuleVersionMetaData candidate);
 
     /**
-     * Compares a dynamic version selector with a candidate version to indicate which is greater. If there is
-     * not enough information to know which is greater, the version selector should be considered greater
-     * and this method should return 0. This method will never be called for a version selector for which
-     * {@link #isDynamic} returned false.
+     *
+     * Compares a version selector with a candidate version to indicate which is greater. If there is
+     * not enough information to tell which is greater, the version selector should be considered greater
+     * and this method should return 0. (pniederw: 0 or 1?) This method will never be called for a version
+     * selector for which {@link #isDynamic} returned false.
      */
     public int compare(String selector, String candidate, Comparator<String> candidateComparator);
 }

@@ -22,7 +22,13 @@ import java.util.Comparator;
 /**
  * Version matcher for "static" version selectors (1.0, 1.2.3, etc.).
  */
-class ExactVersionMatcher implements VersionMatcher {
+public class ExactVersionMatcher implements VersionMatcher {
+    public boolean canHandle(String selector) {
+        // narrowing this down to syntactically valid static selectors would give better error messages
+        // ("invalid version selector: !@#$" instead of "version !@#$ not found")
+        return true;
+    }
+
     public boolean isDynamic(String selector) {
         return false;
     }

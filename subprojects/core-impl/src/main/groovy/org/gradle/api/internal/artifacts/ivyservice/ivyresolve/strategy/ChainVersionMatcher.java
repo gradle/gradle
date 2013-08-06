@@ -20,56 +20,45 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMeta
 
 import java.util.*;
 
-class ChainVersionMatcher implements VersionMatcher {
-    private final LinkedList<VersionMatcher> matchers = Lists.newLinkedList();
+public class ChainVersionMatcher implements VersionMatcher {
+    private final List<VersionMatcher> matchers = Lists.newArrayList();
 
     public void add(VersionMatcher matcher) {
         matchers.add(matcher);
     }
 
-    public boolean isDynamic(String selector) {
-        for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(selector)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean canHandle(String selector) {
+        // not expected to be called
+        throw new UnsupportedOperationException("canHandle");
     }
 
-    public boolean accept(String selector, String candidate) {
-        for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(selector)) {
-                return matcher.accept(selector, candidate);
-            }
-        }
-        return matchers.getLast().accept(selector, candidate);
+    public boolean isDynamic(String selector) {
+        return getCompatibleMatcher(selector).isDynamic(selector);
     }
 
     public boolean needModuleMetadata(String selector, String candidate) {
-        for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(selector)) {
-                return matcher.needModuleMetadata(selector, candidate);
-            }
-        }
-        return matchers.getLast().needModuleMetadata(selector, candidate);
+        return getCompatibleMatcher(selector).needModuleMetadata(selector, candidate);
+    }
+
+    public boolean accept(String selector, String candidate) {
+        return getCompatibleMatcher(selector).accept(selector, candidate);
     }
 
     public boolean accept(String selector, ModuleVersionMetaData candidate) {
-        for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(selector)) {
-                return matcher.accept(selector, candidate);
-            }
-        }
-        return matchers.getLast().accept(selector, candidate);
+        return getCompatibleMatcher(selector).accept(selector, candidate);
     }
 
     public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
+        return getCompatibleMatcher(selector).compare(selector, candidate, candidateComparator);
+    }
+
+    private VersionMatcher getCompatibleMatcher(String selector) {
         for (VersionMatcher matcher : matchers) {
-            if (matcher.isDynamic(selector)) {
-                return matcher.compare(selector, candidate, candidateComparator);
+            if (matcher.canHandle(selector)) {
+                return matcher;
             }
         }
-        throw new IllegalArgumentException("Cannot compare versions because requested version is not dynamic: " + selector);
+        throw new IllegalArgumentException("Invalid version selector: " + selector);
     }
 }
 

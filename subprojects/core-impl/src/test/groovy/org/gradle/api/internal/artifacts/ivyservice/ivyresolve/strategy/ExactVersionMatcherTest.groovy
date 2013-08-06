@@ -15,14 +15,24 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
+
 import spock.lang.Specification
 
 class ExactVersionMatcherTest extends Specification {
     def matcher = new ExactVersionMatcher()
 
-    def "doesn't classify any selector as dynamic"() {
+    def "can handle any version selector"() {
         expect:
-        !matcher.isDynamic("1.2.3")
+        matcher.canHandle("1.0")
+        matcher.canHandle("[1.0,2.0]")
+        matcher.canHandle("!@#%")
+    }
+
+    def "considers selector as static"() {
+        expect:
+        !matcher.isDynamic("1.0")
         !matcher.isDynamic("[1.0,2.0]")
     }
 
@@ -32,23 +42,33 @@ class ExactVersionMatcherTest extends Specification {
         !matcher.needModuleMetadata("[1.0,2.0]", "2.0")
     }
 
-    def "accepts candidate versions that literally match the selector"() {
+    def "accepts candidate version iff it literally matches the selector"() {
         expect:
         matcher.accept("1.0", "1.0")
         matcher.accept("2.0", "2.0")
+        matcher.accept("!@#%", "!@#%")
         !matcher.accept("1.0", "1.1")
         !matcher.accept("2.0", "3.0")
+        !matcher.accept("!@#%", "%#@!")
     }
 
-    def "accepts the same candidate versions whether or not metadata is available"() {
+    def "supports metadata-aware accept method (with same result)"() {
+        def metadata = Stub(ModuleVersionMetaData) {
+            getId() >> Stub(ModuleVersionIdentifier) {
+                getVersion() >> metadataVersion
+            }
+        }
+
         expect:
-        matcher.accept("1.0", "1.0")
-        matcher.accept("2.0", "2.0")
-        !matcher.accept("1.0", "1.1")
-        !matcher.accept("2.0", "3.0")
+        matcher.accept("1.0", metadata) == result
+
+        where:
+        metadataVersion | result
+        "1.0"           | true
+        "2.0"           | false
     }
 
-    def "doesn't support compare operation (because it doesn't support dynamic selectors)"() {
+    def "doesn't support compare operation"() {
         when:
         matcher.compare("[1.0,3.0]", "2.0", null)
 

@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
+
 import spock.lang.Specification
 
 public class VersionRangeMatcherTest extends Specification {
@@ -22,28 +25,30 @@ public class VersionRangeMatcherTest extends Specification {
     def matcher = new VersionRangeMatcher(strategy)
 
     def setup() {
-        strategy.versionMatcher = matcher
+        strategy.versionMatcher = new ExactVersionMatcher()
     }
 
-    def "classifies selectors describing a range as dynamic"() {
+    def "handles selectors that use version range syntax"() {
+        expect:
+        matcher.canHandle("[1.0,2.0]")
+        matcher.canHandle("[1.0,2.0[")
+        matcher.canHandle("]1.0,2.0]")
+        matcher.canHandle("]1.0,2.0[")
+        matcher.canHandle("[1.0,)")
+        matcher.canHandle("]1.0,)")
+        matcher.canHandle("(,2.0]")
+        matcher.canHandle("(,2.0[")
+        !matcher.canHandle("1")
+        !matcher.canHandle("1+")
+    }
+
+    def "all handled selectors are dynamic"() {
         expect:
         matcher.isDynamic("[1.0,2.0]")
-        matcher.isDynamic("[1.0,2.0[")
-        matcher.isDynamic("]1.0,2.0]")
-        matcher.isDynamic("]1.0,2.0[")
         matcher.isDynamic("[1.0,)")
-        matcher.isDynamic("]1.0,)")
-        matcher.isDynamic("(,2.0]")
-        matcher.isDynamic("(,2.0[")
     }
 
-    def "classifies all other selectors as not dynamic"() {
-        expect:
-        !matcher.isDynamic("1")
-        !matcher.isDynamic("1+")
-    }
-
-    def "doesn't need metadata"() {
+    def "never needs metadata"() {
         expect:
         !matcher.needModuleMetadata("[1.0,2.0]", "1.0")
         !matcher.needModuleMetadata("[1.0,)", "1.0")
@@ -115,6 +120,22 @@ public class VersionRangeMatcherTest extends Specification {
 
         !matcher.accept("(,2.0[", "2.0")
         !matcher.accept("(,2.0[", "42")
+    }
+
+    def "metadata-aware accept method delivers same results"() {
+        def metadata = Stub(ModuleVersionMetaData) {
+            getId() >> Stub(ModuleVersionIdentifier) {
+                getVersion() >> metadataVersion
+            }
+        }
+
+        expect:
+        matcher.accept("[1.0,2.0]", metadata) == result
+
+        where:
+        metadataVersion | result
+        "1.5"           | true
+        "2.5"           | false
     }
 
     def "compares candidate versions against the selector's upper bound"() {

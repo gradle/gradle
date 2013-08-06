@@ -14,21 +14,32 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
+
 import com.google.common.collect.Ordering
+
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
+
 import spock.lang.Specification
 
 class SubVersionMatcherTest extends Specification {
     def matcher = new SubVersionMatcher()
 
-    def "classifies selectors ending in '+' as dynamic"() {
+    def "handles selectors that end in '+'"() {
+        expect:
+        matcher.canHandle("1+")
+        matcher.canHandle("1.2.3+")
+        !matcher.canHandle("1")
+        !matcher.canHandle("1.+.3")
+    }
+
+    def "all handled selectors are dynamic"() {
         expect:
         matcher.isDynamic("1+")
         matcher.isDynamic("1.2.3+")
-        !matcher.isDynamic("1")
-        !matcher.isDynamic("1.+.3")
     }
 
-    def "doesn't need metadata"() {
+    def "never needs metadata"() {
         expect:
         !matcher.needModuleMetadata("1+", "1")
         !matcher.needModuleMetadata("1.2.3+", "1.2.3")
@@ -36,31 +47,40 @@ class SubVersionMatcherTest extends Specification {
 
     def "accepts candidate versions that literally match the selector up until the trailing '+'"() {
         expect:
-        matcher.accept("1+", "1")
-        matcher.accept("1+", "1.2")
+        matcher.accept("1+", "11")
+        matcher.accept("1.+", "1.2")
         matcher.accept("1.2.3+", "1.2.3.11")
         !matcher.accept("1+", "2")
+        !matcher.accept("1.+", "11")
         !matcher.accept("1.2.3+", "1.2")
     }
 
-    def "accepts the same candidate versions whether or not metadata is provided"() {
+    def "metadata-aware accept method delivers same results"() {
+        def metadata = Stub(ModuleVersionMetaData) {
+            getId() >> Stub(ModuleVersionIdentifier) {
+                getVersion() >> metadataVersion
+            }
+        }
+
         expect:
-        matcher.accept("1+", "1")
-        matcher.accept("1.2.3+", "1.2.3")
-        !matcher.accept("1+", "2")
-        !matcher.accept("1.2.3+", "1.2")
+        matcher.accept("1.+", metadata) == result
+
+        where:
+        metadataVersion | result
+        "1.5"           | true
+        "2.5"           | false
     }
 
-    def "considers a '+' selector greater than any candidate version it matches"() {
+    def "considers a '+' selector greater than any matching candidate version"() {
         expect:
-        matcher.compare("1+", "1", null) > 0
-        matcher.compare("1+", "1.2", null) > 0
+        matcher.compare("1+", "11", null) > 0
+        matcher.compare("1.+", "1.2", null) > 0
         matcher.compare("1.2.3+", "1.2.3.11", null) > 0
     }
 
     def "falls back to the provided comparator if selector doesn't match candidate version"() {
         expect:
         matcher.compare("1+", "2", Ordering.natural()) < 0
-        matcher.compare("1+", "11", Ordering.natural()) > 0
+        matcher.compare("1+", "0.5", Ordering.natural()) > 0
     }
 }

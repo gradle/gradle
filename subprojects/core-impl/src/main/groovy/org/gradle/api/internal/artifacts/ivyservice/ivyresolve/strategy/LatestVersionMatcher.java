@@ -19,17 +19,21 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMeta
 
 import java.util.Comparator;
 
-class LatestVersionMatcher implements VersionMatcher {
-    public boolean isDynamic(String selector) {
+public class LatestVersionMatcher implements VersionMatcher {
+    public boolean canHandle(String selector) {
         return selector.startsWith("latest.");
     }
 
-    public boolean accept(String selector, String candidate) {
+    public boolean isDynamic(String selector) {
         return true;
     }
 
     public boolean needModuleMetadata(String selector, String candidate) {
         return true;
+    }
+
+    public boolean accept(String selector, String candidate) {
+        throw new UnsupportedOperationException("accept(String, String)");
     }
 
     public boolean accept(String selector, ModuleVersionMetaData candidate) {

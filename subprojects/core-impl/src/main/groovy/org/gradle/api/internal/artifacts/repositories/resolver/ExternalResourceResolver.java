@@ -329,12 +329,12 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         for (VersionList.ListedVersion listedVersion : versions.sortLatestFirst(latestStrategy)) {
             String foundVersion = listedVersion.getVersion();
 
-            if (!versionMatcher.accept(requestedVersion, foundVersion)) {
+            boolean needsMetadata = versionMatcher.needModuleMetadata(requestedVersion, foundVersion);
+            if (!needsMetadata && !versionMatcher.accept(requestedVersion, foundVersion)) {
                 LOGGER.debug(name + ": rejected by version matcher: " + foundVersion);
                 continue;
             }
 
-            boolean needsMetadata = versionMatcher.needModuleMetadata(requestedVersion, foundVersion);
             artifact = DefaultArtifact.cloneWithAnotherMrid(artifact, ModuleRevisionId.newInstance(requestedRevision, foundVersion));
             String resourcePath = listedVersion.getPattern().toPath(artifact);
             ExternalResource resource = getResource(resourcePath, artifact.getId(), forDownload || needsMetadata);

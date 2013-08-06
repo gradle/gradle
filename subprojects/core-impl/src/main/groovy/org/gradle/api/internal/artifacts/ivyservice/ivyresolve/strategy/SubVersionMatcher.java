@@ -22,9 +22,13 @@ import java.util.Comparator;
 /**
  * Version matcher for dynamic version selectors ending in '+'.
  */
-class SubVersionMatcher implements VersionMatcher {
-    public boolean isDynamic(String selector) {
+public class SubVersionMatcher implements VersionMatcher {
+    public boolean canHandle(String selector) {
         return selector.endsWith("+");
+    }
+
+    public boolean isDynamic(String selector) {
+        return true;
     }
 
     public boolean needModuleMetadata(String selector, String candidate) {

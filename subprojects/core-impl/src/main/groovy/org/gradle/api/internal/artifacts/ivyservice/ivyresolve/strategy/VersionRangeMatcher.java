@@ -110,12 +110,16 @@ class VersionRangeMatcher implements VersionMatcher {
         this.latestStrategy = latestStrategy;
     }
 
-    public String getName() {
-        return "version-range";
+    public boolean canHandle(String selector) {
+        return ALL_RANGE.matcher(selector).matches();
     }
 
     public boolean isDynamic(String selector) {
-        return ALL_RANGE.matcher(selector).matches();
+        return true;
+    }
+
+    public boolean needModuleMetadata(String selector, String candidate) {
+        return false;
     }
 
     public boolean accept(String selector, String candidate) {
@@ -140,14 +144,8 @@ class VersionRangeMatcher implements VersionMatcher {
         return false;
     }
 
-    private boolean isLower(String version1, String version2, boolean inclusive) {
-        int result = comparator.compare(version1, version2);
-        return result <= (inclusive ? 0 : -1);
-    }
-
-    private boolean isUpper(String version1, String version2, boolean inclusive) {
-        int result = comparator.compare(version1, version2);
-        return result >= (inclusive ? 0 : 1);
+    public boolean accept(String selector, ModuleVersionMetaData candidate) {
+        return accept(selector, candidate.getId().getVersion());
     }
 
     public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
@@ -177,11 +175,13 @@ class VersionRangeMatcher implements VersionMatcher {
         return c == 0 ? -1 : c;
     }
 
-    public boolean needModuleMetadata(String selector, String candidate) {
-        return false;
+    private boolean isLower(String version1, String version2, boolean inclusive) {
+        int result = comparator.compare(version1, version2);
+        return result <= (inclusive ? 0 : -1);
     }
 
-    public boolean accept(String selector, ModuleVersionMetaData candidate) {
-        return accept(selector, candidate.getId().getVersion());
+    private boolean isUpper(String version1, String version2, boolean inclusive) {
+        int result = comparator.compare(version1, version2);
+        return result >= (inclusive ? 0 : 1);
     }
 }
