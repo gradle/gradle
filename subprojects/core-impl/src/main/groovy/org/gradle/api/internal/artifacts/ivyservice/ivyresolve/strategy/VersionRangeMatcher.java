@@ -16,10 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -94,20 +91,10 @@ class VersionRangeMatcher implements VersionMatcher {
     private static final Pattern ALL_RANGE = Pattern.compile(FINITE_PATTERN + "|"
             + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN);
 
-    private final Comparator<String> comparator = new Comparator<String>() {
-        public int compare(String version1, String version2) {
-            if (version1.equals(version2)) {
-                return 0;
-            }
-            Versioned latest = latestStrategy.findLatest(Arrays.asList(new VersionInfo(version1), new VersionInfo(version2)));
-            return latest.getVersion() == version1 ? -1 : 1;
-        }
-    };
+    private final Comparator<String> staticVersionComparator;
 
-    private final LatestStrategy latestStrategy;
-
-    public VersionRangeMatcher(LatestStrategy latestStrategy) {
-        this.latestStrategy = latestStrategy;
+    public VersionRangeMatcher(VersionMatcher staticVersionComparator) {
+        this.staticVersionComparator = staticVersionComparator;
     }
 
     public boolean canHandle(String selector) {
@@ -128,31 +115,32 @@ class VersionRangeMatcher implements VersionMatcher {
         if (matcher.matches()) {
             String lower = matcher.group(1);
             String upper = matcher.group(2);
-            return isUpper(lower, candidate, selector.startsWith(OPEN_INC))
-                    && isLower(upper, candidate, selector.endsWith(CLOSE_INC));
+            return isHigher(candidate, lower, selector.startsWith(OPEN_INC))
+                    && isLower(candidate, upper, selector.endsWith(CLOSE_INC));
         }
         matcher = LOWER_INFINITE_RANGE.matcher(selector);
         if (matcher.matches()) {
             String upper = matcher.group(1);
-            return isLower(upper, candidate, selector.endsWith(CLOSE_INC));
+            return isLower(candidate, upper, selector.endsWith(CLOSE_INC));
         }
         matcher = UPPER_INFINITE_RANGE.matcher(selector);
         if (matcher.matches()) {
             String lower = matcher.group(1);
-            return isUpper(lower, candidate, selector.startsWith(OPEN_INC));
+            return isHigher(candidate, lower, selector.startsWith(OPEN_INC));
         }
-        return false;
+        throw new IllegalArgumentException("Not a version range selector: " + selector);
     }
 
     public boolean accept(String selector, ModuleVersionMetaData candidate) {
         return accept(selector, candidate.getId().getVersion());
     }
 
-    public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
+    // doesn't seem to be quite in sync with accept() (e.g. open/close is not distinguished here)
+    public int compare(String selector, String candidate) {
         Matcher m;
         m = UPPER_INFINITE_RANGE.matcher(selector);
         if (m.matches()) {
-            // no upper limit, the dynamic requestedVersion can always be considered greater
+            // no upper limit, the selector can always be considered greater
             return 1;
         }
         String upper;
@@ -164,24 +152,29 @@ class VersionRangeMatcher implements VersionMatcher {
             if (m.matches()) {
                 upper = m.group(1);
             } else {
-                throw new IllegalArgumentException(
-                        "impossible to compare: askedMrid is not a dynamic requestedVersion: " + selector);
+                throw new IllegalArgumentException("Not a version range selector: " + selector);
             }
         }
-        int c = candidateComparator.compare(upper, candidate);
-        // if the comparison consider them equal, we must return -1, because we can't consider the
-        // dynamic requestedVersion to be greater. Otherwise we can safely return the result of the static
-        // comparison
+        int c = staticVersionComparator.compare(upper, candidate);
+        // If the comparison considers them equal, we must return -1, because we can't consider the
+        // dynamic version selector to be greater. Otherwise we can safely return the result of the static
+        // comparison.
         return c == 0 ? -1 : c;
     }
 
+    /**
+     * Tells if version1 is lower than version2.
+     */
     private boolean isLower(String version1, String version2, boolean inclusive) {
-        int result = comparator.compare(version1, version2);
+        int result = staticVersionComparator.compare(version1, version2);
         return result <= (inclusive ? 0 : -1);
     }
 
-    private boolean isUpper(String version1, String version2, boolean inclusive) {
-        int result = comparator.compare(version1, version2);
+    /**
+     * Tells if version1 is higher than version2.
+     */
+    private boolean isHigher(String version1, String version2, boolean inclusive) {
+        int result = staticVersionComparator.compare(version1, version2);
         return result >= (inclusive ? 0 : 1);
     }
 }

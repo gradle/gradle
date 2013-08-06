@@ -21,14 +21,13 @@ import spock.lang.Specification
 
 class LatestVersionStrategyTest extends Specification {
     def chain = new ChainVersionMatcher()
-    def strategy = new LatestVersionStrategy()
+    def strategy = new LatestVersionStrategy(chain)
     def matcher = Mock(VersionMatcher)
 
     def setup() {
-        chain.add(new SubVersionMatcher())
+        chain.add(new SubVersionMatcher(new ExactVersionMatcher()))
         chain.add(matcher)
         chain.add(new ExactVersionMatcher())
-        strategy.versionMatcher = chain
     }
 
     def "compares static versions according to version matcher"() {
@@ -50,7 +49,7 @@ class LatestVersionStrategyTest extends Specification {
         matcher.canHandle("foo") >> true
         matcher.isDynamic("foo") >> true
         matcher.isDynamic("1.0") >> false
-        matcher.compare(_, _, _) >> 0
+        matcher.compare(_, _) >> 0
 
         expect:
         strategy.compare(new VersionInfo("foo"), new VersionInfo("1.0")) > 0
@@ -77,4 +76,3 @@ class LatestVersionStrategyTest extends Specification {
         strategy.findLatest([version3, version1, version2, version4]) == version4
     }
 }
-

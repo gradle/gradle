@@ -136,8 +136,7 @@ class MavenVersionListerTest extends Specification {
     }
 
     private static List<VersionList.ListedVersion> sort(VersionList versionList) {
-        def latestStrategy = new LatestVersionStrategy()
-        latestStrategy.versionMatcher = new ExactVersionMatcher()
+        def latestStrategy = new LatestVersionStrategy(new ExactVersionMatcher())
         versionList.sortLatestFirst(latestStrategy)
     }
 

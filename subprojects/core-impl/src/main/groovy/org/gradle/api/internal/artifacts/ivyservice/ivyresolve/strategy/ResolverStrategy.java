@@ -16,30 +16,27 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
+import com.google.common.collect.Maps;
 import org.apache.ivy.plugins.matcher.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class ResolverStrategy {
     public static final ResolverStrategy INSTANCE = new ResolverStrategy();
 
-    private final LatestStrategy latestStrategy;
     private final VersionMatcher versionMatcher;
-    private final Map<String, PatternMatcher> matchers = new HashMap<String, PatternMatcher>();
+    private final LatestStrategy latestStrategy;
+    private final Map<String, PatternMatcher> matchers = Maps.newHashMap();
 
     private ResolverStrategy() {
-        LatestVersionStrategy latest = new LatestVersionStrategy();
-        latestStrategy = latest;
-
         ChainVersionMatcher chain = new ChainVersionMatcher();
-        chain.add(new VersionRangeMatcher(latest));
-        chain.add(new SubVersionMatcher());
+        chain.add(new VersionRangeMatcher(new ExactVersionMatcher()));
+        chain.add(new SubVersionMatcher(new ExactVersionMatcher()));
         chain.add(new LatestVersionMatcher());
         chain.add(new ExactVersionMatcher());
-        versionMatcher = chain;
 
-        latest.setVersionMatcher(versionMatcher);
+        versionMatcher = chain;
+        latestStrategy = new LatestVersionStrategy(chain);
 
         addMatcher(ExactPatternMatcher.INSTANCE);
         addMatcher(RegexpPatternMatcher.INSTANCE);

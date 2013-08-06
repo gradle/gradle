@@ -74,4 +74,10 @@ class LatestVersionMatcherTest extends Specification {
         expect:
         !matcher.accept("latest.other", metadata)
     }
+
+    def "cannot tell which of version selector and candidate version is greater"() {
+        expect:
+        matcher.compare("latest.integration", "1.0") == 0
+        matcher.compare("latest.release", "2.0") == 0
+    }
 }

@@ -17,8 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
-import java.util.Comparator;
-
 public class LatestVersionMatcher implements VersionMatcher {
     public boolean canHandle(String selector) {
         return selector.startsWith("latest.");
@@ -43,7 +41,7 @@ public class LatestVersionMatcher implements VersionMatcher {
         return selectorStatusIndex >=0 && selectorStatusIndex <= candidateStatusIndex;
     }
 
-    public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
-        return needModuleMetadata(selector, candidate) ? 0 : 1;
+    public int compare(String selector, String candidate) {
+        return 0;
     }
 }

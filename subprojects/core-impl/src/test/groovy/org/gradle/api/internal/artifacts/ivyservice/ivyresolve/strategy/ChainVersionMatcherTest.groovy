@@ -106,12 +106,12 @@ class ChainVersionMatcherTest extends Specification {
         def comparator = Stub(Comparator)
 
         when:
-        def result = chain.compare("1+", "2", comparator)
+        def result = chain.compare("1+", "2")
 
         then:
         1 * matcher1.canHandle("1+") >> false
         1 * matcher2.canHandle("1+") >> true
-        1 * matcher2.compare("1+", "2", comparator) >> -3
+        1 * matcher2.compare("1+", "2") >> -3
         0 * _
 
         and:

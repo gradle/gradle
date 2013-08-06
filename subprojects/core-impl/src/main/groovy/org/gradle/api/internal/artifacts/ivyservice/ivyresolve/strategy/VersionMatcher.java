@@ -25,7 +25,7 @@ import java.util.Comparator;
  *
  * <p>This interface was initially derived from {@code org.apache.ivy.plugins.version.VersionMatcher}.
  */
-public interface VersionMatcher {
+public interface VersionMatcher extends Comparator<String> {
     /**
      * Tells if this version matcher can handle the given version selector. If {@code false}
      * is returned, none of the other methods will be called for the given selector.
@@ -62,8 +62,7 @@ public interface VersionMatcher {
      *
      * Compares a version selector with a candidate version to indicate which is greater. If there is
      * not enough information to tell which is greater, the version selector should be considered greater
-     * and this method should return 0. (pniederw: 0 or 1?) This method will never be called for a version
-     * selector for which {@link #isDynamic} returned false.
+     * and this method should return 0.
      */
-    public int compare(String selector, String candidate, Comparator<String> candidateComparator);
+    public int compare(String selector, String candidate);
 }

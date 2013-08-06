@@ -21,12 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMeta
 import spock.lang.Specification
 
 public class VersionRangeMatcherTest extends Specification {
-    def strategy = new LatestVersionStrategy()
-    def matcher = new VersionRangeMatcher(strategy)
-
-    def setup() {
-        strategy.versionMatcher = new ExactVersionMatcher()
-    }
+    def matcher = new VersionRangeMatcher(new ExactVersionMatcher())
 
     def "handles selectors that use version range syntax"() {
         expect:
@@ -139,14 +134,12 @@ public class VersionRangeMatcherTest extends Specification {
     }
 
     def "compares candidate versions against the selector's upper bound"() {
-        def comparator = new LatestVersionStrategy.VersionComparator()
-
         expect:
-        matcher.compare(range, "0.5", comparator) > 0
-        matcher.compare(range, "1.0", comparator) > 0
-        matcher.compare(range, "1.5", comparator) > 0
-        matcher.compare(range, "2.0", comparator) < 0 // unsure why [1.0,2.0] isn't considered equal to 2.0 (apparently never returns 0)
-        matcher.compare(range, "2.5", comparator) < 0
+        matcher.compare(range, "0.5") > 0
+        matcher.compare(range, "1.0") > 0
+        matcher.compare(range, "1.5") > 0
+        matcher.compare(range, "2.0") < 0 // unsure why [1.0,2.0] isn't considered equal to 2.0 (apparently never returns 0)
+        matcher.compare(range, "2.5") < 0
 
         where:
         range       | _
@@ -159,14 +152,12 @@ public class VersionRangeMatcherTest extends Specification {
     }
 
     def "selectors with infinite upper bound compare greater than any candidate version"() {
-        def comparator = new LatestVersionStrategy.VersionComparator()
-
         expect:
-        matcher.compare(range, "0.5", comparator) > 0
-        matcher.compare(range, "1.0", comparator) > 0
-        matcher.compare(range, "1.5", comparator) > 0
-        matcher.compare(range, "2.0", comparator) > 0
-        matcher.compare(range, "2.5", comparator) > 0
+        matcher.compare(range, "0.5") > 0
+        matcher.compare(range, "1.0") > 0
+        matcher.compare(range, "1.5") > 0
+        matcher.compare(range, "2.0") > 0
+        matcher.compare(range, "2.5") > 0
 
         where:
         range    | _

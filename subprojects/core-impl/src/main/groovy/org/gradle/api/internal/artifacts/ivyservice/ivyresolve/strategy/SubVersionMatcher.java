@@ -23,6 +23,12 @@ import java.util.Comparator;
  * Version matcher for dynamic version selectors ending in '+'.
  */
 public class SubVersionMatcher implements VersionMatcher {
+    private final Comparator<String> staticVersionComparator;
+
+    public SubVersionMatcher(VersionMatcher staticVersionComparator) {
+        this.staticVersionComparator = staticVersionComparator;
+    }
+
     public boolean canHandle(String selector) {
         return selector.endsWith("+");
     }
@@ -44,10 +50,10 @@ public class SubVersionMatcher implements VersionMatcher {
         return accept(selector, candidate.getId().getVersion());
     }
 
-    public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
+    public int compare(String selector, String candidate) {
         if (accept(selector, candidate)) {
             return 1;
         }
-        return candidateComparator.compare(selector, candidate);
+        return staticVersionComparator.compare(selector, candidate);
     }
 }

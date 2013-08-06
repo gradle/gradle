@@ -15,15 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
-import com.google.common.collect.Ordering
-
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
 
 import spock.lang.Specification
 
 class SubVersionMatcherTest extends Specification {
-    def matcher = new SubVersionMatcher()
+    def matcher = new SubVersionMatcher(new ExactVersionMatcher())
 
     def "handles selectors that end in '+'"() {
         expect:
@@ -73,14 +71,14 @@ class SubVersionMatcherTest extends Specification {
 
     def "considers a '+' selector greater than any matching candidate version"() {
         expect:
-        matcher.compare("1+", "11", null) > 0
-        matcher.compare("1.+", "1.2", null) > 0
-        matcher.compare("1.2.3+", "1.2.3.11", null) > 0
+        matcher.compare("1+", "11") > 0
+        matcher.compare("1.+", "1.2") > 0
+        matcher.compare("1.2.3+", "1.2.3.11") > 0
     }
 
     def "falls back to the provided comparator if selector doesn't match candidate version"() {
         expect:
-        matcher.compare("1+", "2", Ordering.natural()) < 0
-        matcher.compare("1+", "0.5", Ordering.natural()) > 0
+        matcher.compare("1+", "2") < 0
+        matcher.compare("1+", "0.5") > 0
     }
 }

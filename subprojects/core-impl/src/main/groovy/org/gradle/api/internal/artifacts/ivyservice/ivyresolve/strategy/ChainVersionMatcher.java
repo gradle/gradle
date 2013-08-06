@@ -48,8 +48,8 @@ public class ChainVersionMatcher implements VersionMatcher {
         return getCompatibleMatcher(selector).accept(selector, candidate);
     }
 
-    public int compare(String selector, String candidate, Comparator<String> candidateComparator) {
-        return getCompatibleMatcher(selector).compare(selector, candidate, candidateComparator);
+    public int compare(String selector, String candidate) {
+        return getCompatibleMatcher(selector).compare(selector, candidate);
     }
 
     private VersionMatcher getCompatibleMatcher(String selector) {
