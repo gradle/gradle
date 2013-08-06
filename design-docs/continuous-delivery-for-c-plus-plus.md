@@ -696,6 +696,7 @@ This story adds support for cross-compilation. Add the concept of an operating s
 
 - Add `OperatingSystem` and simple type extending Named
 - Add `Platform.operatingSystem` property. Should default to current operating system.
+- Add `ToolChain.targetPlatform` add to the set of supported target platforms for a tool chain.
 
 ### User visible changes
 
