@@ -361,117 +361,6 @@ Note that this story does not include support for including the transitive depen
     - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
     - Change dependency resolution to choose the position-indepenent variant of a static library when linking into a shared library
 
-## Story: Defer creation of binaries
-
-This story defers creation of the binaries for a native component until after the component has been fully configured. This will be used in later stories to allow
-different variants to be defined for a component.
-
-- Add an internal (for now) `ConfigurationActionContainer` interface, with a single `onConfigure(Runnable)` method.
-- Add a project scoped implementation of this interface. The `onConfigure()` method is invoked just before the `afterEvaluated` event.
-- Change the publishing plugin to register an action that configures the publications of the project.
-- Change the handling of `@DeferredConfigurable` so that a `@DeferredConfigurable` is not automatically configured during project configuration. Instead, it is configured
-  on demand.
-- Change the C++ plugin to register an action that configures the components of the project and then creates the binaries of each component.
-
-*Note*: this story introduces some breaking changes, as the binaries and their tasks will not be defined when the build script is executed. Later stories will
-improve this.
-
-### User visible changes
-
-    apply plugin: 'cpp-lib'
-    
-    libraries {
-        main {
-            // Defaults for all binaries for this library
-            binaries.all {
-                …
-            }
-            // Defaults for all shared library binaries for this library
-            binaries.withType(type: SharedLibraryBinary) {
-                …
-            }
-            // Note: These will not work as expected
-            binaries.each { … }
-            binaries.find { … }
-            binaries.size()
-        }
-    }
-    
-    binaries.all {
-        … 
-    }
-    
-    binaries.withType(NativeBinary) {
-        …
-    }
-    
-    // Note: this will not work as previously. It will fail because the binary does not exist yet
-    binaries {
-        mainSharedLibrary { … }
-    }
-
-    //Note: this will not work as previously. It will fail because the task does not exist yet
-    compileMainSharedLibrary { … }
-
-
-### Open issues
-
-- Introduce a `DomainObjectCollection` that uses delayed configuration of its elements.
-- Introduce a `NamedDomainObjectCollection` that uses delayed configuration of its elements.
-- Warn when using binaries container in a way that won't work.
-- Warn when mutating component after binaries have been created.
-
-## Story: Build different variants of a native component
-
-This story adds initial support for building multiple variants of a native component. For each variant of a component, a binary of the appropriate type is defined.
-
-- Add a `flavors` container to `NativeComponent`
-- If no flavors are defined, then implicity define a `default` flavor (or perhaps just always define the `default` flavor).
-- For each flavor defined for an `Executable`, create an `ExecutableBinary`.
-- For each flavor defined for a `Library`, create a `SharedLibraryBinary` and `StaticLibraryBinary`.
-- Add a property to `NativeBinary` to allow navigation to the flavor for this binary.
-- When resolving the dependencies of a binary `b`, for a dependency on library `l`, select the binary of `l` with the same flavor as `b`, if present, otherwise
-  select the binary of `l` with flavor `default`, if present, otherwise fail (will need to rework `NativeDependencySet` to make this work)
-- Add an `assemble` lifecycle task for each component.
-- Running `gradle assemble` should build all binaries for the main executable or library
-- Running `gradle uploadArchives` should build and publish all binaries for the main executable or library
-
-### User visible changes
-
-    libraries {
-        main {
-            flavors {
-                main
-                withOptionalFeature
-            }
-            binaries.matching { flavor == flavors.main } {
-                compilerArgs '-DSOME_FEATURE
-            }
-        }
-    }
-
-This will define 4 binaries:
-
-- library: 'main', flavor: 'main', packaging: 'static'
-- library: 'main', flavor: 'main', packaging: 'shared'
-- library: 'main', flavor: 'withOptionalFeature', packaging: 'static'
-- library: 'main', flavor: 'withOptionalFeature', packaging: 'shared'
-
-### Open issues
-
-- Add a 'development' assemble task, which chooses a single binary for each component.
-- Need to make standard 'build', 'check' lifecycle tasks available too.
-- Formalise the concept of a naming scheme for binary names, tasks and file paths.
-- Add a convention to give each binary a separate output directory (as the name of each variant binary can be the same).
-- Add a convention to give each binary a separate object file directory.
-- Need to be able to build a single variant or all variants.
-- Need separate compiler, linker and assembler options for each variant.
-- Need shared compiler, linker and assembler options for all variants.
-- Need to consume locally and between projects and between builds.
-- Need to infer the default variant.
-- Need to handle dependencies.
-- Need to publish all variants.
-
 ## Story: Ensure CI builds exercise test coverage for supported tool chains
 
 The CI builds include coverage for each supported tool chain. However, the coverage silently ignores tool chains which are not
@@ -635,6 +524,223 @@ This story adds support for using assembler source files as inputs to a native b
 
 # Milestone 2
 
+## Story: Build different variants of a native component
+
+This story adds initial support for building multiple variants of a native component. For each variant of a component, a binary of the appropriate type is defined.
+
+- Add a `flavors` container to `NativeComponent`
+- If no flavors are defined, then implicitly define a `default` flavor (or perhaps just always define the `default` flavor).
+- For each flavor defined for an `Executable`, create an `ExecutableBinary`.
+- For each flavor defined for a `Library`, create a `SharedLibraryBinary` and `StaticLibraryBinary`.
+- Add a property to `NativeBinary` to allow navigation to the flavor for this binary.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`:, select the binary of `l` with the same flavor as `b`, if present, otherwise
+    - If `l` has multiple flavors defined, select the binary with the same flavor as `b`. Fail if no binary with matching flavor.
+    - If `l` has a single flavor (default or defined), select the binary with that flavor.
+
+### User visible changes
+
+    libraries {
+        main {
+            flavors {
+                main
+                withOptionalFeature
+            }
+            binaries.matching { flavor == flavors.main } {
+                compilerArgs '-DSOME_FEATURE
+            }
+        }
+    }
+
+This will define 4 binaries:
+
+- library: 'main', flavor: 'main', packaging: 'static'
+- library: 'main', flavor: 'main', packaging: 'shared'
+- library: 'main', flavor: 'withOptionalFeature', packaging: 'static'
+- library: 'main', flavor: 'withOptionalFeature', packaging: 'shared'
+
+### Open issues
+
+- Add a 'development' assemble task, which chooses a single binary for each component.
+- Need to make standard 'build', 'check' lifecycle tasks available too.
+- Formalise the concept of a naming scheme for binary names, tasks and file paths.
+- Add a convention to give each binary a separate output directory (as the name of each variant binary can be the same).
+- Add a convention to give each binary a separate object file directory.
+- Need to be able to build a single variant or all variants.
+- Need separate compiler, linker and assembler options for each variant.
+- Need shared compiler, linker and assembler options for all variants.
+- Need to consume locally and between projects and between builds.
+- Need to infer the default variant.
+- Need to handle dependencies.
+- Need to publish all variants.
+
+## Story: Build a native component using multiple tool chains
+
+This story adds support for building a native component using multiple tool chains. Each variant will have a tool chain associated with it.
+
+- Build author can configure a set of ToolChains that may be used to build.
+- If no tool chain is configured, then a single default tool chain will be used.
+- From the set of defined tool chains, a set of available tool chains will be determined for building.
+- Variants will be built for all available tool chains.
+    - With a single available tool chain, the binary task names and output directories will NOT contain the tool chain name.
+    - With multiple available tool chains, task names and output directories for each variant will include the tool chain name.
+- Local dependency resolution will attempt choose a binary with a matching tool chain name
+- When building component, will attempt to variants for all available tool chains.
+
+### User visible changes
+
+    toolChains {
+        gcc(GccToolChain) {} // binaries with default names, found on Path
+        gcc3(GccToolChain) {
+            binPath "/opt/gcc/3.4.6/bin" // binaries with default names, found in binPath directory
+        }
+        mingw(GccToolChain) {
+            binPath "C:/MinGW/bin"
+        }
+        gccCrossCompiler(GccToolChain) {
+            binPath "/opt/gcc/4.0/bin" // Needed to update the path
+
+            // Custom binary file names and locations
+            cCompiler "gccCustom_gcc" // Resolved in binPath
+            cppCompiler project.file("/usr/bin/gccCustom_g++")
+            assembler "/usr/bin/gccCustom_as" // Resolved absolute
+            linker "gcc" // Resolved in binPath
+            staticArchiver "/usr/bin/gccCustom_ar"
+        }
+        visualCpp(VisualCppToolChain) {} // Binaries found in path, assume environment setup
+        visualCpp(VisualCppToolChain) {
+            visualStudioInstallDir "D:/Programs/Microsoft Visual Studio 10.0"
+            // Not in path, with install location: paths will be set and environment established
+        }
+        visualCpp64(VisualCppToolChain) {
+            assembler "ml64.exe" // Will be located in path
+        }
+    }
+
+### Tests
+
+- With no toolchain defined, build on windows with Visual C++/MinGW/cygwin-gcc in path and on linux with gcc4/gcc3 in path. (existing tests)
+- Build with gcc3 & gcc4 on Linux in a single invocation, with neither tool chain in path.
+- Build with Visual C++, MinGW and GCC on Windows in a single invocation, with no tool chain in path.
+- Reasonable error message when no tool chain is defined and default is not available.
+- Reasonable error message any defined tool chain not available.
+
+### Open issues
+
+- Reasonable behaviour when no tool chains are available on the current machine.
+- Need separate compiler, linker and assembler options for each toolchain.
+- Need shared compiler, linker and assembler options for all toolchains.
+- Need to consume locally and between projects and between builds.
+- Need to be able to build for a single toolchain only.
+- Easy way to detect (and use) the set of available tool chains.
+- Define a version requirement for a toolchain
+    - Attempt to locate the toolchain in path (with no binPath provided)
+    - Verify the version for defined toolchain (with binPath provided)
+- VisualCppToolChain should automatically switch between different executables for different target architectures.
+
+## Story: Build a native component for multiple platforms
+
+This story adds support for building a component for multiple architectures.
+Introduce the concept of a platform, which may have an associated architecture and operating system.
+Each ToolChain can be asked if it can build for a particular platform.
+Each variant has a platform associated with it.
+
+- Introduce `Architecture` as a simple type extending Named.
+- Native binaries plugin adds `Platform` and `PlatformContainer` and a container instance named `targetPlatforms`
+- Add `Platform.architecture`, that defaults to the current architecture.
+- If no target platform is defined, then the current platform is added as a default.
+- Split `PlatformToolChain` out of `ToolChainInternal`, and add `ToolChainInternal.target(Platform) -> PlatformToolChain`.
+- `PlatformToolChain` contains built-in knowledge of arguments required to build for target platform.
+
+### User visible changes
+
+    targetPlatforms {
+        x86_standard {
+            architecture "x86" // Synonym for x86-32, IA-32
+        }
+        x86_optimised {
+            architecture "x86" // Synonym for x86-32, IA-32
+        }
+        x64 {
+            architecture "x64" // Synonym for x86-64, AMD64
+        }
+        itanium {
+            architecture "IA-64"
+        }
+    }
+
+    binaries.all {
+        if (binary.platform == platforms.x86_optimised) {
+            // Customise arguments for "x86_optimised" variants
+        }
+
+        if (binary.platform.architecture.name == "x86") {
+            // Customise arguments for all "x86_standard" and "x86_optimised" variants
+        }
+    }
+
+### Tests
+
+- For each supported toolchain, build a 32-bit binary on a 64-bit machine.
+
+### Open issues
+
+- Need to be able to build for a single architecture or all available architectures.
+- Need to discover which architectures a tool chain can build for.
+- Need separate compiler, linker and assembler options for each platform.
+- Infer the default platform and architecture.
+- Define some conventions for architecture names.
+
+## Story: Cross-compile for multiple operating systems
+
+This story adds support for cross-compilation. Add the concept of an operating system to the platform.
+
+- Add `OperatingSystem` and simple type extending Named
+- Add `Platform.operatingSystem` property. Should default to current operating system.
+
+### User visible changes
+
+    toolChains {
+        gccXCompile(GccToolChain) {
+            binPath "/my/crosscompiler"
+
+            targetPlatform "linux_x86" // target by name
+            targetPlatform {
+                it.operatingSystem.name == "windows" && it.architecture.name == "x86"
+            }
+        }
+    }
+
+    targetPlatforms {
+        linux_x86 {
+            operatingSystem "linux"
+            architecture "x86" // Synonym for x86-32, IA-32
+        }
+        linux_x64 {
+            operatingSystem "linux"
+            architecture "x64" // Synonym for x86-64, AMD64
+        }
+        osx_64 {
+            operatingSystem "osx"
+            architecture "x64"
+        }
+        itanium {
+            architecture "IA-64"
+        }
+    }
+
+### Open issues
+
+- Different source files by platform
+- Need to be able to build for a single platform or all available platforms.
+- Need separate compiler, linker and assembler options for each operating system.
+- Need to discover which platforms a tool chain can build for.
+- Define some conventions for operating system names.
+- Add some opt-in way to define variants using a matrix of (flavour, tool chain, architecture, operating system).
+
+## Story: Build debug and release variants of a native component
+
+TBD
+
 ## Story: Allow library binaries to be used as input to other libraries
 
 This story add support for using a library which has dependencies on other libraries.
@@ -701,6 +807,76 @@ Given a library `a` that uses another library `b` as input:
 - Need to deal with things like 'all versions of visual C++', 'all toolchains except visual C++', 'visual C++ 9 and later', 'gcc 3' etc.
 - Need to deal with things like 'all unix environments', 'all windows environments', etc.
 
+## Story: Allow easy creation of all variants, all possible variants and a single variant for each component
+
+- Add an `assemble` lifecycle task for each component.
+- Running `gradle assemble` should build all binaries for the main executable or library
+- Running `gradle uploadArchives` should build and publish all binaries for the main executable or library
+- Add a task for creating a single 'developerImage' for each component.
+    - Build `debug` variant where possible
+    - Build shared library variants
+    - Build for the current Operating System and architecture
+
+## Story: Defer creation of binaries
+
+This story defers creation of the binaries for a native component until after the component has been fully configured. This will be used in later stories to allow
+different variants to be defined for a component.
+
+- Add an internal (for now) `ConfigurationActionContainer` interface, with a single `onConfigure(Runnable)` method.
+- Add a project scoped implementation of this interface. The `onConfigure()` method is invoked just before the `afterEvaluated` event.
+- Change the publishing plugin to register an action that configures the publications of the project.
+- Change the handling of `@DeferredConfigurable` so that a `@DeferredConfigurable` is not automatically configured during project configuration. Instead, it is configured
+  on demand.
+- Change the C++ plugin to register an action that configures the components of the project and then creates the binaries of each component.
+
+*Note*: this story introduces some breaking changes, as the binaries and their tasks will not be defined when the build script is executed. Later stories will
+improve this.
+
+### User visible changes
+
+    apply plugin: 'cpp-lib'
+
+    libraries {
+        main {
+            // Defaults for all binaries for this library
+            binaries.all {
+                …
+            }
+            // Defaults for all shared library binaries for this library
+            binaries.withType(type: SharedLibraryBinary) {
+                …
+            }
+            // Note: These will not work as expected
+            binaries.each { … }
+            binaries.find { … }
+            binaries.size()
+        }
+    }
+
+    binaries.all {
+        …
+    }
+
+    binaries.withType(NativeBinary) {
+        …
+    }
+
+    // Note: this will not work as previously. It will fail because the binary does not exist yet
+    binaries {
+        mainSharedLibrary { … }
+    }
+
+    //Note: this will not work as previously. It will fail because the task does not exist yet
+    compileMainSharedLibrary { … }
+
+
+### Open issues
+
+- Introduce a `DomainObjectCollection` that uses delayed configuration of its elements.
+- Introduce a `NamedDomainObjectCollection` that uses delayed configuration of its elements.
+- Warn when using binaries container in a way that won't work.
+- Warn when mutating component after binaries have been created.
+
 ## Story: Convenient configuration of tasks for binaries and components
 
 This story defers configuration of the tasks for a binary or component until after the object has been fully configured.
@@ -747,61 +923,6 @@ The implementation will also remove stale object files.
 
 - Can define a standalone executable, shared library or static library binary, and the appropriate tasks are created and configured appropriately.
 - Can define and configure standalone compile and link tasks.
-
-## Story: Build a native component using multiple tool chains
-
-This story adds support for building a native component using multiple tool chains. Each variant may have a tool chain associated with it.
-
-### Open issues
-
-- Reasonable behaviour when no tool chains are available on the current machine.
-- Allow the C++ compiler executable for a toolchain to be specified.
-- Allow the C compiler executable for a toolchain to be specified.
-- Allow the linker and library archiver for a toolchain to be specified.
-- Allow the assembler for a toolchain to be specified.
-- Need to be able to build for a single toolchain or all available toolchains.
-- Need separate compiler, linker and assembler options for each toolchain.
-- Need shared compiler, linker and assembler options for all toolchains.
-- Need to consume locally and between projects and between builds.
-- Need to discover the available tool chains.
-
-### Tests
-
-- Build on windows using visual c++ and gcc.
-
-## Story: Build a native component for multiple architectures
-
-This story adds support for building a component for multiple architectures. Introduce the concept of a platform, and each variant may have a platform associated
-with it.
-
-### Open issues
-
-- Need to be able to build for a single architecture or all available architectures.
-- Need to discover which architectures a tool chain can build for.
-- Need separate compiler, linker and assembler options for each platform.
-- Infer the default platform and architecture.
-- Define some conventions for architecture names.
-
-### Tests
-
-- Cross compile a 32-bit binary on a 64-bit linux machine.
-
-## Story: Cross-compile for multiple operating systems
-
-This story adds support for cross-compilation. Add the concept of an operating system to the platform.
-
-### Open issues
-
-- Different source files by platform
-- Need to be able to build for a single platform or all available platforms.
-- Need separate compiler, linker and assembler options for each operating system.
-- Need to discover which platforms a tool chain can build for.
-- Define some conventions for operating system names.
-- Add some opt-in way to define variants using a matrix of (flavour, tool chain, architecture, operating system).
-
-## Story: Build debug and release variants of a native component 
-
-TBD
 
 ## Story: Convenient configuration of compiler and linker settings
 
