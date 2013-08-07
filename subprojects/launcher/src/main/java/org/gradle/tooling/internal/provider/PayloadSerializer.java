@@ -33,13 +33,13 @@ public class PayloadSerializer {
         this.classLoaderRegistry = classLoaderRegistry;
     }
 
-    public ToolingModel serialize(Object payload) {
+    public SerializedPayload serialize(Object payload) {
         List<URL> classpath = payload == null ? Collections.<URL>emptyList() : ClasspathUtil.getClasspath(payload.getClass().getClassLoader());
         byte[] serializedModel = GUtil.serialize(payload);
-        return new ToolingModel(classpath, serializedModel);
+        return new SerializedPayload(classpath, serializedModel);
     }
 
-    public Object deserialize(ToolingModel model) {
+    public Object deserialize(SerializedPayload model) {
         ClassLoader classLoader = classLoaderRegistry.getClassLoaderFor(model.getClassPath());
         try {
             return Message.receive(new ByteArrayInputStream(model.getSerializedModel()), classLoader);

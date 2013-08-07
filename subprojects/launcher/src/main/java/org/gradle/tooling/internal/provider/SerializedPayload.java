@@ -20,11 +20,11 @@ import java.io.Serializable;
 import java.net.URL;
 import java.util.List;
 
-public class ToolingModel implements Serializable {
+public class SerializedPayload implements Serializable {
     private final byte[] serializedModel;
     private final List<URL> classPath;
 
-    public ToolingModel(List<URL> classPath, byte[] serializedModel) {
+    public SerializedPayload(List<URL> classPath, byte[] serializedModel) {
         this.classPath = classPath;
         this.serializedModel = serializedModel;
     }

@@ -24,17 +24,17 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 import java.io.Serializable;
 
-public class BuildModelAction implements BuildAction<ToolingModel>, Serializable {
+public class BuildModelAction implements BuildAction<SerializedPayload>, Serializable {
     private final boolean runTasks;
     private final String modelName;
-    private ToolingModel model;
+    private SerializedPayload model;
 
     public BuildModelAction(String modelName, boolean runTasks) {
         this.modelName = modelName;
         this.runTasks = runTasks;
     }
 
-    public ToolingModel run(BuildController buildController) {
+    public SerializedPayload run(BuildController buildController) {
         DefaultGradleLauncher launcher = (DefaultGradleLauncher) buildController.getLauncher();
 
         if (runTasks) {

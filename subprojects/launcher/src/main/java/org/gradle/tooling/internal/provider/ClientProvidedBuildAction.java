@@ -29,14 +29,14 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicReference;
 
-class ClientProvidedBuildAction implements BuildAction<ToolingModel>, Serializable {
-    private final ToolingModel action;
+class ClientProvidedBuildAction implements BuildAction<SerializedPayload>, Serializable {
+    private final SerializedPayload action;
 
-    public ClientProvidedBuildAction(ToolingModel action) {
+    public ClientProvidedBuildAction(SerializedPayload action) {
         this.action = action;
     }
 
-    public ToolingModel run(final BuildController buildController) {
+    public SerializedPayload run(final BuildController buildController) {
         final DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) buildController.getLauncher();
         PayloadSerializer payloadSerializer = gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
         InternalBuildAction<?> action = (InternalBuildAction<?>) payloadSerializer.deserialize(this.action);

@@ -95,11 +95,11 @@ public class ProviderConnection implements Stoppable {
                     params.daemonParams.getEffectiveJvmArgs());
         }
 
-        BuildAction<ToolingModel> action = new BuildModelAction(modelName, tasks != null);
+        BuildAction<SerializedPayload> action = new BuildModelAction(modelName, tasks != null);
 
         // TODO:ADAM - need to clean up error handling here
 
-        ToolingModel model;
+        SerializedPayload model;
         try {
             model = run(action, providerParameters, params.properties);
         } catch (RuntimeException e) {
@@ -117,9 +117,9 @@ public class ProviderConnection implements Stoppable {
 
     public Object run(InternalBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
-        ToolingModel serializedAction = payloadSerializer.serialize(clientAction);
-        BuildAction<ToolingModel> action = new ClientProvidedBuildAction(serializedAction);
-        ToolingModel result = run(action, providerParameters, params.properties);
+        SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
+        BuildAction<SerializedPayload> action = new ClientProvidedBuildAction(serializedAction);
+        SerializedPayload result = run(action, providerParameters, params.properties);
 
         return payloadSerializer.deserialize(result);
     }
