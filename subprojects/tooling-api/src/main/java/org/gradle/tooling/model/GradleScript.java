@@ -29,7 +29,8 @@ import java.io.File;
 @Incubating
 public interface GradleScript {
     /**
-     * Returns the source file for the script.
+     * Returns the source file for this script, or {@code null} if this script has no associated source file.
+     * If this method returns a non-null value, the given source file will exist.
      *
      * @return The source file. Returns null if the script has no associated source file.
      * @since 1.8
