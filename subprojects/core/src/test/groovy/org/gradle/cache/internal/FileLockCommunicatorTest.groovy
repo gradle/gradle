@@ -17,14 +17,14 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.messaging.remote.internal.inet.InetAddressFactory
 import org.gradle.util.ConcurrentSpecification
 
-import static org.gradle.cache.internal.FileLockCommunicator.pingOwner
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class FileLockCommunicatorTest extends ConcurrentSpecification {
 
-    def communicator = new FileLockCommunicator()
+    def communicator = new FileLockCommunicator(new InetAddressFactory())
     Long receivedId
 
     def cleanup() {
@@ -54,7 +54,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         }
 
         when:
-        pingOwner(communicator.getPort(), 155)
+        communicator.pingOwner(communicator.getPort(), 155, "lock")
 
         then:
         poll {
@@ -72,7 +72,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
 
     def "pinging on a port that nobody listens is safe"() {
         when:
-        pingOwner(6666, 166)
+        communicator.pingOwner(6666, 166, "lock")
 
         then:
         noExceptionThrown()

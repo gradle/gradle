@@ -22,4 +22,6 @@ public interface FileLockContentionHandler {
     void stop(long lockId);
 
     int reservePort();
+
+    void pingOwner(int port, long lockId, String displayName);
 }

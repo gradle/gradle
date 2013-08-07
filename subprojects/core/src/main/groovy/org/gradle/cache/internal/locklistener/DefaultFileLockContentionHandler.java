@@ -20,8 +20,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.FileLockCommunicator;
 import org.gradle.cache.internal.GracefullyStoppedException;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,18 +33,16 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockContentionHandler.class);
     private final Lock lock = new ReentrantLock();
     private final Map<Long, Runnable> contendedActions = new HashMap<Long, Runnable>();
-    private final DefaultExecutorFactory executorFactory;
+    private final ExecutorFactory executorFactory;
+    private final InetAddressFactory addressFactory;
 
     private FileLockCommunicator communicator;
     private StoppableExecutor executor;
     private boolean stopped;
 
-    public DefaultFileLockContentionHandler() {
-        this(new DefaultExecutorFactory());
-    }
-
-    DefaultFileLockContentionHandler(DefaultExecutorFactory executorFactory) {
+    public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory addressFactory) {
         this.executorFactory = executorFactory;
+        this.addressFactory = addressFactory;
     }
 
     private Runnable listener() {
@@ -93,13 +92,17 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                 throw new IllegalStateException("Must initialize the handler by reserving the port first.");
             }
             if (executor == null) {
-                executor = executorFactory.create("Listen for file lock access requests from other processes");
+                executor = executorFactory.create("File lock request listener");
                 executor.execute(listener());
             }
             contendedActions.put(lockId, whenContended);
         } finally {
             lock.unlock();
         }
+    }
+
+    public void pingOwner(int port, long lockId, String displayName) {
+        getCommunicator().pingOwner(port, lockId, displayName);
     }
 
     private void assertNotStopped() {
@@ -118,7 +121,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
-    public void stop() {
+    public void     stop() {
         //Down the road this method should be used to clean up,
         //when the Gradle process is about to complete (not gradle build).
         //Ideally in future, this is happens during the clean-up/stopping of the global services
@@ -139,13 +142,17 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     }
 
     public int reservePort() {
+        return getCommunicator().getPort();
+    }
+
+    private FileLockCommunicator getCommunicator() {
         lock.lock();
         try {
             assertNotStopped();
             if (communicator == null) {
-                communicator = new FileLockCommunicator();
+                communicator = new FileLockCommunicator(addressFactory);
             }
-            return communicator.getPort();
+            return communicator;
         } finally {
             lock.unlock();
         }

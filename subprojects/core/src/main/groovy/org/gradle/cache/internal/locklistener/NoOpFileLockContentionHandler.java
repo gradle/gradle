@@ -25,4 +25,7 @@ public class NoOpFileLockContentionHandler implements FileLockContentionHandler 
     public int reservePort() {
         return -1;
     }
+
+    public void pingOwner(int port, long lockId, String displayName) {
+    }
 }

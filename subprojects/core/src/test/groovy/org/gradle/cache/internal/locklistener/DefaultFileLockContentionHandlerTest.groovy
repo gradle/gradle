@@ -16,40 +16,46 @@
 
 package org.gradle.cache.internal.locklistener
 
-import org.gradle.cache.internal.FileLockCommunicator
-import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.messaging.remote.internal.inet.InetAddressFactory
 import org.gradle.util.ConcurrentSpecification
+
+import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
-
-    def handler = new DefaultFileLockContentionHandler();
+    def addressFactory = new InetAddressFactory()
+    def handler = new DefaultFileLockContentionHandler(executorFactory, addressFactory)
+    def client = new DefaultFileLockContentionHandler(executorFactory, addressFactory)
 
     def cleanup() {
-        handler.stop()
+        handler?.stop()
+        client?.stop()
     }
 
     def "manages contention for multiple locks"() {
-        int executed = 0
+        def action1 = new AtomicBoolean()
+        def action2 = new AtomicBoolean()
 
         when:
-        int port = handler.reservePort();
-        handler.start(10, { executed++ } as Runnable)
-        handler.start(11, { executed++ } as Runnable)
-        FileLockCommunicator.pingOwner(port, 10)
-        FileLockCommunicator.pingOwner(port, 11)
+        int port = handler.reservePort()
+        handler.start(10, { action1.set(true) })
+        handler.start(11, { action2.set(true) })
+
+        client.pingOwner(port, 10, "lock 1")
+        client.pingOwner(port, 11, "lock 2")
 
         then:
         poll {
-            assert executed == 2
+            assert action1.get() && action2.get()
         }
     }
 
     def "there is only one executor thread"() {
-        def factory = Mock(DefaultExecutorFactory)
-        handler = new DefaultFileLockContentionHandler(factory);
+        def factory = Mock(ExecutorFactory)
+        handler = new DefaultFileLockContentionHandler(factory, addressFactory)
 
         when:
         handler.reservePort()
@@ -79,24 +85,13 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         thrown(IllegalStateException)
     }
 
-    def "specific lock can be closed and contended action does not run"() {
-        when:
-        int port = handler.reservePort();
-        handler.start(10, { throw new RuntimeException("Boo!") } as Runnable)
-        handler.stop(10)
-        FileLockCommunicator.pingOwner(port, 10)
-        handler.stop()
-
-        then:
-        noExceptionThrown()
-    }
-
     def "handler can be closed and contended action does not run"() {
         when:
         int port = handler.reservePort();
         handler.start(10, { throw new RuntimeException("Boo!") } as Runnable)
         handler.stop()
-        FileLockCommunicator.pingOwner(port, 10)
+
+        client.pingOwner(port, 10, "lock 1")
 
         then:
         noExceptionThrown()
@@ -104,7 +99,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
 
     def "can receive request for lock that is already closed"() {
         when:
-        int port = handler.reservePort();
+        int port = handler.reservePort()
         handler.start(10, { assert false } as Runnable)
         sleep(300) //so that it starts receiving
 
@@ -112,18 +107,18 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         handler.stop(10)
 
         //receive request for lock that is already closed
-        FileLockCommunicator.pingOwner(port, 10)
+        client.pingOwner(port, 10, "lock 1")
 
         then:
         canHandleMoreRequests()
     }
 
     private void canHandleMoreRequests() {
-        def executed = 0
+        def executed = new AtomicBoolean()
         int port = handler.reservePort();
-        handler.start(15, { executed++ } as Runnable)
-        FileLockCommunicator.pingOwner(port, 15)
-        poll { assert executed == 1 }
+        handler.start(15, { executed.set(true) } as Runnable)
+        client.pingOwner(port, 15, "lock")
+        poll { assert executed.get() }
     }
 
     def "reserving port is safely reentrant"() {
@@ -131,7 +126,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         int port = handler.reservePort()
 
         then:
-        port == handler.reservePort()
+        handler.reservePort() == port
     }
 
     def "cannot reserve port when the handler was stopped"() {
@@ -145,8 +140,8 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
     }
 
     def "reserving port does not start the thread"() {
-        def factory = Mock(DefaultExecutorFactory)
-        handler = new DefaultFileLockContentionHandler(factory);
+        def factory = Mock(ExecutorFactory)
+        handler = new DefaultFileLockContentionHandler(factory, addressFactory)
 
         when:
         handler.reservePort()
@@ -156,9 +151,9 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
     }
 
     def "stopping the handler stops the executor"() {
-        def factory = Mock(DefaultExecutorFactory)
+        def factory = Mock(ExecutorFactory)
         def executor = Mock(StoppableExecutor)
-        handler = new DefaultFileLockContentionHandler(factory);
+        handler = new DefaultFileLockContentionHandler(factory, addressFactory)
 
         when:
         handler.reservePort()

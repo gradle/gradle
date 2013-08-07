@@ -88,8 +88,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
         try {
             int port = fileLockContentionHandler.reservePort();
-            DefaultFileLock newLock = new DefaultFileLock(canonicalTarget, mode, targetDisplayName, operationDisplayName, port);
-            return newLock;
+            return new DefaultFileLock(canonicalTarget, mode, targetDisplayName, operationDisplayName, port);
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
             throw throwAsUncheckedException(t);
@@ -270,7 +269,7 @@ public class DefaultFileLockManager implements FileLockManager {
                             lockFileAccess.close();
                         }
                     } catch (Exception e) {
-                        throw new RuntimeException("Problems releasing lock on " + displayName, e);
+                        throw new RuntimeException("Failed to release lock on " + displayName, e);
                     }
                 }
             });
@@ -324,7 +323,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     // Acquire an exclusive lock on the information region and write our details there
                     java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
                     if (informationRegionLock == null) {
-                        throw new IllegalStateException(String.format("Unable to lock the information region for lock %s", displayName));
+                        throw new IllegalStateException(String.format("Unable to lock the information region for %s", displayName));
                     }
                     // check that the length of the reserved region is enough for storing our content
                     try {
@@ -397,7 +396,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     OwnerInfo ownerInfo = readInformationRegion(System.currentTimeMillis()); //no need for timeout here, as we're already looping with timeout
                     if (ownerInfo.port != -1) {
                         LOGGER.info("The file lock is held by a different Gradle process (pid: {}, operation: {}). Will attempt to ping owner at port {}", ownerInfo.pid, ownerInfo.operation, ownerInfo.port);
-                        FileLockCommunicator.pingOwner(ownerInfo.port, ownerInfo.lockId);
+                        fileLockContentionHandler.pingOwner(ownerInfo.port, ownerInfo.lockId, displayName);
                     } else {
                         LOGGER.debug("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
                     }
