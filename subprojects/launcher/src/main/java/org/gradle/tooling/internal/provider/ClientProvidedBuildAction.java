@@ -25,8 +25,11 @@ import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.util.GUtil;
 
 import java.io.Serializable;
+import java.net.URL;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 class ClientProvidedBuildAction implements BuildAction<SerializedPayload>, Serializable {
@@ -58,6 +61,6 @@ class ClientProvidedBuildAction implements BuildAction<SerializedPayload>, Seria
                 return new ProviderBuildResult<Object>(result.get());
             }
         });
-        return payloadSerializer.serialize(result);
+        return new SerializedPayload(Collections.<URL>emptyList(), GUtil.serialize(result));
     }
 }

@@ -39,8 +39,12 @@ public class PayloadSerializer {
         return new SerializedPayload(classpath, serializedModel);
     }
 
-    public Object deserialize(SerializedPayload model) {
-        ClassLoader classLoader = classLoaderRegistry.getClassLoaderFor(model.getClassPath());
+    public Object deserialize(SerializedPayload payload) {
+        ClassLoader classLoader = classLoaderRegistry.getClassLoaderFor(payload.getClassPath());
+        return deserialize(payload, classLoader);
+    }
+
+    public Object deserialize(SerializedPayload model, ClassLoader classLoader) {
         try {
             return Message.receive(new ByteArrayInputStream(model.getSerializedModel()), classLoader);
         } catch (Exception e) {

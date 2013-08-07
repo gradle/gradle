@@ -34,10 +34,10 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         file("settings.gradle") << 'rootProject.name="hello-world"'
 
         when:
-        String result = withConnection { it.action(new CustomAction()).run() }
+        CustomModel result = withConnection { it.action(new CustomAction()).run() }
 
         then:
-        result == "hello-world"
+        result.name == "hello-world"
     }
 
     @Ignore("work in progress")
@@ -60,10 +60,10 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support build actions."
     }
 
-    static class CustomAction implements BuildAction<String> {
-        def String execute(BuildController controller) {
+    static class CustomAction implements BuildAction<CustomModel> {
+        def CustomModel execute(BuildController controller) {
             def model = controller.getModel(GradleProject.class)
-            return model.name
+            return new CustomModel(name: model.name)
         }
     }
 
@@ -73,5 +73,9 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         String execute(BuildController controller) {
             throw new CustomException()
         }
+    }
+
+    static class CustomModel implements Serializable {
+        String name
     }
 }

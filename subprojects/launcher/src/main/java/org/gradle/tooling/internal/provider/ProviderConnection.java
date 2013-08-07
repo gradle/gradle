@@ -121,7 +121,7 @@ public class ProviderConnection implements Stoppable {
         BuildAction<SerializedPayload> action = new ClientProvidedBuildAction(serializedAction);
         SerializedPayload result = run(action, providerParameters, params.properties);
 
-        return payloadSerializer.deserialize(result);
+        return payloadSerializer.deserialize(result, clientAction.getClass().getClassLoader());
     }
 
     private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {
