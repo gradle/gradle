@@ -20,12 +20,15 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyResolverBackedModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyDependencyResolverAdapter;
+import org.gradle.cache.CacheAccess;
 
 public class FixedResolverArtifactRepository extends AbstractArtifactRepository {
     protected final DependencyResolver resolver;
+    private final CacheAccess cacheAccess;
 
-    public FixedResolverArtifactRepository(DependencyResolver resolver) {
+    public FixedResolverArtifactRepository(DependencyResolver resolver, CacheAccess cacheAccess) {
         this.resolver = resolver;
+        this.cacheAccess = cacheAccess;
     }
 
     public String getName() {
@@ -50,7 +53,7 @@ public class FixedResolverArtifactRepository extends AbstractArtifactRepository 
             ResolutionAwareRepository resolutionAwareRepository = (ResolutionAwareRepository) resolver;
             return resolutionAwareRepository.createResolver();
         }
-        return new IvyDependencyResolverAdapter(resolver);
+        return new IvyDependencyResolverAdapter(resolver, cacheAccess);
     }
 
     public DependencyResolver createLegacyDslObject() {

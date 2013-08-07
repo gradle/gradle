@@ -20,6 +20,7 @@ import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.internal.artifacts.repositories.transport.ProgressLoggingTransferListener;
+import org.gradle.cache.CacheAccess;
 import org.gradle.logging.ProgressLoggerFactory;
 
 import java.util.List;
@@ -30,8 +31,9 @@ public class CustomResolverArtifactRepository extends FixedResolverArtifactRepos
     private final RepositoryCacheManager localCacheManager;
 
     public CustomResolverArtifactRepository(DependencyResolver resolver, ProgressLoggerFactory progressLoggerFactory,
-                                            RepositoryCacheManager localCacheManager, RepositoryCacheManager downloadingCacheManager) {
-        super(resolver);
+                                            RepositoryCacheManager localCacheManager, RepositoryCacheManager downloadingCacheManager,
+                                            CacheAccess cacheAccess) {
+        super(resolver, cacheAccess);
         this.localCacheManager = localCacheManager;
         this.downloadingCacheManager = downloadingCacheManager;
         this.transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, CustomResolverArtifactRepository.class);

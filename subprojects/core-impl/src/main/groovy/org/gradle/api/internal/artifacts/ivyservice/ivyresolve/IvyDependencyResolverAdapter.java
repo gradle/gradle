@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
+import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
@@ -29,6 +30,8 @@ import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.repositories.legacy.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.legacy.LocalFileRepositoryCacheManager;
+import org.gradle.cache.CacheAccess;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +47,12 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
     private final DownloadOptions downloadOptions = new DownloadOptions();
     private final String identifier;
     private final DependencyResolver resolver;
+    private final CacheAccess cacheAccess;
     private ResolveData resolveData;
 
-    public IvyDependencyResolverAdapter(DependencyResolver resolver) {
+    public IvyDependencyResolverAdapter(DependencyResolver resolver, CacheAccess cacheAccess) {
         this.resolver = resolver;
+        this.cacheAccess = cacheAccess;
         identifier = DependencyResolverIdentifier.forIvyResolver(resolver);
     }
 
@@ -80,25 +85,35 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         return false;
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+    public void getDependency(final DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         IvyContext.getContext().setResolveData(resolveData);
-        try {
-            ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);
-            if (revision == null) {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dependency.getRequested(), getName());
-                result.missing();
-            } else {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependency.getRequested(), getName());
-                result.resolved(revision.getDescriptor(), isChanging(revision), null);
+        ResolvedModuleRevision revision = cacheAccess.useCache("ivy resolve", new Factory<ResolvedModuleRevision>() {
+            public ResolvedModuleRevision create() {
+                try {
+                    return resolver.getDependency(dependency.getDescriptor(), resolveData);
+                } catch (ParseException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
             }
-        } catch (ParseException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        });
+
+        if (revision == null) {
+            LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dependency.getRequested(), getName());
+            result.missing();
+        } else {
+            LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependency.getRequested(), getName());
+            result.resolved(revision.getDescriptor(), isChanging(revision), null);
         }
     }
 
     public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        Artifact ivyArtifact = DefaultArtifactIdentifier.toArtifact(artifact);
-        ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
+        final Artifact ivyArtifact = DefaultArtifactIdentifier.toArtifact(artifact);
+        DownloadReport download = cacheAccess.useCache("ivy download", new Factory<DownloadReport>() {
+            public DownloadReport create() {
+                return resolver.download(new Artifact[]{ivyArtifact}, downloadOptions);
+            }
+        });
+        ArtifactDownloadReport artifactDownloadReport = download.getArtifactReport(ivyArtifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
                 EnhancedArtifactDownloadReport enhancedReport = (EnhancedArtifactDownloadReport) artifactDownloadReport;

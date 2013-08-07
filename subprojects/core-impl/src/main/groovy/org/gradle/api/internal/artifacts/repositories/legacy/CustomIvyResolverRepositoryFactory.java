@@ -20,23 +20,26 @@ import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.CustomResolverArtifactRepository;
+import org.gradle.cache.CacheAccess;
 import org.gradle.logging.ProgressLoggerFactory;
 
 public class CustomIvyResolverRepositoryFactory implements LegacyDependencyResolverRepositoryFactory {
     private final ProgressLoggerFactory progressLoggerFactory;
     private final RepositoryCacheManager localCacheManager;
     private final RepositoryCacheManager downloadingCacheManager;
+    private final CacheAccess cacheAccess;
 
     public CustomIvyResolverRepositoryFactory(ProgressLoggerFactory progressLoggerFactory,
                                               RepositoryCacheManager localCacheManager,
-                                              RepositoryCacheManager downloadingCacheManager) {
+                                              RepositoryCacheManager downloadingCacheManager, CacheAccess cacheAccess) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.localCacheManager = localCacheManager;
         this.downloadingCacheManager = downloadingCacheManager;
+        this.cacheAccess = cacheAccess;
     }
 
     public ArtifactRepository createRepository(DependencyResolver dependencyResolver) {
-        return new CustomResolverArtifactRepository(dependencyResolver, progressLoggerFactory, localCacheManager, downloadingCacheManager);
+        return new CustomResolverArtifactRepository(dependencyResolver, progressLoggerFactory, localCacheManager, downloadingCacheManager, cacheAccess);
     }
 
 }
