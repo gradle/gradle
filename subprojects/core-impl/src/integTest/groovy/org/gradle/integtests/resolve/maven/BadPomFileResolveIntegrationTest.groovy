@@ -16,16 +16,13 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class BadPomFileResolveIntegrationTest extends AbstractDependencyResolutionTest {
-
     @Issue("http://issues.gradle.org/browse/GRADLE-1005")
     def "can handle self referencing dependency"() {
         given:
-        file("settings.gradle") << "include 'client'"
-
-        and:
         mavenRepo().module('group', 'artifact', '1.0').dependsOn('group', 'artifact', '1.0').publish()
 
         and:
@@ -41,6 +38,51 @@ class BadPomFileResolveIntegrationTest extends AbstractDependencyResolutionTest 
         """
 
         expect:
+        succeeds ":libs"
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2861")
+    @Ignore
+    def "can handle pom with placeholders in dependency management"() {
+        given:
+        server.start()
+
+        def parent = mavenHttpRepo.module('group', 'parent', '1.0').publish()
+        parent.pomFile.text = parent.pomFile.text.replace("</project>", """
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>\${some.group}</groupId>
+            <artifactId>\${some.artifact}</artifactId>
+            <version>\${some.version}</version>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+</project>
+""")
+
+        def module = mavenHttpRepo.module('group', 'artifact', '1.0').parent('group', 'parent', '1.0').publish()
+
+        and:
+        buildFile << """
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+            }
+            configurations { compile }
+            dependencies {
+                compile "group:artifact:1.0"
+            }
+            task libs << { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar'] }
+        """
+
+        and:
+        parent.pom.expectGet()
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        expect:
+        // have to run twice to trigger the failure, to parse the descriptor from the cache
+        succeeds ":libs"
         succeeds ":libs"
     }
 }
