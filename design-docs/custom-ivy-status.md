@@ -52,10 +52,6 @@ The module's status is mentioned in its Ivy descriptor, but not in the build scr
 
 No API changes are necessary. Ivy modules with custom status should be resolved in the same way as modules with a default status.
 
-### Implementation
-
-TBD.
-
 ### Test coverage
 
 * Consume a module with custom Ivy status.
@@ -72,24 +68,24 @@ highest version whose status is either `silver` or `gold`.
 A Gradle build script may declare component metadata rules that compute the metadata for a component. This could look as follows:
 
     componentMetaData {
-        statusScheme = ['gold', 'silver', 'bronze']
+        eachComponent { details ->
+            details.statusScheme = ['gold', 'silver', 'bronze']
+        }
     }
 
 Different components may use different status schemes:
 
-    componentMetaData {
-        if (group == 'olympic') {
-            statusScheme = ['gold', 'silver', 'bronze']
+    componentMetaData { details ->
+        if (details.id.group == 'olympic') {
+            details.statusScheme = ['gold', 'silver', 'bronze']
         } else {
-            statusScheme = ['top', 'flop']
+            details.statusScheme = ['top', 'flop']
         }
     }
 
 It should also be possible to set the component's status, overriding its default status.
 
-### Implementation
-
-TBD.
+Note: For this story, the metadata rules do not apply to components resolved from an Ivy `DependencyResolver` instance.
 
 ### Test coverage
 
@@ -97,9 +93,16 @@ TBD.
 * Declare a single "global" status scheme. Publish module versions with different statuses, and consume them using different "latest" selectors.
 * Same as the previous case but with multiple different status schemes.
 * Use a "latest" version selector with a status that is not contained in the module's status scheme. A meaningful error should occur.
+* Publish a module version with a status that is not contained in the module's status scheme. A meaningful error should occur.
 * If a module version's descriptor does not declare a status, its status defaults to the least mature status for the module's status scheme. (Matches Ivy's behavior.)
+    * Verify that the status exposed in meta-data tracks changes in the status scheme.
 * If a module version has no descriptor, its status defaults to the least mature status for the module's status scheme.
+    * Verify that the status exposed in meta-data tracks changes in the status scheme.
 * Override the status of a module in the build script, and verify that it affects "latest" resolution in the expected way.
+* Verify that the original metadata is cached, not the mutated metadata:
+    * Publish 2 versions of a module to an HTTP repository
+    * Use a meta-data rule to set the statuses of each version so that version 1 is selected.
+    * Change the meta-data rule so that version 2 is selected instead.
 
 ## Consume a "latest" version of an Ivy module with custom status that exists in multiple Ivy repositories
 
