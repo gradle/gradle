@@ -18,6 +18,8 @@ package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
 
+import java.io.Serializable;
+
 /**
  * An action that executes against a Gradle build and produces a result of type {@code T}.
  *
@@ -25,7 +27,7 @@ import org.gradle.api.Incubating;
  * @since 1.8
  */
 @Incubating
-public interface BuildAction<T> {
+public interface BuildAction<T> extends Serializable {
     /**
      * Executes this action and returns the result.
      *
