@@ -30,11 +30,14 @@ import spock.lang.Ignore
 @TargetGradleVersion('>=1.8')
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "client receives the result of running a build action"() {
+        given:
+        file("settings.gradle") << 'rootProject.name="hello-world"'
+
         when:
-        String result = withConnection { it.action(new CustomAction(message: "hello world")).run() }
+        String result = withConnection { it.action(new CustomAction()).run() }
 
         then:
-        result == "hello world"
+        result == "hello-world"
     }
 
     @Ignore("work in progress")
@@ -50,7 +53,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion('<1.8')
     def "gives reasonable error message when target Gradle version does not support build actions"() {
         when:
-        maybeFailWithConnection { it.action(new CustomAction(message: "hello world")).run() }
+        maybeFailWithConnection { it.action(new CustomAction()).run() }
 
         then:
         UnsupportedVersionException e = thrown()
@@ -58,11 +61,9 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     static class CustomAction implements BuildAction<String> {
-        String message
-
         def String execute(BuildController controller) {
-            controller.getModel(GradleProject.class)
-            return message
+            def model = controller.getModel(GradleProject.class)
+            return model.name
         }
     }
 

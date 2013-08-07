@@ -17,8 +17,10 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.*
 import spock.lang.Specification
 
@@ -26,27 +28,37 @@ class ActionAwareConsumerConnectionTest extends Specification {
     final target = Mock(TestModelBuilder) {
         getMetaData() >> Mock(ConnectionMetaDataVersion1)
     }
-    final adapter = Stub(ProtocolToModelAdapter)
-    final connection = new ActionAwareConsumerConnection(target, adapter)
+    final adapter = Mock(ProtocolToModelAdapter)
+    final modelMapping = Stub(ModelMapping)
+    final connection = new ActionAwareConsumerConnection(target, modelMapping, adapter)
 
     def "delegates to connection to run build action"() {
         def action = Mock(BuildAction)
         def parameters = Stub(ConsumerOperationParameters)
+        def buildController = Mock(InternalBuildController)
 
         when:
         def result = connection.run(action, parameters)
 
         then:
-        result == 'result'
+        result == '[result]'
 
         and:
         1 * target.run(_, parameters) >> { InternalBuildAction protocolAction, def params ->
-            def actionResult = protocolAction.execute()
+            def actionResult = protocolAction.execute(buildController)
             return Stub(BuildResult) {
                 getModel() >> actionResult
             }
         }
-        1 * action.execute(_) >> 'result'
+        1 * action.execute(_) >> { BuildController controller ->
+            return controller.getModel(String)
+        }
+        1 * buildController.getModel(_) >> {
+            return Stub(BuildResult) {
+                getModel() >> 'result'
+            }
+        }
+        1 * adapter.adapt(String, 'result') >> '[result]'
     }
 
     interface TestModelBuilder extends ModelBuilder, ConnectionVersion4, ConfigurableConnection, InternalBuildActionExecutor {

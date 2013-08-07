@@ -21,16 +21,14 @@ import org.gradle.tooling.BuildController;
 import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.InternalBuildController;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
+import org.gradle.tooling.internal.protocol.*;
 
 public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
     private final InternalBuildActionExecutor executor;
 
-    public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ProtocolToModelAdapter adapter) {
-        super(delegate, adapter);
+    public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
+        super(delegate, modelMapping, adapter);
         executor = (InternalBuildActionExecutor) delegate;
     }
 
@@ -48,10 +46,12 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
             this.adapter = adapter;
         }
 
-        public T execute(InternalBuildController buildController) {
+        public T execute(final InternalBuildController buildController) {
             return action.execute(new BuildController() {
                 public <T> T getModel(Class<T> modelType) throws UnknownModelException {
-                    return adapter.adapt(modelType, new Object());
+                    ModelIdentifier modelIdentifier = new ModelMapping().getModelIdentifierFromModelType(modelType);
+                    Object model = buildController.getModel(modelIdentifier).getModel();
+                    return adapter.adapt(modelType, model);
                 }
             });
         }
