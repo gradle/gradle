@@ -17,7 +17,6 @@
 
 
 package org.gradle.nativecode.toolchain.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -26,13 +25,11 @@ import org.gradle.internal.Factory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.base.ToolChainRegistry
 import org.gradle.nativecode.base.plugins.NativeBinariesPlugin
-import org.gradle.nativecode.toolchain.internal.msvcpp.UnavailableToolChain
 import org.gradle.nativecode.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.process.internal.DefaultExecAction
 import org.gradle.process.internal.ExecAction
 
 import javax.inject.Inject
-
 /**
  * A {@link Plugin} which makes the Microsoft Visual C++ compiler available to compile C/C++ code.
  */
@@ -48,19 +45,15 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(NativeBinariesPlugin)
 
-        def registry = project.extensions.getByType(ToolChainRegistry)
+        def toolChainRegistry = project.extensions.getByType(ToolChainRegistry)
 
-        if (!OperatingSystem.current().windows) {
-            registry.add(new UnavailableToolChain())
-        }
-
-        registry.add(new VisualCppToolChain(
-                OperatingSystem.current(),
-                new Factory<ExecAction>() {
-                    ExecAction create() {
-                        new DefaultExecAction(fileResolver)
-                    }
+        toolChainRegistry.registerFactory(VisualCppToolChain, { String name ->
+            return new VisualCppToolChain(name, OperatingSystem.current(), new Factory<ExecAction>() {
+                ExecAction create() {
+                    return new DefaultExecAction(fileResolver)
                 }
-        ))
+            })
+        })
+        toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCppToolChain)
     }
 }

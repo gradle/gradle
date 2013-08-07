@@ -16,7 +16,8 @@
 package org.gradle.nativecode.base.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -24,10 +25,12 @@ import org.gradle.nativecode.base.ToolChain;
 import org.gradle.nativecode.base.ToolChainRegistry;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolChain> implements ToolChainRegistry {
+public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectContainer<ToolChain> implements ToolChainRegistry {
     private final List<ToolChainInternal> searchOrder = new ArrayList<ToolChainInternal>();
+    private boolean hasDefinedToolChain;
 
     public DefaultToolChainRegistry(Instantiator instantiator) {
         super(ToolChain.class, instantiator);
@@ -43,32 +46,70 @@ public class DefaultToolChainRegistry extends DefaultNamedDomainObjectSet<ToolCh
         });
     }
 
-    public List<ToolChainInternal> getSearchOrder() {
-        return searchOrder;
+    @Override
+    protected void handleAttemptToAddItemWithNonUniqueName(ToolChain toolChain) {
+        throw new InvalidUserDataException(String.format("ToolChain with name '%s' added multiple times", toolChain.getName()));
     }
 
-    public ToolChainInternal getDefaultToolChain() {
+    public void registerDefaultToolChain(String name, Class<? extends ToolChain> type) {
+        if (!hasDefinedToolChain) {
+            assertCanAdd(name);
+            ToolChain added = doCreate(name, type);
+            // Avoid removing defaults
+            super.add(added);
+        }
+    }
+
+    @Override
+    public boolean add(ToolChain o) {
+        removeDefaults();
+        return super.add(o);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends ToolChain> c) {
+        removeDefaults();
+        return super.addAll(c);
+    }
+
+    private void removeDefaults() {
+        if (!hasDefinedToolChain) {
+            clear();
+            hasDefinedToolChain = true;
+        }
+    }
+
+    public List<ToolChainInternal> getAvailableToolChains() {
+        List<ToolChainInternal> availableToolChains = new ArrayList<ToolChainInternal>();
         List<String> messages = new ArrayList<String>();
         for (ToolChainInternal toolChain : searchOrder) {
             ToolChainAvailability availability = toolChain.getAvailability();
             if (availability.isAvailable()) {
-                return toolChain;
+                availableToolChains.add(toolChain);
             }
             messages.add(String.format("Could not load '%s': %s", toolChain.getName(), availability.getUnavailableMessage()));
         }
-        return new UnavailableToolChain(messages);
+        if (availableToolChains.isEmpty()) {
+            availableToolChains.add(new UnavailableToolChain(messages));
+        }
+        return availableToolChains;
+    }
+
+    public ToolChainInternal getDefaultToolChain() {
+        return getAvailableToolChains().get(0);
     }
 
     private static class UnavailableToolChain extends AbstractToolChain {
         private final List<String> messages;
 
         public UnavailableToolChain(List<String> messages) {
-            super(OperatingSystem.current());
+            super("unknown", OperatingSystem.current());
             this.messages = messages;
         }
 
-        public String getName() {
-            return "unknown";
+        @Override
+        protected String getTypeName() {
+            return "unavailable";
         }
 
         @Override

@@ -15,95 +15,147 @@
  */
 
 package org.gradle.nativecode.base.internal
-import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativecode.language.base.internal.NativeCompileSpec
 import spock.lang.Specification
 
 class DefaultToolChainRegistryTest extends Specification {
     final DefaultToolChainRegistry registry = new DefaultToolChainRegistry(new DirectInstantiator())
+    final NamedDomainObjectFactory<TestToolChain> factory = Mock()
 
-    def "search order defaults to the order that adapters are added"() {
-        ToolChainInternal compiler1 = toolChainInternal("z")
-        ToolChainInternal compiler2 = toolChainInternal("b")
-        ToolChainInternal compiler3 = toolChainInternal("a")
-
-        expect:
-        registry.searchOrder == []
-
-        when:
-        registry.add(compiler2)
-        registry.add(compiler1)
-        registry.add(compiler3)
-
-        then:
-        registry.searchOrder == [compiler2, compiler1, compiler3]
-
-        when:
-        registry.remove(compiler1)
-
-        then:
-        registry.searchOrder == [compiler2, compiler3]
+    def "setup"() {
+        registry.registerFactory(TestToolChain, factory)
     }
 
-    def "compilation searches adapters in the order added and uses the first available"() {
-        NativeCompileSpec compileSpec = Mock()
-        ToolChainInternal toolChainInternal1 = toolChainInternal("z")
-        ToolChainInternal toolChainInternal2 = toolChainInternal("b")
-        ToolChainInternal toolChainInternal3 = toolChainInternal("a")
-        Compiler<NativeCompileSpec> realCompiler = Mock()
-
-        given:
-        registry.add(toolChainInternal1)
-        registry.add(toolChainInternal2)
-        registry.add(toolChainInternal3)
-
-        and:
-        toolChainInternal1.availability >> new ToolChainAvailability().unavailable("nope")
-        toolChainInternal2.availability >> new ToolChainAvailability()
+    def "has default toolchains when none configured"() {
+        def defaultToolChain1 = testToolChain("test")
+        def defaultToolChain2 = testToolChain("test2")
 
         when:
-        def defaultToolChain = registry.getDefaultToolChain()
-        defaultToolChain.createCCompiler().execute(compileSpec)
+        registry.registerDefaultToolChain("test", TestToolChain)
+        registry.registerDefaultToolChain("test2", TestToolChain)
 
         then:
-        1 * toolChainInternal2.createCCompiler() >> realCompiler
-        1 * realCompiler.execute(compileSpec)
+        registry.asList() == [defaultToolChain1, defaultToolChain2]
     }
 
-    def "compilation fails when no adapter is available"() {
-        NativeCompileSpec compileSpec = Mock()
-        ToolChainInternal toolChainInternal1 = toolChainInternal("z")
-        ToolChainInternal toolChainInternal2 = toolChainInternal("b")
-        ToolChainInternal toolChainInternal3 = toolChainInternal("a")
+    def "explicitly created toolchain overwrites default toolchain"() {
+        testToolChain("default")
+        def configuredToolChain = testToolChain("configured")
 
-        given:
-        registry.add(toolChainInternal1)
-        registry.add(toolChainInternal2)
-        registry.add(toolChainInternal3)
+        when:
+        registry.registerDefaultToolChain("default", TestToolChain)
 
         and:
-        toolChainInternal1.availability >> new ToolChainAvailability().unavailable("nope")
-        toolChainInternal2.availability >> new ToolChainAvailability().unavailable("not me")
-        toolChainInternal3.availability >> new ToolChainAvailability().unavailable("not me either")
-
-        when:
-        def defaultToolChain = registry.getDefaultToolChain()
+        registry.create("configured", TestToolChain)
 
         then:
-        noExceptionThrown()
+        registry.asList() == [configuredToolChain]
+    }
+
+    def "explicitly added toolchain overwrites default toolchain"() {
+        testToolChain("default")
+        def addedToolChain = testToolChain("test")
 
         when:
-        defaultToolChain.createCppCompiler().execute(compileSpec)
+        registry.registerDefaultToolChain("default", TestToolChain)
+
+        and:
+        registry.add(addedToolChain)
+
+        then:
+        registry.asList() == [addedToolChain]
+    }
+
+    def "returns all available toolchains from defaults in order added"() {
+        def tc1 = testToolChain("test")
+        def tc2 = testToolChain("test2")
+        def tc3 = testToolChain("test3")
+
+        when:
+        registry.registerDefaultToolChain("test", TestToolChain)
+        registry.registerDefaultToolChain("test2", TestToolChain)
+        registry.registerDefaultToolChain("test3", TestToolChain)
+
+        and:
+        tc1.getAvailability() >> new ToolChainAvailability()
+        tc2.getAvailability() >> new ToolChainAvailability().unavailable("not available")
+        tc3.getAvailability() >> new ToolChainAvailability()
+
+        then:
+        registry.availableToolChains == [tc1, tc3]
+    }
+
+    def "returns all available toolchains from configured in order added"() {
+        def tc1 = testToolChain("test")
+        def tc2 = testToolChain("test2")
+        def tcLast = testToolChain("last")
+
+        when:
+        registry.create("test", TestToolChain)
+        registry.create("test2", TestToolChain)
+        registry.create("last", TestToolChain)
+
+        and:
+        tc1.getAvailability() >> new ToolChainAvailability()
+        tc2.getAvailability() >> new ToolChainAvailability().unavailable("not available")
+        tcLast.getAvailability() >> new ToolChainAvailability()
+
+        then:
+        registry.availableToolChains == [tc1, tcLast]
+    }
+
+    def "default toolchain is first available"() {
+        def tc1 = testToolChain("test")
+        def tc2 = testToolChain("test2")
+        def tcLast = testToolChain("last")
+
+        when:
+        registry.create("test", TestToolChain)
+        registry.create("test2", TestToolChain)
+        registry.create("last", TestToolChain)
+
+        and:
+        tc1.getAvailability() >> new ToolChainAvailability().unavailable("not available")
+        tc2.getAvailability() >> new ToolChainAvailability()
+        tcLast.getAvailability() >> new ToolChainAvailability()
+
+        then:
+        registry.defaultToolChain == tc2
+    }
+
+    def "reports unavailability when no tool chain available"() {
+        def tc1 = testToolChain("test")
+        def tc2 = testToolChain("test2")
+        def tc3 = testToolChain("last")
+
+        given:
+        registry.create("test", TestToolChain)
+        registry.create("test2", TestToolChain)
+        registry.create("last", TestToolChain)
+
+        and:
+        tc1.availability >> new ToolChainAvailability().unavailable("nope")
+        tc2.availability >> new ToolChainAvailability().unavailable("not me")
+        tc3.availability >> new ToolChainAvailability().unavailable("not me either")
+
+        when:
+        def defaultToolChain = registry.defaultToolChain
+        defaultToolChain.createCCompiler()
 
         then:
         IllegalStateException e = thrown()
-        e.message == "No tool chain is available: [Could not load 'z': nope, Could not load 'b': not me, Could not load 'a': not me either]"
+        e.message == "No tool chain is available: [Could not load 'test': nope, Could not load 'test2': not me, Could not load 'last': not me either]"
     }
 
-    def toolChainInternal(String name) {
-        ToolChainInternal toolChainInternal = Mock()
-        _ * toolChainInternal.name >> name
-        return toolChainInternal
+    def testToolChain(String name) {
+        TestToolChain testToolChain = Mock()
+        _ * testToolChain.name >> name
+        _ * factory.create(name) >> testToolChain
+        return testToolChain
     }
+
+    interface TestToolChain extends ToolChainInternal
+    {}
+
 }

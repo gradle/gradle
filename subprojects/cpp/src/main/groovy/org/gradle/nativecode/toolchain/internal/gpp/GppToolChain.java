@@ -36,7 +36,8 @@ public class GppToolChain extends AbstractToolChain {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GppToolChain.class);
 
-    public static final String NAME = "gcc";
+    public static final String DEFAULT_NAME = "gcc";
+
     private static final String GPP = "g++";
     private static final String GCC = "gcc";
     private static final String AR = "ar";
@@ -51,8 +52,8 @@ public class GppToolChain extends AbstractToolChain {
 
     private String version;
 
-    public GppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        super(operatingSystem);
+    public GppToolChain(String name, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
+        super(name, operatingSystem);
         // TODO:DAZ Extract something here
         gppExecutable = findExecutable(operatingSystem, GPP);
         gccExecutable = findExecutable(operatingSystem, GCC);
@@ -79,12 +80,8 @@ public class GppToolChain extends AbstractToolChain {
         return null;
     }
 
-    public String getName() {
-        return NAME;
-    }
-
     @Override
-    public String toString() {
+    protected String getTypeName() {
         return "GNU G++";
     }
 

@@ -20,10 +20,10 @@ import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
 
 import java.util.List;
 
-public class CppIntegrationTestRunner extends AbstractMultiTestRunner {
+public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
     private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.cpp.toolChains";
 
-    public CppIntegrationTestRunner(Class<? extends AbstractBinariesIntegrationSpec> target) {
+    public SingleToolChainTestRunner(Class<? extends AbstractBinariesIntegrationSpec> target) {
         super(target);
     }
 

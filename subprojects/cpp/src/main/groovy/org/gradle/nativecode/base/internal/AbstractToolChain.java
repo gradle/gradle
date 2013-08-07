@@ -19,11 +19,24 @@ package org.gradle.nativecode.base.internal;
 import org.gradle.internal.os.OperatingSystem;
 
 public abstract class AbstractToolChain implements ToolChainInternal {
+    private final String name;
     private final OperatingSystem operatingSystem;
     private ToolChainAvailability availability;
 
-    protected AbstractToolChain(OperatingSystem operatingSystem) {
+    protected AbstractToolChain(String name, OperatingSystem operatingSystem) {
+        this.name = name;
         this.operatingSystem = operatingSystem;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    protected abstract String getTypeName();
+
+    @Override
+    public String toString() {
+        return String.format("ToolChain %s (%s)", getName(), getTypeName());
     }
 
     public ToolChainAvailability getAvailability() {

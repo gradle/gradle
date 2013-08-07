@@ -26,7 +26,8 @@ import java.io.File;
 
 public class VisualCppToolChain extends AbstractToolChain {
 
-    public static final String NAME = "visualCpp";
+    public static final String DEFAULT_NAME = "visualCpp";
+
     static final String COMPILER_EXE = "cl.exe";
     static final String LINKER_EXE = "link.exe";
     static final String STATIC_LIBRARY_ARCHIVER_EXE = "lib.exe";
@@ -38,8 +39,8 @@ public class VisualCppToolChain extends AbstractToolChain {
     private final File assemblerExe;
     private final Factory<ExecAction> execActionFactory;
 
-    public VisualCppToolChain(OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        super(operatingSystem);
+    public VisualCppToolChain(String name, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
+        super(name, operatingSystem);
         this.compilerExe = operatingSystem.findInPath(COMPILER_EXE);
         this.linkerExe = operatingSystem.findInPath(LINKER_EXE);
         this.staticLibraryArchiverExe = operatingSystem.findInPath(STATIC_LIBRARY_ARCHIVER_EXE);
@@ -47,17 +48,17 @@ public class VisualCppToolChain extends AbstractToolChain {
         this.execActionFactory = execActionFactory;
     }
 
-    public String getName() {
-        return NAME;
-    }
-
     @Override
-    public String toString() {
+    protected String getTypeName() {
         return "Visual C++";
     }
 
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
+        if (!OperatingSystem.current().isWindows()) {
+            availability.unavailable("Not available on this operating system.");
+            return;
+        }
         availability.mustExist(COMPILER_EXE, compilerExe);
         availability.mustExist(LINKER_EXE, linkerExe);
         availability.mustExist(STATIC_LIBRARY_ARCHIVER_EXE, staticLibraryArchiverExe);

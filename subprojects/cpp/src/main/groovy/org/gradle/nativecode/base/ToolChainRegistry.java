@@ -15,14 +15,27 @@
  */
 package org.gradle.nativecode.base;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectSet;
+
+import java.util.List;
 
 /**
  * A container for {@link ToolChain}s.
  */
 @Incubating
-public interface ToolChainRegistry extends NamedDomainObjectSet<ToolChain> {
+public interface ToolChainRegistry extends ExtensiblePolymorphicDomainObjectContainer<ToolChain> {
+    /**
+     * Creates a default ToolChain instance. Creating or adding a ToolChain directly will remove
+     * any default instances registered.
+     */
+    void registerDefaultToolChain(String name, Class<? extends ToolChain> type);
+
+    /**
+     * Returns all registered {@link ToolChain}s that are available.
+     */
+    List<? extends ToolChain> getAvailableToolChains();
+
     /**
      * Returns the first registered {@link ToolChain} that is available.
      */
