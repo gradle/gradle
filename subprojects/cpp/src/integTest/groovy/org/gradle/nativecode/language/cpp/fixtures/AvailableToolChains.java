@@ -32,7 +32,7 @@ public class AvailableToolChains {
     /**
      * @return A list of all tool chains for this platform, with the default tool chain listed first.
      */
-    static List<ToolChainCandidate> getToolChains() {
+    public static List<ToolChainCandidate> getToolChains() {
         List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
         if (OperatingSystem.current().isWindows()) {
             compilers.add(findVisualCpp());
@@ -40,7 +40,7 @@ public class AvailableToolChains {
             compilers.add(findCygwin());
         } else {
             compilers.add(findGpp("4", null));
-            compilers.add(findGpp("3", "/opt/gcc/3.4.6/bin/g++"));
+            compilers.add(findGpp("4.8", "/usr/local/gcc-4.8/g++"));
         }
         return compilers;
     }
@@ -208,6 +208,14 @@ public class AvailableToolChains {
 
         public String getImplementationClass() {
             return isVisualCpp() ? VisualCppToolChain.class.getName() : GppToolChain.class.getName();
+        }
+
+        public List<File> getPathEntries() {
+            return pathEntries;
+        }
+
+        public String getId() {
+            return name.replaceAll("\\W", "");
         }
     }
 

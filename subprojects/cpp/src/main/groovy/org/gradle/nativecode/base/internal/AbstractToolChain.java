@@ -57,10 +57,6 @@ public abstract class AbstractToolChain implements ToolChainInternal {
         return String.format("%s-%s", getName(), operatingSystem.getName());
     }
 
-    public OperatingSystem getOperatingSystem() {
-        return operatingSystem;
-    }
-
     protected abstract void checkAvailable(ToolChainAvailability availability);
 
     public String getExecutableName(String executablePath) {

@@ -69,16 +69,17 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
 
         configurationActions.add(new Action<ProjectInternal>() {
             public void execute(ProjectInternal projectInternal) {
-                ToolChain defaultToolChain = toolChains.getDefaultToolChain();
-                for (Library library : libraries) {
-                    for (Flavor flavor : library.getFlavors()) {
-                        register(setupDefaults(project, instantiator.newInstance(DefaultSharedLibraryBinary.class, library, flavor, defaultToolChain)), library, binaries);
-                        register(setupDefaults(project, instantiator.newInstance(DefaultStaticLibraryBinary.class, library, flavor, defaultToolChain)), library, binaries);
+                for (ToolChain toolChain : toolChains.getAvailableToolChains()) {
+                    for (Library library : libraries) {
+                        for (Flavor flavor : library.getFlavors()) {
+                            register(setupDefaults(project, instantiator.newInstance(DefaultSharedLibraryBinary.class, library, flavor, toolChain)), library, binaries);
+                            register(setupDefaults(project, instantiator.newInstance(DefaultStaticLibraryBinary.class, library, flavor, toolChain)), library, binaries);
+                        }
                     }
-                }
-                for (Executable executable : executables) {
-                    for (Flavor flavor : executable.getFlavors()) {
-                        register(setupDefaults(project, instantiator.newInstance(DefaultExecutableBinary.class, executable, flavor, defaultToolChain)), executable, binaries);
+                    for (Executable executable : executables) {
+                        for (Flavor flavor : executable.getFlavors()) {
+                            register(setupDefaults(project, instantiator.newInstance(DefaultExecutableBinary.class, executable, flavor, toolChain)), executable, binaries);
+                        }
                     }
                 }
             }

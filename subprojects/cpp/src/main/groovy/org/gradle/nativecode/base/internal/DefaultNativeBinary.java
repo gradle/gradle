@@ -42,7 +42,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final ArrayList<Object> assemblerArgs = new ArrayList<Object>();
     private final ArrayList<Object> linkerArgs = new ArrayList<Object>();
     private final ArrayList<Object> defines = new ArrayList<Object>();
-    private final DefaultBinaryNamingScheme namer;
+    private final BinaryNamingScheme namer;
     private final String description;
     private final Flavor flavor;
     private final ToolChainInternal toolChain;
@@ -53,7 +53,11 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
         // TODO:DAZ Would be better to inject the Namer here, rather than trying to construct out of context
         // TODO:DAZ Make static/shared a dimension in the variant space, rather than a special case
         String baseName = owner.getName() + StringUtils.capitalize(typeString);
-        List<String> nameDimensions = owner.getFlavors().size() > 1 ? Collections.singletonList(flavor.getName()) : Collections.<String>emptyList();
+        List<String> nameDimensions = new ArrayList<String>();
+        if (owner.getFlavors().size() > 1) {
+            nameDimensions.add(flavor.getName());
+        }
+        nameDimensions.add(toolChain.getName());
         namer = new DefaultBinaryNamingScheme(baseName, nameDimensions);
 
         this.flavor = flavor;
