@@ -24,9 +24,12 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
+import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -39,6 +42,7 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
+import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
 
@@ -117,7 +121,21 @@ public class GlobalScopeServices extends DefaultServiceRegistry {
         return new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DirectInstantiator());
     }
 
+    protected ExecutorFactory createExecutorFactory() {
+        return new DefaultExecutorFactory();
+    }
+
     protected FileLockManager createFileLockManager() {
-        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)), new DefaultFileLockContentionHandler());
+        return new DefaultFileLockManager(
+                new DefaultProcessMetaDataProvider(
+                        get(ProcessEnvironment.class)),
+                get(FileLockContentionHandler.class));
+    }
+
+    private DefaultFileLockContentionHandler createFileLockContentionHandler() {
+        return new DefaultFileLockContentionHandler(
+                get(ExecutorFactory.class),
+                get(MessagingServices.class).get(InetAddressFactory.class)
+        );
     }
 }

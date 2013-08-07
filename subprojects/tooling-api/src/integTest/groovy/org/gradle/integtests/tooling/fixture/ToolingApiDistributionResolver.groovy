@@ -20,11 +20,11 @@ import org.gradle.StartParameter
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.internal.service.scopes.GlobalScopeServices
-import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.CompositeStoppable
+import org.gradle.internal.service.scopes.BuildScopeServices
+import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.ProjectScopeServices
 import org.gradle.util.HelperUtil
 
@@ -70,14 +70,17 @@ class ToolingApiDistributionResolver {
 
     private DependencyResolutionServices createResolutionServices() {
         GlobalScopeServices globalRegistry = new GlobalScopeServices()
-        stopLater.add(globalRegistry)
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         BuildScopeServices topLevelRegistry = new BuildScopeServices(globalRegistry, startParameter)
-        stopLater.add(topLevelRegistry)
         ProjectScopeServices projectRegistry = new ProjectScopeServices(topLevelRegistry, HelperUtil.createRootProject())
+
         stopLater.add(projectRegistry)
-        projectRegistry.get(DependencyResolutionServices)
+        stopLater.add(topLevelRegistry)
+        // TODO:ADAM - switch this back on
+//        stopLater.add(globalRegistry)
+
+        return projectRegistry.get(DependencyResolutionServices)
     }
 
     ToolingApiDistributionResolver withExternalToolingApiDistribution() {

@@ -36,8 +36,6 @@ import org.gradle.groovy.scripts.DefaultScriptCompilerFactory
 import org.gradle.groovy.scripts.ScriptCompilerFactory
 import org.gradle.initialization.*
 import org.gradle.internal.Factory
-import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.BuildClassLoaderRegistry
@@ -200,12 +198,6 @@ public class BuildScopeServicesTest extends Specification {
         expect:
         assertThat(registry.get(IProjectFactory), instanceOf(ProjectFactory))
         assertThat(registry.get(IProjectFactory), sameInstance(registry.get(IProjectFactory)))
-    }
-
-    def providesAnExecutorFactory() {
-        expect:
-        assertThat(registry.get(ExecutorFactory), instanceOf(DefaultExecutorFactory))
-        assertThat(registry.get(ExecutorFactory), sameInstance(registry.get(ExecutorFactory)))
     }
 
     def providesABuildConfigurer() {

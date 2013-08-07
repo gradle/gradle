@@ -27,6 +27,8 @@ import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.*;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.listener.DefaultListenerManager;
@@ -121,6 +123,11 @@ public class GlobalScopeServicesTest {
     @Test
     public void providesAnInstantiator() {
         assertThat(registry.get(org.gradle.internal.reflect.Instantiator.class), instanceOf(ClassGeneratorBackedInstantiator.class));
+    }
+
+    @Test
+    public void providesAnExecutorFactory() {
+        assertThat(registry.get(ExecutorFactory.class), instanceOf(DefaultExecutorFactory.class));
     }
 
     @Test

@@ -51,7 +51,6 @@ import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.reflect.Instantiator;
@@ -90,10 +89,6 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
 
     protected TimeProvider createTimeProvider() {
         return new TrueTimeProvider();
-    }
-
-    protected ExecutorFactory createExecutorFactory() {
-        return new DefaultExecutorFactory();
     }
 
     protected IProjectFactory createProjectFactory() {
