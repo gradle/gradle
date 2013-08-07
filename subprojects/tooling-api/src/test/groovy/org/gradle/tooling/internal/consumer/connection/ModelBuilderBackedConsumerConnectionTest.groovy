@@ -19,13 +19,8 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
-import org.gradle.tooling.internal.protocol.BuildParameters
-import org.gradle.tooling.internal.protocol.BuildResult
-import org.gradle.tooling.internal.protocol.ConfigurableConnection
-import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
-import org.gradle.tooling.internal.protocol.ConnectionVersion4
-import org.gradle.tooling.internal.protocol.ModelBuilder
-import org.gradle.tooling.internal.protocol.ModelIdentifier
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping
+import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -40,7 +35,8 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         getMetaData() >> Mock(ConnectionMetaDataVersion1)
     }
     final adapter = Stub(ProtocolToModelAdapter)
-    final connection = new ModelBuilderBackedConsumerConnection(target, adapter)
+    final modelMapping = Mock(ModelMapping)
+    final connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
 
     def "describes capabilities of the provider"() {
         given:
@@ -63,27 +59,14 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
 
     def "maps model type to model identifier"() {
         def parameters = Stub(ConsumerOperationParameters)
+        def modelIdentifier = Stub(ModelIdentifier)
 
         when:
-        connection.run(modelType, parameters)
+        connection.run(GradleProject, parameters)
 
         then:
-        1 * target.getModel(_, parameters) >> { ModelIdentifier identifier, BuildParameters buildParameters ->
-            assert identifier.name == modelName
-            return Stub(BuildResult)
-        }
-
-        where:
-        modelType                  | modelName
-        Void                       | ModelIdentifier.NULL_MODEL
-        HierarchicalEclipseProject | "org.gradle.tooling.model.eclipse.HierarchicalEclipseProject"
-        EclipseProject             | "org.gradle.tooling.model.eclipse.EclipseProject"
-        IdeaProject                | "org.gradle.tooling.model.idea.IdeaProject"
-        GradleProject              | "org.gradle.tooling.model.GradleProject"
-        BasicIdeaProject           | "org.gradle.tooling.model.idea.BasicIdeaProject"
-        BuildEnvironment           | "org.gradle.tooling.model.build.BuildEnvironment"
-        ProjectOutcomes            | "org.gradle.tooling.model.outcomes.ProjectOutcomes"
-        CustomModel                | CustomModel.name
+        1 * modelMapping.getModelIdentifierFromModelType(GradleProject) >> modelIdentifier
+        1 * target.getModel(modelIdentifier, parameters) >> Stub(BuildResult)
     }
 
     interface TestModelBuilder extends ModelBuilder, ConnectionVersion4, ConfigurableConnection {

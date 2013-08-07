@@ -63,6 +63,17 @@ public class ModelMapping {
         map.put(Void.class, Void.class.getName());
     }
 
+    public ModelIdentifier getModelIdentifierFromModelType(final Class<?> modelType) {
+        if (modelType.equals(Void.class)) {
+            return new DefaultModelIdentifier(ModelIdentifier.NULL_MODEL);
+        }
+        String modelName = getModelName(modelType);
+        if (modelName != null) {
+            return new DefaultModelIdentifier(modelName);
+        }
+        return new DefaultModelIdentifier(modelType.getName());
+    }
+
     @Nullable
     public Class<?> getProtocolType(Class<?> modelType) {
         if (MODEL_TO_PROTOCOL_MAP.containsValue(modelType)) {
@@ -92,5 +103,17 @@ public class ModelMapping {
             return null;
         }
         return getProtocolType(modelType);
+    }
+
+    private static class DefaultModelIdentifier implements ModelIdentifier {
+        private final String model;
+
+        public DefaultModelIdentifier(String model) {
+            this.model = model;
+        }
+
+        public String getName() {
+            return model;
+        }
     }
 }

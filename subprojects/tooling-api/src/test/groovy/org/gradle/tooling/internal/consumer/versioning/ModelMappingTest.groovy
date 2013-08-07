@@ -67,6 +67,25 @@ class ModelMappingTest extends Specification {
         expect:
         mapping.getProtocolType(CustomModel) == null
     }
+
+    def "maps model type to model identifier"() {
+        expect:
+        def id = mapping.getModelIdentifierFromModelType(modelType)
+        id.name == modelName
+
+        where:
+        modelType                  | modelName
+        Void                       | ModelIdentifier.NULL_MODEL
+        HierarchicalEclipseProject | "org.gradle.tooling.model.eclipse.HierarchicalEclipseProject"
+        EclipseProject             | "org.gradle.tooling.model.eclipse.EclipseProject"
+        IdeaProject                | "org.gradle.tooling.model.idea.IdeaProject"
+        GradleProject              | "org.gradle.tooling.model.GradleProject"
+        BasicIdeaProject           | "org.gradle.tooling.model.idea.BasicIdeaProject"
+        BuildEnvironment           | "org.gradle.tooling.model.build.BuildEnvironment"
+        ProjectOutcomes            | "org.gradle.tooling.model.outcomes.ProjectOutcomes"
+        CustomModel                | CustomModel.name
+    }
+
 }
 
 interface CustomModel {}

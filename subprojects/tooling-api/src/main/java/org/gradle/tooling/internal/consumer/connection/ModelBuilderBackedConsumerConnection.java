@@ -29,29 +29,20 @@ import org.gradle.tooling.internal.protocol.ModelIdentifier;
  */
 public class ModelBuilderBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ModelBuilder builder;
+    private final ModelMapping modelMapping;
     protected final ProtocolToModelAdapter adapter;
 
-    public ModelBuilderBackedConsumerConnection(ConnectionVersion4 delegate, ProtocolToModelAdapter adapter) {
+    public ModelBuilderBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R16VersionDetails(delegate.getMetaData().getVersion()));
         this.adapter = adapter;
+        this.modelMapping = modelMapping;
         builder = (ModelBuilder) delegate;
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        ModelIdentifier modelIdentifier = mapModelTypeToModelIdentifier(type);
+        ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
         Object model = builder.getModel(modelIdentifier, operationParameters).getModel();
         return adapter.adapt(type, model);
-    }
-
-    private ModelIdentifier mapModelTypeToModelIdentifier(final Class<?> modelType) {
-        if (modelType.equals(Void.class)) {
-            return new DefaultModelIdentifier(ModelIdentifier.NULL_MODEL);
-        }
-        String modelName = new ModelMapping().getModelName(modelType);
-        if (modelName != null) {
-            return new DefaultModelIdentifier(modelName);
-        }
-        return new DefaultModelIdentifier(modelType.getName());
     }
 
     private static class R16VersionDetails extends VersionDetails {
@@ -69,17 +60,5 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
             return true;
         }
 
-    }
-
-    private static class DefaultModelIdentifier implements ModelIdentifier {
-        private final String model;
-
-        public DefaultModelIdentifier(String model) {
-            this.model = model;
-        }
-
-        public String getName() {
-            return model;
-        }
     }
 }
