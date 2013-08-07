@@ -23,7 +23,7 @@ import spock.lang.Specification
 public class VersionRangeMatcherTest extends Specification {
     def matcher = new VersionRangeMatcher(new ExactVersionMatcher())
 
-    def "handles selectors that use version range syntax"() {
+    def "handles selectors that use valid version range syntax"() {
         expect:
         matcher.canHandle("[1.0,2.0]")
         matcher.canHandle("[1.0,2.0[")
@@ -33,8 +33,15 @@ public class VersionRangeMatcherTest extends Specification {
         matcher.canHandle("]1.0,)")
         matcher.canHandle("(,2.0]")
         matcher.canHandle("(,2.0[")
+    }
+
+    def "does not handle selectors that use no or invalid version range syntax"() {
+        expect:
         !matcher.canHandle("1")
         !matcher.canHandle("1+")
+        !matcher.canHandle("[1")
+        !matcher.canHandle("[]")
+        !matcher.canHandle("[1,2,3]")
     }
 
     def "all handled selectors are dynamic"() {
