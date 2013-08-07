@@ -85,6 +85,31 @@ class ExactVersionMatcherTest extends Specification {
         matcher.compare("1.2", "1.2.3") < 0
     }
 
+    def "gives special treatment to 'dev', 'rc', and 'final' classifiers"() {
+        expect:
+        matcher.compare("1.0-dev-1", "1.0") < 0
+        matcher.compare("1.0", "1.0-dev-1") > 0
+        matcher.compare("1.0-dev-1", "1.0-dev-2") < 0
+        matcher.compare("1.0-dev-2", "1.0-dev-1") > 0
+
+        matcher.compare("1.0-rc-1", "1.0") < 0
+        matcher.compare("1.0", "1.0-rc-1") > 0
+        matcher.compare("1.0-rc-1", "1.0-rc-2") < 0
+        matcher.compare("1.0-rc-2", "1.0-rc-1") > 0
+
+        matcher.compare("1.0-final", "1.0") < 0
+        matcher.compare("1.0", "1.0-final") > 0
+
+        matcher.compare("1.0-dev-1", "1.0-rc-1") < 0
+        matcher.compare("1.0-dev-2", "1.0-rc-1") < 0
+
+        matcher.compare("1.0-rc-1", "1.0-final") < 0
+        matcher.compare("1.0-rc-2", "1.0-final") < 0
+
+        matcher.compare("1.0-final", "1.0-dev-1") > 0
+        matcher.compare("1.0-final", "1.0-dev-2") > 0
+    }
+
     def "versions that differ only in separators compare equal"() {
         expect:
         matcher.compare("1.0", "1_0") == 0
