@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class ExactVersionMatcher implements VersionMatcher {
     private static final Map<String, Integer> SPECIAL_MEANINGS =
-            ImmutableMap.of("def", new Integer(-1), "rc", new Integer(1), "final", new Integer(2));
+            ImmutableMap.of("dev", new Integer(-1), "rc", new Integer(1), "final", new Integer(2));
 
     public boolean canHandle(String selector) {
         return true;
