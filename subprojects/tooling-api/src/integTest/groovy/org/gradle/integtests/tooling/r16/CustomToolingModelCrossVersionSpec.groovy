@@ -69,12 +69,12 @@ class CustomPlugin implements Plugin<Project> {
         model.thingsByName.thing instanceof CustomModel.Thing
     }
 
-    @Ignore
+    @Ignore("work in progress")
     def "gives reasonable error message when model build fails"() {
         expect: false
     }
 
-    @Ignore
+    @Ignore("work in progress")
     def "gives reasonable error message when model cannot be transported to consumer"() {
         expect: false
     }
