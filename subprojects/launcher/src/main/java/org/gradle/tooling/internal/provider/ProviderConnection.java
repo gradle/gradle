@@ -19,12 +19,9 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildController;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Stoppable;
-import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -35,7 +32,6 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
-import org.gradle.messaging.remote.internal.Message;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -50,11 +46,7 @@ import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.Serializable;
-import java.net.URL;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,16 +54,19 @@ import java.util.Map;
 public class ProviderConnection implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
-    private final ModelClassLoaderRegistry classLoaderRegistry;
+    private final ToolingGlobalScopeServices services;
+    private PayloadSerializer payloadSerializer;
 
     public ProviderConnection() {
         //embedded use of the tooling api is not supported publicly so we don't care about its thread safety
         //we can still keep this state:
         embeddedExecuterSupport = new EmbeddedExecuterSupport();
-        classLoaderRegistry = new ModelClassLoaderRegistry();
+        services = new ToolingGlobalScopeServices();
+        payloadSerializer = services.get(PayloadSerializer.class);
     }
 
     public void stop() {
+        services.close();
     }
 
     public void configure(ProviderConnectionParameters parameters) {
@@ -117,19 +112,16 @@ public class ProviderConnection implements Stoppable {
             throw e;
         }
 
-        ClassLoader classLoader = classLoaderRegistry.getClassLoaderFor(model.getClassPath());
-        try {
-            return Message.receive(new ByteArrayInputStream(model.getSerializedModel()), classLoader);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return payloadSerializer.deserialize(model);
     }
 
     public Object run(ClientBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
-        BuildAction<ToolingModel> action = new ClientProvidedBuildAction();
-        run(action, providerParameters, params.properties);
-        return clientAction.execute();
+        ToolingModel serializedAction = payloadSerializer.serialize(clientAction);
+        BuildAction<ToolingModel> action = new ClientProvidedBuildAction(serializedAction);
+        ToolingModel result = run(action, providerParameters, params.properties);
+
+        return payloadSerializer.deserialize(result);
     }
 
     private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {
@@ -190,10 +182,4 @@ public class ProviderConnection implements Stoppable {
         }
     }
 
-    private static class ClientProvidedBuildAction implements BuildAction<ToolingModel>, Serializable {
-        public ToolingModel run(BuildController buildController) {
-            ((DefaultGradleLauncher) buildController.getLauncher()).getGradle().getServices().get(ModelClassLoaderRegistry.class);
-            return new ToolingModel(Arrays.<URL>asList(), GUtil.serialize("hi!"));
-        }
-    }
 }

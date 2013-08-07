@@ -21,18 +21,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.*;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
-import org.gradle.util.ClasspathUtil;
-import org.gradle.util.GUtil;
 
 import java.io.Serializable;
-import java.net.URL;
-import java.util.Collections;
-import java.util.List;
 
 public class BuildModelAction implements BuildAction<ToolingModel>, Serializable {
     private final boolean runTasks;
     private final String modelName;
-    private Object model;
+    private ToolingModel model;
 
     public BuildModelAction(String modelName, boolean runTasks) {
         this.modelName = modelName;
@@ -41,11 +36,13 @@ public class BuildModelAction implements BuildAction<ToolingModel>, Serializable
 
     public ToolingModel run(BuildController buildController) {
         DefaultGradleLauncher launcher = (DefaultGradleLauncher) buildController.getLauncher();
+
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
                 public void onTasksFinished(GradleInternal gradle) {
                     ToolingModelBuilder builder = getToolingModelBuilderRegistry(gradle).getBuilder(modelName);
-                    model = builder.buildAll(modelName, gradle.getDefaultProject());
+                    Object result = builder.buildAll(modelName, gradle.getDefaultProject());
+                    model = getPayloadSerializer(gradle).serialize(result);
                 }
             });
             buildController.run();
@@ -54,19 +51,22 @@ public class BuildModelAction implements BuildAction<ToolingModel>, Serializable
                 public void onConfigure(GradleInternal gradle) {
                     ensureAllProjectsEvaluated(gradle);
                     ToolingModelBuilder builder = getToolingModelBuilderRegistry(gradle).getBuilder(modelName);
-                    model = builder.buildAll(modelName, gradle.getDefaultProject());
+                    Object result = builder.buildAll(modelName, gradle.getDefaultProject());
+                    model = getPayloadSerializer(gradle).serialize(result);
                 }
             });
             buildController.configure();
         }
 
-        List<URL> classpath = model == null ? Collections.<URL>emptyList() : ClasspathUtil.getClasspath(model.getClass().getClassLoader());
-        byte[] serializedModel = GUtil.serialize(model);
-        return new ToolingModel(classpath, serializedModel);
+        return model;
     }
 
     private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
         return gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
+    }
+
+    private PayloadSerializer getPayloadSerializer(GradleInternal gradle) {
+        return gradle.getDefaultProject().getServices().get(PayloadSerializer.class);
     }
 
     private void ensureAllProjectsEvaluated(GradleInternal gradle) {

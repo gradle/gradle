@@ -16,15 +16,13 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
-class ToolingServicesTest extends Specification {
-    def services = new ToolingServices()
+class ToolingGlobalScopeServicesTest extends Specification {
+    def services = new ToolingGlobalScopeServices()
 
-    def "provides a ModelClassLoaderRegistry"() {
+    def "provides a PayloadSerializer"() {
         expect:
-        def registry = services.createGlobalServices(Mock(ServiceRegistry))
-        registry.get(ModelClassLoaderRegistry) instanceof ModelClassLoaderRegistry
+        services.get(PayloadSerializer) instanceof PayloadSerializer
     }
 }

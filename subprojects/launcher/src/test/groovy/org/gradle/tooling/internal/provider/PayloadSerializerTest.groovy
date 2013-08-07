@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.provider
 
-import java.io.Serializable;
+import spock.lang.Specification
 
-/**
- * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
- *
- * <p>Consumer compatibility: This interface is implemented by all consumer versions from 1.8-rc-1.</p>
- * <p>Provider compatibility: This interface is consumed by all provider versions from 1.8-rc-1.</p>
- *
- * @since 1.8-rc-1
- */
-public interface ClientBuildAction<T> extends InternalProtocolInterface, Serializable {
-    /**
-     * Performs some action against a build and returns a result.
-     *
-     * @since 1.8-rc-1
-     */
-    T execute();
+class PayloadSerializerTest extends Specification {
+    final ModelClassLoaderRegistry registry = new ModelClassLoaderRegistry()
+    final PayloadSerializer serializer = new PayloadSerializer(registry)
+
+    def "serializes and deserializes payload object"() {
+        expect:
+        def serialized = serializer.serialize(source)
+        serializer.deserialize(serialized) == source
+
+        where:
+        source        | _
+        null          | _
+        "some object" | _
+    }
 }
