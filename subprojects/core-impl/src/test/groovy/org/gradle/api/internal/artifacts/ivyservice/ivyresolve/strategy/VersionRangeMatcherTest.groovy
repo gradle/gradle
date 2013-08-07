@@ -92,6 +92,23 @@ public class VersionRangeMatcherTest extends Specification {
         matcher.accept("(,2.0[", "1.99")
     }
 
+    def "accepts candidate versions that fall into the selector's range (adding qualifiers to the mix)"() {
+        expect:
+        matcher.accept("[1.0,2.0]", "1.5-dev-1")
+        matcher.accept("[1.0,2.0]", "1.2.3-rc-2")
+        matcher.accept("[1.0,2.0]", "2.0-final")
+
+        matcher.accept("[1.0-dev-1,2.0[", "1.0")
+        matcher.accept("[1.0,2.0-rc-2[", "2.0-rc-1")
+        matcher.accept("[1.0,2.0[", "2.0-final")
+
+        matcher.accept("]1.0-dev-1,2.0]", "1.0")
+        matcher.accept("]1.0-rc-2,2.0]", "1.0-rc-3")
+
+        matcher.accept("]1.0-dev-1,1.0-dev-3[", "1.0-dev-2")
+        matcher.accept("]1.0-dev-1,1.0-rc-1[", "1.0-dev-99")
+    }
+
     def "rejects candidate versions that don't fall into the selector's range"() {
         expect:
         !matcher.accept("[1.0,2.0]", "0.99")
@@ -122,6 +139,23 @@ public class VersionRangeMatcherTest extends Specification {
 
         !matcher.accept("(,2.0[", "2.0")
         !matcher.accept("(,2.0[", "42")
+    }
+
+    def "rejects candidate versions that don't fall into the selector's range (adding qualifiers to the mix)"() {
+        expect:
+        !matcher.accept("[1.0,2.0]", "2.5-dev-1")
+        !matcher.accept("[1.0,2.0]", "1.0-rc-2")
+        !matcher.accept("[1.0,2.0]", "1.0-final")
+
+        !matcher.accept("[1.0-dev-2,2.0[", "1.0-dev-1")
+        !matcher.accept("[1.0,2.0-rc-2[", "2.0-rc-2")
+        !matcher.accept("[1.0,2.0-final[", "2.0")
+
+        !matcher.accept("]1.0-dev-1,2.0]", "1.0-dev-1")
+        !matcher.accept("]1.0-rc-2,2.0]", "1.0-dev-3")
+
+        !matcher.accept("]1.0-dev-1,1.0-dev-3[", "1.0-dev-3")
+        !matcher.accept("]1.0-dev-1,1.0-rc-1[", "1.0-final-0")
     }
 
     def "metadata-aware accept method delivers same results"() {
