@@ -9,16 +9,10 @@ for component metadata. Initially, this type of metadata will be declared in the
 (repository, custom descriptor, external service, etc.). Initially, the model will contain two properties:
 
 * `status`: The status of a component.
-* `statusScheme`: A list of valid statuses for a component, ordered by decreasing maturity.
+* `statusScheme`: A list of valid statuses for a component, ordered from least to most mature.
 
-`statusScheme` defaults to [`release`, `milestone`, `integration`]. The default for `status` depends on which repository hosts the source module for the component:
-
-* For an Ivy module, `status` defaults to the module's Ivy status, which in turn defaults to the least mature status in `statusScheme`.
-* For a Maven module, `status` defaults to the least mature status in `statusScheme` if the version contains `-SNAPSHOT`, and to the most mature otherwise.
-  (This can be improved over time, for example by taking `maven-metadata.xml` into consideration.)
-* For a flatDir module, `status` defaults to the least mature status in `statusScheme`.
-
-(Other defaults are conceivable. We could even have different default status schemes per repository type, for example `release` and `snapshot` for Maven repositories.)
+`statusScheme` defaults to [`integration`, `milestone`, `release`]. `status` defaults to the status declared in the (Ivy) descriptor, or
+`integration` if no status has been declared.
 
 # Use cases
 
@@ -67,19 +61,19 @@ highest version whose status is either `silver` or `gold`.
 
 A Gradle build script may declare component metadata rules that compute the metadata for a component. This could look as follows:
 
-    componentMetaData {
+    componentMetadata {
         eachComponent { details ->
-            details.statusScheme = ['gold', 'silver', 'bronze']
+            details.statusScheme = ['bronze', 'silver', 'gold']
         }
     }
 
 Different components may use different status schemes:
 
-    componentMetaData { details ->
+    componentMetadata { details ->
         if (details.id.group == 'olympic') {
-            details.statusScheme = ['gold', 'silver', 'bronze']
+            details.statusScheme = ['bronze', 'silver', 'gold']
         } else {
-            details.statusScheme = ['top', 'flop']
+            details.statusScheme = ['flop', 'top']
         }
     }
 
@@ -103,6 +97,25 @@ Note: For this story, the metadata rules do not apply to components resolved fro
     * Publish 2 versions of a module to an HTTP repository
     * Use a meta-data rule to set the statuses of each version so that version 1 is selected.
     * Change the meta-data rule so that version 2 is selected instead.
+
+## Declare a module as "changing"
+
+The `componentMetadata` rule should allow to declare a component as "changing". This effectively makes Ivy changing patterns a first-class Gradle concept. Example:
+
+    componentMetadata { details ->
+        if (details.id.version.endsWith("-dev")) {
+            details.changing = true
+        }
+    }
+
+### User visible changes
+
+Add a "changing" property to `ComponentMetadataDetails`.
+
+### Test coverage
+
+* Add a "changing" rule and verify that the module is treated as changing (cf. the existing concept of changing dependency).
+* Verify that `details.changing` is initialized correctly for a module that results from resolving a changing dependency.
 
 ## Consume a "latest" version of an Ivy module with custom status that exists in multiple Ivy repositories
 
