@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultGradleLauncher;
-import org.gradle.tooling.internal.protocol.ClientBuildAction;
+import org.gradle.tooling.internal.protocol.*;
 
 import java.io.Serializable;
 
@@ -33,7 +33,15 @@ class ClientProvidedBuildAction implements BuildAction<ToolingModel>, Serializab
     public ToolingModel run(BuildController buildController) {
         PayloadSerializer payloadSerializer = ((DefaultGradleLauncher) buildController.getLauncher()).getGradle().getServices().get(PayloadSerializer.class);
         ClientBuildAction<?> action = (ClientBuildAction<?>) payloadSerializer.deserialize(this.action);
-        Object result = action.execute();
+        Object result = action.execute(new InternalBuildController() {
+            public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
+                throw new UnsupportedOperationException();
+            }
+
+            public BuildResult<?> getModel(ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
+                throw new UnsupportedOperationException();
+            }
+        });
         return payloadSerializer.serialize(result);
     }
 }

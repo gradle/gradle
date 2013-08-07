@@ -32,5 +32,5 @@ public interface ClientBuildAction<T> extends InternalProtocolInterface, Seriali
      *
      * @since 1.8-rc-1
      */
-    T execute();
+    T execute(InternalBuildController buildController);
 }

@@ -18,11 +18,13 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.ClientBuildAction;
 import org.gradle.tooling.internal.protocol.ClientBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.internal.protocol.InternalBuildController;
 
 public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
     private final ClientBuildActionExecutor executor;
@@ -34,18 +36,23 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
 
     @Override
     public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return executor.run(new BuildActionAdapter<T>(action), operationParameters).getModel();
+        return executor.run(new BuildActionAdapter<T>(action, adapter), operationParameters).getModel();
     }
 
     private static class BuildActionAdapter<T> implements ClientBuildAction<T> {
         private final BuildAction<T> action;
+        private final ProtocolToModelAdapter adapter;
 
-        public BuildActionAdapter(BuildAction<T> action) {
+        public BuildActionAdapter(BuildAction<T> action, ProtocolToModelAdapter adapter) {
             this.action = action;
+            this.adapter = adapter;
         }
 
-        public T execute() {
+        public T execute(InternalBuildController buildController) {
             return action.execute(new BuildController() {
+                public <T> T getModel(Class<T> modelType) throws UnknownModelException {
+                    return adapter.adapt(modelType, new Object());
+                }
             });
         }
     }

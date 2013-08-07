@@ -29,7 +29,7 @@ import org.gradle.tooling.internal.protocol.ModelIdentifier;
  */
 public class ModelBuilderBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ModelBuilder builder;
-    private final ProtocolToModelAdapter adapter;
+    protected final ProtocolToModelAdapter adapter;
 
     public ModelBuilderBackedConsumerConnection(ConnectionVersion4 delegate, ProtocolToModelAdapter adapter) {
         super(delegate, new R16VersionDetails(delegate.getMetaData().getVersion()));

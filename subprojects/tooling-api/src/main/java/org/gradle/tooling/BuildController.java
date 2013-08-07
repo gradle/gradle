@@ -25,4 +25,15 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface BuildController {
+    /**
+     * Fetches a snapshot of the model of the given type for the default project.
+     *
+     * @param modelType The model type.
+     * @param <T> The model type.
+     * @return The model.
+     * @throws UnknownModelException When the default project does not support the requested model.
+     *
+     * @since 1.8
+     */
+    <T> T getModel(Class<T> modelType) throws UnknownModelException;
 }

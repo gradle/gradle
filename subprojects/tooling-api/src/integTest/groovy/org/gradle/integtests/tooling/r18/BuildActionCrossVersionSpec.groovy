@@ -23,6 +23,7 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.model.GradleProject
 import spock.lang.Ignore
 
 @ToolingApiVersion('>=1.8')
@@ -36,7 +37,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         result == "hello world"
     }
 
-    @Ignore
+    @Ignore("work in progress")
     def "client receives the exception thrown by the build action"() {
         when:
         withConnection { it.action(new BrokenAction()).run() }
@@ -60,6 +61,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         String message
 
         def String execute(BuildController controller) {
+            controller.getModel(GradleProject.class)
             return message
         }
     }
