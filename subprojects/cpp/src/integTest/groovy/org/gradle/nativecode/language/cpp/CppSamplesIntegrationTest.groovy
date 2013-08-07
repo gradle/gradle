@@ -15,7 +15,7 @@
  */
 package org.gradle.nativecode.language.cpp
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+import org.gradle.nativecode.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -23,7 +23,7 @@ import org.junit.Rule
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
+class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample c = new Sample(temporaryFolder, 'cpp/c')
     @Rule public final Sample asm = new Sample(temporaryFolder, 'cpp/c-with-assembler')
     @Rule public final Sample cpp = new Sample(temporaryFolder, 'cpp/cpp')

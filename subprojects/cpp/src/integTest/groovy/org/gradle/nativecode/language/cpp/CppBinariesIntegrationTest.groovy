@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.cpp
-import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+
+import org.gradle.nativecode.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class CppBinariesIntegrationTest extends AbstractBinariesIntegrationSpec {
+class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "can configure the binaries of a C++ application"() {
         given:
         buildFile << """

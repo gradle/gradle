@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.cpp
-import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+import org.gradle.nativecode.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativecode.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
+class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
 
     def "setup"() {

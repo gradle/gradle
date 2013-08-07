@@ -14,12 +14,38 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.cpp
-import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
 
-class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
+import org.gradle.nativecode.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativecode.language.cpp.fixtures.app.CppHelloWorldApp
+
+class CppPluginIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
     static final HELLO_WORLD_FRENCH = "Bonjour, Monde!"
+
+    def "can explicitly configure tool chain in path"() {
+        def helloWorld = new CppHelloWorldApp()
+
+        given:
+        buildFile << """
+            apply plugin: "cpp-exe"
+
+            toolChains {
+                test(${toolChain.getImplementationClass()})
+            }
+"""
+        settingsFile << "rootProject.name = 'test'"
+
+        helloWorld.writeSources(file("src/main"))
+
+        when:
+        run "mainExecutable"
+
+        then:
+        def executable = executable("build/binaries/mainExecutable/test")
+        executable.assertExists()
+        executable.exec().out == helloWorld.englishOutput
+    }
 
     def "build and execute program with non-conventional source layout"() {
         given:

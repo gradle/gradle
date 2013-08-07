@@ -23,7 +23,7 @@ import java.util.List;
 public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
     private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.cpp.toolChains";
 
-    public SingleToolChainTestRunner(Class<? extends AbstractBinariesIntegrationSpec> target) {
+    public SingleToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {
         super(target);
     }
 
@@ -67,7 +67,7 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         protected void before() {
             System.out.println(String.format("Using tool chain %s", toolChain.getDisplayName()));
             toolChain.initialiseEnvironment();
-            AbstractBinariesIntegrationSpec.setToolChain(toolChain);
+            AbstractInstalledToolChainIntegrationSpec.setToolChain((AvailableToolChains.InstalledToolChain) toolChain);
         }
 
         @Override

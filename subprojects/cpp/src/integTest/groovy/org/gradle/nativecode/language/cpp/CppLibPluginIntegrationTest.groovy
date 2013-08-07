@@ -16,9 +16,9 @@
 
 package org.gradle.nativecode.language.cpp
 
-import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+import org.gradle.nativecode.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 
-class CppLibPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
+class CppLibPluginIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "build simple c++ library that uses conventional layout"() {
         given:
         buildFile << """

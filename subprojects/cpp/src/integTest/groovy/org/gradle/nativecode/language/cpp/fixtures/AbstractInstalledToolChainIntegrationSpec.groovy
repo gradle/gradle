@@ -19,10 +19,12 @@ package org.gradle.nativecode.language.cpp.fixtures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
-
+/**
+ * Runs a test separately for each installed tool chain.
+ */
 @RunWith(SingleToolChainTestRunner.class)
-abstract class AbstractBinariesIntegrationSpec extends AbstractIntegrationSpec {
-    static AvailableToolChains.ToolChainCandidate toolChain
+abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec {
+    static AvailableToolChains.InstalledToolChain toolChain
 
     def NativeInstallationFixture installation(Object installDir) {
         return new NativeInstallationFixture(file(installDir))

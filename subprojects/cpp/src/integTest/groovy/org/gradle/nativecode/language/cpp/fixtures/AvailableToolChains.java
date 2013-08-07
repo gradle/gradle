@@ -20,7 +20,9 @@ import com.google.common.base.Joiner;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativecode.toolchain.internal.gpp.GppToolChain;
 import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
+import org.gradle.nativecode.toolchain.internal.msvcpp.VisualCppToolChain;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
@@ -202,6 +204,10 @@ public class AvailableToolChains {
             if (originalPath != null) {
                 PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, originalPath);
             }
+        }
+
+        public String getImplementationClass() {
+            return isVisualCpp() ? VisualCppToolChain.class.getName() : GppToolChain.class.getName();
         }
     }
 

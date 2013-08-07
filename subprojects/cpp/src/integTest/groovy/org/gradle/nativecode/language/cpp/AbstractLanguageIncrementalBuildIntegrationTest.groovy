@@ -18,7 +18,8 @@
 
 
 package org.gradle.nativecode.language.cpp
-import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+
+import org.gradle.nativecode.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativecode.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -26,7 +27,7 @@ import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.escapeString
 
-abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractBinariesIntegrationSpec {
+abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     IncrementalHelloWorldApp app
     String mainCompileTask
     String libraryCompileTask

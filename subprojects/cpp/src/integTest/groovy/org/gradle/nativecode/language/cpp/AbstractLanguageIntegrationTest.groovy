@@ -16,12 +16,12 @@
 
 
 package org.gradle.nativecode.language.cpp
-import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+import org.gradle.nativecode.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativecode.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-abstract class AbstractLanguageIntegrationTest extends AbstractBinariesIntegrationSpec {
+abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     abstract HelloWorldApp getHelloWorldApp()
 

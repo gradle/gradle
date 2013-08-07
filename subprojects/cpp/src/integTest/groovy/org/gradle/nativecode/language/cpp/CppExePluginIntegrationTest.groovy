@@ -18,11 +18,11 @@
 
 package org.gradle.nativecode.language.cpp
 
-import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
+import org.gradle.nativecode.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class CppExePluginIntegrationTest extends AbstractBinariesIntegrationSpec {
+class CppExePluginIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build, install and execute simple c++ application that uses conventional layout"() {
         given:
