@@ -64,7 +64,8 @@ class EmbeddedDaemonSmokeTest extends Specification {
     }
     
     def cleanup() {
-        daemonClientServices?.close()
+        // TODO:ADAM - switch this back on
+//        daemonClientServices?.close()
     }
 
 }
