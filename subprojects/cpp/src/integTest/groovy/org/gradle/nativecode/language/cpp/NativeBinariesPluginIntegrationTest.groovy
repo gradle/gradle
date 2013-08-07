@@ -147,9 +147,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractBinariesIntegrationSpe
     }
 
     private def useMixedSources() {
-        helloWorldApp.sourceFiles.each { sourceFile ->
-            file("src/main/${sourceFile.path}/${sourceFile.name}") << sourceFile.content
-        }
+        helloWorldApp.writeSources(file("src/main"))
     }
 
     def "build fails when link executable fails"() {

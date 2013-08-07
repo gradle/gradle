@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.language.cpp.fixtures.app;
 
+import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GUtil;
 import org.gradle.util.TextUtil;
 
@@ -56,6 +57,18 @@ public abstract class HelloWorldApp {
 
     protected SourceFile sourceFile(String path, String name, String content) {
         return new SourceFile(path, name, content);
+    }
+
+    public void writeSources(TestFile mainSourceDir) {
+        writeSources(mainSourceDir, mainSourceDir);
+    }
+
+    public void writeSources(TestFile mainSourceDir, TestFile librarySourceDir) {
+        getMainSource().writeToDir(mainSourceDir);
+        getLibraryHeader().writeToDir(librarySourceDir);
+        for (SourceFile sourceFile : getLibrarySources()) {
+            sourceFile.writeToDir(librarySourceDir);
+        }
     }
 
 }

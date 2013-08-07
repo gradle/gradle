@@ -66,10 +66,10 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractB
         """
         settingsFile << "rootProject.name = 'test'"
 
-        sourceFile = write("main", app.mainSource)
-        headerFile = write("hello", app.libraryHeader)
+        sourceFile = app.mainSource.writeToDir(file("src/main"))
+        headerFile = app.libraryHeader.writeToDir(file("src/hello"))
         app.librarySources.each {
-            librarySourceFiles << write("hello", it)
+            librarySourceFiles << it.writeToDir(file("src/hello"))
         }
 
         run "installMainExecutable"
@@ -321,13 +321,4 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractB
         and:
         executable.assertDebugFileDoesNotExist()
     }
-
-    TestFile write(def path, def sourceFile) {
-        final file = file("src/$path/${sourceFile.path}/${sourceFile.name}")
-        if (file.exists()) {
-            file.text = ""
-        }
-        file << sourceFile.content
-    }
-
 }

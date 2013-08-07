@@ -16,7 +16,6 @@
 
 
 package org.gradle.nativecode.language.cpp
-
 import org.gradle.nativecode.language.cpp.fixtures.AbstractBinariesIntegrationSpec
 import org.gradle.nativecode.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.util.Requires
@@ -44,7 +43,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractBinariesIntegrati
         """
 
         and:
-        writeAll("main", helloWorldApp.sourceFiles)
+        helloWorldApp.writeSources(file("src/main"), file("src/main"))
 
         when:
         run "mainExecutable"
@@ -76,7 +75,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractBinariesIntegrati
         """
 
         and:
-        writeAll("main", helloWorldApp.sourceFiles)
+        helloWorldApp.writeSources(file("src/main"))
 
         when:
         run "mainExecutable"
@@ -108,7 +107,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractBinariesIntegrati
         """
 
         and:
-        writeAll("main", helloWorldApp.sourceFiles)
+        helloWorldApp.writeSources(file("src/main"))
 
         when:
         run "mainExecutable"
@@ -146,9 +145,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractBinariesIntegrati
         """
 
         and:
-        write("main", helloWorldApp.mainSource)
-        write("hello", helloWorldApp.libraryHeader)
-        writeAll("hello", helloWorldApp.librarySources)
+        helloWorldApp.writeSources(file("src/main"), file("src/hello"))
 
         when:
         run "installMainExecutable"
@@ -193,9 +190,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractBinariesIntegrati
         """
 
         and:
-        write("main", helloWorldApp.mainSource)
-        write("hello", helloWorldApp.libraryHeader)
-        writeAll("hello", helloWorldApp.librarySources)
+        helloWorldApp.writeSources(file("src/main"), file("src/hello"))
 
         when:
         run "installMainExecutable"
@@ -208,16 +203,6 @@ abstract class AbstractLanguageIntegrationTest extends AbstractBinariesIntegrati
         def install = installation("build/install/mainExecutable")
         install.assertInstalled()
         install.exec().out == helloWorldApp.frenchOutput
-    }
-
-    def writeAll(def path, def sourceFiles) {
-        sourceFiles.each {sourceFile ->
-            write(path, sourceFile);
-        }
-    }
-
-    def write(def path, def sourceFile) {
-        file("src/$path/${sourceFile.path}/${sourceFile.name}") << sourceFile.content
     }
 }
 

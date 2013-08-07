@@ -16,6 +16,8 @@
 
 package org.gradle.nativecode.language.cpp.fixtures.app;
 
+import org.gradle.test.fixtures.file.TestFile;
+
 public class SourceFile {
     private final String path;
     private final String name;
@@ -37,5 +39,14 @@ public class SourceFile {
 
     public String getContent() {
         return content;
+    }
+
+    public TestFile writeToDir(TestFile base) {
+        TestFile file = base.file(path, name);
+        if (file.exists()) {
+            file.write("");
+        }
+        file.write(content);
+        return file;
     }
 }

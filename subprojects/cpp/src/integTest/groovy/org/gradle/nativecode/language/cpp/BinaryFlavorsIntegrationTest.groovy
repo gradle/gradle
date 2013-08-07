@@ -25,11 +25,7 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
 
-        write("main", helloWorldApp.mainSource)
-        write("hello", helloWorldApp.libraryHeader)
-        helloWorldApp.librarySources.each {
-            write("hello", it)
-        }
+        helloWorldApp.writeSources(file("src/main"), file("src/hello"))
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -218,8 +214,4 @@ class BinaryFlavorsIntegrationTest extends AbstractBinariesIntegrationSpec {
         fails "germanMainExecutable"
         failure.assertHasCause("No shared library binary available for library 'hello' with flavor 'german'")
    }
-
-    def write(def path, def sourceFile) {
-        file("src/$path/${sourceFile.path}/${sourceFile.name}") << sourceFile.content
-    }
 }
