@@ -36,7 +36,7 @@ public abstract class AbstractToolChain implements ToolChainInternal {
 
     @Override
     public String toString() {
-        return String.format("ToolChain %s (%s)", getName(), getTypeName());
+        return String.format("ToolChain '%s' (%s)", getName(), getTypeName());
     }
 
     public ToolChainAvailability getAvailability() {

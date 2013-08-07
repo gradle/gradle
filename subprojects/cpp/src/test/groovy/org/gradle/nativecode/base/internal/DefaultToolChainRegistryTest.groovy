@@ -16,14 +16,18 @@
 
 package org.gradle.nativecode.base.internal
 import org.gradle.api.NamedDomainObjectFactory
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class DefaultToolChainRegistryTest extends Specification {
-    final DefaultToolChainRegistry registry = new DefaultToolChainRegistry(new DirectInstantiator())
-    final NamedDomainObjectFactory<TestToolChain> factory = Mock()
+    def project = HelperUtil.createRootProject()
+    def instantiator = project.services.get(Instantiator)
+    def registry = instantiator.newInstance(DefaultToolChainRegistry, instantiator)
+    def NamedDomainObjectFactory<TestToolChain> factory = Mock()
 
     def "setup"() {
+        project.extensions.add("toolChains", registry)
         registry.registerFactory(TestToolChain, factory)
     }
 
@@ -55,7 +59,9 @@ class DefaultToolChainRegistryTest extends Specification {
 
     def "explicitly added toolchain overwrites default toolchain"() {
         testToolChain("default")
-        def addedToolChain = testToolChain("test")
+        def addedToolChain = Stub(TestToolChain) {
+            getName() >> "added"
+        }
 
         when:
         registry.registerDefaultToolChain("default", TestToolChain)
@@ -65,6 +71,32 @@ class DefaultToolChainRegistryTest extends Specification {
 
         then:
         registry.asList() == [addedToolChain]
+    }
+
+    def "can use DSL replace and add to default toolchain list"() {
+        def defaultToolChain = testToolChain("test")
+        def replacementToolChain = testToolChain("test")
+        def anotherToolChain = testToolChain("another")
+
+        when:
+        registry.registerDefaultToolChain("test", TestToolChain)
+
+        and:
+        project.toolChains {
+            test(TestToolChain) {
+                baseDir = "foo"
+            }
+            another(TestToolChain) {
+                baseDir = "bar"
+            }
+        }
+
+        then:
+        1 * replacementToolChain.setBaseDir("foo")
+        1 * anotherToolChain.setBaseDir("bar")
+
+        and:
+        registry.asList() == [anotherToolChain, replacementToolChain]
     }
 
     def "returns all available toolchains from defaults in order added"() {
@@ -151,11 +183,13 @@ class DefaultToolChainRegistryTest extends Specification {
     def testToolChain(String name) {
         TestToolChain testToolChain = Mock()
         _ * testToolChain.name >> name
-        _ * factory.create(name) >> testToolChain
+        1 * factory.create(name) >> testToolChain
         return testToolChain
     }
 
     interface TestToolChain extends ToolChainInternal
-    {}
+    {
+        void setBaseDir(String value);
+    }
 
 }

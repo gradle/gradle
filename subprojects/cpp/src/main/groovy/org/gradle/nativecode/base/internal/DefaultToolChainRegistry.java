@@ -15,8 +15,10 @@
  */
 package org.gradle.nativecode.base.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
@@ -77,6 +79,12 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             clear();
             hasDefinedToolChain = true;
         }
+    }
+
+    @Override
+    public AbstractNamedDomainObjectContainer<ToolChain> configure(Closure configureClosure) {
+        removeDefaults();
+        return super.configure(configureClosure);
     }
 
     public List<ToolChainInternal> getAvailableToolChains() {
