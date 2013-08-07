@@ -17,25 +17,25 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 
+import java.util.Comparator;
 import java.util.List;
 
-public interface LatestStrategy {
+public interface LatestStrategy extends Comparator<Versioned> {
     /**
-     * Finds the latest artifact among the given artifacts info. The definition of 'latest' depends
-     * on the strategy itself. Given artifacts info are all good candidate. If the given date is not
-     * null, then found artifact should not be later than this date.
+     * Finds the latest among the given versioned elements. The definition of 'latest'
+     * depends on the strategy itself.
      */
-    <T extends Versioned> Versioned findLatest(List<T> elements);
+    <T extends Versioned> T findLatest(List<T> elements);
 
     /**
-     * Sorts the given artifacts info from the oldest one to the latest one. The definition of
-     * 'latest' depends on the strategy itself. Given artifacts info are all good candidate.
+     * Sorts the given versioned elements from oldest to latest. The definition of
+     * 'latest' depends on the strategy itself.
      */
     <T extends Versioned> List<T> sort(List<T> elements);
 
     /**
-     * Compares two instances to see which is the 'latest'. Value returned is as per {@link java.util.Comparator}.
-     * The definition of 'latest' depends on the strategy itself.
+     * Compares two versioned elements to see which is the 'latest'. The definition of
+     * 'latest' depends on the strategy itself.
      */
-    <T extends Versioned> int compare(T one, T two);
+    int compare(Versioned element1, Versioned element2);
 }

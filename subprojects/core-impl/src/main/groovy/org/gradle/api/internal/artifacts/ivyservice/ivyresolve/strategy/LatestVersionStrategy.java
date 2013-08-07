@@ -16,38 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.collect.Lists;
+
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 
 import java.util.*;
 
 class LatestVersionStrategy implements LatestStrategy {
-    private final class VersionedElementComparator implements Comparator<Versioned> {
-        public int compare(Versioned element1, Versioned element2) {
-            String version1 = element1.getVersion();
-            String version2 = element2.getVersion();
-
-            /*
-             * The revisions can still be not resolved, so we use the current version matcher to
-             * know if one revision is dynamic, and in this case if it should be considered greater
-             * or lower than the other one. Note that if the version matcher compare method returns
-             * 0, it's because it's not possible to know which revision is greater. In this case we
-             * consider the dynamic one to be greater, because most of the time it will then be
-             * actually resolved and a real comparison will occur.
-             */
-            if (versionMatcher.isDynamic(version1)) {
-                int c = versionMatcher.compare(version1, version2);
-                return c >= 0 ? 1 : -1;
-            } else if (versionMatcher.isDynamic(version2)) {
-                int c = versionMatcher.compare(version2, version1);
-                return c >= 0 ? -1 : 1;
-            }
-
-            return versionMatcher.compare(version1, version2);
-        }
-    }
-
-    private final Comparator<Versioned> versionedElementComparator = new VersionedElementComparator();
-
     private final VersionMatcher versionMatcher;
 
     public LatestVersionStrategy(VersionMatcher versionMatcher) {
@@ -56,16 +30,35 @@ class LatestVersionStrategy implements LatestStrategy {
 
     public <T extends Versioned> List<T> sort(List<T> versions) {
         List<T> result = Lists.newArrayList(versions);
-        Collections.sort(result, versionedElementComparator);
+        Collections.sort(result, this);
         return result;
     }
 
-    public <T extends Versioned> Versioned findLatest(List<T> elements) {
+    public <T extends Versioned> T findLatest(List<T> elements) {
         List<T> sortedVersions = sort(elements);
         return sortedVersions.get(sortedVersions.size() - 1);
     }
 
-    public <T extends Versioned> int compare(T one, T two) {
-        return versionedElementComparator.compare(one, two);
+    public int compare(Versioned element1, Versioned element2) {
+        String version1 = element1.getVersion();
+        String version2 = element2.getVersion();
+
+        /*
+         * The revisions can still be not resolved, so we use the current version matcher to
+         * know if one revision is dynamic, and in this case if it should be considered greater
+         * or lower than the other one. Note that if the version matcher compare method returns
+         * 0, it's because it's not possible to know which revision is greater. In this case we
+         * consider the dynamic one to be greater, because most of the time it will then be
+         * actually resolved and a real comparison will occur.
+         */
+        if (versionMatcher.isDynamic(version1)) {
+            int c = versionMatcher.compare(version1, version2);
+            return c >= 0 ? 1 : -1;
+        } else if (versionMatcher.isDynamic(version2)) {
+            int c = versionMatcher.compare(version2, version1);
+            return c >= 0 ? -1 : 1;
+        }
+
+        return versionMatcher.compare(version1, version2);
     }
 }
