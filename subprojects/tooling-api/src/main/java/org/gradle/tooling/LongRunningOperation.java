@@ -58,14 +58,11 @@ public interface LongRunningOperation {
     LongRunningOperation setStandardError(OutputStream outputStream);
 
     /**
-     * If the target Gradle version supports it you can use this setting
-     * to set the standard {@link java.io.InputStream} that will be used by builds.
-     * Useful when the tooling api drives interactive builds.
+     * Sets the {@link java.io.InputStream} that will be used as standard input for this operation.
+     * Defaults to an empty input stream.
      * <p>
-     * If the target Gradle version does not support it the long running operation will fail eagerly with
+     * If the target Gradle version does not support it the long running operation will fail with
      * {@link org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException} when the operation is started.
-     * <p>
-     * If not configured or null passed the dummy input stream with zero bytes is used to avoid the build hanging problems.
      *
      * @param inputStream The input stream
      * @return this
@@ -74,8 +71,7 @@ public interface LongRunningOperation {
     LongRunningOperation setStandardInput(InputStream inputStream);
 
     /**
-     * If the target Gradle version supports it you can use this setting
-     * to specify the Java home directory to use for the long running operation.
+     * Specifies the Java home directory to use for this operation.
      * <p>
      * If the target Gradle version does not support it the long running operation will fail eagerly with
      * {@link org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException} when the operation is started.
@@ -93,8 +89,7 @@ public interface LongRunningOperation {
     LongRunningOperation setJavaHome(File javaHome) throws IllegalArgumentException;
 
     /**
-     * If the target Gradle version supports it you can use this setting
-     * to specify the Java vm arguments to use for the long running operation.
+     * Specifies the Java VM arguments to use for this operation.
      * <p>
      * If the target Gradle version does not support it the long running operation will fail eagerly with
      * {@link org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException} when the operation is started.
