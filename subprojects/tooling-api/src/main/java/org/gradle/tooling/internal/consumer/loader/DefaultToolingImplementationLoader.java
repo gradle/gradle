@@ -70,7 +70,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
             AbstractConsumerConnection adaptedConnection;
-            if (connection instanceof ModelBuilder && connection instanceof ClientBuildActionExecutor) {
+            if (connection instanceof ModelBuilder && connection instanceof InternalBuildActionExecutor) {
                 adaptedConnection = new ActionAwareConsumerConnection(connection, adapter);
             } else if (connection instanceof ModelBuilder) {
                 adaptedConnection = new ModelBuilderBackedConsumerConnection(connection, adapter);

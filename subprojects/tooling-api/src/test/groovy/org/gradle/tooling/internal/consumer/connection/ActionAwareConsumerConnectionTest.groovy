@@ -40,7 +40,7 @@ class ActionAwareConsumerConnectionTest extends Specification {
         result == 'result'
 
         and:
-        1 * target.run(_, parameters) >> { ClientBuildAction protocolAction, def params ->
+        1 * target.run(_, parameters) >> { InternalBuildAction protocolAction, def params ->
             def actionResult = protocolAction.execute()
             return Stub(BuildResult) {
                 getModel() >> actionResult
@@ -49,6 +49,6 @@ class ActionAwareConsumerConnectionTest extends Specification {
         1 * action.execute(_) >> 'result'
     }
 
-    interface TestModelBuilder extends ModelBuilder, ConnectionVersion4, ConfigurableConnection, ClientBuildActionExecutor {
+    interface TestModelBuilder extends ModelBuilder, ConnectionVersion4, ConfigurableConnection, InternalBuildActionExecutor {
     }
 }

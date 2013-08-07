@@ -21,17 +21,17 @@ import org.gradle.tooling.BuildController;
 import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.protocol.ClientBuildAction;
-import org.gradle.tooling.internal.protocol.ClientBuildActionExecutor;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
+import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 
 public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
-    private final ClientBuildActionExecutor executor;
+    private final InternalBuildActionExecutor executor;
 
     public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ProtocolToModelAdapter adapter) {
         super(delegate, adapter);
-        executor = (ClientBuildActionExecutor) delegate;
+        executor = (InternalBuildActionExecutor) delegate;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
         return executor.run(new BuildActionAdapter<T>(action, adapter), operationParameters).getModel();
     }
 
-    private static class BuildActionAdapter<T> implements ClientBuildAction<T> {
+    private static class BuildActionAdapter<T> implements InternalBuildAction<T> {
         private final BuildAction<T> action;
         private final ProtocolToModelAdapter adapter;
 

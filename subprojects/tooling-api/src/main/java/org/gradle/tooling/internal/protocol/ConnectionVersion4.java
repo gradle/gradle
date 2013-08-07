@@ -22,7 +22,7 @@ package org.gradle.tooling.internal.protocol;
  * <ul>
  * <li>Implementations must be thread-safe.
  * <li>Implementations should implement {@link ModelBuilder}. This is used by all consumer versions from 1.6-rc-1.
- * <li>Implementations should implement {@link ClientBuildActionExecutor}. This is used by all consumer versions from 1.8-rc-1.
+ * <li>Implementations should implement {@link InternalBuildActionExecutor}. This is used by all consumer versions from 1.8-rc-1.
  * <li>Implementations should implement {@link ConfigurableConnection}. This is used by all consumer versions from 1.2-rc-1.
  * <li>Implementations should provide a zero-args constructor. This is used by all consumer versions from 1.0-milestone-3.
  * <li>For backwards compatibility, implementations should implement {@link BuildActionRunner}. This is used by consumer versions from 1.2-rc-1 to 1.5.

@@ -24,7 +24,7 @@ import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection, ModelBuilder, ClientBuildActionExecutor {
+public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
     private final ProviderConnection connection;
@@ -124,7 +124,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     /**
      * This is used by consumers 1.8-rc-1 and later.
      */
-    public <T> BuildResult<T> run(ClientBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
+    public <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         logTargetVersion();
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         Object results = connection.run(action, providerParameters);

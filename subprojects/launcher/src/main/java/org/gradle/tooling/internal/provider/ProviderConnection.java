@@ -35,7 +35,7 @@ import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.ClientBuildAction;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
@@ -115,7 +115,7 @@ public class ProviderConnection implements Stoppable {
         return payloadSerializer.deserialize(model);
     }
 
-    public Object run(ClientBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
+    public Object run(InternalBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
         ToolingModel serializedAction = payloadSerializer.serialize(clientAction);
         BuildAction<ToolingModel> action = new ClientProvidedBuildAction(serializedAction);

@@ -32,7 +32,7 @@ class ClientProvidedBuildAction implements BuildAction<ToolingModel>, Serializab
 
     public ToolingModel run(BuildController buildController) {
         PayloadSerializer payloadSerializer = ((DefaultGradleLauncher) buildController.getLauncher()).getGradle().getServices().get(PayloadSerializer.class);
-        ClientBuildAction<?> action = (ClientBuildAction<?>) payloadSerializer.deserialize(this.action);
+        InternalBuildAction<?> action = (InternalBuildAction<?>) payloadSerializer.deserialize(this.action);
         Object result = action.execute(new InternalBuildController() {
             public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
                 throw new UnsupportedOperationException();

@@ -107,8 +107,8 @@ class TestMetaData implements ConnectionMetaDataVersion1 {
     }
 }
 
-class TestConnection extends TestR16Connection implements ClientBuildActionExecutor {
-    def <T> BuildResult<T> run(ClientBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
+class TestConnection extends TestR16Connection implements InternalBuildActionExecutor {
+    def <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         throw new UnsupportedOperationException()
     }
 }

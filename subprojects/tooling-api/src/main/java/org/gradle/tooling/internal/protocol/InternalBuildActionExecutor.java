@@ -29,7 +29,7 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  * @since 1.8-rc-1
  * @see ConnectionVersion4
  */
-public interface ClientBuildActionExecutor extends InternalProtocolInterface {
+public interface InternalBuildActionExecutor extends InternalProtocolInterface {
     /**
      * Performs some action against a build and returns the result.
      *
@@ -41,7 +41,7 @@ public interface ClientBuildActionExecutor extends InternalProtocolInterface {
      * @throws IllegalStateException When this connection has been stopped.
      * @since 1.8-rc-1
      */
-    <T> BuildResult<T> run(ClientBuildAction<T> action, BuildParameters operationParameters) throws
+    <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws
             BuildExceptionVersion1,
             InternalUnsupportedBuildArgumentException,
             IllegalStateException;

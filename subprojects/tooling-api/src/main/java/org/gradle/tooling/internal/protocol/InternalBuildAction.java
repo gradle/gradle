@@ -26,7 +26,7 @@ import java.io.Serializable;
  *
  * @since 1.8-rc-1
  */
-public interface ClientBuildAction<T> extends InternalProtocolInterface, Serializable {
+public interface InternalBuildAction<T> extends InternalProtocolInterface, Serializable {
     /**
      * Performs some action against a build and returns a result.
      *
