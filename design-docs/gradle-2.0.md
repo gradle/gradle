@@ -162,6 +162,7 @@ Extension objects have been available for over 2 years and are now an establishe
 * Remove `equals()` implementations from `Dependency` subclasses.
 * Remove `ExternalDependency.force`. Use resolution strategy instead.
 * Remove `SelfResolvingDependency.resolve()` methods. These should be internal and invoked only as part of resolution.
+* Remove `ClientModule` and replace with consumer-side component meta-data rules.
 
 ## Misc API tidy-ups
 
