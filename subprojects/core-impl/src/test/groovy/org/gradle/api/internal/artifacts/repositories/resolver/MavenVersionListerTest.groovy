@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy
 import org.gradle.api.internal.externalresource.ExternalResource
@@ -32,6 +33,7 @@ import spock.lang.Specification
 class MavenVersionListerTest extends Specification {
     def repo = Mock(ExternalResourceRepository)
     def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "testproject", "1.0")
+    def selector = DefaultModuleVersionSelector.newSelector(moduleRevisionId)
     def artifact = new DefaultArtifact(moduleRevisionId, new Date(), "testproject", "jar", "jar")
 
     def repository = Mock(ExternalResourceRepository)
@@ -44,7 +46,7 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         versionList.visit(pattern, artifact)
 
         then:
@@ -72,7 +74,7 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource2 = Mock()
 
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         final pattern1 = pattern("prefix1/" + MavenPattern.M2_PATTERN)
         versionList.visit(pattern1, artifact)
         final pattern2 = pattern("prefix2/" + MavenPattern.M2_PATTERN)
@@ -111,7 +113,7 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         versionList.visit(pattern, artifact)
         versionList.visit(pattern, artifact)
 
@@ -142,7 +144,7 @@ class MavenVersionListerTest extends Specification {
 
     def "visit throws ResourceNotFoundException when maven-metadata not available"() {
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         versionList.visit(pattern, artifact)
 
         then:
@@ -156,7 +158,7 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         versionList.visit(pattern, artifact)
 
         then:
@@ -174,7 +176,7 @@ class MavenVersionListerTest extends Specification {
         def failure = new IOException()
 
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         versionList.visit(pattern, artifact)
 
         then:

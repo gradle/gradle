@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
@@ -29,6 +30,7 @@ class ResourceVersionListerTest extends Specification {
 
     def repo = Mock(ExternalResourceRepository)
     def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "proj1", "1.0")
+    def selector = DefaultModuleVersionSelector.newSelector(moduleRevisionId)
     def artifact = new DefaultArtifact(moduleRevisionId, new Date(), "proj1", "jar", "jar")
 
     def ResourceVersionLister lister;
@@ -44,7 +46,7 @@ class ResourceVersionListerTest extends Specification {
         1 * repo.list(_) >> { throw failure }
 
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         versionList.visit(testPattern, artifact)
 
         then:
@@ -58,7 +60,7 @@ class ResourceVersionListerTest extends Specification {
         1 * repo.list(_) >> null
 
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         versionList.visit(pattern(testPattern), artifact)
 
         then:
@@ -74,7 +76,7 @@ class ResourceVersionListerTest extends Specification {
         1 * repo.list(_) >> []
 
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         versionList.visit(pattern("/some/[revision]"), artifact)
 
         then:
@@ -84,7 +86,7 @@ class ResourceVersionListerTest extends Specification {
     @Unroll
     def "visit resolves versions from from pattern with '#testPattern'"() {
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         versionList.visit(pattern(testPattern), artifact)
 
         then:
@@ -117,7 +119,7 @@ class ResourceVersionListerTest extends Specification {
 
     def "visit builds union of versions"() {
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         def pattern1 = pattern("/[revision]/[artifact]-[revision].[ext]")
         def pattern2 = pattern("/[organisation]/[revision]/[artifact]-[revision].[ext]")
         versionList.visit(pattern1, artifact)
@@ -135,7 +137,7 @@ class ResourceVersionListerTest extends Specification {
 
     def "visit ignores duplicate patterns"() {
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         final patternA = pattern("/a/[revision]/[artifact]-[revision].[ext]")
         versionList.visit(patternA, artifact)
         versionList.visit(pattern("/a/[revision]/[artifact]-[revision]"), artifact)
@@ -156,7 +158,7 @@ class ResourceVersionListerTest extends Specification {
 
     def "visit substitutes non revision placeholders from pattern before hitting repository"() {
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         versionList.visit(pattern(inputPattern), artifact)
 
         then:
@@ -178,7 +180,7 @@ class ResourceVersionListerTest extends Specification {
         repo.list(_) >> repoResult
 
         when:
-        def versionList = lister.getVersionList(moduleRevisionId)
+        def versionList = lister.getVersionList(selector)
         versionList.visit(pattern(testPattern), artifact)
 
         then:

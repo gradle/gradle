@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
@@ -250,7 +251,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
     protected ResolvedArtifact findIvyFileRef(DependencyDescriptor dd) {
         ModuleRevisionId mrid = dd.getDependencyRevisionId();
         Artifact artifact = DefaultArtifact.newIvyArtifact(mrid, null);
-        return findResourceUsingPatterns(mrid, ivyPatterns, artifact, true);
+        return findResourceUsingPatterns(DefaultModuleVersionSelector.newSelector(mrid), ivyPatterns, artifact, true);
     }
 
     private ResolvedArtifact findAnyArtifact(ModuleDescriptor md) {
@@ -273,19 +274,19 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
     }
 
     private ResolvedArtifact getArtifactRef(Artifact artifact, boolean forDownload) {
-        ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
-        return findResourceUsingPatterns(moduleRevisionId, getArtifactPatterns(), artifact, forDownload);
+        ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(artifact.getModuleRevisionId());
+        return findResourceUsingPatterns(selector, getArtifactPatterns(), artifact, forDownload);
     }
 
-    protected ResolvedArtifact findResourceUsingPatterns(ModuleRevisionId requestedModuleRevision, List<String> patternList, Artifact artifact, boolean forDownload) {
-        if (versionMatcher.isDynamic(requestedModuleRevision.getRevision())) {
-            return findDynamicResourceUsingPatterns(requestedModuleRevision, patternList, artifact, forDownload);
+    protected ResolvedArtifact findResourceUsingPatterns(ModuleVersionSelector selector, List<String> patternList, Artifact artifact, boolean forDownload) {
+        if (versionMatcher.isDynamic(selector.getVersion())) {
+            return findDynamicResourceUsingPatterns(selector, patternList, artifact, forDownload);
         } else {
-            return findStaticResourceUsingPatterns(requestedModuleRevision, patternList, artifact, forDownload);
+            return findStaticResourceUsingPatterns(selector, patternList, artifact, forDownload);
         }
     }
 
-    private ResolvedArtifact findStaticResourceUsingPatterns(ModuleRevisionId moduleRevision, List<String> patternList, Artifact artifact, boolean forDownload) {
+    private ResolvedArtifact findStaticResourceUsingPatterns(ModuleVersionSelector selector, List<String> patternList, Artifact artifact, boolean forDownload) {
         // Static version, return first found
         for (String pattern : patternList) {
             ResourcePattern resourcePattern = toResourcePattern(pattern);
@@ -295,26 +296,26 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
             if (resource.exists()) {
                 return new ResolvedArtifact(resource, artifact);
             } else {
-                LOGGER.debug("Resource not reachable for {}: res={}", moduleRevision, resource);
+                LOGGER.debug("Resource not reachable for {}: res={}", selector, resource);
             }
         }
         return null;
     }
 
-    private ResolvedArtifact findDynamicResourceUsingPatterns(ModuleRevisionId requestedModuleRevision, List<String> patternList, Artifact artifact, boolean forDownload) {
+    private ResolvedArtifact findDynamicResourceUsingPatterns(ModuleVersionSelector selector, List<String> patternList, Artifact artifact, boolean forDownload) {
         // Dynamic version: list all, then choose latest
-        VersionList versionList = listVersionsForAllPatterns(requestedModuleRevision, patternList, artifact);
-        return findLatestResource(requestedModuleRevision, versionList, artifact, forDownload);
+        VersionList versionList = listVersionsForAllPatterns(selector, patternList, artifact);
+        return findLatestResource(selector, versionList, artifact, forDownload);
     }
 
-    private VersionList listVersionsForAllPatterns(ModuleRevisionId requestedModuleRevision, List<String> patternList, Artifact artifact) {
-        VersionList versionList = versionLister.getVersionList(requestedModuleRevision);
+    private VersionList listVersionsForAllPatterns(ModuleVersionSelector selector, List<String> patternList, Artifact artifact) {
+        VersionList versionList = versionLister.getVersionList(selector);
         for (String pattern : patternList) {
             ResourcePattern resourcePattern = toResourcePattern(pattern);
             try {
                 versionList.visit(resourcePattern, artifact);
             } catch (ResourceNotFoundException e) {
-                LOGGER.debug(String.format("Unable to load version list for %s from %s", requestedModuleRevision.getModuleId(), getRepository()));
+                LOGGER.debug(String.format("Unable to load version list for %s from %s", selector, getRepository()));
                 // Don't add any versions
                 // TODO:DAZ Should fail?
             }
@@ -322,8 +323,8 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         return versionList;
     }
 
-    private ResolvedArtifact findLatestResource(ModuleRevisionId requestedRevision, VersionList versions, Artifact artifact, boolean forDownload) {
-        String requestedVersion = requestedRevision.getRevision();
+    private ResolvedArtifact findLatestResource(ModuleVersionSelector selector, VersionList versions, Artifact artifact, boolean forDownload) {
+        String requestedVersion = selector.getVersion();
         String name = getName();
 
         for (VersionList.ListedVersion listedVersion : versions.sortLatestFirst(latestStrategy)) {
@@ -335,7 +336,8 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
                 continue;
             }
 
-            artifact = DefaultArtifact.cloneWithAnotherMrid(artifact, ModuleRevisionId.newInstance(requestedRevision, foundVersion));
+            ModuleRevisionId revision = IvyUtil.createModuleRevisionId(selector.getGroup(), selector.getName(), foundVersion, null);
+            artifact = DefaultArtifact.cloneWithAnotherMrid(artifact, revision);
             String resourcePath = listedVersion.getPattern().toPath(artifact);
             ExternalResource resource = getResource(resourcePath, artifact.getId(), forDownload || needsMetadata);
             String description = foundVersion + " [" + resource + "]";

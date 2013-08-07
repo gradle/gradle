@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.util.DeprecationLogger;
@@ -35,10 +35,10 @@ public class ChainedVersionLister implements VersionLister {
         this.versionListers = Arrays.asList(versionlisters);
     }
 
-    public VersionList getVersionList(final ModuleRevisionId moduleRevisionId)  {
+    public VersionList getVersionList(final ModuleVersionSelector selector)  {
         final List<VersionList> versionLists = new ArrayList<VersionList>();
         for (VersionLister lister : versionListers) {
-            versionLists.add(lister.getVersionList(moduleRevisionId));
+            versionLists.add(lister.getVersionList(selector));
         }
         return new AbstractVersionList() {
             public void visit(ResourcePattern pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
@@ -56,12 +56,12 @@ public class ChainedVersionLister implements VersionLister {
                         if (versionListIterator.hasNext()) {
                             String deprecationMessage = String.format(
                                     "Error listing versions of %s using %s. Will attempt an alternate way to list versions",
-                                    moduleRevisionId, list.getClass()
+                                    selector, list.getClass()
                             );
                             DeprecationLogger.nagUserOfDeprecatedBehaviour(deprecationMessage);
                             LOGGER.debug(deprecationMessage, e);
                         } else {
-                            throw new ResourceException(String.format("Failed to list versions for %s.", moduleRevisionId), e);
+                            throw new ResourceException(String.format("Failed to list versions for %s.", selector), e);
                         }
                     }
                 }

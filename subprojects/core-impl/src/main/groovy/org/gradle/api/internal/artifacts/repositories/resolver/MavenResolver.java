@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
@@ -163,7 +164,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             ModuleRevisionId moduleRevisionId = dd.getDependencyRevisionId();
             ArtifactRevisionId artifactRevisionId = ArtifactRevisionId.newInstance(moduleRevisionId, moduleRevisionId.getName(), "pom", "pom", moduleRevisionId.getExtraAttributes());
             Artifact pomArtifact = new DefaultArtifact(artifactRevisionId, null, null, true);
-            return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, true);
+            return findResourceUsingPatterns(DefaultModuleVersionSelector.newSelector(moduleRevisionId), getIvyPatterns(), pomArtifact, true);
         }
 
         return null;
