@@ -85,7 +85,7 @@ class ExactVersionMatcherTest extends Specification {
         matcher.compare("1.2", "1.2.3") < 0
     }
 
-    def "gives special treatment to 'dev', 'rc', and 'final' classifiers"() {
+    def "gives special treatment to 'dev', 'rc', and 'final' qualifiers"() {
         expect:
         matcher.compare("1.0-dev-1", "1.0") < 0
         matcher.compare("1.0", "1.0-dev-1") > 0
