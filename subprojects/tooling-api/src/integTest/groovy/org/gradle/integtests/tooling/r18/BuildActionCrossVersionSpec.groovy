@@ -19,11 +19,8 @@ package org.gradle.integtests.tooling.r18
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.model.GradleProject
 import spock.lang.Ignore
 
 @ToolingApiVersion('>=1.8')
@@ -37,7 +34,8 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         CustomModel result = withConnection { it.action(new CustomAction()).run() }
 
         then:
-        result.name == "hello-world"
+        result.gradle.name == "hello-world"
+        result.eclipse.gradleProject.name == "hello-world"
     }
 
     @Ignore("work in progress")
@@ -47,7 +45,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         GradleConnectionException e = thrown()
-        e.cause instanceof CustomException
+        e.cause instanceof BrokenAction.CustomException
     }
 
     @TargetGradleVersion('<1.8')
@@ -58,24 +56,5 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         UnsupportedVersionException e = thrown()
         e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support build actions."
-    }
-
-    static class CustomAction implements BuildAction<CustomModel> {
-        def CustomModel execute(BuildController controller) {
-            def model = controller.getModel(GradleProject.class)
-            return new CustomModel(name: model.name)
-        }
-    }
-
-    static class CustomException extends RuntimeException {}
-
-    static class BrokenAction implements BuildAction<String> {
-        String execute(BuildController controller) {
-            throw new CustomException()
-        }
-    }
-
-    static class CustomModel implements Serializable {
-        String name
     }
 }
