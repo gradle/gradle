@@ -7,6 +7,7 @@ This enhancements provide:
 1. Extensions
 1. Implicit type coercion when calling methods
 1. “set methods” (foo(String s) variant for setFoo(String s))
+1. Closure overloads for Action methods
 1. Dynamic properties (deprecated in favor of extra properties)
 1. Convention plugins (predecessor to extensions)
 1. Convention mapping (lazily derived values)
@@ -148,5 +149,63 @@ Having file type coercion implemented as a decoration means that such setters sh
 The strategy will be to simply overload setters and set methods with `File` accepting variants, and `@Deprecated`ing `Object` accepting variants.
 
 ## Story: A static API user (e.g. Java) specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
+
+## Story: DSL enhancement (aspects thereof) are opt-in
+
+Currently, object enhancement is a function of where/how it is used. 
+This story makes enhancement opt-in in that types must explicitly declare what enhancements they want.
+This declaration can be used by tooling, such as our documentation generator or IDEs trying to provide content assistance.
+
+This story also encompasses breaking up the enhancement from being all or nothing into discrete bits.
+Objects may need type coercion and other syntactic conveniences, but not require extensibility
+
+## Story: DSL enhancement is performed at class load time instead of instantiation time
+
+Our current enhancement strategy is based on dynamically generating subclasses at runtime.
+This has the following drawbacks:
+
+1. Causes strange behaviour with access to private methods
+2. Requires reflective instantiation
+3. Requires pushing an Instantiator service around so enhanced objects can be created
+
+This story makes enhancement a class load time function.
+
+## Story: Dynamic object protocol is not two-pass based
+
+Currently, we ask objects if they can respond to a method/property invocation before actually proceeding with the invocation.
+This causes code duplication as typically the determination happens in the check and the actual invocation.
+
+This story is about changing the protocol from being “Can you do this? Yes? Go ahead then.” to “Please do this and tell me if you can't”.
+
+This will avoid code duplication and is potentially more efficient.
+
+## Story: Relative file method arguments are contextually absolutised 
+
+When calling methods (incl. setting properties) on enhanced objects with files representing relative paths, the target should receive an absolute file.
+It should be resolved to the logical base (e.g. project dir for a task).
+This should work when the caller is Java.
+
+## Story: Enhanced object properties are automatically configurable by action/closure
+
+In order to achieve:
+
+    def foo = // create a Foo
+    foo {
+        bar {
+            
+        }
+    }
+    
+We have to write:
+
+    class Foo {
+        Bar bar
+        
+        void bar(Action<? super Bar> action) {
+            action.execute(bar)
+        }
+    }
+    
+This story is about avoiding the need to write the action accepting method in order to achieve this behaviour.
 
 # Open issues
