@@ -17,6 +17,7 @@
 package org.gradle.groovy.scripts;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.PathValidation;
 import org.gradle.api.Script;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -153,6 +154,10 @@ public abstract class DefaultScript extends BasicScript {
 
     public WorkResult copy(Closure closure) {
         return fileOperations.copy(closure);
+    }
+
+    public WorkResult sync(Action<? super CopySpec> action) {
+        return fileOperations.sync(action);
     }
 
     public CopySpec copySpec(Closure closure) {

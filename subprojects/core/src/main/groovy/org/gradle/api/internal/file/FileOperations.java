@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
@@ -59,6 +60,8 @@ public interface FileOperations {
     CopySpec copySpec(Closure closure);
 
     WorkResult copy(Closure closure);
+
+    WorkResult sync(Action<? super CopySpec> action);
 
     File mkdir(Object path);
 

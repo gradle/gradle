@@ -823,6 +823,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return fileOperations.copy(closure);
     }
 
+    public WorkResult sync(Action<? super CopySpec> action) {
+        return fileOperations.sync(action);
+    }
+
     public CopySpec copySpec(Closure closure) {
         return fileOperations.copySpec(closure);
     }

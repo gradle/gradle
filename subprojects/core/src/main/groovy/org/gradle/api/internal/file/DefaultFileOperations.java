@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.*;
@@ -139,6 +140,11 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     public WorkResult copy(Closure closure) {
         FileCopier copyAction = new FileCopier(instantiator, fileResolver);
         return copyAction.copy(new ClosureBackedAction<CopySpec>(closure));
+    }
+
+    public WorkResult sync(Action<? super CopySpec> action) {
+        FileCopier copyAction = new FileCopier(instantiator, fileResolver);
+        return copyAction.sync(action);
     }
 
     public CopySpecInternal copySpec(Closure closure) {
