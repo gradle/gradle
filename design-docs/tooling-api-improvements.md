@@ -186,6 +186,11 @@ models is used.
 ### Test cases
 
 - Action builds a result and this result is received by the client.
+    - Returns a custom result type
+    - Returns a custom result type that references a built-in tooling model
+    - Returns a custom result type that references multiple tooling models
+    - Returns a custom result type that references a custom tooling model whose implementation uses classes that conflict with the client
+    - Client changes action implementation to return a different result
 - Verify environment that the action executes in:
     - Logging is received by the client as part of the build output.
     - Context ClassLoader is set appropriately.
@@ -197,6 +202,7 @@ models is used.
     - The action cannot be serialized or deserialized.
     - The action result cannot be serialized or deserialized.
     - The Gradle process is killed before the action completes.
+    - The action requests an unknown model.
 
 ## Story: Tooling API build action iterates over the projects of build
 
