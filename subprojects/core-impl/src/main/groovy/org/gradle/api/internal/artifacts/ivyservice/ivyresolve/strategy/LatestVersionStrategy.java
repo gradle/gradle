@@ -35,8 +35,7 @@ class LatestVersionStrategy implements LatestStrategy {
     }
 
     public <T extends Versioned> T findLatest(List<T> elements) {
-        List<T> sortedVersions = sort(elements);
-        return sortedVersions.get(sortedVersions.size() - 1);
+        return Collections.max(elements, this);
     }
 
     public int compare(Versioned element1, Versioned element2) {
