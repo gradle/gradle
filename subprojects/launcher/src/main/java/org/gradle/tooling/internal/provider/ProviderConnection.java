@@ -35,10 +35,7 @@ import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
-import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GUtil;
@@ -50,6 +47,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class ProviderConnection implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
@@ -115,13 +113,26 @@ public class ProviderConnection implements Stoppable {
         return payloadSerializer.deserialize(model);
     }
 
-    public Object run(InternalBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
-        Parameters params = initParams(providerParameters);
-        SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
+    public Object run(InternalBuildAction<?> clientAction, final BuildActionSerializationDetails serializationDetails, ProviderOperationParameters providerParameters) {
+        final PayloadSerializer.ClassLoaderDetails actionClassLoader = new PayloadSerializer.ClassLoaderDetails(UUID.randomUUID(), serializationDetails.getActionClassPath());
+        SerializedPayload serializedAction = payloadSerializer.serialize(clientAction, new PayloadSerializer.SerializeMap() {
+            public PayloadSerializer.ClassLoaderDetails getDetails(ClassLoader target) {
+                return actionClassLoader;
+            }
+        });
+
         BuildAction<SerializedPayload> action = new ClientProvidedBuildAction(serializedAction);
+        Parameters params = initParams(providerParameters);
         SerializedPayload result = run(action, providerParameters, params.properties);
 
-        return payloadSerializer.deserialize(result, clientAction.getClass().getClassLoader());
+        return payloadSerializer.deserialize(result, new PayloadSerializer.DeserializeMap() {
+            public ClassLoader getClassLoader(PayloadSerializer.ClassLoaderDetails classLoaderDetails) {
+                if (classLoaderDetails.uuid.equals(actionClassLoader.uuid)) {
+                    return serializationDetails.getResultClassLoader();
+                }
+                return null;
+            }
+        });
     }
 
     private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {

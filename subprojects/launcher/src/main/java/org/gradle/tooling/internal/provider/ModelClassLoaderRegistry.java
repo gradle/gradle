@@ -16,38 +16,29 @@
 
 package org.gradle.tooling.internal.provider;
 
-import com.google.common.collect.MapMaker;
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 import org.gradle.util.FilteringClassLoader;
 import org.objectweb.asm.*;
 
 import java.net.URL;
-import java.util.*;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
-@ThreadSafe
 public class ModelClassLoaderRegistry {
-    private final ConcurrentMap<List<URL>, ClassLoader> loaders;
     private final ClassLoader rootClassLoader;
 
     public ModelClassLoaderRegistry() {
-        loaders = new MapMaker().softValues().makeMap();
         ClassLoader parent = getClass().getClassLoader();
         FilteringClassLoader filter = new FilteringClassLoader(parent);
         filter.allowPackage("org.gradle.tooling.internal.protocol");
         rootClassLoader = filter;
     }
 
-    public ClassLoader getClassLoaderFor(List<URL> classpath) {
-        ArrayList<URL> key = new ArrayList<URL>(classpath);
-        ClassLoader classLoader = loaders.get(key);
-        while (classLoader == null) {
-            loaders.putIfAbsent(key, new MixInClassLoader(rootClassLoader, key));
-            classLoader = loaders.get(key);
-        }
-        return classLoader;
+    public ClassLoader getClassLoaderFor(List<URL> classpath, ClassLoader parent) {
+        return new MixInClassLoader(parent == null ? rootClassLoader : parent, classpath);
     }
 
     private static class MixInClassLoader extends TransformingClassLoader {

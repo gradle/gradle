@@ -23,6 +23,13 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.util.ClasspathUtil;
+
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
     private final InternalBuildActionExecutor executor;
@@ -34,7 +41,28 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
 
     @Override
     public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return executor.run(new BuildActionAdapter<T>(action, adapter), operationParameters).getModel();
+        return executor.run(new BuildActionAdapter<T>(action, adapter), new DefaultBuildActionSerializationDetails(action), operationParameters).getModel();
+    }
+
+    private static class DefaultBuildActionSerializationDetails implements BuildActionSerializationDetails {
+        private final ClassLoader classLoader;
+        private final List<URL> classpath;
+
+        private DefaultBuildActionSerializationDetails(BuildAction<?> action) {
+            classLoader = action.getClass().getClassLoader();
+            Set<URL> classpath = new LinkedHashSet<URL>();
+            classpath.addAll(ClasspathUtil.getClasspath(getClass().getClassLoader()));
+            classpath.addAll(ClasspathUtil.getClasspath(classLoader));
+            this.classpath = new ArrayList<URL>(classpath);
+        }
+
+        public List<URL> getActionClassPath() {
+            return classpath;
+        }
+
+        public ClassLoader getResultClassLoader() {
+            return classLoader;
+        }
     }
 
     private static class BuildActionAdapter<T> implements InternalBuildAction<T> {

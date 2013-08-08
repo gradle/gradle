@@ -18,20 +18,10 @@ package org.gradle.tooling.internal.provider;
 
 import java.io.Serializable;
 
-public class SerializedPayload implements Serializable {
-    private final byte[] serializedModel;
-    private final Object header;
+public class WrapperPayload implements Serializable, PayloadInterface {
+    PayloadInterface payload;
 
-    public SerializedPayload(Object header, byte[] serializedModel) {
-        this.header = header;
-        this.serializedModel = serializedModel;
-    }
-
-    public Object getHeader() {
-        return header;
-    }
-
-    public byte[] getSerializedModel() {
-        return serializedModel;
+    public String getValue() {
+        return payload.getValue();
     }
 }

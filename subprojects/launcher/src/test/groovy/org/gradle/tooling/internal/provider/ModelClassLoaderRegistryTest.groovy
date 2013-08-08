@@ -16,56 +16,21 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.internal.classloader.MutableURLClassLoader
+import spock.lang.Specification
 
-import java.util.concurrent.CopyOnWriteArraySet
-
-class ModelClassLoaderRegistryTest extends ConcurrentSpec {
+class ModelClassLoaderRegistryTest extends Specification {
     final ModelClassLoaderRegistry registry = new ModelClassLoaderRegistry()
 
-    def "creates and caches ClassLoader for classpath"() {
+    def "creates ClassLoader for classpath"() {
         def url1 = new URL("http://localhost/file1.jar")
         def url2 = new URL("http://localhost/file2.jar")
 
         when:
-        def cl = registry.getClassLoaderFor([url1, url2])
+        def cl = registry.getClassLoaderFor([url1, url2], null)
 
         then:
         cl instanceof MutableURLClassLoader
         cl.URLs == [url1, url2] as URL[]
-
-        when:
-        def cl2 = registry.getClassLoaderFor([url1, url2])
-
-        then:
-        cl2.is(cl)
-
-        when:
-        def cl3 = registry.getClassLoaderFor([url1])
-
-        then:
-        cl3 != cl
-    }
-
-    def "reuse of ClassLoader is thread-safe"() {
-        def url1 = new URL("http://localhost/file1.jar")
-        def url2 = new URL("http://localhost/file2.jar")
-
-        def results = new CopyOnWriteArraySet()
-
-        when:
-        async {
-            10.times {
-                start {
-                    10.times {
-                        results << registry.getClassLoaderFor([url1, url2])
-                    }
-                }
-            }
-        }
-
-        then:
-        results.size() == 1
     }
 }

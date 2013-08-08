@@ -16,39 +16,283 @@
 
 package org.gradle.tooling.internal.provider;
 
+import com.google.common.collect.Maps;
+import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.remote.internal.Message;
-import org.gradle.util.ClasspathUtil;
-import org.gradle.util.GUtil;
+import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.gradle.util.CachingClassLoader;
+import org.gradle.util.MultiParentClassLoader;
 
-import java.io.ByteArrayInputStream;
+import java.io.*;
+import java.lang.reflect.Proxy;
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+@ThreadSafe
 public class PayloadSerializer {
+    private static final short SYSTEM_CLASS_LOADER_ID = (short) 1;
+    private final Lock lock = new ReentrantLock();
     private final ModelClassLoaderRegistry classLoaderRegistry;
+    // TODO:ADAM - don't use strong references
+    private final Map<ClassLoader, ClassLoaderDetails> classLoaderDetails = Maps.newHashMap();
+    private final Map<UUID, ClassLoader> classLoaderIds = Maps.newHashMap();
 
     public PayloadSerializer(ModelClassLoaderRegistry classLoaderRegistry) {
         this.classLoaderRegistry = classLoaderRegistry;
     }
 
-    public SerializedPayload serialize(Object payload) {
-        List<URL> classpath = payload == null ? Collections.<URL>emptyList() : ClasspathUtil.getClasspath(payload.getClass().getClassLoader());
-        byte[] serializedModel = GUtil.serialize(payload);
-        return new SerializedPayload(classpath, serializedModel);
+    public SerializedPayload serialize(final Object payload) {
+        return doSerialize(payload, new DefaultSerializeMap(null));
+    }
+
+    public SerializedPayload serialize(final Object payload, SerializeMap map) {
+        return doSerialize(payload, new DefaultSerializeMap(map));
+    }
+
+    private SerializedPayload doSerialize(final Object payload, final DefaultSerializeMap map) {
+        try {
+            final Map<ClassLoader, Short> classLoadersIds = new HashMap<ClassLoader, Short>();
+            final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
+            final Set<ClassLoader> systemClassLoaders = new HashSet<ClassLoader>();
+            for (ClassLoader cl = ClassLoader.getSystemClassLoader().getParent(); cl != null; cl = cl.getParent()) {
+                systemClassLoaders.add(cl);
+            }
+
+            ByteArrayOutputStream content = new ByteArrayOutputStream();
+            ObjectOutputStream objectStream = new ObjectOutputStream(content) {
+                @Override
+                protected void writeClassDescriptor(ObjectStreamClass desc) throws IOException {
+                    Class<?> targetClass = desc.forClass();
+                    writeClassLoader(targetClass);
+                    writeUTF(targetClass.getName());
+                }
+
+                @Override
+                protected void annotateProxyClass(Class<?> cl) throws IOException {
+                    writeClassLoader(cl);
+                    writeInt(cl.getInterfaces().length);
+                    for (Class<?> type : cl.getInterfaces()) {
+                        writeClassDescriptor(ObjectStreamClass.lookupAny(type));
+                    }
+                }
+
+                private void writeClassLoader(Class<?> targetClass) throws IOException {
+                    writeShort(getClassLoaderId(targetClass));
+                }
+
+                private short getClassLoaderId(Class<?> targetClass) {
+                    ClassLoader classLoader = targetClass.getClassLoader();
+                    if (classLoader == null || systemClassLoaders.contains(classLoader)) {
+                        return SYSTEM_CLASS_LOADER_ID;
+                    }
+
+                    Short id = classLoadersIds.get(classLoader);
+                    if (id != null) {
+                        return id;
+                    }
+
+                    ClassLoaderDetails details = map.getDetails(classLoader);
+                    id = (short) (classLoadersIds.size() + SYSTEM_CLASS_LOADER_ID + 1);
+
+                    classLoadersIds.put(classLoader, id);
+                    classLoaderDetails.put(id, details);
+
+                    return id;
+                }
+            };
+
+            objectStream.writeObject(payload);
+            objectStream.close();
+
+            return new SerializedPayload(classLoaderDetails, content.toByteArray());
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public Object deserialize(SerializedPayload payload) {
-        ClassLoader classLoader = classLoaderRegistry.getClassLoaderFor(payload.getClassPath());
-        return deserialize(payload, classLoader);
+        return doDeserialize(payload, new DefaultDeserializeMap(null));
     }
 
-    public Object deserialize(SerializedPayload model, ClassLoader classLoader) {
+    public Object deserialize(SerializedPayload payload, DeserializeMap map) {
+        return doDeserialize(payload, new DefaultDeserializeMap(map));
+    }
+
+    private Object doDeserialize(SerializedPayload payload, DefaultDeserializeMap map) {
         try {
-            return Message.receive(new ByteArrayInputStream(model.getSerializedModel()), classLoader);
+            final Map<Short, ClassLoader> classLoaders = new HashMap<Short, ClassLoader>();
+            for (ClassLoader cl = ClassLoader.getSystemClassLoader().getParent(); cl != null; cl = cl.getParent()) {
+                classLoaders.put(SYSTEM_CLASS_LOADER_ID, ClassLoader.getSystemClassLoader().getParent());
+            }
+            Map<Short, ClassLoaderDetails> detailsMap = (Map<Short, ClassLoaderDetails>) payload.getHeader();
+            for (Map.Entry<Short, ClassLoaderDetails> entry : detailsMap.entrySet()) {
+                classLoaders.put(entry.getKey(), map.getClassLoader(entry.getValue()));
+            }
+
+            final ObjectInputStream objectStream = new ObjectInputStream(new ByteArrayInputStream(payload.getSerializedModel())) {
+                @Override
+                protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
+                    ClassLoader classLoader = readClassLoader();
+                    String cl = readUTF();
+                    ObjectStreamClass descriptor = ObjectStreamClass.lookupAny(Class.forName(cl, false, classLoader));
+                    if (descriptor == null) {
+                        throw new ClassNotFoundException(cl);
+                    }
+                    return descriptor;
+                }
+
+                @Override
+                protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+                    return desc.forClass();
+                }
+
+                @Override
+                protected Class<?> resolveProxyClass(String[] interfaces) throws IOException, ClassNotFoundException {
+                    ClassLoader classLoader = readClassLoader();
+                    int count = readInt();
+                    Class<?>[] actualInterfaces = new Class<?>[count];
+                    for (int i = 0; i < count; i++) {
+                        actualInterfaces[i] = readClassDescriptor().forClass();
+                    }
+                    return Proxy.getProxyClass(classLoader, actualInterfaces);
+                }
+
+                private ClassLoader readClassLoader() throws IOException {
+                    short id = readShort();
+                    return classLoaders.get(id);
+                }
+            };
+            return objectStream.readObject();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    private class DefaultSerializeMap {
+        final SerializeMap overrides;
+
+        private DefaultSerializeMap(SerializeMap overrides) {
+            this.overrides = overrides;
+        }
+
+        public ClassLoaderDetails getDetails(final ClassLoader classLoader) {
+            lock.lock();
+            try {
+                ClassLoaderDetails details = classLoaderDetails.get(classLoader);
+                if (details != null) {
+                    return details;
+                }
+                if (overrides != null) {
+                    details = overrides.getDetails(classLoader);
+                }
+                if (details == null) {
+                    final List<URL> classpath = new ArrayList<URL>();
+                    final List<ClassLoader> parents = new ArrayList<ClassLoader>();
+                    new ClassLoaderVisitor() {
+                        @Override
+                        public void visit(ClassLoader candidate) {
+                            if (candidate == classLoader) {
+                                super.visit(candidate);
+                            } else {
+                                parents.add(candidate);
+                            }
+                        }
+
+                        @Override
+                        public void visitClassPath(URL[] classPath) {
+                            classpath.addAll(Arrays.asList(classPath));
+                        }
+                    }.visit(classLoader);
+
+                    UUID uuid = UUID.randomUUID();
+                    details = new ClassLoaderDetails(uuid, classpath);
+                    for (ClassLoader parent : parents) {
+                        details.parents.add(getDetails(parent));
+                    }
+                }
+                classLoaderDetails.put(classLoader, details);
+                classLoaderIds.put(details.uuid, classLoader);
+                return details;
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
+    private class DefaultDeserializeMap {
+        final DeserializeMap overrides;
+
+        private DefaultDeserializeMap(DeserializeMap overrides) {
+            this.overrides = overrides;
+        }
+
+        public ClassLoader getClassLoader(ClassLoaderDetails details) {
+            lock.lock();
+            try {
+                ClassLoader classLoader = classLoaderIds.get(details.uuid);
+                if (classLoader != null) {
+                    return classLoader;
+                }
+                if (overrides != null) {
+                    classLoader = overrides.getClassLoader(details);
+                }
+                if (classLoader == null) {
+                    ClassLoader parent = null;
+                    if (details.parents.size() == 1) {
+                        parent = getClassLoader(details.parents.get(0));
+                    } else if (details.parents.size() > 1) {
+                        MultiParentClassLoader multiParentClassLoader = new MultiParentClassLoader();
+                        for (ClassLoaderDetails parentDetails : details.parents) {
+                            multiParentClassLoader.addParent(getClassLoader(parentDetails));
+                        }
+                        parent = new CachingClassLoader(multiParentClassLoader);
+                    }
+                    classLoader = classLoaderRegistry.getClassLoaderFor(details.classPath, parent);
+                }
+                classLoaderIds.put(details.uuid, classLoader);
+                classLoaderDetails.put(classLoader, details);
+                return classLoader;
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
+    public static class ClassLoaderDetails implements Serializable {
+        final UUID uuid;
+        final List<URL> classPath;
+        final List<ClassLoaderDetails> parents = new ArrayList<ClassLoaderDetails>();
+
+        public ClassLoaderDetails(UUID uuid, List<URL> classPath) {
+            this.uuid = uuid;
+            this.classPath = classPath;
+        }
+    }
+
+    /**
+     * Implementations don't need to be thread-safe
+     */
+    public interface SerializeMap {
+        /**
+         * Returns the details to use to reconstruct the given ClassLoader in the recipient. Return null to
+         * use the default details for the given ClassLoader.
+         */
+        @Nullable
+        ClassLoaderDetails getDetails(ClassLoader target);
+    }
+
+    /**
+     * Implementations don't need to be thread-safe
+     */
+    public interface DeserializeMap {
+        /**
+         * Reconstructs the ClassLoader received from the originator. Return null to use the default for the given
+         * details.
+         */
+        @Nullable
+        ClassLoader getClassLoader(ClassLoaderDetails classLoaderDetails);
     }
 }

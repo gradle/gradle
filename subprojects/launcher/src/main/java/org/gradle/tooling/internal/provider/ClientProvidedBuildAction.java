@@ -25,11 +25,8 @@ import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
-import org.gradle.util.GUtil;
 
 import java.io.Serializable;
-import java.net.URL;
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 class ClientProvidedBuildAction implements BuildAction<SerializedPayload>, Serializable {
@@ -42,25 +39,27 @@ class ClientProvidedBuildAction implements BuildAction<SerializedPayload>, Seria
     public SerializedPayload run(final BuildController buildController) {
         final DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) buildController.getLauncher();
         PayloadSerializer payloadSerializer = gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
-        InternalBuildAction<?> action = (InternalBuildAction<?>) payloadSerializer.deserialize(this.action);
-        Object result = action.execute(new InternalBuildController() {
-            public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
-                throw new UnsupportedOperationException();
-            }
+        final InternalBuildAction<?> action = (InternalBuildAction<?>) payloadSerializer.deserialize(this.action);
+        final AtomicReference<Object> result = new AtomicReference<Object>();
 
-            public BuildResult<?> getModel(final ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
-                final AtomicReference<Object> result = new AtomicReference<Object>();
-                gradleLauncher.addListener(new ModelConfigurationListener() {
-                    public void onConfigure(GradleInternal gradle) {
-                        ToolingModelBuilder builder = gradleLauncher.getGradle().getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class).getBuilder(modelIdentifier.getName());
-                        Object model = builder.buildAll(modelIdentifier.getName(), gradle.getDefaultProject());
-                        result.set(model);
+        gradleLauncher.addListener(new ModelConfigurationListener() {
+            public void onConfigure(final GradleInternal gradle) {
+                InternalBuildController internalBuildController = new InternalBuildController() {
+                    public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
+                        return new ProviderBuildResult<Object>(gradle);
                     }
-                });
-                buildController.configure();
-                return new ProviderBuildResult<Object>(result.get());
+
+                    public BuildResult<?> getModel(final ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
+                        ToolingModelBuilder builder = gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class).getBuilder(modelIdentifier.getName());
+                        Object model = builder.buildAll(modelIdentifier.getName(), gradle.getDefaultProject());
+                        return new ProviderBuildResult<Object>(model);
+                    }
+                };
+                result.set(action.execute(internalBuildController));
             }
         });
-        return new SerializedPayload(Collections.<URL>emptyList(), GUtil.serialize(result));
+
+        buildController.configure();
+        return payloadSerializer.serialize(result.get());
     }
 }

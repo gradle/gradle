@@ -41,7 +41,9 @@ public interface InternalBuildActionExecutor extends InternalProtocolInterface {
      * @throws IllegalStateException When this connection has been stopped.
      * @since 1.8-rc-1
      */
-    <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws
+    <T> BuildResult<T> run(InternalBuildAction<T> action,
+                           BuildActionSerializationDetails serializationDetails,
+                           BuildParameters operationParameters) throws
             BuildExceptionVersion1,
             InternalUnsupportedBuildArgumentException,
             IllegalStateException;
