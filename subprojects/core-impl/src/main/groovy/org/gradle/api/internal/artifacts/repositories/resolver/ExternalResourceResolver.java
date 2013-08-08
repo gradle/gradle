@@ -353,7 +353,6 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
                     discardResource(resource);
                     continue;
                 }
-                metadataProcessor.process(metaData);
                 if (!versionMatcher.accept(requestedVersion, metaData)) {
                     LOGGER.debug(name + ": md rejected by version matcher: " + description);
                     discardResource(resource);
