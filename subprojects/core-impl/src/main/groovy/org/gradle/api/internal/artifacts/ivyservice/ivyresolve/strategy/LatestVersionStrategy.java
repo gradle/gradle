@@ -38,6 +38,9 @@ class LatestVersionStrategy implements LatestStrategy {
         return Collections.max(elements, this);
     }
 
+    // TODO: Compared to Ivy's LatestRevisionStrategy.compare(), this method doesn't do any
+    // equivalent of ModuleRevisionId.normalizeRevision(). Should we add this functionality
+    // back in, either here or (probably better) in (Chain)VersionMatcher?
     public int compare(Versioned element1, Versioned element2) {
         String version1 = element1.getVersion();
         String version2 = element2.getVersion();
