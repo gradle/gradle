@@ -33,6 +33,14 @@
                 <td><literal>project.httpPort</literal></td>
             </tr>
             <tr>
+                <td>reload</td>
+                <td><literal>"automatic"</literal></td>
+            </tr>
+            <tr>
+                <td>scanIntervalSeconds</td>
+                <td><literal>0</literal></td>
+            </tr>
+            <tr>
                 <td>additionalRuntimeJars</td>
                 <td><literal>[]</literal></td>
             </tr>
