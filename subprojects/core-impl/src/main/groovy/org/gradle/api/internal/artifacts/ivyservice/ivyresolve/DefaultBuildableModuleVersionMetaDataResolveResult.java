@@ -179,14 +179,17 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     }
 
     public void setChanging(boolean changing) {
+        assertResolved();
         this.changing = changing;
     }
 
     public void setStatus(String status) {
+        assertResolved();
         this.status = status;
     }
 
     public void setStatusScheme(List<String> statusScheme) {
+        assertResolved();
         this.statusScheme = statusScheme;
     }
 
