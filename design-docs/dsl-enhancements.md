@@ -1,11 +1,23 @@
-There are many natural ways to express the value for a file in the Gradle DSL. This is formally encoded in the `project.file()`
-method that takes an Object and returns a File, using well defined coercion rules. Furthermore, many tasks and other DSL exposed
-objects accept Object parameters which they implicitly coerce to a File internally. This spec is about making such implicit coercion
-automatic, implicit and universal.
+This spec contains stories and describes improvements to be made to how we “enhance” objects for usage in the DSL.
 
-This may also lay some groundwork for other implicit type coercions.
+Objects designed for use in the DSL get enhanced with extra functionality to make their use more convenient and to support Gradle idioms.
+This enhancements provide:
+
+1. Extra properties
+1. Extensions
+1. Implicit type coercion when calling methods
+1. “set methods” (foo(String s) variant for setFoo(String s))
+1. Dynamic properties (deprecated in favor of extra properties)
+1. Convention plugins (predecessor to extensions)
+1. Convention mapping (lazily derived values)
+
+Enhancement is currently done by dynamically generating subclasses at runtime using ASM. 
+
+This spec has some crossover with the spec on improving the documentation.
 
 # Use cases
+
+## Implicit Type Coercion
 
 For API such as:
 
@@ -32,6 +44,8 @@ There are two user oriented views of this feature:
 
 This type coercion should be entirely transparent to group #2 and simple and predictable for group #1. That is, for any object exposed
 in the DSL, a user should be able to set `File` properties of objects using different (well defined) types.
+
+There are other potential coercions, such as string to enum value.
 
 # Implementation plan
 
@@ -132,8 +146,6 @@ Having flexible file inputs is currently implemented by types implementing a set
 Having file type coercion implemented as a decoration means that such setters should be strongly typed to `File`. 
 
 The strategy will be to simply overload setters and set methods with `File` accepting variants, and `@Deprecated`ing `Object` accepting variants.
-
-## Story: Type coercion is used in conjunction with convention mapping to defer evaluation (incl. coercion)
 
 ## Story: A static API user (e.g. Java) specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
 
