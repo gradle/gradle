@@ -137,7 +137,6 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
             return two.module == null ? one : two;
         }
 
-        LatestStrategy latestStrategy = this.latestStrategy;
         int comparison = latestStrategy.compare(one, two);
 
         if (comparison == 0) {
