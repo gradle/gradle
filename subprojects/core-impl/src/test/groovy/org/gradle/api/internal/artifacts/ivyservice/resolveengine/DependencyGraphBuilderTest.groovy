@@ -29,8 +29,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientResultsStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.api.internal.cache.Store
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
@@ -76,7 +78,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     private DefaultLenientConfiguration resolve() {
-        def results = new DefaultResolvedConfigurationBuilder(Stub(ResolvedArtifactFactory), storeFactory.createStore(configuration))
+        def results = new DefaultResolvedConfigurationBuilder(Stub(ResolvedArtifactFactory), new TransientResultsStore(storeFactory.createBinaryStore(configuration), Mock(Store)))
         builder.resolve(configuration, listener, results)
         new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
     }

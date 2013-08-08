@@ -31,9 +31,12 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientResultsStore;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.cache.BinaryStore;
+import org.gradle.api.internal.cache.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,8 +87,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
                 DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
                 ResolutionResultBuilder newGraphBuilder = new ResolutionResultBuilder();
-                BinaryStore binaryStore = storeFactory.createStore(configuration);
-                DefaultResolvedConfigurationBuilder oldGraphBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, binaryStore);
+                BinaryStore binaryStore = storeFactory.createBinaryStore(configuration);
+                Store<TransientConfigurationResults> resultsCache = storeFactory.createCachedStore(configuration);
+                TransientResultsStore resultsStore = new TransientResultsStore(binaryStore, resultsCache);
+                DefaultResolvedConfigurationBuilder oldGraphBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, resultsStore);
                 builder.resolve(configuration, newGraphBuilder, oldGraphBuilder);
                 DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldGraphBuilder, cacheLockingManager);
                 return new ResolverResults(new DefaultResolvedConfiguration(result), newGraphBuilder.getResult());

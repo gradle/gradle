@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.CachedStoreFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.cache.BinaryStore;
+import org.gradle.api.internal.cache.Store;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 
 import java.io.*;
@@ -30,12 +34,13 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 public class ResolutionResultsStoreFactory implements Closeable {
     private final TemporaryFileProvider temp;
     private final List<File> deleteMe = new LinkedList<File>();
+    private final CachedStoreFactory cachedStoreFactory = new CachedStoreFactory(20);
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this.temp = temp;
     }
 
-    public BinaryStore createStore(ConfigurationInternal configuration) {
+    public BinaryStore createBinaryStore(ConfigurationInternal configuration) {
         String id = configuration.getPath().replaceAll(":", "-");
         final File file = temp.createTemporaryFile("gradle-" + id + "-result", ".bin");
         file.deleteOnExit();
@@ -47,6 +52,11 @@ public class ResolutionResultsStoreFactory implements Closeable {
         for (File file : deleteMe) {
             file.delete();
         }
+        cachedStoreFactory.close();
+    }
+
+    public Store<TransientConfigurationResults> createCachedStore(final Configuration configuration) {
+        return cachedStoreFactory.createCachedStore(configuration);
     }
 
     private static class SimpleBinaryStore implements BinaryStore {
