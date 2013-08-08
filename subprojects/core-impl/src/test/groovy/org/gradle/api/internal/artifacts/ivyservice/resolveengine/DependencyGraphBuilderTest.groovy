@@ -146,8 +146,8 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            assert candidates*.revision == ['1.2', '1.1']
-            return candidates.find { it.revision == '1.2' }
+            assert candidates*.version == ['1.2', '1.1']
+            return candidates.find { it.version == '1.2' }
         }
         0 * conflictResolver._
 
@@ -177,8 +177,8 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            assert candidates*.revision == ['1.1', '1.2']
-            return candidates.find { it.revision == '1.2' }
+            assert candidates*.version == ['1.1', '1.2']
+            return candidates.find { it.version == '1.2' }
         }
         0 * conflictResolver._
 
@@ -208,8 +208,8 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            assert candidates*.revision == ['1.1', '1.2']
-            return candidates.find { it.revision == '1.2' }
+            assert candidates*.version == ['1.1', '1.2']
+            return candidates.find { it.version == '1.2' }
         }
         0 * conflictResolver._
 
@@ -235,8 +235,8 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            assert candidates*.revision == ['1.2', '1.1']
-            return candidates.find { it.revision == '1.2' }
+            assert candidates*.version == ['1.2', '1.1']
+            return candidates.find { it.version == '1.2' }
         }
         0 * conflictResolver._
 
@@ -265,8 +265,8 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            assert candidates*.revision == ['1.1', '1.2']
-            return candidates.find { it.revision == '1.2' }
+            assert candidates*.version == ['1.1', '1.2']
+            return candidates.find { it.version == '1.2' }
         }
         0 * conflictResolver._
 
@@ -294,17 +294,17 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select({ it*.revision == ['1.1', '1.2'] }) >> {
+        1 * conflictResolver.select({ it*.version == ['1.1', '1.2'] }) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            return candidates.find { it.revision == '1.2' }
+            return candidates.find { it.version == '1.2' }
         }
-        1 * conflictResolver.select({ it*.revision == ['2.1', '2.2'] }) >> {
+        1 * conflictResolver.select({ it*.version == ['2.1', '2.2'] }) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            return candidates.find { it.revision == '2.2' }
+            return candidates.find { it.version == '2.2' }
         }
-        1 * conflictResolver.select({ it*.revision == ['1.1', '1.2', '1.0'] }) >> {
+        1 * conflictResolver.select({ it*.version == ['1.1', '1.2', '1.0'] }) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            return candidates.find { it.revision == '1.2' }
+            return candidates.find { it.version == '1.2' }
         }
         0 * conflictResolver._
 
@@ -333,9 +333,9 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select({ it*.revision == ['1', '2'] }) >> {
+        1 * conflictResolver.select({ it*.version == ['1', '2'] }) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            return candidates.find { it.revision == '2' }
+            return candidates.find { it.version == '2' }
         }
         0 * conflictResolver._
 
@@ -364,9 +364,9 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select({ it*.revision == ['1', '2'] }) >> {
+        1 * conflictResolver.select({ it*.version == ['1', '2'] }) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            return candidates.find { it.revision == '2' }
+            return candidates.find { it.version == '2' }
         }
         0 * conflictResolver._
 
@@ -405,7 +405,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            return candidates.find { it.revision == '1.2' }
+            return candidates.find { it.version == '1.2' }
         }
 
         and:
@@ -732,7 +732,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            return candidates.find { it.revision == '1.2' }
+            return candidates.find { it.version == '1.2' }
         }
 
         when:
@@ -764,7 +764,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            return candidates.find { it.revision == '1.2' }
+            return candidates.find { it.version == '1.2' }
         }
 
         and:
@@ -789,7 +789,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            return candidates.find { it.revision == '1.2' }
+            return candidates.find { it.version == '1.2' }
         }
 
         and:
@@ -814,7 +814,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ModuleRevisionResolveState> candidates = it[0]
-            return candidates.find { it.revision == '1.2' }
+            return candidates.find { it.version == '1.2' }
         }
 
         and:

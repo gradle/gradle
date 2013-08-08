@@ -606,7 +606,7 @@ public class DependencyGraphBuilder {
             return id.toString();
         }
 
-        public String getRevision() {
+        public String getVersion() {
             return id.getVersion();
         }
 

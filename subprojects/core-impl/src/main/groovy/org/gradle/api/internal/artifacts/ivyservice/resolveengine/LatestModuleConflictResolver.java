@@ -31,7 +31,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         LatestVersionSemanticComparator delegate = new LatestVersionSemanticComparator();
 
         public int compare(ModuleRevisionResolveState left, ModuleRevisionResolveState right) {
-            return delegate.compare(left.getRevision(), right.getRevision());
+            return delegate.compare(left.getVersion(), right.getVersion());
         }
     }
 }
