@@ -58,7 +58,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final Type dynamicObjectType = Type.getType(DynamicObject.class);
         private final Type conventionMappingType = Type.getType(ConventionMapping.class);
         private final Type groovyObjectType = Type.getType(GroovyObject.class);
-        private final Type groovyInterceptableType = Type.getType(GroovyInterceptable.class);
         private final Type conventionType = Type.getType(Convention.class);
         private final Type extensibleDynamicObjectHelperType = Type.getType(MixInExtensibleDynamicObject.class);
         private final Type nonExtensibleDynamicObjectHelperType = Type.getType(BeanDynamicObject.class);
@@ -89,7 +88,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             interfaceTypes.add(dynamicObjectAwareType.getInternalName());
             interfaceTypes.add(groovyObjectType.getInternalName());
-            interfaceTypes.add(groovyInterceptableType.getInternalName());
 
             visitor.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, generatedType.getInternalName(), null,
                     superclassType.getInternalName(), interfaceTypes.toArray(new String[interfaceTypes.size()]));
@@ -293,28 +291,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // END
 
-            // GENERATE public DynamicObject getAsDynamicObject() { if (dynamicObjectHelper != null) { return dynamicObjectHelper; } else { new MixInExtensibleDynamicObject(this, super.getAsDynamicObject()) } }
-            // the null check is for when getAsDynamicObject() is called by a superclass constructor
+            // GENERATE public DynamicObject.getAsDynamicObject() { return dynamicObjectHelper; }
 
             addGetter(DynamicObjectAware.class.getDeclaredMethod("getAsDynamicObject"), new MethodCodeBody() {
                 public void add(MethodVisitor visitor) {
-                    // GENERATE if (dynamicObjectHelper != null) {... }
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), "dynamicObjectHelper", fieldSignature);
-                    visitor.visitInsn(Opcodes.DUP);
-                    Label nullBranch = new Label();
-                    visitor.visitJumpInsn(Opcodes.IFNULL, nullBranch);
-                    visitor.visitInsn(Opcodes.ARETURN);
-                    // GENERATE else { return new MixInExtensibleDynamicObject(this, super.getAsDynamicObject()); }
-                    visitor.visitLabel(nullBranch);
-
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-
-                    // GENERATE new MixInExtensibleDynamicObject(this, super.getAsDynamicObject())
-                    generateCreateDynamicObject(visitor);
-                    // END
-
-                    visitor.visitInsn(Opcodes.ARETURN);
+                    visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), "dynamicObjectHelper",
+                            fieldSignature);
                 }
             });
 

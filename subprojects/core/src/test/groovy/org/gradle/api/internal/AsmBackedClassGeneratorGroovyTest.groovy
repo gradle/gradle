@@ -141,28 +141,6 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         tester.lastArgs.last().is(closure)
     }
 
-    static enum TestEnum {
-        ABC, DEF
-    }
-
-    static class EnumCoerceTestSubject {
-        TestEnum enumProperty
-
-        String stringValue
-
-        void someEnumMethod(TestEnum testEnum) {
-            this.enumProperty = testEnum
-        }
-
-        void enumMethodWithStringOverload(TestEnum testEnum) {
-            enumProperty = testEnum
-        }
-
-        void enumMethodWithStringOverload(String stringValue) {
-            this.stringValue = stringValue
-        }
-    }
-
     def "can coerce enum values"() {
         given:
         def i = create(EnumCoerceTestSubject)
@@ -250,10 +228,6 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         i.calledWith == Integer
     }
 
-    @NonExtensible
-    static class NonExtensibleObject {
-        TestEnum testEnum
-    }
 
     def "can use non extensible objects"() {
         def i = create(NonExtensibleObject)
@@ -272,13 +246,59 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         i.ext.foo = "bar"
 
         then:
-        def e = thrown(MissingFieldException)
-        e.field == "ext"
+        def e = thrown(MissingPropertyException)
+        e.property == "ext"
     }
 
     def conf(o, c) {
         ConfigureUtil.configure(c, o)
     }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2863")
+    def "checked exceptions from private methods are thrown"() {
+            when:
+        create(CallsPrivateMethods).callsPrivateThatThrowsCheckedException("1")
+
+        then:
+        thrown IOException
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2863")
+    def "private methods are called with Groovy semantics"() {
+        when:
+        def foo = "bar"
+        def obj = create(CallsPrivateMethods)
+
+        then:
+        obj.callsPrivateStringMethodWithGString("$foo") == "BAR"
+    }
+}
+
+enum TestEnum {
+    ABC, DEF
+}
+
+class EnumCoerceTestSubject {
+    TestEnum enumProperty
+
+    String stringValue
+
+    void someEnumMethod(TestEnum testEnum) {
+        this.enumProperty = testEnum
+    }
+
+    void enumMethodWithStringOverload(TestEnum testEnum) {
+        enumProperty = testEnum
+    }
+
+    void enumMethodWithStringOverload(String stringValue) {
+        this.stringValue = stringValue
+    }
+}
+
+@NonExtensible
+class NonExtensibleObject {
+    TestEnum testEnum
 }
 
 class DynamicThing {
@@ -381,5 +401,28 @@ class CallsPrivateMethods {
 
     private doFlagCalled(Object s) {
         calledWith = Object
+    }
+
+    // It's important here that we take an untyped arg, and call a method that types a typed arg
+    // See http://issues.gradle.org/browse/GRADLE-2863
+    def callsPrivateThatThrowsCheckedException(s) {
+        try {
+            throwsCheckedException(s)
+        } catch (Exception e) {
+            assert e instanceof IOException
+            throw e
+        }
+    }
+
+    private throwsCheckedException(String a) {
+        throw new IOException("!")
+    }
+
+    def callsPrivateStringMethodWithGString(GString gString) {
+        upperCaser(gString)
+    }
+
+    private upperCaser(String str) {
+        str.toUpperCase()
     }
 }

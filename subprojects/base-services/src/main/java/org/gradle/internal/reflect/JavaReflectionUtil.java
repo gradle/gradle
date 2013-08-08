@@ -171,10 +171,6 @@ public class JavaReflectionUtil {
         findAllMethodsInternal(target, stopIndicatorAsSpec, new MultiMap<String, Method>(), new ArrayList<Method>(1), true);
     }
 
-    public static List<Method> findAllMethods(Class<?> target, Spec<Method> predicate) {
-        return findAllMethodsInternal(target, predicate, new MultiMap<String, Method>(), new LinkedList<Method>(), false);
-    }
-
     public static Method findMethod(Class<?> target, Spec<Method> predicate) {
         List<Method> methods = findAllMethodsInternal(target, predicate, new MultiMap<String, Method>(), new ArrayList<Method>(1), true);
         return methods.isEmpty() ? null : methods.get(0);
