@@ -137,7 +137,7 @@ public class TransientResultsStore {
                     }
                 }
             } catch (IOException e) {
-                throw throwAsUncheckedException(e);
+                throw new RuntimeException("Problems loading the resolution result from byte stream.", e);
             }
         }
     }
