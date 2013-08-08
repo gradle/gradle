@@ -379,7 +379,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         public DefaultComponentMetadataHandler getComponentMetadataHandler() {
             if (componentMetadataHandler == null) {
                 Instantiator instantiator = parent.get(Instantiator.class);
-                componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class);
+                componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator);
             }
             return componentMetadataHandler;
         }

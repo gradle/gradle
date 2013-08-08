@@ -42,7 +42,7 @@ task resolve(type: Sync) {
 """
     }
 
-    def "rule is being passed correct metadata"() {
+    def "rule is being passed correct, mutable metadata"() {
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus("release").publish()
         buildFile <<
 """
@@ -53,6 +53,12 @@ componentMetadata {
         assert details.id.version == "1.0"
         assert details.status == "release"
         assert details.statusScheme == ["integration", "milestone", "release"]
+
+        details.status "silver" // verify that 'details' is enhanced
+        assert details.status == "silver"
+
+        details.statusScheme = ["bronze", "silver", "gold"]
+        assert details.statusScheme == ["bronze", "silver", "gold"]
     }
 }
 """

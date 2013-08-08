@@ -19,16 +19,25 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ActionBroadcast;
 
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ModuleMetadataProcessor {
+    private final Instantiator instantiator;
     private final ActionBroadcast<ComponentMetadataDetails> moduleRules = new ActionBroadcast<ComponentMetadataDetails>();
+
+    public DefaultComponentMetadataHandler(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     public void eachComponent(Action<? super ComponentMetadataDetails> rule) {
         moduleRules.add(rule);
     }
 
-    public void process(ComponentMetadataDetails details) {
+    public void process(ModuleVersionMetaData metadata) {
+        ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
         moduleRules.execute(details);
     }
 }

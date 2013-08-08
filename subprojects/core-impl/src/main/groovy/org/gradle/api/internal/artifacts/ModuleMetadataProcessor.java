@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
 public interface ModuleMetadataProcessor {
-    void process(ComponentMetadataDetails details);
+    void process(ModuleVersionMetaData metadata);
 }

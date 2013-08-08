@@ -199,7 +199,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
 
     private MutableModuleVersionMetaData getArtifactMetadata(Artifact artifact, ExternalResource resource) {
         MutableModuleVersionMetaData metadata = doGetArtifactMetadata(artifact, resource);
-        metadataProcessor.process(new ComponentMetadataDetailsAdapter(metadata));
+        metadataProcessor.process(metadata);
         return metadata;
     }
 
@@ -353,7 +353,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
                     discardResource(resource);
                     continue;
                 }
-                metadataProcessor.process(new ComponentMetadataDetailsAdapter(metaData));
+                metadataProcessor.process(metaData);
                 if (!versionMatcher.accept(requestedVersion, metaData)) {
                     LOGGER.debug(name + ": md rejected by version matcher: " + description);
                     discardResource(resource);
