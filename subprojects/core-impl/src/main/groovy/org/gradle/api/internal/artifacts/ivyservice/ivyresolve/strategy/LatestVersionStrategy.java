@@ -28,13 +28,13 @@ class LatestVersionStrategy implements LatestStrategy {
         this.versionMatcher = versionMatcher;
     }
 
-    public <T extends Versioned> List<T> sort(List<T> versions) {
+    public <T extends Versioned> List<T> sort(Collection<T> versions) {
         List<T> result = Lists.newArrayList(versions);
         Collections.sort(result, this);
         return result;
     }
 
-    public <T extends Versioned> T findLatest(List<T> elements) {
+    public <T extends Versioned> T findLatest(Collection<T> elements) {
         return Collections.max(elements, this);
     }
 
