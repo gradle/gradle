@@ -15,6 +15,8 @@
  */
 package org.gradle.util;
 
+import org.gradle.internal.classloader.ClassLoaderHierarchy;
+import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.IOException;
@@ -28,7 +30,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Note: It's usually a good idea to add a {@link CachingClassLoader} between this ClassLoader and any
  * ClassLoaders that use it as a parent, to prevent every path in the ClassLoader graph being searched.
  */
-public class MultiParentClassLoader extends ClassLoader implements ClasspathSource {
+public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHierarchy {
     private final List<ClassLoader> parents;
     private final JavaMethod<ClassLoader, Package[]> getPackagesMethod;
     private final JavaMethod<ClassLoader, Package> getPackageMethod;
@@ -44,10 +46,12 @@ public class MultiParentClassLoader extends ClassLoader implements ClasspathSour
         parents.add(parent);
     }
 
-    public void collectClasspath(Collection<? super URL> classpath) {
+    public void visit(ClassLoaderVisitor visitor) {
+        visitor.startVisitParents();
         for (ClassLoader parent : parents) {
-            new ClassLoaderBackedClasspathSource(parent).collectClasspath(classpath);
+            visitor.visit(parent);
         }
+        visitor.endVisitParents();
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.gradle.util;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderVisitor;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -26,6 +27,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ClasspathUtil {
@@ -42,8 +44,13 @@ public class ClasspathUtil {
     }
 
     public static List<URL> getClasspath(ClassLoader classLoader) {
-        List<URL> implementationClassPath = new ArrayList<URL>();
-        new ClassLoaderBackedClasspathSource(classLoader).collectClasspath(implementationClassPath);
+        final List<URL> implementationClassPath = new ArrayList<URL>();
+        new ClassLoaderVisitor() {
+            @Override
+            public void visitClassPath(URL[] classPath) {
+                implementationClassPath.addAll(Arrays.asList(classPath));
+            }
+        }.visit(classLoader);
         return implementationClassPath;
     }
 

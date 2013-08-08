@@ -22,7 +22,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
 
-public class MutableURLClassLoader extends URLClassLoader {
+public class MutableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
     public MutableURLClassLoader(ClassLoader parent, URL... urls) {
         super(urls, parent);
     }
@@ -33,6 +33,13 @@ public class MutableURLClassLoader extends URLClassLoader {
 
     public MutableURLClassLoader(ClassLoader parent, ClassPath classPath) {
         super(classPath.getAsURLArray(), parent);
+    }
+
+    public void visit(ClassLoaderVisitor visitor) {
+        visitor.visitClassPath(getURLs());
+        visitor.startVisitParents();
+        visitor.visit(getParent());
+        visitor.endVisitParents();
     }
 
     @Override
