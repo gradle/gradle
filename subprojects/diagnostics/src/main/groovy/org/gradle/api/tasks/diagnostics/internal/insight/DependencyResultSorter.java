@@ -16,14 +16,10 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.version.ChainVersionMatcher;
-import org.apache.ivy.plugins.version.LatestVersionMatcher;
-import org.apache.ivy.plugins.version.SubVersionMatcher;
-import org.apache.ivy.plugins.version.VersionRangeMatcher;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.version.LatestVersionSemanticComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 
 import java.util.*;
@@ -46,15 +42,7 @@ public class DependencyResultSorter {
 
     private static class DependencyComparator implements Comparator<DependencyEdge> {
 
-        private final LatestVersionSemanticComparator versionComparator = new LatestVersionSemanticComparator();
-        private final ChainVersionMatcher matcher;
-
-        private DependencyComparator() {
-            matcher = new ChainVersionMatcher();
-            matcher.add(new VersionRangeMatcher());
-            matcher.add(new SubVersionMatcher());
-            matcher.add(new LatestVersionMatcher());
-        }
+        private final VersionMatcher matcher = ResolverStrategy.INSTANCE.getVersionMatcher();
 
         public int compare(DependencyEdge left, DependencyEdge right) {
             ModuleVersionSelector leftRequested = left.getRequested();
@@ -79,8 +67,8 @@ public class DependencyResultSorter {
             }
 
             //order dynamic selectors after static selectors
-            boolean leftDynamic = matcher.isDynamic(ModuleRevisionId.newInstance(leftRequested.getGroup(), leftRequested.getName(), leftRequested.getVersion()));
-            boolean rightDynamic = matcher.isDynamic(ModuleRevisionId.newInstance(rightRequested.getGroup(), rightRequested.getName(), rightRequested.getVersion()));
+            boolean leftDynamic = matcher.isDynamic(leftRequested.getVersion());
+            boolean rightDynamic = matcher.isDynamic(rightRequested.getVersion());
             if (leftDynamic && !rightDynamic) {
                 return 1;
             } else if (!leftDynamic && rightDynamic) {
@@ -93,7 +81,7 @@ public class DependencyResultSorter {
                 byVersion = leftRequested.getVersion().compareTo(rightRequested.getVersion());
             } else {
                 // order static selectors semantically
-                byVersion = versionComparator.compare(leftRequested.getVersion(), rightRequested.getVersion());
+                byVersion = matcher.compare(leftRequested.getVersion(), rightRequested.getVersion());
             }
             if (byVersion != 0) {
                 return byVersion;
@@ -111,7 +99,7 @@ public class DependencyResultSorter {
                 return byModule;
             }
 
-            return versionComparator.compare(leftFrom.getVersion(), rightFrom.getVersion());
+            return matcher.compare(leftFrom.getVersion(), rightFrom.getVersion());
         }
     }
 }
