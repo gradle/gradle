@@ -16,10 +16,32 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import spock.lang.Issue
 
 class JavaPluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
     String getMainTask() {
         return "build"
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2851")
+    def "changing debug flag does not produce deprecation warning"() {
+        // We are testing here that Groovy prefers the is*() variant over the get one.
+        // If it prefers the get one we'll get a deprecation warning
+        given:
+        applyPlugin()
+
+        when:
+        buildFile << """
+            compileJava {
+                configure(options) {
+                    def value = debug
+                    value = failOnError
+                }
+            }
+        """
+
+        then:
+        succeeds "tasks"
     }
 }

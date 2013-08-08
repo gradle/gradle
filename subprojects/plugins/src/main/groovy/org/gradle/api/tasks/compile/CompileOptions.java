@@ -76,16 +76,18 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
      */
+    @Input
     public boolean isFailOnError() {
         return failOnError;
     }
 
     /**
-     * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
+     * Deprecated.
+     *
+     * @deprecated use {@link #isFailOnError()}
      */
-    // @Input not recognized if there is only an "is" method
-    @Input
     public boolean getFailOnError() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.getFailOnError()", "CompileOptions.isFailOnError()");
         return failOnError;
     }
 
@@ -210,17 +212,19 @@ public class CompileOptions extends AbstractOptions {
      * Tells whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
+    @Input
     public boolean isDebug() {
         return debug;
     }
 
     /**
-     * Tells whether to include debugging information in the generated class files. Defaults
-     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     * Deprecated.
+     *
+     * @deprecated use {@link #isDebug()}
      */
-    // @Input not recognized if there is only an "is" method
-    @Input
+    @Deprecated
     public boolean getDebug() {
+        DeprecationLogger.nagUserOfReplacedMethod("getDebug()", "isDebug()");
         return debug;
     }
 
