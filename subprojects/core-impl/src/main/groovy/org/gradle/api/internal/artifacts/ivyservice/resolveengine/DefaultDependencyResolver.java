@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRes
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LazyDependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
@@ -77,7 +78,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
                     conflictResolver = new StrictConflictResolver();
                 } else {
-                    conflictResolver = new LatestModuleConflictResolver();
+                    conflictResolver = new LatestModuleConflictResolver(ResolverStrategy.INSTANCE.getLatestStrategy());
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
 
