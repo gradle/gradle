@@ -19,6 +19,9 @@ package org.gradle.initialization;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 
+/**
+ * This is intended to replace {@link GradleLauncher} internally. It's pretty rough at the moment.
+ */
 public interface BuildController {
     /**
      * Specifies the start parameter to use to run the build. Cannot be used after the launcher has been created.
