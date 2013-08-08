@@ -86,6 +86,7 @@ public class CompileOptions extends AbstractOptions {
      *
      * @deprecated use {@link #isFailOnError()}
      */
+    @Deprecated
     public boolean getFailOnError() {
         DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.getFailOnError()", "CompileOptions.isFailOnError()");
         return failOnError;
