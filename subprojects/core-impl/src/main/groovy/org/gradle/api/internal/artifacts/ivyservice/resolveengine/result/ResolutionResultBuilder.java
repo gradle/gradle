@@ -17,7 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.*;
+import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 import org.gradle.internal.Factory;
@@ -28,22 +31,23 @@ import java.util.Map;
 
 public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
-    private DefaultResolvedModuleVersionResult rootModule;
-
     private Map<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult> modules
             = new LinkedHashMap<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult>();
 
     CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
 
+    ResolvedModulesListener listener = new InMemoryResolvedModulesGraphBuilder();
+
     public ResolutionResultBuilder start(ModuleVersionIdentifier root) {
-        rootModule = createOrGet(root, VersionSelectionReasons.ROOT);
+        DefaultResolvedModuleVersionResult rootModule = createOrGet(root, VersionSelectionReasons.ROOT);
+        listener.root(rootModule);
         return this;
     }
 
     public ResolutionResult getResult() {
         return new DefaultResolutionResult(new Factory<ResolvedModuleVersionResult>() {
             public ResolvedModuleVersionResult create() {
-                return rootModule;
+                return listener.getRoot();
             }
         });
     }
@@ -61,15 +65,16 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
             } else {
                 DefaultResolvedModuleVersionResult selected = modules.get(d.getSelected().getSelectedId());
                 dependency = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected);
-                selected.addDependent((ResolvedDependencyResult) dependency);
             }
-            from.addDependency(dependency);
+            listener.dependencyResult(from, dependency);
         }
     }
 
     private DefaultResolvedModuleVersionResult createOrGet(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {
         if (!modules.containsKey(id)) {
-            modules.put(id, new DefaultResolvedModuleVersionResult(id, selectionReason));
+            DefaultResolvedModuleVersionResult result = new DefaultResolvedModuleVersionResult(id, selectionReason);
+            modules.put(id, result);
+            listener.moduleResult(result);
         }
         return modules.get(id);
     }

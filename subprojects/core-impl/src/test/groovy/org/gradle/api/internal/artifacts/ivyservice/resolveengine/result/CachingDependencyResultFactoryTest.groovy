@@ -65,6 +65,18 @@ class CachingDependencyResultFactoryTest extends Specification {
         dep.is(differentFailure) //the same dependency edge cannot have different failures
     }
 
+    def "configures dependent"() {
+        def fromModule = newModule('from')
+        def selectedModule = newModule('selected')
+        assert selectedModule.dependents.empty
+
+        when:
+        def dep = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule)
+
+        then:
+        selectedModule.dependents.contains(dep)
+    }
+
     def selector(String group='a', String module='a', String version='1') {
         newSelector(group, module, version)
     }
