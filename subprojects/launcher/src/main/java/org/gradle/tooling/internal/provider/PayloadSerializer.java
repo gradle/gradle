@@ -19,8 +19,10 @@ package org.gradle.tooling.internal.provider;
 import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.CachingClassLoader;
 import org.gradle.util.MultiParentClassLoader;
 
@@ -39,9 +41,24 @@ public class PayloadSerializer {
     // TODO:ADAM - don't use strong references
     private final Map<ClassLoader, ClassLoaderDetails> classLoaderDetails = Maps.newHashMap();
     private final Map<UUID, ClassLoader> classLoaderIds = Maps.newHashMap();
+    private final Transformer<ObjectStreamClass, Class<?>> classLookup;
 
     public PayloadSerializer(ModelClassLoaderRegistry classLoaderRegistry) {
         this.classLoaderRegistry = classLoaderRegistry;
+
+        // On Java 6, there is a public method to lookup a class descriptor given a class. On Java 5, we have to use reflection
+        // TODO:ADAM - move this into the service registry
+        if (Jvm.current().getJavaVersion().isJava6Compatible()) {
+            // Use the public method
+            try {
+                classLookup = (Transformer<ObjectStreamClass, Class<?>>) getClass().getClassLoader().loadClass("org.gradle.tooling.internal.provider.jdk6.Jdk6ClassLookup").newInstance();
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        } else {
+            // Use reflection
+            classLookup = new ReflectionClassLookup();
+        }
     }
 
     public SerializedPayload serialize(final Object payload) {
@@ -66,8 +83,7 @@ public class PayloadSerializer {
                 @Override
                 protected void writeClassDescriptor(ObjectStreamClass desc) throws IOException {
                     Class<?> targetClass = desc.forClass();
-                    writeClassLoader(targetClass);
-                    writeUTF(targetClass.getName());
+                    writeClass(targetClass);
                 }
 
                 @Override
@@ -75,8 +91,13 @@ public class PayloadSerializer {
                     writeClassLoader(cl);
                     writeInt(cl.getInterfaces().length);
                     for (Class<?> type : cl.getInterfaces()) {
-                        writeClassDescriptor(ObjectStreamClass.lookupAny(type));
+                        writeClass(type);
                     }
+                }
+
+                private void writeClass(Class<?> targetClass) throws IOException {
+                    writeClassLoader(targetClass);
+                    writeUTF(targetClass.getName());
                 }
 
                 private void writeClassLoader(Class<?> targetClass) throws IOException {
@@ -135,11 +156,10 @@ public class PayloadSerializer {
             final ObjectInputStream objectStream = new ObjectInputStream(new ByteArrayInputStream(payload.getSerializedModel())) {
                 @Override
                 protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
-                    ClassLoader classLoader = readClassLoader();
-                    String cl = readUTF();
-                    ObjectStreamClass descriptor = ObjectStreamClass.lookupAny(Class.forName(cl, false, classLoader));
+                    Class<?> aClass = readClass();
+                    ObjectStreamClass descriptor = classLookup.transform(aClass);
                     if (descriptor == null) {
-                        throw new ClassNotFoundException(cl);
+                        throw new ClassNotFoundException(aClass.getName());
                     }
                     return descriptor;
                 }
@@ -149,13 +169,19 @@ public class PayloadSerializer {
                     return desc.forClass();
                 }
 
+                private Class<?> readClass() throws IOException, ClassNotFoundException {
+                    ClassLoader classLoader = readClassLoader();
+                    String className = readUTF();
+                    return Class.forName(className, false, classLoader);
+                }
+
                 @Override
                 protected Class<?> resolveProxyClass(String[] interfaces) throws IOException, ClassNotFoundException {
                     ClassLoader classLoader = readClassLoader();
                     int count = readInt();
                     Class<?>[] actualInterfaces = new Class<?>[count];
                     for (int i = 0; i < count; i++) {
-                        actualInterfaces[i] = readClassDescriptor().forClass();
+                        actualInterfaces[i] = readClass();
                     }
                     return Proxy.getProxyClass(classLoader, actualInterfaces);
                 }

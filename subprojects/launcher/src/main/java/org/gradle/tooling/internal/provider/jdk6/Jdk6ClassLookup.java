@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.jdk6;
 
-import java.io.Serializable;
+import org.gradle.api.Transformer;
 
-public class CustomPayload implements Serializable, PayloadInterface {
-    Object value;
-    boolean ok;
-    Integer[] anArray = new Integer[0];
+import java.io.ObjectStreamClass;
 
-    public String getValue() {
-        return value.toString();
+public class Jdk6ClassLookup implements Transformer<ObjectStreamClass, Class<?>> {
+    public ObjectStreamClass transform(Class<?> original) {
+        return ObjectStreamClass.lookupAny(original);
     }
 }
