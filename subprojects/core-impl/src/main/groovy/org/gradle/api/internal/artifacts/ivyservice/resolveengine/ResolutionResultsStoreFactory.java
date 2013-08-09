@@ -23,6 +23,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.util.Clock;
 
 import java.io.*;
 import java.util.LinkedList;
@@ -32,6 +35,8 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 //Draft, needs rework, along with BinaryStore interface, etc.
 public class ResolutionResultsStoreFactory implements Closeable {
+    private final static Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
+
     private final TemporaryFileProvider temp;
     private final List<File> deleteMe = new LinkedList<File>();
     private final CachedStoreFactory cachedStoreFactory = new CachedStoreFactory(20);
@@ -49,9 +54,12 @@ public class ResolutionResultsStoreFactory implements Closeable {
     }
 
     public void close() throws IOException {
+        Clock clock = new Clock();
         for (File file : deleteMe) {
             file.delete();
         }
+        //TODO SF trim down to debug before 1.8
+        LOG.info("Deleted {} resolution results binary files in {}", deleteMe.size(), clock.getTime());
         cachedStoreFactory.close();
     }
 
@@ -80,6 +88,15 @@ public class ResolutionResultsStoreFactory implements Closeable {
             } catch (FileNotFoundException e) {
                 throw throwAsUncheckedException(e);
             }
+        }
+
+        public String diagnose() {
+            return toString() + " (exist: " + file.exists() + ")";
+        }
+
+        @Override
+        public String toString() {
+            return "Binary store in " + file;
         }
     }
 }

@@ -22,4 +22,5 @@ import java.io.DataOutputStream;
 public interface BinaryStore {
     DataOutputStream getOutput();
     DataInputStream getInput();
+    String diagnose();
 }

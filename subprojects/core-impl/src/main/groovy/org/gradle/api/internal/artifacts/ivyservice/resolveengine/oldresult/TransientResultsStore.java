@@ -24,6 +24,7 @@ import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.util.Clock;
 
 import java.io.*;
 
@@ -43,13 +44,13 @@ public class TransientResultsStore {
     private final Object lock = new Object();
 
     private DataOutputStream output;
-    private DataInputStream input;
+    private BinaryStore binaryStore;
     private Store<TransientConfigurationResults> cache;
 
     public TransientResultsStore(BinaryStore binaryStore, Store<TransientConfigurationResults> cache) {
+        this.binaryStore = binaryStore;
         this.cache = cache;
         this.output = binaryStore.getOutput();
-        this.input = binaryStore.getInput();
     }
 
     private void writeId(short type, ResolvedConfigurationIdentifier... ids) {
@@ -70,10 +71,13 @@ public class TransientResultsStore {
 
     public void done(ResolvedConfigurationIdentifier id) {
         writeId(ROOT, id);
+        LOG.debug("Closing results stream {}. Wrote root {}.", binaryStore, id);
         try {
             output.close();
         } catch (IOException e) {
             throw throwAsUncheckedException(e);
+        } finally {
+            output = null;
         }
     }
 
@@ -101,14 +105,18 @@ public class TransientResultsStore {
                 return cached;
             }
 
-            LOG.info("Loading dependency resolution results from disk (old model).");
+            Clock clock = new Clock();
             DefaultTransientConfigurationResults results = new DefaultTransientConfigurationResults();
-            output = null;
+            DataInputStream input = binaryStore.getInput();
+            int valuesRead = 0;
+            short lastValue = -1;
             try {
                 while (true) {
                     ResolvedConfigurationIdentifierSerializer s = new ResolvedConfigurationIdentifierSerializer();
                     short type = input.readShort();
                     ResolvedConfigurationIdentifier id;
+                    valuesRead++;
+                    lastValue = type;
                     switch (type) {
                         case 1:
                             id = s.read((DataInput) input);
@@ -119,6 +127,7 @@ public class TransientResultsStore {
                             results.root = results.allDependencies.get(id);
                             //root should be the last
                             cache.store(results);
+                            LOG.info("Loaded dependency resolution results ({}) from {}", clock.getTime(), binaryStore);
                             return results;
                         case 3:
                             id = s.read((DataInput) input);
@@ -137,7 +146,7 @@ public class TransientResultsStore {
                     }
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Problems loading the resolution result from byte stream.", e);
+                throw new RuntimeException("Problems loading the resolution result (" + clock.getTime() + ") from " + binaryStore.diagnose() + ". Read " + valuesRead + " values, last was: " + lastValue, e);
             }
         }
     }
