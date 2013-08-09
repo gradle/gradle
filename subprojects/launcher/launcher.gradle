@@ -18,7 +18,7 @@ dependencies {
 }
 
 if (!javaVersion.java6Compatible) {
-    sourceSets.main.groovy.exclude '**/jdk6/**'
+    sourceSets.main.java.exclude '**/jdk6/**'
 }
 
 useTestFixtures()
