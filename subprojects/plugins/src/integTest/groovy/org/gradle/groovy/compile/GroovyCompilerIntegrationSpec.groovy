@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.compile
 
+import org.gradle.internal.jvm.Jvm
 import spock.lang.Issue
 
 abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrationSpec {
@@ -67,5 +68,16 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
 
         then:
         noExceptionThrown()
+    }
+
+
+    def canJointCompileWithJavaCompilerExecutable() {
+        args("-PjdkHome=${Jvm.current().getExecutable('javac')}")
+
+        expect:
+        succeeds("compileGroovy")
+        !errorOutput
+        file("build/classes/main/GroovyCode.class").exists()
+        file("build/classes/main/JavaCode.class").exists()
     }
 }
