@@ -194,9 +194,6 @@ todo
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-Previously, in the no-tests scenario, the test task was still executed. This meant that dependency resolution would occur and an empty html report was generated.
-This new behavior results in faster builds when there are no tests. No negative impacts on existing builds are expected.
-
 ## Contributors
 
 On behalf of the Gradle community, the Gradle development team would like to thank the following people who contributed to this version of Gradle:
@@ -204,6 +201,8 @@ On behalf of the Gradle community, the Gradle development team would like to tha
 * [Kyle Mahan](https://github.com/kylewm) - some Javadoc fixes & duplicate file handling improvements
 * [Stephane Gallés](https://github.com/sgalles) - Documentation improvements
 * [Bobby Warner](https://github.com/bobbywarner) - Documentation improvements
+* [René Scheibe](https://github.com/darxriggs) - Documentation improvements
+* [Harald Schmitt](https://github.com/surfing) - Fixed unit test case that was broken for German locales
 * [Jeremy Maness](https://github.com/jmaness) - Support for Ivy 2.3 content in ivy.xml (GRADLE-2743)
 
 Contributions are an important part of the continuous improvement of Gradle. 
