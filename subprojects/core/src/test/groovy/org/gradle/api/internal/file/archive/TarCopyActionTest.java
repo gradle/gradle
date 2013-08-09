@@ -16,9 +16,9 @@
 package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.FileResource;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
@@ -107,7 +107,7 @@ public class TarCopyActionTest {
 
         try {
             action.execute(new CopyActionProcessingStream() {
-                public void process(Action<? super FileCopyDetailsInternal> action) {
+                public void process(CopyActionProcessingStreamAction action) {
                     // nothing
                 }
             });
@@ -139,12 +139,12 @@ public class TarCopyActionTest {
 
     private void tar(final FileCopyDetailsInternal... files) {
         action.execute(new CopyActionProcessingStream() {
-            public void process(Action<? super FileCopyDetailsInternal> action) {
+            public void process(CopyActionProcessingStreamAction action) {
                 for (FileCopyDetailsInternal f : files) {
                     if (f.isDirectory()) {
-                        action.execute(f);
+                        action.processFile(f);
                     } else {
-                        action.execute(f);
+                        action.processFile(f);
                     }
                 }
             }

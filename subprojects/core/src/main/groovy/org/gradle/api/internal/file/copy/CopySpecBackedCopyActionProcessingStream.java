@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -36,7 +37,7 @@ public class CopySpecBackedCopyActionProcessingStream implements CopyActionProce
         this.fileSystem = fileSystem;
     }
 
-    public void process(final Action<? super FileCopyDetailsInternal> action) {
+    public void process(final CopyActionProcessingStreamAction action) {
         spec.walk(new Action<CopySpecInternal>() {
             public void execute(final CopySpecInternal spec) {
                 FileTree source = spec.getSource();
@@ -57,7 +58,7 @@ public class CopySpecBackedCopyActionProcessingStream implements CopyActionProce
                                 return;
                             }
                         }
-                        action.execute(details);
+                        action.processFile(details);
                     }
                 });
             }

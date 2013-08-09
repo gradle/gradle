@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
@@ -42,11 +42,11 @@ public class SyncCopyActionDecorator implements CopyAction {
         final Set<RelativePath> visited = new HashSet<RelativePath>();
 
         WorkResult didWork = delegate.execute(new CopyActionProcessingStream() {
-            public void process(final Action<? super FileCopyDetailsInternal> action) {
-                stream.process(new Action<FileCopyDetailsInternal>() {
-                    public void execute(FileCopyDetailsInternal details) {
+            public void process(final CopyActionProcessingStreamAction action) {
+                stream.process(new CopyActionProcessingStreamAction() {
+                    public void processFile(FileCopyDetailsInternal details) {
                         visited.add(details.getRelativePath());
-                        action.execute(details);
+                        action.processFile(details);
                     }
                 });
             }

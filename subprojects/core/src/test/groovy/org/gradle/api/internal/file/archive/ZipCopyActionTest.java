@@ -16,9 +16,9 @@
 package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipStoredCompressor;
@@ -96,7 +96,7 @@ public class ZipCopyActionTest {
 
         try {
             visitor.execute(new CopyActionProcessingStream() {
-                public void process(Action<? super FileCopyDetailsInternal> action) {
+                public void process(CopyActionProcessingStreamAction action) {
                     // nothing
                 }
             });
@@ -121,13 +121,9 @@ public class ZipCopyActionTest {
 
     private void zip(final FileCopyDetailsInternal... files) {
         visitor.execute(new CopyActionProcessingStream() {
-            public void process(Action<? super FileCopyDetailsInternal> action) {
+            public void process(CopyActionProcessingStreamAction action) {
                 for (FileCopyDetailsInternal f : files) {
-                    if (f.isDirectory()) {
-                        action.execute(f);
-                    } else {
-                        action.execute(f);
-                    }
+                    action.processFile(f);
                 }
             }
         });

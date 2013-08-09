@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
@@ -36,10 +36,10 @@ public class FileCopyAction implements CopyAction {
         return new SimpleWorkResult(action.didWork);
     }
 
-    private class FileCopyDetailsInternalAction implements Action<FileCopyDetailsInternal> {
+    private class FileCopyDetailsInternalAction implements CopyActionProcessingStreamAction {
         private boolean didWork;
 
-        public void execute(FileCopyDetailsInternal details) {
+        public void processFile(FileCopyDetailsInternal details) {
             File target = fileResolver.resolve(details.getRelativePath().getPathString());
             boolean copied = details.copyTo(target);
             if (copied) {

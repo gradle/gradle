@@ -19,9 +19,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.zip.UnixStat;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
@@ -72,14 +72,14 @@ public class TarCopyAction implements CopyAction {
         return new SimpleWorkResult(true);
     }
 
-    private class StreamAction implements Action<FileCopyDetailsInternal> {
+    private class StreamAction implements CopyActionProcessingStreamAction {
         private final TarOutputStream tarOutStr;
 
         public StreamAction(TarOutputStream tarOutStr) {
             this.tarOutStr = tarOutStr;
         }
 
-        public void execute(FileCopyDetailsInternal details) {
+        public void processFile(FileCopyDetailsInternal details) {
             if (details.isDirectory()) {
                 visitDir(details);
             } else {

@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.hamcrest.BaseMatcher;
@@ -34,7 +34,7 @@ import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit;
 @RunWith(JMock.class)
 public class NormalizingCopyActionDecoratorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final Action<FileCopyDetailsInternal> delegateAction = (Action<FileCopyDetailsInternal>) context.mock(Action.class);
+    private final CopyActionProcessingStreamAction delegateAction = context.mock(CopyActionProcessingStreamAction.class);
     private final CopyAction delegate = new CopyAction() {
         public WorkResult execute(CopyActionProcessingStream stream) {
             stream.process(delegateAction);
@@ -49,8 +49,8 @@ public class NormalizingCopyActionDecoratorTest {
         final FileCopyDetailsInternal file = file("dir/file", false, true);
 
         context.checking(new Expectations() {{
-            one(delegateAction).execute(details);
-            one(delegateAction).execute(file);
+            one(delegateAction).processFile(details);
+            one(delegateAction).processFile(file);
         }});
 
         visit(decorator, details, file, details);
@@ -62,29 +62,28 @@ public class NormalizingCopyActionDecoratorTest {
         final FileCopyDetailsInternal file1 = file("a/b/c/file", false, true);
 
         decorator.execute(new CopyActionProcessingStream() {
-            public void process(Action<? super FileCopyDetailsInternal> action) {
-
+            public void process(CopyActionProcessingStreamAction action) {
                 context.checking(new Expectations() {{
-                    one(delegateAction).execute(with(hasPath("a")));
-                    one(delegateAction).execute(with(hasPath("a/b")));
-                    one(delegateAction).execute(dir1);
-                    one(delegateAction).execute(file1);
+                    one(delegateAction).processFile(with(hasPath("a")));
+                    one(delegateAction).processFile(with(hasPath("a/b")));
+                    one(delegateAction).processFile(dir1);
+                    one(delegateAction).processFile(file1);
                 }});
 
-                action.execute(dir1);
-                action.execute(file1);
+                action.processFile(dir1);
+                action.processFile(file1);
 
                 final FileCopyDetailsInternal dir2 = file("a/b/d/e", true, true);
                 final FileCopyDetailsInternal file2 = file("a/b/d/e/file", false, true);
 
                 context.checking(new Expectations() {{
-                    one(delegateAction).execute(with(hasPath("a/b/d")));
-                    one(delegateAction).execute(dir2);
-                    one(delegateAction).execute(file2);
+                    one(delegateAction).processFile(with(hasPath("a/b/d")));
+                    one(delegateAction).processFile(dir2);
+                    one(delegateAction).processFile(file2);
                 }});
 
-                action.execute(dir2);
-                action.execute(file2);
+                action.processFile(dir2);
+                action.processFile(file2);
             }
         });
     }
@@ -94,9 +93,9 @@ public class NormalizingCopyActionDecoratorTest {
         final FileCopyDetailsInternal details = file("a/b/c", false, true);
 
         context.checking(new Expectations() {{
-            one(delegateAction).execute(with(hasPath("a")));
-            one(delegateAction).execute(with(hasPath("a/b")));
-            one(delegateAction).execute(details);
+            one(delegateAction).processFile(with(hasPath("a")));
+            one(delegateAction).processFile(with(hasPath("a/b")));
+            one(delegateAction).processFile(details);
         }});
 
         visit(decorator, details);
@@ -107,7 +106,7 @@ public class NormalizingCopyActionDecoratorTest {
         final FileCopyDetailsInternal dir = file("dir", true, true);
 
         context.checking(new Expectations() {{
-            one(delegateAction).execute(dir);
+            one(delegateAction).processFile(dir);
         }});
 
         visit(decorator, dir);
@@ -118,7 +117,7 @@ public class NormalizingCopyActionDecoratorTest {
         final FileCopyDetailsInternal dir = file("dir", true, false);
 
         context.checking(new Expectations() {{
-            exactly(0).of(delegateAction).execute(dir);
+            exactly(0).of(delegateAction).processFile(dir);
         }});
 
         visit(decorator, dir);

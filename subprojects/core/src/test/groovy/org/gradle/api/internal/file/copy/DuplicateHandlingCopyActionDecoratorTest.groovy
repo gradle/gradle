@@ -19,6 +19,7 @@ import org.gradle.api.Action
 import org.gradle.api.file.*
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.ThreadGlobalInstantiator
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
@@ -34,7 +35,7 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
     private static interface MyCopySpec extends CopySpec, CopySpecInternal {}
 
     def fileSystem = Mock(FileSystem)
-    def delegateAction = Mock(Action)
+    def delegateAction = Mock(CopyActionProcessingStreamAction)
     def delegate = new CopyAction() {
         WorkResult execute(CopyActionProcessingStream stream) {
             stream.process(delegateAction)
@@ -60,8 +61,8 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         visit()
 
         then:
-        2 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        2 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
     def duplicatesExcludedByPerFileConfiguration() {
@@ -73,10 +74,10 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         visit()
 
         then:
-        1 * delegateAction.execute({ FileCopyDetails it ->
+        1 * delegateAction.processFile({ FileCopyDetails it ->
             it.relativePath.pathString == '/root/path/file1.txt'
         })
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
 
@@ -90,8 +91,8 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         visit()
 
         then:
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
     def duplicatesExcludedByDefaultConfiguration() {
@@ -104,8 +105,8 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         visit()
 
         then:
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
     }
 
     def duplicatesFailByDefaultConfiguration() {
@@ -118,8 +119,8 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         visit()
 
         then:
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
         thrown(DuplicateFileCopyingException)
     }
 
@@ -133,8 +134,8 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         visit()
 
         then:
-        2 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        2 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
         appender.toString().contains('WARN Encountered duplicate path "/root/path/file1.txt"')
     }
 
@@ -148,8 +149,8 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         visit()
 
         then:
-        2 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        2 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
         appender.toString().contains('WARN Encountered duplicate path "/root/path/file1.txt"')
     }
 
@@ -162,8 +163,8 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         visit()
 
         then:
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file1.txt' })
-        1 * delegateAction.execute({ it.relativePath.pathString == '/root/path/file2.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file1.txt' })
+        1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
         thrown(DuplicateFileCopyingException)
     }
 

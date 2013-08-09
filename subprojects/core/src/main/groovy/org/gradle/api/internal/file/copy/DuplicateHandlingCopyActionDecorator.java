@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.DuplicateFileCopyingException;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -40,9 +40,9 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
         final Set<RelativePath> visitedFiles = new HashSet<RelativePath>();
 
         return delegate.execute(new CopyActionProcessingStream() {
-            public void process(final Action<? super FileCopyDetailsInternal> action) {
-                stream.process(new Action<FileCopyDetailsInternal>() {
-                    public void execute(FileCopyDetailsInternal details) {
+            public void process(final CopyActionProcessingStreamAction action) {
+                stream.process(new CopyActionProcessingStreamAction() {
+                    public void processFile(FileCopyDetailsInternal details) {
                         if (!details.isDirectory()) {
                             DuplicatesStrategy strategy = details.getDuplicatesStrategy();
 
@@ -57,7 +57,7 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
                             }
                         }
 
-                        action.execute(details);
+                        action.processFile(details);
                     }
                 });
             }

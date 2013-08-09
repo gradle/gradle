@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.copy
 import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.nativeplatform.filesystem.FileSystems
@@ -49,7 +50,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
             }
         }
 
-        Action<FileCopyDetailsInternal> action = Mock(Action)
+        def action = Mock(CopyActionProcessingStreamAction)
         def workResult = true
         def copyAction = new CopyAction() {
             WorkResult execute(CopyActionProcessingStream stream) {
@@ -63,8 +64,8 @@ class CopyActionExecuterTest extends WorkspaceTest {
         executer.execute(copySpec, copyAction)
 
         then:
-        1 * action.execute({ it.relativePath.pathString == "a" })
-        0 * action.execute(_)
+        1 * action.processFile({ it.relativePath.pathString == "a" })
+        0 * action.processFile(_)
     }
 
     Closure path(path) {

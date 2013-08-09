@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.copy;
+package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
+import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 
-public interface CopyActionProcessingStream {
+public interface CopyActionProcessingStreamAction {
 
-    void process(CopyActionProcessingStreamAction action);
+    void processFile(FileCopyDetailsInternal details);
 
 }

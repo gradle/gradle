@@ -19,9 +19,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.tools.zip.UnixStat;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipOutputStream;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
@@ -61,14 +61,14 @@ public class ZipCopyAction implements CopyAction {
         return new SimpleWorkResult(true);
     }
 
-    private class StreamAction implements Action<FileCopyDetailsInternal> {
+    private class StreamAction implements CopyActionProcessingStreamAction {
         private final ZipOutputStream zipOutStr;
 
         public StreamAction(ZipOutputStream zipOutStr) {
             this.zipOutStr = zipOutStr;
         }
 
-        public void execute(FileCopyDetailsInternal details) {
+        public void processFile(FileCopyDetailsInternal details) {
             if (details.isDirectory()) {
                 visitDir(details);
             } else {
