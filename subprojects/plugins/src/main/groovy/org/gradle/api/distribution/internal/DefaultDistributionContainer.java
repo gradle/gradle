@@ -18,21 +18,22 @@ package org.gradle.api.distribution.internal;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.Actions;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.reflect.Instantiator;
 
 /**
  * Default implementation for {@link org.gradle.api.distribution.DistributionContainer}
  */
 public class DefaultDistributionContainer extends AbstractNamedDomainObjectContainer<Distribution> implements DistributionContainer {
-    private final FileResolver fileResolver;
+    private final FileOperations fileOperations;
 
-    public DefaultDistributionContainer(Class<Distribution> type, Instantiator instantiator, FileResolver fileResolver) {
+    public DefaultDistributionContainer(Class<Distribution> type, Instantiator instantiator, FileOperations fileOperations) {
         super(type, instantiator);
-        this.fileResolver = fileResolver;
+        this.fileOperations = fileOperations;
     }
 
     protected Distribution doCreate(String name) {
-        return getInstantiator().newInstance(DefaultDistribution.class, name, fileResolver, getInstantiator());
+        return getInstantiator().newInstance(DefaultDistribution.class, name, fileOperations.copySpec(Actions.doNothing()));
     }
 }

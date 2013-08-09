@@ -22,8 +22,8 @@ import groovy.lang.Script;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -829,6 +830,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     public CopySpec copySpec(Closure closure) {
         return fileOperations.copySpec(closure);
+    }
+
+    public CopySpecInternal copySpec(Action<? super CopySpec> action) {
+        return fileOperations.copySpec(action);
     }
 
     public ExecResult javaexec(Closure closure) {

@@ -22,7 +22,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.distribution.Distribution
 import org.gradle.api.distribution.internal.DefaultDistributionContainer
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
@@ -45,18 +45,18 @@ class DistributionPlugin implements Plugin<Project> {
     private static final String TASK_INSTALL_NAME = "installDist"
 
     private final Instantiator instantiator
-    private final FileResolver fileResolver
+    private final FileOperations fileOperations
 
     @Inject
-    DistributionPlugin(Instantiator instantiator, FileResolver fileResolver) {
-        this.fileResolver = fileResolver
+    DistributionPlugin(Instantiator instantiator, FileOperations fileOperations) {
+        this.fileOperations = fileOperations
         this.instantiator = instantiator
     }
 
     void apply(Project project) {
         project.plugins.apply(BasePlugin)
 
-        def distributions = project.extensions.create("distributions", DefaultDistributionContainer, Distribution, instantiator, fileResolver)
+        def distributions = project.extensions.create("distributions", DefaultDistributionContainer, Distribution, instantiator, fileOperations)
 
         // TODO - refactor this action out so it can be unit tested
         distributions.all { dist ->

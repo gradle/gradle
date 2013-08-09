@@ -148,7 +148,13 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public CopySpecInternal copySpec(Closure closure) {
-        return configure(closure, instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator));
+        return copySpec(new ClosureBackedAction<CopySpec>(closure));
+    }
+
+    public CopySpecInternal copySpec(Action<? super CopySpec> action) {
+        DefaultCopySpec copySpec = instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
+        action.execute(copySpec);
+        return copySpec;
     }
 
     public FileResolver getFileResolver() {
