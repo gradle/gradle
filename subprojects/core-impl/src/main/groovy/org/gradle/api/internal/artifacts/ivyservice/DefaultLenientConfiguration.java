@@ -32,9 +32,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
     private CacheLockingManager cacheLockingManager;
     private final Configuration configuration;
     private ResolvedConfigurationResults results;
-    //TODO SF check if we can avoid creating the walker if we don't need this. What about thread safety?
-    private final CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker
-            = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph());
 
     public DefaultLenientConfiguration(Configuration configuration, ResolvedConfigurationResults results, CacheLockingManager cacheLockingManager) {
         this.configuration = configuration;
@@ -133,6 +130,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
         if (dependencySpec == Specs.SATISFIES_ALL) {
             return results.getArtifacts();
         }
+
+        CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker
+                = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph());
 
         Set<ResolvedDependency> firstLevelModuleDependencies = getFirstLevelModuleDependencies(dependencySpec);
 
