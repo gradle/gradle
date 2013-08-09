@@ -170,4 +170,79 @@ task retrieve(type: Sync) {
         then:
         file('libs').assertHasDescendants('child-1.0.jar')
     }
+
+    def "uses cached parent pom located in a different repository"() {
+        given:
+        server.start()
+
+        def repo1 = mavenHttpRepo("repo1")
+        def repo2 = mavenHttpRepo("repo2")
+
+        // Parent not found in repo1
+        def missingParent = repo1.module("org", "parent")
+        def parent = repo2.module("org", "parent", "1.0")
+        parent.dependsOn("org", "parent_dep", "1.2")
+                .hasPackaging('pom')
+                .publish()
+
+        def parentDep = repo1.module("org", "parent_dep", "1.2").publish()
+
+        def child1 = repo1.module("org", "child1", "1.0")
+        child1.parent("org", "parent", "1.0").publish()
+        def child2 = repo1.module("org", "child2", "1.0")
+        child2.parent("org", "parent", "1.0").publish()
+
+        buildFile << """
+repositories {
+    maven { url '${repo1.uri}' }
+    maven { url '${repo2.uri}' }
+}
+configurations {
+    child1
+    child2
+}
+dependencies {
+    child1 'org:child1:1.0'
+    child2 'org:child2:1.0'
+}
+task retrieveChild1(type: Sync) {
+    into 'libs/child1'
+    from configurations.child1
+}
+task retrieveChild2(type: Sync) {
+    into 'libs/child2'
+    from configurations.child2
+}
+"""
+
+        when:
+        child1.pom.expectGet()
+        missingParent.pom.expectGetMissing()
+        missingParent.artifact.expectHeadMissing()
+        parent.pom.expectGet()
+        parent.artifact.expectHeadMissing()
+
+        child1.artifact.expectGet()
+
+        parentDep.pom.expectGet()
+        parentDep.artifact.expectGet()
+
+
+        and:
+        run 'retrieveChild1'
+
+        then:
+        file('libs/child1').assertHasDescendants('child1-1.0.jar', 'parent_dep-1.2.jar')
+
+        when:
+        server.resetExpectations()
+        child2.pom.expectGet()
+        child2.artifact.expectGet()
+
+        and:
+        run 'retrieveChild2'
+
+        then:
+        file('libs/child2').assertHasDescendants('child2-1.0.jar', 'parent_dep-1.2.jar')
+    }
 }

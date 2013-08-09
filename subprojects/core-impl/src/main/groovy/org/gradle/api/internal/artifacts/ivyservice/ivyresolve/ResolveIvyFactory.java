@@ -22,7 +22,9 @@ import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
@@ -65,6 +67,7 @@ public class ResolveIvyFactory {
         LatestStrategy comparatorLatestStrategy = ResolverStrategy.INSTANCE.getLatestStrategy();
 
         UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, comparatorLatestStrategy);
+        DependencyToModuleVersionResolver parentLookupResolver = new ParentModuleLookupResolver(userResolverChain, cacheLockingManager);
 
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleVersionRepository moduleVersionRepository = repository.createResolver();
@@ -75,7 +78,7 @@ public class ResolveIvyFactory {
             if (moduleVersionRepository instanceof ExternalResourceResolver) {
                 // TODO:DAZ this should be cache-locking?
                 // TODO:DAZ Should have type for this
-                ((ExternalResourceResolver) moduleVersionRepository).setResolver(userResolverChain);
+                ((ExternalResourceResolver) moduleVersionRepository).setResolver(parentLookupResolver);
             }
 
             LocalAwareModuleVersionRepository localAwareRepository;
@@ -85,7 +88,7 @@ public class ResolveIvyFactory {
                 ModuleVersionRepository wrapperRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
                 wrapperRepository = startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
                 localAwareRepository = new CachingModuleVersionRepository(wrapperRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
-                        userResolverChain, configuration.getResolutionStrategy().getCachePolicy(), timeProvider);
+                        parentLookupResolver, configuration.getResolutionStrategy().getCachePolicy(), timeProvider);
             }
             if (moduleVersionRepository.isDynamicResolveMode()) {
                 localAwareRepository = new IvyDynamicResolveModuleVersionRepository(localAwareRepository);
@@ -115,5 +118,26 @@ public class ResolveIvyFactory {
         options.setDownload(false);
         options.setConfs(WrapUtil.toArray(configurationName));
         return new ResolveData(ivy.getResolveEngine(), options);
+    }
+
+    /**
+     * Provides access to the top-level resolver chain for looking up parent modules when parsing module descriptor files.
+     */
+    private static class ParentModuleLookupResolver implements DependencyToModuleVersionResolver {
+        private final UserResolverChain delegate;
+        private final CacheLockingManager cacheLockingManager;
+
+        public ParentModuleLookupResolver(UserResolverChain delegate, CacheLockingManager cacheLockingManager) {
+            this.delegate = delegate;
+            this.cacheLockingManager = cacheLockingManager;
+        }
+
+        public void resolve(final DependencyMetaData dependency, final BuildableModuleVersionResolveResult result) {
+            cacheLockingManager.useCache(String.format("Resolve %s", dependency), new Runnable() {
+                public void run() {
+                    delegate.resolve(dependency, result);
+                }
+            });
+        }
     }
 }
