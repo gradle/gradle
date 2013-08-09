@@ -20,7 +20,7 @@ import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
 
 /**
- * The reporting configuration for the the {@link CodeNarc} test.
+ * The reporting configuration for the {@link CodeNarc} test.
  */
 public interface CodeNarcReports extends ReportContainer<SingleFileReport> {
 
@@ -44,5 +44,4 @@ public interface CodeNarcReports extends ReportContainer<SingleFileReport> {
      * @return The codenarc text report
      */
     SingleFileReport getText();
-
 }

@@ -51,6 +51,7 @@ class PmdExtension extends CodeQualityExtension {
     void setTargetJdk(def value) {
         targetJdk = TargetJdk.toVersion(value)
     }
+
     /**
      * Convenience method for adding rule sets.
      *
