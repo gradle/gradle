@@ -18,7 +18,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,9 +43,9 @@ public class DefaultProjectRegistryTest {
     @Before
     public void setUp() {
         projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
-        rootMock = HelperUtil.createRootProject();
-        childMock = HelperUtil.createChildProject(rootMock, CHILD_NAME);
-        childChildMock = HelperUtil.createChildProject(childMock, CHILD_CHILD_NAME);
+        rootMock = TestUtil.createRootProject();
+        childMock = TestUtil.createChildProject(rootMock, CHILD_NAME);
+        childChildMock = TestUtil.createChildProject(childMock, CHILD_CHILD_NAME);
         projectRegistry.addProject(rootMock);
         projectRegistry.addProject(childMock);
         projectRegistry.addProject(childChildMock);
@@ -70,7 +70,7 @@ public class DefaultProjectRegistryTest {
 
     @Test
     public void cannotLocateProjectsWithAmbiguousProjectDir() {
-        DefaultProject duplicateProjectDirProject = HelperUtil.createChildProject(childMock, "childchild2", childMock.getProjectDir());
+        DefaultProject duplicateProjectDirProject = TestUtil.createChildProject(childMock, "childchild2", childMock.getProjectDir());
         projectRegistry.addProject(duplicateProjectDirProject);
 
         try {
@@ -84,7 +84,7 @@ public class DefaultProjectRegistryTest {
     @Test
     public void accessMethodsForNonExistingsPaths() {
         projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
-        Project otherRoot = HelperUtil.createRootProject();
+        Project otherRoot = TestUtil.createRootProject();
         assertNull(projectRegistry.getProject(otherRoot.getPath()));
         assertEquals(new TreeSet<ProjectInternal>(), projectRegistry.getAllProjects(otherRoot.getPath()));
         assertEquals(new TreeSet<ProjectInternal>(), projectRegistry.getSubProjects(otherRoot.getPath()));

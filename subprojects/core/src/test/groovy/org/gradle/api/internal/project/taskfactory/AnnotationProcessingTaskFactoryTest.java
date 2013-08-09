@@ -29,7 +29,7 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -80,7 +80,7 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     private <T extends Task> T expectTaskCreated(final Class<T> type, final Object... params) {
-        DefaultProject project = HelperUtil.createRootProject();
+        DefaultProject project = TestUtil.createRootProject();
         T task = AbstractTask.injectIntoNewInstance(project, "task", new Callable<T>() {
             public T call() throws Exception {
                 if (params.length > 0) {

@@ -16,13 +16,13 @@
 package org.gradle.api.tasks.testing
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
 class TestReportTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp
-    def reportTask = HelperUtil.createTask(TestReport)
+    def reportTask = TestUtil.createTask(TestReport)
 
     def "infers dependencies and results dirs from input tests"() {
         def test1 = test("test1")
@@ -49,7 +49,7 @@ class TestReportTest extends Specification {
     }
 
     def test(String name) {
-        def test = HelperUtil.createTask(Test, HelperUtil.createRootProject(), name)
+        def test = TestUtil.createTask(Test, TestUtil.createRootProject(), name)
         test.binResultsDir = tmp.file(name)
         return test
     }

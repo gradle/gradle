@@ -19,12 +19,12 @@ import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest
 import org.gradle.api.internal.plugins.osgi.OsgiHelper
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
 class OsgiPluginConventionTest extends Specification {
-    DefaultProject project = HelperUtil.createRootProject()
+    DefaultProject project = TestUtil.createRootProject()
     OsgiPluginConvention osgiPluginConvention = new OsgiPluginConvention(project)
 
     def setup() {

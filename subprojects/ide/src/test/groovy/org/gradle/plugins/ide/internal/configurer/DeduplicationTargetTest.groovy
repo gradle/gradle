@@ -16,17 +16,17 @@
 
 package org.gradle.plugins.ide.internal.configurer
 
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DeduplicationTargetTest extends Specification {
 
     def "knows candidate names"() {
         when:
-        def project = HelperUtil.createRootProject()
+        def project = TestUtil.createRootProject()
         assert project.name == 'test'
-        def childProject = HelperUtil.createChildProject(project, "child", new File("."))
-        def grandChildProject = HelperUtil.createChildProject(childProject, "grandChild", new File("."))
+        def childProject = TestUtil.createChildProject(project, "child", new File("."))
+        def grandChildProject = TestUtil.createChildProject(childProject, "grandChild", new File("."))
 
         then:
         new DeduplicationTarget(project: project, moduleName: 'test' ).candidateNames == ['test']
@@ -36,9 +36,9 @@ class DeduplicationTargetTest extends Specification {
 
     def "uses passed module name instead of project name"() {
         when:
-        def project = HelperUtil.createRootProject()
+        def project = TestUtil.createRootProject()
         assert project.name == 'test'
-        def childProject = HelperUtil.createChildProject(project, "child", new File("."))
+        def childProject = TestUtil.createChildProject(project, "child", new File("."))
 
         then:
         new DeduplicationTarget(project: project, moduleName: 'ROOT' ).candidateNames == ['ROOT']

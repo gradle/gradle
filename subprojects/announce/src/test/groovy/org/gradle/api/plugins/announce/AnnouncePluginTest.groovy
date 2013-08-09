@@ -16,12 +16,12 @@
 package org.gradle.api.plugins.announce
 
 import org.gradle.api.Project
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class AnnouncePluginTest extends Specification {
     AnnouncePlugin announcePlugin = new AnnouncePlugin()
-    Project project = HelperUtil.createRootProject()
+    Project project = TestUtil.createRootProject()
 
     def addExtensionObject() {
         when:

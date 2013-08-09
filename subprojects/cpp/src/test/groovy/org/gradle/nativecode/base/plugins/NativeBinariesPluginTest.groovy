@@ -21,11 +21,11 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.nativecode.base.ExecutableBinary
 import org.gradle.nativecode.language.cpp.plugins.CppPlugin
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class NativeBinariesPluginTest extends Specification {
-    final def project = HelperUtil.createRootProject()
+    final def project = TestUtil.createRootProject()
 
     def "creates domain objects and lifecycle task for executable"() {
         given:

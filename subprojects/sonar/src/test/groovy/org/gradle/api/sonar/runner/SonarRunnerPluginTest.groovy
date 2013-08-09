@@ -19,8 +19,8 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.HelperUtil
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestUtil
 import org.junit.Rule
 
 import spock.lang.Specification
@@ -32,11 +32,11 @@ import static org.hamcrest.Matchers.*
 class SonarRunnerPluginTest extends Specification {
     @Rule SetSystemProperties systemProperties
 
-    def rootProject = HelperUtil.builder().withName("root").build()
-    def parentProject = HelperUtil.builder().withName("parent").withParent(rootProject).build()
-    def childProject = HelperUtil.builder().withName("child").withParent(parentProject).build()
-    def childProject2 = HelperUtil.builder().withName("child2").withParent(parentProject).build()
-    def leafProject = HelperUtil.builder().withName("leaf").withParent(childProject).build()
+    def rootProject = TestUtil.builder().withName("root").build()
+    def parentProject = TestUtil.builder().withName("parent").withParent(rootProject).build()
+    def childProject = TestUtil.builder().withName("child").withParent(parentProject).build()
+    def childProject2 = TestUtil.builder().withName("child2").withParent(parentProject).build()
+    def leafProject = TestUtil.builder().withName("leaf").withParent(childProject).build()
 
     def setup() {
         parentProject.plugins.apply(SonarRunnerPlugin)
@@ -249,10 +249,10 @@ class SonarRunnerPluginTest extends Specification {
     }
 
     def "handles 'modules' properties correctly if plugin is applied to root project"() {
-        def rootProject = HelperUtil.builder().withName("root").build()
-        def project = HelperUtil.builder().withName("parent").withParent(rootProject).build()
-        def project2 = HelperUtil.builder().withName("parent2").withParent(rootProject).build()
-        def childProject = HelperUtil.builder().withName("child").withParent(project).build()
+        def rootProject = TestUtil.builder().withName("root").build()
+        def project = TestUtil.builder().withName("parent").withParent(rootProject).build()
+        def project2 = TestUtil.builder().withName("parent2").withParent(rootProject).build()
+        def childProject = TestUtil.builder().withName("child").withParent(project).build()
 
         rootProject.plugins.apply(SonarRunnerPlugin)
 
@@ -330,8 +330,8 @@ class SonarRunnerPluginTest extends Specification {
     }
 
     def "handles system properties correctly if plugin is applied to root project"() {
-        def rootProject = HelperUtil.builder().withName("root").build()
-        def project = HelperUtil.builder().withName("parent").withParent(rootProject).build()
+        def rootProject = TestUtil.builder().withName("root").build()
+        def project = TestUtil.builder().withName("parent").withParent(rootProject).build()
 
         rootProject.allprojects { version = 1.3 }
         rootProject.plugins.apply(SonarRunnerPlugin)

@@ -22,12 +22,12 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class IdeaPluginTest extends Specification {
-    private final DefaultProject project = HelperUtil.createRootProject()
-    private final Project childProject = HelperUtil.createChildProject(project, "child", new File("."))
+    private final DefaultProject project = TestUtil.createRootProject()
+    private final Project childProject = TestUtil.createChildProject(project, "child", new File("."))
 
     def "adds 'ideaProject' task to root project"() {
         when:

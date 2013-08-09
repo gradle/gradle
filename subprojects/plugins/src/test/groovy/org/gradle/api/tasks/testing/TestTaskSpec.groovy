@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
 import org.gradle.listener.ListenerBroadcast
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class TestTaskSpec extends Specification {
@@ -31,7 +31,7 @@ class TestTaskSpec extends Specification {
     private testListenerBroadcaster = Mock(ListenerBroadcast)
     private testOutputListenerBroadcaster = Mock(ListenerBroadcast)
 
-    private task = HelperUtil.createTask(Test, [testExecuter: testExecuter, testFramework: testFramework,
+    private task = TestUtil.createTask(Test, [testExecuter: testExecuter, testFramework: testFramework,
             testListenerBroadcaster: testListenerBroadcaster, testOutputListenerBroadcaster: testOutputListenerBroadcaster])
 
     public setup(){

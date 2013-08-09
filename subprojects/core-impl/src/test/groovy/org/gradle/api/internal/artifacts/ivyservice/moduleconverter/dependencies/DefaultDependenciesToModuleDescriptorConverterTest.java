@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.IvyConverterTestUtil;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -65,7 +65,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         Configuration configurationStub1 = createNamedConfigurationStubWithDependenciesAndExcludeRules("conf1", GRADLE_EXCLUDE_RULE_DUMMY_1, dependencyDummy1, similarDependency1);
         Configuration configurationStub2 = createNamedConfigurationStubWithDependenciesAndExcludeRules("conf2", GRADLE_EXCLUDE_RULE_DUMMY_2, dependencyDummy2, similarDependency2);
         Configuration configurationStub3 = createNamedConfigurationStubWithDependenciesAndExcludeRules("conf3", null, similarDependency3);
-        final DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(toSet(configurationStub1.getName(),
+        final DefaultModuleDescriptor moduleDescriptor = TestUtil.createModuleDescriptor(toSet(configurationStub1.getName(),
                 configurationStub2.getName()));
         associateDependencyWithDescriptor(dependencyDummy1, moduleDescriptor, configurationStub1);
         associateDependencyWithDescriptor(dependencyDummy2, moduleDescriptor, configurationStub2);

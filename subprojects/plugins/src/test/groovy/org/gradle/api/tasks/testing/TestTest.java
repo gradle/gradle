@@ -37,7 +37,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.TestClosure;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
@@ -239,7 +239,7 @@ public class TestTest extends AbstractConventionTaskTest {
     @org.junit.Test
     public void notifiesListenerBeforeSuite() {
         final TestClosure closure = context.mock(TestClosure.class);
-        test.beforeSuite(HelperUtil.toClosure(closure));
+        test.beforeSuite(TestUtil.toClosure(closure));
 
         final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
 
@@ -253,7 +253,7 @@ public class TestTest extends AbstractConventionTaskTest {
     @org.junit.Test
     public void notifiesListenerAfterSuite() {
         final TestClosure closure = context.mock(TestClosure.class);
-        test.afterSuite(HelperUtil.toClosure(closure));
+        test.afterSuite(TestUtil.toClosure(closure));
 
         final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
         final TestResult result = context.mock(TestResult.class);
@@ -268,7 +268,7 @@ public class TestTest extends AbstractConventionTaskTest {
     @org.junit.Test
     public void notifiesListenerBeforeTest() {
         final TestClosure closure = context.mock(TestClosure.class);
-        test.beforeTest(HelperUtil.toClosure(closure));
+        test.beforeTest(TestUtil.toClosure(closure));
 
         final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
 
@@ -282,7 +282,7 @@ public class TestTest extends AbstractConventionTaskTest {
     @org.junit.Test
     public void notifiesListenerAfterTest() {
         final TestClosure closure = context.mock(TestClosure.class);
-        test.afterTest(HelperUtil.toClosure(closure));
+        test.afterTest(TestUtil.toClosure(closure));
 
         final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
         final TestResult result = context.mock(TestResult.class);

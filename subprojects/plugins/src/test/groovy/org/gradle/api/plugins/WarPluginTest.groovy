@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.tasks.bundling.War
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
 
@@ -31,12 +31,12 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 class WarPluginTest {
-    private Project project // = HelperUtil.createRootProject()
+    private Project project // = TestUtil.createRootProject()
     private WarPlugin warPlugin// = new WarPlugin()
 
     @Before
     public void setUp() {
-        project = HelperUtil.createRootProject()
+        project = TestUtil.createRootProject()
         warPlugin = new WarPlugin()
     }
 
@@ -86,7 +86,7 @@ class WarPluginTest {
     @Test public void dependsOnRuntimeConfig() {
         warPlugin.apply(project)
 
-        Project childProject = HelperUtil.createChildProject(project, 'child')
+        Project childProject = TestUtil.createChildProject(project, 'child')
         JavaPlugin javaPlugin = new JavaPlugin()
         javaPlugin.apply(childProject)
 

@@ -17,7 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.TestTask;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,19 +39,19 @@ public class ConventionAwareHelperTest {
     TestTask testTask;
 
     @Before public void setUp() {
-        testTask = HelperUtil.createTask(TestTask.class);
+        testTask = TestUtil.createTask(TestTask.class);
         conventionAware = new ConventionAwareHelper(testTask);
     }
 
     @Test
     public void canMapPropertiesUsingClosure() {
-        conventionAware.map("list1", HelperUtil.toClosure("{ ['a'] }"));
+        conventionAware.map("list1", TestUtil.toClosure("{ ['a'] }"));
         assertThat(conventionAware.getConventionValue(null, "list1", false), equalTo((Object) toList("a")));
 
-        conventionAware.map("list1", HelperUtil.toClosure("{ convention -> [convention] }"));
+        conventionAware.map("list1", TestUtil.toClosure("{ convention -> [convention] }"));
         assertThat(conventionAware.getConventionValue(null, "list1", false), equalTo((Object) toList(conventionAware.getConvention())));
 
-        conventionAware.map("list1", HelperUtil.toClosure("{ convention, object -> [convention, object] }"));
+        conventionAware.map("list1", TestUtil.toClosure("{ convention, object -> [convention, object] }"));
         assertThat(conventionAware.getConventionValue(null, "list1", false), equalTo((Object) toList(conventionAware.getConvention(), testTask)));
     }
 
@@ -69,7 +69,7 @@ public class ConventionAwareHelperTest {
     
     @Test
     public void canSetMappingUsingDynamicProperty() {
-        HelperUtil.call("{ it.list1 = { ['a'] } }", conventionAware);
+        TestUtil.call("{ it.list1 = { ['a'] } }", conventionAware);
         assertThat(conventionAware.getConventionValue(null, "list1", false), equalTo((Object) toList("a")));
     }
     

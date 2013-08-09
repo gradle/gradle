@@ -18,12 +18,12 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.logging.TestStyledTextOutput
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ProjectReportTaskTest extends Specification {
-    final ProjectInternal project = HelperUtil.createRootProject()
-    final ProjectReportTask task = HelperUtil.createTask(ProjectReportTask, project)
+    final ProjectInternal project = TestUtil.createRootProject()
+    final ProjectReportTask task = TestUtil.createTask(ProjectReportTask, project)
     final TestStyledTextOutput output = new TestStyledTextOutput().ignoreStyle()
 
     def setup() {
@@ -32,10 +32,10 @@ class ProjectReportTaskTest extends Specification {
 
     def rendersReportForRootProjectWithChildren() {
         project.description = 'this is the root project'
-        Project child1 = HelperUtil.createChildProject(project, "child1")
+        Project child1 = TestUtil.createChildProject(project, "child1")
         child1.description = 'this is a subproject'
-        HelperUtil.createChildProject(child1, "child1")
-        HelperUtil.createChildProject(project, "child2")
+        TestUtil.createChildProject(child1, "child1")
+        TestUtil.createChildProject(project, "child2")
 
         when:
         task.generate(project)
@@ -67,7 +67,7 @@ For example, try running gradle :tasks
     }
 
     def rendersReportForNonRootProjectWithNoChildren() {
-        Project child1 = HelperUtil.createChildProject(project, "child1")
+        Project child1 = TestUtil.createChildProject(project, "child1")
 
         when:
         task.generate(child1)

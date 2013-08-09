@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 public class DependencyStringNotationParserTest extends Specification {
@@ -81,7 +81,7 @@ public class DependencyStringNotationParserTest extends Specification {
 
     def "with 3-element GString"() {
         when:
-        def gstring = HelperUtil.createScript("descriptor = 'org.gradle:gradle-core:1.0'; \"\$descriptor\"").run()
+        def gstring = TestUtil.createScript("descriptor = 'org.gradle:gradle-core:1.0'; \"\$descriptor\"").run()
         def d = parser.parseNotation(gstring);
 
         then:

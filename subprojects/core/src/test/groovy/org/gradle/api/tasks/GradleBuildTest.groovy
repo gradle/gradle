@@ -18,12 +18,12 @@ package org.gradle.api.tasks
 import org.gradle.BuildResult
 import org.gradle.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 public class GradleBuildTest extends Specification {
     GradleLauncherFactory launcherFactory = Mock()
-    GradleBuild task = HelperUtil.createTask(GradleBuild, [gradleLauncherFactory: launcherFactory])
+    GradleBuild task = TestUtil.createTask(GradleBuild, [gradleLauncherFactory: launcherFactory])
 
     void usesCopyOfCurrentBuildsStartParams() {
         def expectedStartParameter = task.project.gradle.startParameter.newBuild()

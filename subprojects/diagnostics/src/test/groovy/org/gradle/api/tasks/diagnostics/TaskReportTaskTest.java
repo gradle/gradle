@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.Path;
 import org.hamcrest.BaseMatcher;
@@ -71,7 +71,7 @@ public class TaskReportTaskTest {
             will(returnValue(toSet()));
         }});
 
-        task = HelperUtil.createTask(TaskReportTask.class);
+        task = TestUtil.createTask(TaskReportTask.class);
         task.setRenderer(renderer);
     }
 

@@ -31,7 +31,7 @@ import org.gradle.testfixtures.ProjectBuilder
 
 import java.rmi.server.UID
 
-class HelperUtil {
+class TestUtil {
      public static final Closure TEST_CLOSURE = {}
 
      static <T extends Task> T createTask(Class<T> type) {

@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.DependencyResolveContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.initialization.ProjectAccessListener
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependencySpec.assertDeepCopy
@@ -31,7 +31,7 @@ import static org.junit.Assert.assertThat
 
 class DefaultProjectDependencyTest extends Specification {
 
-    ProjectInternal project = HelperUtil.createRootProject()
+    ProjectInternal project = TestUtil.createRootProject()
     ProjectAccessListener listener = Mock()
 
     private projectDependency = new DefaultProjectDependency(project, null, false)

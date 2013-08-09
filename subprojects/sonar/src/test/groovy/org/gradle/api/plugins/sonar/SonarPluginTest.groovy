@@ -23,13 +23,13 @@ import org.gradle.api.plugins.sonar.model.SonarProjectModel
 import org.gradle.api.plugins.sonar.model.SonarRootModel
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.ConfigureUtil
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
 class SonarPluginTest extends Specification {
     def "adds model and task to root project"() {
-        def project = HelperUtil.createRootProject()
+        def project = TestUtil.createRootProject()
 
         when:
         project.plugins.apply(SonarPlugin)
@@ -40,8 +40,8 @@ class SonarPluginTest extends Specification {
     }
 
     def "adds model to subprojects"() {
-        def project = HelperUtil.createRootProject()
-        def child = HelperUtil.createChildProject(project, "child")
+        def project = TestUtil.createRootProject()
+        def child = TestUtil.createChildProject(project, "child")
 
         when:
         project.plugins.apply(SonarPlugin)
@@ -52,7 +52,7 @@ class SonarPluginTest extends Specification {
     }
 
     def "provides defaults for global configuration"() {
-        def project = HelperUtil.createRootProject()
+        def project = TestUtil.createRootProject()
 
         when:
         project.plugins.apply(SonarPlugin)
@@ -127,11 +127,11 @@ class SonarPluginTest extends Specification {
     }
 
     private Project createMultiProject(Closure commonConfig = {}) {
-        def root = HelperUtil.createRootProject()
+        def root = TestUtil.createRootProject()
         ConfigureUtil.configure(commonConfig, root)
         root.group = "group"
 
-        def child = HelperUtil.createChildProject(root, "child")
+        def child = TestUtil.createChildProject(root, "child")
         ConfigureUtil.configure(commonConfig, child)
         child.group = "group"
 

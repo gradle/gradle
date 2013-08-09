@@ -38,7 +38,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.MultiParentClassLoader;
 import org.jmock.Expectations;
@@ -158,7 +158,7 @@ public class DefaultGradleTest {
 
     @Test
     public void broadcastsBeforeProjectEvaluateEventsToClosures() {
-        final Closure closure = HelperUtil.TEST_CLOSURE;
+        final Closure closure = TestUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
             one(projectEvaluationListenerBroadcast).add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
         }});
@@ -168,7 +168,7 @@ public class DefaultGradleTest {
 
     @Test
     public void broadcastsAfterProjectEvaluateEventsToClosures() {
-        final Closure closure = HelperUtil.TEST_CLOSURE;
+        final Closure closure = TestUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
             one(projectEvaluationListenerBroadcast).add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
         }});

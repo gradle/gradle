@@ -24,8 +24,8 @@ import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -36,7 +36,7 @@ import static org.junit.Assert.assertThat
 
 class JavaPluginConventionTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private DefaultProject project = HelperUtil.createRootProject()
+    private DefaultProject project = TestUtil.createRootProject()
     private Instantiator instantiator = project.services.get(Instantiator)
     private JavaPluginConvention convention
 

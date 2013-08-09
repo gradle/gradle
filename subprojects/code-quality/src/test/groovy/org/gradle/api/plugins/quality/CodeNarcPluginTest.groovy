@@ -18,7 +18,7 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.hasItems
@@ -26,7 +26,7 @@ import static spock.util.matcher.HamcrestSupport.that
 import org.gradle.api.plugins.ReportingBasePlugin
 
 class CodeNarcPluginTest extends Specification {
-    Project project = HelperUtil.createRootProject()
+    Project project = TestUtil.createRootProject()
 
     def setup() {
         project.plugins.apply(CodeNarcPlugin)

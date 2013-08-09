@@ -22,7 +22,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.TestClosure;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -32,8 +32,8 @@ import org.junit.runner.RunWith;
 
 import java.util.Iterator;
 
-import static org.gradle.util.HelperUtil.call;
-import static org.gradle.util.HelperUtil.toClosure;
+import static org.gradle.util.TestUtil.call;
+import static org.gradle.util.TestUtil.toClosure;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -167,7 +167,7 @@ public class DefaultNamedDomainObjectSetTest {
         container.add(bean3);
 
         assertThat(toList(container.matching(spec)), equalTo(toList(bean2, bean3)));
-        assertThat(toList(container.matching(HelperUtil.toClosure(testClosure))), equalTo(toList(bean2, bean3)));
+        assertThat(toList(container.matching(TestUtil.toClosure(testClosure))), equalTo(toList(bean2, bean3)));
         assertThat(container.matching(spec).findByName("a"), nullValue());
         assertThat(container.matching(spec).findByName("b"), sameInstance(bean2));
     }
@@ -234,7 +234,7 @@ public class DefaultNamedDomainObjectSetTest {
             one(closure).call(bean2);
         }});
 
-        container.withType(OtherBean.class, HelperUtil.toClosure(closure));
+        container.withType(OtherBean.class, TestUtil.toClosure(closure));
     }
 
     @Test
@@ -306,7 +306,7 @@ public class DefaultNamedDomainObjectSetTest {
             }
         };
 
-        container.matching(spec).whenObjectAdded(HelperUtil.toClosure(closure));
+        container.matching(spec).whenObjectAdded(TestUtil.toClosure(closure));
 
         container.add(bean);
         container.add(new Bean());
@@ -461,7 +461,7 @@ public class DefaultNamedDomainObjectSetTest {
             one(closure).call(bean);
         }});
 
-        container.whenObjectAdded(HelperUtil.toClosure(closure));
+        container.whenObjectAdded(TestUtil.toClosure(closure));
         container.add(bean);
     }
 
@@ -552,7 +552,7 @@ public class DefaultNamedDomainObjectSetTest {
         }});
 
         container.add(bean);
-        container.all(HelperUtil.toClosure(closure));
+        container.all(TestUtil.toClosure(closure));
     }
 
     @Test
@@ -577,7 +577,7 @@ public class DefaultNamedDomainObjectSetTest {
             one(closure).call(bean);
         }});
 
-        container.all(HelperUtil.toClosure(closure));
+        container.all(TestUtil.toClosure(closure));
         container.add(bean);
     }
 
@@ -704,7 +704,7 @@ public class DefaultNamedDomainObjectSetTest {
     public void addRuleByClosure() {
         String testPropertyKey = "org.gradle.test.addRuleByClosure";
         String expectedTaskName = "someTaskName";
-        Closure ruleClosure = HelperUtil.toClosure(String.format("{ taskName -> System.setProperty('%s', '%s') }",
+        Closure ruleClosure = TestUtil.toClosure(String.format("{ taskName -> System.setProperty('%s', '%s') }",
                 testPropertyKey, expectedTaskName));
         container.addRule("description", ruleClosure);
         container.getRules().get(0).apply(expectedTaskName);

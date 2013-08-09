@@ -18,7 +18,7 @@ package org.gradle.api.internal
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 
 import spock.lang.Specification
 
@@ -28,7 +28,7 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends Specification {
     def agedFred = new DefaultAgeAwarePerson(name: "Fred", age: 42)
     def agedBarney = new DefaultAgeAwarePerson(name: "Barney", age: 42)
 
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
     def instantiator = project.services.get(Instantiator)
     def container = instantiator.newInstance(DefaultPolymorphicDomainObjectContainer, Person, instantiator)
 

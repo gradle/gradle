@@ -18,7 +18,7 @@ package org.gradle.api.internal.project
 import groovy.xml.MarkupBuilder
 import org.junit.Test
 import org.gradle.api.Project
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import static org.gradle.util.Matchers.*
@@ -28,7 +28,7 @@ import org.apache.tools.ant.Target
 import org.apache.tools.ant.Task
 
 class DefaultAntBuilderTest {
-    private final Project project = HelperUtil.createRootProject()
+    private final Project project = TestUtil.createRootProject()
     private final def ant = new DefaultAntBuilder(project)
 
     @Test

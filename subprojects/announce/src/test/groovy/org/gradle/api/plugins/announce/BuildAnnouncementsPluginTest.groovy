@@ -16,11 +16,11 @@
 package org.gradle.api.plugins.announce
 
 import spock.lang.Specification
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.gradle.api.Project
 
 class BuildAnnouncementsPluginTest extends Specification {
-    final Project project = HelperUtil.createRootProject()
+    final Project project = TestUtil.createRootProject()
     final BuildAnnouncementsPlugin plugin = new BuildAnnouncementsPlugin()
 
     def "applies announce plugin"() {

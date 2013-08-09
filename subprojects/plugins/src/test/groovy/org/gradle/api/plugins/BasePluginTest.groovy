@@ -27,14 +27,14 @@ import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.instanceOf
 
 class BasePluginTest extends Specification {
-    private final Project project = HelperUtil.createRootProject()
+    private final Project project = TestUtil.createRootProject()
     private final BasePlugin plugin = new BasePlugin()
 
     public void addsConventionObjects() {

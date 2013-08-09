@@ -17,19 +17,18 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.application.CreateStartScripts
-import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.gradle.util.Matchers
 import spock.lang.Specification
 import org.gradle.api.tasks.Sync
 import org.gradle.api.file.CopySpec
 
 class ApplicationPluginTest extends Specification {
-    private final Project project = HelperUtil.createRootProject();
+    private final Project project = TestUtil.createRootProject();
     private final ApplicationPlugin plugin = new ApplicationPlugin();
 
     def "applies JavaPlugin and adds convention object with default values"() {

@@ -18,11 +18,11 @@
 
 package org.gradle.nativecode.language.cpp.plugins
 
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class CppExeConventionPluginTest extends Specification {
-    final def project = HelperUtil.createRootProject()
+    final def project = TestUtil.createRootProject()
 
     def "adds and configures main executable"() {
         given:

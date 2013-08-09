@@ -18,11 +18,11 @@ package org.gradle.api.plugins.announce.internal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.plugins.announce.AnnouncePluginExtension
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultAnnouncerFactoryTest extends Specification {
-    final project = HelperUtil.createRootProject()
+    final project = TestUtil.createRootProject()
     final extension = new AnnouncePluginExtension(project)
     final ProcessOperations processOperations = Mock()
     final IconProvider iconProvider = Mock()

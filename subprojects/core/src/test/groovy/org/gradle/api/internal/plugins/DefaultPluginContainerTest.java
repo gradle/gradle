@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.TestPlugin1;
 import org.gradle.api.internal.project.TestPlugin2;
 import org.gradle.api.plugins.UnknownPluginException;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
@@ -32,7 +32,7 @@ import static org.junit.Assert.assertThat;
 public class DefaultPluginContainerTest {
     protected String pluginId = "somePluginId";
     protected JUnit4Mockery context = new JUnit4Mockery();
-    private final DefaultProject project = HelperUtil.createRootProject();
+    private final DefaultProject project = TestUtil.createRootProject();
 
     private PluginRegistry pluginRegistryStub = context.mock(PluginRegistry.class);
     private DefaultPluginContainer container = new DefaultPluginContainer(pluginRegistryStub, project);

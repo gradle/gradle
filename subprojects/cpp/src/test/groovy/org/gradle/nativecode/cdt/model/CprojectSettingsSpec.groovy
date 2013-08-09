@@ -18,13 +18,13 @@ package org.gradle.nativecode.cdt.model
 import spock.lang.*
 
 import org.gradle.api.Project
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 
 // very loose test, but I'm not expecting it to stay around
 @Ignore
 class CprojectSettingsSpec extends Specification {
 
-    Project project = HelperUtil.createRootProject()
+    Project project = TestUtil.createRootProject()
 
     def descriptor = new CprojectDescriptor()
     def settings = new CprojectSettings()

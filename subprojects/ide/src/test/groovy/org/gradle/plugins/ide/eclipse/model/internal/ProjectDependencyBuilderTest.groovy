@@ -16,12 +16,12 @@
 package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.api.Project
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ProjectDependencyBuilderTest extends Specification {
 
-    def Project project = HelperUtil.createRootProject()
+    def Project project = TestUtil.createRootProject()
     def ProjectDependencyBuilder builder = new ProjectDependencyBuilder()
 
     def "should create dependency using project name"() {

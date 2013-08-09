@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -118,7 +118,7 @@ public class DefaultConfigurableFileCollectionTest {
         }});
 
         List<Character> files = toList('a');
-        Closure closure = HelperUtil.returns(files);
+        Closure closure = TestUtil.returns(files);
         collection.from(closure);
 
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1)));
@@ -130,7 +130,7 @@ public class DefaultConfigurableFileCollectionTest {
 
     @Test
     public void canUseAClosureToSpecifyASingleFile() {
-        Closure closure = HelperUtil.returns('a');
+        Closure closure = TestUtil.returns('a');
         final File file = new File("1");
 
         collection.from(closure);
@@ -145,7 +145,7 @@ public class DefaultConfigurableFileCollectionTest {
 
     @Test
     public void closureCanReturnNull() {
-        Closure closure = HelperUtil.returns(null);
+        Closure closure = TestUtil.returns(null);
 
         collection.from(closure);
 
@@ -202,7 +202,7 @@ public class DefaultConfigurableFileCollectionTest {
             will(returnValue(file2));
         }});
 
-        collection.from(HelperUtil.toClosure("{[{['src1', { ['src2'] as String[] }]}]}"));
+        collection.from(TestUtil.toClosure("{[{['src1', { ['src2'] as String[] }]}]}"));
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
     }
 
@@ -362,7 +362,7 @@ public class DefaultConfigurableFileCollectionTest {
 
         assertThat(collection.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(task)));
         assertThat(collection.getAsFileTree().getBuildDependencies().getDependencies(null), equalTo((Set) toSet(task)));
-        assertThat(collection.getAsFileTree().matching(HelperUtil.TEST_CLOSURE).getBuildDependencies().getDependencies(null), equalTo((Set) toSet(task)));
+        assertThat(collection.getAsFileTree().matching(TestUtil.TEST_CLOSURE).getBuildDependencies().getDependencies(null), equalTo((Set) toSet(task)));
     }
     
 }

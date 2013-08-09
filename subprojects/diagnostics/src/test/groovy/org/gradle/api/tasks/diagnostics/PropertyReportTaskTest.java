@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
 import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -50,7 +50,7 @@ public class PropertyReportTaskTest {
             will(returnValue(null));
         }});
 
-        task = HelperUtil.createTask(PropertyReportTask.class);
+        task = TestUtil.createTask(PropertyReportTask.class);
         task.setRenderer(renderer);
     }
 

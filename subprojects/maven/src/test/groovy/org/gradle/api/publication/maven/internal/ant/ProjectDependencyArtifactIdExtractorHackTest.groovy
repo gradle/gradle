@@ -16,17 +16,16 @@
 
 package org.gradle.api.publication.maven.internal.ant
 
-import org.gradle.util.HelperUtil
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.MavenPlugin
-
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Issue
 
 @Issue("GRADLE-443")
 class ProjectDependencyArtifactIdExtractorHackTest extends Specification {
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
     def extractor = new ProjectDependencyArtifactIdExtractorHack(new DefaultProjectDependency(project, null, true))
 
     def "artifact ID defaults to project name if neither archivesBaseName nor mavenDeployer.pom.artifactId is configured"() {

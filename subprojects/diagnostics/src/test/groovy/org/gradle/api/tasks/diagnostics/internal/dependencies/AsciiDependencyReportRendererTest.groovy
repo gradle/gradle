@@ -20,13 +20,13 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
 import org.gradle.logging.TestStyledTextOutput
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class AsciiDependencyReportRendererTest extends Specification {
     private final TestStyledTextOutput textOutput = new TestStyledTextOutput().ignoreStyle()
     private final AsciiDependencyReportRenderer renderer = new AsciiDependencyReportRenderer()
-    private final Project project = HelperUtil.createRootProject()
+    private final Project project = TestUtil.createRootProject()
 
     def setup() {
         renderer.output = textOutput

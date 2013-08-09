@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -52,7 +52,7 @@ public class DefaultArtifactsToModuleDescriptorConverterTest {
         Configuration configurationStub1 = createConfigurationStub(publishArtifactConf1);
         final PublishArtifact publishArtifactConf2 = createNamedPublishArtifact("conf2");
         Configuration configurationStub2 = createConfigurationStub(publishArtifactConf2);
-        final DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(WrapUtil.toSet(configurationStub1.getName(),
+        final DefaultModuleDescriptor moduleDescriptor = TestUtil.createModuleDescriptor(WrapUtil.toSet(configurationStub1.getName(),
                 configurationStub2.getName()));
         final BuildableModuleVersionPublishMetaData publishMetaData = context.mock(BuildableModuleVersionPublishMetaData.class);
         context.checking(new Expectations() {{

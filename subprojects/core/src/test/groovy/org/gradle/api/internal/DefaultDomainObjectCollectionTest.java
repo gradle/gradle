@@ -18,7 +18,7 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.TestClosure;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
@@ -121,7 +121,7 @@ public class DefaultDomainObjectCollectionTest {
         container.add("c");
 
         assertThat(toList(container.matching(spec)), equalTo(toList((CharSequence) "a", "c")));
-        assertThat(toList(container.matching(HelperUtil.toClosure(testClosure))), equalTo(toList((CharSequence) "a", "c")));
+        assertThat(toList(container.matching(TestUtil.toClosure(testClosure))), equalTo(toList((CharSequence) "a", "c")));
     }
 
     @Test
@@ -162,7 +162,7 @@ public class DefaultDomainObjectCollectionTest {
             one(closure).call("a");
         }});
         
-        container.withType(String.class, HelperUtil.toClosure(closure));
+        container.withType(String.class, TestUtil.toClosure(closure));
         container.add("a");
     }
 
@@ -220,7 +220,7 @@ public class DefaultDomainObjectCollectionTest {
             }
         };
 
-        container.matching(spec).whenObjectAdded(HelperUtil.toClosure(closure));
+        container.matching(spec).whenObjectAdded(TestUtil.toClosure(closure));
 
         container.add("a");
         container.add("b");
@@ -254,7 +254,7 @@ public class DefaultDomainObjectCollectionTest {
         container.add("b");
         container.add("c");
 
-        Collection<CharSequence> collection = container.findAll(HelperUtil.toClosure("{ it != 'b' }"));
+        Collection<CharSequence> collection = container.findAll(TestUtil.toClosure("{ it != 'b' }"));
         assertThat(collection, instanceOf(List.class));
         assertThat(collection, equalTo((Collection) toList("a", "c")));
     }
@@ -265,7 +265,7 @@ public class DefaultDomainObjectCollectionTest {
         container.add("b");
         container.add("c");
 
-        Collection<CharSequence> collection = container.findAll(HelperUtil.toClosure("{ it != 'b' }"));
+        Collection<CharSequence> collection = container.findAll(TestUtil.toClosure("{ it != 'b' }"));
 
         container.add("d");
         assertThat(collection, equalTo((Collection) toList("a", "c")));
@@ -292,7 +292,7 @@ public class DefaultDomainObjectCollectionTest {
             one(closure).call("a");
         }});
 
-        container.whenObjectAdded(HelperUtil.toClosure(closure));
+        container.whenObjectAdded(TestUtil.toClosure(closure));
         container.add("a");
     }
 
@@ -306,13 +306,13 @@ public class DefaultDomainObjectCollectionTest {
             one(closure).call("a");
         }});
 
-        container.whenObjectRemoved(HelperUtil.toClosure(closure));
+        container.whenObjectRemoved(TestUtil.toClosure(closure));
         container.remove("a");
     }
 
     @Test
     public void callsClosureWithNewObjectAsDelegateWhenObjectAdded() {
-        container.whenObjectAdded(HelperUtil.toClosure("{ assert delegate == 'a' }"));
+        container.whenObjectAdded(TestUtil.toClosure("{ assert delegate == 'a' }"));
         container.add("a");
     }
 
@@ -373,7 +373,7 @@ public class DefaultDomainObjectCollectionTest {
         }});
 
         container.add("a");
-        container.all(HelperUtil.toClosure(closure));
+        container.all(TestUtil.toClosure(closure));
     }
 
     @Test
@@ -397,13 +397,13 @@ public class DefaultDomainObjectCollectionTest {
             one(closure).call("a");
         }});
 
-        container.all(HelperUtil.toClosure(closure));
+        container.all(TestUtil.toClosure(closure));
         container.add("a");
     }
 
     @Test
     public void allCallsClosureWithObjectAsDelegate() {
-        container.all(HelperUtil.toClosure(" { assert delegate == 'a' } "));
+        container.all(TestUtil.toClosure(" { assert delegate == 'a' } "));
         container.add("a");
     }
 

@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
@@ -49,7 +49,7 @@ public class ModuleFactoryDelegateTest {
     @Test
     public void dependencyWithClosure() {
         final String dependencyNotation = "someNotation";
-        final Closure configureClosure = HelperUtil.toClosure("{}");
+        final Closure configureClosure = TestUtil.toClosure("{}");
         final ModuleDependency dependencyDummy = context.mock(ModuleDependency.class);
         letFactoryStubReturnDependency(dependencyNotation, dependencyDummy);
         moduleFactoryDelegate.dependency(dependencyNotation, configureClosure);
@@ -78,7 +78,7 @@ public class ModuleFactoryDelegateTest {
     @Test
     public void module() {
         final String clientModuleNotation = "someNotation";
-        final Closure configureClosure = HelperUtil.toClosure("{}");
+        final Closure configureClosure = TestUtil.toClosure("{}");
         final ClientModule clientModuleDummy = context.mock(ClientModule.class);
         context.checking(new Expectations() {{
             allowing(dependencyFactoryStub).createModule(clientModuleNotation, configureClosure);

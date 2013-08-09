@@ -21,7 +21,7 @@ import org.apache.tools.ant.Target;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,8 +36,8 @@ import static org.junit.Assert.assertTrue;
 
 public class AntTargetTest {
     private final Target antTarget = new Target();
-    private final DefaultProject project = HelperUtil.createRootProject();
-    private final AntTarget task = HelperUtil.createTask(AntTarget.class, project);
+    private final DefaultProject project = TestUtil.createRootProject();
+    private final AntTarget task = TestUtil.createTask(AntTarget.class, project);
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
     private final File baseDir = testDir.getTestDirectory();

@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.collections;
 import groovy.lang.Closure;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,7 +45,7 @@ public class MapFileTreeTest {
     
     @Test
     public void canAddAnElementUsingAClosureToGeneratedContent() {
-        Closure closure = HelperUtil.toClosure("{it.write('content'.getBytes())}");
+        Closure closure = TestUtil.toClosure("{it.write('content'.getBytes())}");
         tree.add("path/file.txt", closure);
 
         assertVisits(tree, toList("path/file.txt"), toList("path"));
@@ -57,7 +57,7 @@ public class MapFileTreeTest {
 
     @Test
     public void canAddMultipleElementsInDifferentDirs() {
-        Closure closure = HelperUtil.toClosure("{it.write('content'.getBytes())}");
+        Closure closure = TestUtil.toClosure("{it.write('content'.getBytes())}");
         tree.add("path/file.txt", closure);
         tree.add("file.txt", closure);
         tree.add("path/subdir/file.txt", closure);
@@ -68,7 +68,7 @@ public class MapFileTreeTest {
 
     @Test
     public void canStopVisitingElements() {
-        Closure closure = HelperUtil.toClosure("{it.write('content'.getBytes())}");
+        Closure closure = TestUtil.toClosure("{it.write('content'.getBytes())}");
         tree.add("path/file.txt", closure);
         tree.add("file.txt", closure);
         assertCanStopVisiting(tree);

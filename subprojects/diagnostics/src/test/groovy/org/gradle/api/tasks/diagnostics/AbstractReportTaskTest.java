@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -34,8 +34,8 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 
-import static org.gradle.util.HelperUtil.createChildProject;
-import static org.gradle.util.HelperUtil.createRootProject;
+import static org.gradle.util.TestUtil.createChildProject;
+import static org.gradle.util.TestUtil.createRootProject;
 import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(JMock.class)
@@ -52,7 +52,7 @@ public class AbstractReportTaskTest {
     public void setUp() throws Exception {
         generator = context.mock(Runnable.class);
         renderer = context.mock(ReportRenderer.class);
-        task = HelperUtil.createTask(TestReportTask.class, project);
+        task = TestUtil.createTask(TestReportTask.class, project);
         task.setGenerator(generator);
         task.setRenderer(renderer);
         task.setProjects(WrapUtil.<Project>toSet(project));

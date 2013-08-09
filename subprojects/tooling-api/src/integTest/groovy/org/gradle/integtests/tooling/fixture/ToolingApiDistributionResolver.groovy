@@ -26,7 +26,7 @@ import org.gradle.internal.CompositeStoppable
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.ProjectScopeServices
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 
 class ToolingApiDistributionResolver {
     private final DependencyResolutionServices resolutionServices
@@ -73,7 +73,7 @@ class ToolingApiDistributionResolver {
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         BuildScopeServices topLevelRegistry = new BuildScopeServices(globalRegistry, startParameter)
-        ProjectScopeServices projectRegistry = new ProjectScopeServices(topLevelRegistry, HelperUtil.createRootProject())
+        ProjectScopeServices projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.createRootProject())
 
         stopLater.add(projectRegistry)
         stopLater.add(topLevelRegistry)

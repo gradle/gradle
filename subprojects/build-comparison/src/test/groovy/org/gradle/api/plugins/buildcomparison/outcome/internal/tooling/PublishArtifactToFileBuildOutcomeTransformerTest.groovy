@@ -28,14 +28,14 @@ import spock.lang.Unroll
 import org.gradle.api.tasks.bundling.*
 
 import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.*
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.gradle.api.Project
 
 class PublishArtifactToFileBuildOutcomeTransformerTest extends Specification {
 
     def transformer = new PublishArtifactToFileBuildOutcomeTransformer()
 
-    Project project = HelperUtil.createRootProject()
+    Project project = TestUtil.createRootProject()
 
     @Unroll
     "can create outcome for #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {

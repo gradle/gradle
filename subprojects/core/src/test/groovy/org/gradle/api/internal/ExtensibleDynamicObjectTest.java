@@ -20,7 +20,7 @@ import groovy.lang.MissingMethodException;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.plugins.Convention;
 import org.gradle.testfixtures.ProjectBuilder;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.junit.Test;
 
 import java.util.Map;
@@ -413,7 +413,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canInvokeMethodDefinedByScriptObject() {
         Bean bean = new Bean();
-        Script script = HelperUtil.createScript("def scriptMethod(a, b) { \"script:$a.$b\" } ");
+        Script script = TestUtil.createScript("def scriptMethod(a, b) { \"script:$a.$b\" } ");
         bean.extensibleDynamicObject.addObject(new BeanDynamicObject(script), ExtensibleDynamicObject.Location.BeforeConvention);
 
         assertTrue(bean.hasMethod("scriptMethod", "a", "b"));
@@ -484,7 +484,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canInvokeClosurePropertyAsAMethod() {
         Bean bean = new Bean();
-        bean.setProperty("someMethod", HelperUtil.toClosure("{ param -> param.toLowerCase() }"));
+        bean.setProperty("someMethod", TestUtil.toClosure("{ param -> param.toLowerCase() }"));
         assertThat(bean.invokeMethod("someMethod", "Param"), equalTo((Object) "param"));
     }
 

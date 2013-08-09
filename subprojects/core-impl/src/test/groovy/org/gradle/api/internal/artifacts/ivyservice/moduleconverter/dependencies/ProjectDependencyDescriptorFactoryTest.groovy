@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.project.AbstractProject
 import org.gradle.initialization.ProjectAccessListener
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.jmock.integration.junit4.JUnit4Mockery
 import org.junit.Test
 
@@ -56,7 +56,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     }
 
     private ProjectDependency createProjectDependency(String dependencyConfiguration) {
-        AbstractProject dependencyProject = HelperUtil.createRootProject();
+        AbstractProject dependencyProject = TestUtil.createRootProject();
         dependencyProject.setGroup("someGroup");
         dependencyProject.setVersion("someVersion");
         return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, {} as ProjectAccessListener, true);

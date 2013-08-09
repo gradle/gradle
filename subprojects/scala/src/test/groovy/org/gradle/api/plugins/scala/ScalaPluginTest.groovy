@@ -20,8 +20,8 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
-import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
+import org.gradle.util.TestUtil
 import org.junit.Test
 
 import static org.gradle.util.Matchers.dependsOn
@@ -31,7 +31,7 @@ import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
 
 class ScalaPluginTest {
-    private final Project project = HelperUtil.createRootProject()
+    private final Project project = TestUtil.createRootProject()
     private final ScalaPlugin scalaPlugin = new ScalaPlugin()
 
     @Test void appliesTheJavaPluginToTheProject() {

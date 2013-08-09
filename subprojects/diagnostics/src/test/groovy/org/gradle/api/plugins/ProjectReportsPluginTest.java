@@ -20,7 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.junit.Test;
 
@@ -32,7 +32,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class ProjectReportsPluginTest {
-    private final Project project = HelperUtil.createRootProject();
+    private final Project project = TestUtil.createRootProject();
     private final ProjectReportsPlugin plugin = new ProjectReportsPlugin();
 
     @Test

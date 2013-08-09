@@ -20,13 +20,13 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 public class TestNGTestFrameworkTest extends Specification {
 
     private project = new ProjectBuilder().build()
-    Test testTask = HelperUtil.createTask(Test, project)
+    Test testTask = TestUtil.createTask(Test, project)
 
     void setup() {
         project.ext.sourceCompatibility = "1.7"

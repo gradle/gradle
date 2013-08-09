@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
@@ -83,7 +83,7 @@ class AbstractModuleDependencySpec extends Specification {
     }
 
     private DependencyArtifact createAnonymousArtifact() {
-        return new DefaultDependencyArtifact(HelperUtil.createUniqueId(), "type", "org", "classifier", "url")
+        return new DefaultDependencyArtifact(TestUtil.createUniqueId(), "type", "org", "classifier", "url")
     }
 
     public static void assertDeepCopy(ModuleDependency dependency, ModuleDependency copiedDependency) {

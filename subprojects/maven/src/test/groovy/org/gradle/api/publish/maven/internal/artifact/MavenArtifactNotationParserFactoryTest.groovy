@@ -25,7 +25,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 public class MavenArtifactNotationParserFactoryTest extends Specification {
@@ -119,7 +119,7 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
 
     def "creates MavenArtifact for ArchivePublishArtifact"() {
         when:
-        def rootProject = HelperUtil.createRootProject()
+        def rootProject = TestUtil.createRootProject()
         def archive = rootProject.task(type: Jar, {})
         archive.setBaseName("baseName")
         archive.setExtension(archiveExtension)

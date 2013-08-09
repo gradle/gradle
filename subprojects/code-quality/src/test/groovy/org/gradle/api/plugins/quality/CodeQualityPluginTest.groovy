@@ -19,7 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
@@ -28,7 +28,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.GroovyBasePlugin
 
 class CodeQualityPluginTest {
-    private final Project project = HelperUtil.createRootProject()
+    private final Project project = TestUtil.createRootProject()
     private final CodeQualityPlugin plugin = new CodeQualityPlugin()
 
     @Test public void appliesCheckstyleAndCodeNarcPlugins() {

@@ -19,12 +19,12 @@ package org.gradle.buildsetup.plugins
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.api.tasks.wrapper.Wrapper
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class BuildSetupPluginSpec extends Specification {
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
 
     def "applies plugin"() {
         when:
@@ -42,7 +42,7 @@ class BuildSetupPluginSpec extends Specification {
         File projectDir = temporaryFileProvider.createTemporaryDirectory("gradle", "projectDir");
         def buildFile = new File(projectDir, "build.gradle") << '// an empty build'
         buildFile << '// an empty build'
-        project = HelperUtil.builder().withProjectDir(projectDir).build()
+        project = TestUtil.builder().withProjectDir(projectDir).build()
         when:
         project.plugins.apply BuildSetupPlugin
 
@@ -65,7 +65,7 @@ class BuildSetupPluginSpec extends Specification {
 
     def "no build file generation when part of multi-project build"() {
         setup:
-        HelperUtil.createChildProject(project, 'child')
+        TestUtil.createChildProject(project, 'child')
 
         when:
         project.plugins.apply BuildSetupPlugin

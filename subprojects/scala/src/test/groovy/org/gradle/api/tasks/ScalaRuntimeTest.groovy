@@ -19,12 +19,12 @@ import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 
 import spock.lang.Specification
 
 class ScalaRuntimeTest extends Specification {
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
 
     def setup() {
         project.plugins.apply(ScalaBasePlugin)

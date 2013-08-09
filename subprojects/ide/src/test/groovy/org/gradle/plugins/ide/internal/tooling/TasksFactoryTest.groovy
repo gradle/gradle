@@ -18,13 +18,13 @@ package org.gradle.plugins.ide.internal.tooling
 import org.gradle.api.Project
 import org.gradle.api.internal.AbstractTask
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProject
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class TasksFactoryTest extends Specification {
     final Project project = Mock()
     final org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3 eclipseProject = new DefaultEclipseProject(null, null, null, null, [])
-    final task = HelperUtil.createTask(AbstractTask)
+    final task = TestUtil.createTask(AbstractTask)
 
     def "does not return tasks"() {
         TasksFactory factory = new TasksFactory(false)

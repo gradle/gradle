@@ -16,12 +16,12 @@
 
 package org.gradle.plugins.ide.idea.model.internal
 
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ModuleDependencyBuilderTest extends Specification {
 
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
     def builder = new ModuleDependencyBuilder()
 
     def "builds dependency for nonIdea project"() {

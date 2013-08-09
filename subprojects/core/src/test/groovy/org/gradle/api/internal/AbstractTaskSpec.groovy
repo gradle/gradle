@@ -25,7 +25,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.GUtil
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Test
 import spock.lang.Specification
 
@@ -42,7 +42,7 @@ class AbstractTaskSpec extends Specification {
     }
 
     public Task createTask(String name) {
-        AbstractProject project = HelperUtil.createRootProject();
+        AbstractProject project = TestUtil.createRootProject();
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
         registry.add(Instantiator.class, new DirectInstantiator());
         Task task = rootFactory.createChild(project, instantiator).createTask(GUtil.map(Task.TASK_TYPE, TestTask.class, Task.TASK_NAME, name));

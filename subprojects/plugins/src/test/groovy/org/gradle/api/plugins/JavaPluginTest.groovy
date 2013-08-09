@@ -30,7 +30,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import org.junit.Test
 
@@ -43,7 +43,7 @@ import static org.junit.Assert.*
 class JavaPluginTest {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    private final Project project = HelperUtil.createRootProject()
+    private final Project project = TestUtil.createRootProject()
     private final JavaPlugin javaPlugin = new JavaPlugin()
 
     @Test public void appliesBasePluginsAndAddsConventionObject() {
@@ -247,9 +247,9 @@ class JavaPluginTest {
     }
 
     @Test public void buildOtherProjects() {
-        DefaultProject commonProject = HelperUtil.createChildProject(project, "common");
-        DefaultProject middleProject = HelperUtil.createChildProject(project, "middle");
-        DefaultProject appProject = HelperUtil.createChildProject(project, "app");
+        DefaultProject commonProject = TestUtil.createChildProject(project, "common");
+        DefaultProject middleProject = TestUtil.createChildProject(project, "middle");
+        DefaultProject appProject = TestUtil.createChildProject(project, "app");
 
         javaPlugin.apply(project);
         javaPlugin.apply(commonProject);

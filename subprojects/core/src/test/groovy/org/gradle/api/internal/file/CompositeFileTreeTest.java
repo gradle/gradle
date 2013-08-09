@@ -20,7 +20,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 
@@ -52,7 +52,7 @@ public class CompositeFileTreeTest {
 
     @Test
     public void matchingWithClosureReturnsUnionOfFilteredSets() {
-        final Closure closure = HelperUtil.TEST_CLOSURE;
+        final Closure closure = TestUtil.TEST_CLOSURE;
         final FileTree filtered1 = context.mock(FileTree.class);
         final FileTree filtered2 = context.mock(FileTree.class);
 
@@ -114,7 +114,7 @@ public class CompositeFileTreeTest {
 
     @Test
     public void visitsEachTreeWithClosure() {
-        final Closure visitor = HelperUtil.TEST_CLOSURE;
+        final Closure visitor = TestUtil.TEST_CLOSURE;
 
         context.checking(new Expectations() {{
             one(source1).visit(visitor);

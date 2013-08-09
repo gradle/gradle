@@ -18,14 +18,14 @@ package org.gradle.api.plugins.jetty
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 public class JettyPluginTest {
-    private final Project project = HelperUtil.createRootProject()
+    private final Project project = TestUtil.createRootProject()
 
     @Test
     public void appliesWarPluginAndAddsConventionToProject() {

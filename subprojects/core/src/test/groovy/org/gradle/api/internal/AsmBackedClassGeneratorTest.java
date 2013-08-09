@@ -35,8 +35,8 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-import static org.gradle.util.HelperUtil.TEST_CLOSURE;
-import static org.gradle.util.HelperUtil.call;
+import static org.gradle.util.TestUtil.TEST_CLOSURE;
+import static org.gradle.util.TestUtil.call;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;

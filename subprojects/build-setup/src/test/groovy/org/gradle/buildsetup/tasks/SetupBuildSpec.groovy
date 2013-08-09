@@ -20,7 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.buildsetup.plugins.internal.BuildSetupTypeIds
 import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildsetup.plugins.internal.ProjectSetupDescriptor
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class SetupBuildSpec extends Specification {
@@ -34,7 +34,7 @@ class SetupBuildSpec extends Specification {
     ProjectSetupDescriptor projectSetupDescriptor3
 
     def setup() {
-        setupBuild = HelperUtil.builder().build().tasks.create("setupBuild", SetupBuild)
+        setupBuild = TestUtil.builder().build().tasks.create("setupBuild", SetupBuild)
         projectLayoutRegistry = Mock()
         projectSetupDescriptor1 = Mock()
         projectSetupDescriptor2 = Mock()

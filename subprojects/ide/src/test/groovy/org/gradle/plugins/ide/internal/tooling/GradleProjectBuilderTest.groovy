@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -27,7 +27,7 @@ class GradleProjectBuilderTest extends Specification {
 
     def "builds basics for project"() {
         def buildFile = tmpDir.file("build.gradle") << "//empty"
-        def project = HelperUtil.builder().withName("test").withProjectDir(tmpDir.testDirectory).build()
+        def project = TestUtil.builder().withName("test").withProjectDir(tmpDir.testDirectory).build()
         project.description = 'a test project'
 
         when:

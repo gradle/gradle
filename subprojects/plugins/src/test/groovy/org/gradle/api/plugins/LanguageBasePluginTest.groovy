@@ -20,11 +20,11 @@ import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.BinaryInternal
 import org.gradle.language.base.internal.BinaryNamingScheme
 import org.gradle.language.base.plugins.LanguageBasePlugin
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class LanguageBasePluginTest extends Specification {
-    Project project = HelperUtil.createRootProject()
+    Project project = TestUtil.createRootProject()
 
     def setup() {
         project.plugins.apply(LanguageBasePlugin)

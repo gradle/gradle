@@ -16,7 +16,7 @@
 package org.gradle.api.internal.file.copy;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.junit.Test;
 
@@ -59,7 +59,7 @@ public class FilterChainTest {
 
     @Test
     public void canAddLineFilterReaderToEndOfChain() {
-        filterChain.add(HelperUtil.TEST_CLOSURE);
+        filterChain.add(TestUtil.TEST_CLOSURE);
         Reader transformedReader = filterChain.transform(originalReader);
         assertThat(transformedReader, instanceOf(LineFilter.class));
     }

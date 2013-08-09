@@ -50,8 +50,8 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.util.HelperUtil.createRootProject;
-import static org.gradle.util.HelperUtil.toClosure;
+import static org.gradle.util.TestUtil.createRootProject;
+import static org.gradle.util.TestUtil.toClosure;
 import static org.gradle.util.WrapUtil.toList;
 import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;

@@ -25,13 +25,13 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.ObjectInstantiationException
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class TaskFactoryTest extends Specification {
     final ClassGenerator generator = Mock()
     final Instantiator instantiator = Mock()
-    final ProjectInternal project = HelperUtil.createRootProject()
+    final ProjectInternal project = TestUtil.createRootProject()
     final ITaskFactory taskFactory = new TaskFactory(generator).createChild(project, instantiator)
 
     def setup() {

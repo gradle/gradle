@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestAppender
 import org.gradle.util.DeprecationLogger
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -33,7 +33,7 @@ class ArtifactRepositoryChangingNameAfterContainerInclusionDeprecationTest exten
     Project project
 
     def setup() {
-        project = HelperUtil.createRootProject()
+        project = TestUtil.createRootProject()
         DeprecationLogger.reset()
     }
 

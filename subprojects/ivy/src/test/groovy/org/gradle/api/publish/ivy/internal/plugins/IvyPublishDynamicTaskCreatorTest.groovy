@@ -22,12 +22,12 @@ import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
 import org.gradle.api.publish.ivy.tasks.PublishToIvyRepository
 import org.gradle.api.publish.plugins.PublishingPlugin
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class IvyPublishDynamicTaskCreatorTest extends Specification {
 
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
     def lifecycleTask = project.task("pl")
     def creator = new IvyPublishDynamicTaskCreator(project.tasks, lifecycleTask)
 

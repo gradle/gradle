@@ -18,7 +18,7 @@ package org.gradle.api.plugins.sonar
 import spock.lang.Specification
 
 class SonarAnalyzeTest extends Specification {
-//    SonarAnalyze task = HelperUtil.createTask(SonarAnalyze)
+//    SonarAnalyze task = TestUtil.createTask(SonarAnalyze)
 //
 //    @Issue("GRADLE-1499")
 //    def "can configure project properties"() {

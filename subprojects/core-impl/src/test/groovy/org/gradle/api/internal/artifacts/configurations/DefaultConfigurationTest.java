@@ -270,7 +270,7 @@ public class DefaultConfigurationTest {
 
     @Test
     public void filesWithClosureSpec() {
-        Closure closure = HelperUtil.toClosure("{ dep -> dep.group == 'group1' }");
+        Closure closure = TestUtil.toClosure("{ dep -> dep.group == 'group1' }");
         final Set<File> fileSet = toSet(new File("somePath"));
         prepareForFilesBySpec(fileSet);
         assertThat(configuration.files(closure), equalTo(fileSet));
@@ -279,7 +279,7 @@ public class DefaultConfigurationTest {
 
     @Test
     public void fileCollectionWithClosureSpec() {
-        Closure closure = HelperUtil.toClosure("{ dep -> dep.group == 'group1' }");
+        Closure closure = TestUtil.toClosure("{ dep -> dep.group == 'group1' }");
         DefaultConfiguration.ConfigurationFileCollection fileCollection = (DefaultConfiguration.ConfigurationFileCollection)
                 configuration.fileCollection(closure);
         assertThat(fileCollection.getDependencySpec().isSatisfiedBy(createDependency("group1", "name", "version")),
@@ -680,7 +680,7 @@ public class DefaultConfigurationTest {
             one(closure).call(artifact);
         }});
 
-        configuration.getArtifacts().whenObjectAdded(HelperUtil.toClosure(closure));
+        configuration.getArtifacts().whenObjectAdded(TestUtil.toClosure(closure));
         configuration.getArtifacts().add(artifact);
     }
 
@@ -695,7 +695,7 @@ public class DefaultConfigurationTest {
             one(closure).call(artifact);
         }});
 
-        configuration.getArtifacts().whenObjectRemoved(HelperUtil.toClosure(closure));
+        configuration.getArtifacts().whenObjectRemoved(TestUtil.toClosure(closure));
 
         configuration.getArtifacts().remove(artifact);
     }
@@ -755,7 +755,7 @@ public class DefaultConfigurationTest {
         Set<Dependency> expectedDependenciesToCopy = new HashSet<Dependency>(configuration.getDependencies());
         configuration.getDependencies().add(createDependency("group3", "name3", "version3"));
 
-        Closure specClosure = HelperUtil.toClosure("{ element ->  !element.group.equals(\"group3\")}");
+        Closure specClosure = TestUtil.toClosure("{ element ->  !element.group.equals(\"group3\")}");
         Configuration copiedConfiguration = configuration.copy(specClosure);
 
         assertThatCopiedConfigurationHasElementsAndName(copiedConfiguration, expectedDependenciesToCopy);
@@ -800,7 +800,7 @@ public class DefaultConfigurationTest {
         Set<Dependency> expectedDependenciesToCopy = new HashSet<Dependency>(configuration.getAllDependencies());
         configuration.getDependencies().add(createDependency("group3", "name3", "version3"));
 
-        Closure specClosure = HelperUtil.toClosure("{ element ->  !element.group.equals(\"group3\")}");
+        Closure specClosure = TestUtil.toClosure("{ element ->  !element.group.equals(\"group3\")}");
         Configuration copiedConfiguration = configuration.copyRecursive(specClosure);
 
         assertThatCopiedConfigurationHasElementsAndName(copiedConfiguration, expectedDependenciesToCopy);

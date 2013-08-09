@@ -17,14 +17,14 @@ package org.gradle.plugins.ide.idea
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class GenerateIdeaModuleTest extends Specification {
 
-    DefaultProject project = HelperUtil.createRootProject()
-    Project childProject = HelperUtil.createChildProject(project, "child", new File("."))
-    Project grandChildProject = HelperUtil.createChildProject(childProject, "grandChild", new File("."))
+    DefaultProject project = TestUtil.createRootProject()
+    Project childProject = TestUtil.createChildProject(project, "child", new File("."))
+    Project grandChildProject = TestUtil.createChildProject(childProject, "grandChild", new File("."))
 
     def "moduleName controls outputFile"() {
         given:

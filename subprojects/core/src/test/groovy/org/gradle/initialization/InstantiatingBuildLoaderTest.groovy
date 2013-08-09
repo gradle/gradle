@@ -23,8 +23,8 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.TestUtil
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Rule
@@ -129,9 +129,9 @@ class InstantiatingBuildLoaderTest {
     private ProjectInternal project(ProjectDescriptor descriptor, ProjectInternal parent) {
         DefaultProject project
         if (parent) {
-            project = HelperUtil.createChildProject(parent, descriptor.name, descriptor.projectDir)
+            project = TestUtil.createChildProject(parent, descriptor.name, descriptor.projectDir)
         } else {
-            project = HelperUtil.createRootProject(descriptor.projectDir)
+            project = TestUtil.createRootProject(descriptor.projectDir)
         }
         project
     }

@@ -23,11 +23,11 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class EclipsePluginTest extends Specification {
-    private final DefaultProject project = HelperUtil.createRootProject()
+    private final DefaultProject project = TestUtil.createRootProject()
     private final EclipsePlugin eclipsePlugin = new EclipsePlugin(project.services.get(Instantiator))
 
     def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {

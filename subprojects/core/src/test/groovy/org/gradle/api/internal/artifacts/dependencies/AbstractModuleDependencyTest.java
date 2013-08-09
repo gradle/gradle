@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.jmock.integration.junit4.JMock;
@@ -82,7 +82,7 @@ abstract public class AbstractModuleDependencyTest {
     }
 
     private DependencyArtifact createAnonymousArtifact() {
-        return new DefaultDependencyArtifact(HelperUtil.createUniqueId(), "type", "org", "classifier", "url");
+        return new DefaultDependencyArtifact(TestUtil.createUniqueId(), "type", "org", "classifier", "url");
     }
 
     @Test

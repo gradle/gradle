@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -41,7 +41,7 @@ public class DefaultConfigurationsToModuleDescriptorConverterTest {
     public void testAddConfigurations() {
         Configuration configurationStub1 = createNamesAndExtendedConfigurationStub("conf1");
         Configuration configurationStub2 = createNamesAndExtendedConfigurationStub("conf2", configurationStub1);
-        final DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(Collections.EMPTY_SET);
+        final DefaultModuleDescriptor moduleDescriptor = TestUtil.createModuleDescriptor(Collections.EMPTY_SET);
 
         configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, WrapUtil.toSet(configurationStub1, configurationStub2));
 
@@ -78,7 +78,7 @@ public class DefaultConfigurationsToModuleDescriptorConverterTest {
             will(returnValue(true));
 
             allowing(configurationStub).getDescription();
-            will(returnValue(HelperUtil.createUniqueId()));
+            will(returnValue(TestUtil.createUniqueId()));
 
             allowing(configurationStub).isVisible();
             will(returnValue(true));

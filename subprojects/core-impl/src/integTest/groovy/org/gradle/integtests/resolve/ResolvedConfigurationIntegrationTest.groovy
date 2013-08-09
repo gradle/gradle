@@ -20,13 +20,13 @@ import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
 
 public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationTest {
-    def DefaultProject project = HelperUtil.createRootProject()
-    def Project childProject = HelperUtil.createChildProject(project, "child", new File("."))
+    def DefaultProject project = TestUtil.createRootProject()
+    def Project childProject = TestUtil.createChildProject(project, "child", new File("."))
 
     @Before
     public void boringSetup() {

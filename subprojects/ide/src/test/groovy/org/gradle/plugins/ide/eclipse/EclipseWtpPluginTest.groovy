@@ -21,13 +21,13 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.eclipse.model.WbResource
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
 class EclipseWtpPluginTest extends Specification {
 
-    private final DefaultProject project = HelperUtil.createRootProject()
+    private final DefaultProject project = TestUtil.createRootProject()
     private final EclipseWtpPlugin wtpPlugin = new EclipseWtpPlugin(project.services.get(Instantiator))
 
     def "has description"() {

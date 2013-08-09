@@ -27,8 +27,8 @@ import org.gradle.execution.TaskFailureHandler
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
-import static org.gradle.util.HelperUtil.createChildProject
-import static org.gradle.util.HelperUtil.createRootProject
+import static org.gradle.util.TestUtil.createChildProject
+import static org.gradle.util.TestUtil.createRootProject
 import static org.gradle.util.WrapUtil.toList
 
 public class DefaultTaskExecutionPlanTest extends Specification {

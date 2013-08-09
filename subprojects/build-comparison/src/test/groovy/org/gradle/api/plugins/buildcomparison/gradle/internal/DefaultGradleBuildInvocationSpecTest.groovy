@@ -17,12 +17,12 @@
 package org.gradle.api.plugins.buildcomparison.gradle.internal
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultGradleBuildInvocationSpecTest extends Specification {
 
-    FileResolver fileResolver = HelperUtil.createRootProject().fileResolver
+    FileResolver fileResolver = TestUtil.createRootProject().fileResolver
 
     def "equals and hashCode"() {
         given:

@@ -17,14 +17,14 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
 
 import static org.junit.Assert.assertEquals
 
 class BasePluginConventionTest {
-    private DefaultProject project = HelperUtil.createRootProject()
+    private DefaultProject project = TestUtil.createRootProject()
     private File testDir = project.projectDir
     private BasePluginConvention convention
 

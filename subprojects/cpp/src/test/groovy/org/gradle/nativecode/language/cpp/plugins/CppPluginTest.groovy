@@ -25,12 +25,12 @@ import org.gradle.nativecode.base.tasks.LinkExecutable
 import org.gradle.nativecode.base.tasks.LinkSharedLibrary
 import org.gradle.nativecode.language.cpp.CppSourceSet
 import org.gradle.nativecode.language.cpp.tasks.CppCompile
-import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class CppPluginTest extends Specification {
-    final def project = HelperUtil.createRootProject()
+    final def project = TestUtil.createRootProject()
 
     def "extensions are available"() {
         given:

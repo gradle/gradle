@@ -26,7 +26,7 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
 
@@ -54,7 +54,7 @@ class EarPluginTest {
 
     @Before
     public void setUp() {
-        project = HelperUtil.createRootProject()
+        project = TestUtil.createRootProject()
     }
 
     @Test public void appliesBasePluginAndAddsConvention() {
@@ -103,7 +103,7 @@ class EarPluginTest {
     @Test public void dependsOnEarlibConfig() {
         project.plugins.apply(EarPlugin)
 
-        Project childProject = HelperUtil.createChildProject(project, 'child')
+        Project childProject = TestUtil.createChildProject(project, 'child')
         JavaPlugin javaPlugin = new JavaPlugin()
         javaPlugin.apply(childProject)
 
@@ -193,7 +193,7 @@ class EarPluginTest {
     }
 
     @Test public void supportsRenamingLibDir() {
-        Project childProject = HelperUtil.createChildProject(project, 'child')
+        Project childProject = TestUtil.createChildProject(project, 'child')
         childProject.file("src/main/resources").mkdirs()
         childProject.file("src/main/resources/test.txt").createNewFile()
         JavaPlugin javaPlugin = new JavaPlugin()

@@ -21,12 +21,12 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class IvyPublishPluginTest extends Specification {
 
-    Project project = HelperUtil.createRootProject()
+    Project project = TestUtil.createRootProject()
     PublishingExtension publishing
 
     def setup() {

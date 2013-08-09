@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
 
@@ -33,7 +33,7 @@ import static org.junit.Assert.*
 
 
 class GroovyBasePluginTest {
-    private final Project project = HelperUtil.createRootProject()
+    private final Project project = TestUtil.createRootProject()
 
     @Before
     void before() {

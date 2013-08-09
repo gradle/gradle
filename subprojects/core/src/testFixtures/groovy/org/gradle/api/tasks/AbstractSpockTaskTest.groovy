@@ -35,8 +35,8 @@ import org.gradle.api.specs.Spec
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
-import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -49,7 +49,7 @@ public abstract class AbstractSpockTaskTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    private AbstractProject project = HelperUtil.createRootProject()
+    private AbstractProject project = TestUtil.createRootProject()
 
     private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()))
 
@@ -85,10 +85,10 @@ public abstract class AbstractSpockTaskTest extends Specification {
     }
 
     def testPath() {
-        DefaultProject rootProject = HelperUtil.createRootProject();
-        DefaultProject childProject = HelperUtil.createChildProject(rootProject, "child");
+        DefaultProject rootProject = TestUtil.createRootProject();
+        DefaultProject childProject = TestUtil.createChildProject(rootProject, "child");
         childProject.getProjectDir().mkdirs();
-        DefaultProject childchildProject = HelperUtil.createChildProject(childProject, "childchild");
+        DefaultProject childchildProject = TestUtil.createChildProject(childProject, "childchild");
         childchildProject.getProjectDir().mkdirs();
 
         when:
@@ -190,7 +190,7 @@ public abstract class AbstractSpockTaskTest extends Specification {
         task.getOnlyIf().isSatisfiedBy(task)
 
         when:
-        task.onlyIf(HelperUtil.toClosure("{ task -> false }"));
+        task.onlyIf(TestUtil.toClosure("{ task -> false }"));
 
         then:
         assertFalse(task.getOnlyIf().isSatisfiedBy(task));

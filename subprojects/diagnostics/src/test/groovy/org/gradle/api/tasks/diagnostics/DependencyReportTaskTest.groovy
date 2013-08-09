@@ -20,13 +20,12 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.HelperUtil
-
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DependencyReportTaskTest extends Specification {
     private Project project = new ProjectBuilder().build()
-    private DependencyReportTask task = HelperUtil.createTask(DependencyReportTask.class, project)
+    private DependencyReportTask task = TestUtil.createTask(DependencyReportTask.class, project)
     private DependencyReportRenderer renderer = Mock(DependencyReportRenderer)
     private Configuration conf1 = project.configurations.create("conf1")
     private Configuration conf2 = project.configurations.create("conf2")
@@ -36,7 +35,7 @@ class DependencyReportTaskTest extends Specification {
     }
 
     def "task is configured correctly"() {
-        task = HelperUtil.createTask(DependencyReportTask.class);
+        task = TestUtil.createTask(DependencyReportTask.class);
 
         expect:
         task.renderer instanceof AsciiDependencyReportRenderer

@@ -16,14 +16,14 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class UploadTest extends Specification {
 
     def "can create task"() {
         when:
-        HelperUtil.createTask(Upload)
+        TestUtil.createTask(Upload)
 
         then:
         noExceptionThrown()

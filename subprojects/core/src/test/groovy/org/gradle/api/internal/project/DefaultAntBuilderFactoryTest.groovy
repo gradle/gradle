@@ -17,7 +17,7 @@ package org.gradle.api.internal.project
 
 import org.apache.tools.ant.BuildListener
 import org.gradle.api.Project
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
@@ -30,7 +30,7 @@ import static org.junit.Assert.*
 public class DefaultAntBuilderFactoryTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final BuildListener listener = context.mock(BuildListener)
-    private final Project project = HelperUtil.createRootProject()
+    private final Project project = TestUtil.createRootProject()
     private final DefaultAntBuilderFactory factory = new DefaultAntBuilderFactory(listener, project)
 
     @Before

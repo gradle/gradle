@@ -36,7 +36,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -63,7 +63,7 @@ public abstract class AbstractTaskTest {
 
     protected Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry);
 
-    private AbstractProject project = HelperUtil.createRootProject();
+    private AbstractProject project = TestUtil.createRootProject();
 
     public abstract AbstractTask getTask();
 
@@ -101,10 +101,10 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testPath() {
-        DefaultProject rootProject = HelperUtil.createRootProject();
-        DefaultProject childProject = HelperUtil.createChildProject(rootProject, "child");
+        DefaultProject rootProject = TestUtil.createRootProject();
+        DefaultProject childProject = TestUtil.createChildProject(rootProject, "child");
         childProject.getProjectDir().mkdirs();
-        DefaultProject childchildProject = HelperUtil.createChildProject(childProject, "childchild");
+        DefaultProject childchildProject = TestUtil.createChildProject(childProject, "childchild");
         childchildProject.getProjectDir().mkdirs();
 
         Task task = createTask(rootProject, TEST_TASK_NAME);
@@ -169,7 +169,7 @@ public abstract class AbstractTaskTest {
         AbstractTask task = getTask();
         assertTrue(task.getOnlyIf().isSatisfiedBy(task));
 
-        task.onlyIf(HelperUtil.toClosure("{ task -> false }"));
+        task.onlyIf(TestUtil.toClosure("{ task -> false }"));
         assertFalse(task.getOnlyIf().isSatisfiedBy(task));
     }
 

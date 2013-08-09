@@ -19,12 +19,12 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.plugins.ReportingBasePluginConvention
 import org.gradle.api.reporting.ReportingExtension
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 public class ReportingBasePluginTest extends Specification {
 
-    Project project = HelperUtil.createRootProject();
+    Project project = TestUtil.createRootProject();
     
     def setup() {
         project.plugins.apply(ReportingBasePlugin)

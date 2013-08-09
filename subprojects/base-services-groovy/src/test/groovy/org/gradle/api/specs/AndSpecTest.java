@@ -15,7 +15,7 @@
  */
 package org.gradle.api.specs;
 
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -51,7 +51,7 @@ public class AndSpecTest extends AbstractCompositeSpecTest {
     @Test
     public void canAddClosureAsASpec() {
         AndSpec<Object> spec = new AndSpec<Object>(createAtomicElements(true));
-        spec = spec.and(HelperUtil.toClosure("{ false }"));
+        spec = spec.and(TestUtil.toClosure("{ false }"));
         assertFalse(spec.isSatisfiedBy(new Object()));
     }
 }

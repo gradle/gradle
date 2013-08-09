@@ -25,12 +25,12 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class MavenPublishPluginTest extends Specification {
 
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
     PublishingExtension publishing
     def componentArtifacts = Mock(FileCollection)
     def component = Stub(SoftwareComponentInternal)

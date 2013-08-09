@@ -30,7 +30,7 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -94,8 +94,8 @@ public class DefaultGradleLauncherTest {
         File expectedCurrentDir = new File(expectedRootDir, "currentDir");
 
         expectedRootProjectDescriptor = new DefaultProjectDescriptor(null, "someName", new File("somedir"), new DefaultProjectDescriptorRegistry());
-        expectedRootProject = HelperUtil.createRootProject(expectedRootDir);
-        expectedCurrentProject = HelperUtil.createRootProject(expectedCurrentDir);
+        expectedRootProject = TestUtil.createRootProject(expectedRootDir);
+        expectedCurrentProject = TestUtil.createRootProject(expectedCurrentDir);
 
         expectedStartParams = new StartParameter();
         expectedStartParams.setCurrentDir(expectedCurrentDir);

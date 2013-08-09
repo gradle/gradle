@@ -17,13 +17,13 @@
 package org.gradle.nativecode.toolchain.plugins
 
 import org.gradle.nativecode.toolchain.internal.msvcpp.VisualCppToolChain
-import org.gradle.util.HelperUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class MicrosoftVisualCppPluginTest extends Specification {
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
 
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "installs a no-op tool chain when not windows"() {

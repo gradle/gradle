@@ -19,7 +19,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.test.fixtures.file.WorkspaceTest
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Test
 
 class AbstractCopyTaskTest extends WorkspaceTest {
@@ -27,7 +27,7 @@ class AbstractCopyTaskTest extends WorkspaceTest {
     TestCopyTask task
 
     def setup() {
-        task = HelperUtil.createTask(TestCopyTask)
+        task = TestUtil.createTask(TestCopyTask)
     }
 
     void usesDefaultSourceWhenNoSourceHasBeenSpecified() {

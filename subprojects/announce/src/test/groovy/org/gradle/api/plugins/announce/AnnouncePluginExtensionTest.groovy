@@ -17,12 +17,12 @@ package org.gradle.api.plugins.announce
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.announce.internal.AnnouncerFactory
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class AnnouncePluginExtensionTest extends Specification {
     final AnnouncerFactory announcerFactory = Mock()
-    final ProjectInternal project = HelperUtil.createRootProject()
+    final ProjectInternal project = TestUtil.createRootProject()
     final AnnouncePluginExtension announcePluginConvention = new AnnouncePluginExtension(project)
 
     def setup() {

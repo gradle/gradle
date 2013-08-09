@@ -21,11 +21,11 @@ import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DistributionPluginTest extends Specification {
-    private final Project project = HelperUtil.builder().withName("test-project").build()
+    private final Project project = TestUtil.builder().withName("test-project").build()
 
     def "adds convention object and a main distribution"() {
         when:

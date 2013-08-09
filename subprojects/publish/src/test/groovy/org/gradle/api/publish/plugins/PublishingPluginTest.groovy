@@ -21,12 +21,12 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.publish.Publication
 import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.publish.PublishingExtension
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class PublishingPluginTest extends Specification {
 
-    Project project = HelperUtil.createRootProject()
+    Project project = TestUtil.createRootProject()
     PublishingExtension extension
 
     def setup() {

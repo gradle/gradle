@@ -18,13 +18,13 @@ package org.gradle.api.plugins
 
 import org.gradle.api.tasks.diagnostics.*
 import org.gradle.configuration.Help
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.configuration.ImplicitTasksConfigurer.*
 
 class HelpTasksPluginSpec extends Specification {
-    final project = HelperUtil.createRootProject()
+    final project = TestUtil.createRootProject()
 
     def "adds help tasks"() {
         when:
@@ -41,7 +41,7 @@ class HelpTasksPluginSpec extends Specification {
 
     def "tasks description reflects whether project has sub-projects or not"() {
         given:
-        def child = HelperUtil.createChildProject(project, "child")
+        def child = TestUtil.createChildProject(project, "child")
 
         when:
         project.apply(plugin: 'help-tasks')

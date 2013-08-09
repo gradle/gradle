@@ -18,14 +18,14 @@
 
 package org.gradle.plugins.ide.internal.configurer
 
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ProjectDeduperTest extends Specification {
 
-    def project = HelperUtil.createRootProject()
-    def childProject = HelperUtil.createChildProject(project, "child", new File("."))
-    def grandChildProject = HelperUtil.createChildProject(childProject, "grandChild", new File("."))
+    def project = TestUtil.createRootProject()
+    def childProject = TestUtil.createChildProject(project, "child", new File("."))
+    def grandChildProject = TestUtil.createChildProject(childProject, "grandChild", new File("."))
 
     def deduper = new ProjectDeduper()
 

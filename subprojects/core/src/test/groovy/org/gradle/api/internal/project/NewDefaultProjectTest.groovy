@@ -19,12 +19,12 @@ package org.gradle.api.internal.project
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class NewDefaultProjectTest extends Specification {
 
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
 
     void "delegates to artifacts handler"() {
         def handler = Mock(ArtifactHandler)

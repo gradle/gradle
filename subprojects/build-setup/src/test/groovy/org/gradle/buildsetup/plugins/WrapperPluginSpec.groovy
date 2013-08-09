@@ -19,11 +19,11 @@
 package org.gradle.buildsetup.plugins
 
 import org.gradle.api.tasks.wrapper.Wrapper
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class WrapperPluginSpec extends Specification {
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
 
     def "adds 'wrapper' task"() {
         when:

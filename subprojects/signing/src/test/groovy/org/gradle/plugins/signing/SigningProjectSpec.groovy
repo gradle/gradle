@@ -18,7 +18,7 @@ package org.gradle.plugins.signing
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -28,7 +28,7 @@ class SigningProjectSpec extends Specification {
     
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
         
-    Project project = HelperUtil.createRootProject()
+    Project project = TestUtil.createRootProject()
     
     private assertProject() {
         assert project != null : "You haven't created a project"

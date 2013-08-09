@@ -23,12 +23,12 @@ import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorIntern
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
 import org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor
 import org.gradle.api.publish.plugins.PublishingPlugin
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class IvyPublicationDynamicDescriptorGenerationTaskCreatorTest extends Specification {
 
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
     def creator = new IvyPublicationDynamicDescriptorGenerationTaskCreator(project)
     PublishingExtension publishing
 

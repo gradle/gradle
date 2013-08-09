@@ -16,12 +16,12 @@
 
 package org.gradle.configuration.project
 
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ProjectDependencies2TaskResolverTest extends Specification {
-    private root = HelperUtil.createRootProject()
-    private child = HelperUtil.createChildProject(root, "child")
+    private root = TestUtil.createRootProject()
+    private child = TestUtil.createChildProject(root, "child")
     private rootTask = root.tasks.create('compile')
     private childTask = child.tasks.create('compile')
 

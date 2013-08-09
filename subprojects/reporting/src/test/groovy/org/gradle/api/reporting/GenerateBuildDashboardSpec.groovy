@@ -15,7 +15,7 @@
  */
 package org.gradle.api.reporting
 
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Test
 import spock.lang.Specification
 
@@ -24,7 +24,7 @@ class GenerateBuildDashboardSpec extends Specification {
     @Test
     def "does no work if html report is disabled"() {
         setup:
-        GenerateBuildDashboard task = HelperUtil.createTask(GenerateBuildDashboard)
+        GenerateBuildDashboard task = TestUtil.createTask(GenerateBuildDashboard)
         when:
         task.reports.html.enabled = false
         and:

@@ -18,7 +18,7 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.Project
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.gradle.api.plugins.JavaBasePlugin
 
 import spock.lang.Specification
@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
 class CheckstylePluginTest extends Specification {
-    Project project = HelperUtil.createRootProject()
+    Project project = TestUtil.createRootProject()
 
     def setup() {
         project.plugins.apply(CheckstylePlugin)

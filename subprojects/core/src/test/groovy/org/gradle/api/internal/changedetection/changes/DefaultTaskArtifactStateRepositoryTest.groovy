@@ -29,7 +29,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -40,7 +40,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final project = HelperUtil.createRootProject()
+    final project = TestUtil.createRootProject()
     final gradle = project.getGradle()
     final outputFile = tmpDir.file("output-file")
     final outputDir = tmpDir.file("output-dir")
@@ -655,7 +655,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         }
 
         TaskInternal task() {
-            final TaskInternal task = HelperUtil.createTask(type, project, path)
+            final TaskInternal task = TestUtil.createTask(type, project, path)
             if (inputs != null) {
                 task.getInputs().files(inputs)
             }
