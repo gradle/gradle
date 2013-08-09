@@ -26,6 +26,7 @@ import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
 import org.gradle.process.internal.ExecAction;
+import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +41,6 @@ public class GppToolChain extends AbstractToolChain {
     private static final Logger LOGGER = LoggerFactory.getLogger(GppToolChain.class);
 
     public static final String DEFAULT_NAME = "gcc";
-
-    private static final String GPP = "g++";
-    private static final String GCC = "gcc";
-    private static final String AR = "ar";
-    private static final String AS = "as";
 
     private final ToolRegistry executables;
     private final Factory<ExecAction> execActionFactory;
@@ -144,6 +140,46 @@ public class GppToolChain extends AbstractToolChain {
         executables.path(path);
     }
 
+    public String getCppCompiler() {
+        return executables.getExeName(Tool.CPP_COMPILER);
+    }
+
+    public void setCppCompiler(String name) {
+        executables.setExeName(Tool.CPP_COMPILER, name);
+    }
+
+    public String getCCompiler() {
+        return executables.getExeName(Tool.C_COMPILER);
+    }
+
+    public void setCCompiler(String name) {
+        executables.setExeName(Tool.C_COMPILER, name);
+    }
+
+    public String getAssembler() {
+        return executables.getExeName(Tool.ASSEMBLER);
+    }
+
+    public void setAssembler(String name) {
+        executables.setExeName(Tool.ASSEMBLER, name);
+    }
+
+    public String getLinker() {
+        return executables.getExeName(Tool.LINKER);
+    }
+
+    public void setLinker(String name) {
+        executables.setExeName(Tool.LINKER, name);
+    }
+
+    public String getStaticLibArchiver() {
+        return executables.getExeName(Tool.STATIC_LIB_ARCHIVER);
+    }
+
+    public void setStaticLibArchiver(String name) {
+        executables.setExeName(Tool.STATIC_LIB_ARCHIVER, name);
+    }
+
     private enum Tool {
         CPP_COMPILER("C++ compiler"),
         C_COMPILER("C compiler"),
@@ -160,6 +196,11 @@ public class GppToolChain extends AbstractToolChain {
         public String getToolName() {
             return toolName;
         }
+
+        @Override
+        public String toString() {
+            return GUtil.toLowerCamelCase(name());
+        }
     }
 
     private final class ToolRegistry {
@@ -172,11 +213,11 @@ public class GppToolChain extends AbstractToolChain {
         public ToolRegistry(OperatingSystem operatingSystem) {
             this.operatingSystem = operatingSystem;
 
-            executableNames.put(Tool.CPP_COMPILER, GPP);
-            executableNames.put(Tool.C_COMPILER, GCC);
-            executableNames.put(Tool.ASSEMBLER, AS);
-            executableNames.put(Tool.LINKER, GPP);
-            executableNames.put(Tool.STATIC_LIB_ARCHIVER, AR);
+            executableNames.put(Tool.CPP_COMPILER, "g++");
+            executableNames.put(Tool.C_COMPILER, "gcc");
+            executableNames.put(Tool.ASSEMBLER, "as");
+            executableNames.put(Tool.LINKER, "g++");
+            executableNames.put(Tool.STATIC_LIB_ARCHIVER, "ar");
         }
 
         public List<File> getPath() {
@@ -186,6 +227,14 @@ public class GppToolChain extends AbstractToolChain {
         public void path(File pathEntry) {
             pathEntries.add(pathEntry);
             executables.clear();
+        }
+
+        public String getExeName(Tool key) {
+            return executableNames.get(key);
+        }
+
+        public void setExeName(Tool key, String name) {
+            executableNames.put(key, name);
         }
 
         public File locate(Tool key) {
@@ -216,10 +265,6 @@ public class GppToolChain extends AbstractToolChain {
         }
 
         public File findInPath(String name) {
-            if (pathEntries.isEmpty()) {
-                return operatingSystem.findInPath(name);
-            }
-
             String exeName = operatingSystem.getExecutableName(name);
             for (File pathEntry : pathEntries) {
                 File candidate = new File(pathEntry, exeName);
@@ -227,8 +272,7 @@ public class GppToolChain extends AbstractToolChain {
                     return candidate;
                 }
             }
-
-            return null;
+            return operatingSystem.findInPath(name);
         }
     }
 }
