@@ -19,24 +19,20 @@ package org.gradle.nativecode.toolchain.internal.gpp;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.Factory;
 import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
-import org.gradle.process.internal.ExecAction;
-
-import java.io.File;
 
 class CppCompiler implements Compiler<CppCompileSpec> {
 
     private final CommandLineTool<CppCompileSpec> commandLineTool;
 
-    public CppCompiler(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
+    public CppCompiler(CommandLineTool<CppCompileSpec> commandLineTool, boolean useCommandFile) {
         GccCompileSpecToArguments<CppCompileSpec> specToArguments = new GccCompileSpecToArguments<CppCompileSpec>(
                 new CppCompileOptionsToArguments(),
                 new GccCompileSourcesToArguments<CppCompileSpec>(),
                 useCommandFile
         );
-        this.commandLineTool = new CommandLineTool<CppCompileSpec>("C++ compile", executable, execActionFactory).withArguments(specToArguments);
+        this.commandLineTool = commandLineTool.withArguments(specToArguments);
     }
 
     public WorkResult execute(CppCompileSpec spec) {

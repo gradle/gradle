@@ -21,13 +21,11 @@ import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
-import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.nativecode.base.internal.LinkerSpec;
 import org.gradle.nativecode.base.internal.SharedLibraryLinkerSpec;
-import org.gradle.process.internal.ExecAction;
+import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
+import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 
 import java.io.File;
 
@@ -35,9 +33,8 @@ class GppLinker implements Compiler<LinkerSpec> {
 
     private final CommandLineTool<LinkerSpec> commandLineTool;
 
-    public GppLinker(File executable, Factory<ExecAction> execActionFactory, boolean useCommandFile) {
-        this.commandLineTool = new CommandLineTool<LinkerSpec>("Link", executable, execActionFactory)
-                .withArguments(useCommandFile ? viaCommandFile() : withoutCommandFile());
+    public GppLinker(CommandLineTool<LinkerSpec> commandLineTool, boolean useCommandFile) {
+        this.commandLineTool = commandLineTool.withArguments(useCommandFile ? viaCommandFile() : withoutCommandFile());
     }
 
     private static GppLinkerSpecToArguments withoutCommandFile() {

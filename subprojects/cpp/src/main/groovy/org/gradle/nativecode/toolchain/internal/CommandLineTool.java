@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.toolchain.internal;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompileSpec;
@@ -26,15 +27,21 @@ import org.gradle.internal.Factory;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CommandLineTool<T extends CompileSpec> {
     private final String action;
     private final File executable;
     private final Factory<ExecAction> execActionFactory;
+    private final Map<String, String> environment = new HashMap<String, String>();
     private CompileSpecToArguments<T> toArguments;
     private File workDir;
+    private String path;
 
     public CommandLineTool(String action, File executable, Factory<ExecAction> execActionFactory) {
         this.action = action;
@@ -45,6 +52,16 @@ public class CommandLineTool<T extends CompileSpec> {
     public CommandLineTool<T> inWorkDirectory(File workDir) {
         GFileUtils.mkdirs(workDir);
         this.workDir = workDir;
+        return this;
+    }
+
+    public CommandLineTool<T> withPath(List<File> pathEntries) {
+        path = Joiner.on(File.pathSeparator).join(pathEntries);
+        return this;
+    }
+
+    public CommandLineTool<T> withEnvironment(Map<String, String> environment) {
+        this.environment.putAll(environment);
         return this;
     }
 
@@ -61,6 +78,12 @@ public class CommandLineTool<T extends CompileSpec> {
         }
 
         toArguments.collectArguments(spec, new ExecSpecBackedArgCollector(compiler));
+
+        if (GUtil.isTrue(path)) {
+            compiler.environment("PATH", path + File.pathSeparator + compiler.getEnvironment().get("PATH"));
+        }
+
+        compiler.environment(environment);
 
         try {
             compiler.execute();

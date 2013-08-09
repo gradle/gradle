@@ -20,10 +20,8 @@ import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.Factory;
-import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.nativecode.base.internal.StaticLibraryArchiverSpec;
-import org.gradle.process.internal.ExecAction;
+import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 
 import java.io.File;
 
@@ -34,9 +32,8 @@ import java.io.File;
 class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
 
-    public ArStaticLibraryArchiver(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<StaticLibraryArchiverSpec>("Create static library", executable, execActionFactory)
-                .withArguments(new ArchiverSpecToArguments());
+    public ArStaticLibraryArchiver(CommandLineTool<StaticLibraryArchiverSpec> commandLineTool) {
+        this.commandLineTool = commandLineTool.withArguments(new ArchiverSpecToArguments());
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {

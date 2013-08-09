@@ -15,22 +15,22 @@
  */
 package org.gradle.nativecode.toolchain.internal.gpp;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.base.internal.*;
+import org.gradle.nativecode.language.asm.internal.AssembleSpec;
+import org.gradle.nativecode.language.c.internal.CCompileSpec;
+import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
 import org.gradle.process.internal.ExecAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Compiler adapter for GCC.
@@ -46,7 +46,7 @@ public class GppToolChain extends AbstractToolChain {
     private static final String AR = "ar";
     private static final String AS = "as";
 
-    private final GccExecutables executables;
+    private final ToolRegistry executables;
     private final Factory<ExecAction> execActionFactory;
     private final Transformer<String, File> versionDeterminer;
 
@@ -54,7 +54,7 @@ public class GppToolChain extends AbstractToolChain {
 
     public GppToolChain(String name, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
         super(name, operatingSystem);
-        this.executables = new GccExecutables(operatingSystem);
+        this.executables = new ToolRegistry(operatingSystem);
         this.execActionFactory = execActionFactory;
         this.versionDeterminer = new GppVersionDeterminer();
     }
@@ -66,10 +66,9 @@ public class GppToolChain extends AbstractToolChain {
 
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
-        availability.mustExist(GPP, executables.get(GPP));
-        availability.mustExist(GCC, executables.get(GCC));
-        availability.mustExist(AR, executables.get(AR));
-        availability.mustExist(AS, executables.get(AS));
+        for (Tool key : Tool.values()) {
+            availability.mustExist(key.getToolName(), executables.locate(key));
+        }
         determineVersion();
         if (version == null) {
             availability.unavailable("Could not determine G++ version");
@@ -78,35 +77,46 @@ public class GppToolChain extends AbstractToolChain {
 
     public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
         checkAvailable();
-        return (Compiler<T>) new CppCompiler(executables.get(GPP), execActionFactory, canUseCommandFile(version));
+        CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(Tool.CPP_COMPILER);
+        return (Compiler<T>) new CppCompiler(commandLineTool, canUseCommandFile(version));
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
         checkAvailable();
-        return (Compiler<T>) new CCompiler(executables.get(GCC), execActionFactory, canUseCommandFile(version));
+        CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(Tool.C_COMPILER);
+        return (Compiler<T>) new CCompiler(commandLineTool, canUseCommandFile(version));
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
         checkAvailable();
-        return (Compiler<T>) new Assembler(executables.get(AS), execActionFactory);
+        CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(Tool.ASSEMBLER);
+        return (Compiler<T>) new Assembler(commandLineTool);
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {
         checkAvailable();
-        return (Compiler<T>) new GppLinker(executables.get(GPP), execActionFactory, canUseCommandFile(version));
+        CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(Tool.LINKER);
+        return (Compiler<T>) new GppLinker(commandLineTool, canUseCommandFile(version));
     }
 
     public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
         checkAvailable();
-        return (Compiler<T>) new ArStaticLibraryArchiver(executables.get(AR), execActionFactory);
+        CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(Tool.STATIC_LIB_ARCHIVER);
+        return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool);
+    }
+
+    private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(Tool key) {
+        CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), executables.locate(key), execActionFactory);
+        commandLineTool.withPath(getPath());
+        return commandLineTool;
     }
 
     private void determineVersion() {
-        version = determineVersion(executables.get(GPP));
+        version = determineVersion(executables.locate(Tool.CPP_COMPILER));
         if (version == null) {
-            LOGGER.info("Did not find {} on system", GPP);
+            LOGGER.info("Did not find {} on system", Tool.CPP_COMPILER.getToolName());
         } else {
-            LOGGER.info("Found {} with version {}", GPP, version);
+            LOGGER.info("Found {} with version {}", Tool.CPP_COMPILER.getToolName(), version);
         }
     }
 
@@ -125,41 +135,66 @@ public class GppToolChain extends AbstractToolChain {
         return majorVersion >= 4;
     }
 
-    @Nullable
-    public String getBinPath() {
-        return executables.getBinPath();
+    public List<File> getPath() {
+        return executables.getPath();
     }
 
-    public void setBinPath(String path) {
-        executables.setBinPath(path);
+    // TODO:DAZ Resolve object to file
+    public void path(File path) {
+        executables.path(path);
     }
 
-    private final class GccExecutables {
+    private enum Tool {
+        CPP_COMPILER("C++ compiler"),
+        C_COMPILER("C compiler"),
+        ASSEMBLER("Assembler"),
+        LINKER("Linker"),
+        STATIC_LIB_ARCHIVER("Static library archiver");
+
+        private final String toolName;
+
+        private Tool(String toolName) {
+            this.toolName = toolName;
+        }
+
+        public String getToolName() {
+            return toolName;
+        }
+    }
+
+    private final class ToolRegistry {
+        private final Map<Tool, String> executableNames = new HashMap<Tool, String>();
         private final Map<String, File> executables = new HashMap<String, File>();
+        private final List<File> pathEntries = new ArrayList<File>();
 
         private final OperatingSystem operatingSystem;
-        private String binPath;
 
-        public GccExecutables(OperatingSystem operatingSystem) {
+        public ToolRegistry(OperatingSystem operatingSystem) {
             this.operatingSystem = operatingSystem;
+
+            executableNames.put(Tool.CPP_COMPILER, GPP);
+            executableNames.put(Tool.C_COMPILER, GCC);
+            executableNames.put(Tool.ASSEMBLER, AS);
+            executableNames.put(Tool.LINKER, GPP);
+            executableNames.put(Tool.STATIC_LIB_ARCHIVER, AR);
         }
 
-        private String getBinPath() {
-            return binPath;
+        public List<File> getPath() {
+            return pathEntries;
         }
 
-        // TODO:DAZ Probably need to set the PATH as well, but only when executing (not searching)
-        public void setBinPath(String binPath) {
-            this.binPath = binPath;
+        public void path(File pathEntry) {
+            pathEntries.add(pathEntry);
             executables.clear();
         }
 
-        public File get(String name) {
-            if (executables.containsKey(name)) {
-                return executables.get(name);
+        public File locate(Tool key) {
+            String exeName = executableNames.get(key);
+            if (executables.containsKey(exeName)) {
+                return executables.get(exeName);
             }
-            File exe = findExecutable(operatingSystem, name);
-            executables.put(name, exe);
+            File exe = findExecutable(operatingSystem, exeName);
+            executables.put(exeName, exe);
             return exe;
         }
 
@@ -181,21 +216,16 @@ public class GppToolChain extends AbstractToolChain {
         }
 
         public File findInPath(String name) {
-            if (binPath == null || binPath.isEmpty()) {
+            if (pathEntries.isEmpty()) {
                 return operatingSystem.findInPath(name);
             }
 
             String exeName = operatingSystem.getExecutableName(name);
-            if (exeName.contains(File.separator)) {
-                File candidate = new File(exeName);
+            for (File pathEntry : pathEntries) {
+                File candidate = new File(pathEntry, exeName);
                 if (candidate.isFile()) {
                     return candidate;
                 }
-                return null;
-            }
-            File candidate = new File(binPath, exeName);
-            if (candidate.isFile()) {
-                return candidate;
             }
 
             return null;

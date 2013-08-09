@@ -42,6 +42,7 @@ class GppCompilerPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(NativeBinariesPlugin)
 
+        // TODO:DAZ Extract a public interface GccToolChain and register the factory for that instead
         final toolChainRegistry = project.extensions.getByType(ToolChainRegistry)
         toolChainRegistry.registerFactory(GppToolChain, { String name ->
             return new GppToolChain(name, OperatingSystem.current(), new Factory<ExecAction>() {

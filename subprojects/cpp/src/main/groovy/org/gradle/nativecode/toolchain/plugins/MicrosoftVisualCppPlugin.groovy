@@ -47,6 +47,7 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
 
         def toolChainRegistry = project.extensions.getByType(ToolChainRegistry)
 
+        // TODO:DAZ Introduce a public type and register factory for that instead
         toolChainRegistry.registerFactory(VisualCppToolChain, { String name ->
             return new VisualCppToolChain(name, OperatingSystem.current(), new Factory<ExecAction>() {
                 ExecAction create() {

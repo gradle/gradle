@@ -41,8 +41,12 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
         installedToolChains.each { toolChain ->
             toolChainConfig += """
                 ${toolChain.id}(${toolChain.implementationClass})
-                ${toolChain.id}.binPath = "${toolChain.pathEntries.join(':')}"
 """
+            toolChain.pathEntries.each {
+                toolChainConfig += """
+                ${toolChain.id}.path file("${it.absolutePath}")
+"""
+            }
         }
 
         given:
@@ -65,13 +69,8 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
         helloWorld.writeSources(file("src/main"))
 
-        println "---------------------------------------------------------------"
-        println buildFile.text
-        println "---------------------------------------------------------------"
-
         when:
         def tasks = installedToolChains.collect { "${it.id}MainExecutable" }
-        executer.withArgument("--debug")
         run tasks as String[]
 
         then:
