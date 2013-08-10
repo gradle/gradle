@@ -99,6 +99,6 @@ class DependencyInsightReporterSpec extends Specification {
         def selectedModule = new DefaultResolvedModuleVersionResult(newId(group, name, selected), selectionReason)
         new DefaultResolvedDependencyResult(newSelector(group, name, requested),
                 selectedModule,
-                new DefaultResolvedModuleVersionResult(newId("a", "root", "1")))
+                new DefaultResolvedModuleVersionResult(newId("a", "root", "1"), VersionSelectionReasons.REQUESTED))
     }
 }
