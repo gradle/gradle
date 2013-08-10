@@ -52,7 +52,6 @@ public class CachingDependencyResultFactory {
             resolvedDependencies.put(key, new DefaultResolvedDependencyResult(requested, selected, from));
         }
         DefaultResolvedDependencyResult out = resolvedDependencies.get(key);
-        selected.addDependent(out);
         return out;
     }
 }

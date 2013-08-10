@@ -40,7 +40,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
     public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(configuration.getModule());
-            ResolutionResult emptyResult = new ResolutionResultBuilder().start(id).getResult();
+            ResolutionResult emptyResult = new ResolutionResultBuilder().start(id).complete();
             return new ResolverResults(new EmptyResolvedConfiguration(), emptyResult);
         }
         return dependencyResolver.resolve(configuration, repositories);

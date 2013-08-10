@@ -31,7 +31,7 @@ public class ModuleVersionSelectionSerializer extends DataStreamBackedSerializer
     private final ModuleVersionSelectionReasonSerializer reasonSerializer = new ModuleVersionSelectionReasonSerializer();
 
     @Override
-    public ModuleVersionSelection read(DataInput dataInput) throws Exception {
+    public ModuleVersionSelection read(DataInput dataInput) throws IOException {
         ModuleVersionIdentifier id = idSerializer.read(dataInput);
         ModuleVersionSelectionReason reason = reasonSerializer.read(dataInput);
         return new DefaultModuleVersionSelection(id, reason);

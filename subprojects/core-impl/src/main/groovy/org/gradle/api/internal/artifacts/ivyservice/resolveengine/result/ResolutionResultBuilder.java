@@ -17,10 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
-import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.artifacts.result.*;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 import org.gradle.internal.Factory;
@@ -31,25 +28,20 @@ import java.util.Map;
 
 public class ResolutionResultBuilder implements ResolvedConfigurationListener {
 
+    private DefaultResolvedModuleVersionResult rootModule;
+
     private Map<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult> modules
             = new LinkedHashMap<ModuleVersionIdentifier, DefaultResolvedModuleVersionResult>();
 
     CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
 
-    ResolvedModulesListener listener = new InMemoryResolvedModulesGraphBuilder();
-
     public ResolutionResultBuilder start(ModuleVersionIdentifier root) {
-        DefaultResolvedModuleVersionResult rootModule = createOrGet(root, VersionSelectionReasons.ROOT);
-        listener.root(rootModule);
+        rootModule = createOrGet(root, VersionSelectionReasons.ROOT);
         return this;
     }
 
-    public ResolutionResult getResult() {
-        return new DefaultResolutionResult(new Factory<ResolvedModuleVersionResult>() {
-            public ResolvedModuleVersionResult create() {
-                return listener.getRoot();
-            }
-        });
+    public ResolutionResult complete() {
+        return new DefaultResolutionResult(new RootFactory(rootModule));
     }
 
     public void resolvedModuleVersion(ModuleVersionSelection moduleVersion) {
@@ -65,17 +57,28 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
             } else {
                 DefaultResolvedModuleVersionResult selected = modules.get(d.getSelected().getSelectedId());
                 dependency = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected);
+                selected.addDependent((ResolvedDependencyResult) dependency);
             }
-            listener.dependencyResult(from, dependency);
+            from.addDependency(dependency);
         }
     }
 
     private DefaultResolvedModuleVersionResult createOrGet(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {
         if (!modules.containsKey(id)) {
-            DefaultResolvedModuleVersionResult result = new DefaultResolvedModuleVersionResult(id, selectionReason);
-            modules.put(id, result);
-            listener.moduleResult(result);
+            modules.put(id, new DefaultResolvedModuleVersionResult(id, selectionReason));
         }
         return modules.get(id);
+    }
+
+    private static class RootFactory implements Factory<ResolvedModuleVersionResult> {
+        private DefaultResolvedModuleVersionResult rootModule;
+
+        public RootFactory(DefaultResolvedModuleVersionResult rootModule) {
+            this.rootModule = rootModule;
+        }
+
+        public ResolvedModuleVersionResult create() {
+            return rootModule;
+        }
     }
 }

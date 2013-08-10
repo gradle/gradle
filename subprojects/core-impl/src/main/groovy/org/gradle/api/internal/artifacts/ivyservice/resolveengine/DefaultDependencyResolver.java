@@ -92,7 +92,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 DefaultResolvedConfigurationBuilder oldGraphBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, resultsStore);
                 builder.resolve(configuration, newGraphBuilder, oldGraphBuilder);
                 DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldGraphBuilder, cacheLockingManager);
-                return new ResolverResults(new DefaultResolvedConfiguration(result), newGraphBuilder.getResult());
+                return new ResolverResults(new DefaultResolvedConfiguration(result), newGraphBuilder.complete());
             }
         });
     }

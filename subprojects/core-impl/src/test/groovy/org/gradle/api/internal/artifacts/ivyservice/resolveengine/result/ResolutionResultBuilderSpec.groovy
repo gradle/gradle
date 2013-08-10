@@ -43,7 +43,7 @@ class ResolutionResultBuilderSpec extends Specification {
         resolvedConf("leaf4", [])
 
         when:
-        def result = builder.getResult()
+        def result = builder.complete()
 
         then:
         print(result.root) == """x:root:1
@@ -66,7 +66,7 @@ class ResolutionResultBuilderSpec extends Specification {
         resolvedConf("b3", [])
 
         when:
-        def result = builder.getResult()
+        def result = builder.complete()
 
         then:
         print(result.root) == """x:a:1
@@ -87,7 +87,7 @@ class ResolutionResultBuilderSpec extends Specification {
         resolvedConf("c", [dep("a")])
 
         when:
-        def result = builder.getResult()
+        def result = builder.complete()
 
         then:
         print(result.root) == """x:a:1
@@ -106,7 +106,7 @@ class ResolutionResultBuilderSpec extends Specification {
         resolvedConf("d", [])
 
         when:
-        def deps = builder.result.root.dependencies
+        def deps = builder.complete.root.dependencies
 
         then:
         def b = deps.find { it.selected.id.name == 'b' }
@@ -124,7 +124,7 @@ class ResolutionResultBuilderSpec extends Specification {
         resolvedConf("c", [dep("a")])
 
         when:
-        def a = builder.getResult().root
+        def a = builder.complete().root
 
         then:
         def b  = first(a.dependencies).selected
@@ -159,7 +159,7 @@ class ResolutionResultBuilderSpec extends Specification {
         resolvedConf("leaf2", [])
 
         when:
-        def result = builder.getResult()
+        def result = builder.complete()
 
         then:
         print(result.root) == """x:root:1
@@ -179,7 +179,7 @@ class ResolutionResultBuilderSpec extends Specification {
         resolvedConf("mid1", [dep("leaf2", new RuntimeException("baz!"))])
 
         when:
-        def result = builder.getResult()
+        def result = builder.complete()
 
         then:
         def mid1 = first(result.root.dependencies)
@@ -195,7 +195,7 @@ class ResolutionResultBuilderSpec extends Specification {
         resolvedConf("c", [])
 
         when:
-        def result = builder.getResult()
+        def result = builder.complete()
 
         then:
         print(result.root) == """x:a:1
