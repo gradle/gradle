@@ -26,7 +26,7 @@ import java.io.IOException;
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
 
 public class ModuleVersionSelectorSerializer extends DataStreamBackedSerializer<ModuleVersionSelector> {
-    public ModuleVersionSelector read(DataInput dataInput) throws Exception {
+    public ModuleVersionSelector read(DataInput dataInput) throws IOException {
         String group = dataInput.readUTF();
         String name = dataInput.readUTF();
         String version = dataInput.readUTF();
