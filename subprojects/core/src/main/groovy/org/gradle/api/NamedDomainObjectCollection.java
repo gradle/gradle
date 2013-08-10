@@ -21,6 +21,7 @@ import org.gradle.api.specs.Spec;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.SortedSet;
 
 /**
  * <p>A {@code NamedDomainObjectCollection} represents a collection of domain objects that have an inherent, constant, name.</p>
@@ -100,6 +101,15 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @return The objects. Returns an empty map if this collection is empty.
      */
     SortedMap<String, T> getAsMap();
+
+    /**
+     * <p>Returns the names of the objects in this collection as a Set of Strings.</p>
+     *
+     * <p>The set of names is in <em>natural ordering</em>.</p>
+     *
+     * @return The names. Returns an empty set if this collection is empty.
+     */
+    SortedSet<String> getNames();
 
     /**
      * Locates an object by name, returning null if there is no such object.

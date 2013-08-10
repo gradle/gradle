@@ -130,6 +130,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return map;
     }
 
+    public SortedSet<String> getNames() {
+        SortedSet<String> set = new TreeSet<String>();
+        for (T o : getStore()) {
+            set.add(namer.determineName(o));
+        }
+        return set;
+    }
+
     public <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type) {
         return filtered(createFilter(type));
     }
