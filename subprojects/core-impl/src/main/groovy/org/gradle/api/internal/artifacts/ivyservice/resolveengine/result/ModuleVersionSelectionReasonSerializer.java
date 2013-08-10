@@ -40,7 +40,7 @@ public class ModuleVersionSelectionReasonSerializer extends DataStreamBackedSeri
         REASONS.put((short) 6, CONFLICT_RESOLUTION_BY_RULE);
     }
 
-    public ModuleVersionSelectionReason read(DataInput dataInput) throws Exception {
+    public ModuleVersionSelectionReason read(DataInput dataInput) throws IOException {
         short id = dataInput.readShort();
         ModuleVersionSelectionReason out = REASONS.get(id);
         if (out == null) {
