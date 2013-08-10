@@ -118,27 +118,27 @@ public class TransientResultsStore {
                     valuesRead++;
                     lastValue = type;
                     switch (type) {
-                        case 1:
+                        case NEW_DEP:
                             id = s.read((DataInput) input);
                             results.allDependencies.put(id, new DefaultResolvedDependency(id.getId(), id.getConfiguration()));
                             break;
-                        case 2:
+                        case ROOT:
                             id = s.read((DataInput) input);
                             results.root = results.allDependencies.get(id);
                             //root should be the last
                             cache.store(results);
                             LOG.info("Loaded dependency resolution results ({}) from {}", clock.getTime(), binaryStore);
                             return results;
-                        case 3:
+                        case FIRST_LVL:
                             id = s.read((DataInput) input);
                             results.firstLevelDependencies.put(mapping.getModuleDependency(id), results.allDependencies.get(id));
                             break;
-                        case 4:
+                        case PARENT_CHILD:
                             DefaultResolvedDependency parent = results.allDependencies.get(s.read((DataInput) input));
                             DefaultResolvedDependency child = results.allDependencies.get(s.read((DataInput) input));
                             parent.addChild(child);
                             break;
-                        case 5:
+                        case PARENT_ARTIFACT:
                             DefaultResolvedDependency c = results.allDependencies.get(s.read((DataInput) input));
                             DefaultResolvedDependency p = results.allDependencies.get(s.read((DataInput) input));
                             c.addParentSpecificArtifacts(p, newHashSet(mapping.getArtifact(input.readLong())));
