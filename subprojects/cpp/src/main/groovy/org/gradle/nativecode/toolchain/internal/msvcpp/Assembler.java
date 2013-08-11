@@ -21,10 +21,8 @@ import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.Factory;
 import org.gradle.nativecode.language.asm.internal.AssembleSpec;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
-import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
@@ -32,8 +30,8 @@ class Assembler implements Compiler<AssembleSpec> {
 
     private final CommandLineTool<AssembleSpec> commandLineTool;
 
-    public Assembler(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<AssembleSpec>("Assemble", executable, execActionFactory);
+    public Assembler(CommandLineTool<AssembleSpec> commandLineTool) {
+        this.commandLineTool = commandLineTool;
     }
 
     public WorkResult execute(AssembleSpec spec) {

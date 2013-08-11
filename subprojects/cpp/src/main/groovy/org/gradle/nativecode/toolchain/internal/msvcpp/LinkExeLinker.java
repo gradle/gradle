@@ -21,12 +21,10 @@ import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.Factory;
-import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
-import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 import org.gradle.nativecode.base.internal.LinkerSpec;
 import org.gradle.nativecode.base.internal.SharedLibraryLinkerSpec;
-import org.gradle.process.internal.ExecAction;
+import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
+import org.gradle.nativecode.toolchain.internal.CommandLineTool;
 
 import java.io.File;
 
@@ -34,8 +32,8 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
 
     private final CommandLineTool<LinkerSpec> commandLineTool;
 
-    public LinkExeLinker(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<LinkerSpec>("Link", executable, execActionFactory)
+    public LinkExeLinker(CommandLineTool<LinkerSpec> commandLineTool) {
+        this.commandLineTool = commandLineTool
                 .withArguments(new CommandLineCompilerArgumentsToOptionFile<LinkerSpec>(
                 ArgWriter.windowsStyleFactory(), new VisualCppLinkerSpecArguments()
         ));

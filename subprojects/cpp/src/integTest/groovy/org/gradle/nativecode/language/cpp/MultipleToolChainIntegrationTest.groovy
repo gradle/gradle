@@ -37,24 +37,14 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
             installedToolChains << toolChainCandidate
         }
 
-        def toolChainConfig = ""
-        installedToolChains.each { toolChain ->
-            toolChainConfig += """
-                ${toolChain.id}(${toolChain.implementationClass})
-"""
-            toolChain.pathEntries.each {
-                toolChainConfig += """
-                ${toolChain.id}.path file("${it.absolutePath}")
-"""
-            }
-        }
+        def toolChainConfig = installedToolChains.collect({it.buildScriptConfig}).join("\n")
 
         given:
         buildFile << """
             apply plugin: "cpp"
 
             toolChains {
-                ${toolChainConfig}
+${toolChainConfig}
             }
 
             sources {

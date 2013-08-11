@@ -42,16 +42,14 @@ class VisualCppToolChainTest extends Specification {
     def "checks availability of required executables"() {
         final os = Stub(OperatingSystem) {
             isWindows() >> true
+            getExecutableName(_ as String) >> { String exeName -> exeName }
+            findInPath("cl.exe") >> file('cl.exe')
+            findInPath("link.exe") >> file('link.exe')
+            findInPath("lib.exe") >> file('lib.exe')
+            findInPath("ml.exe") >> file('ml.exe')
         }
 
-        when:
         def cppToolChain = new VisualCppToolChain("test", os, Stub(Factory))
-
-        then:
-        os.findInPath("cl.exe") >> file('cl.exe')
-        os.findInPath("link.exe") >> file('link.exe')
-        os.findInPath("lib.exe") >> file('lib.exe')
-        os.findInPath("ml.exe") >> file('ml.exe')
 
         when:
         def availability = new ToolChainAvailability()
@@ -59,7 +57,7 @@ class VisualCppToolChainTest extends Specification {
 
         then:
         !availability.available
-        availability.unavailableMessage == "cl.exe cannot be found"
+        availability.unavailableMessage == "C++ compiler cannot be found"
 
         when:
         createFile('cl.exe')
@@ -72,7 +70,7 @@ class VisualCppToolChainTest extends Specification {
 
         then:
         !availability2.available
-        availability2.unavailableMessage == 'lib.exe cannot be found'
+        availability2.unavailableMessage == 'Static library archiver cannot be found'
 
         when:
         createFile('lib.exe')

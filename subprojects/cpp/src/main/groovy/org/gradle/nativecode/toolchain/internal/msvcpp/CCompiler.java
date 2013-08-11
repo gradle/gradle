@@ -20,20 +20,16 @@ import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.Factory;
 import org.gradle.nativecode.language.c.internal.CCompileSpec;
 import org.gradle.nativecode.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
-import org.gradle.process.internal.ExecAction;
-
-import java.io.File;
 
 class CCompiler implements Compiler<CCompileSpec> {
 
     private final CommandLineTool<CCompileSpec> commandLineTool;
 
-    CCompiler(File executable, Factory<ExecAction> execActionFactory) {
-        this.commandLineTool = new CommandLineTool<CCompileSpec>("C compile", executable, execActionFactory)
+    CCompiler(CommandLineTool<CCompileSpec> commandLineTool) {
+        this.commandLineTool = commandLineTool
                 .withArguments(new CommandLineCompilerArgumentsToOptionFile<CCompileSpec>(
                 ArgWriter.windowsStyleFactory(), new CCompileSpecToArguments()
         ));

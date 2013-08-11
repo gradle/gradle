@@ -23,6 +23,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativecode.toolchain.internal.gpp.GppToolChain;
 import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
 import org.gradle.nativecode.toolchain.internal.msvcpp.VisualCppToolChain;
+import org.gradle.nativecode.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
@@ -40,6 +41,9 @@ public class AvailableToolChains {
             compilers.add(findCygwin());
         } else {
             compilers.add(findGpp("4", null));
+            compilers.add(findGpp("3", "/opt/gcc/3.4.6/bin/g++"));
+
+            // TODO:DAZ This is here for local testing
             compilers.add(findGpp("4.8", "/usr/local/gcc-4.8/g++"));
         }
         return compilers;
@@ -49,25 +53,14 @@ public class AvailableToolChains {
         // Search first in path, then in the standard installation locations
         File compilerExe = OperatingSystem.current().findInPath("cl.exe");
         if (compilerExe != null) {
-            return new InstalledToolChain("visual c++");
+            return new InstalledVisualCpp("visual c++");
         }
 
-        compilerExe = new File("C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin/cl.exe");
-        if (compilerExe.isFile()) {
-            File binDir = compilerExe.getParentFile();
-            File vcDir = binDir.getParentFile();
-            File baseDir = vcDir.getParentFile();
-            File sdkDir = new File(baseDir.getParentFile(), "Microsoft SDKs/Windows/v7.0A");
-            return new InstalledToolChain("visual c++")
-                    .inPath(
-                        new File(baseDir, "Common7/IDE"),
-                        binDir,
-                        new File(baseDir, "Common7/Tools"),
-                        new File(vcDir, "VCPackages"),
-                        new File(sdkDir, "Bin")
-                    )
-                    .envVar("INCLUDE", new File(vcDir, "include").getAbsolutePath())
-                    .envVar("LIB", new File(vcDir, "lib").getAbsolutePath() + File.pathSeparator + new File(sdkDir, "lib").getAbsolutePath());
+        VisualStudioInstall install = new VisualStudioInstall(new File("C:/Program Files (x86)/Microsoft Visual Studio 10.0"));
+        if (install.isInstalled()) {
+            InstalledVisualCpp visualCpp = new InstalledVisualCpp("visual c++").withInstall(install);
+
+            return visualCpp;
         }
         
         return new UnavailableToolChain("visual c++");
@@ -77,7 +70,7 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/MinGW/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledToolChain("mingw").inPath(compilerExe.getParentFile());
+            return new InstalledGcc("mingw").inPath(compilerExe.getParentFile());
         }
 
         return new UnavailableToolChain("mingw");
@@ -87,7 +80,7 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/cygwin/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledToolChain("g++ cygwin").inPath(compilerExe.getParentFile());
+            return new InstalledGcc("g++ cygwin").inPath(compilerExe.getParentFile());
         }
 
         return new UnavailableToolChain("g++ cygwin");
@@ -101,19 +94,19 @@ public class AvailableToolChains {
         for (int i = 0; i < gppCandidates.size(); i++) {
             File candidate = gppCandidates.get(i);
             if (versionDeterminer.transform(candidate).startsWith(versionPrefix)) {
-                InstalledToolChain installedToolChain = new InstalledToolChain(name);
+                InstalledGcc gcc = new InstalledGcc(name);
                 if (i > 0) {
                     // Not the first g++ in the path, needs the path variable updated
-                    installedToolChain.inPath(candidate.getParentFile());
+                    gcc.inPath(candidate.getParentFile());
                 }
-                return installedToolChain;
+                return gcc;
             }
         }
 
         if (hardcodedFallback != null) {
             File fallback = new File(hardcodedFallback);
             if (fallback.isFile()) {
-                return new InstalledToolChain(name).inPath(fallback.getParentFile());
+                return new InstalledGcc(name).inPath(fallback.getParentFile());
             }
         }
 
@@ -151,10 +144,10 @@ public class AvailableToolChains {
         }
     }
     
-    public static class InstalledToolChain extends ToolChainCandidate {
+    public abstract static class InstalledToolChain extends ToolChainCandidate {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
-        private final List<File> pathEntries = new ArrayList<File>();
-        private final Map<String, String> environmentVars = new HashMap<String, String>();
+        protected final List<File> pathEntries = new ArrayList<File>();
+        protected final Map<String, String> environmentVars = new HashMap<String, String>();
         private final String name;
         private final String pathVarName;
         private String originalPath;
@@ -162,11 +155,6 @@ public class AvailableToolChains {
         public InstalledToolChain(String name) {
             this.name = name;
             this.pathVarName = !OperatingSystem.current().isWindows() ? "Path" : "PATH";
-        }
-
-        InstalledToolChain envVar(String key, String value) {
-            environmentVars.put(key, value);
-            return this;
         }
 
         InstalledToolChain inPath(File... pathEntries) {
@@ -206,6 +194,8 @@ public class AvailableToolChains {
             }
         }
 
+        public abstract String getBuildScriptConfig();
+
         public String getImplementationClass() {
             return isVisualCpp() ? VisualCppToolChain.class.getName() : GppToolChain.class.getName();
         }
@@ -216,6 +206,45 @@ public class AvailableToolChains {
 
         public String getId() {
             return name.replaceAll("\\W", "");
+        }
+    }
+
+    public static class InstalledGcc extends InstalledToolChain {
+        public InstalledGcc(String name) {
+            super(name);
+        }
+
+        @Override
+        public String getBuildScriptConfig() {
+            String config = String.format("%s(%s)\n", getId(), GppToolChain.class.getName());
+            for (File pathEntry : getPathEntries()) {
+                config += String.format("%s.path file('%s')", getId(), pathEntry.getAbsolutePath());
+            }
+            return config;
+        }
+    }
+
+    public static class InstalledVisualCpp extends InstalledToolChain {
+        private File installDir;
+
+        public InstalledVisualCpp(String name) {
+            super(name);
+        }
+
+        @Override
+        public String getBuildScriptConfig() {
+            String config = String.format("%s(%s)\n", getId(), VisualCppToolChain.class.getName());
+            if (installDir != null) {
+                config += String.format("%s.installDir = file('%s')", getId(), installDir.getAbsolutePath());
+            }
+            return config;
+        }
+
+        public InstalledVisualCpp withInstall(VisualStudioInstall install) {
+            pathEntries.addAll(install.getPathEntries());
+            environmentVars.putAll(install.getEnvironment());
+            installDir = install.getInstallDir();
+            return this;
         }
     }
 

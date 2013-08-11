@@ -24,9 +24,10 @@ import org.gradle.nativecode.language.asm.internal.AssembleSpec;
 import org.gradle.nativecode.language.c.internal.CCompileSpec;
 import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
+import org.gradle.nativecode.toolchain.internal.Tool;
+import org.gradle.nativecode.toolchain.internal.ToolRegistry;
 import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
 import org.gradle.process.internal.ExecAction;
-import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,7 @@ public class GppToolChain extends AbstractToolChain {
 
     public static final String DEFAULT_NAME = "gcc";
 
-    private final ToolRegistry executables;
+    private final ToolRegistry tools;
     private final Factory<ExecAction> execActionFactory;
     private final Transformer<String, File> versionDeterminer;
 
@@ -50,9 +51,15 @@ public class GppToolChain extends AbstractToolChain {
 
     public GppToolChain(String name, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
         super(name, operatingSystem);
-        this.executables = new ToolRegistry(operatingSystem);
+        this.tools = new GccToolRegistry(operatingSystem);
         this.execActionFactory = execActionFactory;
         this.versionDeterminer = new GppVersionDeterminer();
+
+        tools.setExeName(Tool.CPP_COMPILER, "g++");
+        tools.setExeName(Tool.C_COMPILER, "gcc");
+        tools.setExeName(Tool.ASSEMBLER, "as");
+        tools.setExeName(Tool.LINKER, "g++");
+        tools.setExeName(Tool.STATIC_LIB_ARCHIVER, "ar");
     }
 
     @Override
@@ -63,7 +70,7 @@ public class GppToolChain extends AbstractToolChain {
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
         for (Tool key : Tool.values()) {
-            availability.mustExist(key.getToolName(), executables.locate(key));
+            availability.mustExist(key.getToolName(), tools.locate(key));
         }
         determineVersion();
         if (version == null) {
@@ -102,13 +109,13 @@ public class GppToolChain extends AbstractToolChain {
     }
 
     private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(Tool key) {
-        CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), executables.locate(key), execActionFactory);
+        CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
         commandLineTool.withPath(getPath());
         return commandLineTool;
     }
 
     private void determineVersion() {
-        version = determineVersion(executables.locate(Tool.CPP_COMPILER));
+        version = determineVersion(tools.locate(Tool.CPP_COMPILER));
         if (version == null) {
             LOGGER.info("Did not find {} on system", Tool.CPP_COMPILER.getToolName());
         } else {
@@ -132,147 +139,52 @@ public class GppToolChain extends AbstractToolChain {
     }
 
     public List<File> getPath() {
-        return executables.getPath();
+        return tools.getPath();
     }
 
     // TODO:DAZ Resolve object to file
     public void path(File path) {
-        executables.path(path);
+        tools.path(path);
     }
 
     public String getCppCompiler() {
-        return executables.getExeName(Tool.CPP_COMPILER);
+        return tools.getExeName(Tool.CPP_COMPILER);
     }
 
     public void setCppCompiler(String name) {
-        executables.setExeName(Tool.CPP_COMPILER, name);
+        tools.setExeName(Tool.CPP_COMPILER, name);
     }
 
     public String getCCompiler() {
-        return executables.getExeName(Tool.C_COMPILER);
+        return tools.getExeName(Tool.C_COMPILER);
     }
 
     public void setCCompiler(String name) {
-        executables.setExeName(Tool.C_COMPILER, name);
+        tools.setExeName(Tool.C_COMPILER, name);
     }
 
     public String getAssembler() {
-        return executables.getExeName(Tool.ASSEMBLER);
+        return tools.getExeName(Tool.ASSEMBLER);
     }
 
     public void setAssembler(String name) {
-        executables.setExeName(Tool.ASSEMBLER, name);
+        tools.setExeName(Tool.ASSEMBLER, name);
     }
 
     public String getLinker() {
-        return executables.getExeName(Tool.LINKER);
+        return tools.getExeName(Tool.LINKER);
     }
 
     public void setLinker(String name) {
-        executables.setExeName(Tool.LINKER, name);
+        tools.setExeName(Tool.LINKER, name);
     }
 
     public String getStaticLibArchiver() {
-        return executables.getExeName(Tool.STATIC_LIB_ARCHIVER);
+        return tools.getExeName(Tool.STATIC_LIB_ARCHIVER);
     }
 
     public void setStaticLibArchiver(String name) {
-        executables.setExeName(Tool.STATIC_LIB_ARCHIVER, name);
+        tools.setExeName(Tool.STATIC_LIB_ARCHIVER, name);
     }
 
-    private enum Tool {
-        CPP_COMPILER("C++ compiler"),
-        C_COMPILER("C compiler"),
-        ASSEMBLER("Assembler"),
-        LINKER("Linker"),
-        STATIC_LIB_ARCHIVER("Static library archiver");
-
-        private final String toolName;
-
-        private Tool(String toolName) {
-            this.toolName = toolName;
-        }
-
-        public String getToolName() {
-            return toolName;
-        }
-
-        @Override
-        public String toString() {
-            return GUtil.toLowerCamelCase(name());
-        }
-    }
-
-    private final class ToolRegistry {
-        private final Map<Tool, String> executableNames = new HashMap<Tool, String>();
-        private final Map<String, File> executables = new HashMap<String, File>();
-        private final List<File> pathEntries = new ArrayList<File>();
-
-        private final OperatingSystem operatingSystem;
-
-        public ToolRegistry(OperatingSystem operatingSystem) {
-            this.operatingSystem = operatingSystem;
-
-            executableNames.put(Tool.CPP_COMPILER, "g++");
-            executableNames.put(Tool.C_COMPILER, "gcc");
-            executableNames.put(Tool.ASSEMBLER, "as");
-            executableNames.put(Tool.LINKER, "g++");
-            executableNames.put(Tool.STATIC_LIB_ARCHIVER, "ar");
-        }
-
-        public List<File> getPath() {
-            return pathEntries;
-        }
-
-        public void path(File pathEntry) {
-            pathEntries.add(pathEntry);
-            executables.clear();
-        }
-
-        public String getExeName(Tool key) {
-            return executableNames.get(key);
-        }
-
-        public void setExeName(Tool key, String name) {
-            executableNames.put(key, name);
-        }
-
-        public File locate(Tool key) {
-            String exeName = executableNames.get(key);
-            if (executables.containsKey(exeName)) {
-                return executables.get(exeName);
-            }
-            File exe = findExecutable(operatingSystem, exeName);
-            executables.put(exeName, exe);
-            return exe;
-        }
-
-        private File findExecutable(OperatingSystem operatingSystem, String exe) {
-            List<String> candidates;
-            if (operatingSystem.isWindows()) {
-                // Under Cygwin, g++/gcc is a Cygwin symlink to either g++-3 or g++-4. We can't run g++ directly
-                candidates = Arrays.asList(exe + "-4", exe + "-3", exe);
-            } else {
-                candidates = Arrays.asList(exe);
-            }
-            for (String candidate : candidates) {
-                File executable = findInPath(candidate);
-                if (executable != null) {
-                    return executable;
-                }
-            }
-            return null;
-        }
-
-        public File findInPath(String name) {
-            String exeName = operatingSystem.getExecutableName(name);
-            for (File pathEntry : pathEntries) {
-                File candidate = new File(pathEntry, exeName);
-                if (candidate.isFile()) {
-                    return candidate;
-                }
-            }
-            return operatingSystem.findInPath(name);
-        }
-    }
 }
