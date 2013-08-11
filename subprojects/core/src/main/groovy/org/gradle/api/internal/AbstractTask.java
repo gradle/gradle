@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
@@ -48,9 +50,7 @@ import org.gradle.util.GFileUtils;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
@@ -126,7 +126,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);
 
-        observableActionList = new ObservableList(actions);
+        observableActionList = new ObservableActionWrapperList(actions);
         observableActionList.addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
                 taskStatusNagger.nagAboutMutatingListIfTaskNotInConfigurableState("Task.getActions()", evt);
@@ -559,5 +559,55 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public TaskDependency getFinalizedBy() {
         return finalizedBy;
+    }
+
+    private class ObservableActionWrapperList extends ObservableList {
+        public ObservableActionWrapperList(List delegate) {
+            super(delegate);
+        }
+
+        @Override
+        public boolean add(Object action) {
+            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().add(Action)");
+            if (action == null) {
+                throw new InvalidUserDataException("Action must not be null!");
+            }
+            return super.add(wrap((Action<? super Task>) action));
+        }
+
+        @Override
+        public void add(int index, Object action) {
+            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().add(Index, Action)");
+            if (action == null) {
+                throw new InvalidUserDataException("Action must not be null!");
+            }
+            super.add(index, wrap((Action<? super Task>) action));
+        }
+
+        @Override
+        public boolean addAll(Collection actions) {
+            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().addAll(Actions)");
+            if (actions == null) {
+                throw new InvalidUserDataException("Actions must not be null!");
+            }
+            return super.addAll(transformToContextAwareTaskActions(actions));
+        }
+
+        @Override
+        public boolean addAll(int index, Collection actions) {
+            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().addAll(Actions)");
+            if (actions == null) {
+                throw new InvalidUserDataException("Actions must not be null!");
+            }
+            return super.addAll(index, transformToContextAwareTaskActions(actions));
+        }
+
+        private Collection<ContextAwareTaskAction> transformToContextAwareTaskActions(Collection<Object> c) {
+            return Collections2.transform(c, new Function<Object, ContextAwareTaskAction>() {
+                public ContextAwareTaskAction apply(@Nullable Object input) {
+                    return wrap((Action<? super Task>) input);
+                }
+            });
+        }
     }
 }

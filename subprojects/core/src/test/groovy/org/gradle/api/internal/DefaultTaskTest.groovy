@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal
 
+import com.google.common.collect.Lists
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.AbstractTaskTest
@@ -29,7 +31,9 @@ import org.gradle.util.WrapUtil
 import org.jmock.Expectations
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExpectedException
 import spock.lang.Issue
 
 import java.util.concurrent.Callable
@@ -216,6 +220,77 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertSame(defaultTask.actions[0].closure, testAction3)
         assertSame(defaultTask.actions[1].closure, testAction2)
         assertSame(defaultTask.actions[2].closure, testAction1)
+    }
+
+    /**
+     * see GRADLE-2774
+     */
+    @Test public void testActionToActionsAndExecute() {
+        def closureAction = { t -> } as Action
+
+        defaultTask.actions.add(closureAction)
+
+        defaultTask.execute()
+    }
+
+    /**
+     * see GRADLE-2774
+     */
+    @Test public void testAddAllActionToActionsAndExecute() {
+        def closureAction = { t -> } as Action
+
+        defaultTask.actions.addAll(Lists.newArrayList(closureAction))
+
+        defaultTask.execute()
+    }
+
+    /**
+     * see GRADLE-2774
+     */
+    @Test public void testAddAllActionToActionsWithIndexAndExecute() {
+        def closureAction = { t -> } as Action
+
+        defaultTask.actions.addAll(0, Lists.newArrayList(closureAction))
+
+        defaultTask.execute()
+    }
+
+    /**
+     * see GRADLE-2774
+     */
+    @Test public void testAddActionToActionsWithIteratorAndExecute() {
+        def closureAction = { t -> } as Action
+
+        defaultTask.actions.listIterator().add(closureAction)
+
+        defaultTask.execute()
+    }
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none()
+
+    @Test public void testAddNullToActionsAndExecute() {
+        thrown.expect(InvalidUserDataException.class)
+
+        defaultTask.actions.add(null);
+    }
+
+    @Test public void testAddNullToActionsWithIndexAndExecute() {
+        thrown.expect(InvalidUserDataException.class)
+
+        defaultTask.actions.add(0, null);
+    }
+
+    @Test public void testAddAllNullToActionsAndExecute() {
+        thrown.expect(InvalidUserDataException.class)
+
+        defaultTask.actions.addAll(null);
+    }
+
+    @Test public void testAddAllNullToActionsWithIndexAndExecute() {
+        thrown.expect(InvalidUserDataException.class)
+
+        defaultTask.actions.addAll(0, null);
     }
 
     @Test public void testExecuteThrowsExecutionFailure() {
