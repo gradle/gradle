@@ -51,7 +51,7 @@ pushl
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':assembleMainExecutableMainAsm'.");
-        failure.assertHasCause("Assemble failed; see the error output for details.")
+        failure.assertHasCause("Assembler failed; see the error output for details.")
     }
 
     static class AssemblerWithCHelloWorldApp extends MixedLanguageHelloWorldApp {

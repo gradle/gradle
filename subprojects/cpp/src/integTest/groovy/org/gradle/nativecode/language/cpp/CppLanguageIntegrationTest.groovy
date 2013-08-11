@@ -47,7 +47,7 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.");
-        failure.assertHasCause("C++ compile failed; see the error output for details.")
+        failure.assertHasCause("C++ compiler failed; see the error output for details.")
     }
 }
 

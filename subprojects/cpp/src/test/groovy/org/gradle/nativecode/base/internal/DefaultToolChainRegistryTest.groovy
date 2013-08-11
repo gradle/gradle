@@ -17,14 +17,14 @@
 package org.gradle.nativecode.base.internal
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultToolChainRegistryTest extends Specification {
-    def project = HelperUtil.createRootProject()
+    def project = TestUtil.createRootProject()
     def instantiator = project.services.get(Instantiator)
     def registry = instantiator.newInstance(DefaultToolChainRegistry, instantiator)
-    def NamedDomainObjectFactory<TestToolChain> factory = Mock()
+    def NamedDomainObjectFactory<TestToolChain> factory = Mock(NamedDomainObjectFactory)
 
     def "setup"() {
         project.extensions.add("toolChains", registry)

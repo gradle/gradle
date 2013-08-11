@@ -165,7 +165,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.");
-        failure.assertHasCause("Link failed; see the error output for details.")
+        failure.assertHasCause("Linker failed; see the error output for details.")
     }
 
     def "build fails when link library fails"() {
@@ -194,7 +194,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
 
         then:
         failure.assertHasDescription("Execution failed for task ':linkMainSharedLibrary'.");
-        failure.assertHasCause("Link failed; see the error output for details.")
+        failure.assertHasCause("Linker failed; see the error output for details.")
     }
 
     def "build fails when create static library fails"() {
@@ -217,6 +217,6 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
 
         then:
         failure.assertHasDescription("Execution failed for task ':createMainStaticLibrary'.");
-        failure.assertHasCause("Create static library failed; see the error output for details.")
+        failure.assertHasCause("Static library archiver failed; see the error output for details.")
     }
 }

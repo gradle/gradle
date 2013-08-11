@@ -48,6 +48,10 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         });
     }
 
+    public List<ToolChainInternal> getSearchOrder() {
+        return searchOrder;
+    }
+
     @Override
     protected void handleAttemptToAddItemWithNonUniqueName(ToolChain toolChain) {
         throw new InvalidUserDataException(String.format("ToolChain with name '%s' added multiple times", toolChain.getName()));

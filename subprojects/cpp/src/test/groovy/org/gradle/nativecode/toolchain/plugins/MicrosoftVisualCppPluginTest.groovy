@@ -33,8 +33,8 @@ class MicrosoftVisualCppPluginTest extends Specification {
         then:
         def visualCpp = project.toolChains.visualCpp
         !visualCpp.availability.available
-        visualCpp.availability.unavailableMessage == 'Visual C++ is not available on this operating system.'
-        visualCpp.toString() == 'Visual C++'
+        visualCpp.availability.unavailableMessage == 'Not available on this operating system.'
+        visualCpp.toString() == "ToolChain 'visualCpp' (Visual C++)"
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -45,6 +45,6 @@ class MicrosoftVisualCppPluginTest extends Specification {
         then:
         def visualCpp = project.toolChains.visualCpp
         visualCpp instanceof VisualCppToolChain
-        visualCpp.toString() == 'Visual C++'
+        visualCpp.toString() == "ToolChain 'visualCpp' (Visual C++)"
     }
 }

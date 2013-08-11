@@ -55,7 +55,7 @@ public class VisualCppToolChain extends AbstractToolChain {
 
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
-        if (!OperatingSystem.current().isWindows()) {
+        if (!operatingSystem.isWindows()) {
             availability.unavailable("Not available on this operating system.");
             return;
         }

@@ -20,7 +20,7 @@ import org.gradle.internal.os.OperatingSystem;
 
 public abstract class AbstractToolChain implements ToolChainInternal {
     private final String name;
-    private final OperatingSystem operatingSystem;
+    protected final OperatingSystem operatingSystem;
     private ToolChainAvailability availability;
 
     protected AbstractToolChain(String name, OperatingSystem operatingSystem) {

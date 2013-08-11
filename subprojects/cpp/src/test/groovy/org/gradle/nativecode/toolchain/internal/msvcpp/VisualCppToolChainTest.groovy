@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    final toolChain = new VisualCppToolChain(new OperatingSystem.Windows(), Stub(Factory))
+    final toolChain = new VisualCppToolChain("visualCpp", new OperatingSystem.Windows(), Stub(Factory))
 
 
     def "uses .lib file for shared library at link time"() {
@@ -40,10 +40,12 @@ class VisualCppToolChainTest extends Specification {
     }
 
     def "checks availability of required executables"() {
-        final os = Mock(OperatingSystem)
+        final os = Stub(OperatingSystem) {
+            isWindows() >> true
+        }
 
         when:
-        def cppToolChain = new VisualCppToolChain(os, Stub(Factory))
+        def cppToolChain = new VisualCppToolChain("test", os, Stub(Factory))
 
         then:
         os.findInPath("cl.exe") >> file('cl.exe')
