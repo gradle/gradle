@@ -21,7 +21,7 @@ import org.gradle.internal.Factory
 import spock.lang.Specification
 
 class GppToolChainTest extends Specification {
-    final toolChain = new GppToolChain(OperatingSystem.current(), Stub(Factory))
+    final toolChain = new GppToolChain("gcc", OperatingSystem.current(), Stub(Factory))
 
     def "uses shared library binary at link time"() {
         expect:

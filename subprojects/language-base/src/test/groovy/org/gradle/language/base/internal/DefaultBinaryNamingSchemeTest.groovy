@@ -19,66 +19,51 @@ package org.gradle.language.base.internal
 import spock.lang.Specification
 
 class DefaultBinaryNamingSchemeTest extends Specification {
-    def "generates task names"() {
+    def "generates task names for native binaries"() {
         expect:
-        def namer = new DefaultBinaryNamingScheme(baseName, dimensions)
-        namer.getTaskName(verb, target) == taskName
+        def namingScheme = createNamingScheme(baseName, type, dimensions)
+        namingScheme.getTaskName(verb, target) == taskName
 
         where:
-        baseName | dimensions     | verb       | target    | taskName
-        "test"   | []             | null       | null      | "test"
-        "test"   | []             | null       | "classes" | "testClasses"
-        "test"   | []             | "assemble" | null      | "assembleTest"
-        "test"   | []             | "compile"  | "java"    | "compileTestJava"
-        "test"   | ["one", "two"] | null       | null      | "oneTwoTest"
-        "test"   | ["one", "two"] | null       | "classes" | "oneTwoTestClasses"
-        "test"   | ["one", "two"] | "assemble" | null      | "assembleOneTwoTest"
-        "test"   | ["one", "two"] | "compile"  | "java"    | "compileOneTwoTestJava"
+        baseName | type   | dimensions     | verb       | target    | taskName
+        "test"   | ""     | []             | null       | null      | "test"
+        "test"   | "type" | []             | null       | null      | "testType"
+        "test"   | "type" | []             | null       | "classes" | "testTypeClasses"
+        "test"   | ""     | []             | null       | "classes" | "testClasses"
+        "test"   | "type" | []             | "assemble" | null      | "assembleTestType"
+        "test"   | "type" | []             | "compile"  | "java"    | "compileTestTypeJava"
+        "test"   | "type" | ["one", "two"] | null       | null      | "oneTwoTestType"
+        "test"   | "type" | ["one", "two"] | null       | "classes" | "oneTwoTestTypeClasses"
+        "test"   | "type" | ["one", "two"] | "assemble" | null      | "assembleOneTwoTestType"
+        "test"   | "type" | ["one", "two"] | "compile"  | "java"    | "compileOneTwoTestTypeJava"
     }
 
     def "generates task name with extended inputs"() {
         expect:
-        def namer = new DefaultBinaryNamingScheme("theBinary", ["firstDimension", "secondDimension"])
-        namer.getTaskName("theVerb", "theTarget") == "theVerbFirstDimensionSecondDimensionTheBinaryTheTarget"
+        def namingScheme = createNamingScheme("theBinary", "theType", ['firstDimension', 'secondDimension'])
+        namingScheme.getTaskName("theVerb", "theTarget") == "theVerbFirstDimensionSecondDimensionTheBinaryTheTypeTheTarget"
     }
 
     def "generates base name and output directory"() {
-        def namer = new DefaultBinaryNamingScheme(baseName, dimensions)
+        def namingScheme = createNamingScheme(baseName, "", dimensions)
 
         expect:
-        namer.getLifecycleTaskName() == lifecycleName
-        namer.getOutputDirectoryBase() == outputDir
+        namingScheme.getLifecycleTaskName() == lifecycleName
+        namingScheme.getOutputDirectoryBase() == outputDir
 
         where:
-        baseName | dimensions     | lifecycleName | outputDir
-        "test"   | []             | "test"        | "test"
-        "test"   | ["one", "two"] | "oneTwoTest"  | "test/one/two"
-        "mainLibrary"| ["enterpriseEdition", "osx_x64", "static"] | "enterpriseEditionOsx_x64StaticMainLibrary"  | "mainLibrary/enterpriseEdition/osx_x64/static"
-        "mainLibrary"| ["EnterpriseEdition", "Osx_x64", "Static"] | "enterpriseEditionOsx_x64StaticMainLibrary"  | "mainLibrary/enterpriseEdition/osx_x64/static"
+        baseName      | dimensions                                 | lifecycleName                               | outputDir
+        "test"        | []                                         | "test"                                      | "test"
+        "test"        | ["one", "two"]                             | "oneTwoTest"                                | "test/oneTwo"
+        "mainLibrary" | ["enterpriseEdition", "osx_x64", "static"] | "enterpriseEditionOsx_x64StaticMainLibrary" | "mainLibrary/enterpriseEditionOsx_x64Static"
+        "mainLibrary" | ["EnterpriseEdition", "Osx_x64", "Static"] | "enterpriseEditionOsx_x64StaticMainLibrary" | "mainLibrary/enterpriseEditionOsx_x64Static"
     }
 
-    def "can collapse `main` when generating names"() {
-        expect:
-        def namer = new CollapsedNamingScheme(name, dimensions)
-        namer.getTaskName(verb, target) == taskName
-
-        where:
-        name   | dimensions     | verb       | target    | taskName
-        "main" | []             | null       | null      | "main"
-        "main" | []             | null       | "classes" | "classes"
-        "main" | ["one", "two"] | null       | "classes" | "oneTwoClasses"
-        "main" | []             | "assemble" | null      | "assembleMain"
-        "main" | ["one", "two"] | "assemble" | null      | "assembleOneTwoMain"
-        "main" | []             | "compile"  | "java"    | "compileJava"
-        "main" | ["one", "two"] | "compile"  | "java"    | "compileOneTwoJava"
-        "test" | []             | null       | "classes" | "testClasses"
-        "test" | []             | "assemble" | null      | "assembleTest"
-    }
-
-    private static class CollapsedNamingScheme extends DefaultBinaryNamingScheme {
-        CollapsedNamingScheme(String baseName, List<String> dimensions) {
-            super(baseName, dimensions)
-            collapseMain()
+    private DefaultBinaryNamingScheme createNamingScheme(def baseName, def type, def dimensions) {
+        def namingScheme = new DefaultBinaryNamingScheme(baseName).withTypeString(type)
+        for (String dimension : dimensions) {
+            namingScheme = namingScheme.withVariantDimension(dimension)
         }
+        return namingScheme
     }
 }

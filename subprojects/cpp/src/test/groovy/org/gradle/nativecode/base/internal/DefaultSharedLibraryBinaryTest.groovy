@@ -15,10 +15,9 @@
  */
 
 package org.gradle.nativecode.base.internal
-
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativecode.base.Library
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -26,29 +25,13 @@ import spock.lang.Specification
 
 class DefaultSharedLibraryBinaryTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
+    def namingScheme = new DefaultBinaryNamingScheme("main")
     final toolChain = Stub(ToolChainInternal)
-    def flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
-    final library = Stub(Library) {
-        getName() >> "main"
-        getFlavors() >> flavorContainer
-    }
+    final library = Stub(Library)
 
     def "has useful string representation"() {
-        when:
-        flavorContainer.add new DefaultFlavor("flavorOne")
-
-        then:
+        expect:
         sharedLibrary.toString() == "shared library 'mainSharedLibrary'"
-
-        when: "library has multiple flavors"
-        flavorContainer.add new DefaultFlavor("flavorTwo")
-
-        then:
-        sharedLibrary.toString() == "shared library 'flavorOneMainSharedLibrary'"
-    }
-
-    private DefaultSharedLibraryBinary getSharedLibrary() {
-        new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain)
     }
 
     def "can convert binary to a native dependency"() {
@@ -79,5 +62,9 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         nativeDependency.runtimeFiles.files == [binaryFile] as Set
         nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
         nativeDependency.runtimeFiles.toString() == "shared library 'mainSharedLibrary'"
+    }
+
+    private DefaultSharedLibraryBinary getSharedLibrary() {
+        new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, namingScheme)
     }
 }

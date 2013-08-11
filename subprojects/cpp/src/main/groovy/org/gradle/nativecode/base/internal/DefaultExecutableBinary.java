@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.base.internal;
 
+import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativecode.base.Executable;
 import org.gradle.nativecode.base.ExecutableBinary;
 import org.gradle.nativecode.base.Flavor;
@@ -23,8 +24,8 @@ import org.gradle.nativecode.base.Flavor;
 public class DefaultExecutableBinary extends DefaultNativeBinary implements ExecutableBinary {
     private final Executable executable;
 
-    public DefaultExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain) {
-        super(executable, flavor, "Executable", toolChain);
+    public DefaultExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain, DefaultBinaryNamingScheme namingScheme) {
+        super(executable, flavor, toolChain, namingScheme.withTypeString("Executable"));
         this.executable = executable;
     }
 

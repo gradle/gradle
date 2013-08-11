@@ -27,6 +27,7 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
         binary.name == 'mainClasses'
 
         and:
+        binary.namingScheme.lifecycleTaskName == 'classes'
         binary.namingScheme.getTaskName(null, null) == 'main'
         binary.namingScheme.getTaskName("compile", null) == 'compileMain'
         binary.namingScheme.getTaskName(null, "groovy") == 'groovy'
@@ -41,13 +42,14 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
         binary.name == 'otherClasses'
 
         and:
+        binary.namingScheme.lifecycleTaskName == 'otherClasses'
         binary.namingScheme.getTaskName(null, null) == 'other'
         binary.namingScheme.getTaskName("compile", null) == 'compileOther'
         binary.namingScheme.getTaskName(null, "groovy") == 'otherGroovy'
         binary.namingScheme.getTaskName("compile", "groovy") == 'compileOtherGroovy'
     }
 
-    def "uses full task names for binary with name 'otherBinary'"() {
+    def "uses long task names for binary with name 'otherBinary'"() {
         when:
         def binary = new DefaultClassDirectoryBinary("otherBinary")
 
@@ -55,6 +57,7 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
         binary.name == 'otherBinary'
 
         and:
+        binary.namingScheme.lifecycleTaskName == 'otherBinaryClasses'
         binary.namingScheme.getTaskName(null, null) == 'otherBinary'
         binary.namingScheme.getTaskName("compile", null) == 'compileOtherBinary'
         binary.namingScheme.getTaskName(null, "groovy") == 'otherBinaryGroovy'
@@ -67,9 +70,9 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
         binary.toString() == displayName
 
         where:
-        name           | displayName
+        name    | displayName
         'mainClasses'  | 'classes \'main\''
         'otherClasses' | 'classes \'other\''
-        'custom'       | 'classes \'custom\''
+        'otherBinary' | 'classes \'otherBinary\''
     }
 }

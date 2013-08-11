@@ -17,17 +17,13 @@ package org.gradle.nativecode.base.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.nativecode.base.*;
 import org.gradle.nativecode.base.internal.*;
 
 import javax.inject.Inject;
-import java.io.File;
 
 /**
  * A plugin that sets up the infrastructure for defining native binaries.
@@ -48,51 +44,25 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPlugins().apply(BasePlugin.class);
         project.getPlugins().apply(LanguageBasePlugin.class);
-        final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
 
-        final ToolChainRegistry toolChains = project.getExtensions().create("toolChains",
+        project.getExtensions().create("toolChains",
                 DefaultToolChainRegistry.class,
                 instantiator
         );
-        final NamedDomainObjectSet<Executable> executables = project.getExtensions().create(
+        project.getExtensions().create(
                 "executables",
                 DefaultExecutableContainer.class,
                 instantiator
         );
 
-        final NamedDomainObjectSet<Library> libraries = project.getExtensions().create(
+        project.getExtensions().create(
                 "libraries",
                 DefaultLibraryContainer.class,
                 instantiator,
                 fileResolver
         );
 
-        configurationActions.add(new Action<ProjectInternal>() {
-            public void execute(ProjectInternal projectInternal) {
-                for (ToolChain toolChain : toolChains.getAvailableToolChains()) {
-                    for (Library library : libraries) {
-                        for (Flavor flavor : library.getFlavors()) {
-                            register(setupDefaults(project, instantiator.newInstance(DefaultSharedLibraryBinary.class, library, flavor, toolChain)), library, binaries);
-                            register(setupDefaults(project, instantiator.newInstance(DefaultStaticLibraryBinary.class, library, flavor, toolChain)), library, binaries);
-                        }
-                    }
-                    for (Executable executable : executables) {
-                        for (Flavor flavor : executable.getFlavors()) {
-                            register(setupDefaults(project, instantiator.newInstance(DefaultExecutableBinary.class, executable, flavor, toolChain)), executable, binaries);
-                        }
-                    }
-                }
-            }
-        });
+        configurationActions.add(new CreateNativeBinariesAction(instantiator));
     }
 
-    private void register(NativeBinary binary, NativeComponent component, BinaryContainer binaryContainer) {
-        component.getBinaries().add(binary);
-        binaryContainer.add(binary);
-    }
-
-    private NativeBinary setupDefaults(final Project project, final DefaultNativeBinary nativeBinary) {
-        nativeBinary.setOutputFile(new File(project.getBuildDir(), "binaries/" + nativeBinary.getNamingScheme().getOutputDirectoryBase() + "/" + nativeBinary.getOutputFileName()));
-        return nativeBinary;
-    }
 }

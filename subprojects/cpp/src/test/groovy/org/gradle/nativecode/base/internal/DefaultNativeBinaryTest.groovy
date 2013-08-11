@@ -18,6 +18,7 @@ package org.gradle.nativecode.base.internal
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativecode.base.*
 import spock.lang.Specification
@@ -25,45 +26,6 @@ import spock.lang.Specification
 class DefaultNativeBinaryTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def component = new DefaultNativeComponent("name", new DirectInstantiator())
-
-    def "does not use flavor in names name when component has only default flavor"() {
-        when:
-        def binary = new TestBinary(component, Flavor.DEFAULT, "type")
-
-        then:
-        component.flavors == [Flavor.DEFAULT] as Set
-
-        and:
-        binary.namingScheme.lifecycleTaskName == 'nameType'
-        binary.namingScheme.outputDirectoryBase == 'nameType'
-        binary.namingScheme.getTaskName("link") == 'linkNameType'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileNameTypeCpp'
-    }
-
-    def "does not use flavor in names when component has only one configured flavor"() {
-        when:
-        component.flavors.add(flavor1)
-
-        then:
-        def binary = new TestBinary(component, flavor1, "type")
-        binary.namingScheme.lifecycleTaskName == 'nameType'
-        binary.namingScheme.outputDirectoryBase == 'nameType'
-        binary.namingScheme.getTaskName("link") == 'linkNameType'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileNameTypeCpp'
-    }
-
-    def "includes flavor in names when component has multiple flavors"() {
-        when:
-        component.flavors.add(Flavor.DEFAULT)
-        component.flavors.add(flavor1)
-
-        then:
-        def binary = new TestBinary(component, flavor1, "type")
-        binary.namingScheme.lifecycleTaskName == 'flavor1NameType'
-        binary.namingScheme.outputDirectoryBase == 'nameType/flavor1'
-        binary.namingScheme.getTaskName("link") == 'linkFlavor1NameType'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileFlavor1NameTypeCpp'
-    }
 
     def "binary uses source from its owner component"() {
         given:
@@ -149,7 +111,7 @@ class DefaultNativeBinaryTest extends Specification {
 
     class TestBinary extends DefaultNativeBinary {
         TestBinary(NativeComponent owner, Flavor flavor = Flavor.DEFAULT, String type = "type") {
-            super(owner, flavor, type, null)
+            super(owner, flavor, null, new DefaultBinaryNamingScheme("baseName"))
         }
 
         @Override

@@ -21,21 +21,20 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.language.base.internal.BinaryNamingScheme;
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.language.jvm.ClassDirectoryBinary;
 
 import java.io.File;
 
 public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement implements ClassDirectoryBinary, BinaryInternal {
+    private final BinaryNamingScheme namingScheme;
+    private final DomainObjectCollection<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final String name;
-    private final String baseName;
     private File classesDir;
     private File resourcesDir;
-    private final DomainObjectCollection<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
 
     public DefaultClassDirectoryBinary(String name) {
         this.name = name;
-        this.baseName = removeClassesSuffix(name);
+        this.namingScheme = new ClassDirectoryBinaryNamingScheme(removeClassesSuffix(name));
     }
 
     private String removeClassesSuffix(String name) {
@@ -46,7 +45,7 @@ public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement i
     }
 
     public BinaryNamingScheme getNamingScheme() {
-        return new ClassesNamingScheme(baseName);
+        return namingScheme;
     }
 
     public String getName() {
@@ -74,18 +73,7 @@ public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement i
     }
 
     public String toString() {
-        return String.format("classes '%s'", baseName);
+        return namingScheme.getDescription();
     }
 
-    private static class ClassesNamingScheme extends DefaultBinaryNamingScheme {
-        private ClassesNamingScheme(String baseName) {
-            super(baseName);
-            collapseMain();
-        }
-
-        @Override
-        public String getLifecycleTaskName() {
-            return getTaskName(null, "classes");
-        }
-    }
 }

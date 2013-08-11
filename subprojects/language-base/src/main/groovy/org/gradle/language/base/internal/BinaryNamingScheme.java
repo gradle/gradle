@@ -26,4 +26,6 @@ public interface BinaryNamingScheme {
     String getTaskName(@Nullable String verb, @Nullable String target);
 
     String getOutputDirectoryBase();
+
+    String getDescription();
 }

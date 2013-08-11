@@ -15,37 +15,24 @@
  */
 
 package org.gradle.nativecode.base.internal
-
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativecode.base.Library
 import spock.lang.Specification
 
 class DefaultStaticLibraryBinaryTest extends Specification {
-    def flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
-    def library = Stub(Library) {
-        getName() >> "main"
-        getFlavors() >> flavorContainer
-    }
+    def namingScheme = new DefaultBinaryNamingScheme("main")
+    def library = Stub(Library)
     def toolChain = Stub(ToolChainInternal)
 
     def "has useful string representation"() {
-        when:
-        flavorContainer.add new DefaultFlavor("flavorOne")
-
-        then:
+        expect:
         staticLibrary.toString() == "static library 'mainStaticLibrary'"
-
-        when: "library has multiple flavors"
-        flavorContainer.add new DefaultFlavor("flavorTwo")
-
-        then:
-        staticLibrary.toString() == "static library 'flavorOneMainStaticLibrary'"
     }
 
     def getStaticLibrary() {
-        new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain)
+        new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, namingScheme)
     }
 
     def "can convert binary to a native dependency"() {

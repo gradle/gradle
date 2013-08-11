@@ -16,7 +16,6 @@
 
 package org.gradle.nativecode.base.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -29,7 +28,6 @@ import org.gradle.nativecode.base.Flavor;
 import org.gradle.nativecode.base.NativeComponent;
 import org.gradle.nativecode.base.NativeDependencySet;
 import org.gradle.nativecode.base.tasks.BuildBinaryTask;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.*;
@@ -42,27 +40,16 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final ArrayList<Object> assemblerArgs = new ArrayList<Object>();
     private final ArrayList<Object> linkerArgs = new ArrayList<Object>();
     private final ArrayList<Object> defines = new ArrayList<Object>();
-    private final BinaryNamingScheme namer;
-    private final String description;
+    private final BinaryNamingScheme namingScheme;
     private final Flavor flavor;
     private final ToolChainInternal toolChain;
     private BuildBinaryTask builderTask;
     private File outputFile;
 
-    protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, String typeString, ToolChainInternal toolChain) {
-        // TODO:DAZ Would be better to inject the Namer here, rather than trying to construct out of context
-        // TODO:DAZ Make static/shared a dimension in the variant space, rather than a special case
-        String baseName = owner.getName() + StringUtils.capitalize(typeString);
-        List<String> nameDimensions = new ArrayList<String>();
-        if (owner.getFlavors().size() > 1) {
-            nameDimensions.add(flavor.getName());
-        }
-        nameDimensions.add(toolChain.getName());
-        namer = new DefaultBinaryNamingScheme(baseName, nameDimensions);
-
+    protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, DefaultBinaryNamingScheme namingScheme) {
+        this.namingScheme = namingScheme;
         this.flavor = flavor;
         this.toolChain = toolChain;
-        this.description = String.format("%s '%s'", GUtil.toWords(typeString), namer.getLifecycleTaskName());
         owner.getSource().all(new Action<LanguageSourceSet>() {
             public void execute(LanguageSourceSet sourceSet) {
                 source.add(sourceSet);
@@ -72,7 +59,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
 
     @Override
     public String toString() {
-        return description;
+        return namingScheme.getDescription();
     }
 
     public Flavor getFlavor() {
@@ -89,7 +76,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     }
 
     public String getName() {
-        return namer.getLifecycleTaskName();
+        return namingScheme.getLifecycleTaskName();
     }
 
     public ToolChainInternal getToolChain() {
@@ -145,7 +132,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     }
 
     public BinaryNamingScheme getNamingScheme() {
-        return namer;
+        return namingScheme;
     }
 
     public Collection<NativeDependencySet> getLibs() {
