@@ -26,6 +26,7 @@ import org.gradle.tooling.internal.protocol.*;
 import org.gradle.util.ClasspathUtil;
 
 import java.net.URL;
+import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -51,9 +52,23 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
         private DefaultBuildActionSerializationDetails(BuildAction<?> action) {
             classLoader = action.getClass().getClassLoader();
             Set<URL> classpath = new LinkedHashSet<URL>();
+
+            //TODO:ADAM - remove this
+            show(getClass(), "Tooling API");
+            show(action.getClass(), "Build action");
+
             classpath.addAll(ClasspathUtil.getClasspath(getClass().getClassLoader()));
             classpath.addAll(ClasspathUtil.getClasspath(classLoader));
             this.classpath = new ArrayList<URL>(classpath);
+        }
+
+        private void show(Class<?> target, String name) {
+            ClassLoader targetClassLoader = target.getClassLoader();
+            System.out.println(String.format("%s ClassLoader: %s (%s)", name, targetClassLoader, targetClassLoader.getClass()));
+            System.out.println(String.format("    * Classpath: %s", ClasspathUtil.getClasspath(targetClassLoader)));
+            CodeSource codeSource = target.getProtectionDomain().getCodeSource();
+            System.out.println(String.format("    * Codesource: %s", codeSource == null ? null : codeSource.getLocation()));
+            System.out.println(String.format("    * Resource: %s", targetClassLoader.getResource(target.getName().replace(".", "/") + ".class")));
         }
 
         public List<URL> getActionClassPath() {
