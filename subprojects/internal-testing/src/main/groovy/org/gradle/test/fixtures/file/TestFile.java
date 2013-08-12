@@ -547,6 +547,10 @@ public class TestFile extends File {
         return new TestFileHelper(this).exec(args);
     }
 
+    public ExecOutput execute(List args, List env) {
+        return new TestFileHelper(this).execute(args, env);
+    }
+
     public class Snapshot {
         private final long modTime;
         private final byte[] hash;

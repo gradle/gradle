@@ -207,6 +207,19 @@ public class AvailableToolChains {
             return pathEntries;
         }
 
+        /**
+         * The environment required to execute a binary created by this toolchain.
+         */
+        // TODO:DAZ This isn't quite right (only required for MinGW and cygwin, and preferably not even those)
+        public List<String> getRuntimeEnv() {
+            if (pathEntries.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
+            return Collections.singletonList(pathVarName + "=" + path);
+        }
+
         public String getId() {
             return name.replaceAll("\\W", "");
         }

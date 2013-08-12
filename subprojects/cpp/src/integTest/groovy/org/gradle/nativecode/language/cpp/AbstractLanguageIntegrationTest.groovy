@@ -43,7 +43,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         """
 
         and:
-        helloWorldApp.writeSources(file("src/main"), file("src/main"))
+        helloWorldApp.writeSources(file("src/main"))
 
         when:
         run "mainExecutable"

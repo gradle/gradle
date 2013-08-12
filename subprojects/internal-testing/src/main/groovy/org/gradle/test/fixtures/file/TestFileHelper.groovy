@@ -174,7 +174,11 @@ class TestFileHelper {
     }
 
     ExecOutput exec(Object... args) {
-        def process = ([file.absolutePath] + (args as List)).execute()
+        return execute(args as List, [])
+    }
+
+    ExecOutput execute(List args, List env) {
+        def process = ([file.absolutePath] + args).execute(env, file.parentFile)
         String output = process.inputStream.text
         String error = process.errorStream.text
         if (process.waitFor() != 0) {

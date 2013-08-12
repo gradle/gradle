@@ -16,16 +16,14 @@
 
 
 package org.gradle.nativecode.language.cpp
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativecode.language.cpp.fixtures.app.CppHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "can build with all available tool chains"() {
         def helloWorld = new CppHelloWorldApp()
 
@@ -63,10 +61,10 @@ ${toolChainConfig}
         run tasks as String[]
 
         then:
-        installedToolChains.each {
-            def executable = file(OperatingSystem.current().getExecutableName("build/install/mainExecutable/${it.id}/main"))
+        installedToolChains.each { toolChain ->
+            def executable = file(OperatingSystem.current().getExecutableName("build/install/mainExecutable/${toolChain.id}/main"))
             executable.assertExists()
-            executable.exec().out == helloWorld.englishOutput
+            executable.execute([], toolChain.runtimeEnv).out == helloWorld.englishOutput
         }
     }
 }
