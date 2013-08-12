@@ -106,7 +106,7 @@ class ResolutionResultBuilderSpec extends Specification {
         resolvedConf("d", [])
 
         when:
-        def deps = builder.complete.root.dependencies
+        def deps = builder.complete().root.dependencies
 
         then:
         def b = deps.find { it.selected.id.name == 'b' }

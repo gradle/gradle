@@ -32,7 +32,8 @@ import java.util.Set;
 
 public class DefaultResolutionResult implements ResolutionResult {
 
-    private final Factory<ResolvedModuleVersionResult> rootSource;
+    private Factory<ResolvedModuleVersionResult> rootSource;
+    private ResolvedModuleVersionResult root;
 
     public DefaultResolutionResult(Factory<ResolvedModuleVersionResult> rootSource) {
         assert rootSource != null;
@@ -40,7 +41,10 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     public ResolvedModuleVersionResult getRoot() {
-        return rootSource.create();
+        if (root == null) {
+            root = rootSource.create(); //TODO SF, caching, threading
+        }
+        return root;
     }
 
     public Set<? extends DependencyResult> getAllDependencies() {
@@ -54,7 +58,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     public void allDependencies(Action<? super DependencyResult> action) {
-        eachElement(rootSource.create(), Actions.doNothing(), action, new HashSet<ResolvedModuleVersionResult>());
+        eachElement(getRoot(), Actions.doNothing(), action, new HashSet<ResolvedModuleVersionResult>());
     }
 
     public void allDependencies(final Closure closure) {
@@ -78,12 +82,12 @@ public class DefaultResolutionResult implements ResolutionResult {
 
     public Set<ResolvedModuleVersionResult> getAllModuleVersions() {
         final Set<ResolvedModuleVersionResult> out = new LinkedHashSet<ResolvedModuleVersionResult>();
-        eachElement(rootSource.create(), Actions.doNothing(), Actions.doNothing(), out);
+        eachElement(getRoot(), Actions.doNothing(), Actions.doNothing(), out);
         return out;
     }
 
     public void allModuleVersions(final Action<? super ResolvedModuleVersionResult> action) {
-        eachElement(rootSource.create(), action, Actions.doNothing(), new HashSet<ResolvedModuleVersionResult>());
+        eachElement(getRoot(), action, Actions.doNothing(), new HashSet<ResolvedModuleVersionResult>());
     }
 
     public void allModuleVersions(final Closure closure) {
