@@ -62,7 +62,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
 
     public String getOutputDirectoryBase() {
         StringBuilder builder = new StringBuilder(makeName(baseName, typeString));
-        if (!dimensionPrefix.isEmpty()) {
+        if (dimensionPrefix.length() > 0) {
             builder.append('/');
             builder.append(dimensionPrefix);
         }
