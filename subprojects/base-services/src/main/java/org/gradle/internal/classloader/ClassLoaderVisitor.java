@@ -33,20 +33,16 @@ public class ClassLoaderVisitor {
             if (classLoader instanceof URLClassLoader) {
                 visitClassPath(((URLClassLoader) classLoader).getURLs());
             }
-            startVisitParents();
             if (classLoader.getParent() != null) {
-                visit(classLoader.getParent());
+                visitParent(classLoader.getParent());
             }
-            endVisitParents();
         }
     }
 
     public void visitClassPath(URL[] classPath) {
     }
 
-    public void startVisitParents() {
-    }
-
-    public void endVisitParents() {
+    public void visitParent(ClassLoader classLoader) {
+        visit(classLoader);
     }
 }

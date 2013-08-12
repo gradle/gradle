@@ -47,11 +47,9 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     }
 
     public void visit(ClassLoaderVisitor visitor) {
-        visitor.startVisitParents();
         for (ClassLoader parent : parents) {
-            visitor.visit(parent);
+            visitor.visitParent(parent);
         }
-        visitor.endVisitParents();
     }
 
     @Override

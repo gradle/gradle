@@ -37,9 +37,7 @@ public class MutableURLClassLoader extends URLClassLoader implements ClassLoader
 
     public void visit(ClassLoaderVisitor visitor) {
         visitor.visitClassPath(getURLs());
-        visitor.startVisitParents();
-        visitor.visit(getParent());
-        visitor.endVisitParents();
+        visitor.visitParent(getParent());
     }
 
     @Override
