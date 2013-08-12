@@ -1043,12 +1043,14 @@ someroot/[artifact]-[revision].[ext]
             </para>
             <sample id="latestSelector" dir="userguide/artifacts/componentMetadata" title="'Latest' version selector">
                 <sourcefile file="build.gradle" snippet="latest-selector"/>
+                <output args="-q listFish"/>
             </sample>
             <para>
                 The next example demonstrates <literal>latest</literal> selectors based on a custom status scheme declared in a module metadata rule:
             </para>
             <sample id="customStatusScheme" dir="userguide/artifacts/componentMetadata" title="Custom status scheme">
                 <sourcefile file="build.gradle" snippet="custom-status-scheme"/>
+                <output args="-q listBirds"/>
             </sample>
         </section>
     </section>

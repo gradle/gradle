@@ -29,4 +29,14 @@ repositories {
         config3 "air.birds:albatros:latest.silver"
     }
     // END SNIPPET custom-status-scheme
+
+    task listFish << {
+        config1.each { println it.name }
+        println()
+        config2.each { println it.name}
+    }
+
+    task listBirds << {
+        config3.each { println it.name }
+    }
 }
