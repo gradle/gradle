@@ -1,0 +1,32 @@
+repositories {
+    ivy {
+        url "$projectDir/repo"
+    }
+
+    configurations {
+        config1
+        config2
+        config3
+    }
+
+    // START SNIPPET latest-selector
+    dependencies {
+        config1 "sea.fish:tuna:latest.integration"
+        config2 "sea.fish:tuna:latest.release"
+    }
+    // END SNIPPET latest-selector
+
+    // START SNIPPET custom-status-scheme
+    dependencies {
+        config3 "air.birds:albatros:latest.silver"
+    }
+
+    componentMetadata {
+        eachComponent { ComponentMetadataDetails details ->
+            if (details.id.group == "air.birds") {
+                details.statusScheme == ["bronze", "silver", "gold"]
+            }
+        }
+    }
+    // END SNIPPET custom-status-scheme
+}

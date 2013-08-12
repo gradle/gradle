@@ -1021,6 +1021,36 @@ someroot/[artifact]-[revision].[ext]
                 <sourcefile file="build.gradle" snippet="ivy-repo-dynamic-mode"/>
             </sample>
         </section>
+        <section id="component_metadata_rules">
+            <title>Component metadata rules</title>
+            <para>Each module (also called <emphasis>component</emphasis>) has metadata associated with it, such as its group, name, version, dependencies, and so on.
+                This metadata typically originates in the module's descriptor. Metadata rules allow certain parts of a module's metadata to be manipulated
+                from within the build script. They take effect after a module's descriptor has been downloaded, but before it has been selected among all candidate versions.
+                This makes metadata rules another instrument for customizing dependency resolution.
+            </para>
+            <para>
+                One piece of module metadata that Gradle understands is a module's <emphasis>status scheme</emphasis>. This concept, also known from Ivy, models the different
+                levels of maturity that a module transitions through over time. The default status scheme, ordered from least to most mature status, is <literal>integration</literal>,
+                <literal>milestone</literal>, <literal>release</literal>. Apart from a status scheme, a module also has a (current) <emphasis>status</emphasis>, which must be one of
+                the values in its status scheme. If not specified in the (Ivy) descriptor, the status defaults to <literal>integration</literal> for Ivy modules and Maven snapshot modules,
+                and <literal>release</literal> for Maven modules that aren't snapshots.
+            </para>
+            <para>
+                A module's status and status scheme are taken into consideration when a <literal>latest</literal> version selector is resolved. Specifically, <literal>latest.someStatus</literal>
+                will resolve to the highest module version that has status <literal>someStatus</literal> or a more mature status. For example, with the default status scheme in place,
+                <literal>latest.integration</literal> will select the highest module version regardless of its status (because <literal>integration</literal> is the least mature status),
+                whereas <literal>latest.release</literal> will select the highest module version with status <literal>release</literal>. Here is what this looks like in code:
+            </para>
+            <sample id="latestSelector" dir="userguide/artifacts/componentMetadata" title="'Latest' version selector">
+                <sourcefile file="build.gradle" snippet="latest-selector"/>
+            </sample>
+            <para>
+                The next example demonstrates <literal>latest</literal> selectors based on a custom status scheme declared in a module metadata rule:
+            </para>
+            <sample id="customStatusScheme" dir="userguide/artifacts/componentMetadata" title="Custom status scheme">
+                <sourcefile file="build.gradle" snippet="custom-status-scheme"/>
+            </sample>
+        </section>
     </section>
     <section id='sec:dependency_cache'>
         <title>The dependency cache</title>
