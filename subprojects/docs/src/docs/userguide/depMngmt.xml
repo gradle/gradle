@@ -153,27 +153,26 @@
                 and the often accidental order of the classpath will determine what version of a dependency will win. On a large project with many developers changing dependencies, successful builds
                 will be few and far between as the order of dependencies may directly affect whether a build succeeds or fails (or whether a bug appears or disappears in production).
             </para>
-            <para>If you haven't had to deal with the curse of conflicting versions of jars on a classpath, here's a small example of the fun that awaits you. Consider a large project with 30
-                submodules, adding a dependency with a particular version to a subproject changes the order of a classpath, swapping an old version of Spring 2.4 for a newer version Spring 2.5. While
-                the build may continue to work, developers are starting to notice all sorts of surprising (and surprisingly awful) bugs in production. Worse yet, this unintentional downgrade of Spring
-                introduced several security vulnerabilities into the system which now require a full security audit throughout the organization.
+            <para>If you haven't had to deal with the curse of conflicting versions of jars on a classpath, here is a small anecdote of the fun that awaits you. In a large project with 30
+                submodules, adding a dependency to a subproject changed the order of a classpath, swapping Spring 2.5 for an older 2.4 version. While
+                the build continued to work, developers were starting to notice all sorts of surprising (and surprisingly awful) bugs in production. Worse yet, this unintentional downgrade of Spring
+                introduced several security vulnerabilities into the system, which now required a full security audit throughout the organization.
             </para>
-            <para>In short, version conflicts are bad, manage your transitive dependencies to avoid them. You might also want to learn where conflicting versions are used and consolidate on a
-                particular version of a dependency across your organization. With a good conflict reporting tool like Gradle that information can be used to communicate with the entire organization
-                and standardise on a single version.
+            <para>In short, version conflicts are bad, and you should manage your transitive dependencies to avoid them. You might also want to learn where conflicting versions are used and consolidate on a
+                particular version of a dependency across your organization. With a good conflict reporting tool like Gradle, that information can be used to communicate with the entire organization
+                and standardize on a single version.
                 <emphasis>If you think version conflicts don't happen to you, think again.</emphasis>
                 It is very common for different first-level dependencies to rely on a range of different overlapping versions for other dependencies, and the JVM doesn't yet offer an easy way to have
                 different versions of the same jar in the classpath (see <xref linkend='sub:dependency_management_and_java'/>).
             </para>
-            <para>Gradle offers following conflict resolution strategies:</para>
+            <para>Gradle offers the following conflict resolution strategies:</para>
             <itemizedlist>
                 <listitem>
-                    <emphasis>Newest</emphasis> - used by default by Gradle - the newest version of the dependency is used. This has been Gradle's approach since the beginning of the project, and
-                    while it isn't appropriate in every situation, this is why Gradle provides you with various options for resolving conflicts.
+                    <emphasis>Newest</emphasis>: The newest version of the dependency is used. This is Gradle's default strategy, and is often an appropriate choice as long as versions are backwards-compatible.
                 </listitem>
                 <listitem>
-                    <emphasis>Fail</emphasis> - fail eagerly on version conflict. Useful if you need extra control over dependencies and if you need to manage version conflicts manually. See
-                    <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/> for reference on managing the conflict resolution strategies.
+                    <emphasis>Fail</emphasis>: A version conflict results in a build failure. This strategy enforces that all version conflicts are resolved explicitly in the build script. See
+                    <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/> for details on how to explicitly choose a particular version.
                 </listitem>
             </itemizedlist>
             <para>While the strategies introduced above are usually enough to solve most conflicts, Gradle provides more fine-grained mechanisms to resolve version conflicts:</para>
@@ -220,7 +219,7 @@
             Many Gradle plugin add pre-defined configurations to your project. The Java plugin, for example,
             adds some configurations to represent the various classpaths it needs. see
             <xref linkend='sec:java_plugin_and_dependency_management'/>
-            for details. Of course you can add your add custom configurations on top of that. There are many use cases
+            for details. Of course you can add custom configurations on top of that. There are many use cases
             for custom configurations. This is very handy for example for adding dependencies not needed for
             building or testing your software (e.g. additional JDBC drivers to be shipped with your distribution).
         </para>
@@ -306,47 +305,43 @@
             <sample id="moduleDependencies" dir="userguide/artifacts/externalDependencies" title="Module dependencies">
                 <sourcefile file="build.gradle" snippet="module-dependencies"/>
             </sample>
-            <para>Please see the
-                <apilink class='org.gradle.api.artifacts.dsl.DependencyHandler'/>
-                for more examples and complete reference. Please read on to get thorough understanding of the Gradle's dependency management.
+            <para>See <apilink class='org.gradle.api.artifacts.dsl.DependencyHandler'/>
+                for more examples and a complete reference.
             </para>
             <para>Gradle provides different notations for module dependencies. There is a string notation and
                 a map notation. A module dependency has an API which allows for further configuration. Have a look at
                 <apilink class='org.gradle.api.artifacts.ExternalModuleDependency'/>
                 to learn all about the API.
                 This API provides properties and configuration methods. Via the string notation you can define a subset
-                the properties. With the map notation you can define all properties. To have access to the complete API,
+                of the properties. With the map notation you can define all properties. To have access to the complete API,
                 either with the map or with the string notation, you can assign a single dependency to a configuration
                 together with a closure.
             </para>
             <para>If you declare a module dependency, Gradle looks for a corresponding module descriptor file (<filename>pom.xml</filename> or
                 <filename>ivy.xml</filename>) in the repositories. If such a module descriptor file exists, it is parsed and the artifacts of
-                this module (e.g.<filename>hibernate-3.0.5.jar</filename>) as well as its dependencies (e.g. cglib) are downloaded. If no such
+                this module (e.g. <filename>hibernate-3.0.5.jar</filename>) as well as its dependencies (e.g. cglib) are downloaded. If no such
                 module descriptor file exists, Gradle looks for a file called <filename>hibernate-3.0.5.jar</filename>
-                to retrieve. In Maven a module can only have one and only one artifact. In Gradle and Ivy a module can have multiple artifacts.
+                to retrieve. In Maven, a module can have one and only one artifact. In Gradle and Ivy, a module can have multiple artifacts.
                 Each artifact can have a different set of dependencies.
             </para>
             <section id='ssub:multi_artifact_dependencies'>
                 <title>Depending on modules with multiple artifacts</title>
-                As mentioned earlier, a Maven module has only one artifact. So, when your project depends on a Maven module it's obvious what artifact is the actual dependency.
-                With Gradle or Ivy the case is different. Ivy model of dependencies (<filename>ivy.xml</filename>) can declare multiple artifacts.
-                For more information, see Ivy reference for<filename>ivy.xml</filename>.
-                In Gradle, when you declare a dependency on an ivy module you actually declare dependency on the '<literal>default</literal>' configuration of that module.
-                So the actual list of artifacts (typically jars) your project depends on, are all artifacts that are attached to the
-                <literal>default</literal> configuration of that module.
-                This is very important in following exemplary use cases:
+                As mentioned earlier, a Maven module has only one artifact. Hence, when your project depends on a Maven module, it's obvious what its artifact is.
+                With Gradle or Ivy, the case is different. Ivy's dependency descriptor (<filename>ivy.xml</filename>) can declare multiple artifacts.
+                For more information, see the Ivy reference for<filename>ivy.xml</filename>.
+                In Gradle, when you declare a dependency on an Ivy module, you actually declare a dependency on the <literal>default</literal> configuration of that module.
+                So the actual set of artifacts (typically jars) you depend on is the set of artifacts that are associated with the
+                <literal>default</literal> configuration of that module. Here are some situations where this matters:
                 <itemizedlist>
-                    <listitem>The <literal>default</literal> configuration of some module contains some artifacts
-                        you don't want on the classpath. You might need to configure a dependency on specific artifact(s) of given module,
-                        rather than pulling all artifacts of the <literal>default</literal> dependency
+                    <listitem>The <literal>default</literal> configuration of a module contains undesired artifacts. Rather than depending on the
+                        whole configuration, a dependency on just the desired artifacts is declared.
                     </listitem>
-                    <listitem>The artifact you need on the classpath has been published in a different configuration
-                        than the <literal>default</literal> one. This means this artifact will not be pulled in by Gradle.
-                        Unless you explicitly declare what configuration of the module you depend on.
+                    <listitem>The desired artifact belongs to a configuration other than <literal>default</literal>. That configuration is explicitly named
+                        as part of the dependency declaration.
                     </listitem>
                 </itemizedlist>
-                There are other situations where it is necessary to fine-tune the dependency declaration.
-                Please see the <apilink class='org.gradle.api.artifacts.dsl.DependencyHandler'/> for examples and complete reference on declaring dependencies.
+                There are other situations where it is necessary to fine-tune dependency declarations.
+                Please see <apilink class='org.gradle.api.artifacts.dsl.DependencyHandler'/> for examples and a complete reference for declaring dependencies.
             </section>
             <section id='ssub:artifact_dependencies'>
                 <title>Artifact only notation</title>
@@ -377,11 +372,11 @@
                 <sample id="classifier" dir="userguide/artifacts/excludesAndClassifiers" title="Dependency with classifier">
                     <sourcefile file="build.gradle" snippet="classifier"/>
                 </sample>
-                <para>As you can see in the example, classifiers can be used together with setting an explicit extension (artifact only notation).
+                <para>As can be seen in the first line above, classifiers can be used together with artifact only notation.
                 </para>
             </section>
-            <para>To use the external dependencies of a configuration:</para>
-            <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies" title="Usage of external dependency of a configuration">
+            <para>It is easy to iterate over the dependency artifacts of a configuration:</para>
+            <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies" title="Iterating over a configuration">
                 <sourcefile file="build.gradle" snippet="use-configuration"/>
                 <output args="-q listJars"/>
             </sample>
@@ -389,13 +384,13 @@
 
         <section id='sub:client_module_dependencies'>
             <title>Client module dependencies</title>
-            <para>Client module dependencies enable you to declare <emphasis>transitive</emphasis> dependencies directly in your build script. They are a replacement for a module descriptor
-                XML file in an external repository.
+            <para>Client module dependencies allow to declare <emphasis>transitive</emphasis> dependencies directly in the build script. They are a replacement for a module descriptor
+                in an external repository.
             </para>
             <sample id="client-modules" dir="userguide/artifacts/externalDependencies" title="Client module dependencies - transitive dependencies">
                 <sourcefile file="build.gradle" snippet="client-modules"/>
             </sample>
-            <para>This declares a dependency of your project on Groovy. Groovy itself has dependencies. But Gradle does
+            <para>This declares a dependency on Groovy. Groovy itself has dependencies. But Gradle does
                 not look for an XML descriptor to figure them out but gets the information from the build file. The
                 dependencies of a client module can be normal module dependencies or artifact dependencies or another
                 client module. Have also a look at the API documentation:
