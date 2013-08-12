@@ -83,25 +83,25 @@ public class VisualCppToolChain extends AbstractToolChain {
 
     public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
         checkAvailable();
-        CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(Tool.CPP_COMPILER);
+        CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(Tool.C_COMPILER);
         return (Compiler<T>) new CCompiler(commandLineTool);
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
         checkAvailable();
-        CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(Tool.CPP_COMPILER);
+        CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(Tool.ASSEMBLER);
         return (Compiler<T>) new Assembler(commandLineTool);
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {
         checkAvailable();
-        CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(Tool.CPP_COMPILER);
+        CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(Tool.LINKER);
         return (Compiler<T>) new LinkExeLinker(commandLineTool);
     }
 
     public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
         checkAvailable();
-        CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(Tool.CPP_COMPILER);
+        CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(Tool.STATIC_LIB_ARCHIVER);
         return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool);
     }
 
