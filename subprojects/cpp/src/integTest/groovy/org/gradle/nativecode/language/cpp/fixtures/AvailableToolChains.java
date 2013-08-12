@@ -57,12 +57,14 @@ public class AvailableToolChains {
         }
 
         VisualStudioInstall install = new VisualStudioInstall(new File("C:/Program Files (x86)/Microsoft Visual Studio 10.0"));
-        if (install.isInstalled()) {
-            InstalledVisualCpp visualCpp = new InstalledVisualCpp("visual c++").withInstall(install);
-
-            return visualCpp;
+        if (!install.isInstalled()) {
+            install = new VisualStudioInstall(new File("C:/Program Files/Microsoft Visual Studio 10.0"));
         }
-        
+
+        if (install.isInstalled()) {
+            return new InstalledVisualCpp("visual c++").withInstall(install);
+        }
+
         return new UnavailableToolChain("visual c++");
     }
 
