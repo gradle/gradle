@@ -94,7 +94,7 @@ public class ResolveIvyFactory {
             userResolverChain.add(localAwareRepository);
         }
 
-        return new DefaultIvyAdapter(versionMatcher, userResolverChain);
+        return new DefaultIvyAdapter(versionMatcher, comparatorLatestStrategy, userResolverChain);
     }
 
     private void ivyContextualize(IvyAwareModuleVersionRepository ivyAwareRepository, UserResolverChain userResolverChain, String configurationName) {

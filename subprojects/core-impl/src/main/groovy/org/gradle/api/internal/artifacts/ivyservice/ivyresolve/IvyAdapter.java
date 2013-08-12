@@ -16,10 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 
 public interface IvyAdapter {
     VersionMatcher getVersionMatcher();
+
+    LatestStrategy getLatestStrategy();
 
     DependencyToModuleVersionResolver getDependencyToModuleResolver();
 }

@@ -16,15 +16,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 
 class DefaultIvyAdapter implements IvyAdapter {
     private final VersionMatcher versionMatcher;
+    private final LatestStrategy latestStrategy;
     private final DependencyToModuleVersionResolver userResolver;
 
-    public DefaultIvyAdapter(VersionMatcher versionMatcher, DependencyToModuleVersionResolver userResolverChain) {
+    public DefaultIvyAdapter(VersionMatcher versionMatcher, LatestStrategy latestStrategy, DependencyToModuleVersionResolver userResolverChain) {
         this.versionMatcher = versionMatcher;
+        this.latestStrategy = latestStrategy;
         userResolver = userResolverChain;
+    }
+
+    public LatestStrategy getLatestStrategy() {
+        return latestStrategy;
     }
 
     public VersionMatcher getVersionMatcher() {
