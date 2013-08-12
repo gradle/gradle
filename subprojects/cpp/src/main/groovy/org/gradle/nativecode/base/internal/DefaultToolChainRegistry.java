@@ -98,6 +98,12 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             ToolChainAvailability availability = toolChain.getAvailability();
             if (availability.isAvailable()) {
                 availableToolChains.add(toolChain);
+
+                // Only use the first available for default tool chains.
+                // TODO:DAZ Use a better mechanism for locating default tool chains
+                if (!hasDefinedToolChain) {
+                    break;
+                }
             }
             messages.add(String.format("Could not load '%s': %s", toolChain.getName(), availability.getUnavailableMessage()));
         }

@@ -99,10 +99,10 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.asList() == [anotherToolChain, replacementToolChain]
     }
 
-    def "returns all available toolchains from defaults in order added"() {
+    def "returns first available toolchain from defaults in order added"() {
         def tc1 = testToolChain("test")
-        def tc2 = testToolChain("test2")
-        def tc3 = testToolChain("test3")
+        testToolChain("test2")
+        testToolChain("test3")
 
         when:
         registry.registerDefaultToolChain("test", TestToolChain)
@@ -111,11 +111,9 @@ class DefaultToolChainRegistryTest extends Specification {
 
         and:
         tc1.getAvailability() >> new ToolChainAvailability()
-        tc2.getAvailability() >> new ToolChainAvailability().unavailable("not available")
-        tc3.getAvailability() >> new ToolChainAvailability()
 
         then:
-        registry.availableToolChains == [tc1, tc3]
+        registry.availableToolChains == [tc1]
     }
 
     def "returns all available toolchains from configured in order added"() {
