@@ -122,8 +122,8 @@ public abstract class OperatingSystem {
         return all;
     }
     
-    List<File> getPath() {                       
-        String path = System.getenv("PATH");
+    List<File> getPath() {
+        String path = System.getenv(getPathVar());
         if (path == null) {
             return Collections.emptyList();
         }
@@ -132,6 +132,10 @@ public abstract class OperatingSystem {
             entries.add(new File(entry));
         }
         return entries;
+    }
+
+    public String getPathVar() {
+        return "PATH";
     }
 
     static class Windows extends OperatingSystem {
@@ -174,6 +178,11 @@ public abstract class OperatingSystem {
                 return executablePath;
             }
             return executablePath + extension;
+        }
+
+        @Override
+        public String getPathVar() {
+            return "Path";
         }
     }
 

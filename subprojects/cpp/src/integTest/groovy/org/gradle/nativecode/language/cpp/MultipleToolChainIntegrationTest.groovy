@@ -20,21 +20,17 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativecode.language.cpp.fixtures.app.CppHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "can build with all available tool chains"() {
         def helloWorld = new CppHelloWorldApp()
 
         List<AvailableToolChains.InstalledToolChain> installedToolChains = []
         for (AvailableToolChains.ToolChainCandidate toolChainCandidate : AvailableToolChains.getToolChains()) {
-            if (toolChainCandidate.isVisualCpp() || !toolChainCandidate.isAvailable()) {
-                continue;
+            if (toolChainCandidate.isAvailable()) {
+                installedToolChains << toolChainCandidate
             }
-            installedToolChains << toolChainCandidate
         }
 
         def toolChainConfig = installedToolChains.collect({it.buildScriptConfig}).join("\n")

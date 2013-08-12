@@ -25,6 +25,7 @@ import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer
 import org.gradle.nativecode.toolchain.internal.msvcpp.VisualCppToolChain;
 import org.gradle.nativecode.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.TextUtil;
 
 import java.io.File;
 import java.util.*;
@@ -220,7 +221,7 @@ public class AvailableToolChains {
         public String getBuildScriptConfig() {
             String config = String.format("%s(%s)\n", getId(), GppToolChain.class.getName());
             for (File pathEntry : getPathEntries()) {
-                config += String.format("%s.path file('%s')", getId(), pathEntry.getAbsolutePath());
+                config += String.format("%s.path file('%s')", getId(), TextUtil.normaliseFileSeparators(pathEntry.getAbsolutePath()));
             }
             return config;
         }
@@ -237,7 +238,7 @@ public class AvailableToolChains {
         public String getBuildScriptConfig() {
             String config = String.format("%s(%s)\n", getId(), VisualCppToolChain.class.getName());
             if (installDir != null) {
-                config += String.format("%s.installDir = file('%s')", getId(), installDir.getAbsolutePath());
+                config += String.format("%s.installDir = file('%s')", getId(), TextUtil.normaliseFileSeparators(installDir.getAbsolutePath()));
             }
             return config;
         }

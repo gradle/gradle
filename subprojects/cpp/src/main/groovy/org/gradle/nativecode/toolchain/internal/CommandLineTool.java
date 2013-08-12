@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.ExecSpecBackedArgCollector;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GFileUtils;
@@ -80,7 +81,9 @@ public class CommandLineTool<T extends CompileSpec> {
         toArguments.collectArguments(spec, new ExecSpecBackedArgCollector(compiler));
 
         if (GUtil.isTrue(path)) {
-            compiler.environment("PATH", path + File.pathSeparator + compiler.getEnvironment().get("PATH"));
+            String pathVar = OperatingSystem.current().getPathVar();
+            String compilerPath = path + File.pathSeparator + System.getenv(pathVar);
+            compiler.environment(pathVar, compilerPath);
         }
 
         compiler.environment(environment);
