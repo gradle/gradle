@@ -59,7 +59,6 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
         this.excludeSpec = excludeSpec;
     }
 
-    // TODO: important to visit files in prefix order? (contract says breadth-wise but probably means prefix.)
     public void visit(FileVisitor visitor) {
         doVisit(visitor, baseDir, new LinkedList<String>(), 0, new AtomicBoolean());
     }
