@@ -17,8 +17,8 @@
 package org.gradle.invocation;
 
 import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.util.CachingClassLoader;
-import org.gradle.util.MultiParentClassLoader;
+import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 
 public class DefaultBuildClassLoaderRegistry implements BuildClassLoaderRegistry {
     private final MultiParentClassLoader rootClassLoader;

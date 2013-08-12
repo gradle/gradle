@@ -40,7 +40,7 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.MultiParentClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;

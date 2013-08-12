@@ -33,7 +33,7 @@ import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.listener.ListenerManager
-import org.gradle.util.MultiParentClassLoader
+import org.gradle.internal.classloader.MultiParentClassLoader
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.sameInstance

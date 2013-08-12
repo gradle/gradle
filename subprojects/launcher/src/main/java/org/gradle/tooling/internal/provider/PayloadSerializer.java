@@ -23,8 +23,8 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.CachingClassLoader;
-import org.gradle.util.MultiParentClassLoader;
+import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 
 import java.io.*;
 import java.lang.reflect.Proxy;

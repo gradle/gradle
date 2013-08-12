@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.classloader;
 
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.util.JavaMethod;
 
 import java.io.IOException;
 import java.net.URL;

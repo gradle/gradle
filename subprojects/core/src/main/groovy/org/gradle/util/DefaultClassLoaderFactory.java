@@ -16,6 +16,7 @@
 package org.gradle.util;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.ServiceLocator;
 

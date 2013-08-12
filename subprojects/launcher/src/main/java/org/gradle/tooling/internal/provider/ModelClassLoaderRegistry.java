@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
-import org.gradle.util.FilteringClassLoader;
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.objectweb.asm.*;
 
 import java.net.URL;

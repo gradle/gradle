@@ -49,7 +49,7 @@ import org.gradle.process.internal.WorkerProcessBuilder
 import org.gradle.profile.ProfileEventAdapter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ClassLoaderFactory
-import org.gradle.util.MultiParentClassLoader
+import org.gradle.internal.classloader.MultiParentClassLoader
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout

@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.FilteringClassLoader
+import org.gradle.internal.classloader.FilteringClassLoader
 import org.junit.Assert
 import org.junit.Rule
 import spock.lang.Ignore

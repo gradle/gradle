@@ -17,6 +17,9 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;

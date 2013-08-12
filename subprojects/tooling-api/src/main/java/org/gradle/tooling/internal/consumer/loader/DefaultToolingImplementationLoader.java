@@ -28,9 +28,9 @@ import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvide
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.util.FilteringClassLoader;
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.MultiParentClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

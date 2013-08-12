@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
+package org.gradle.internal.classloader
 
 import org.hamcrest.Matcher
-import org.jmock.integration.junit4.JMock
+import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.junit.runners.BlockJUnit4ClassRunner
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.junit.Before
 
-@RunWith(JMock.class)
 class FilteringClassLoaderTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final FilteringClassLoader classLoader = new FilteringClassLoader(FilteringClassLoaderTest.class.getClassLoader())
 
     @Test

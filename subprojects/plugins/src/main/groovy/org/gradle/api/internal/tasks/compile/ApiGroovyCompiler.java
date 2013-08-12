@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.util.FilteringClassLoader;
+import org.gradle.internal.classloader.FilteringClassLoader;
 
 import java.io.File;
 import java.io.Serializable;

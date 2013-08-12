@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.net.URI;

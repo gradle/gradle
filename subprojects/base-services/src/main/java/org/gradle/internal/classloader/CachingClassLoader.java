@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.classloader;
 
 import com.google.common.collect.MapMaker;
 
