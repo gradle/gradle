@@ -16,6 +16,8 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonExtensible;
+
 import java.util.List;
 
 /**
@@ -23,6 +25,7 @@ import java.util.List;
  * via metadata rules (see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}.
  */
 @Incubating
+@NonExtensible
 public interface ComponentMetadataDetails {
     /**
      * Returns the identifier of the component.
