@@ -18,7 +18,6 @@ package org.gradle.nativecode.language.cpp.fixtures.app;
 
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GUtil;
-import org.gradle.util.TextUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +27,11 @@ public abstract class HelloWorldApp {
     public static final String HELLO_WORLD_FRENCH = "Bonjour, Monde!";
 
     public String getEnglishOutput() {
-        return TextUtil.toPlatformLineSeparators(HELLO_WORLD + "\n12");
+        return HELLO_WORLD + "\n12";
     }
 
     public String getFrenchOutput() {
-        return TextUtil.toPlatformLineSeparators(HELLO_WORLD_FRENCH + "\n12");
+        return HELLO_WORLD_FRENCH + "\n12";
     }
 
     public String getCustomArgs() {

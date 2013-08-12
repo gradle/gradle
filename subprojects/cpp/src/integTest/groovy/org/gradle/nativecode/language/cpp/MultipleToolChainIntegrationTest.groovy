@@ -56,14 +56,13 @@ ${toolChainConfig}
         helloWorld.writeSources(file("src/main"))
 
         when:
-        def tasks = installedToolChains.collect { "${it.id}MainExecutable" }
+        def tasks = installedToolChains.collect { "install${it.id.capitalize()}MainExecutable" }
         run tasks as String[]
 
         then:
         installedToolChains.each {
-            def executable = file(OperatingSystem.current().getExecutableName("build/binaries/mainExecutable/${it.id}/main"))
+            def executable = file(OperatingSystem.current().getExecutableName("build/install/mainExecutable/${it.id}/main"))
             executable.assertExists()
-            println executable.exec().out
             executable.exec().out == helloWorld.englishOutput
         }
     }

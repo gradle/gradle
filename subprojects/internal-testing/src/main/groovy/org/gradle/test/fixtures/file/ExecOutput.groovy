@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.language.cpp.fixtures
-import org.gradle.nativecode.language.cpp.fixtures.AvailableToolChains.ToolChainCandidate
-import org.gradle.test.fixtures.file.ExecOutput
-import org.gradle.test.fixtures.file.TestFile
+package org.gradle.test.fixtures.file
 
-class ExecutableFixture extends NativeBinaryFixture {
-    ExecutableFixture(TestFile file, ToolChainCandidate toolChain) {
-        super(file, toolChain)
+class ExecOutput {
+    ExecOutput(String rawOutput, String error) {
+        this.rawOutput = rawOutput
+        this.out = rawOutput.replaceAll("\r\n|\r", "\n")
+        this.error = error
     }
 
-    public ExecOutput exec(Object... args) {
-        assertExists()
-        return file.exec(args)
-    }
+    String rawOutput
+    String out
+    String error
 }

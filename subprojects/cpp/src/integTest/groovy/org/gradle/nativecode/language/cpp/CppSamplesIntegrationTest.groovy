@@ -20,8 +20,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
-
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample c = new Sample(temporaryFolder, 'cpp/c')
@@ -44,7 +42,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":assembleMainExecutableMainAsm", ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        normaliseLineSeparators(executable("cpp/c-with-assembler/build/install/mainExecutable/main").exec().out) == "5 + 7 = 12\n"
+        executable("cpp/c-with-assembler/build/install/mainExecutable/main").exec().out == "5 + 7 = 12\n"
     }
 
     def "c"() {
@@ -59,7 +57,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
                               ":compileMainExecutableExeC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        normaliseLineSeparators(executable("cpp/c/build/install/mainExecutable/main").exec().out) == "Hello world!"
+        executable("cpp/c/build/install/mainExecutable/main").exec().out == "Hello world!"
     }
 
     def "cpp"() {
@@ -74,7 +72,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
                               ":compileMainExecutableExeCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        normaliseLineSeparators(executable("cpp/cpp/build/install/mainExecutable/main").exec().out) == "Hello world!\n"
+        executable("cpp/cpp/build/install/mainExecutable/main").exec().out == "Hello world!\n"
     }
 
     def "exe"() {
@@ -88,8 +86,8 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":compileMainExecutableMainCpp", ":linkMainExecutable", ":stripMainExecutable", ":mainExecutable"
 
         and:
-        normaliseLineSeparators(executable("cpp/cpp-exe/build/binaries/mainExecutable/sampleExe").exec().out) == "Hello, World!\n"
-        normaliseLineSeparators(executable("cpp/cpp-exe/build/install/mainExecutable/sampleExe").exec().out) == "Hello, World!\n"
+        executable("cpp/cpp-exe/build/binaries/mainExecutable/sampleExe").exec().out == "Hello, World!\n"
+        executable("cpp/cpp-exe/build/install/mainExecutable/sampleExe").exec().out == "Hello, World!\n"
     }
 
     def "lib"() {
@@ -130,7 +128,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("cpp/variants/build/binaries/helloSharedLibrary/english/hello").assertExists()
 
         and:
-        normaliseLineSeparators(installation("cpp/variants/build/install/mainExecutable/english").exec().out) == "Hello world!\n"
+        installation("cpp/variants/build/install/mainExecutable/english").exec().out == "Hello world!\n"
 
         when:
         sample variants
@@ -145,7 +143,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("cpp/variants/build/binaries/helloSharedLibrary/french/hello").assertExists()
 
         and:
-        normaliseLineSeparators(installation("cpp/variants/build/install/mainExecutable/french").exec().out) == "Bonjour monde!\n"
+        installation("cpp/variants/build/install/mainExecutable/french").exec().out == "Bonjour monde!\n"
     }
 
     def multiProject() {
@@ -161,7 +159,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         and:
         sharedLibrary("cpp/multi-project/lib/build/binaries/mainSharedLibrary/lib").assertExists()
         executable("cpp/multi-project/exe/build/binaries/mainExecutable/exe").assertExists()
-        normaliseLineSeparators(executable("cpp/multi-project/exe/build/install/mainExecutable/exe").exec().out) == "Hello, World!\n"
+        executable("cpp/multi-project/exe/build/install/mainExecutable/exe").exec().out == "Hello, World!\n"
     }
 
     // Does not work on windows, due to GRADLE-2118

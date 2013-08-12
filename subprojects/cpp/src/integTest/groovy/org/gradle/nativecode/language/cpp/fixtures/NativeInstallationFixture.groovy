@@ -17,6 +17,7 @@
 package org.gradle.nativecode.language.cpp.fixtures
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.ExecOutput
 import org.gradle.test.fixtures.file.TestFile
 
 class NativeInstallationFixture {
@@ -26,7 +27,7 @@ class NativeInstallationFixture {
         this.installDir = installDir
     }
 
-    Map<String, ?> exec(Object... args) {
+    ExecOutput exec(Object... args) {
         assertInstalled()
         if (OperatingSystem.current().windows) {
             def exe = installDir.listFiles().find { it.file && it.name.endsWith(".exe") }

@@ -543,7 +543,7 @@ public class TestFile extends File {
         }
     }
     
-    public Map<String, ?> exec(Object... args) {
+    public ExecOutput exec(Object... args) {
         return new TestFileHelper(this).exec(args);
     }
 
