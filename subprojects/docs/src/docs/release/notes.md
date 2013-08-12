@@ -22,6 +22,45 @@ you use has been deprecated, and there doesn't seem to be a replacement for it t
 
 TODO - placeholder
 
+### Component metadata rules
+
+Dependency modules (also called `components`) have metadata associated with them, such as their group, name, version, and dependencies.
+Typically, this metadata is specified in a module descriptor (Ivy file or Maven POM). Component metadata rules allow to manipulate this metadata
+from within the build script. They are evaluated during dependency resolution, before a particular module version has been selected for a dependency.
+This makes metadata rules another instrument for customizing dependency resolution.
+
+As of Gradle 1.8, two pieces of module metadata can be manipulated: A module's *status scheme*, and its *status*. The former describes the
+increasing levels of maturity that the module transitions through over time. The latter describes the module's current maturity,
+and needs to correspond to one of the values listed in the module's status scheme.
+
+A module's status scheme defaults to `integration`, `milestone`, `release` (in that order). Its status defaults to `integration` for Ivy modules
+(if not specified in the Ivy file) and Maven snapshot modules, and to `release` for Maven modules other than snapshots.
+
+What can a status (scheme) be used for? Most notably, a dependency can request the highest module version that has at least the stated status:
+
+    dependencies {
+        // the highest version with status milestone or release
+        compile "org.foo:bar:latest.milestone
+    }
+
+Ivy users will be familiar with this feature. 'Latest' version resolution also works together with custom status schemes:
+
+    componentMetadata {
+        eachComponent { ComponentMetadataDetails details ->
+            if (details.id.group == "org.foo") {
+                // declare a custom status scheme
+                details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+            }
+        }
+    }
+
+    dependencies {
+        // the highest version with status silver, gold, or platinum
+        compile "org.foo:bar:latest.silver"
+    }
+
+For further API details, see ... Future Gradle versions will likely allow more pieces of module metadata to be manipulated.
+
 <!--
 ### Example new and noteworthy
 -->
