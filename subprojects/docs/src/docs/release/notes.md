@@ -36,7 +36,7 @@ and needs to correspond to one of the values listed in the module's status schem
 A module's status scheme defaults to `integration`, `milestone`, `release` (in that order). Its status defaults to `integration` for Ivy modules
 (if not specified in the Ivy file) and Maven snapshot modules, and to `release` for Maven modules other than snapshots.
 
-What can a status (scheme) be used for? Most notably, a dependency can request the highest module version that has at least the stated status:
+What can a status (scheme) be used for? Most notably, a dependency can request the highest module version with at least the stated status:
 
     dependencies {
         // the highest version with status milestone or release
