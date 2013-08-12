@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.cache;
 
+import org.gradle.internal.Factory;
+
 public interface Store<T> {
-    T load();
-    void store(T object);
+    T load(Factory<T> createIfNotPresent);
 }

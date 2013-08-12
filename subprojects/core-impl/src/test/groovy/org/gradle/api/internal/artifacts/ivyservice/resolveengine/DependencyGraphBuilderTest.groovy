@@ -78,9 +78,16 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     private DefaultLenientConfiguration resolve() {
-        def results = new DefaultResolvedConfigurationBuilder(Stub(ResolvedArtifactFactory), new TransientResultsStore(storeFactory.createBinaryStore(configuration), Mock(Store)))
+        def results = new DefaultResolvedConfigurationBuilder(Stub(ResolvedArtifactFactory),
+                new TransientResultsStore(storeFactory.createBinaryStore(configuration), new DummyStore()))
         builder.resolve(configuration, listener, results)
         new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
+    }
+
+    private class DummyStore implements Store {
+        Object load(org.gradle.internal.Factory createIfNotPresent) {
+            return createIfNotPresent.create();
+        }
     }
 
     def "correctly notifies the resolved configuration listener"() {

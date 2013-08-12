@@ -18,40 +18,81 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.cache.Store;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.Factory;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 public class CachedStoreFactory {
 
-    private final Cache<Configuration, TransientConfigurationResults> cache;
+    private static final Logger LOG = Logging.getLogger(CachedStoreFactory.class);
+
+    private final Cache<ConfigurationInternal, TransientConfigurationResults> cache;
+    private final Stats stats;
 
     public CachedStoreFactory(int maxItems) {
         cache = CacheBuilder.newBuilder().maximumSize(maxItems).build();
+        stats = new Stats();
     }
 
-    public Store<TransientConfigurationResults> createCachedStore(final Configuration configuration) {
-        return new SimpleStore(cache, configuration);
+    public Store<TransientConfigurationResults> createCachedStore(final ConfigurationInternal configuration) {
+        return new SimpleStore(cache, configuration, stats);
     }
 
     public void close() {
-        cache.cleanUp();
+        LOG.info("Resolved configuration cache: cache reads: "
+                + stats.readsFromCache + ", disk reads: "
+                + stats.readsFromDisk + " (avg: " + stats.getDiskReadsAvgMs() + ", total: " + stats.diskReadsTotalMs + ")");
+    }
+
+    private static class Stats {
+        private final AtomicLong diskReadsTotalMs = new AtomicLong();
+        private final AtomicLong readsFromCache = new AtomicLong();
+        private final AtomicLong readsFromDisk = new AtomicLong();
+
+        public void readFromDisk(long start) {
+            long duration = System.currentTimeMillis() - start;
+            readsFromDisk.incrementAndGet();
+            diskReadsTotalMs.addAndGet(duration);
+        }
+
+        public void readFromCache() {
+            readsFromCache.incrementAndGet();
+        }
+
+        public long getDiskReadsAvgMs() {
+            if (readsFromDisk.get() == 0) {
+                return 0;
+            }
+            return diskReadsTotalMs.get() / readsFromDisk.get();
+        }
     }
 
     private static class SimpleStore implements Store<TransientConfigurationResults> {
-        private Cache<Configuration, TransientConfigurationResults> cache;
-        private final Configuration configuration;
+        private Cache<ConfigurationInternal, TransientConfigurationResults> cache;
+        private final ConfigurationInternal configuration;
+        private Stats stats;
 
-        public SimpleStore(Cache<Configuration, TransientConfigurationResults> cache, Configuration configuration) {
+        public SimpleStore(Cache<ConfigurationInternal, TransientConfigurationResults> cache, ConfigurationInternal configuration, Stats stats) {
             this.cache = cache;
             this.configuration = configuration;
+            this.stats = stats;
         }
 
-        public TransientConfigurationResults load() {
-            return cache.getIfPresent(configuration);
-        }
-
-        public void store(TransientConfigurationResults object) {
-            cache.put(configuration, object);
+        public TransientConfigurationResults load(Factory<TransientConfigurationResults> createIfNotPresent) {
+            TransientConfigurationResults out = cache.getIfPresent(configuration);
+            if (out != null) {
+                stats.readFromCache();
+                return out;
+            }
+            long start = System.currentTimeMillis();
+            TransientConfigurationResults value = createIfNotPresent.create();
+            stats.readFromDisk(start);
+            cache.put(configuration, value);
+            return value;
         }
     }
 }

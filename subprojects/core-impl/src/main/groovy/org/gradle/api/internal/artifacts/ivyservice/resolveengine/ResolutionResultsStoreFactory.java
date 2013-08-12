@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.CachedStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
@@ -39,7 +38,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     private final TemporaryFileProvider temp;
     private final List<File> deleteMe = new LinkedList<File>();
-    private final CachedStoreFactory cachedStoreFactory = new CachedStoreFactory(20);
+    private final CachedStoreFactory cachedStoreFactory = new CachedStoreFactory(300);
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this.temp = temp;
@@ -63,7 +62,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         cachedStoreFactory.close();
     }
 
-    public Store<TransientConfigurationResults> createCachedStore(final Configuration configuration) {
+    public Store<TransientConfigurationResults> createCachedStore(final ConfigurationInternal configuration) {
         return cachedStoreFactory.createCachedStore(configuration);
     }
 
