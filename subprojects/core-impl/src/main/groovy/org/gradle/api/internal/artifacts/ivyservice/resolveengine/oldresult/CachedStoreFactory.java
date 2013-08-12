@@ -26,6 +26,8 @@ import org.gradle.internal.Factory;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import static org.gradle.util.Clock.prettyTime;
+
 public class CachedStoreFactory {
 
     private static final Logger LOG = Logging.getLogger(CachedStoreFactory.class);
@@ -45,7 +47,7 @@ public class CachedStoreFactory {
     public void close() {
         LOG.info("Resolved configuration cache: cache reads: "
                 + stats.readsFromCache + ", disk reads: "
-                + stats.readsFromDisk + " (avg: " + stats.getDiskReadsAvgMs() + ", total: " + stats.diskReadsTotalMs + ")");
+                + stats.readsFromDisk + " (avg: " + prettyTime(stats.getDiskReadsAvgMs()) + ", total: " + prettyTime(stats.diskReadsTotalMs.get()) + ")");
     }
 
     private static class Stats {

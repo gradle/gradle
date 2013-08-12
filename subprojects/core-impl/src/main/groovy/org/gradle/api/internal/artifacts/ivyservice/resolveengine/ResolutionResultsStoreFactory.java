@@ -75,7 +75,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
         public DataOutputStream getOutput() {
             try {
-                return new DataOutputStream(new FileOutputStream(file));
+                return new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
             } catch (FileNotFoundException e) {
                 throw throwAsUncheckedException(e);
             }
@@ -83,7 +83,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
         public DataInputStream getInput() {
             try {
-                return new DataInputStream(new FileInputStream(file));
+                return new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
             } catch (FileNotFoundException e) {
                 throw throwAsUncheckedException(e);
             }
