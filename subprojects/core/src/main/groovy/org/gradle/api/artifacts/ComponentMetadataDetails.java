@@ -21,7 +21,8 @@ import org.gradle.api.NonExtensible;
 import java.util.List;
 
 /**
- * Details about the metadata of a resolved component. Some details can be changed
+ * Describes a resolved component's metadata, which typically originates from
+ * a component descriptor (Ivy file, Maven POM). Some parts of the metadata can be changed
  * via metadata rules (see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}.
  */
 @Incubating

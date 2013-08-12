@@ -21,6 +21,20 @@ import org.gradle.api.artifacts.ComponentMetadataDetails;
 
 /**
  * Allows to modify the metadata of depended-on software components.
+ *
+ * <p> Example:
+ * <pre autoTested=''>
+ * componentMetadata {
+ *     eachComponent { ComponentMetadataDetails details ->
+ *         if (details.id.group == "org.foo") {
+ *             def version = details.id.version
+ *             // assuming status is last part of version string
+ *             details.status = version.substring(version.lastIndexOf("-") + 1)
+ *             details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+ *         }
+ *     }
+ * }
+ * </pre>
  */
 @Incubating
 public interface ComponentMetadataHandler {
@@ -28,7 +42,7 @@ public interface ComponentMetadataHandler {
      * Adds a rule to modify the metadata of depended-on software components.
      * For example, this allows to set a component's status and status scheme
      * from within the build script, overriding any value specified in the
-     * component's descriptor.
+     * component descriptor.
      *
      * @param rule the rule to be added
      */
