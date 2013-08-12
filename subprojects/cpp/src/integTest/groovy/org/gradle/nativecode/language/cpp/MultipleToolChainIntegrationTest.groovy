@@ -21,9 +21,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativecode.language.cpp.fixtures.app.CppHelloWorldApp
+import spock.lang.Ignore
 
 class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
+    @Ignore
     def "can build with all available tool chains"() {
         def helloWorld = new CppHelloWorldApp()
 
