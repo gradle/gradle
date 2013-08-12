@@ -157,7 +157,7 @@ public class AvailableToolChains {
 
         public InstalledToolChain(String name) {
             this.name = name;
-            this.pathVarName = !OperatingSystem.current().isWindows() ? "Path" : "PATH";
+            this.pathVarName = OperatingSystem.current().getPathVar();
         }
 
         InstalledToolChain inPath(File... pathEntries) {
