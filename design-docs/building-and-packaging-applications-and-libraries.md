@@ -209,7 +209,7 @@ To generate multiple distributions:
 
 Running `gradle distZip customDistZip` will create the distribution ZIP files.
 
-## Allow customisation of the `distribution` plugin
+## Allow customization of the `distribution` plugin
 
 Allow the distributions defined by the `distribution` to be configured and remove the configuration options from the `java-library-distribution` plugin.
 

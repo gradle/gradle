@@ -21,7 +21,7 @@ project(":project1") {
     }
 
 
-    // START SNIPPET customise-identity
+    // START SNIPPET customize-identity
     publishing {
         publications {
             ivy(IvyPublication) {
@@ -34,7 +34,7 @@ project(":project1") {
             }
         }
     }
-    // END SNIPPET customise-identity
+    // END SNIPPET customize-identity
 }
 
 project(":project2") {

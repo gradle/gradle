@@ -17,7 +17,7 @@ In each use case, the 'standard enterprise environment' includes:
 2. Developer installs Gradle and executes build that resolves dependency in corporate repository.
 3. Developer installs Gradle and executes build that publishes module to standard corporate repository.
 4. Developer executes wrapper build where wrapper downloads Gradle version from services.gradle.org in standard enterprise environment.
-5. Developer executes wrapper build where wrapper downloads customised Gradle version from corporate repository in standard enterprise environment.
+5. Developer executes wrapper build where wrapper downloads customized Gradle version from corporate repository in standard enterprise environment.
 6. Developer installs Gradle and executes build that applies external script file that is downloaded from the internet in standard enterprise environment.
 
 # Implementation plan

@@ -38,7 +38,7 @@ To create a full installation (includes docs)…
 
 ### Working with subprojects
 
-The Gradle build uses Gradle's ability to customise the logical structure of a multiproject build. All of the build's subprojects are in the `subprojects/` directory and are mapped to top level children in [settings.gradle](https://github.com/gradle/gradle/blob/master/settings.gradle).
+The Gradle build uses Gradle's ability to customize the logical structure of a multiproject build. All of the build's subprojects are in the `subprojects/` directory and are mapped to top level children in [settings.gradle](https://github.com/gradle/gradle/blob/master/settings.gradle).
 
 This means that to build just the `core` subproject (that lives in `subprojects/core`) you would run:
 

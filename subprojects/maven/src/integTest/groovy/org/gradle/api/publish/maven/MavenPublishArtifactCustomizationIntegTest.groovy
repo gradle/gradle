@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-class MavenPublishArtifactCustomisationIntegTest extends AbstractMavenPublishIntegTest {
+class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can attach custom artifacts"() {
         given:

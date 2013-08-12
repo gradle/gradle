@@ -19,7 +19,7 @@ package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 
-class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec {
+class IvyPublishDescriptorCustomizationIntegTest extends AbstractIntegrationSpec {
 
     def module = ivyRepo.module("org.gradle", "publish", "2")
 
@@ -48,7 +48,7 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
         """
     }
 
-    def "can customise descriptor xml during publication"() {
+    def "can customize descriptor xml during publication"() {
         when:
         succeeds 'publish'
 

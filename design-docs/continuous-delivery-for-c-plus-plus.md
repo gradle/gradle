@@ -174,7 +174,7 @@ Running `gradle customStaticLibrary customSharedLibrary` will build the static a
 - For a build that uses the `cpp` plugin and defines multiple libraries, each library can be built as both a static and shared library binary.
 - Can link a static library into an executable and install and run the resulting executable.
 
-## Story: Allow customisation of binaries before and after linking
+## Story: Allow customization of binaries before and after linking
 
 This story introduces a lifecycle task for each binary, to allow tasks to be wired into the task graph for a given binary. These tasks will be able to modify the object files or binary files before they are consumed.
 
@@ -206,13 +206,13 @@ This story introduces a lifecycle task for each binary, to allow tasks to be wir
 
 - Some convenience to wire this in?
 
-## Story: Allow customisation of binary compilation and linking
+## Story: Allow customization of binary compilation and linking
 
 This story allows some configuration of the settings used to compile and link a given binary.
 
 Some initial support for settings that will be shared by all binaries of a component will also be added.
 
-Later stories will add more flexible and convenient support for customisation of the settings for a binary.
+Later stories will add more flexible and convenient support for customization of the settings for a binary.
 
 - Add the following mutable properties to `NativeBinary`:
     - `outputFile`
@@ -262,7 +262,7 @@ Later stories will add more flexible and convenient support for customisation of
 - `NativeComponent.binaries` collides with `project.binaries`, for example, when defining binary libs.
 - `NativeComponent.binaries.all { }` is awkward for linker settings, as these aren't available for a shared lib binary.
 - Add back some conveniences for compiler and linker args for all binaries once delayed configuration is implemented.
-- Allow customisation of the source sets for a binary.
+- Allow customization of the source sets for a binary.
 - Strongly type the compiler and linker args as `String`.
 - Need to run `ranlib` over static libraries.
 
@@ -670,11 +670,11 @@ Each variant has a platform associated with it.
 
     binaries.all {
         if (binary.platform == platforms.x86_optimised) {
-            // Customise arguments for "x86_optimised" variants
+            // Customize arguments for "x86_optimised" variants
         }
 
         if (binary.platform.architecture.name == "x86") {
-            // Customise arguments for all "x86_standard" and "x86_optimised" variants
+            // Customize arguments for all "x86_standard" and "x86_optimised" variants
         }
     }
 
@@ -998,7 +998,7 @@ TBD
 
 * Allow the visual studio project file to be generated.
 * Merge with existing project file, as for IDEA and Eclipse.
-* Add hooks for customising the generated XML.
+* Add hooks for customizing the generated XML.
 
 # Milestone 4
 

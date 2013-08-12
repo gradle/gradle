@@ -10,7 +10,7 @@ Note: this spec is very much a work in progress.
 
 AKA 'Ivy deliver'. In this instance, dependency declarations in the generated descriptors should use the resolved versions that were used to build the artifacts.
 
-## I want to customise the Ivy or Maven meta-data for a publication
+## I want to customize the Ivy or Maven meta-data for a publication
 
 * Use a (groupId, artifactId, version) identifier that is different to defaults.
 * Add some custom Ivy attributes for the module or a configuration or an artifact.
@@ -23,7 +23,7 @@ AKA 'Ivy deliver'. In this instance, dependency declarations in the generated de
 * I want to publish test fixtures as a separate module.
 * I produce Groovy 1.8 and Groovy 2.0 variants that I want to publish as separate modules.
 
-## I want to customise a publication based on its destination
+## I want to customize a publication based on its destination
 
 * I want to map the 32-bit and 64-bit variants of a native library to `mylib-x86-1.2.dll` and `mylib-amd64-1.2.dll` when publishing to an Ivy repository,
   and to `mylib-1.2-x86.dll` and `mylib-1.2-amd64.dll` when publishing to a Maven repository.
@@ -70,9 +70,9 @@ Note: for the following discussion, all changes are `@Incubating` unless specifi
 
 See [completed stories](done/publication-model.md)
 
-## Customising the Maven and Ivy publication identifier
+## Customizing the Maven and Ivy publication identifier
 
-This step will allow some basic customisation of the meta data model for each publication:
+This step will allow some basic customization of the meta data model for each publication:
 
 1. Add `groupId`, `artifactId`, `version` properties to `MavenPublication`. Add `packaging` property to `MavenPom`.
 2. Change `pom.xml` generation to use these properties.
@@ -91,7 +91,7 @@ This step will allow some basic customisation of the meta data model for each pu
 
 A side-effect of this change is that it will be possible to create and publish multiple publications from a single build.
 
-To customise the `pom.xml`:
+To customize the `pom.xml`:
 
     apply plugin: 'maven-publish'
 
@@ -108,10 +108,10 @@ To customise the `pom.xml`:
         }
     }
 
-Running `gradle publish` will publish to the remote repository, with the customisations. Running `gradle publishLocalMaven` will publish to the local
-Maven repository, with the same customisations.
+Running `gradle publish` will publish to the remote repository, with the customizations. Running `gradle publishLocalMaven` will publish to the local
+Maven repository, with the same customizations.
 
-To customise the `ivy.xml`:
+To customize the `ivy.xml`:
 
     apply plugin: 'ivy-publish'
 
@@ -130,7 +130,7 @@ To customise the `ivy.xml`:
 ### Integration test cases
 
 * A build with project-A depends on project-B.
-    1. Customise the Ivy module identifier and Maven coordinates of project-B.
+    1. Customize the Ivy module identifier and Maven coordinates of project-B.
     2. Publish both projects to an Ivy repository.
     3. Assert that another build can resolve project-A from this Ivy repository.
     4. Publish both projects to a Maven repository.
@@ -228,7 +228,7 @@ This story will address this issue, by ensuring that failure to publish is detec
 * Publish an Ivy publication to an HTTP repository that returns a 500. Assert that failure is reported.
 * Similar tests for Maven publications.
 
-## Allow outgoing dependency declarations to be customised
+## Allow outgoing dependency declarations to be customized
 
 This step decouples the incoming and outgoing dependency declarations, to allow each publication to include a different set of dependencies:
 
@@ -360,7 +360,7 @@ And:
 
 TBD
 
-## Customise the output file for the generated descriptor
+## Customize the output file for the generated descriptor
 
 TBD
 
@@ -445,9 +445,9 @@ These would be mixed in to various steps above (TBD), rather than as one change 
 8. Deprecate and later remove `Configuration` and related types.
 9. Deprecate and later remove support for resolving or publishing using an Ivy DependencyResolver implementation.
 
-## Add further meta-data customisations
+## Add further meta-data customizations
 
-At any point above, and as required, more meta-data for a publication can be made available for customisation. In particular:
+At any point above, and as required, more meta-data for a publication can be made available for customization. In particular:
 
 1. Add `name`, `description`, `url`, `licenses`, `organization`, `scm`, `issueManagement` and `mailingLists` to `MavenPublication`
 2. Add extended attributes to `IvyModuleDescriptor`, `IvyConfiguration` and `IvyArtifact`.

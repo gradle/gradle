@@ -81,7 +81,7 @@
         <para>
             For the “<literal>maven-publish</literal>” plugin to have any effect, a <apilink class="org.gradle.api.publish.maven.MavenPublication" /> must be added to the set of publications.
             This publication determines which artifacts are actually published as well as the details included in the associated POM file.
-            A publication can be configured by adding components, customising artifacts, and by modifying the generated POM file directly.
+            A publication can be configured by adding components, customizing artifacts, and by modifying the generated POM file directly.
         </para>
         <section>
             <title>Publishing a Software Component</title>
@@ -136,7 +136,7 @@
                 <sourcefile file="build.gradle" snippet="publish-custom-artifact" />
             </sample>
             <para>
-                See <apilink class="org.gradle.api.publish.maven.MavenPublication" /> for more detailed documentation on how artifacts can be customised.
+                See <apilink class="org.gradle.api.publish.maven.MavenPublication" /> for more detailed documentation on how artifacts can be customized.
             </para>
         </section>
 
@@ -155,8 +155,8 @@
                 Overriding the default identity values is easy: simply specify the <literal>groupId</literal>, <literal>artifactId</literal>
                 or <literal>version</literal> attributes when configuring the <literal>MavenPublication</literal>.
             </para>
-            <sample dir="maven-publish/multiple-publications" id="publishing_maven:publish-customise-identity" title="Customising the publication identity">
-                <sourcefile file="build.gradle" snippet="customise-identity" />
+            <sample dir="maven-publish/multiple-publications" id="publishing_maven:publish-customize-identity" title="customizing the publication identity">
+                <sourcefile file="build.gradle" snippet="customize-identity" />
             </sample>
             <tip>
                 Certain repositories will not be able to handle all supported characters.

@@ -46,7 +46,7 @@
                     </para>
                 </listitem>
                 <listitem>
-                    <para>Register build loggers.  You might wish to customise how Gradle logs the events that it generates.
+                    <para>Register build loggers.  You might wish to customize how Gradle logs the events that it generates.
                     </para>
                 </listitem>
             </itemizedlist>

@@ -18,7 +18,7 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.test.fixtures.ivy.IvyDescriptorArtifact
 
-class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTest {
+class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTest {
 
     def module = ivyRepo.module("org.gradle.test", "ivyPublish", "2.4")
 

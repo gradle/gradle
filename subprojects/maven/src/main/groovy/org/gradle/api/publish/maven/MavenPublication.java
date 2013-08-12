@@ -71,7 +71,7 @@ import org.gradle.api.publish.Publication;
  *         classifier "source"
  *       }
  *       pom.withXml {
- *         asNode().appendNode('description', 'A demonstration of Maven POM customisation')
+ *         asNode().appendNode('description', 'A demonstration of Maven POM customization')
  *       }
  *     }
  *   }

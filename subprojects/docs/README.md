@@ -40,7 +40,7 @@ You can run the `editReleaseNotes` task to open the raw markdown notes in whatev
 
 ## Userguide
 
-The source for the userguide lives @ `src/docs/userguide`. The userguide is authored using [docbook](http://www.docbook.org/) and uses [docbook stylesheets](http://docbook.sourceforge.net/) with some customisations in `src/stylesheets` to generate HTML. It uses [Flying Saucer](https://xhtmlrenderer.dev.java.net/) + [iText](http://www.lowagie.com/iText/) to generate the PDF from the HTML.
+The source for the userguide lives @ `src/docs/userguide`. The userguide is authored using [docbook](http://www.docbook.org/) and uses [docbook stylesheets](http://docbook.sourceforge.net/) with some customizations in `src/stylesheets` to generate HTML. It uses [Flying Saucer](https://xhtmlrenderer.dev.java.net/) + [iText](http://www.lowagie.com/iText/) to generate the PDF from the HTML.
 
 When adding new content, it's generally best to find an example of the kind of content that you want to add somewhere else in the userguide and copy it.
 

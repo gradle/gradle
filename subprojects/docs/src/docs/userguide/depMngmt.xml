@@ -19,7 +19,7 @@
         <title>Introduction</title>
         <para>Dependency management is a critical feature of every build, and Gradle has placed an emphasis on offering first-class dependency management that is both easy-to-understand and
             compatible with a wide variety of approaches. If you are familiar with the approach used by either Maven or Ivy you will be delighted to learn that Gradle is fully compatible with both
-            approaches in addition to being flexible enough to support fully-customised approaches.
+            approaches in addition to being flexible enough to support fully-customized approaches.
         </para>
 
         <para>Here are the major highlights of Gradle's support for dependency management:</para>
@@ -38,7 +38,7 @@
                 </para>
             </listitem>
             <listitem>
-                <para><emphasis>A fully customisable approach to Dependency Resolution</emphasis>: Gradle provides you with the ability to customize resolution rules making dependency substitution
+                <para><emphasis>A fully customizable approach to Dependency Resolution</emphasis>: Gradle provides you with the ability to customize resolution rules making dependency substitution
                     easy.
                 </para>
             </listitem>
@@ -87,7 +87,7 @@
             <para>Both tools rely on descriptor XML files, which contain information about the dependencies of a particular jar. Both also use repositories where the actual jars are placed together
                 with their descriptor files, and both offer resolution for conflicting jar versions in one form or the other. Both have emerged as standards for solving dependency conflicts, and while
                 Gradle originally used Ivy under the hood for its dependency management. Gradle has replaced this direct dependency on Ivy with a native Gradle dependency resolution engine which
-                supports a range of approached to dependency resolution including both POM and Ivy descriptor files.
+                supports a range of approaches to dependency resolution including both POM and Ivy descriptor files.
             </para>
         </section>
     </section>

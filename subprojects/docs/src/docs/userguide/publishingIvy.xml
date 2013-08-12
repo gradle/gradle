@@ -82,7 +82,7 @@
         <para>
             For the “<literal>ivy-publish</literal>” plugin to have any effect, a <apilink class="org.gradle.api.publish.ivy.IvyPublication" /> must be added to the set of publications.
             This publication determines which artifacts are actually published as well as the details included in the associated Ivy module descriptor file.
-            A publication can be configured by adding components, customising artifacts, and by modifying the generated module descriptor file directly.
+            A publication can be configured by adding components, customizing artifacts, and by modifying the generated module descriptor file directly.
         </para>
         <section>
             <title>Publishing a Software Component</title>
@@ -137,7 +137,7 @@
                 <sourcefile file="build.gradle" snippet="publish-custom-artifact" />
             </sample>
             <para>
-                See <apilink class="org.gradle.api.publish.ivy.IvyPublication" /> for more detailed documentation on how artifacts can be customised.
+                See <apilink class="org.gradle.api.publish.ivy.IvyPublication" /> for more detailed documentation on how artifacts can be customized.
             </para>
         </section>
         <section>
@@ -157,8 +157,8 @@
                 Overriding the default identity values is easy: simply specify the <literal>organisation</literal>, <literal>module</literal>
                 or <literal>revision</literal> attributes when configuring the <literal>IvyPublication</literal>.
             </para>
-            <sample dir="ivy-publish/multiple-publications" id="publishing_ivy:publish-customise-identity" title="Customising the publication identity">
-                <sourcefile file="build.gradle" snippet="customise-identity" />
+            <sample dir="ivy-publish/multiple-publications" id="publishing_ivy:publish-customize-identity" title="customizing the publication identity">
+                <sourcefile file="build.gradle" snippet="customize-identity" />
             </sample>
             <tip>
                 Certain repositories are not able to handle all supported characters.
@@ -321,8 +321,8 @@
             Over the coming Gradle releases, the functionality will be expanded to include (but not limited to):
         </para>
         <itemizedlist>
-            <listitem>Convenient customisation of module attributes (<literal>module</literal>, <literal>organisation</literal> etc.)</listitem>
-            <listitem>Convenient customisation of dependencies reported in <literal>module descriptor</literal>.</listitem>
+            <listitem>Convenient customization of module attributes (<literal>module</literal>, <literal>organisation</literal> etc.)</listitem>
+            <listitem>Convenient customization of dependencies reported in <literal>module descriptor</literal>.</listitem>
             <listitem>Multiple discreet publications per project</listitem>
         </itemizedlist>
     </section>

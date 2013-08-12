@@ -88,7 +88,7 @@
     
     <!-- BOOK TITLEPAGE -->
 
-    <!-- Customise the contents of the book titlepage -->
+    <!-- Customize the contents of the book titlepage -->
     <xsl:template name="book.titlepage">
         <div class="titlepage">
             <div class="title">

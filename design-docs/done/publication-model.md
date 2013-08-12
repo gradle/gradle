@@ -1,4 +1,4 @@
-## Customising Ivy descriptor XML (DONE)
+## Customizing Ivy descriptor XML (DONE)
 
 This initial step will provide some capability to modify the generated `ivy.xml` files before publication. It will introduce a new set of tasks for publishing
 to repositories.
@@ -39,7 +39,7 @@ To publish an Ivy module:
 
 Running `gradle publish` will build the artifacts and upload to the specified repository.
 
-To customise the `ivy.xml`:
+To customize the `ivy.xml`:
 
     apply plugin: 'ivy-publish'
 
@@ -74,7 +74,7 @@ To publish to multiple repositories:
 
 Running `gradle publish` will publish the module to both repositories.
 
-The `ivy-publish` plugin is intended to move Ivy concepts out of the core Gradle DSL, but still allow them to be available for customisation for those
+The `ivy-publish` plugin is intended to move Ivy concepts out of the core Gradle DSL, but still allow them to be available for customization for those
 projects that use Ivy. It also allows us to introduce some breaking changes, in an opt-in way.
 
 Note: there are some breaking changes here when you apply the `ivy-publish` plugin:
@@ -100,7 +100,7 @@ at this point to start pulling descriptor generation up, so that it can eventual
 * Decent error message when the `withXml` action fails.
 * Descriptor contains non-ascii characters.
 
-## Customising Maven descriptor XML (DONE)
+## Customizing Maven descriptor XML (DONE)
 
 This step will provide some capability to modify the generated `pom.xml` files before publication. It will introduce the ability to use the new
 publication tasks to publish Maven modules.
@@ -137,7 +137,7 @@ To publish a Maven module:
 Running `gradle publish` will build the artifacts and upload to the specified repository. Running `gradle publishMavenLocal` will build the artifacts and
 copy them into the local Maven repository.
 
-To customise the `pom.xml`:
+To customize the `pom.xml`:
 
     apply plugin: 'maven-publish'
 
@@ -316,9 +316,9 @@ Note: there is a breaking change in this story, as nothing is published by defau
 - Add a cross version test that verifies that a web application published to a Maven repository by the current Gradle version can be resolved by a previous Gradle version.
 - Copy existing Maven publication tests for web applications and rework to use `maven-publish` plugin.
 
-## Allow outgoing artifacts to be customised for Maven publications
+## Allow outgoing artifacts to be customized for Maven publications
 
-This step allows the outgoing artifacts to be customised for a Maven publication.
+This step allows the outgoing artifacts to be customized for a Maven publication.
 
 1. Add a `MavenArtifact` interface with the following attributes:
     * `extension`
@@ -329,7 +329,7 @@ This step allows the outgoing artifacts to be customised for a Maven publication
 4. When publishing, validate that (extension, classifier) is unique for each artifact.
 5. When publishing, validate that the artifact file exists and is a file.
 
-To customise a Maven publication:
+To customize a Maven publication:
 
     apply plugin: 'maven-publish'
 
@@ -425,7 +425,7 @@ Note: there is a breaking change in this story.
 * Cross-version test that verifies a Java project published by the current version of Gradle can be consumed by a previous version of Gradle,
   and vice versa.
 
-## Allow outgoing artifacts to be customised for Ivy publications (DONE)
+## Allow outgoing artifacts to be customized for Ivy publications (DONE)
 
 1. Add an `IvyArtifact` interface with the following attributes:
     * `name`
@@ -440,7 +440,7 @@ Note: there is a breaking change in this story.
 5. When publishing or generating the descriptor, validate that the (name, type, extension, classifier) attributes are unique for each artifact.
 6. When publishing, validate that the artifact file exists and is a file.
 
-To customise an Ivy publication:
+To customize an Ivy publication:
 
     apply plugin: 'ivy-publish'
 

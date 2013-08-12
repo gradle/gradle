@@ -69,7 +69,7 @@
             </sample>
             <para>Gradle will figure out the properties of the artifact based on the name of the file. You can customize these properties:</para>
             <sample id="fileArtifact" dir="userguide/artifacts/uploading" title="Customizing an artifact">
-                <sourcefile file="build.gradle" snippet="customised-file-artifact"/>
+                <sourcefile file="build.gradle" snippet="customized-file-artifact"/>
             </sample>
             <para>There is a map-based syntax for defining an artifact using a file. The map must include a <literal>file</literal> entry that
                 defines the file. The map may include other artifact properties:

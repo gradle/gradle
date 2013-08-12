@@ -5,7 +5,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 // END SNIPPET use-eclipse-plugin
 
-// START SNIPPET customisation
+// START SNIPPET customization
 sourceCompatibility = 1.5
 version = '1.0'
 jar {
@@ -13,7 +13,7 @@ jar {
         attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
     }
 }
-// END SNIPPET customisation
+// END SNIPPET customization
 
 // START SNIPPET repo
 repositories {
@@ -28,11 +28,11 @@ dependencies {
 }
 // END SNIPPET dependencies
 
-// START SNIPPET task-customisation
+// START SNIPPET task-customization
 test {
     systemProperties 'property': 'value'
 }
-// END SNIPPET task-customisation
+// END SNIPPET task-customization
 
 // START SNIPPET upload
 uploadArchives {

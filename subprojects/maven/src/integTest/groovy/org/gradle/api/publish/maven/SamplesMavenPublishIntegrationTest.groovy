@@ -99,7 +99,7 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         module.assertPublishedAsPomModule()
-        module.parsedPom.description == "A demonstration of maven pom customisation"
+        module.parsedPom.description == "A demonstration of maven POM customization"
     }
 
     def multiplePublications() {

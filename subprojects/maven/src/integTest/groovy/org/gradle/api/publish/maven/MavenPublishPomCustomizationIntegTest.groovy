@@ -21,14 +21,14 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 /**
- * Tests maven POM customisation
+ * Tests maven POM customization
  */
-class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
+class MavenPublishPomCustomizationIntegTest extends AbstractIntegrationSpec {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
-    def "can customise pom xml"() {
+    def "can customize pom xml"() {
         given:
-        settingsFile << "rootProject.name = 'customisePom'"
+        settingsFile << "rootProject.name = 'customizePom'"
         buildFile << """
             apply plugin: 'maven-publish'
 
@@ -59,7 +59,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module('org.gradle.test', 'customisePom', '1.0')
+        def module = mavenRepo.module('org.gradle.test', 'customizePom', '1.0')
         module.assertPublished()
         module.parsedPom.description == 'custom-description'
         module.parsedPom.packaging == 'custom-packaging'

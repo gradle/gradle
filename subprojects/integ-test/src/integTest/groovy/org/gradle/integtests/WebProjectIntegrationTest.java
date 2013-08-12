@@ -34,7 +34,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canCustomiseArchiveNamesUsingConventionProperties() {
+    public void canCustomizeArchiveNamesUsingConventionProperties() {
         testFile("settings.gradle").writelns("rootProject.name = 'test'");
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
