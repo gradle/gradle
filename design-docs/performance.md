@@ -79,8 +79,6 @@ Implementation notes
 
 Potential spikes/stories:
 
-1. Make the task history persistence format more efficient. We're still using Java serialisation for this.
-This is an easy win and we saw some nice improvements when we did this for the artefact meta-data.
 2. Make reading and writing task history more efficient.
 We're doing 6 reads to load the history (3 x index lookups and 3 x data chunks),
 and 7 reads and 8 writes to write the history (4 x reads and 4 x writes for the ids, 3 x index lookups, 3 x index writes and 3 x data chunk writes).
