@@ -92,6 +92,7 @@ It's because the hashes are taken every individual file inside of the zipTree an
 Potential spikes/stories:
 
 1. Reuse classloaders.
+1. Allow parallel dependency resolution
 1. Don't scan the output directories at the end of the task execution, for the compile tasks.
 The compile task knows exactly what its output files were. This only helps for builds where the compilation is out-of-date.
 2. More profiling of configuration time to look for hot-spots.
