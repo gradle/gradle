@@ -90,7 +90,8 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
                 for (InternalDependencyResult dependency : dependencies) {
                     s.write(output, dependency);
                     if (dependency.getFailure() != null) {
-                        //I'm not sure if it is enough to key the failures by the 'requested'
+                        //by keying the failures only be 'requested' we lose some precision
+                        //at edge case we'll lose info about a different exception if we have different failure for the same requested version
                         failures.put(dependency.getRequested(), dependency.getFailure());
                     }
                 }

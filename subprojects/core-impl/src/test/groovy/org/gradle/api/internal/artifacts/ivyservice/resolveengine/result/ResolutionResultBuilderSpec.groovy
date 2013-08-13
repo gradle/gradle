@@ -24,6 +24,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 
 class ResolutionResultBuilderSpec extends Specification {
 
@@ -46,7 +47,7 @@ class ResolutionResultBuilderSpec extends Specification {
         def result = builder.complete()
 
         then:
-        print(result.root) == """x:root:1
+        printGraph(result.root) == """x:root:1
   x:mid1:1 [root]
     x:leaf1:1 [mid1]
     x:leaf2:1 [mid1]
@@ -69,7 +70,7 @@ class ResolutionResultBuilderSpec extends Specification {
         def result = builder.complete()
 
         then:
-        print(result.root) == """x:a:1
+        printGraph(result.root) == """x:a:1
   x:b1:1 [a]
     x:b2:1 [a,b1]
       x:b3:1 [a,b1,b2]
@@ -90,7 +91,7 @@ class ResolutionResultBuilderSpec extends Specification {
         def result = builder.complete()
 
         then:
-        print(result.root) == """x:a:1
+        printGraph(result.root) == """x:a:1
   x:b:1 [a]
     x:c:1 [b]
       x:a:1 [c]
@@ -162,7 +163,7 @@ class ResolutionResultBuilderSpec extends Specification {
         def result = builder.complete()
 
         then:
-        print(result.root) == """x:root:1
+        printGraph(result.root) == """x:root:1
   x:mid1:1 [root]
     x:leaf1:1 [mid1]
     x:leaf2:1 [mid1]
@@ -198,7 +199,7 @@ class ResolutionResultBuilderSpec extends Specification {
         def result = builder.complete()
 
         then:
-        print(result.root) == """x:a:1
+        printGraph(result.root) == """x:a:1
   x:b:1 [a]
   x:c:1 [a]
   x:U:1 -> x:U:1 - Could not resolve x:U:1.
@@ -225,30 +226,6 @@ class ResolutionResultBuilderSpec extends Specification {
 
     private ModuleVersionIdentifier confId(String module) {
         newId("x", module, "1")
-    }
-
-    String print(ResolvedModuleVersionResult root) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(root).append("\n");
-        for (DependencyResult d : root.getDependencies()) {
-            print(d, sb, new HashSet(), "  ");
-        }
-
-        sb.toString();
-    }
-
-    void print(DependencyResult dep, StringBuilder sb, Set visited, String indent) {
-        if (dep instanceof UnresolvedDependencyResult) {
-            sb.append(indent + dep + "\n");
-            return
-        }
-        if (!visited.add(dep.getSelected())) {
-            return
-        }
-        sb.append(indent + dep + " [" + dep.selected.dependents*.from.id.name.join(",") + "]\n");
-        for (ResolvedDependencyResult d : dep.getSelected().getDependencies()) {
-            print(d, sb, visited, "  " + indent);
-        }
     }
 
     class DummyModuleVersionSelection implements ModuleVersionSelection {

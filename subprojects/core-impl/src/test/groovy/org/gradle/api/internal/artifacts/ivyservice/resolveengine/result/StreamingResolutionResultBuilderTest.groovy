@@ -22,7 +22,9 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONFLICT_RESOLUTION
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.REQUESTED
 
 class StreamingResolutionResultBuilderTest extends Specification {
 
@@ -58,28 +60,77 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def result = builder.complete()
 
         then:
-        with(result) {
-            root.selectionReason == VersionSelectionReasons.ROOT
-            root.dependencies*.toString() == ['org:dep1:2.0', 'org:dep2:3.0 -> org:dep2:3.0 - Could not resolve org:dep2:3.0.']
-            root.dependents.empty
-            allModuleVersions*.toString() == ['org:root:1.0', 'org:dep1:2.0']
-        }
+        printGraph(result.root) == """org:root:1.0
+  org:dep1:2.0(C) [root]
+  org:dep2:3.0 -> org:dep2:3.0 - Could not resolve org:dep2:3.0.
+"""
     }
 
     def "visiting resolved module version again has no effect"() {
+        builder.start(newId("org", "root", "1.0"))
+        builder.resolvedModuleVersion(sel("org", "root", "1.0", REQUESTED)) //it's fine
 
+        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", CONFLICT_RESOLUTION))
+        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED)) //will be ignored
+
+        builder.resolvedConfiguration(newId("org", "root", "1.0"),
+                [new DefaultInternalDependencyResult(newSelector("org", "dep1", "2.0"), sel("org", "dep1", "2.0", CONFLICT_RESOLUTION), CONFLICT_RESOLUTION, null)])
+
+        when:
+        def result = builder.complete()
+
+        then:
+        printGraph(result.root) == """org:root:1.0
+  org:dep1:2.0(C) [root]
+"""
     }
 
     def "visiting resolved configuration again accumulates dependencies"() {
+        builder.start(newId("org", "root", "1.0"))
 
+        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED))
+        builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))
+
+        builder.resolvedConfiguration(newId("org", "root", "1.0"), [
+                new DefaultInternalDependencyResult(newSelector("org", "dep1", "2.0"), sel("org", "dep1", "2.0", REQUESTED), REQUESTED, null),
+        ])
+        builder.resolvedConfiguration(newId("org", "root", "1.0"), [
+                new DefaultInternalDependencyResult(newSelector("org", "dep2", "2.0"), sel("org", "dep2", "2.0", REQUESTED), REQUESTED, null),
+        ])
+
+        when:
+        def result = builder.complete()
+
+        then:
+        printGraph(result.root) == """org:root:1.0
+  org:dep1:2.0 [root]
+  org:dep2:2.0 [root]
+"""
     }
 
     def "dependency failures are remembered"() {
+        builder.start(newId("org", "root", "1.0"))
 
-    }
+        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED))
+        builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))
 
-    def "dependency graph is recursive"() {
-        //instances are reused accross the graph
+        builder.resolvedConfiguration(newId("org", "root", "1.0"), [
+            new DefaultInternalDependencyResult(newSelector("org", "dep1", "2.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "1.0"), new RuntimeException())),
+            new DefaultInternalDependencyResult(newSelector("org", "dep2", "2.0"), sel("org", "dep2", "2.0", REQUESTED), REQUESTED, null),
+        ])
+        builder.resolvedConfiguration(newId("org", "dep2", "2.0"), [
+            new DefaultInternalDependencyResult(newSelector("org", "dep1", "5.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "5.0"), new RuntimeException())),
+        ])
+
+        when:
+        def result = builder.complete()
+
+        then:
+        printGraph(result.root) == """org:root:1.0
+  org:dep1:2.0 -> org:dep1:1.0 - Could not resolve org:dep1:1.0.
+  org:dep2:2.0 [root]
+    org:dep1:5.0 -> org:dep1:5.0 - Could not resolve org:dep1:5.0.
+"""
     }
 
     private DefaultModuleVersionSelection sel(String org, String name, String ver, ModuleVersionSelectionReason reason) {
