@@ -1,4 +1,3 @@
-
 This specification defines a number of improvements to the tooling API.
 
 # Use cases
@@ -203,6 +202,7 @@ models is used.
     - The action result cannot be serialized or deserialized.
     - The Gradle process is killed before the action completes.
     - The action requests an unknown model.
+    - The action is compiled for Java 6 but the build runs with Java 5.
 
 ## Story: Tooling API build action iterates over the projects of build
 
@@ -256,3 +256,4 @@ Need to allow a debug port to be specified, as hard-coded port 5005 can conflict
 
 * Discovery or registration?
 * Per-build or per-project?
+* Replace `LongRunningOperation.standardOutput` and `standardError` with overloads that take a `Writer`, and (later) deprecate the `OutputStream` variants.

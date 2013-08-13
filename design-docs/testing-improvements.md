@@ -1,4 +1,4 @@
-Improve TestNG test execution/reporting
+Improve test execution and reporting
 
 # Use cases
 
@@ -154,18 +154,38 @@ HTML report is generated from the binary format, not from XML results
 - Move default destination dir from `JacocoMerge` to plugin.
 - Move default report dir from `JacocoReport` to plugin.
 - Fix up input and output files on `JacocoReport`.
-- `JacocoReport` should not use sourcesets to represent source
-- Change the reporting task so that it `mustRunAfter` the test task.
+- Change the reporting task so that it `mustRunAfter` the test task rather than depends on the test task
+- Running `gradle check` should generate the unit test report
 - Flip the relationship between `jacoco` plugin and `sonar` plugins.
+- Flip the relationship between `jacoco` plugin and `java` plugins.
+- Add `jacoco.reportFormat` extension property.
+- `JacocoReport` should not use sourcesets to represent source
 - Rename the `jacoco` project to `testing`.
 - Move the testing infrastructure into this project.
 - Change the reporting task to implement `Reporting`.
+- Merge `JacocoReport.sourceDirectories` and `additionalSourceDirectories`.
+- Merge `JacocoReport.classDirectories` and `additionalClassDirectories`.
+- Move the input execution data stuff up to `JacocoBase`.
+- Separate coverage infrastructure and convention.
+- Fail build if certain coverage thresholds have not been reached.
+- Document the defaults for `JaCoCoTaskExtension`.
+- Introduce the concept of a test suite.
+    - Add a container of test suites.
+    - Each test suite has an associated test task.
+    - Each test suite has an associated test binary and production binary.
+    - The java plugin (or whatever) defines a single test suite.
+    - The jacoco plugin should add a report task for each test suite for which coverage is enabled.
+    - The jacoco plugin should use the production binary to decide which classes and source files to
+      report on.
 
 ### Test coverage
 
-- Report is generated when all tests fail.
-- Report is generated when one or more tests fail.
+- Report is generated when all tests fail and run with `--continue`.
+- Report is generated when one or more tests fail and run with `--continue`.
 - Report is not generated when tests cannot be run.
+- Dashboard report includes link to each coverage report.
+- Running `gradle jacocoTestReport` generates empty report if test has not been run.
+- Running `gradle test jacocoTestReport` generates report.
 
 ## Story: `Test` task implements the `Reporting` contract
 

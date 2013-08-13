@@ -26,7 +26,7 @@ Rich module metadata is an enabler for other interesting features. (What are som
 
 # Implementation plan
 
-## Consume an Ivy module with custom status
+## Consume an Ivy module with custom status (DONE)
 
 Gradle should be able to consume an Ivy module with custom status. Example:
 
@@ -138,6 +138,12 @@ TBD. May turn out that it's better/easier to implement cross-repository "latest"
 ## Consume a "latest" version of a flatDir module
 
 ## Consume a "latest" version of a module that exists in different types of repositories (Ivy, Maven, flatDir)
+
+## The "+" sub version selector considers versions semantically
+
+Currently, this selector does not consider the versions semantically. For example, `1+` matches `1.0` and `11.0` but not `2.0`.
+
+Also improve the version ordering algorithm to handle cases like `1` vs `1.0`.
 
 # Open issues
 
