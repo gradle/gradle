@@ -23,17 +23,13 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.util.ClasspathUtil;
 
 import java.net.URL;
-import java.security.CodeSource;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
     private final InternalBuildActionExecutor executor;
+    private final ActionClasspathFactory classpathFactory = new ActionClasspathFactory();
 
     public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
@@ -42,33 +38,18 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
 
     @Override
     public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return executor.run(new BuildActionAdapter<T>(action, adapter), new DefaultBuildActionSerializationDetails(action), operationParameters).getModel();
+        ClassLoader actionClassLoader = action.getClass().getClassLoader();
+        List<URL> classpath = classpathFactory.getClassPathForAction(BuildActionAdapter.class, action.getClass());
+        return executor.run(new BuildActionAdapter<T>(action, adapter), new DefaultBuildActionSerializationDetails(classpath, actionClassLoader), operationParameters).getModel();
     }
 
     private static class DefaultBuildActionSerializationDetails implements BuildActionSerializationDetails {
         private final ClassLoader classLoader;
         private final List<URL> classpath;
 
-        private DefaultBuildActionSerializationDetails(BuildAction<?> action) {
-            classLoader = action.getClass().getClassLoader();
-            Set<URL> classpath = new LinkedHashSet<URL>();
-
-            //TODO:ADAM - remove this
-            show(getClass(), "Tooling API");
-            show(action.getClass(), "Build action");
-
-            classpath.addAll(ClasspathUtil.getClasspath(getClass().getClassLoader()));
-            classpath.addAll(ClasspathUtil.getClasspath(classLoader));
-            this.classpath = new ArrayList<URL>(classpath);
-        }
-
-        private void show(Class<?> target, String name) {
-            ClassLoader targetClassLoader = target.getClassLoader();
-            System.out.println(String.format("%s ClassLoader: %s (%s)", name, targetClassLoader, targetClassLoader.getClass()));
-            System.out.println(String.format("    * Classpath: %s", ClasspathUtil.getClasspath(targetClassLoader)));
-            CodeSource codeSource = target.getProtectionDomain().getCodeSource();
-            System.out.println(String.format("    * Codesource: %s", codeSource == null ? null : codeSource.getLocation()));
-            System.out.println(String.format("    * Resource: %s", targetClassLoader.getResource(target.getName().replace(".", "/") + ".class")));
+        private DefaultBuildActionSerializationDetails(List<URL> classpath, ClassLoader classLoader) {
+            this.classLoader = classLoader;
+            this.classpath = classpath;
         }
 
         public List<URL> getActionClassPath() {
