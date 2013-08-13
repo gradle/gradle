@@ -32,7 +32,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictCon
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientResultsStore;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
@@ -85,7 +86,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
 
                 DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
-                ResolutionResultBuilder newGraphBuilder = new ResolutionResultBuilder();
+                ResolvedConfigurationListener newGraphBuilder = new StreamingResolutionResultBuilder();
                 BinaryStore binaryStore = storeFactory.createBinaryStore(configuration);
                 Store<TransientConfigurationResults> resultsCache = storeFactory.createCachedStore(configuration);
                 TransientResultsStore resultsStore = new TransientResultsStore(binaryStore, resultsCache);
