@@ -16,17 +16,33 @@
 
 package org.gradle.nativecode.language.cpp.fixtures.app;
 
-import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativecode.language.cpp.fixtures.AvailableToolChains;
 
 public class MixedLanguageHelloWorldApp extends HelloWorldApp {
+    private final AvailableToolChains.InstalledToolChain toolChain
+
+    MixedLanguageHelloWorldApp(AvailableToolChains.InstalledToolChain toolChain) {
+        this.toolChain = toolChain
+    }
 
     String getCustomArgs() {
-        if (OperatingSystem.current().isMacOsX()) {
-            return """
-                    compilerArgs "-m32"
-                    assemblerArgs "-arch", "i386"
-                    linkerArgs "-no_pie", "-arch", "i386"
-            """
+        if (!toolChain.isVisualCpp()) {
+            // 32bit assembly on osx
+            if (OperatingSystem.current().isMacOsX()) {
+                return """
+                        compilerArgs "-m32"
+                        assemblerArgs "-arch", "i386"
+                        linkerArgs "-no_pie", "-arch", "i386"
+                """
+            }
+            // 32bit gcc assembly on windows
+            if (OperatingSystem.current().isWindows()) {
+                return """
+                        compilerArgs "-m32"
+                        assemblerArgs "-march", "i386"
+                """
+            }
         }
         return super.getCustomArgs()
     }
@@ -88,7 +104,11 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
         if (os.isMacOsX()) {
             return osxAsmSource
         } else if (os.isWindows()) {
-            return windowsAsmSource
+            if (toolChain.isVisualCpp()) {
+                return windowsMasmSource
+            } else {
+                return win32gccAsmSource;
+            }
         } else {
             return linuxAsmSource
         }
@@ -110,7 +130,7 @@ ret
 .subsections_via_symbols
 '''
 
-    private static String windowsAsmSource = '''
+    private static String windowsMasmSource = '''
 .686P
 .XMM
 include   listing.inc
@@ -134,6 +154,19 @@ _sumx    ENDP
 _TEXT   ENDS
 END
 '''
+
+    private static String win32gccAsmSource = '''
+    .text
+    .globl  _sumx
+_sumx:
+    pushl   %ebp
+    movl    %esp, %ebp
+    movl    12(%ebp), %eax
+    addl    8(%ebp), %eax
+    popl    %ebp
+    ret
+'''
+
     private static String linuxAsmSource = '''
     .file   "sumx.c"
     .text

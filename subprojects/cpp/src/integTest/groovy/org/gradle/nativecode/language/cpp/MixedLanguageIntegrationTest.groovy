@@ -22,7 +22,7 @@ import org.gradle.nativecode.language.cpp.fixtures.app.SourceFile
 
 class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
-    HelloWorldApp helloWorldApp = new MixedLanguageHelloWorldApp()
+    HelloWorldApp helloWorldApp = new MixedLanguageHelloWorldApp(toolChain)
 
     def "can have all source files co-located in a common directory"() {
         given:

@@ -17,13 +17,14 @@
 
 package org.gradle.nativecode.language.cpp
 
+import org.gradle.nativecode.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativecode.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativecode.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativecode.language.cpp.fixtures.app.SourceFile
 
 class AssemblyLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
-    HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp()
+    HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp(toolChain)
 
     def "build fails when compilation fails"() {
         given:
@@ -55,6 +56,10 @@ pushl
     }
 
     static class AssemblerWithCHelloWorldApp extends MixedLanguageHelloWorldApp {
+        AssemblerWithCHelloWorldApp(AvailableToolChains.InstalledToolChain toolChain) {
+            super(toolChain)
+        }
+
         @Override
         SourceFile getMainSource() {
             return new SourceFile("c", "main.c", """
