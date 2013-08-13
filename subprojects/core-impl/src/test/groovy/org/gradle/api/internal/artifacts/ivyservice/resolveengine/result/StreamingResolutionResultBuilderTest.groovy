@@ -28,7 +28,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 
 class StreamingResolutionResultBuilderTest extends Specification {
 
-    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder()
+    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore())
 
     def "maintains single result in byte stream"() {
         builder.start(newId("org", "root", "1.0"))

@@ -44,9 +44,9 @@ public class ResolutionResultsStoreFactory implements Closeable {
         this.temp = temp;
     }
 
-    public BinaryStore createBinaryStore(ConfigurationInternal configuration) {
+    public BinaryStore createBinaryStore(ConfigurationInternal configuration, String storeId) {
         String id = configuration.getPath().replaceAll(":", "-");
-        final File file = temp.createTemporaryFile("gradle-" + id + "-result", ".bin");
+        final File file = temp.createTemporaryFile("gradle" + id + "-" + storeId, ".bin");
         file.deleteOnExit();
         deleteMe.add(file);
         return new SimpleBinaryStore(file);

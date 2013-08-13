@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
+import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.internal.Factory;
 
 import java.io.*;
@@ -40,9 +41,14 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
     private final static short DEPENDENCY = 3;
     private final static short DONE = 4;
 
-    private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
-    private final DataOutputStream output = new DataOutputStream(stream);
+    private final DataOutputStream output;
     private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures = new HashMap<ModuleVersionSelector, ModuleVersionResolveException>();
+    private final BinaryStore store;
+
+    public StreamingResolutionResultBuilder(BinaryStore store) {
+        this.store = store;
+        output = store.getOutput();
+    }
 
     public ResolutionResult complete() {
         try {
@@ -52,7 +58,7 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
             throw throwAsUncheckedException(e);
         }
 
-        RootFactory rootSource = new RootFactory(new ByteArrayInputStream(stream.toByteArray()), failures);
+        RootFactory rootSource = new RootFactory(store.getInput(), failures);
         return new DefaultResolutionResult(rootSource);
     }
 
@@ -60,7 +66,6 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
         try {
             output.writeShort(ROOT);
             new ModuleVersionIdentifierSerializer().write((DataOutput) output, root);
-            output.close();
         } catch (IOException e) {
             throw throwAsUncheckedException(e);
         }
@@ -107,9 +112,9 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
         private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures;
         private boolean completed;
 
-        public RootFactory(ByteArrayInputStream inputStream, Map<ModuleVersionSelector, ModuleVersionResolveException> failures) {
+        public RootFactory(DataInputStream input, Map<ModuleVersionSelector, ModuleVersionResolveException> failures) {
+            this.input = input;
             this.failures = failures;
-            input = new DataInputStream(inputStream);
         }
 
         public ResolvedModuleVersionResult create() {
