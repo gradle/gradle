@@ -48,7 +48,22 @@ Potential implementation plan:
 
 # Daemon
 
-Potential spikes/stories:
+# Cache task history (for up-to-date checks) in memory across builds
+
+Results from a spike show 30% speed improvement for the 'fully' incremental build.
+So it's worth spending more time on it.
+
+Considerations:
+
+ - storing more stuff in memory impacts the heap and also gc performance
+ - feature only useful when daemon is used so perhaps it's worth enabling it only ran with the daemon.
+ - expiration of the cache. The task history is a set of files, but we can check only taskArtifacts file.
+ If it was touched it means that we should throw away the cache.
+ Later, we might improve it and smartly expire parts of the cache.
+ - when do we check if cache is expired? Every time we lock the task artifact cache.
+ We might check lastModified or write some sequence number to the cache.
+
+# Other potential spikes/stories:
 
 1. Daemon rebuilds and caches the model after the build. This way, next time we run the build, the configured model is already built and configuration time is zero.
 Tasks selected for execution also determine the model.
@@ -59,8 +74,6 @@ the build environment settings in various places, and so on.
 Implementation notes
     -projects can declare inputs for model caching
     -the feature is not enabled by default (can be turned on)
-
-2. Cache some or all of the task history in memory across builds
 
 # Task history
 
