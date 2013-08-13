@@ -31,12 +31,12 @@ repositories {
     // END SNIPPET custom-status-scheme
 
     task listFish << {
-        config1.each { println it.name }
+        configurations.config1.each { println it.name }
         println()
-        config2.each { println it.name}
+        configurations.config2.each { println it.name}
     }
 
     task listBirds << {
-        config3.each { println it.name }
+        configurations.config3.each { println it.name }
     }
 }
