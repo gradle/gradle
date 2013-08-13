@@ -544,7 +544,7 @@ public class TestFile extends File {
     }
     
     public ExecOutput exec(Object... args) {
-        return new TestFileHelper(this).exec(args);
+        return new TestFileHelper(this).execute(Arrays.asList(args), null);
     }
 
     public ExecOutput execute(List args, List env) {

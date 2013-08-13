@@ -173,12 +173,12 @@ class TestFileHelper {
         return process.inputStream.text.trim()
     }
 
-    ExecOutput exec(Object... args) {
-        return execute(args as List, [])
+    ExecOutput exec(List args) {
+        return execute(args, null)
     }
 
     ExecOutput execute(List args, List env) {
-        def process = ([file.absolutePath] + args).execute(env, file.parentFile)
+        def process = ([file.absolutePath] + args).execute(env, null)
         String output = process.inputStream.text
         String error = process.errorStream.text
         if (process.waitFor() != 0) {
