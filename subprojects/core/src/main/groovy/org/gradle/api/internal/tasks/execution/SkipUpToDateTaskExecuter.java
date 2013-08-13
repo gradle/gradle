@@ -54,7 +54,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
                 state.upToDate();
                 return;
             }
-            logOutOfDateMessages(messages, task);
+            logOutOfDateMessages(messages, task, clock.getTime());
 
             task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
             context.setTaskArtifactState(taskArtifactState);
@@ -75,10 +75,10 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
     }
 
 
-    private void logOutOfDateMessages(List<String> messages, TaskInternal task) {
+    private void logOutOfDateMessages(List<String> messages, TaskInternal task, String took) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
-            formatter.format("Executing %s due to:", task);
+            formatter.format("Executing %s (up-to-date check took %s) due to:", task, took);
             for (String message : messages) {
                 formatter.format("%n  %s", message);
             }
