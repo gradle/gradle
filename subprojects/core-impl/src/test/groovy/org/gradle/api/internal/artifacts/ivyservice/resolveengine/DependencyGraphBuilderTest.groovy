@@ -34,8 +34,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBi
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
-import org.gradle.api.internal.cache.Store
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
