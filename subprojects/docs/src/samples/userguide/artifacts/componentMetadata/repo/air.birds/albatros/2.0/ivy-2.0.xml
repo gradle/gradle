@@ -3,5 +3,7 @@
           module="albatros"
           revision="2.0"
           status="gold"/>
-    <artifact />
+    <publications>
+        <artifact />
+    </publications>
 </ivy-module>

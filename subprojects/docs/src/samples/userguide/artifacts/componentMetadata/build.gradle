@@ -20,7 +20,7 @@ repositories {
     componentMetadata {
         eachComponent { ComponentMetadataDetails details ->
             if (details.id.group == "air.birds") {
-                details.statusScheme == ["bronze", "silver", "gold", "platinum"]
+                details.statusScheme = ["bronze", "silver", "gold", "platinum"]
             }
         }
     }

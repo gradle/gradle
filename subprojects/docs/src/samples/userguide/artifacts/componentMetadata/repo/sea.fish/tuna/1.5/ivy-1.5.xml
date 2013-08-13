@@ -3,5 +3,7 @@
           module="tuna"
           revision="1.5"
           status="integration" />
-    <artifact />
+    <publications>
+        <artifact />
+    </publications>
 </ivy-module>
