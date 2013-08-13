@@ -41,10 +41,14 @@ public class AvailableToolChains {
             compilers.add(findMinGW());
             compilers.add(findCygwin());
         } else {
+            // GCC4.x must be on the path
             compilers.add(findGpp("4", null));
+            // CI servers have GCC4.4 installed additionally
+            compilers.add(findGpp("4.4", "/opt/gcc/4.4/bin/g++"));
+            // It's easy to get GCC4.8 installed on OSX, and symlink to this location
+            compilers.add(findGpp("4.8", "/opt/gcc/4.8/bin/g++"));
 
-            // GCC 3.4.6 installations are broken on CI servers
-//            compilers.add(findGpp("3", "/opt/gcc/3.4.6/bin/g++"));
+            // TODO:DAZ Make a GCC3 install available for testing
         }
         return compilers;
     }
