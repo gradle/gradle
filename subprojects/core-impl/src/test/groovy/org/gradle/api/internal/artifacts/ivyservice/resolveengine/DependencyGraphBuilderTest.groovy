@@ -30,6 +30,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMeta
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientResultsStore
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBinaryStore
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.cache.Store
@@ -49,8 +51,6 @@ class DependencyGraphBuilderTest extends Specification {
     final ModuleToModuleVersionResolver moduleResolver = Mock()
     final DependencyToConfigurationResolver dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
     final DependencyGraphBuilder builder = new DependencyGraphBuilder(dependencyResolver, moduleResolver, conflictResolver, dependencyToConfigurationResolver)
-    //TODO SF should not use real impl or at least use the test name temp dir provider
-    final ResolutionResultsStoreFactory storeFactory = new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider())
 
     def setup() {
         config(root, 'root', 'default')
@@ -79,15 +79,9 @@ class DependencyGraphBuilderTest extends Specification {
 
     private DefaultLenientConfiguration resolve() {
         def results = new DefaultResolvedConfigurationBuilder(Stub(ResolvedArtifactFactory),
-                new TransientResultsStore(storeFactory.createBinaryStore(configuration, "new-model"), new DummyStore()))
+                new TransientResultsStore(new DummyBinaryStore(), new DummyStore()))
         builder.resolve(configuration, listener, results)
         new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
-    }
-
-    private class DummyStore implements Store {
-        Object load(org.gradle.internal.Factory createIfNotPresent) {
-            return createIfNotPresent.create();
-        }
     }
 
     def "correctly notifies the resolved configuration listener"() {

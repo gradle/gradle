@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -28,24 +27,26 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.gradle.util.Clock.prettyTime;
 
-public class CachedStoreFactory {
+public class CachedStoreFactory<T> {
 
     private static final Logger LOG = Logging.getLogger(CachedStoreFactory.class);
 
-    private final Cache<ConfigurationInternal, TransientConfigurationResults> cache;
+    private final Cache<String, T> cache;
     private final Stats stats;
+    private String displayName;
 
-    public CachedStoreFactory(int maxItems) {
-        cache = CacheBuilder.newBuilder().maximumSize(maxItems).build();
+    public CachedStoreFactory(String displayName) {
+        this.displayName = displayName;
+        cache = CacheBuilder.newBuilder().maximumSize(100).build();
         stats = new Stats();
     }
 
-    public Store<TransientConfigurationResults> createCachedStore(final ConfigurationInternal configuration) {
-        return new SimpleStore(cache, configuration, stats);
+    public Store<T> createCachedStore(final String id) {
+        return new SimpleStore<T>(cache, id, stats);
     }
 
     public void close() {
-        LOG.info("Resolved configuration cache: cache reads: "
+        LOG.info(displayName + " cache closed. Cache reads: "
                 + stats.readsFromCache + ", disk reads: "
                 + stats.readsFromDisk + " (avg: " + prettyTime(stats.getDiskReadsAvgMs()) + ", total: " + prettyTime(stats.diskReadsTotalMs.get()) + ")");
     }
@@ -73,27 +74,27 @@ public class CachedStoreFactory {
         }
     }
 
-    private static class SimpleStore implements Store<TransientConfigurationResults> {
-        private Cache<ConfigurationInternal, TransientConfigurationResults> cache;
-        private final ConfigurationInternal configuration;
+    private static class SimpleStore<T> implements Store<T> {
+        private Cache<String, T> cache;
+        private final String id;
         private Stats stats;
 
-        public SimpleStore(Cache<ConfigurationInternal, TransientConfigurationResults> cache, ConfigurationInternal configuration, Stats stats) {
+        public SimpleStore(Cache<String, T> cache, String id, Stats stats) {
             this.cache = cache;
-            this.configuration = configuration;
+            this.id = id;
             this.stats = stats;
         }
 
-        public TransientConfigurationResults load(Factory<TransientConfigurationResults> createIfNotPresent) {
-            TransientConfigurationResults out = cache.getIfPresent(configuration);
+        public T load(Factory<T> createIfNotPresent) {
+            T out = cache.getIfPresent(id);
             if (out != null) {
                 stats.readFromCache();
                 return out;
             }
             long start = System.currentTimeMillis();
-            TransientConfigurationResults value = createIfNotPresent.create();
+            T value = createIfNotPresent.create();
             stats.readFromDisk(start);
-            cache.put(configuration, value);
+            cache.put(id, value);
             return value;
         }
     }

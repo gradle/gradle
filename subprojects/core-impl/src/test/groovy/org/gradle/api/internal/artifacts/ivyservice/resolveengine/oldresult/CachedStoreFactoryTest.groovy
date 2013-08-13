@@ -16,24 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult
 
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.internal.Factory
 import spock.lang.Specification
 
 class CachedStoreFactoryTest extends Specification {
 
     def "stores results"() {
-        def factory = new CachedStoreFactory(20)
-
-        def conf1 = Mock(ConfigurationInternal)
-        def conf2 = Mock(ConfigurationInternal)
+        def factory = new CachedStoreFactory("some cache")
 
         def results1 = Mock(TransientConfigurationResults)
         def results2 = Mock(TransientConfigurationResults)
 
-        def store1 = factory.createCachedStore(conf1)
-        def store1b = factory.createCachedStore(conf1)
-        def store2 = factory.createCachedStore(conf2)
+        def store1 = factory.createCachedStore("conf1")
+        def store1b = factory.createCachedStore("conf1")
+        def store2 = factory.createCachedStore("conf2")
 
         expect:
         store1.load({results1} as Factory) == results1

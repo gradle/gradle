@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -86,15 +87,19 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
 
                 DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
+
                 BinaryStore newModelStore = storeFactory.createBinaryStore(configuration, "new-model");
-                ResolvedConfigurationListener newGraphBuilder = new StreamingResolutionResultBuilder(newModelStore);
+                Store<ResolvedModuleVersionResult> newModelCache = storeFactory.createNewModelCache(configuration);
+                ResolvedConfigurationListener newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache);
+
                 BinaryStore oldModelStore = storeFactory.createBinaryStore(configuration, "old-model");
-                Store<TransientConfigurationResults> resultsCache = storeFactory.createCachedStore(configuration);
-                TransientResultsStore resultsStore = new TransientResultsStore(oldModelStore, resultsCache);
-                DefaultResolvedConfigurationBuilder oldGraphBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, resultsStore);
-                builder.resolve(configuration, newGraphBuilder, oldGraphBuilder);
-                DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldGraphBuilder, cacheLockingManager);
-                return new ResolverResults(new DefaultResolvedConfiguration(result), newGraphBuilder.complete());
+                Store<TransientConfigurationResults> oldModelCache = storeFactory.createOldModelCache(configuration);
+                TransientResultsStore oldModelResults = new TransientResultsStore(oldModelStore, oldModelCache);
+                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, oldModelResults);
+
+                builder.resolve(configuration, newModelBuilder, oldModelBuilder);
+                DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder, cacheLockingManager);
+                return new ResolverResults(new DefaultResolvedConfiguration(result), newModelBuilder.complete());
             }
         });
     }

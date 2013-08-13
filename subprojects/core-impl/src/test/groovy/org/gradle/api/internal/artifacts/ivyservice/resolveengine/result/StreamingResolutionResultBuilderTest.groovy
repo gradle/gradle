@@ -28,7 +28,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 
 class StreamingResolutionResultBuilderTest extends Specification {
 
-    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore())
+    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore())
 
     def "maintains single result in byte stream"() {
         builder.start(newId("org", "root", "1.0"))
@@ -40,11 +40,9 @@ class StreamingResolutionResultBuilderTest extends Specification {
         with(result) {
             root.id == newId("org", "root", "1.0")
             root.selectionReason == VersionSelectionReasons.ROOT
-            root.dependencies.empty
-            root.dependents.empty
-            allModuleVersions == [root] as Set
-            allDependencies.empty
         }
+        printGraph(result.root) == """org:root:1.0
+"""
     }
 
     def "maintains graph in byte stream"() {

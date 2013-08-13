@@ -24,7 +24,11 @@ import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.cache.BinaryStore;
+import org.gradle.api.internal.cache.Store;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
+import org.gradle.util.Clock;
 
 import java.io.*;
 import java.util.*;
@@ -44,9 +48,11 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
     private final DataOutputStream output;
     private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures = new HashMap<ModuleVersionSelector, ModuleVersionResolveException>();
     private final BinaryStore store;
+    private Store<ResolvedModuleVersionResult> cache;
 
-    public StreamingResolutionResultBuilder(BinaryStore store) {
+    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedModuleVersionResult> cache) {
         this.store = store;
+        this.cache = cache;
         output = store.getOutput();
     }
 
@@ -58,7 +64,7 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
             throw throwAsUncheckedException(e);
         }
 
-        RootFactory rootSource = new RootFactory(store.getInput(), failures);
+        RootFactory rootSource = new RootFactory(store, failures, cache);
         return new DefaultResolutionResult(rootSource);
     }
 
@@ -108,20 +114,36 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
 
     private static class RootFactory implements Factory<ResolvedModuleVersionResult> {
 
-        private final DataInputStream input;
-        private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures;
-        private boolean completed;
+        private final static Logger LOG = Logging.getLogger(RootFactory.class);
 
-        public RootFactory(DataInputStream input, Map<ModuleVersionSelector, ModuleVersionResolveException> failures) {
-            this.input = input;
+        private BinaryStore store;
+        private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures;
+        private Store<ResolvedModuleVersionResult> cache;
+        private final Object lock = new Object();
+
+        public RootFactory(BinaryStore store, Map<ModuleVersionSelector, ModuleVersionResolveException> failures,
+                           Store<ResolvedModuleVersionResult> cache) {
+            this.store = store;
             this.failures = failures;
+            this.cache = cache;
         }
 
         public ResolvedModuleVersionResult create() {
-            assert !completed;
+            synchronized (lock) {
+                return cache.load(new Factory<ResolvedModuleVersionResult>() {
+                    public ResolvedModuleVersionResult create() {
+                        return createNow();
+                    }
+                });
+            }
+        }
+
+        private ResolvedModuleVersionResult createNow() {
+            DataInputStream input = store.getInput();
             ResolutionResultBuilder builder = new ResolutionResultBuilder();
             int valuesRead = 0;
             short type = -1;
+            Clock clock = new Clock();
             try {
                 while (true) {
                     ModuleVersionIdentifierSerializer s = new ModuleVersionIdentifierSerializer();
@@ -147,16 +169,16 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
                             builder.resolvedConfiguration(id, deps);
                             break;
                         case DONE:
-                            return builder.complete().getRoot();
+                            ResolvedModuleVersionResult root = builder.complete().getRoot();
+                            LOG.info("Loaded resolution results ({}) from {}", clock.getTime(), store);
+                            return root;
                         default:
                             throw new IllegalArgumentException("Unknown value type: " + type);
                     }
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Problems loading the resolution result (new model). Read: "
-                        + valuesRead + " values, last: " + type, e);
-            } finally {
-                completed = true;
+                throw new RuntimeException("Problems loading the resolution results (" + clock.getTime() + ") from " + store.diagnose()
+                        + ". Read " + valuesRead + " values, last was: " + type, e);
             }
         }
     }

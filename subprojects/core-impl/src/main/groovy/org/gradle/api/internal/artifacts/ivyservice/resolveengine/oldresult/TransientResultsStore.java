@@ -131,7 +131,7 @@ public class TransientResultsStore {
                         id = s.read((DataInput) input);
                         results.root = results.allDependencies.get(id);
                         //root should be the last
-                        LOG.info("Loaded dependency resolution results ({}) from {}", clock.getTime(), binaryStore);
+                        LOG.info("Loaded resolved configuration results ({}) from {}", clock.getTime(), binaryStore);
                         return results;
                     case FIRST_LVL:
                         id = s.read((DataInput) input);
@@ -150,7 +150,8 @@ public class TransientResultsStore {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Problems loading the resolution result (" + clock.getTime() + ") from " + binaryStore.diagnose() + ". Read " + valuesRead + " values, last was: " + type, e);
+            throw new RuntimeException("Problems loading the resolved configuration (" + clock.getTime() + ") from " + binaryStore.diagnose()
+                    + ". Read " + valuesRead + " values, last was: " + type, e);
         }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.CachedStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
@@ -38,7 +39,10 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     private final TemporaryFileProvider temp;
     private final List<File> deleteMe = new LinkedList<File>();
-    private final CachedStoreFactory cachedStoreFactory = new CachedStoreFactory(300);
+    private final CachedStoreFactory<TransientConfigurationResults> oldModelCache =
+            new CachedStoreFactory<TransientConfigurationResults>("Resolution result");
+    private final CachedStoreFactory<ResolvedModuleVersionResult> newModelCache =
+            new CachedStoreFactory<ResolvedModuleVersionResult>("Resolved configuration");
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this.temp = temp;
@@ -57,13 +61,18 @@ public class ResolutionResultsStoreFactory implements Closeable {
         for (File file : deleteMe) {
             file.delete();
         }
-        //TODO SF trim down to debug before 1.8
+        //TODO SF trim down to debug before 1.8 (also the old/newModel.close())
         LOG.info("Deleted {} resolution results binary files in {}", deleteMe.size(), clock.getTime());
-        cachedStoreFactory.close();
+        oldModelCache.close();
+        newModelCache.close();
     }
 
-    public Store<TransientConfigurationResults> createCachedStore(final ConfigurationInternal configuration) {
-        return cachedStoreFactory.createCachedStore(configuration);
+    public Store<TransientConfigurationResults> createOldModelCache(final ConfigurationInternal configuration) {
+        return oldModelCache.createCachedStore(configuration.getPath());
+    }
+
+    public Store<ResolvedModuleVersionResult> createNewModelCache(ConfigurationInternal configuration) {
+        return newModelCache.createCachedStore(configuration.getPath());
     }
 
     private static class SimpleBinaryStore implements BinaryStore {

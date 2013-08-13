@@ -33,7 +33,6 @@ import java.util.Set;
 public class DefaultResolutionResult implements ResolutionResult {
 
     private Factory<ResolvedModuleVersionResult> rootSource;
-    private ResolvedModuleVersionResult root;
 
     public DefaultResolutionResult(Factory<ResolvedModuleVersionResult> rootSource) {
         assert rootSource != null;
@@ -41,10 +40,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     public ResolvedModuleVersionResult getRoot() {
-        if (root == null) {
-            root = rootSource.create(); //TODO SF, caching, threading
-        }
-        return root;
+        return rootSource.create();
     }
 
     public Set<? extends DependencyResult> getAllDependencies() {
