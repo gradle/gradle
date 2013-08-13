@@ -42,10 +42,9 @@ public class AvailableToolChains {
             compilers.add(findCygwin());
         } else {
             compilers.add(findGpp("4", null));
-            compilers.add(findGpp("3", "/opt/gcc/3.4.6/bin/g++"));
 
-            // TODO:DAZ This is here for local testing
-            compilers.add(findGpp("4.8", "/usr/local/gcc-4.8/g++"));
+            // GCC 3.4.6 installations are broken on CI servers
+//            compilers.add(findGpp("3", "/opt/gcc/3.4.6/bin/g++"));
         }
         return compilers;
     }
