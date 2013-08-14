@@ -179,16 +179,20 @@ Test output is associated with the correct test when test cases are run concurre
 
 ## Story: HTML test report shows aggregated output (out + err)
 
--instead of showing separate tabs for out + err, there's a single tab 'output'
+Introduce a timeline of the test execution that visualizes the output and error logging of the tests for a class:
 
-### Backwards compatibility:
-
--depending how the story is implemented, we might drop support for separate err and std output.
-It's a breaking change in a way but I don't find the separate err/std output useful.
+- Instead of showing separate tabs for out + err, there's a single tab 'output'
+- stdout and stderr are rendered in visually distinct ways
+- Interleave the test start and complete events into the output.
 
 ## Story: HTML test report shows runtime grouping of tests into suites
 
-- Add the tree of test execution to the test report
+- Show the runtime tree of test execution to the test report, in addition to the current implementation view.
+- Include some way to attach context to a test suite to include in the reports
+
+## Story: Aggregate HTML test report shows execution of same class in multiple suites
+
+Currently the aggregate test report implementation cannot handle a given class executing in multiple suites.
 
 ## Story: HTML report contains the output from TestNG Reporter
 
