@@ -296,9 +296,13 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                 Description translated = translateDescription(description);
                 notifier.fireTestStarted(translated);
                 if (!started) {
-                    started = true;
-                    assertCanExecute();
-                    before();
+                    try {
+                        assertCanExecute();
+                        started = true;
+                        before();
+                    } catch (Throwable t) {
+                        notifier.fireTestFailure(new Failure(translated, t));
+                    }
                 }
             }
 

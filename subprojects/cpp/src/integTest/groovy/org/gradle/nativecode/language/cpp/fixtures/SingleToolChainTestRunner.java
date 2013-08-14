@@ -58,9 +58,7 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
 
         @Override
         protected void assertCanExecute() {
-            if (!toolChain.isAvailable()) {
-                throw new RuntimeException(String.format("Tool chain %s not available", toolChain.getDisplayName()));
-            }
+            assert toolChain.isAvailable() : String.format("Tool chain %s not available", toolChain.getDisplayName());
         }
 
         @Override

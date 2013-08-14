@@ -45,8 +45,13 @@ public class AvailableToolChains {
             compilers.add(findGpp("4", null));
             // CI servers have GCC4.4 installed additionally
             compilers.add(findGpp("4.4", "/opt/gcc/4.4/bin/g++"));
+
             // It's easy to get GCC4.8 installed on OSX, and symlink to this location
-            compilers.add(findGpp("4.8", "/opt/gcc/4.8/bin/g++"));
+            // Not available on CI servers, so only add it if it's available
+            ToolChainCandidate gpp48 = findGpp("4.8", "/opt/gcc/4.8/bin/g++");
+            if (gpp48.isAvailable()) {
+                compilers.add(gpp48);
+            }
 
             // TODO:DAZ Make a GCC3 install available for testing
         }
