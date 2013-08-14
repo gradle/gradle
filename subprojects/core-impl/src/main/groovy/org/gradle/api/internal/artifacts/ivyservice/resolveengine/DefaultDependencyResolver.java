@@ -88,11 +88,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
                 DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
 
-                BinaryStore newModelStore = storeFactory.createBinaryStore(configuration, "new-model");
+                BinaryStore newModelStore = storeFactory.createBinaryStore("new-model");
                 Store<ResolvedModuleVersionResult> newModelCache = storeFactory.createNewModelCache(configuration);
                 ResolvedConfigurationListener newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache);
 
-                BinaryStore oldModelStore = storeFactory.createBinaryStore(configuration, "old-model");
+                BinaryStore oldModelStore = storeFactory.createBinaryStore("old-model");
                 Store<TransientConfigurationResults> oldModelCache = storeFactory.createOldModelCache(configuration);
                 TransientResultsStore oldModelResults = new TransientResultsStore(oldModelStore, oldModelCache);
                 DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, oldModelResults);

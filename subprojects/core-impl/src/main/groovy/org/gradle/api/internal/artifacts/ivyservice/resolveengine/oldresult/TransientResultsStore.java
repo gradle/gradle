@@ -43,6 +43,7 @@ public class TransientResultsStore {
     private static final short PARENT_ARTIFACT = 5;
 
     private final Object lock = new Object();
+    private final int offset;
 
     private DataOutputStream output;
     private BinaryStore binaryStore;
@@ -52,6 +53,7 @@ public class TransientResultsStore {
         this.binaryStore = binaryStore;
         this.cache = cache;
         this.output = binaryStore.getOutput();
+        this.offset = output.size();
     }
 
     private void writeId(short type, ResolvedConfigurationIdentifier... ids) {
@@ -72,9 +74,9 @@ public class TransientResultsStore {
 
     public void done(ResolvedConfigurationIdentifier id) {
         writeId(ROOT, id);
-        LOG.debug("Closing results stream {}. Wrote root {}.", binaryStore, id);
+        LOG.debug("Flushing results stream (offset: {}) {}. Wrote root {}.", offset, binaryStore, id);
         try {
-            output.close();
+            output.flush();
         } catch (IOException e) {
             throw throwAsUncheckedException(e);
         } finally {
@@ -103,20 +105,21 @@ public class TransientResultsStore {
         synchronized (lock) {
             TransientConfigurationResults value = cache.load(new Factory<TransientConfigurationResults>() {
                 public TransientConfigurationResults create() {
-                    return deserialize(mapping);
+                    return deserialize(mapping, offset);
                 }
             });
             return value;
         }
     }
 
-    private TransientConfigurationResults deserialize(ResolvedContentsMapping mapping) {
+    private TransientConfigurationResults deserialize(ResolvedContentsMapping mapping, int offset) {
         Clock clock = new Clock();
         DefaultTransientConfigurationResults results = new DefaultTransientConfigurationResults();
         DataInputStream input = binaryStore.getInput();
         int valuesRead = 0;
         short type = -1;
         try {
+            input.skipBytes(offset);
             while (true) {
                 ResolvedConfigurationIdentifierSerializer s = new ResolvedConfigurationIdentifierSerializer();
                 type = input.readShort();

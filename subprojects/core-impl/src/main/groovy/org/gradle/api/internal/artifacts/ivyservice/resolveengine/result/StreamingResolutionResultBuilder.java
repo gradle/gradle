@@ -49,22 +49,24 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
     private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures = new HashMap<ModuleVersionSelector, ModuleVersionResolveException>();
     private final BinaryStore store;
     private Store<ResolvedModuleVersionResult> cache;
+    private final int offset;
 
     public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedModuleVersionResult> cache) {
         this.store = store;
         this.cache = cache;
         output = store.getOutput();
+        offset = output.size();
     }
 
     public ResolutionResult complete() {
         try {
             output.writeShort(DONE);
-            output.close();
+            output.flush();
         } catch (IOException e) {
             throw throwAsUncheckedException(e);
         }
 
-        RootFactory rootSource = new RootFactory(store, failures, cache);
+        RootFactory rootSource = new RootFactory(store, offset, failures, cache);
         return new DefaultResolutionResult(rootSource);
     }
 
@@ -117,13 +119,15 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
         private final static Logger LOG = Logging.getLogger(RootFactory.class);
 
         private BinaryStore store;
+        private int offset;
         private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures;
         private Store<ResolvedModuleVersionResult> cache;
         private final Object lock = new Object();
 
-        public RootFactory(BinaryStore store, Map<ModuleVersionSelector, ModuleVersionResolveException> failures,
+        public RootFactory(BinaryStore store, int offset, Map<ModuleVersionSelector, ModuleVersionResolveException> failures,
                            Store<ResolvedModuleVersionResult> cache) {
             this.store = store;
+            this.offset = offset;
             this.failures = failures;
             this.cache = cache;
         }
@@ -145,6 +149,8 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
             short type = -1;
             Clock clock = new Clock();
             try {
+                int bytesSkipped = input.skipBytes(offset);
+                assert bytesSkipped == offset;
                 while (true) {
                     ModuleVersionIdentifierSerializer s = new ModuleVersionIdentifierSerializer();
                     type = input.readShort();
@@ -178,7 +184,7 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Problems loading the resolution results (" + clock.getTime() + ") from " + store.diagnose()
-                        + ". Read " + valuesRead + " values, last was: " + type, e);
+                        + " (offset: " + offset + "). Read " + valuesRead + " values, last was: " + type, e);
             }
         }
     }

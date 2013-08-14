@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import com.google.common.collect.MapMaker;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.CachedStoreFactory;
@@ -28,8 +29,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
 
 import java.io.*;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
@@ -38,7 +39,6 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private final static Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
 
     private final TemporaryFileProvider temp;
-    private final List<File> deleteMe = new LinkedList<File>();
     private final CachedStoreFactory<TransientConfigurationResults> oldModelCache =
             new CachedStoreFactory<TransientConfigurationResults>("Resolution result");
     private final CachedStoreFactory<ResolvedModuleVersionResult> newModelCache =
@@ -48,21 +48,33 @@ public class ResolutionResultsStoreFactory implements Closeable {
         this.temp = temp;
     }
 
-    public BinaryStore createBinaryStore(ConfigurationInternal configuration, String storeId) {
-        String id = configuration.getPath().replaceAll(":", "-");
-        final File file = temp.createTemporaryFile("gradle" + id + "-" + storeId, ".bin");
-        file.deleteOnExit();
-        deleteMe.add(file);
-        return new SimpleBinaryStore(file);
+    private final ConcurrentMap<String, SimpleBinaryStore> stores = new MapMaker().makeMap();
+    private final Object lock = new Object();
+
+    public BinaryStore createBinaryStore(String id) {
+        String storeKey = Thread.currentThread().getId() + id; //one store per thread
+        if (stores.containsKey(storeKey)) {
+            return stores.get(storeKey);
+        }
+        synchronized (lock) {
+            SimpleBinaryStore store = stores.get(storeKey);
+            if (store == null) {
+                File storeFile = temp.createTemporaryFile("gradle", UUID.randomUUID().toString() + ".bin");
+                storeFile.deleteOnExit();
+                store = new SimpleBinaryStore(storeFile);
+                stores.put(storeKey, store);
+            }
+            return store;
+        }
     }
 
     public void close() throws IOException {
         Clock clock = new Clock();
-        for (File file : deleteMe) {
-            file.delete();
+        for (SimpleBinaryStore store : stores.values()) {
+            store.close();
         }
         //TODO SF trim down to debug before 1.8 (also the old/newModel.close())
-        LOG.info("Deleted {} resolution results binary files in {}", deleteMe.size(), clock.getTime());
+        LOG.info("Deleted {} resolution results binary files in {}", stores.size(), clock.getTime());
         oldModelCache.close();
         newModelCache.close();
     }
@@ -77,17 +89,19 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     private static class SimpleBinaryStore implements BinaryStore {
         private File file;
+        private DataOutputStream outputStream;
 
         public SimpleBinaryStore(File file) {
             this.file = file;
-        }
-
-        public DataOutputStream getOutput() {
             try {
-                return new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
+                outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
             } catch (FileNotFoundException e) {
                 throw throwAsUncheckedException(e);
             }
+        }
+
+        public DataOutputStream getOutput() {
+            return outputStream;
         }
 
         public DataInputStream getInput() {
@@ -105,6 +119,15 @@ public class ResolutionResultsStoreFactory implements Closeable {
         @Override
         public String toString() {
             return "Binary store in " + file;
+        }
+
+        public void close() {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                throw throwAsUncheckedException(e);
+            }
+            file.delete();
         }
     }
 }

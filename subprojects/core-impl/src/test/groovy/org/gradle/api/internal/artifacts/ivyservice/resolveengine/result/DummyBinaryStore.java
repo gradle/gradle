@@ -22,9 +22,10 @@ import java.io.*;
 public class DummyBinaryStore implements BinaryStore {
 
     private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    private DataOutputStream output = new DataOutputStream(bytes);
 
     public DataOutputStream getOutput() {
-        return new DataOutputStream(bytes);
+        return output;
     }
 
     public DataInputStream getInput() {
