@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +54,8 @@ public class ProviderConnection implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
     private final ToolingGlobalScopeServices services;
-    private PayloadSerializer payloadSerializer;
+    private final PayloadSerializer payloadSerializer;
+    private final ActionClasspathFactory actionClasspathFactory;
 
     public ProviderConnection() {
         //embedded use of the tooling api is not supported publicly so we don't care about its thread safety
@@ -61,6 +63,7 @@ public class ProviderConnection implements Stoppable {
         embeddedExecuterSupport = new EmbeddedExecuterSupport();
         services = new ToolingGlobalScopeServices();
         payloadSerializer = services.get(PayloadSerializer.class);
+        actionClasspathFactory = new ActionClasspathFactory();
     }
 
     public void stop() {
@@ -114,7 +117,8 @@ public class ProviderConnection implements Stoppable {
     }
 
     public Object run(InternalBuildAction<?> clientAction, final BuildActionSerializationDetails serializationDetails, ProviderOperationParameters providerParameters) {
-        final PayloadSerializer.ClassLoaderDetails actionClassLoader = new PayloadSerializer.ClassLoaderDetails(UUID.randomUUID(), serializationDetails.getActionClassPath());
+        List<URL> classPath = actionClasspathFactory.getClassPathForAction(serializationDetails.getActionClasses());
+        final PayloadSerializer.ClassLoaderDetails actionClassLoader = new PayloadSerializer.ClassLoaderDetails(UUID.randomUUID(), classPath);
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction, new PayloadSerializer.SerializeMap() {
             public PayloadSerializer.ClassLoaderDetails getDetails(ClassLoader target) {
                 return actionClassLoader;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.connection;
+package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.MapMaker;
 import org.gradle.api.GradleException;
@@ -41,7 +41,7 @@ public class ActionClasspathFactory {
         this.classPathCache = new MapMaker().weakKeys().makeMap();
     }
 
-    public List<URL> getClassPathForAction(Class<?>... actionClasses) {
+    public List<URL> getClassPathForAction(Iterable<Class<?>> actionClasses) {
         Set<URL> fullClassPath = new LinkedHashSet<URL>();
 
         lock.lock();

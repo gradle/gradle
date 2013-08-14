@@ -16,10 +16,11 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import java.net.URL;
 import java.util.List;
 
 /**
+ * TODO:ADAM - Remove this
+ *
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
  * <p>Consumer compatibility: This interface is used by all consumer versions from 1.8-rc-1.</p>
@@ -30,10 +31,10 @@ import java.util.List;
  */
 public interface BuildActionSerializationDetails {
     /**
-     * Returns the classpath to use to de-serialize the action in the build process. The protocol classes are
+     * Returns the classes which need be visible to de-serialize the action in the build process. The protocol classes are
      * made visible to the classes loaded from this classpath.
      */
-    List<URL> getActionClassPath();
+    List<Class<?>> getActionClasses();
 
     /**
      * Returns the ClassLoader to use to de-serialize the result.

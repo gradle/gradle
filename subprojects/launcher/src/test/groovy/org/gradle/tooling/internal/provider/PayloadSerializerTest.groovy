@@ -191,8 +191,8 @@ class PayloadSerializerTest extends Specification {
         def filter = new FilteringClassLoader(aClass.classLoader)
         filter.allowClass(aClass)
         return filter
-
     }
+
     ClassLoader isolated(ClassLoader parent = ClassLoader.systemClassLoader.parent, Class<?>... classes) {
         def rootDir = tmpDir.createDir(classes[0].simpleName)
         for (Class<?> aClass : classes) {

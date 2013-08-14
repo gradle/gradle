@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.connection;
+package org.gradle.tooling.internal.provider;
 
 import java.io.Serializable;
 

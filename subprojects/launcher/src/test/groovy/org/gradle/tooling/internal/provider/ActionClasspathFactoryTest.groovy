@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.connection
+package org.gradle.tooling.internal.provider
 
 import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,7 +32,7 @@ class ActionClasspathFactoryTest extends Specification {
         def actionClass = cl.loadClass(CustomAction.name)
 
         expect:
-        def classpath = factory.getClassPathForAction(actionClass)
+        def classpath = factory.getClassPathForAction([actionClass])
         def loader = new MutableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
         def action = loader.loadClass(CustomAction.name).newInstance()
         action.execute(null)
@@ -43,8 +43,8 @@ class ActionClasspathFactoryTest extends Specification {
         def actionClass = cl.loadClass(CustomAction.name)
 
         expect:
-        def classpath = factory.getClassPathForAction(actionClass)
-        factory.getClassPathForAction(actionClass) == classpath
+        def classpath = factory.getClassPathForAction([actionClass])
+        factory.getClassPathForAction([actionClass]) == classpath
     }
 
     def "determines action and tooling API classpath when loaded via custom ClassLoader implementation"() {
@@ -52,7 +52,7 @@ class ActionClasspathFactoryTest extends Specification {
         def actionClass = cl.loadClass(CustomAction.name)
 
         expect:
-        def classpath = factory.getClassPathForAction(actionClass)
+        def classpath = factory.getClassPathForAction([actionClass])
         def loader = new MutableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
         def action = loader.loadClass(CustomAction.name).newInstance()
         action.execute(null)
@@ -64,7 +64,7 @@ class ActionClasspathFactoryTest extends Specification {
         def actionClass = cl.loadClass(CustomAction.name)
 
         expect:
-        def classpath = factory.getClassPathForAction(actionClass)
+        def classpath = factory.getClassPathForAction([actionClass])
         def loader = new MutableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
         def action = loader.loadClass(CustomAction.name).newInstance()
         action.execute(null)

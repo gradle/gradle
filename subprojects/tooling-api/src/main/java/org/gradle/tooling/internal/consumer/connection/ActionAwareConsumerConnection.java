@@ -24,12 +24,11 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 
-import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 
 public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
     private final InternalBuildActionExecutor executor;
-    private final ActionClasspathFactory classpathFactory = new ActionClasspathFactory();
 
     public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
@@ -39,21 +38,20 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
     @Override
     public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         ClassLoader actionClassLoader = action.getClass().getClassLoader();
-        List<URL> classpath = classpathFactory.getClassPathForAction(BuildActionAdapter.class, action.getClass());
-        return executor.run(new BuildActionAdapter<T>(action, adapter), new DefaultBuildActionSerializationDetails(classpath, actionClassLoader), operationParameters).getModel();
+        return executor.run(new BuildActionAdapter<T>(action, adapter), new DefaultBuildActionSerializationDetails(Arrays.<Class<?>>asList(BuildActionAdapter.class, action.getClass()), actionClassLoader), operationParameters).getModel();
     }
 
     private static class DefaultBuildActionSerializationDetails implements BuildActionSerializationDetails {
         private final ClassLoader classLoader;
-        private final List<URL> classpath;
+        private final List<Class<?>> actionClasses;
 
-        private DefaultBuildActionSerializationDetails(List<URL> classpath, ClassLoader classLoader) {
+        private DefaultBuildActionSerializationDetails(List<Class<?>> actionClasses, ClassLoader classLoader) {
             this.classLoader = classLoader;
-            this.classpath = classpath;
+            this.actionClasses = actionClasses;
         }
 
-        public List<URL> getActionClassPath() {
-            return classpath;
+        public List<Class<?>> getActionClasses() {
+            return actionClasses;
         }
 
         public ClassLoader getResultClassLoader() {
