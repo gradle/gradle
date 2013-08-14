@@ -76,7 +76,6 @@ public class ResolveIvyFactory {
                 ivyContextualize((IvyAwareModuleVersionRepository) moduleVersionRepository, userResolverChain, configuration.getName());
             }
             if (moduleVersionRepository instanceof ExternalResourceResolver) {
-                // TODO:DAZ this should be cache-locking?
                 // TODO:DAZ Should have type for this
                 ((ExternalResourceResolver) moduleVersionRepository).setResolver(parentLookupResolver);
             }
@@ -101,7 +100,6 @@ public class ResolveIvyFactory {
     }
 
     private void ivyContextualize(IvyAwareModuleVersionRepository ivyAwareRepository, UserResolverChain userResolverChain, String configurationName) {
-        // TODO:DAZ Fix it so that ivy is only initialised if/when required here
         Ivy ivy = IvyContext.getContext().getIvy();
         IvySettings ivySettings = ivy.getSettings();
         LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver("main", userResolverChain, cacheLockingManager);
