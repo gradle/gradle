@@ -456,12 +456,13 @@ This story adds support for using assembler source files as inputs to a native b
 This story adds initial support for building multiple variants of a native component. For each variant of a component, a binary of the appropriate type is defined.
 
 - Add a `flavors` container to `NativeComponent`
-- If no flavors are defined, then implicitly define a `default` flavor (or perhaps just always define the `default` flavor).
-- For each flavor defined for an `Executable`, create an `ExecutableBinary`.
-- For each flavor defined for a `Library`, create a `SharedLibraryBinary` and `StaticLibraryBinary`.
+- If no flavors are defined, then implicitly define a `default` flavor.
+- Variants will be built for all available flavors:
+    - With a single flavor, the binary task names and output directories will NOT contain the flavor name.
+    - With multiple flavors, task names and output directories for each variant will include the flavor name.
 - Add a property to `NativeBinary` to allow navigation to the flavor for this binary.
-- When resolving the dependencies of a binary `b`, for a dependency on library `l`:, select the binary of `l` with the same flavor as `b`, if present, otherwise
-    - If `l` has multiple flavors defined, select the binary with the same flavor as `b`. Fail if no binary with matching flavor.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`:
+    - If `l` has multiple flavors defined, select the binary with the same flavor as `b`. Fail if no binary with matching flavor. Match flavors based on their name.
     - If `l` has a single flavor (default or defined), select the binary with that flavor.
 
 ### User visible changes
@@ -485,6 +486,10 @@ This will define 4 binaries:
 - library: 'main', flavor: 'withOptionalFeature', packaging: 'static'
 - library: 'main', flavor: 'withOptionalFeature', packaging: 'shared'
 
+### Test cases
+
+- Executable with flavors depends on a library with a single flavor which depends on a library with flavors.
+
 ### Open issues
 
 - Add a 'development' assemble task, which chooses a single binary for each component.
@@ -496,7 +501,7 @@ This will define 4 binaries:
 - Need separate compiler, linker and assembler options for each variant.
 - Need shared compiler, linker and assembler options for all variants.
 - Need to consume locally and between projects and between builds.
-- Need to infer the default variant.
+- Need a hook to infer the default variant.
 - Need to handle dependencies.
 - Need to publish all variants.
 
@@ -504,14 +509,17 @@ This will define 4 binaries:
 
 This story adds support for building a native component using multiple tool chains. Each variant will have a tool chain associated with it.
 
-- Build author can configure a set of ToolChains that may be used to build.
-- If no tool chain is configured, then a single default tool chain will be used.
+- Build author can define a set of tool chain that may be used to build a component.
+- If no tool chain is defined, then a single default tool chain will be used.
 - From the set of defined tool chains, a set of available tool chains will be determined for building.
 - Variants will be built for all available tool chains.
-    - With a single available tool chain, the binary task names and output directories will NOT contain the tool chain name.
-    - With multiple available tool chains, task names and output directories for each variant will include the tool chain name.
-- Local dependency resolution will attempt choose a binary with a matching tool chain name
-- When building component, will attempt to variants for all available tool chains.
+    - With a single defined tool chain, the binary task names and output directories will NOT contain the tool chain name.
+    - With multiple defined tool chains, task names and output directories for each variant will include the tool chain name.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`:
+    - If `l` has multiple toolchains defined, select the binary with the same toolchain as `b`. Fail if no binary with matching toolchain. Match toolchains based on their name.
+    - If `l` has a single toolchain, select the binary with that toolchain.
+    - In both instances, assert that the toolchain for the selected binary is ABI compatible with the toolchain being used.
+- When building component, will attempt to build variants for all available tool chains.
 
 ### User visible changes
 
@@ -550,6 +558,7 @@ This story adds support for building a native component using multiple tool chai
 - Build with Visual C++, MinGW and GCC on Windows in a single invocation, with no tool chain in path.
 - Reasonable error message when no tool chain is defined and default is not available.
 - Reasonable error message any defined tool chain not available.
+- Build an executable with multiple toolchains that uses a library with a single toolchain that uses a library with multiple toolchains.
 
 ### Open issues
 
@@ -564,10 +573,10 @@ This story adds support for building a native component using multiple tool chai
     - Verify the version for defined toolchain (with binPath provided)
 - VisualCppToolChain should automatically switch between different executables for different target architectures.
 
-## Story: Build a native component for multiple platforms
+## Story: Build a native component for multiple architectures
 
 This story adds support for building a component for multiple architectures.
-Introduce the concept of a platform, which may have an associated architecture and operating system.
+Introduce the concept of a native platform, which may have an associated architecture and operating system.
 Each ToolChain can be asked if it can build for a particular platform.
 Each variant has a platform associated with it.
 
@@ -575,8 +584,16 @@ Each variant has a platform associated with it.
 - Native binaries plugin adds `Platform` and `PlatformContainer` and a container instance named `targetPlatforms`
 - Add `Platform.architecture`, that defaults to the current architecture.
 - If no target platform is defined, then the current platform is added as a default.
+- Add a `platform` property to `NativeBinary` to allow navigation from the binary to its corresponding platform.
 - Split `PlatformToolChain` out of `ToolChainInternal`, and add `ToolChainInternal.target(Platform) -> PlatformToolChain`.
 - `PlatformToolChain` contains built-in knowledge of arguments required to build for target platform.
+- Variants will be built for all available architectures
+    - With a single defined platform, the binary task names and output directories will NOT contain the platform name.
+    - With multiple defined platforms, task names and output directories for each variant will include the platform name.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`:
+    - If `l` has multiple platforms defined, select the binary with the same platform as `b`. Fail if no binary with matching platform. Match platforms based on their name.
+    - If `l` has a single platform, select the binary with that platform.
+    - In both instances, assert that the platform for the selected binary is compatible with the platform the binary is being built for
 
 ### User visible changes
 
@@ -608,6 +625,7 @@ Each variant has a platform associated with it.
 ### Tests
 
 - For each supported toolchain, build a 32-bit binary on a 64-bit machine.
+- Build an executable with multiple architectures that uses a library with a single architecture that uses a library with multiple architectures.
 
 ### Open issues
 
@@ -1179,3 +1197,4 @@ TBD
 * Can in theory share the compile task between a static library and an executable built from the same source.
 * Publishing and resolving RPM/DEB/NuGet/pkg-config/ etc.
 * Support for profiling builds: build with profiling enabled, execute a bunch of times, then build again using the profiling information.
+* Support for install distributions, which may bundle some, all, or none of the runtime dependencies (including language runtime libraries).
