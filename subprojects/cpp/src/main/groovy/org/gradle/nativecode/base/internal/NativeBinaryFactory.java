@@ -24,17 +24,17 @@ import org.gradle.nativecode.base.NativeComponent;
 import org.gradle.nativecode.base.ToolChain;
 
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
 
 class NativeBinaryFactory {
     private final Instantiator instantiator;
     private final Project project;
     private final boolean useToolChainDimension;
 
-    public NativeBinaryFactory(Instantiator instantiator, Project project, List<? extends ToolChain> availableToolChains) {
+    public NativeBinaryFactory(Instantiator instantiator, Project project, Collection<? extends ToolChain> allToolChains) {
         this.instantiator = instantiator;
         this.project = project;
-        this.useToolChainDimension = availableToolChains.size() > 1;
+        this.useToolChainDimension = allToolChains.size() > 1;
     }
 
     public <T extends DefaultNativeBinary> T createNativeBinary(Class<T> type, NativeComponent component, ToolChain toolChain, Flavor flavor) {

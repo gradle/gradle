@@ -16,7 +16,6 @@
 package org.gradle.nativecode.base.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
@@ -30,26 +29,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+// TODO:DAZ Need a better way of having a container with defaults. Similar for FlavorContainer.
+// Probably need a separate container for defaults and registered, and then have a simple delegating container, or factory.
 public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectContainer<ToolChain> implements ToolChainRegistry {
-    private final List<ToolChainInternal> searchOrder = new ArrayList<ToolChainInternal>();
-    private boolean hasDefinedToolChain;
+    private ToolChain defaultToolChain;
 
     public DefaultToolChainRegistry(Instantiator instantiator) {
         super(ToolChain.class, instantiator);
-        whenObjectAdded(new Action<ToolChain>() {
-            public void execute(ToolChain toolChain) {
-                searchOrder.add((ToolChainInternal) toolChain);
-            }
-        });
-        whenObjectRemoved(new Action<ToolChain>() {
-            public void execute(ToolChain toolChain) {
-                searchOrder.remove(toolChain);
-            }
-        });
-    }
-
-    public List<ToolChainInternal> getSearchOrder() {
-        return searchOrder;
     }
 
     @Override
@@ -58,52 +44,49 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
     }
 
     public void registerDefaultToolChain(String name, Class<? extends ToolChain> type) {
-        if (!hasDefinedToolChain) {
+        if (isEmpty()) {
             assertCanAdd(name);
             ToolChain added = doCreate(name, type);
-            // Avoid removing defaults
-            super.add(added);
+            ToolChainInternal candidate = (ToolChainInternal) added;
+            if (candidate.getAvailability().isAvailable()) {
+                add(candidate);
+            }
+            defaultToolChain = candidate;
         }
     }
 
     @Override
     public boolean add(ToolChain o) {
-        removeDefaults();
+        removeDefault();
         return super.add(o);
     }
 
     @Override
     public boolean addAll(Collection<? extends ToolChain> c) {
-        removeDefaults();
+        removeDefault();
         return super.addAll(c);
-    }
-
-    private void removeDefaults() {
-        if (!hasDefinedToolChain) {
-            clear();
-            hasDefinedToolChain = true;
-        }
     }
 
     @Override
     public AbstractNamedDomainObjectContainer<ToolChain> configure(Closure configureClosure) {
-        removeDefaults();
+        removeDefault();
         return super.configure(configureClosure);
+    }
+
+    private void removeDefault() {
+        if (defaultToolChain != null) {
+            remove(defaultToolChain);
+            defaultToolChain = null;
+        }
     }
 
     public List<ToolChainInternal> getAvailableToolChains() {
         List<ToolChainInternal> availableToolChains = new ArrayList<ToolChainInternal>();
         List<String> messages = new ArrayList<String>();
-        for (ToolChainInternal toolChain : searchOrder) {
+        for (ToolChainInternal toolChain : this.withType(ToolChainInternal.class)) {
             ToolChainAvailability availability = toolChain.getAvailability();
             if (availability.isAvailable()) {
                 availableToolChains.add(toolChain);
-
-                // Only use the first available for default tool chains.
-                // TODO:DAZ Use a better mechanism for locating default tool chains
-                if (!hasDefinedToolChain) {
-                    break;
-                }
             }
             messages.add(String.format("Could not load '%s': %s", toolChain.getName(), availability.getUnavailableMessage()));
         }

@@ -44,6 +44,10 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
             toolChains {
 ${toolChainConfig}
+
+                unavailable(Gcc) {
+                    linker.exe = "does_not_exist"
+                }
             }
 
             sources {
@@ -59,24 +63,54 @@ ${toolChainConfig}
         helloWorld.writeSources(file("src/main"))
 
         then:
-        if (installedToolChains.size() == 1) {
-            // Check for single tool chain
-            succeeds "installMainExecutable"
-            checkBinary("build/install/mainExecutable/main", installedToolChains.get(0).runtimeEnv)
-            return;
-        }
-
-        // Check for multiple tool chains
         def tasks = installedToolChains.collect { "install${it.id.capitalize()}MainExecutable" }
-        run tasks as String[]
+        succeeds tasks as String[]
+
+        and:
         installedToolChains.each { toolChain ->
             checkBinary("build/install/mainExecutable/${toolChain.id}/main", toolChain.runtimeEnv)
         }
+    }
+
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "includes tool chain in task names and binary paths with two defined and one available"() {
+        AvailableToolChains.InstalledToolChain toolChain = AvailableToolChains.getToolChains().get(0) as AvailableToolChains.InstalledToolChain
+
+        given:
+        buildFile << """
+            apply plugin: "cpp"
+
+            toolChains {
+${toolChain.buildScriptConfig}
+
+                unavailable(Gcc) {
+                    linker.exe = "does_not_exist"
+                }
+            }
+
+            sources {
+                main {}
+            }
+            executables {
+                main {
+                    source sources.main
+                }
+            }
+"""
+
+        helloWorld.writeSources(file("src/main"))
+
+        when:
+        succeeds "install${toolChain.id.capitalize()}MainExecutable"
+
+        then:
+        checkBinary("build/install/mainExecutable/${toolChain.id}/main", toolChain.runtimeEnv)
     }
 
     def checkBinary(String path, List runtimeEnv) {
         def executable = file(OperatingSystem.current().getExecutableName(path))
         executable.assertExists()
         assert executable.execute([], runtimeEnv).out == helloWorld.englishOutput
+        return true
     }
 }

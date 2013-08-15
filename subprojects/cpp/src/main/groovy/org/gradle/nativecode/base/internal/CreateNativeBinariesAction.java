@@ -37,8 +37,8 @@ public class CreateNativeBinariesAction implements Action<ProjectInternal> {
         LibraryContainer libraries = project.getExtensions().getByType(LibraryContainer.class);
         BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
 
+        NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, project, toolChains);
         List<? extends ToolChain> availableToolChains = toolChains.getAvailableToolChains();
-        NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, project, availableToolChains);
         for (ToolChain toolChain : availableToolChains) {
             for (Library library : libraries) {
                 for (Flavor flavor : library.getFlavors()) {

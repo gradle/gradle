@@ -31,21 +31,23 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.registerFactory(TestToolChain, factory)
     }
 
-    def "has default toolchains when none configured"() {
-        def defaultToolChain1 = testToolChain("test")
-        def defaultToolChain2 = testToolChain("test2")
+    def "has first available default tool chain when none configured"() {
+        unavailableToolChain("test1")
+        def defaultToolChain2 = availableToolChain("test2")
 
         when:
-        registry.registerDefaultToolChain("test", TestToolChain)
+        registry.registerDefaultToolChain("test1", TestToolChain)
         registry.registerDefaultToolChain("test2", TestToolChain)
+        registry.registerDefaultToolChain("test3", TestToolChain)
 
         then:
-        registry.asList() == [defaultToolChain1, defaultToolChain2]
+        registry.asList() == [defaultToolChain2]
+        registry.availableToolChains == [defaultToolChain2]
     }
 
     def "explicitly created toolchain overwrites default toolchain"() {
-        testToolChain("default")
-        def configuredToolChain = testToolChain("configured")
+        availableToolChain("default")
+        def configuredToolChain = unavailableToolChain("configured")
 
         when:
         registry.registerDefaultToolChain("default", TestToolChain)
@@ -58,9 +60,10 @@ class DefaultToolChainRegistryTest extends Specification {
     }
 
     def "explicitly added toolchain overwrites default toolchain"() {
-        testToolChain("default")
+        availableToolChain("default")
         def addedToolChain = Stub(TestToolChain) {
             getName() >> "added"
+            getAvailability() >> new ToolChainAvailability()
         }
 
         when:
@@ -73,10 +76,10 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.asList() == [addedToolChain]
     }
 
-    def "can use DSL replace and add to default toolchain list"() {
-        def defaultToolChain = testToolChain("test")
-        def replacementToolChain = testToolChain("test")
-        def anotherToolChain = testToolChain("another")
+    def "can use DSL to replace and add to default toolchain list"() {
+        availableToolChain("test")
+        def replacementToolChain = unavailableToolChain("test")
+        def anotherToolChain = unavailableToolChain("another")
 
         when:
         registry.registerDefaultToolChain("test", TestToolChain)
@@ -99,75 +102,44 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.asList() == [anotherToolChain, replacementToolChain]
     }
 
-    def "returns first available toolchain from defaults in order added"() {
-        def tc1 = testToolChain("test")
-        testToolChain("test2")
-        testToolChain("test3")
-
-        when:
-        registry.registerDefaultToolChain("test", TestToolChain)
-        registry.registerDefaultToolChain("test2", TestToolChain)
-        registry.registerDefaultToolChain("test3", TestToolChain)
-
-        and:
-        tc1.getAvailability() >> new ToolChainAvailability()
-
-        then:
-        registry.availableToolChains == [tc1]
-    }
-
-    def "returns all available toolchains from configured in order added"() {
-        def tc1 = testToolChain("test")
-        def tc2 = testToolChain("test2")
-        def tcLast = testToolChain("last")
+    def "returns all available toolchains from configured in name order"() {
+        unavailableToolChain("test")
+        def tc2 = availableToolChain("test2")
+        def tcFirst = availableToolChain("first")
 
         when:
         registry.create("test", TestToolChain)
         registry.create("test2", TestToolChain)
-        registry.create("last", TestToolChain)
-
-        and:
-        tc1.getAvailability() >> new ToolChainAvailability()
-        tc2.getAvailability() >> new ToolChainAvailability().unavailable("not available")
-        tcLast.getAvailability() >> new ToolChainAvailability()
+        registry.create("first", TestToolChain)
 
         then:
-        registry.availableToolChains == [tc1, tcLast]
+        registry.availableToolChains == [tcFirst, tc2]
     }
 
-    def "default toolchain is first available"() {
-        def tc1 = testToolChain("test")
-        def tc2 = testToolChain("test2")
-        def tcLast = testToolChain("last")
+    def "default toolchain is first available in name order"() {
+        unavailableToolChain("test")
+        def tc2 = availableToolChain("test2")
+        unavailableToolChain("test3")
 
         when:
         registry.create("test", TestToolChain)
         registry.create("test2", TestToolChain)
-        registry.create("last", TestToolChain)
+        registry.create("test3", TestToolChain)
 
-        and:
-        tc1.getAvailability() >> new ToolChainAvailability().unavailable("not available")
-        tc2.getAvailability() >> new ToolChainAvailability()
-        tcLast.getAvailability() >> new ToolChainAvailability()
 
         then:
         registry.defaultToolChain == tc2
     }
 
     def "reports unavailability when no tool chain available"() {
-        def tc1 = testToolChain("test")
-        def tc2 = testToolChain("test2")
-        def tc3 = testToolChain("last")
+        unavailableToolChain("test", "nope")
+        unavailableToolChain("test2", "not me")
+        unavailableToolChain("test3", "not me either")
 
         given:
         registry.create("test", TestToolChain)
         registry.create("test2", TestToolChain)
-        registry.create("last", TestToolChain)
-
-        and:
-        tc1.availability >> new ToolChainAvailability().unavailable("nope")
-        tc2.availability >> new ToolChainAvailability().unavailable("not me")
-        tc3.availability >> new ToolChainAvailability().unavailable("not me either")
+        registry.create("test3", TestToolChain)
 
         when:
         def defaultToolChain = registry.defaultToolChain
@@ -175,12 +147,23 @@ class DefaultToolChainRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "No tool chain is available: [Could not load 'test': nope, Could not load 'test2': not me, Could not load 'last': not me either]"
+        e.message == "No tool chain is available: [Could not load 'test': nope, Could not load 'test2': not me, Could not load 'test3': not me either]"
     }
 
-    def testToolChain(String name) {
-        TestToolChain testToolChain = Mock()
-        _ * testToolChain.name >> name
+    def availableToolChain(String name) {
+        TestToolChain testToolChain = Mock(TestToolChain) {
+            _ * getName() >> name
+            _ * getAvailability() >> new ToolChainAvailability()
+        }
+        1 * factory.create(name) >> testToolChain
+        return testToolChain
+    }
+
+    def unavailableToolChain(String name, String message = "Not available") {
+        TestToolChain testToolChain = Mock(TestToolChain) {
+            _ * getName() >> name
+            _ * getAvailability() >> new ToolChainAvailability().unavailable(message)
+        }
         1 * factory.create(name) >> testToolChain
         return testToolChain
     }

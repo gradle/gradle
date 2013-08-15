@@ -24,6 +24,9 @@
                 </tr>
             </thead>
             <tr>
+                <td>availableToolChains</td>
+            </tr>
+            <tr>
                 <td>defaultToolChain</td>
             </tr>
         </table>
