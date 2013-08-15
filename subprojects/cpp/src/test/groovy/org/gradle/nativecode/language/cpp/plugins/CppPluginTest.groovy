@@ -17,8 +17,8 @@
 package org.gradle.nativecode.language.cpp.plugins
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.nativecode.base.StaticLibraryBinary
 import org.gradle.nativecode.base.SharedLibraryBinary
+import org.gradle.nativecode.base.StaticLibraryBinary
 import org.gradle.nativecode.base.tasks.CreateStaticLibrary
 import org.gradle.nativecode.base.tasks.InstallExecutable
 import org.gradle.nativecode.base.tasks.LinkExecutable
@@ -26,8 +26,6 @@ import org.gradle.nativecode.base.tasks.LinkSharedLibrary
 import org.gradle.nativecode.language.cpp.CppSourceSet
 import org.gradle.nativecode.language.cpp.tasks.CppCompile
 import org.gradle.util.Matchers
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -43,28 +41,6 @@ class CppPluginTest extends Specification {
         expect:
         project.executables instanceof NamedDomainObjectContainer
         project.libraries instanceof NamedDomainObjectContainer
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "visualcpp tool chain is available by default on windows"() {
-        given:
-        dsl {
-            apply plugin: CppPlugin
-        }
-
-        expect:
-        project.toolChains*.name == ['visualCpp']
-    }
-
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def "gcc tool chain is available by default on non-windows"() {
-        given:
-        dsl {
-            apply plugin: CppPlugin
-        }
-
-        expect:
-        project.toolChains*.name == ['gcc']
     }
 
     def "can create some cpp source sets"() {

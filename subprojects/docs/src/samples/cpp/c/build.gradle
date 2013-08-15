@@ -57,11 +57,11 @@ binaries.all {
     define "NDEBUG"
 
     // Define toolchain-specific compiler and linker options
-    if (toolChain == toolChains.gcc) {
+    if (toolChain in Gcc) {
         compilerArgs "-O2"
         linkerArgs "-S"
     }
-    if (toolChain == toolChains.visualCpp) {
+    if (toolChain in VisualCpp) {
         compilerArgs "/Z7"
         linkerArgs "/DEBUG"
     }
@@ -71,7 +71,7 @@ binaries.all {
 // START SNIPPET all-shared-libraries
 // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
 binaries.withType(SharedLibraryBinary) {
-    if (toolChain == toolChains.visualCpp) {
+    if (toolChain in VisualCpp) {
         define "DLL_EXPORT"
     }
 }

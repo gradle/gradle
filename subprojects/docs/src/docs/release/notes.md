@@ -179,6 +179,17 @@ The following snippet will now fail with a decent error message, giving a hint, 
 * Renamed task class org.gradle.nativecode.base.tasks.AssembleStaticLibrary to org.gradle.nativecode.base.tasks.CreateStaticLibrary, with the
   default task instance also being renamed from 'assemble${StaticLibraryName}' to 'create${StaticLibraryName}'
 * Renamed plugin class org.gradle.nativecode.base.plugins.BinariesPlugin to org.gradle.nativecode.base.plugins.NativeBinariesPlugin
+* Without any defined tool chains, only a single default tool chain is added to the `toolChains` list. When relying on a default tool chain,
+  configuration should be applied based on the tool chain type instead of comparing with a particular tool chain:
+
+    binaries.all {
+        if (toolChain in VisualCpp) {
+            // Visual C++ configuration
+        }
+        if (toolChain in Gcc) {
+            // GCC configuration
+        }
+    }
 
 The DSL for defining C++ source sets has changed, with the 'cpp' extension being removed. This change makes the C++ plugin DSL consistent with
 the new Gradle DSL for multiple source sets.
