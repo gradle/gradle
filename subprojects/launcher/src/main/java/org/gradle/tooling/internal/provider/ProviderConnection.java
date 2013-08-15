@@ -20,8 +20,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.Factory;
-import org.gradle.internal.Stoppable;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -29,6 +29,7 @@ import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
@@ -50,30 +51,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class ProviderConnection implements Stoppable {
+public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
-    private final EmbeddedExecuterSupport embeddedExecuterSupport;
-    private final ToolingGlobalScopeServices services;
     private final PayloadSerializer payloadSerializer;
     private final ActionClasspathFactory actionClasspathFactory;
+    private final LoggingServiceRegistry loggingServices;
+    private final GradleLauncherFactory gradleLauncherFactory;
 
-    public ProviderConnection() {
-        //embedded use of the tooling api is not supported publicly so we don't care about its thread safety
-        //we can still keep this state:
-        embeddedExecuterSupport = new EmbeddedExecuterSupport();
-        services = new ToolingGlobalScopeServices();
-        payloadSerializer = services.get(PayloadSerializer.class);
-        actionClasspathFactory = new ActionClasspathFactory();
-    }
-
-    public void stop() {
-        services.close();
+    public ProviderConnection(LoggingServiceRegistry loggingServices, GradleLauncherFactory gradleLauncherFactory, PayloadSerializer payloadSerializer, ActionClasspathFactory actionClasspathFactory) {
+        this.loggingServices = loggingServices;
+        this.gradleLauncherFactory = gradleLauncherFactory;
+        this.payloadSerializer = payloadSerializer;
+        this.actionClasspathFactory = actionClasspathFactory;
     }
 
     public void configure(ProviderConnectionParameters parameters) {
         LogLevel providerLogLevel = parameters.getVerboseLogging() ? LogLevel.DEBUG : LogLevel.INFO;
         LOGGER.debug("Configuring logging to level: {}", providerLogLevel);
-        LoggingManagerInternal loggingManager = embeddedExecuterSupport.getLoggingServices().newInstance(LoggingManagerInternal.class);
+        LoggingManagerInternal loggingManager = loggingServices.newInstance(LoggingManagerInternal.class);
         loggingManager.setLevel(providerLogLevel);
         loggingManager.start();
     }
@@ -150,10 +145,10 @@ public class ProviderConnection implements Stoppable {
         Parameters params = initParams(operationParameters);
         BuildActionExecuter<BuildActionParameters> executer;
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
-            loggingServices = embeddedExecuterSupport.getLoggingServices();
-            executer = embeddedExecuterSupport.getExecuter();
+            loggingServices = this.loggingServices;
+            executer = new InProcessBuildActionExecuter(gradleLauncherFactory);
         } else {
-            loggingServices = embeddedExecuterSupport.getLoggingServices().newLogging();
+            loggingServices = this.loggingServices.newLogging();
             loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
             DaemonClientServices clientServices = new DaemonClientServices(loggingServices, params.daemonParams, operationParameters.getStandardInput(SafeStreams.emptyInput()));
             executer = clientServices.get(DaemonClient.class);

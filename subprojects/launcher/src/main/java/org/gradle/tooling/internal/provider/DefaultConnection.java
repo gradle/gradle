@@ -26,7 +26,8 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
-    private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
+    private final ProtocolToModelAdapter adapter;
+    private final ConnectionScopeServices services;
     private final ProviderConnection connection;
 
     /**
@@ -34,7 +35,9 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     public DefaultConnection() {
         LOGGER.debug("Tooling API provider {} created.", GradleVersion.current().getVersion());
-        connection = new ProviderConnection();
+        services = new ConnectionScopeServices();
+        adapter = services.get(ProtocolToModelAdapter.class);
+        connection = services.get(ProviderConnection.class);
     }
 
     /**
@@ -64,7 +67,8 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This is used by consumers 1.0-milestone-3 and later
      */
     public void stop() {
-        connection.stop();
+        // TODO:ADAM - switch this on again
+//        services.close();
     }
 
     /**
