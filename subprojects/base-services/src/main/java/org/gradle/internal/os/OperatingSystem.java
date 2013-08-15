@@ -177,8 +177,19 @@ public abstract class OperatingSystem {
             if (executablePath.toLowerCase().endsWith(extension)) {
                 return executablePath;
             }
-            return executablePath + extension;
+            return removeExtension(executablePath) + extension;
         }
+
+        private String removeExtension(String executablePath) {
+            int fileNameStart = Math.max(executablePath.lastIndexOf('/'), executablePath.lastIndexOf('\\'));
+            int extensionPos = executablePath.lastIndexOf('.');
+
+            if (extensionPos > fileNameStart) {
+                return executablePath.substring(0, extensionPos);
+            }
+            return executablePath;
+        }
+
 
         @Override
         public String getPathVar() {

@@ -61,6 +61,9 @@ class OperatingSystemTest extends Specification {
         os.getScriptName("a.bat") == "a.bat"
         os.getScriptName("a.BAT") == "a.BAT"
         os.getScriptName("a") == "a.bat"
+        os.getScriptName("a.exe") == "a.bat"
+        os.getScriptName("a.b/c") == "a.b/c.bat"
+        os.getScriptName("a.b\\c") == "a.b\\c.bat"
     }
 
     def "windows transforms executable names"() {
@@ -70,6 +73,9 @@ class OperatingSystemTest extends Specification {
         os.getExecutableName("a.exe") == "a.exe"
         os.getExecutableName("a.EXE") == "a.EXE"
         os.getExecutableName("a") == "a.exe"
+        os.getExecutableName("a.bat") == "a.exe"
+        os.getExecutableName("a.b/c") == "a.b/c.exe"
+        os.getExecutableName("a.b\\c") == "a.b\\c.exe"
     }
 
     def "windows transforms shared library names"() {
@@ -79,6 +85,9 @@ class OperatingSystemTest extends Specification {
         os.getSharedLibraryName("a.dll") == "a.dll"
         os.getSharedLibraryName("a.DLL") == "a.DLL"
         os.getSharedLibraryName("a") == "a.dll"
+        os.getSharedLibraryName("a.lib") == "a.dll"
+        os.getSharedLibraryName("a.b/c") == "a.b/c.dll"
+        os.getSharedLibraryName("a.b\\c") == "a.b\\c.dll"
     }
 
     def "windows transforms static library names"() {
@@ -88,6 +97,9 @@ class OperatingSystemTest extends Specification {
         os.getStaticLibraryName("a.lib") == "a.lib"
         os.getStaticLibraryName("a.LIB") == "a.LIB"
         os.getStaticLibraryName("a") == "a.lib"
+        os.getStaticLibraryName("a.dll") == "a.lib"
+        os.getStaticLibraryName("a.b/c") == "a.b/c.lib"
+        os.getStaticLibraryName("a.b\\c") == "a.b\\c.lib"
     }
 
     def "windows searches for executable in path"() {

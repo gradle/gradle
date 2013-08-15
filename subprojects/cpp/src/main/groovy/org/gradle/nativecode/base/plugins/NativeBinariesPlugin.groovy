@@ -107,6 +107,7 @@ public class NativeBinariesPlugin implements Plugin<Project> {
             group = BasePlugin.BUILD_GROUP
         }
 
+        installTask.toolChain = executable.toolChain
         installTask.conventionMapping.destinationDir = { project.file("${project.buildDir}/install/$executable.namingScheme.outputDirectoryBase") }
 
         installTask.conventionMapping.executable = { executable.outputFile }

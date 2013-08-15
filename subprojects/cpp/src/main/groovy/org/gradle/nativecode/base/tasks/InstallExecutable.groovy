@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativecode.base.tasks
-
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
@@ -29,9 +28,10 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.nativecode.base.ToolChain
+import org.gradle.nativecode.toolchain.Gcc
 
 import javax.inject.Inject
-
 /**
  * Installs an executable with it's dependent libraries so it can be easily executed.
  */
@@ -47,6 +47,11 @@ public class InstallExecutable extends DefaultTask {
         this.fileOperations = fileOperations
         this.libs = project.files()
     }
+
+    /**
+     * The tool chain used for linking.
+     */
+    ToolChain toolChain
 
     /**
      * The directory to install files into.
@@ -87,7 +92,30 @@ public class InstallExecutable extends DefaultTask {
     }
 
     private void installWindows() {
-        installToDir(getDestinationDir())
+        final destination = getDestinationDir()
+        final File executable = getExecutable()
+
+        installToDir(new File(destination, "lib"))
+
+        StringBuilder toolChainPath = new StringBuilder()
+        if (toolChain in Gcc) {
+            // Gcc on windows requires the path to be set
+            toolChainPath.append("SET PATH=")
+            for (File path : ((Gcc) toolChain).paths) {
+                toolChainPath.append(path.absolutePath).append(";")
+            }
+            toolChainPath.append("%PATH%")
+        }
+
+        File script = new File(destination, os.getScriptName(executable.name));
+        script.text = """
+@echo off
+SETLOCAL
+$toolChainPath
+CALL "%~dp0lib\\${executable.name}"
+
+ENDLOCAL
+"""
     }
 
     private void installUnix() {
