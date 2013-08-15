@@ -207,7 +207,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         """
 
         and:
-        // TODO:DAZ Fix the excpetion reporting
+        // TODO:DAZ Fix the exception reporting
         executer.withStackTraceChecksDisabled()
 
         then:

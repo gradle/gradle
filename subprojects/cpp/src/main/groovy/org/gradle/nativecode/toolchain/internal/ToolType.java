@@ -18,7 +18,7 @@ package org.gradle.nativecode.toolchain.internal;
 
 import org.gradle.util.GUtil;
 
-public enum Tool {
+public enum ToolType {
     CPP_COMPILER("C++ compiler"),
     C_COMPILER("C compiler"),
     ASSEMBLER("Assembler"),
@@ -27,7 +27,7 @@ public enum Tool {
 
     private final String toolName;
 
-    Tool(String toolName) {
+    ToolType(String toolName) {
         this.toolName = toolName;
     }
 

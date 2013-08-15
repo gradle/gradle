@@ -20,9 +20,9 @@ import com.google.common.base.Joiner;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativecode.toolchain.internal.gpp.GppToolChain;
+import org.gradle.nativecode.toolchain.Gcc;
+import org.gradle.nativecode.toolchain.VisualCpp;
 import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
-import org.gradle.nativecode.toolchain.internal.msvcpp.VisualCppToolChain;
 import org.gradle.nativecode.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.TextUtil;
@@ -138,10 +138,6 @@ public class AvailableToolChains {
 
         public abstract void resetEnvironment();
 
-        public boolean isVisualCpp() {
-            return getDisplayName().equals("visual c++");
-        }
-
         public ExecutableFixture executable(Object path) {
             return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
         }
@@ -207,8 +203,10 @@ public class AvailableToolChains {
 
         public abstract String getBuildScriptConfig();
 
-        public String getImplementationClass() {
-            return isVisualCpp() ? VisualCppToolChain.class.getName() : GppToolChain.class.getName();
+        public abstract String getImplementationClass();
+
+        public boolean isVisualCpp() {
+            return false;
         }
 
         public List<File> getPathEntries() {
@@ -240,11 +238,15 @@ public class AvailableToolChains {
 
         @Override
         public String getBuildScriptConfig() {
-            String config = String.format("%s(%s)\n", getId(), GppToolChain.class.getName());
+            String config = String.format("%s(%s)\n", getId(), getImplementationClass());
             for (File pathEntry : getPathEntries()) {
                 config += String.format("%s.path file('%s')", getId(), TextUtil.normaliseFileSeparators(pathEntry.getAbsolutePath()));
             }
             return config;
+        }
+
+        public String getImplementationClass() {
+            return Gcc.class.getSimpleName();
         }
     }
 
@@ -255,20 +257,28 @@ public class AvailableToolChains {
             super(name);
         }
 
+        public InstalledVisualCpp withInstall(VisualStudioInstall install) {
+            pathEntries.addAll(install.getPathEntries());
+            environmentVars.putAll(install.getEnvironment());
+            installDir = install.getInstallDir();
+            return this;
+        }
+
         @Override
         public String getBuildScriptConfig() {
-            String config = String.format("%s(%s)\n", getId(), VisualCppToolChain.class.getName());
+            String config = String.format("%s(%s)\n", getId(), getImplementationClass());
             if (installDir != null) {
                 config += String.format("%s.installDir = file('%s')", getId(), TextUtil.normaliseFileSeparators(installDir.getAbsolutePath()));
             }
             return config;
         }
 
-        public InstalledVisualCpp withInstall(VisualStudioInstall install) {
-            pathEntries.addAll(install.getPathEntries());
-            environmentVars.putAll(install.getEnvironment());
-            installDir = install.getInstallDir();
-            return this;
+        public String getImplementationClass() {
+            return VisualCpp.class.getSimpleName();
+        }
+
+        public boolean isVisualCpp() {
+            return true;
         }
     }
 

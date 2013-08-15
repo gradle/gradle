@@ -21,7 +21,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativecode.base.ToolChain;
 import org.gradle.nativecode.base.ToolChainRegistry;
@@ -117,22 +116,15 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         return getAvailableToolChains().get(0);
     }
 
-    private static class UnavailableToolChain extends AbstractToolChain {
+    private static class UnavailableToolChain implements ToolChainInternal {
         private final List<String> messages;
 
         public UnavailableToolChain(List<String> messages) {
-            super("unknown", OperatingSystem.current());
             this.messages = messages;
         }
 
-        @Override
-        protected String getTypeName() {
+        public String getName() {
             return "unavailable";
-        }
-
-        @Override
-        protected void checkAvailable(ToolChainAvailability availability) {
-            throw new UnsupportedOperationException();
         }
 
         private IllegalStateException failure() {
@@ -158,5 +150,30 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
             throw failure();
         }
+
+        public ToolChainAvailability getAvailability() {
+            return new ToolChainAvailability().unavailable("No tool chain is available.");
+        }
+
+        public String getExecutableName(String executablePath) {
+            throw failure();
+        }
+
+        public String getSharedLibraryName(String libraryPath) {
+            throw failure();
+        }
+
+        public String getSharedLibraryLinkFileName(String libraryPath) {
+            throw failure();
+        }
+
+        public String getStaticLibraryName(String libraryPath) {
+            throw failure();
+        }
+
+        public String getOutputType() {
+            throw failure();
+        }
+
     }
 }

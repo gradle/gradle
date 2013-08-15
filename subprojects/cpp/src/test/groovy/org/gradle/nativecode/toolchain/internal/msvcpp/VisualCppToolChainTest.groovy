@@ -15,6 +15,8 @@
  */
 
 package org.gradle.nativecode.toolchain.internal.msvcpp
+
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.base.internal.ToolChainAvailability
@@ -24,7 +26,8 @@ import spock.lang.Specification
 
 class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    final toolChain = new VisualCppToolChain("visualCpp", new OperatingSystem.Windows(), Stub(Factory))
+    final FileResolver fileResolver = Mock(FileResolver)
+    final toolChain = new VisualCppToolChain("visualCpp", new OperatingSystem.Windows(), fileResolver, Stub(Factory))
 
 
     def "uses .lib file for shared library at link time"() {
@@ -49,7 +52,7 @@ class VisualCppToolChainTest extends Specification {
             findInPath("ml.exe") >> file('ml.exe')
         }
 
-        def cppToolChain = new VisualCppToolChain("test", os, Stub(Factory))
+        def cppToolChain = new VisualCppToolChain("test", os, fileResolver, Stub(Factory))
 
         when:
         def availability = new ToolChainAvailability()
@@ -81,6 +84,37 @@ class VisualCppToolChainTest extends Specification {
 
         then:
         availability3.available
+    }
+
+    def "has default tool names"() {
+        expect:
+        toolChain.cppCompiler.exe == "cl.exe"
+        toolChain.CCompiler.exe == "cl.exe"
+        toolChain.assembler.exe == "ml.exe"
+        toolChain.linker.exe == "link.exe"
+        toolChain.staticLibArchiver.exe == "lib.exe"
+    }
+
+    def "can update tool names"() {
+        when:
+        toolChain.assembler.exe = "foo"
+
+        then:
+        toolChain.assembler.exe == "foo"
+    }
+
+    def "resolves path entries"() {
+        when:
+        toolChain.path "The Path"
+        toolChain.path "Path1", "Path2"
+
+        then:
+        fileResolver.resolve("The Path") >> file("one")
+        fileResolver.resolve("Path1") >> file("two")
+        fileResolver.resolve("Path2") >> file("three")
+
+        and:
+        toolChain.paths == [file("one"), file("two"), file("three")]
     }
 
     def file(String name) {

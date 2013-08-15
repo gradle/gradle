@@ -32,7 +32,6 @@ public class GccToolRegistry extends ToolRegistry {
     protected File findExecutable(OperatingSystem operatingSystem, String name) {
         List<String> candidates;
         if (operatingSystem.isWindows()) {
-            // TODO:DAZ This should be in a GCC-specific class
             // Under Cygwin, g++/gcc is a Cygwin symlink to either g++-3 or g++-4. We can't run g++ directly
             candidates = Arrays.asList(name + "-4", name + "-3", name);
         } else {

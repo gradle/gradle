@@ -25,6 +25,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.base.ToolChainRegistry
 import org.gradle.nativecode.base.plugins.NativeBinariesPlugin
+import org.gradle.nativecode.toolchain.VisualCpp
 import org.gradle.nativecode.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.process.internal.DefaultExecAction
 import org.gradle.process.internal.ExecAction
@@ -47,14 +48,13 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
 
         def toolChainRegistry = project.extensions.getByType(ToolChainRegistry)
 
-        // TODO:DAZ Introduce a public type and register factory for that instead
-        toolChainRegistry.registerFactory(VisualCppToolChain, { String name ->
-            return new VisualCppToolChain(name, OperatingSystem.current(), new Factory<ExecAction>() {
+        toolChainRegistry.registerFactory(VisualCpp, { String name ->
+            return new VisualCppToolChain(name, OperatingSystem.current(), fileResolver, new Factory<ExecAction>() {
                 ExecAction create() {
                     return new DefaultExecAction(fileResolver)
                 }
             })
         })
-        toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCppToolChain)
+        toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
     }
 }

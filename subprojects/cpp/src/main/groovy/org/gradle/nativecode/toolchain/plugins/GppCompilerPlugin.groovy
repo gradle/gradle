@@ -22,6 +22,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.base.ToolChainRegistry
 import org.gradle.nativecode.base.plugins.NativeBinariesPlugin
+import org.gradle.nativecode.toolchain.Gcc
 import org.gradle.nativecode.toolchain.internal.gpp.GppToolChain
 import org.gradle.process.internal.DefaultExecAction
 import org.gradle.process.internal.ExecAction
@@ -42,16 +43,15 @@ class GppCompilerPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(NativeBinariesPlugin)
 
-        // TODO:DAZ Extract a public interface GccToolChain and register the factory for that instead
         final toolChainRegistry = project.extensions.getByType(ToolChainRegistry)
-        toolChainRegistry.registerFactory(GppToolChain, { String name ->
-            return new GppToolChain(name, OperatingSystem.current(), new Factory<ExecAction>() {
+        toolChainRegistry.registerFactory(Gcc, { String name ->
+            return new GppToolChain(name, OperatingSystem.current(), fileResolver, new Factory<ExecAction>() {
                 ExecAction create() {
                     return new DefaultExecAction(fileResolver);
                 }
             })
         })
-        toolChainRegistry.registerDefaultToolChain(GppToolChain.DEFAULT_NAME, GppToolChain)
+        toolChainRegistry.registerDefaultToolChain(GppToolChain.DEFAULT_NAME, Gcc)
     }
 
 }

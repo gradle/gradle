@@ -15,12 +15,12 @@
  */
 
 package org.gradle.nativecode.base.plugins
-
 import org.gradle.api.Task
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.base.ExecutableBinary
-import org.gradle.nativecode.language.cpp.plugins.CppPlugin
+import org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -30,7 +30,9 @@ class NativeBinariesPluginTest extends Specification {
     def "creates domain objects and lifecycle task for executable"() {
         given:
         dsl {
-            apply plugin: CppPlugin
+            apply plugin: NativeBinariesPlugin
+            apply plugin: GppCompilerPlugin
+
             executables {
                 test {
                 }
@@ -60,6 +62,7 @@ class NativeBinariesPluginTest extends Specification {
         when:
         dsl {
             apply plugin: NativeBinariesPlugin
+            apply plugin: GppCompilerPlugin
             libraries {
                 test {
                 }
@@ -67,8 +70,8 @@ class NativeBinariesPluginTest extends Specification {
         }
 
         then:
-        def sharedLibName = project.toolChains.defaultToolChain.getSharedLibraryName("test")
-        def staticLibName = project.toolChains.defaultToolChain.getStaticLibraryName("test")
+        def sharedLibName = OperatingSystem.current().getSharedLibraryName("test")
+        def staticLibName = OperatingSystem.current().getStaticLibraryName("test")
         def library = project.libraries.test
 
         and:

@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.*;
 
 public class ToolRegistry {
-    private final Map<Tool, String> executableNames = new HashMap<Tool, String>();
+    private final Map<ToolType, String> executableNames = new HashMap<ToolType, String>();
     private final Map<String, File> executables = new HashMap<String, File>();
     private final List<File> pathEntries = new ArrayList<File>();
 
@@ -47,15 +47,15 @@ public class ToolRegistry {
         executables.clear();
     }
 
-    public String getExeName(Tool key) {
+    public String getExeName(ToolType key) {
         return executableNames.get(key);
     }
 
-    public void setExeName(Tool key, String name) {
+    public void setExeName(ToolType key, String name) {
         executableNames.put(key, name);
     }
 
-    public File locate(Tool key) {
+    public File locate(ToolType key) {
         String exeName = executableNames.get(key);
         if (executables.containsKey(exeName)) {
             return executables.get(exeName);

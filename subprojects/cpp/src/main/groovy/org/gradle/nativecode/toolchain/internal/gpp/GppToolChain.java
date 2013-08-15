@@ -16,6 +16,7 @@
 package org.gradle.nativecode.toolchain.internal.gpp;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
@@ -23,43 +24,40 @@ import org.gradle.nativecode.base.internal.*;
 import org.gradle.nativecode.language.asm.internal.AssembleSpec;
 import org.gradle.nativecode.language.c.internal.CCompileSpec;
 import org.gradle.nativecode.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativecode.toolchain.Gcc;
 import org.gradle.nativecode.toolchain.internal.CommandLineTool;
-import org.gradle.nativecode.toolchain.internal.Tool;
-import org.gradle.nativecode.toolchain.internal.ToolRegistry;
+import org.gradle.nativecode.toolchain.internal.ToolType;
 import org.gradle.nativecode.toolchain.internal.gpp.version.GppVersionDeterminer;
 import org.gradle.process.internal.ExecAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
 
 /**
  * Compiler adapter for GCC.
  */
-public class GppToolChain extends AbstractToolChain {
+public class GppToolChain extends AbstractToolChain implements Gcc {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GppToolChain.class);
 
     public static final String DEFAULT_NAME = "gcc";
 
-    private final ToolRegistry tools;
     private final Factory<ExecAction> execActionFactory;
     private final Transformer<String, File> versionDeterminer;
 
     private String version;
 
-    public GppToolChain(String name, OperatingSystem operatingSystem, Factory<ExecAction> execActionFactory) {
-        super(name, operatingSystem);
-        this.tools = new GccToolRegistry(operatingSystem);
+    public GppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, Factory<ExecAction> execActionFactory) {
+        super(name, operatingSystem, new GccToolRegistry(operatingSystem), fileResolver);
         this.execActionFactory = execActionFactory;
         this.versionDeterminer = new GppVersionDeterminer();
 
-        tools.setExeName(Tool.CPP_COMPILER, "g++");
-        tools.setExeName(Tool.C_COMPILER, "gcc");
-        tools.setExeName(Tool.ASSEMBLER, "as");
-        tools.setExeName(Tool.LINKER, "g++");
-        tools.setExeName(Tool.STATIC_LIB_ARCHIVER, "ar");
+        tools.setExeName(ToolType.CPP_COMPILER, "g++");
+        tools.setExeName(ToolType.C_COMPILER, "gcc");
+        tools.setExeName(ToolType.ASSEMBLER, "as");
+        tools.setExeName(ToolType.LINKER, "g++");
+        tools.setExeName(ToolType.STATIC_LIB_ARCHIVER, "ar");
     }
 
     @Override
@@ -69,7 +67,7 @@ public class GppToolChain extends AbstractToolChain {
 
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
-        for (Tool key : Tool.values()) {
+        for (ToolType key : ToolType.values()) {
             availability.mustExist(key.getToolName(), tools.locate(key));
         }
         determineVersion();
@@ -80,46 +78,46 @@ public class GppToolChain extends AbstractToolChain {
 
     public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
         checkAvailable();
-        CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(Tool.CPP_COMPILER);
-        return (Compiler<T>) new CppCompiler(commandLineTool, canUseCommandFile(version));
+        CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
+        return (Compiler<T>) new CppCompiler(commandLineTool, canUseCommandFile());
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
         checkAvailable();
-        CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(Tool.C_COMPILER);
-        return (Compiler<T>) new CCompiler(commandLineTool, canUseCommandFile(version));
+        CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
+        return (Compiler<T>) new CCompiler(commandLineTool, canUseCommandFile());
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
         checkAvailable();
-        CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(Tool.ASSEMBLER);
+        CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
         return (Compiler<T>) new Assembler(commandLineTool);
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {
         checkAvailable();
-        CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(Tool.LINKER);
-        return (Compiler<T>) new GppLinker(commandLineTool, canUseCommandFile(version));
+        CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
+        return (Compiler<T>) new GppLinker(commandLineTool, canUseCommandFile());
     }
 
     public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
         checkAvailable();
-        CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(Tool.STATIC_LIB_ARCHIVER);
+        CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
         return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool);
     }
 
-    private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(Tool key) {
+    private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
         CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
-        commandLineTool.withPath(getPath());
+        commandLineTool.withPath(getPaths());
         return commandLineTool;
     }
 
     private void determineVersion() {
-        version = determineVersion(tools.locate(Tool.CPP_COMPILER));
+        version = determineVersion(tools.locate(ToolType.CPP_COMPILER));
         if (version == null) {
-            LOGGER.info("Did not find {} on system", Tool.CPP_COMPILER.getToolName());
+            LOGGER.info("Did not find {} on system", ToolType.CPP_COMPILER.getToolName());
         } else {
-            LOGGER.info("Found {} with version {}", Tool.CPP_COMPILER.getToolName(), version);
+            LOGGER.info("Found {} with version {}", ToolType.CPP_COMPILER.getToolName(), version);
         }
     }
 
@@ -127,7 +125,7 @@ public class GppToolChain extends AbstractToolChain {
         return executable == null ? null : versionDeterminer.transform(executable);
     }
 
-    private boolean canUseCommandFile(String version) {
+    private boolean canUseCommandFile() {
         String[] components = version.split("\\.");
         int majorVersion;
         try {
@@ -136,55 +134,6 @@ public class GppToolChain extends AbstractToolChain {
             throw new IllegalStateException(String.format("Unable to determine major g++ version from version number %s.", version), e);
         }
         return majorVersion >= 4;
-    }
-
-    public List<File> getPath() {
-        return tools.getPath();
-    }
-
-    // TODO:DAZ Resolve object to file
-    public void path(File path) {
-        tools.path(path);
-    }
-
-    public String getCppCompiler() {
-        return tools.getExeName(Tool.CPP_COMPILER);
-    }
-
-    public void setCppCompiler(String name) {
-        tools.setExeName(Tool.CPP_COMPILER, name);
-    }
-
-    public String getCCompiler() {
-        return tools.getExeName(Tool.C_COMPILER);
-    }
-
-    public void setCCompiler(String name) {
-        tools.setExeName(Tool.C_COMPILER, name);
-    }
-
-    public String getAssembler() {
-        return tools.getExeName(Tool.ASSEMBLER);
-    }
-
-    public void setAssembler(String name) {
-        tools.setExeName(Tool.ASSEMBLER, name);
-    }
-
-    public String getLinker() {
-        return tools.getExeName(Tool.LINKER);
-    }
-
-    public void setLinker(String name) {
-        tools.setExeName(Tool.LINKER, name);
-    }
-
-    public String getStaticLibArchiver() {
-        return tools.getExeName(Tool.STATIC_LIB_ARCHIVER);
-    }
-
-    public void setStaticLibArchiver(String name) {
-        tools.setExeName(Tool.STATIC_LIB_ARCHIVER, name);
     }
 
 }

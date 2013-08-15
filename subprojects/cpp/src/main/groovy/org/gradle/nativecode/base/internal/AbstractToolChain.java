@@ -16,16 +16,28 @@
 
 package org.gradle.nativecode.base.internal;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativecode.toolchain.ConfigurableToolChain;
+import org.gradle.nativecode.toolchain.Tool;
+import org.gradle.nativecode.toolchain.internal.ToolRegistry;
+import org.gradle.nativecode.toolchain.internal.ToolType;
 
-public abstract class AbstractToolChain implements ToolChainInternal {
+import java.io.File;
+import java.util.List;
+
+public abstract class AbstractToolChain implements ToolChainInternal, ConfigurableToolChain {
     private final String name;
     protected final OperatingSystem operatingSystem;
+    protected final ToolRegistry tools;
+    private final FileResolver fileResolver;
     private ToolChainAvailability availability;
 
-    protected AbstractToolChain(String name, OperatingSystem operatingSystem) {
+    protected AbstractToolChain(String name, OperatingSystem operatingSystem, ToolRegistry tools, FileResolver fileResolver) {
         this.name = name;
         this.operatingSystem = operatingSystem;
+        this.tools = tools;
+        this.fileResolver = fileResolver;
     }
 
     public String getName() {
@@ -73,5 +85,55 @@ public abstract class AbstractToolChain implements ToolChainInternal {
 
     public String getStaticLibraryName(String libraryName) {
         return operatingSystem.getStaticLibraryName(libraryName);
+    }
+
+    public List<File> getPaths() {
+        return tools.getPath();
+    }
+
+    public void path(Object... paths) {
+        for (Object path : paths) {
+            tools.path(resolve(path));
+        }
+    }
+
+    protected File resolve(Object path) {
+        return fileResolver.resolve(path);
+    }
+
+    public Tool getCppCompiler() {
+        return new DefaultTool(ToolType.CPP_COMPILER);
+    }
+
+    public Tool getCCompiler() {
+        return new DefaultTool(ToolType.C_COMPILER);
+    }
+
+    public Tool getAssembler() {
+        return new DefaultTool(ToolType.ASSEMBLER);
+    }
+
+    public Tool getLinker() {
+        return new DefaultTool(ToolType.LINKER);
+    }
+
+    public Tool getStaticLibArchiver() {
+        return new DefaultTool(ToolType.STATIC_LIB_ARCHIVER);
+    }
+
+    private class DefaultTool implements Tool {
+        private final ToolType toolType;
+
+        private DefaultTool(ToolType toolType) {
+            this.toolType = toolType;
+        }
+
+        public String getExe() {
+            return tools.getExeName(toolType);
+        }
+
+        public void setExe(String file) {
+            tools.setExeName(toolType, file);
+        }
     }
 }
