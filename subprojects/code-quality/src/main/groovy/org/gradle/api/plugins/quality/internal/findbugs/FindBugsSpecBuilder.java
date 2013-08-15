@@ -16,7 +16,11 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
-import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
+
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.quality.FindBugsReports;
@@ -24,10 +28,7 @@ import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
+import com.google.common.collect.ImmutableSet;
 
 public class FindBugsSpecBuilder {
     private static final Set<String> VALID_EFFORTS = ImmutableSet.of("min", "default", "max");
@@ -143,11 +144,18 @@ public class FindBugsSpecBuilder {
         if (reports != null && !reports.getEnabled().isEmpty()) {
             if (reports.getEnabled().size() == 1) {
                 FindBugsReportsImpl reportsImpl = (FindBugsReportsImpl) reports;
-                args.add("-" + reportsImpl.getFirstEnabled().getName());
+                String outputArg = "-" + reportsImpl.getFirstEnabled().getName();
+                if (reportsImpl.getFirstEnabled() instanceof FindBugsXmlReportImpl) {
+                    FindBugsXmlReportImpl r = (FindBugsXmlReportImpl)reportsImpl.getFirstEnabled();
+                    if (r.isWithMessages()) {
+                        outputArg += ":withMessages";
+                    }
+                }
+                args.add(outputArg);
                 args.add("-outputFile");
                 args.add(reportsImpl.getFirstEnabled().getDestination().getAbsolutePath());
             } else {
-                throw new InvalidUserDataException("FindBugs tasks can only have one report enabled, however both the XML and HTML report are enabled. You need to disable one of them.");
+                throw new InvalidUserDataException("FindBugs tasks can only have one report enabled, however more than one report was enabled. You need to disable all but one of them.");
             }
         }
 

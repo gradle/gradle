@@ -146,6 +146,26 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         file("build/reports/findbugs/main.html").exists()
     }
+    
+    def "can generate xml with messages reports"() {
+        given:
+        buildFile << """
+            findbugsMain.reports {
+                xml.enabled true
+                xml.withMessages true
+                html.enabled false
+            }
+        """
+
+        and:
+        goodCode()
+
+        when:
+        run "findbugsMain"
+
+        then:
+        file("build/reports/findbugs/main.xml").exists()
+    }
 
     def "can generate no reports"() {
         given:
