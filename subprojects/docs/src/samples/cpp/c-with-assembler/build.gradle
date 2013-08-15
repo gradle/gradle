@@ -17,9 +17,12 @@
 apply plugin: 'cpp'
 
 def os = org.gradle.internal.os.OperatingSystem.current()
+def windowsGcc = os.isWindows() && toolChains.defaultToolChain.name == "gcc"
 def platform = os.macOsX ? "x32_osx"
+             : windowsGcc ? "x32_win"
              : os.windows ? "x64_win"
              : "x64_linux"
+
 
 sources {
     main {
