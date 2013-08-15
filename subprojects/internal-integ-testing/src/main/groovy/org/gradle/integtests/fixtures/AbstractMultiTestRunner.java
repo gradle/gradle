@@ -286,6 +286,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         private class NestedRunListener extends RunListener {
             private final RunNotifier notifier;
             boolean started;
+            boolean complete;
 
             public NestedRunListener(RunNotifier notifier) {
                 this.notifier = notifier;
@@ -295,7 +296,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             public void testStarted(Description description) {
                 Description translated = translateDescription(description);
                 notifier.fireTestStarted(translated);
-                if (!started) {
+                if (!started && !complete) {
                     try {
                         assertCanExecute();
                         started = true;
@@ -334,6 +335,8 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                 if (started) {
                     after();
                 }
+                // Prevent further tests (ignored) from triggering start actions
+                complete = true;
             }
         }
     }
