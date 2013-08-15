@@ -524,30 +524,40 @@ This story adds support for building a native component using multiple tool chai
 ### User visible changes
 
     toolChains {
-        gcc(GccToolChain) {} // binaries with default names, found on Path
-        gcc3(GccToolChain) {
-            binPath "/opt/gcc/3.4.6/bin" // binaries with default names, found in binPath directory
+        gcc(Gcc) {} // binaries with default names, found on Path
+        gcc3(Gcc) {
+            path "/opt/gcc/3.4.6/bin" // binaries with default names, found in binPath directory
         }
-        mingw(GccToolChain) {
-            binPath "C:/MinGW/bin"
+        mingw(Gcc) {
+            path "C:/MinGW/bin"
         }
-        gccCrossCompiler(GccToolChain) {
-            binPath "/opt/gcc/4.0/bin" // Needed to update the path
+        gccCrossCompiler(Gcc) {
+            path "/opt/gcc/4.0/bin" // Needed to update the path
 
-            // Custom binary file names and locations
-            cCompiler "gccCustom_gcc" // Resolved in binPath
-            cppCompiler project.file("/usr/bin/gccCustom_g++")
-            assembler "/usr/bin/gccCustom_as" // Resolved absolute
-            linker "gcc" // Resolved in binPath
-            staticArchiver "/usr/bin/gccCustom_ar"
+            // Custom binary file paths and arguments
+            CCompiler {
+                file "gccCustom_gcc" // Resolved in path
+            }
+            cppCompiler.file project.file("/usr/bin/gccCustom_g++")
+            assembler.file "/usr/bin/gccCustom_as" // Resolved absolute
+            linker.file "gcc" // Resolved in path
+            staticArchiver {
+                file "ar"
+                args "--some-toolchain-arg"
+            }
         }
-        visualCpp(VisualCppToolChain) {} // Binaries found in path, assume environment setup
-        visualCpp(VisualCppToolChain) {
-            visualStudioInstallDir "D:/Programs/Microsoft Visual Studio 10.0"
-            // Not in path, with install location: paths will be set and environment established
+        
+        // Path already setup and binaries available
+        visualCpp(VisualCpp) {} 
+        
+        // Setup paths based on installation directory
+        visualCpp(VisualCpp) {
+            installDir "D:/Programs/Microsoft Visual Studio 10.0"
         }
-        visualCpp64(VisualCppToolChain) {
-            assembler "ml64.exe" // Will be located in path
+        
+        // Override default assembler
+        visualCpp64(VisualCpp) {
+            assembler.file "ml64.exe" // Will be located in path
         }
     }
 
