@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativecode.base.ToolChain;
 import org.gradle.nativecode.base.ToolChainRegistry;
@@ -118,6 +119,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
 
     private static class UnavailableToolChain implements ToolChainInternal {
         private final List<String> messages;
+        private final OperatingSystem operatingSystem = OperatingSystem.current();
 
         public UnavailableToolChain(List<String> messages) {
             this.messages = messages;
@@ -156,19 +158,19 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
 
         public String getExecutableName(String executablePath) {
-            throw failure();
+            return operatingSystem.getExecutableName(executablePath);
         }
 
-        public String getSharedLibraryName(String libraryPath) {
-            throw failure();
+        public String getSharedLibraryName(String libraryName) {
+            return operatingSystem.getSharedLibraryName(libraryName);
         }
 
-        public String getSharedLibraryLinkFileName(String libraryPath) {
-            throw failure();
+        public String getSharedLibraryLinkFileName(String libraryName) {
+            return getSharedLibraryName(libraryName);
         }
 
-        public String getStaticLibraryName(String libraryPath) {
-            throw failure();
+        public String getStaticLibraryName(String libraryName) {
+            return operatingSystem.getStaticLibraryName(libraryName);
         }
 
         public String getOutputType() {
