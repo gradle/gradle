@@ -155,7 +155,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
 
         then:
         staticLibrary("build/hello").assertExists()
-        executable("build/install/mainExecutable/test").exec().out == "Hello!"
+        installation("build/install/mainExecutable").exec().out == "Hello!"
     }
 
     def "can configure a binary to use additional source sets"() {

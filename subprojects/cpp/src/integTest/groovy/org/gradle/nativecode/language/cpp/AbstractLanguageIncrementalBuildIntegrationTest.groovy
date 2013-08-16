@@ -87,7 +87,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "rebuilds binary with source file change"() {
         given:
-        def executable = executable("build/install/mainExecutable/main")
+        def install = installation("build/install/mainExecutable")
 
         when:
         sourceFile.text = app.alternateMainSource.content
@@ -105,8 +105,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         executedAndNotSkipped ":installMainExecutable"
 
         and:
-        executable.assertExists()
-        executable.exec().out == app.alternateOutput
+        install.assertInstalled()
+        install.exec().out == app.alternateOutput
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -115,7 +115,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         sleep(1000)
 
         when:
-        def executable = executable("build/install/mainExecutable/main")
+        def install = installation("build/install/mainExecutable")
         for (int i = 0; i < librarySourceFiles.size(); i++) {
             TestFile sourceFile = librarySourceFiles.get(i);
             sourceFile.text = app.alternateLibrarySources[i].content
@@ -134,8 +134,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         executedAndNotSkipped ":installMainExecutable"
 
         and:
-        executable.assertExists()
-        executable.exec().out == app.alternateLibraryOutput
+        install.assertInstalled()
+        install.exec().out == app.alternateLibraryOutput
     }
 
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
@@ -163,7 +163,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "rebuilds binary with compiler option change"() {
         when:
-        def executable = executable("build/install/mainExecutable/main")
+        def install = installation("build/install/mainExecutable")
 
         and:
         buildFile << """
@@ -186,8 +186,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         executedAndNotSkipped ":installMainExecutable"
 
         and:
-        executable.assertExists()
-        executable.exec().out == app.frenchOutput
+        install.assertInstalled()
+        install.exec().out == app.frenchOutput
     }
 
     def "relinks binary when set of input libraries changes"() {

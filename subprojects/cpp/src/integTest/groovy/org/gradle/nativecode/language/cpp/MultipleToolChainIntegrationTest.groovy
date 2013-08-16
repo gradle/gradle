@@ -68,7 +68,7 @@ ${toolChainConfig}
 
         and:
         installedToolChains.each { toolChain ->
-            checkBinary("build/install/mainExecutable/${toolChain.id}/main", toolChain.runtimeEnv)
+            checkInstall("build/install/mainExecutable/${toolChain.id}/main", toolChain.runtimeEnv)
         }
     }
 
@@ -104,11 +104,11 @@ ${toolChain.buildScriptConfig}
         succeeds "install${toolChain.id.capitalize()}MainExecutable"
 
         then:
-        checkBinary("build/install/mainExecutable/${toolChain.id}/main", toolChain.runtimeEnv)
+        checkInstall("build/install/mainExecutable/${toolChain.id}/main", toolChain.runtimeEnv)
     }
 
-    def checkBinary(String path, List runtimeEnv) {
-        def executable = file(OperatingSystem.current().getExecutableName(path))
+    def checkInstall(String path, List runtimeEnv) {
+        def executable = file(OperatingSystem.current().getScriptName(path))
         executable.assertExists()
         assert executable.execute([], runtimeEnv).out == helloWorld.englishOutput
         return true

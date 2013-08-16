@@ -42,7 +42,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":assembleMainExecutableMainAsm", ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        executable("cpp/c-with-assembler/build/install/mainExecutable/main").exec().out == "5 + 7 = 12\n"
+        installation("cpp/c-with-assembler/build/install/mainExecutable").exec().out == "5 + 7 = 12\n"
     }
 
     def "c"() {
@@ -57,7 +57,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
                               ":compileMainExecutableExeC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        executable("cpp/c/build/install/mainExecutable/main").exec().out == "Hello world!"
+        installation("cpp/c/build/install/mainExecutable").exec().out == "Hello world!"
     }
 
     def "cpp"() {
@@ -72,7 +72,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
                               ":compileMainExecutableExeCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        executable("cpp/cpp/build/install/mainExecutable/main").exec().out == "Hello world!\n"
+        installation("cpp/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"
     }
 
     def "exe"() {
@@ -87,7 +87,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         and:
         executable("cpp/cpp-exe/build/binaries/mainExecutable/sampleExe").exec().out == "Hello, World!\n"
-        executable("cpp/cpp-exe/build/install/mainExecutable/sampleExe").exec().out == "Hello, World!\n"
+        installation("cpp/cpp-exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
     }
 
     def "lib"() {
@@ -159,7 +159,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         and:
         sharedLibrary("cpp/multi-project/lib/build/binaries/mainSharedLibrary/lib").assertExists()
         executable("cpp/multi-project/exe/build/binaries/mainExecutable/exe").assertExists()
-        executable("cpp/multi-project/exe/build/install/mainExecutable/exe").exec().out == "Hello, World!\n"
+        installation("cpp/multi-project/exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
     }
 
     // Does not work on windows, due to GRADLE-2118

@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 class NativeInstallationFixture {
     private final TestFile installDir
+    private final OperatingSystem os = OperatingSystem.current()
 
     NativeInstallationFixture(TestFile installDir) {
         this.installDir = installDir
@@ -29,42 +30,44 @@ class NativeInstallationFixture {
 
     ExecOutput exec(Object... args) {
         assertInstalled()
-        if (OperatingSystem.current().windows) {
-            def exe = installDir.listFiles().find { it.file && it.name.endsWith(".exe") }
-            return exe.exec(args)
+        return scriptFile().exec(args)
+    }
+
+    private TestFile scriptFile() {
+        if (os.windows) {
+            return installDir.listFiles().find { it.file && it.name.endsWith(".bat") }
         } else {
-            def script = installDir.listFiles().find { it.file }
-            return script.exec(args)
+            return installDir.listFiles().find { it.file }
         }
     }
 
     NativeInstallationFixture assertInstalled() {
         installDir.assertIsDir()
-        if (OperatingSystem.current().windows) {
-            def exe = installDir.listFiles().find { it.file && it.name.endsWith(".exe") }
-            assert exe
-        } else {
-            def libDir = installDir.file("lib")
-            libDir.assertIsDir()
-            def script = installDir.listFiles().find { it.file }
-            assert script
-            libDir.file(script.name).assertIsFile()
-        }
+        final script = scriptFile()
+        assert script
+
+        def libDir = installDir.file("lib")
+        libDir.assertIsDir()
+        libDir.file(os.getExecutableName(script.name)).assertIsFile()
         this
     }
 
     NativeInstallationFixture assertIncludesLibraries(String... names) {
-        installDir.assertIsDir()
-        def expected = names.collect { OperatingSystem.current().getSharedLibraryName(it) } as Set
-        if (OperatingSystem.current().windows) {
-            def libs = installDir.listFiles().findAll { it.file && !it.name.endsWith(".exe") }.collect { it.name }
-            assert libs as Set == expected as Set
-        } else {
-            def libDir = installDir.file("lib")
-            libDir.assertIsDir()
-            def libs = libDir.listFiles().findAll { it.file && it.name.contains(".") }.collect { it.name }
-            assert libs as Set == expected as Set
-        }
+        def expected = names.collect { os.getSharedLibraryName(it) } as Set
+        assert libraryFiles.collect { it.name } as Set == expected as Set
         this
+    }
+
+    private ArrayList<TestFile> getLibraryFiles() {
+        installDir.assertIsDir()
+        def libDir = installDir.file("lib")
+        libDir.assertIsDir()
+        def libFiles
+        if (os.windows) {
+            libFiles = libDir.listFiles().findAll { it.file && !it.name.endsWith(".exe") }
+        } else {
+            libFiles = libDir.listFiles().findAll { it.file && it.name.contains(".") }
+        }
+        libFiles
     }
 }
