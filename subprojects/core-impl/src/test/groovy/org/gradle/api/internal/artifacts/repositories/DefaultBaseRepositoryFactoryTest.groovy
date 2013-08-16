@@ -54,14 +54,6 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
             Mock(CacheAccess)
     )
 
-//    @Before public void setup() {
-//        fileResolver = Stub(FileResolver) {
-//            resolveUri('uri') >> RESOLVER_URL
-//            resolveUri(TEST_REPO) >> TEST_REPO_URL
-//            resolveUri('uri2') >> TEST_REPO2_URL
-//        }
-//    }
-
     def testCreateResolverWithStringDescription() {
         when:
         fileResolver.resolveUri('uri') >> RESOLVER_URL

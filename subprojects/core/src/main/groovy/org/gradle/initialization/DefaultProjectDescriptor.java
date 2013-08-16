@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.Path;
@@ -27,6 +28,7 @@ import java.util.Set;
 
 public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdentifier {
     private String name;
+    private final FileResolver fileResolver;
     private File dir;
     private DefaultProjectDescriptor parent;
     private Set<ProjectDescriptor> children = new LinkedHashSet<ProjectDescriptor>();
@@ -35,9 +37,10 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private String buildFileName = Project.DEFAULT_BUILD_FILE;
 
     public DefaultProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir,
-                                    ProjectDescriptorRegistry projectDescriptorRegistry) {
+                                    ProjectDescriptorRegistry projectDescriptorRegistry, FileResolver fileResolver) {
         this.parent = parent;
         this.name = name;
+        this.fileResolver = fileResolver;
         this.dir = GFileUtils.canonicalise(dir);
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.path = path(name);
@@ -77,7 +80,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public void setProjectDir(File dir) {
-        this.dir = GFileUtils.canonicalise(dir);
+        this.dir = fileResolver.resolve(dir);
     }
 
     public DefaultProjectDescriptor getParent() {

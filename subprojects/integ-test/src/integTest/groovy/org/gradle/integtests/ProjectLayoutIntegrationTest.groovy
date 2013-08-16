@@ -24,7 +24,8 @@ import org.junit.Test
 
 class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
+    @Rule
+    public final TestResources resources = new TestResources(testDirectoryProvider)
 
     @Test
     public void canHaveSomeSourceAndResourcesInSameDirectoryAndSomeInDifferentDirectories() {
@@ -171,5 +172,17 @@ sourceSets.main.java {
         JUnitXmlTestExecutionResult results = new JUnitXmlTestExecutionResult(file(), 'target')
         results.assertTestClassesExecuted('PersonTest')
         results.testClass('PersonTest').assertTestsExecuted('ok')
+    }
+
+    @Test
+    public void projectPathsResolvedRelativeToRoot() {
+        file('relative/a/build.gradle') << """
+            task someTask
+        """
+        file('settings.gradle') << '''
+        include ':a'
+        project(':a').projectDir = new File('relative/a')
+        '''
+        executer.inDirectory(file('relative/a')).withTasks(':a:someTask').run()
     }
 }

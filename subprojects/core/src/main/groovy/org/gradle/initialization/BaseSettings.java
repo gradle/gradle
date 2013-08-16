@@ -86,7 +86,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     }
 
     public DefaultProjectDescriptor createProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir) {
-        return new DefaultProjectDescriptor(parent, name, dir, projectDescriptorRegistry);
+        return new DefaultProjectDescriptor(parent, name, dir, projectDescriptorRegistry, fileResolver);
     }
 
     public DefaultProjectDescriptor findProject(String path) {
