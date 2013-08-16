@@ -19,6 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.Path;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -92,9 +93,9 @@ public class DefaultProjectDescriptorTest {
     public void setProjectDirAbsolute() {
         final ProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(ProjectDescriptorRegistry.class);
         projectDescriptor.setProjectDescriptorRegistry(projectDescriptorRegistryMock);
-        projectDescriptor.setProjectDir(new File("/absolute/path"));
-        final String expectedPath = "/absolute/path";
-        assertEquals(expectedPath, projectDescriptor.getProjectDir().getAbsolutePath());
+        String absolutePath = OperatingSystem.current().isWindows() ? "C:\\absolute\\path" : "/absolute/path";
+        projectDescriptor.setProjectDir(new File(absolutePath));
+        assertEquals(absolutePath, projectDescriptor.getProjectDir().getAbsolutePath());
     }
 
     @Test
