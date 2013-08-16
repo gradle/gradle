@@ -30,10 +30,7 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private final ITaskFactory taskFactory;
@@ -191,6 +188,17 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return getElementsAsDynamicObject();
     }
 
+    public SortedSet<String> getNames() {
+        SortedSet<String> set = new TreeSet<String>();
+        for (Task o : getStore()) {
+            set.add(o.getName());
+        }
+        for (String placeHolderName : placeholders.keySet()) {
+            set.add(placeHolderName);
+        }
+        return set;
+    }
+
     public void actualize() {
         new CachingDirectedGraphWalker<Task, Void>(new DirectedGraph<Task, Void>() {
             public void getNodeValues(Task node, Collection<? super Void> values, Collection<? super Task> connectedNodes) {
@@ -212,7 +220,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     public Task findByName(String name) {
         Task task = super.findByName(name);
-        if(task!=null){
+        if (task != null) {
             return task;
         }
         maybeMaterializePlaceholder(name);

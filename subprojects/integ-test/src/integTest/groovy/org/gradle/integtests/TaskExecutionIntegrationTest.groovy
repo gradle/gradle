@@ -213,6 +213,45 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 (*) - details omitted (listed previously)""")
     }
 
+    def "placeolder actions not triggered when not requested"() {
+        buildFile << """
+        task a
+        tasks.addPlaceholderAction("b"){
+                println  "placeholder action triggered"
+                task('b')
+        }
+"""
+        when:
+        succeeds 'a'
+
+        then:
+        !output.contains("placeholder action triggered")
+    }
+
+    def "explicit tasks are preferred over placeholder actions"() {
+        buildFile << """
+        task someTask << {println "explicit sometask"}
+        tasks.addPlaceholderAction("someTask"){
+            println  "placeholder action triggered"
+            task someTask << {println "placeholder sometask"}
+        }
+"""
+        when:
+        succeeds 'sometask'
+
+        then:
+        output.contains("explicit sometask")
+        !output.contains("placeholder action triggered")
+
+        when:
+        succeeds 'someT'
+
+        then:
+        output.contains("explicit sometask")
+        !output.contains("placeholder action triggered")
+    }
+
+
     def "honours mustRunAfter task ordering"() {
         buildFile << """
     task a {

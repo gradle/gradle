@@ -329,6 +329,15 @@ public class DefaultTaskContainerTest extends Specification {
         0 * placeholderAction.run()
     }
 
+    void "getNames contains task and placeholder action names"() {
+        when:
+        addTask("task1")
+        Runnable placeholderAction = addPlaceholderTask("task2")
+        0 * placeholderAction.run()
+        then:
+        container.names ==  ['task1', 'task2'] as SortedSet
+    }
+
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {
         def otherProject = Mock(ProjectInternal)
         def otherTaskContainer = Mock(TaskContainerInternal)

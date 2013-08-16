@@ -20,10 +20,9 @@ import com.google.common.collect.SetMultimap;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.tasks.TaskContainer;
 
 import java.util.Collections;
-import java.util.Map;
 
 public class TaskNameResolver {
 
@@ -39,79 +38,53 @@ public class TaskNameResolver {
         SetMultimap<String, TaskSelectionResult> selected = LinkedHashMultimap.create();
         Task task = project.getTasks().findByName(name);
         if (task != null) {
-            selected.put(task.getName(), new SimpleTaskSelectionResult(task));
+            selected.put(task.getName(), new LazyTaskSelectionResult(task.getName(), project.getTasks()));
         } else {
             task = project.getImplicitTasks().findByName(name);
             if (task != null) {
-                selected.put(task.getName(), new SimpleTaskSelectionResult(task));
+                selected.put(task.getName(), new LazyTaskSelectionResult(task.getName(), project.getImplicitTasks()));
             }
         }
         for (Project additionalProject : additionalProjects) {
             task = additionalProject.getTasks().findByName(name);
             if (task != null) {
-                selected.put(task.getName(), new SimpleTaskSelectionResult(task));
+                selected.put(task.getName(), new LazyTaskSelectionResult(task.getName(), additionalProject.getTasks()));
             }
         }
         if (!selected.isEmpty()) {
             return selected;
         }
 
-        for (Task t : project.getTasks()) {
-            selected.put(t.getName(), new SimpleTaskSelectionResult(t));
+        for (String taskName : project.getTasks().getNames()) {
+            selected.put(taskName, new LazyTaskSelectionResult(taskName, project.getTasks()));
         }
-        for (Task t : project.getImplicitTasks()) {
-            if (!selected.containsKey(t.getName())) {
-                selected.put(t.getName(), new SimpleTaskSelectionResult(t));
+        for (String taskName : project.getImplicitTasks().getNames()) {
+            if (!selected.containsKey(taskName)) {
+                selected.put(taskName, new LazyTaskSelectionResult(taskName, project.getImplicitTasks()));
             }
         }
-        Map<String, Runnable> placeholderActions = project.getTasks().getPlaceholderActions();
-        for (Map.Entry<String, Runnable> placeholderAction : placeholderActions.entrySet()) {
-            selected.put(placeholderAction.getKey(), new PlaceholderTaskSelectionResult(project.getTasks(), placeholderAction.getKey(), placeholderAction.getValue()));
 
-        }
         for (Project additionalProject : additionalProjects) {
-            for (Task t : additionalProject.getTasks()) {
-                selected.put(t.getName(), new SimpleTaskSelectionResult(t));
-            }
-
-            final ProjectInternal additionalProjectInternal = (ProjectInternal) additionalProject;
-            placeholderActions = additionalProjectInternal.getTasks().getPlaceholderActions();
-            for (Map.Entry<String, Runnable> placeholderAction : placeholderActions.entrySet()) {
-                selected.put(placeholderAction.getKey(), new PlaceholderTaskSelectionResult(additionalProjectInternal.getTasks(), placeholderAction.getKey(), placeholderAction.getValue()));
-
+            for (String taskName : additionalProject.getTasks().getNames()) {
+                selected.put(taskName, new LazyTaskSelectionResult(taskName, additionalProject.getTasks()));
             }
         }
 
         return selected;
     }
 
-    public static class SimpleTaskSelectionResult implements TaskSelectionResult {
-        private final Task task;
 
-        public SimpleTaskSelectionResult(Task task) {
-            this.task = task;
-        }
-
-        public Task getTask() {
-            return task;
-        }
-    }
-
-    private static class PlaceholderTaskSelectionResult implements TaskSelectionResult {
-        private final TaskContainerInternal taskContainerInternal;
+    public static class LazyTaskSelectionResult implements TaskSelectionResult {
+        private final TaskContainer taskContainer;
         private final String taskName;
-        private final Runnable placeholderAction;
 
-        public PlaceholderTaskSelectionResult(TaskContainerInternal taskContainerInternal, String taskName, Runnable placeholderAction) {
-
-            this.taskContainerInternal = taskContainerInternal;
+        public LazyTaskSelectionResult(String taskName, TaskContainer tasksContainer) {
+            this.taskContainer = tasksContainer;
             this.taskName = taskName;
-            this.placeholderAction = placeholderAction;
         }
 
         public Task getTask() {
-            placeholderAction.run();
-            return taskContainerInternal.findByName(taskName);
+            return taskContainer.getByName(taskName);
         }
     }
 }

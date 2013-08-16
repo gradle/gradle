@@ -42,7 +42,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-@RunWith (org.jmock.integration.junit4.JMock.class)
+@RunWith(org.jmock.integration.junit4.JMock.class)
 public class TaskNameResolvingBuildConfigurationActionTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ProjectInternal project = context.mock(AbstractProject.class, "[project]");
@@ -57,7 +57,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
 
     @Before
     public void setUp() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(executionContext).getGradle();
             will(returnValue(gradle));
             allowing(gradle).getDefaultProject();
@@ -132,13 +132,13 @@ public class TaskNameResolvingBuildConfigurationActionTest {
 
         action.configure(executionContext);
     }
-    
+
     @Test
     public void selectsTaskWithMatchingRelativePath() {
         final Task task1 = task("b");
         final Task task2 = task("a");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(startParameter).getTaskNames();
             will(returnValue(toList("a:b")));
 
@@ -158,7 +158,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task1 = task("b");
         final Task task2 = task("a");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(startParameter).getTaskNames();
             will(returnValue(toList(":b")));
 
@@ -178,7 +178,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task1 = task("b");
         final Task task2 = task("a");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(startParameter).getTaskNames();
             will(returnValue(toList(":a:b")));
 
@@ -200,7 +200,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task1 = task("someTask");
         final Task task2 = task("other");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(startParameter).getTaskNames();
             will(returnValue(toList("anotherProject:soTa")));
 
@@ -220,7 +220,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task1 = task("someTask");
         final Task task2 = task("other");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(startParameter).getTaskNames();
             will(returnValue(toList("anPr:soTa")));
 
@@ -384,7 +384,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
 
     private <T extends Task> T task(final String name, Class<T> taskType) {
         final T task = context.mock(taskType);
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(task).getName();
             will(returnValue(name));
         }});
@@ -398,13 +398,26 @@ public class TaskNameResolvingBuildConfigurationActionTest {
     private Multimap<String, TaskSelectionResult> tasks(Iterable<Task> tasks) {
         Multimap<String, TaskSelectionResult> map = LinkedHashMultimap.create();
         for (final Task task : tasks) {
-            map.put(task.getName(), new TaskNameResolver.SimpleTaskSelectionResult(task));
+            map.put(task.getName(), new SimpleTaskSelectionResult(task));
         }
         return map;
     }
 
+    private static class SimpleTaskSelectionResult implements TaskSelectionResult {
+        private final Task task;
+
+        public SimpleTaskSelectionResult(Task task) {
+            this.task = task;
+        }
+
+        public Task getTask() {
+            return task;
+        }
+    }
+
     public abstract class TaskWithBooleanProperty implements Task {
         @CommandLineOption(options = "all", description = "Some boolean flag")
-        public void setSomeFlag(boolean flag) { }
+        public void setSomeFlag(boolean flag) {
+        }
     }
 }
