@@ -117,15 +117,11 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
     private static String osxAsmSource = '''
 .section    __TEXT,__text,regular,pure_instructions
 .globl  _sumx
-.align  4, 0x90C
+.align  4
 _sumx:
-pushl   %ebp
-movl    %esp, %ebp
-movl    12(%ebp), %eax
-addl    8(%ebp), %eax
-popl    %ebp
+movl    8(%esp), %eax
+addl    4(%esp), %eax
 ret
-
 
 .subsections_via_symbols
 '''
@@ -168,20 +164,12 @@ _sumx:
 '''
 
     private static String linuxAsmSource = '''
-    .file   "sumx.c"
     .text
     .p2align 4,,15
 .globl sumx
     .type   sumx, @function
 sumx:
-.LFB0:
-    .cfi_startproc
     leal    (%rsi,%rdi), %eax
     ret
-    .cfi_endproc
-.LFE0:
-    .size   sumx, .-sumx
-    .ident  "GCC: (Ubuntu/Linaro 4.5.2-8ubuntu4) 4.5.2"
-    .section        .note.GNU-stack,"",@progbits
 '''
 }
