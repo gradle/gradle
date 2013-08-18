@@ -107,10 +107,10 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
             if (toolChain.isVisualCpp()) {
                 return windowsMasmSource
             } else {
-                return win32gccAsmSource;
+                return i386GnuAsmSource;
             }
         } else {
-            return linuxAsmSource
+            return x64GnuAsmSource
         }
     }
 
@@ -141,7 +141,7 @@ _TEXT   ENDS
 END
 '''
 
-    private static String win32gccAsmSource = '''
+    private static String i386GnuAsmSource = '''
     .text
     .globl  _sumx
 _sumx:
@@ -150,7 +150,7 @@ _sumx:
     ret
 '''
 
-    private static String linuxAsmSource = '''
+    private static String x64GnuAsmSource = '''
     .text
     .p2align 4,,15
 .globl sumx
