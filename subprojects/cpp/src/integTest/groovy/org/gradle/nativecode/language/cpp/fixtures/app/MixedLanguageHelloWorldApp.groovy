@@ -145,8 +145,8 @@ END
     .text
     .globl  _sumx
 _sumx:
-    movl    8(%ebp), %eax
-    addl    4(%ebp), %eax
+    movl    8(%esp), %eax
+    addl    4(%esp), %eax
     ret
 '''
 
