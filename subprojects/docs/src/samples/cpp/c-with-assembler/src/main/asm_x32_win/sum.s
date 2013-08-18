@@ -1,9 +1,6 @@
     .text
     .globl  _sum
 _sum:
-    pushl   %ebp
-    movl    %esp, %ebp
-    movl    12(%ebp), %eax
-    addl    8(%ebp), %eax
-    popl    %ebp
+    movl    8(%esp), %eax
+    addl    4(%esp), %eax
     ret
