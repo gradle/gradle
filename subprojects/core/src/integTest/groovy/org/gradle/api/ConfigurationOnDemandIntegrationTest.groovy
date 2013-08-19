@@ -305,4 +305,26 @@ project(':api') {
         then:
         output.contains "Horray!!!"
     }
+
+    def "may configure project at execution time"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        file('a/build.gradle') << """
+            configurations { conf }
+            dependencies { conf project(path: ":b", configuration: "conf") }
+            task resolveConf << {
+              //resolves at execution time, forcing 'b' to get configured
+              configurations.conf.files
+            }
+        """
+
+        file('b/build.gradle') << """
+            configurations { conf }
+        """
+
+        when:
+        run(":a:resolveConf", "-i")
+
+        then:
+        fixture.assertProjectsConfigured(":", ":a", ":b")
+    }
 }
