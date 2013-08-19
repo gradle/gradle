@@ -17,19 +17,17 @@
 package org.gradle.model.internal;
 
 import com.google.common.collect.MapMaker;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.PropertyAccessor;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.model.ModelType;
 
 import java.io.File;
 import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -51,29 +49,24 @@ public class PersistentModelObjectRegistry {
 
         FlattenedObject flattened = new FlattenedObject();
         Class<?> type = modelObject.getClass();
-        for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
-            for (Method method : current.getMethods()) {
-                if (method.getName().startsWith("get") && method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers())) {
-                    String prop = StringUtils.uncapitalize(method.getName().substring(3));
-                    if (prop.equals("metaClass") || prop.equals("class")) {
-                        continue;
-                    }
-                    Object value;
-                    try {
-                        value = method.invoke(modelObject);
-                    } catch (Exception e) {
-                        throw new GradleException(String.format("Could not get property %s for model %s (%s)", prop, identifier, modelObject.getClass().getSimpleName()), e);
-                    }
-                    if (value != null && value.getClass().getAnnotation(ModelType.class) != null) {
-                        Object valueId = instanceToId.get(value);
-                        if (valueId == null) {
-                            throw new IllegalStateException(String.format("Model %s (%s) references an unknown model object of type %s.", identifier, modelObject.getClass().getSimpleName(), value.getClass().getSimpleName()));
-                        }
-                        value = new Reference(value.getClass().getName(), valueId);
-                    }
-                    flattened.properties.put(prop, value);
-                }
+        for (PropertyAccessor property : JavaReflectionUtil.readableProperties(type).values()) {
+            if (property.getName().equals("metaClass") || property.getName().equals("class")) {
+                continue;
             }
+            Object value;
+            try {
+                value = property.getValue(modelObject);
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not get property %s for model %s (%s)", property.getName(), identifier, modelObject.getClass().getSimpleName()), e);
+            }
+            if (value != null && value.getClass().getAnnotation(ModelType.class) != null) {
+                Object valueId = instanceToId.get(value);
+                if (valueId == null) {
+                    throw new IllegalStateException(String.format("Model %s (%s) references an unknown model object of type %s.", identifier, modelObject.getClass().getSimpleName(), value.getClass().getSimpleName()));
+                }
+                value = new Reference(value.getClass().getName(), valueId);
+            }
+            flattened.properties.put(property.getName(), value);
         }
 
         idToInstance.put(identifier, modelObject);
@@ -109,7 +102,11 @@ public class PersistentModelObjectRegistry {
                 }
                 value = get(reference.identifier, referenceType);
             }
-            JavaReflectionUtil.writeProperty(modelObject, entry.getKey(), value);
+            try {
+                JavaReflectionUtil.writeableProperty(modelObject.getClass(), entry.getKey()).setValue(modelObject, value);
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not set property %s for model %s (%s)", entry.getKey(), identifier, type.getSimpleName()), e);
+            }
         }
 
         idToInstance.put(identifier, modelObject);

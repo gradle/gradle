@@ -40,6 +40,37 @@ public class JavaTestSubject {
         myBooleanProp = value;
     }
 
+    public boolean getMyOtherBooleanProperty() {
+        return true;
+    }
+
+    public String isNotABooleanProperty() {
+        return null;
+    }
+
+    public static String getStaticProperty() {
+        return null;
+    }
+
+    public static void setStaticProperty(String value) {
+    }
+
+    public void getVoidProperty() {
+    }
+
+    public String getParamProperty(String param) {
+        return null;
+    }
+
+    public void setParamProperty() {
+    }
+
+    public void setParamProperty(String param, String someOther) {
+    }
+
+    public void setWriteOnly(String param) {
+    }
+
     public void throwsException() {
         throw new IllegalStateException();
     }
@@ -56,7 +87,13 @@ public class JavaTestSubject {
         return null;
     }
 
+    protected void setProtectedProperty(String value) {
+    }
+
     private String getPrivateProperty() {
         return null;
+    }
+
+    private void setPrivateProperty(String value) {
     }
 }

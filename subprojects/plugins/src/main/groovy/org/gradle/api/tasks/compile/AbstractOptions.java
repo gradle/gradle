@@ -36,7 +36,7 @@ public abstract class AbstractOptions implements Serializable {
     public void define(@Nullable Map<String, Object> args) {
         if (args == null) { return; }
         for (Map.Entry<String, Object> arg: args.entrySet()) {
-            JavaReflectionUtil.writeProperty(this, arg.getKey(), arg.getValue());
+            JavaReflectionUtil.writeableProperty(getClass(), arg.getKey()).setValue(this, arg.getValue());
         }
     }
 
@@ -75,7 +75,7 @@ public abstract class AbstractOptions implements Serializable {
     }
 
     private void addValueToMapIfNotNull(Map<String, Object> map, Field field) {
-        Object value = JavaReflectionUtil.readProperty(this, field.getName());
+        Object value = JavaReflectionUtil.readableProperty(getClass(), field.getName()).getValue(this);
         if (value != null) {
             map.put(getAntPropertyName(field.getName()), getAntPropertyValue(field.getName(), value));
         }

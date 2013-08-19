@@ -60,71 +60,122 @@ class JavaReflectionUtilTest extends Specification {
 
     def "property exists"() {
         expect:
-        propertyExists(new JavaTestSubject(), Boolean, "myBooleanProperty")
-        !propertyExists(new JavaTestSubject(), String, "myBooleanProperty")
-        propertyExists(new JavaTestSubject(), String, "myProperty")
-        propertyExists(new JavaTestSubject(), Integer, "publicField")
-        !propertyExists(new JavaTestSubject(), String, "publicField")
-        !propertyExists(new JavaTestSubject(), Boolean, "myBooleanProp")
-        !propertyExists(new JavaTestSubject(), String, "protectedProperty")
-        !propertyExists(new JavaTestSubject(), String, "privateProperty")
+        propertyExists(new JavaTestSubject(), "myBooleanProperty")
+        propertyExists(new JavaTestSubject(), "myProperty")
+        propertyExists(new JavaTestSubject(), "publicField")
+        !propertyExists(new JavaTestSubject(), "myBooleanProp")
+        !propertyExists(new JavaTestSubject(), "protectedProperty")
+        !propertyExists(new JavaTestSubject(), "privateProperty")
 
         and:
-        propertyExists(new JavaTestSubjectSubclass(), Boolean, "myBooleanProperty")
-        !propertyExists(new JavaTestSubjectSubclass(), String, "myBooleanProperty")
-        propertyExists(new JavaTestSubjectSubclass(), String, "myProperty")
-        propertyExists(new JavaTestSubjectSubclass(), Integer, "publicField")
-        !propertyExists(new JavaTestSubjectSubclass(), String, "publicField")
-        !propertyExists(new JavaTestSubjectSubclass(), Boolean, "myBooleanProp")
-        !propertyExists(new JavaTestSubjectSubclass(), String, "protectedProperty")
-        !propertyExists(new JavaTestSubjectSubclass(), String, "privateProperty")
+        propertyExists(new JavaTestSubjectSubclass(), "myBooleanProperty")
+        propertyExists(new JavaTestSubjectSubclass(), "myProperty")
+        propertyExists(new JavaTestSubjectSubclass(), "publicField")
+        !propertyExists(new JavaTestSubjectSubclass(), "myBooleanProp")
+        !propertyExists(new JavaTestSubjectSubclass(), "protectedProperty")
+        !propertyExists(new JavaTestSubjectSubclass(), "privateProperty")
 
         and:
-        propertyExists(new JavaTestSubjectSubclass(), Boolean, "subclassBoolean")
+        propertyExists(new JavaTestSubjectSubclass(), "subclassBoolean")
+    }
+
+    def "readable properties"() {
+        expect:
+        def properties = readableProperties(JavaTestSubjectSubclass)
+        properties.size() == 5
+        properties.class
+        properties.myProperty
+        properties.myBooleanProperty
+        properties.myOtherBooleanProperty
+        properties.subclassBoolean
     }
 
     def "read property"() {
         expect:
-        JavaReflectionUtil.readProperty(myProperties, "myProperty") == "myValue"
+        readableProperty(JavaTestSubject, "myProperty").getValue(myProperties) == "myValue"
     }
 
     def "write property"() {
         when:
-        JavaReflectionUtil.writeProperty(myProperties, "myProperty", "otherValue")
+        writeableProperty(JavaTestSubject, "myProperty").setValue(myProperties, "otherValue")
 
         then:
-        JavaReflectionUtil.readProperty(myProperties, "myProperty") == "otherValue"
+        readableProperty(JavaTestSubject, "myProperty").getValue(myProperties) == "otherValue"
     }
 
     def "read boolean property"() {
         expect:
-        JavaReflectionUtil.readProperty(myProperties, "myBooleanProperty") == true
+        readableProperty(JavaTestSubject, "myBooleanProperty").getValue(myProperties) == true
     }
 
     def "write boolean property"() {
         when:
-        JavaReflectionUtil.writeProperty(myProperties, "myBooleanProperty", false)
+        writeableProperty(JavaTestSubject, "myBooleanProperty").setValue(myProperties, false)
 
         then:
-        JavaReflectionUtil.readProperty(myProperties, "myBooleanProperty") == false
+        readableProperty(JavaTestSubject, "myBooleanProperty").getValue(myProperties) == false
     }
 
-    def "read property that doesn't exist"() {
+    def "read property that doesn't have a well formed getter"() {
         when:
-        JavaReflectionUtil.readProperty(myProperties, "unexisting")
+        readableProperty(JavaTestSubject, property)
 
         then:
-        UncheckedException e = thrown()
-        e.cause instanceof NoSuchMethodException
+        NoSuchPropertyException e = thrown()
+        e.message == "Could not find getter method for property '${property}' on class JavaTestSubject."
+
+        where:
+        property              | _
+        "doesNotExist"        | _
+        "notABooleanProperty" | _
+        "staticProperty"      | _
+        "paramProperty"       | _
+        "voidProperty"        | _
+        "writeOnly"           | _
     }
 
-    def "write property that doesn't exist"() {
+    def "read property that is not public"() {
         when:
-        JavaReflectionUtil.writeProperty(myProperties, "unexisting", "someValue")
+        readableProperty(JavaTestSubject, property)
 
         then:
-        UncheckedException e = thrown()
-        e.cause instanceof NoSuchMethodException
+        NoSuchPropertyException e = thrown()
+        e.message == "Could not find getter method for property '${property}' on class JavaTestSubject."
+
+        where:
+        property            | _
+        "privateProperty"   | _
+        "protectedProperty" | _
+    }
+
+    def "write property that doesn't have a well formed setter"() {
+        when:
+        writeableProperty(JavaTestSubject, property)
+
+        then:
+        NoSuchPropertyException e = thrown()
+        e.message == "Could not find setter method for property '${property}' on class JavaTestSubject."
+
+        where:
+        property                 | _
+        "doesNotExist"           | _
+        "myOtherBooleanProperty" | _
+        "staticProperty"         | _
+        "paramProperty"          | _
+    }
+
+    def "write property that is not public"() {
+        when:
+        writeableProperty(JavaTestSubject, property)
+
+        then:
+        NoSuchPropertyException e = thrown()
+        e.message == "Could not find setter method for property '${property}' on class JavaTestSubject."
+
+        where:
+        property            | _
+        "privateProperty"   | _
+        "protectedProperty" | _
     }
 
     def "call methods successfully reflectively"() {

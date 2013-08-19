@@ -25,62 +25,93 @@ import org.gradle.util.JavaMethod;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class JavaReflectionUtil {
-    public static Object readProperty(Object target, String property) {
-        try {
-            Method getterMethod = findGetterMethod(target, property);
-            if (getterMethod == null) {
-                throw new NoSuchMethodException(String.format("could not find getter method for property '%s'", property));
-            } else {
-                return getterMethod.invoke(target);
+    /**
+     * Locates the readable properties of the given type. Searches only public properties.
+     */
+    public static Map<String, PropertyAccessor> readableProperties(Class<?> target) {
+        HashMap<String, PropertyAccessor> properties = new HashMap<String, PropertyAccessor>();
+        for (Method method : target.getMethods()) {
+            if (method.getName().startsWith("get") && isGetter(method)) {
+                String propertyName = method.getName().substring(3);
+                propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+                properties.put(propertyName, new GetterMethodBackedPropertyAccessor(propertyName, method));
+            } else if (method.getName().startsWith("is") && isBooleanGetter(method)) {
+                String propertyName = method.getName().substring(2);
+                propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+                properties.put(propertyName, new GetterMethodBackedPropertyAccessor(propertyName, method));
             }
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         }
+        return properties;
     }
 
-    private static Method findGetterMethod(Object target, String property) {
-        Method getterMethod;
+    /**
+     * Locates the property with the given name as a readable property. Searches only public properties.
+     *
+     * @throws NoSuchPropertyException when the given property does not exist.
+     */
+    public static PropertyAccessor readableProperty(Class<?> target, String property) {
+        final Method getterMethod = findGetterMethod(target, property);
+        if (getterMethod == null) {
+            throw new NoSuchPropertyException(String.format("Could not find getter method for property '%s' on class %s.", property, target.getSimpleName()));
+        }
+        return new GetterMethodBackedPropertyAccessor(property, getterMethod);
+    }
+
+    private static Method findGetterMethod(Class<?> target, String property) {
         try {
-            getterMethod = target.getClass().getMethod(toMethodName("get", property));
+            Method getterMethod = target.getMethod(toMethodName("get", property));
+            if (isGetter(getterMethod)) {
+                return getterMethod;
+            }
         } catch (NoSuchMethodException e) {
-            try {
-                getterMethod = target.getClass().getMethod(toMethodName("is", property));
-            } catch (NoSuchMethodException e2) {
-                return null;
-            }
+            // Ignore
         }
-        return getterMethod;
-    }
-
-    public static void writeProperty(Object target, String property, Object value) {
         try {
-            String setterName = toMethodName("set", property);
-            for (Method method : target.getClass().getMethods()) {
-                if (!method.getName().equals(setterName)) {
-                    continue;
-                }
-                if (method.getParameterTypes().length != 1) {
-                    continue;
-                }
-                method.invoke(target, value);
-                return;
+            Method getterMethod = target.getMethod(toMethodName("is", property));
+            if (isBooleanGetter(getterMethod)) {
+                return getterMethod;
             }
-            throw new NoSuchMethodException(String.format("could not find setter method '%s'", setterName));
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (NoSuchMethodException e2) {
+            // Ignore
         }
+        return null;
     }
 
-    private static boolean primitiveWiseAssignable(Class<?> target, Class<?> actual) {
-        if (actual.isPrimitive()) {
-            return target.isAssignableFrom(getWrapperTypeForPrimitiveType(actual));
-        } else {
-            return target.isAssignableFrom(actual);
+    private static boolean isGetter(Method method) {
+        return method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers()) && !method.getReturnType().equals(Void.TYPE);
+    }
+
+    private static boolean isBooleanGetter(Method method) {
+        Class<?> returnType = method.getReturnType();
+        return method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers()) && (returnType.equals(Boolean.TYPE) || returnType.equals(Boolean.class));
+    }
+
+    /**
+     * Locates the property with the given name as a writable property. Searches only public properties.
+     *
+     * @throws NoSuchPropertyException when the given property does not exist.
+     */
+    public static PropertyMutator writeableProperty(Class<?> target, String property) {
+        String setterName = toMethodName("set", property);
+        for (final Method method : target.getMethods()) {
+            if (!method.getName().equals(setterName)) {
+                continue;
+            }
+            if (method.getParameterTypes().length != 1) {
+                continue;
+            }
+            if (Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
+            return new MethodBackedPropertyMutator(property, method);
         }
+        throw new NoSuchPropertyException(String.format("Could not find setter method for property '%s' on class %s.", property, target.getSimpleName()));
     }
 
     public static <T> T readField(Object target, Class<T> type, String name) {
@@ -177,23 +208,18 @@ public class JavaReflectionUtil {
     }
 
     // Not hasProperty() because that's awkward with Groovy objects implementing it
-    public static boolean propertyExists(Object target, Class<?> returnType, String propertyName) {
+    public static boolean propertyExists(Object target, String propertyName) {
         Class<?> targetType = target.getClass();
-        Method getterMethod = findGetterMethod(target, propertyName);
+        Method getterMethod = findGetterMethod(target.getClass(), propertyName);
         if (getterMethod == null) {
             try {
                 Field field = targetType.getField(propertyName);
-                if (primitiveWiseAssignable(returnType, field.getType())) {
-                    return true;
-                }
+                return true;
             } catch (NoSuchFieldException ignore) {
                 // ignore
             }
         } else {
-            Class<?> methodReturnType = getterMethod.getReturnType();
-            if (primitiveWiseAssignable(returnType, methodReturnType)) {
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -276,6 +302,72 @@ public class JavaReflectionUtil {
             return true;
         } catch (ClassNotFoundException e) {
             return false;
+        }
+    }
+
+    private static class GetterMethodBackedPropertyAccessor implements PropertyAccessor {
+        private final String property;
+        private final Method method;
+
+        public GetterMethodBackedPropertyAccessor(String property, Method method) {
+            this.property = property;
+            this.method = method;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("property %s.%s", method.getDeclaringClass().getSimpleName(), property);
+        }
+
+        public String getName() {
+            return property;
+        }
+
+        public Class<?> getType() {
+            return method.getClass();
+        }
+
+        public Object getValue(Object target) {
+            try {
+                return method.invoke(target);
+            } catch (InvocationTargetException e) {
+                throw UncheckedException.unwrapAndRethrow(e);
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    }
+
+    private static class MethodBackedPropertyMutator implements PropertyMutator {
+        private final String property;
+        private final Method method;
+
+        public MethodBackedPropertyMutator(String property, Method method) {
+            this.property = property;
+            this.method = method;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("property %s.%s", method.getDeclaringClass().getSimpleName(), property);
+        }
+
+        public String getName() {
+            return property;
+        }
+
+        public Class<?> getType() {
+            return method.getParameterTypes()[0];
+        }
+
+        public void setValue(Object target, Object value) {
+            try {
+                method.invoke(target, value);
+            } catch (InvocationTargetException e) {
+                throw UncheckedException.unwrapAndRethrow(e);
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
     }
 }

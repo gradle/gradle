@@ -52,7 +52,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     }
 
     private MappedProperty map(String propertyName, Value<?> value) {
-        if (!JavaReflectionUtil.propertyExists(_source, Object.class, propertyName)) {
+        if (!JavaReflectionUtil.propertyExists(_source, propertyName)) {
             throw new InvalidUserDataException(
                     "You can't map a property that does not exist: propertyName=" + propertyName);
         }
