@@ -37,13 +37,13 @@ import java.util.concurrent.locks.ReentrantLock;
 public class PayloadSerializer {
     private static final short SYSTEM_CLASS_LOADER_ID = (short) 1;
     private final Lock lock = new ReentrantLock();
-    private final ModelClassLoaderRegistry classLoaderRegistry;
+    private final ModelClassLoaderFactory classLoaderRegistry;
     // TODO:ADAM - don't use strong references
     private final Map<ClassLoader, ClassLoaderDetails> classLoaderDetails = Maps.newHashMap();
     private final Map<UUID, ClassLoader> classLoaderIds = Maps.newHashMap();
     private final Transformer<ObjectStreamClass, Class<?>> classLookup;
 
-    public PayloadSerializer(ModelClassLoaderRegistry classLoaderRegistry) {
+    public PayloadSerializer(ModelClassLoaderFactory classLoaderRegistry) {
         this.classLoaderRegistry = classLoaderRegistry;
 
         // On Java 6, there is a public method to lookup a class descriptor given a class. On Java 5, we have to use reflection
@@ -71,7 +71,7 @@ public class PayloadSerializer {
 
     private SerializedPayload doSerialize(final Object payload, final DefaultSerializeMap map) {
         try {
-            final Map<ClassLoader, Short> classLoadersIds = new HashMap<ClassLoader, Short>();
+            final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
             final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
             final Set<ClassLoader> systemClassLoaders = new HashSet<ClassLoader>();
             for (ClassLoader cl = ClassLoader.getSystemClassLoader().getParent(); cl != null; cl = cl.getParent()) {
@@ -110,15 +110,15 @@ public class PayloadSerializer {
                         return SYSTEM_CLASS_LOADER_ID;
                     }
 
-                    Short id = classLoadersIds.get(classLoader);
+                    Short id = classLoaderIds.get(classLoader);
                     if (id != null) {
                         return id;
                     }
 
                     ClassLoaderDetails details = map.getDetails(classLoader);
-                    id = (short) (classLoadersIds.size() + SYSTEM_CLASS_LOADER_ID + 1);
+                    id = (short) (classLoaderIds.size() + SYSTEM_CLASS_LOADER_ID + 1);
 
-                    classLoadersIds.put(classLoader, id);
+                    classLoaderIds.put(classLoader, id);
                     classLoaderDetails.put(id, details);
 
                     return id;

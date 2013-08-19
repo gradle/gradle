@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.provider
 import org.gradle.internal.classloader.MutableURLClassLoader
 import spock.lang.Specification
 
-class ModelClassLoaderRegistryTest extends Specification {
-    final ModelClassLoaderRegistry registry = new ModelClassLoaderRegistry()
+class ModelClassLoaderFactoryTest extends Specification {
+    final ModelClassLoaderFactory registry = new ModelClassLoaderFactory()
 
     def "creates ClassLoader for classpath"() {
         def url1 = new URL("http://localhost/file1.jar")

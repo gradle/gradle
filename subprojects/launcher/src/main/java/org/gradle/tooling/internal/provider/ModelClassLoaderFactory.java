@@ -27,10 +27,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ModelClassLoaderRegistry {
+public class ModelClassLoaderFactory {
     private final ClassLoader rootClassLoader;
 
-    public ModelClassLoaderRegistry() {
+    public ModelClassLoaderFactory() {
         ClassLoader parent = getClass().getClassLoader();
         FilteringClassLoader filter = new FilteringClassLoader(parent);
         filter.allowPackage("org.gradle.tooling.internal.protocol");

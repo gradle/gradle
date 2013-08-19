@@ -30,8 +30,8 @@ import java.lang.reflect.Proxy
 class PayloadSerializerTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final PayloadSerializer originator = new PayloadSerializer(new ModelClassLoaderRegistry())
-    final PayloadSerializer receiver = new PayloadSerializer(new ModelClassLoaderRegistry())
+    final PayloadSerializer originator = new PayloadSerializer(new ModelClassLoaderFactory())
+    final PayloadSerializer receiver = new PayloadSerializer(new ModelClassLoaderFactory())
 
     def "can send an object between two parties"() {
         expect:
@@ -84,7 +84,6 @@ class PayloadSerializerTest extends Specification {
         reply.class == payloadClass
     }
 
-    @Ignore("work in progress")
     def "handles nested objects which are not visible from root object ClassLoader"() {
         def parent = isolated(WrapperPayload, PayloadInterface)
         def wrapperClass = parent.loadClass(WrapperPayload.name)

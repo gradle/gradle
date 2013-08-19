@@ -19,11 +19,11 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.internal.service.DefaultServiceRegistry;
 
 class ToolingGlobalScopeServices extends DefaultServiceRegistry {
-    protected ModelClassLoaderRegistry createModelClassLoaderRegistry() {
-        return new ModelClassLoaderRegistry();
+    protected ModelClassLoaderFactory createModelClassLoaderRegistry() {
+        return new ModelClassLoaderFactory();
     }
 
     protected PayloadSerializer createPayloadSerializer() {
-        return new PayloadSerializer(get(ModelClassLoaderRegistry.class));
+        return new PayloadSerializer(get(ModelClassLoaderFactory.class));
     }
 }
