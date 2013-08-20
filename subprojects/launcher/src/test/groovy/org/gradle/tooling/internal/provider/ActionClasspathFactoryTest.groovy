@@ -17,14 +17,9 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.internal.classloader.MutableURLClassLoader
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.BuildAction
-import org.gradle.util.ClasspathUtil
-import org.junit.Rule
-import spock.lang.Specification
 
-class ActionClasspathFactoryTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+class ActionClasspathFactoryTest extends AbstractClassGraphSpec {
     def factory = new ActionClasspathFactory()
 
     def "determines action and tooling API classpath when loaded via a URLClassLoader"() {
@@ -74,66 +69,4 @@ class ActionClasspathFactoryTest extends Specification {
         originalClassPath(BuildAction)
     }
 
-    List<File> originalClassPath(Class<?>... classes) {
-        return classes.collect { ClasspathUtil.getClasspathForClass(it) }
-    }
-
-    List<File> isolatedClasses(Class<?>... classes) {
-        return classes.collect {
-            def name = it.name.replace('.', '/') + '.class'
-            def classPathRoot = tmpDir.file(it.name)
-            def classFile = classPathRoot.file(name)
-            def resource = it.classLoader.getResource(name)
-            classFile.parentFile.mkdirs()
-            classFile.bytes = resource.bytes
-            classPathRoot
-        }
-    }
-
-    /**
-     * Returns an isolated URLClassLoader with the given classpath
-     */
-    URLClassLoader urlClassLoader(ClassLoader parent = ClassLoader.systemClassLoader.parent, List<File> classpath) {
-        return new URLClassLoader(classpath.collect { it.toURI().toURL() } as URL[], parent)
-    }
-
-    /**
-     * Returns a custom ClassLoader with the given classpath
-     */
-    ClassLoader customClassLoader(ClassLoader parent = ClassLoader.systemClassLoader.parent, List<File> classpath) {
-        def loader = new ClassLoader(parent) {
-            @Override
-            protected URL findResource(String name) {
-                for (File file : classpath) {
-                    if (file.isDirectory()) {
-                        def classFile = new File(file, name)
-                        if (classFile.exists()) {
-                            return classFile.toURI().toURL()
-                        }
-                    } else if (file.isFile()) {
-                        def url = new URL("jar:${file.toURI().toURL()}!/${name}")
-                        try {
-                            url.openStream().close()
-                            return url
-                        } catch (FileNotFoundException) {
-                            // Ignore
-                        }
-                    }
-                }
-                return null
-            }
-
-            @Override
-            protected Class<?> findClass(String name) throws ClassNotFoundException {
-                String resource = name.replace('.', '/') + '.class'
-                URL url = findResource(resource)
-                if (url == null) {
-                    throw new ClassNotFoundException("Could not find class '${name}'")
-                }
-                def byteCode = url.bytes
-                return defineClass(name, byteCode, 0, byteCode.length)
-            }
-        }
-        return loader
-    }
 }

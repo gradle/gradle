@@ -16,20 +16,15 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.junit.Assert
-import org.junit.Rule
 import spock.lang.Ignore
-import spock.lang.Specification
 
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 
-class PayloadSerializerTest extends Specification {
-    @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+class PayloadSerializerTest extends AbstractClassGraphSpec {
     final PayloadSerializer originator = new PayloadSerializer(new ModelClassLoaderFactory())
     final PayloadSerializer receiver = new PayloadSerializer(new ModelClassLoaderFactory())
 
@@ -193,14 +188,8 @@ class PayloadSerializerTest extends Specification {
     }
 
     ClassLoader isolated(ClassLoader parent = ClassLoader.systemClassLoader.parent, Class<?>... classes) {
-        def rootDir = tmpDir.createDir(classes[0].simpleName)
-        for (Class<?> aClass : classes) {
-            def resourceName = aClass.name.replace('.', '/') + ".class"
-            def resource = aClass.classLoader.getResource(resourceName)
-            def classFile = rootDir.file(resourceName)
-            classFile.copyFrom(resource)
-        }
-        def loader = new URLClassLoader([rootDir.toURI().toURL()] as URL[], parent)
+        def classpath = isolatedClasses(classes)
+        def loader = urlClassLoader(parent, classpath)
         for (Class<?> aClass : classes) {
             assert loader.loadClass(aClass.name) != aClass
         }
