@@ -18,8 +18,8 @@ package org.gradle.integtests.openapi
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.util.ClasspathUtil
-import org.gradle.util.DefaultClassLoaderFactory
+import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assert

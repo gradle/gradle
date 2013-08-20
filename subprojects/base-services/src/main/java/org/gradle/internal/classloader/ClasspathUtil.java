@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.classloader;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.ClassLoaderVisitor;
 
 import java.io.File;
 import java.lang.reflect.Method;

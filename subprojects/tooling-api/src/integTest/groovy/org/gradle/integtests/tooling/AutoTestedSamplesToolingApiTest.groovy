@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AutoTestedSamplesUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.model.Element
-import org.gradle.util.ClasspathUtil
+import org.gradle.internal.classloader.ClasspathUtil
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification

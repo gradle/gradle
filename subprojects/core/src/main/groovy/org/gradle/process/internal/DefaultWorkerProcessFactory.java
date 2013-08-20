@@ -27,7 +27,7 @@ import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoader
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.EncodedStream;
 import org.gradle.process.internal.child.WorkerFactory;
-import org.gradle.util.ClasspathUtil;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

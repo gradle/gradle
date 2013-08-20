@@ -40,8 +40,8 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultLoggingManagerFactory;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.util.ClassLoaderFactory;
-import org.gradle.util.DefaultClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.junit.Test;
 import spock.lang.Shared;
 

@@ -23,8 +23,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.LimitedDescription;
 
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -109,18 +107,6 @@ public class GFileUtils {
             paths.add(file.getAbsolutePath());
         }
         return paths;
-    }
-
-    public static List<URL> urisToUrls(Iterable<URI> uris) {
-        List<URL> urls = new ArrayList<URL>();
-        for (URI uri : uris) {
-            try {
-                urls.add(uri.toURL());
-            } catch (MalformedURLException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
-        return urls;
     }
 
     public static void copyURLToFile(URL source, File destination) {

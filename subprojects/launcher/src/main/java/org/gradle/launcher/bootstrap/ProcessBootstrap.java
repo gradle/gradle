@@ -20,8 +20,8 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.util.ClassLoaderFactory;
-import org.gradle.util.DefaultClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.MutableURLClassLoader;
 
 import java.lang.reflect.Method;

@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.util.DefaultClassLoaderFactory
+import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.util.GradleVersion
 
 class ExternalToolingApiDistribution implements ToolingApiDistribution {

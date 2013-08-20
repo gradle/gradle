@@ -50,6 +50,11 @@ class TransformersTest extends Specification {
         asString().transform(null) == null
     }
 
+    def "to URL"() {
+        expect:
+        toURL().transform(new URI("http://localhost:80/path")) == new URL("http://localhost:80/path")
+    }
+
     def "naming"() {
         expect:
         name().transform(named("foo")) == "foo"

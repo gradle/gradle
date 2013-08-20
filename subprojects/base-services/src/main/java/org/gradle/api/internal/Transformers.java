@@ -20,6 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
+import org.gradle.internal.UncheckedException;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 
 /**
  * Utility transformers.
@@ -117,6 +122,21 @@ public abstract class Transformers {
             public R transform(I original) {
                 action.execute(original);
                 return null;
+            }
+        };
+    }
+
+    /**
+     * Converts a URL to a URI
+     */
+    public static Transformer<URL, URI> toURL() {
+        return new Transformer<URL, URI>() {
+            public URL transform(URI original) {
+                try {
+                    return original.toURL();
+                } catch (MalformedURLException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
             }
         };
     }

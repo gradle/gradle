@@ -18,7 +18,7 @@ package org.gradle.api.plugins.sonar
 import org.sonar.batch.bootstrapper.Bootstrapper
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.util.ClasspathUtil
+import org.gradle.internal.classloader.ClasspathUtil
 
 import org.gradle.api.plugins.sonar.model.SonarRootModel
 import org.gradle.util.GFileUtils

@@ -39,7 +39,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       ImportsReader importsReader,
                                       ScriptHandlerFactory scriptHandlerFactory,
                                       ClassLoader defaultClassLoader,
-                                      Factory<LoggingManagerInternal> loggingManagerFactory, Instantiator instantiator) {
+                                      Factory<LoggingManagerInternal> loggingManagerFactory,
+                                      Instantiator instantiator) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.scriptHandlerFactory = scriptHandlerFactory;

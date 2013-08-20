@@ -35,7 +35,7 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.ClasspathUtil
+import org.gradle.internal.classloader.ClasspathUtil
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Specification

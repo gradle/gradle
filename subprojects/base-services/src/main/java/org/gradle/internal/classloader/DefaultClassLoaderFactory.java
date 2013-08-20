@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
+package org.gradle.internal.classloader;
 
+import org.gradle.api.internal.Transformers;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.ServiceLocator;
+import org.gradle.util.CollectionUtils;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -31,7 +32,7 @@ import java.util.Collection;
 
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     public ClassLoader createIsolatedClassLoader(Iterable<URI> uris) {
-        return doCreateIsolatedClassLoader(GFileUtils.urisToUrls(uris));
+        return doCreateIsolatedClassLoader(CollectionUtils.collect(uris, Transformers.toURL()));
     }
 
     public ClassLoader createIsolatedClassLoader(ClassPath classPath) {

@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.ServletContainer
 import org.gradle.util.AvailablePortFinder
-import org.gradle.util.ClasspathUtil
+import org.gradle.internal.classloader.ClasspathUtil
 import org.junit.Rule
 
 import spock.lang.AutoCleanup

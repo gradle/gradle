@@ -29,7 +29,7 @@ import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsume
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException
-import org.gradle.util.ClasspathUtil
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.slf4j.Logger

@@ -68,7 +68,7 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
-import org.gradle.util.ClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderFactory;
 
 /**
  * Contains the singleton services for a single build invocation.

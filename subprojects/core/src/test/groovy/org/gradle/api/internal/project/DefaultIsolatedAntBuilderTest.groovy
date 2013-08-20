@@ -28,7 +28,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.project.ant.BasicAntBuilder
 import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestAppender
-import org.gradle.util.DefaultClassLoaderFactory
+import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -36,7 +36,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
 import org.apache.tools.ant.Task
-import org.gradle.util.ClasspathUtil
+import org.gradle.internal.classloader.ClasspathUtil
 
 class DefaultIsolatedAntBuilderTest {
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry()
