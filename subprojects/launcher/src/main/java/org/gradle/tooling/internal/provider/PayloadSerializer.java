@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
@@ -287,38 +286,4 @@ public class PayloadSerializer {
         }
     }
 
-    public static class ClassLoaderDetails implements Serializable {
-        final UUID uuid;
-        final List<URL> classPath;
-        final List<ClassLoaderDetails> parents = new ArrayList<ClassLoaderDetails>();
-
-        public ClassLoaderDetails(UUID uuid, List<URL> classPath) {
-            this.uuid = uuid;
-            this.classPath = classPath;
-        }
-    }
-
-    /**
-     * Implementations don't need to be thread-safe
-     */
-    public interface SerializeMap {
-        /**
-         * Returns the details to use to reconstruct the given ClassLoader in the recipient. Return null to
-         * use the default details for the given ClassLoader.
-         */
-        @Nullable
-        ClassLoaderDetails getDetails(ClassLoader target);
-    }
-
-    /**
-     * Implementations don't need to be thread-safe
-     */
-    public interface DeserializeMap {
-        /**
-         * Reconstructs the ClassLoader received from the originator. Return null to use the default for the given
-         * details.
-         */
-        @Nullable
-        ClassLoader getClassLoader(ClassLoaderDetails classLoaderDetails);
-    }
 }

@@ -113,9 +113,9 @@ public class ProviderConnection {
 
     public Object run(InternalBuildAction<?> clientAction, final BuildActionSerializationDetails serializationDetails, ProviderOperationParameters providerParameters) {
         List<URL> classPath = actionClasspathFactory.getClassPathForAction(serializationDetails.getActionClasses());
-        final PayloadSerializer.ClassLoaderDetails actionClassLoader = new PayloadSerializer.ClassLoaderDetails(UUID.randomUUID(), classPath);
-        SerializedPayload serializedAction = payloadSerializer.serialize(clientAction, new PayloadSerializer.SerializeMap() {
-            public PayloadSerializer.ClassLoaderDetails getDetails(ClassLoader target) {
+        final ClassLoaderDetails actionClassLoader = new ClassLoaderDetails(UUID.randomUUID(), classPath);
+        SerializedPayload serializedAction = payloadSerializer.serialize(clientAction, new SerializeMap() {
+            public ClassLoaderDetails getDetails(ClassLoader target) {
                 return actionClassLoader;
             }
         });
@@ -124,8 +124,8 @@ public class ProviderConnection {
         Parameters params = initParams(providerParameters);
         SerializedPayload result = run(action, providerParameters, params.properties);
 
-        return payloadSerializer.deserialize(result, new PayloadSerializer.DeserializeMap() {
-            public ClassLoader getClassLoader(PayloadSerializer.ClassLoaderDetails classLoaderDetails) {
+        return payloadSerializer.deserialize(result, new DeserializeMap() {
+            public ClassLoader getClassLoader(ClassLoaderDetails classLoaderDetails) {
                 if (classLoaderDetails.uuid.equals(actionClassLoader.uuid)) {
                     return serializationDetails.getResultClassLoader();
                 }

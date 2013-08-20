@@ -17,8 +17,9 @@
 package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.MapMaker;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
-import org.gradle.util.ClasspathUtil;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+@ThreadSafe
 public class ActionClasspathFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionClasspathFactory.class);
     private final Lock lock = new ReentrantLock();
