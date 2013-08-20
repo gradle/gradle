@@ -17,8 +17,6 @@ package org.gradle.internal.service.scopes
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.DefaultProjectRegistry
@@ -30,10 +28,10 @@ import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
+import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.listener.ListenerManager
-import org.gradle.internal.classloader.MultiParentClassLoader
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.sameInstance
@@ -107,16 +105,6 @@ public class GradleScopeServicesTest extends Specification {
         then:
         pluginContainer instanceof DefaultPluginContainer
         secondPluginContainer sameInstance(pluginContainer)
-    }
-
-    def "provides a file resolver"() {
-        when:
-        def fileResolver = registry.get(FileResolver)
-        def secondFileResolver = registry.get(FileResolver)
-
-        then:
-        fileResolver instanceof IdentityFileResolver
-        secondFileResolver sameInstance(fileResolver)
     }
 
     def "provides a task graph executer"() {

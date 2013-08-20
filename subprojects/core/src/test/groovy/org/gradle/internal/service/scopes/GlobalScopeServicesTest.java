@@ -21,6 +21,8 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
@@ -41,12 +43,14 @@ import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
 import org.junit.Test;
+import spock.lang.Shared;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class GlobalScopeServicesTest {
+    @Shared
     private final GlobalScopeServices registry = new GlobalScopeServices();
 
     @Test
@@ -143,6 +147,11 @@ public class GlobalScopeServicesTest {
     @Test
     public void providesAFileSystem() {
         assertThat(registry.get(FileSystem.class), notNullValue());
+    }
+
+    @Test
+    public void providesAFileResolver() {
+        assertThat(registry.get(FileResolver.class), instanceOf(IdentityFileResolver.class));
     }
 
     @Test

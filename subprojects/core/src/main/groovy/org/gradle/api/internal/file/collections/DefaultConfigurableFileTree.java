@@ -23,7 +23,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
@@ -51,7 +50,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver, Instantiator instantiator) {
-        this.resolver = resolver != null ? resolver : new IdentityFileResolver();
+        this.resolver = resolver;
         ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
         this.instantiator = instantiator;

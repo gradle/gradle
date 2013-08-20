@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 
 import java.io.File;
@@ -26,6 +27,10 @@ import java.io.File;
 public class IdentityFileResolver extends AbstractFileResolver {
     public IdentityFileResolver() {
         super(FileSystems.getDefault());
+    }
+
+    public IdentityFileResolver(FileSystem fileSystem) {
+        super(fileSystem);
     }
 
     @Override

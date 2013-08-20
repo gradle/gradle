@@ -21,6 +21,7 @@ import org.gradle.api.internal.*
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.DefaultIsolatedAntBuilder
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.IsolatedAntBuilder
@@ -74,10 +75,11 @@ public class BuildScopeServicesTest extends Specification {
         parent.getFactory(CacheFactory) >> cacheFactoryFactory
         cacheFactoryFactory.create() >> cacheFactory
         parent.get(ClassLoaderRegistry) >> classLoaderRegistry
-        parent.getFactory(LoggingManagerInternal) >> Mock(Factory)
+        parent.getFactory(LoggingManagerInternal) >> Stub(Factory)
         parent.get(ModuleRegistry) >> new DefaultModuleRegistry()
-        parent.get(PluginModuleRegistry) >> Mock(PluginModuleRegistry)
+        parent.get(PluginModuleRegistry) >> Stub(PluginModuleRegistry)
         parent.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
+        parent.get(FileResolver) >> Stub(FileResolver)
     }
 
     def delegatesToParentForUnknownService() {

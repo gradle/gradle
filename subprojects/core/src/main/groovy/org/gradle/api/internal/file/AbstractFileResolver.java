@@ -52,6 +52,10 @@ public abstract class AbstractFileResolver implements FileResolver {
         return new BaseDirFileResolver(fileSystem, resolve(path));
     }
 
+    public FileResolver withNoBaseDir() {
+        return new IdentityFileResolver(fileSystem);
+    }
+
     public File resolve(Object path) {
         return resolve(path, PathValidation.NONE);
     }

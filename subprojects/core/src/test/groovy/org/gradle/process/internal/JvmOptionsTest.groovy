@@ -18,7 +18,7 @@
 
 package org.gradle.process.internal
 
-import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.process.JavaForkOptions
 import spock.lang.Specification
 
@@ -184,7 +184,7 @@ class JvmOptionsTest extends Specification {
     }
 
     private JvmOptions createOpts() {
-        return new JvmOptions(new IdentityFileResolver())
+        return new JvmOptions(TestFiles.resolver())
     }
 
     private JvmOptions parse(String optsString) {

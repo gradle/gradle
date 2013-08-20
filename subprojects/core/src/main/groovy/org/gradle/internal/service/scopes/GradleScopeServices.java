@@ -19,11 +19,11 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.DefaultProjectRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.execution.*;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
@@ -86,10 +86,6 @@ public class GradleScopeServices extends DefaultServiceRegistry implements Servi
             return new ProjectScopeServices(this, (ProjectInternal) domainObject);
         }
         throw new UnsupportedOperationException();
-    }
-
-    protected FileResolver createFileResolver() {
-        return new IdentityFileResolver();
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {

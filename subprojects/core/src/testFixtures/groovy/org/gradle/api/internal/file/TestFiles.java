@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.internal.nativeplatform.filesystem.FileSystems;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 
 import java.io.File;
 
@@ -24,13 +25,13 @@ public class TestFiles {
      * Returns a resolver with no base directory.
      */
     public static FileResolver resolver() {
-        return new IdentityFileResolver();
+        return new IdentityFileResolver(NativeServices.getInstance().get(FileSystem.class));
     }
 
     /**
      * Returns a resolver with the given base directory.
      */
     public static FileResolver resolver(File baseDir) {
-        return new BaseDirFileResolver(FileSystems.getDefault(), baseDir);
+        return resolver().withBaseDir(baseDir);
     }
 }

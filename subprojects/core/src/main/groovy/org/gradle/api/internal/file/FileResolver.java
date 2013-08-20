@@ -51,5 +51,10 @@ public interface FileResolver {
      */
     FileResolver withBaseDir(Object path);
 
+    /**
+     * Creates a new resolver with no base directory.
+     */
+    FileResolver withNoBaseDir();
+
     NotationParser<File> asNotationParser();
 }

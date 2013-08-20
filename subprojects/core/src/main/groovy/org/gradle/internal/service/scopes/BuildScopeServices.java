@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
@@ -216,14 +215,14 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
                 new DependencyMetaDataProviderImpl());
     }
 
-    protected FileResolver createFileResolver() {
-        return new IdentityFileResolver();
-    }
-
     protected Factory<WorkerProcessBuilder> createWorkerProcessFactory() {
         ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
-        return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry,
-                new IdentityFileResolver(), new LongIdGenerator());
+        return new DefaultWorkerProcessFactory(
+                startParameter.getLogLevel(),
+                get(MessagingServer.class),
+                classPathRegistry,
+                get(FileResolver.class),
+                new LongIdGenerator());
     }
 
     protected BuildConfigurer createBuildConfigurer() {

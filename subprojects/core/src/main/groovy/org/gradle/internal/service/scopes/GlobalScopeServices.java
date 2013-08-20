@@ -22,6 +22,8 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
@@ -31,6 +33,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
@@ -137,5 +140,9 @@ public class GlobalScopeServices extends DefaultServiceRegistry {
                 get(ExecutorFactory.class),
                 get(MessagingServices.class).get(InetAddressFactory.class)
         );
+    }
+
+    private FileResolver createFileResolver() {
+        return new IdentityFileResolver(get(FileSystem.class));
     }
 }

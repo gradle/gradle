@@ -63,7 +63,6 @@ import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedAr
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
@@ -158,7 +157,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 moduleMapParser,
                 selfResolvingDependencyFactory,
                 projParser,
-                new DependencyClassPathNotationParser(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()));
+                new DependencyClassPathNotationParser(instantiator, get(ClassPathRegistry.class), get(FileResolver.class).withNoBaseDir()));
 
         return new DefaultDependencyFactory(
                 new DependencyNotationParser(notationParsers),
