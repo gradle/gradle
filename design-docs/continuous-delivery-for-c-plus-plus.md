@@ -420,6 +420,7 @@ This story adds support for C source files as inputs to native binaries.
 - C compilation is incremental wrt C source files, header files and compiler settings.
 - Mixed C/C++ binary, for each type of binary.
 - Project has mixed C and C++ header files.
+- Verify that C compiler is being used for C, and C++ compiler is being used for C++.
 
 ## Story: Build a binary from assembler source files
 
@@ -446,7 +447,11 @@ This story adds support for using assembler source files as inputs to a native b
 ### Test cases
 
 - Build breaks when source file cannot be assembled.
-- Mixed C/C++/ASM binary, for each kind of binary.
+- Assembly is incremental wrt assembly source files, and assembler settings.
+- Mixed C/C++/ASM binary, for each kind of binary
+    - Manually wired together using the `cpp` plugin.
+    - Using the by-convention `cpp-exe` and `cpp-lib` plugins.
+- Preprocessor macros can be used in source files.
 - A project can have all C, C++ source and header files and assembly source files in the same source directory.
 
 # Milestone 2
@@ -604,6 +609,8 @@ Each variant has a platform associated with it.
     - If `l` has multiple platforms defined, select the binary with the same platform as `b`. Fail if no binary with matching platform. Match platforms based on their name.
     - If `l` has a single platform, select the binary with that platform.
     - In both instances, assert that the platform for the selected binary is compatible with the platform the binary is being built for
+- Change the GCC and Visual C++ toolchain adapters to invoke the assembler, compiler, linker and static lib bundler with the appropriate architecture flags.
+- Update the `c-with-assembler` sample to remove the command-line args and to use the DSL to select the appropriate source sets.
 
 ### User visible changes
 
@@ -635,6 +642,10 @@ Each variant has a platform associated with it.
 ### Tests
 
 - For each supported toolchain, build a 32-bit binary on a 64-bit machine.
+- Verify that the correct output was produced
+    - On linux run `readelf` over the object files and binaries
+    - On OS X run `otool -hv` over the object files and binaries
+    - On Windows run `dumpbin` over the object files and binaries
 - Build an executable with multiple architectures that uses a library with a single architecture that uses a library with multiple architectures.
 
 ### Open issues
@@ -644,6 +655,13 @@ Each variant has a platform associated with it.
 - Need separate compiler, linker and assembler options for each platform.
 - Infer the default platform and architecture.
 - Define some conventions for architecture names.
+    - Intel 32bit: `ia-32`, `i386`, `x86`
+    - Intel 64bit: `x86-64`, `x64` (Windows), `amb64` (BSD and Debian linux distributions, Solaris), `x86_64` (linux kernel, OS X, Fedora, GCC tools)
+    - Intel Itanium: `ia-64`
+    - PowerPC 32bit: `ppc`
+    - PowerPC 64bit: `ppc64`
+    - Sparc: ??
+    - ARM: ??
 
 ## Story: Cross-compile for multiple operating systems
 
@@ -1208,3 +1226,4 @@ TBD
 * Publishing and resolving RPM/DEB/NuGet/pkg-config/ etc.
 * Support for profiling builds: build with profiling enabled, execute a bunch of times, then build again using the profiling information.
 * Support for install distributions, which may bundle some, all, or none of the runtime dependencies (including language runtime libraries).
+* Understand the various output file types: PE, ELF, Mach-O, COFF
