@@ -16,34 +16,26 @@
 
 package org.gradle.tooling.internal.provider;
 
-import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.classloader.CachingClassLoader;
-import org.gradle.internal.classloader.MultiParentClassLoader;
 
 import java.io.*;
 import java.lang.reflect.Proxy;
-import java.net.URL;
-import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @ThreadSafe
 public class PayloadSerializer {
     private static final short SYSTEM_CLASS_LOADER_ID = (short) 1;
-    private final Lock lock = new ReentrantLock();
-    private final ModelClassLoaderFactory classLoaderRegistry;
-    // TODO:ADAM - don't use strong references
-    private final Map<ClassLoader, ClassLoaderDetails> classLoaderDetails = Maps.newHashMap();
-    private final Map<UUID, ClassLoader> classLoaderIds = Maps.newHashMap();
     private final Transformer<ObjectStreamClass, Class<?>> classLookup;
+    private final ClassLoaderRegistry classLoaderRegistry;
 
-    public PayloadSerializer(ModelClassLoaderFactory classLoaderRegistry) {
-        this.classLoaderRegistry = classLoaderRegistry;
+    public PayloadSerializer(ModelClassLoaderFactory classLoaderFactory) {
+        classLoaderRegistry = new ClassLoaderRegistry(classLoaderFactory);
 
         // On Java 6, there is a public method to lookup a class descriptor given a class. On Java 5, we have to use reflection
         // TODO:ADAM - move this into the service registry
@@ -55,7 +47,7 @@ public class PayloadSerializer {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         } else {
-            // Use reflection
+            // Use Java 5 fallback which uses reflection
             classLookup = new ReflectionClassLookup();
         }
     }
@@ -113,7 +105,9 @@ public class PayloadSerializer {
                     if (id != null) {
                         return id;
                     }
-
+                    if (classLoaderIds.size() == Short.MAX_VALUE) {
+                        throw new UnsupportedOperationException();
+                    }
                     ClassLoaderDetails details = map.getDetails(classLoader);
                     id = (short) (classLoaderIds.size() + SYSTEM_CLASS_LOADER_ID + 1);
 
@@ -204,46 +198,14 @@ public class PayloadSerializer {
         }
 
         public ClassLoaderDetails getDetails(final ClassLoader classLoader) {
-            lock.lock();
-            try {
-                ClassLoaderDetails details = classLoaderDetails.get(classLoader);
-                if (details != null) {
-                    return details;
-                }
-                if (overrides != null) {
-                    details = overrides.getDetails(classLoader);
-                }
-                if (details == null) {
-                    final List<URL> classpath = new ArrayList<URL>();
-                    final List<ClassLoader> parents = new ArrayList<ClassLoader>();
-                    new ClassLoaderVisitor() {
-                        @Override
-                        public void visit(ClassLoader candidate) {
-                            if (candidate == classLoader) {
-                                super.visit(candidate);
-                            } else {
-                                parents.add(candidate);
-                            }
-                        }
-
-                        @Override
-                        public void visitClassPath(URL[] classPath) {
-                            classpath.addAll(Arrays.asList(classPath));
-                        }
-                    }.visit(classLoader);
-
-                    UUID uuid = UUID.randomUUID();
-                    details = new ClassLoaderDetails(uuid, classpath);
-                    for (ClassLoader parent : parents) {
-                        details.parents.add(getDetails(parent));
-                    }
-                }
-                classLoaderDetails.put(classLoader, details);
-                classLoaderIds.put(details.uuid, classLoader);
-                return details;
-            } finally {
-                lock.unlock();
+            ClassLoaderDetails details = null;
+            if (overrides != null) {
+                details = overrides.getDetails(classLoader);
             }
+            if (details == null) {
+                details = classLoaderRegistry.getDetails(classLoader);
+            }
+            return details;
         }
     }
 
@@ -255,34 +217,14 @@ public class PayloadSerializer {
         }
 
         public ClassLoader getClassLoader(ClassLoaderDetails details) {
-            lock.lock();
-            try {
-                ClassLoader classLoader = classLoaderIds.get(details.uuid);
-                if (classLoader != null) {
-                    return classLoader;
-                }
-                if (overrides != null) {
-                    classLoader = overrides.getClassLoader(details);
-                }
-                if (classLoader == null) {
-                    ClassLoader parent = null;
-                    if (details.parents.size() == 1) {
-                        parent = getClassLoader(details.parents.get(0));
-                    } else if (details.parents.size() > 1) {
-                        MultiParentClassLoader multiParentClassLoader = new MultiParentClassLoader();
-                        for (ClassLoaderDetails parentDetails : details.parents) {
-                            multiParentClassLoader.addParent(getClassLoader(parentDetails));
-                        }
-                        parent = new CachingClassLoader(multiParentClassLoader);
-                    }
-                    classLoader = classLoaderRegistry.getClassLoaderFor(details.classPath, parent);
-                }
-                classLoaderIds.put(details.uuid, classLoader);
-                classLoaderDetails.put(classLoader, details);
-                return classLoader;
-            } finally {
-                lock.unlock();
+            ClassLoader classLoader = null;
+            if (overrides != null) {
+                classLoader = overrides.getClassLoader(details);
             }
+            if (classLoader == null) {
+                classLoader = classLoaderRegistry.getClassLoader(details);
+            }
+            return classLoader;
         }
     }
 
