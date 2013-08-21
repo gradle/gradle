@@ -27,7 +27,7 @@ class ModelClassLoaderFactoryTest extends Specification {
         def url2 = new URL("http://localhost/file2.jar")
 
         when:
-        def cl = registry.getClassLoaderFor([url1, url2], null)
+        def cl = registry.getClassLoaderFor(new MutableURLClassLoader.Spec([url1, url2]), [null])
 
         then:
         cl instanceof MutableURLClassLoader

@@ -23,5 +23,21 @@ import java.io.Serializable;
  *
  * Subclasses should implement equals() and hashCode(), so that the spec can be used as a hashmap key.
  */
-public class ClassLoaderSpec implements Serializable {
+public abstract class ClassLoaderSpec implements Serializable {
+    public static final ClassLoaderSpec SYSTEM_CLASS_LOADER = new ClassLoaderSpec() {
+        @Override
+        public boolean equals(Object obj) {
+            return obj != null && obj.getClass().equals(getClass());
+        }
+
+        @Override
+        public String toString() {
+            return "system";
+        }
+
+        @Override
+        public int hashCode() {
+            return 121;
+        }
+    };
 }

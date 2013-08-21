@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
-import java.security.CodeSource;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -43,12 +42,11 @@ public class ActionClasspathFactory {
         this.classPathCache = new MapMaker().weakKeys().makeMap();
     }
 
-    public List<URL> getClassPathForAction(Iterable<Class<?>> actionClasses) {
+    public List<URL> getClassPathFor(Iterable<Class<?>> targetClasses) {
         Set<URL> fullClassPath = new LinkedHashSet<URL>();
-
         lock.lock();
         try {
-            for (Class<?> actionClass : actionClasses) {
+            for (Class<?> actionClass : targetClasses) {
                 Collection<URL> classPath = classPathCache.get(actionClass);
                 if (classPath == null) {
                     Set<Class<?>> visited = new HashSet<Class<?>>();
@@ -89,14 +87,6 @@ public class ActionClasspathFactory {
 
             File classPathRoot = ClasspathUtil.getClasspathForResource(resource, resourceName);
             dest.add(classPathRoot.toURI().toURL());
-
-            //TODO:ADAM - remove this
-            LOGGER.info("==> LOOKING FOR {}", target);
-            LOGGER.info("    * ClassLoader: {}", targetClassLoader);
-            CodeSource codeSource = target.getProtectionDomain().getCodeSource();
-            LOGGER.info("    * Code-source: {}", codeSource == null ? null : codeSource.getLocation());
-            LOGGER.info("    * Resource: {}", resource);
-            LOGGER.info("    * Classpath root: {}", classPathRoot);
 
             // To determine the dependencies of the class, load up the byte code and look for CONSTANT_Class entries in the constant pool
 

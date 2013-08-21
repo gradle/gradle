@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.internal.classloader.TransformingClassLoader;
+import org.gradle.internal.classloader.*;
 import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
-import org.gradle.internal.classloader.FilteringClassLoader;
 import org.objectweb.asm.*;
 
 import java.net.URL;
@@ -29,6 +28,7 @@ import java.util.Set;
 
 public class ModelClassLoaderFactory {
     private final ClassLoader rootClassLoader;
+    private final ClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory();
 
     public ModelClassLoaderFactory() {
         ClassLoader parent = getClass().getClassLoader();
@@ -37,8 +37,18 @@ public class ModelClassLoaderFactory {
         rootClassLoader = filter;
     }
 
-    public ClassLoader getClassLoaderFor(List<URL> classpath, ClassLoader parent) {
-        return new MixInClassLoader(parent == null ? rootClassLoader : parent, classpath);
+    public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
+        if (spec.equals(ClassLoaderSpec.SYSTEM_CLASS_LOADER)) {
+            return rootClassLoader;
+        }
+        if (spec instanceof MutableURLClassLoader.Spec) {
+            MutableURLClassLoader.Spec clSpec = (MutableURLClassLoader.Spec) spec;
+            if (parents.size() != 1) {
+                throw new IllegalStateException("Expected exactly one parent ClassLoader");
+            }
+            return new MixInClassLoader(parents.get(0), clSpec.getClasspath());
+        }
+        return classLoaderFactory.createClassLoader(spec, parents);
     }
 
     private static class MixInClassLoader extends TransformingClassLoader {

@@ -18,12 +18,16 @@ package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
-import org.gradle.internal.classloader.MultiParentClassLoader;
+import org.gradle.internal.classloader.MutableURLClassLoader;
+import org.gradle.util.CollectionUtils;
 
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -35,8 +39,8 @@ public class ClassLoaderRegistry {
     private final Map<ClassLoader, ClassLoaderDetails> classLoaderDetails = Maps.newHashMap();
     private final Map<UUID, ClassLoader> classLoaderIds = Maps.newHashMap();
 
-    public ClassLoaderRegistry(ModelClassLoaderFactory classLoaderFactory) {
-        this.classLoaderFactory = classLoaderFactory;
+    public ClassLoaderRegistry(ModelClassLoaderFactory modelClassLoaderFactory) {
+        this.classLoaderFactory = modelClassLoaderFactory;
     }
 
     public ClassLoader getClassLoader(ClassLoaderDetails details) {
@@ -46,17 +50,18 @@ public class ClassLoaderRegistry {
             if (classLoader != null) {
                 return classLoader;
             }
-            ClassLoader parent = null;
-            if (details.parents.size() == 1) {
-                parent = getClassLoader(details.parents.get(0));
-            } else if (details.parents.size() > 1) {
-                MultiParentClassLoader multiParentClassLoader = new MultiParentClassLoader();
-                for (ClassLoaderDetails parentDetails : details.parents) {
-                    multiParentClassLoader.addParent(getClassLoader(parentDetails));
-                }
-                parent = new CachingClassLoader(multiParentClassLoader);
+
+            List<ClassLoader> parents = new ArrayList<ClassLoader>();
+            for (ClassLoaderDetails parentDetails : details.parents) {
+                parents.add(getClassLoader(parentDetails));
             }
-            classLoader = classLoaderFactory.getClassLoaderFor(details.classPath, parent);
+            if (parents.isEmpty()) {
+                parents.add(classLoaderFactory.getClassLoaderFor(ClassLoaderSpec.SYSTEM_CLASS_LOADER, null));
+            }
+
+            System.out.println(String.format("=> Creating ClassLoader %s from %s and %s", details.uuid, details.spec, parents));
+
+            classLoader = classLoaderFactory.getClassLoaderFor(details.spec, parents);
             classLoaderIds.put(details.uuid, classLoader);
             classLoaderDetails.put(classLoader, details);
             return classLoader;
@@ -76,8 +81,16 @@ public class ClassLoaderRegistry {
             ClassLoaderSpecVisitor visitor = new ClassLoaderSpecVisitor(classLoader);
             visitor.visit(classLoader);
 
+            if (visitor.spec == null) {
+                if (visitor.classPath == null) {
+                    visitor.spec = ClassLoaderSpec.SYSTEM_CLASS_LOADER;
+                } else {
+                    visitor.spec = new MutableURLClassLoader.Spec(CollectionUtils.toList(visitor.classPath));
+                }
+            }
+
             UUID uuid = UUID.randomUUID();
-            details = new ClassLoaderDetails(uuid, visitor.classPath);
+            details = new ClassLoaderDetails(uuid, visitor.spec);
             for (ClassLoader parent : visitor.parents) {
                 details.parents.add(getDetails(parent));
             }
@@ -93,7 +106,8 @@ public class ClassLoaderRegistry {
     private static class ClassLoaderSpecVisitor extends ClassLoaderVisitor {
         final ClassLoader classLoader;
         final List<ClassLoader> parents = new ArrayList<ClassLoader>();
-        final List<URL> classPath = new ArrayList<URL>();
+        ClassLoaderSpec spec;
+        URL[] classPath;
 
         public ClassLoaderSpecVisitor(ClassLoader classLoader) {
             this.classLoader = classLoader;
@@ -110,7 +124,12 @@ public class ClassLoaderRegistry {
 
         @Override
         public void visitClassPath(URL[] classPath) {
-            this.classPath.addAll(Arrays.asList(classPath));
+            this.classPath = classPath;
+        }
+
+        @Override
+        public void visitSpec(ClassLoaderSpec spec) {
+            this.spec = spec;
         }
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.classloader;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.net.URI;
+import java.util.List;
 
 public interface ClassLoaderFactory {
     /**
@@ -42,5 +43,5 @@ public interface ClassLoaderFactory {
     /**
      * Creates a ClassLoader from its spec.
      */
-    ClassLoader createClassLoader(ClassLoaderSpec spec, ClassLoader... parents);
+    ClassLoader createClassLoader(ClassLoaderSpec spec, List<? extends ClassLoader> parents);
 }

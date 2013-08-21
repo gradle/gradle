@@ -35,8 +35,12 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     private final JavaMethod<ClassLoader, Package> getPackageMethod;
 
     public MultiParentClassLoader(ClassLoader... parents) {
+        this(Arrays.asList(parents));
+    }
+
+    public MultiParentClassLoader(Collection<? extends ClassLoader> parents) {
         super(null);
-        this.parents = new CopyOnWriteArrayList<ClassLoader>(Arrays.asList(parents));
+        this.parents = new CopyOnWriteArrayList<ClassLoader>(parents);
         getPackagesMethod = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
         getPackageMethod = JavaReflectionUtil.method(ClassLoader.class, Package.class, "getPackage", String.class);
     }

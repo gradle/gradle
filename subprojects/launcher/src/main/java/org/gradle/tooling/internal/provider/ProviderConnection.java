@@ -22,6 +22,7 @@ import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -112,8 +113,8 @@ public class ProviderConnection {
     }
 
     public Object run(InternalBuildAction<?> clientAction, final BuildActionSerializationDetails serializationDetails, ProviderOperationParameters providerParameters) {
-        List<URL> classPath = actionClasspathFactory.getClassPathForAction(serializationDetails.getActionClasses());
-        final ClassLoaderDetails actionClassLoader = new ClassLoaderDetails(UUID.randomUUID(), classPath);
+        List<URL> classPath = actionClasspathFactory.getClassPathFor(serializationDetails.getActionClasses());
+        final ClassLoaderDetails actionClassLoader = new ClassLoaderDetails(UUID.randomUUID(), new MutableURLClassLoader.Spec(classPath));
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction, new SerializeMap() {
             public ClassLoaderDetails getDetails(ClassLoader target) {
                 return actionClassLoader;

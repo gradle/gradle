@@ -16,19 +16,20 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.internal.classloader.ClassLoaderSpec;
+
 import java.io.Serializable;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class ClassLoaderDetails implements Serializable {
     final UUID uuid;
-    final List<URL> classPath;
+    final ClassLoaderSpec spec;
     final List<ClassLoaderDetails> parents = new ArrayList<ClassLoaderDetails>();
 
-    public ClassLoaderDetails(UUID uuid, List<URL> classPath) {
+    public ClassLoaderDetails(UUID uuid, ClassLoaderSpec spec) {
         this.uuid = uuid;
-        this.classPath = classPath;
+        this.spec = spec;
     }
 }

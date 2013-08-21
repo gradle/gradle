@@ -29,6 +29,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
+import java.util.List;
 
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     public ClassLoader createIsolatedClassLoader(Iterable<URI> uris) {
@@ -77,23 +78,24 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         return classLoader;
     }
 
-    public ClassLoader createClassLoader(ClassLoaderSpec spec, ClassLoader... parents) {
+    public ClassLoader createClassLoader(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
         if (spec instanceof MultiParentClassLoader.Spec) {
             return new MultiParentClassLoader(parents);
         }
-        if (parents.length != 1) {
+        if (parents.size() != 1) {
             throw new IllegalArgumentException("Expected a single parent.");
         }
+        ClassLoader parent = parents.get(0);
         if (spec instanceof MutableURLClassLoader.Spec) {
             MutableURLClassLoader.Spec clSpec = (MutableURLClassLoader.Spec) spec;
-            return new MutableURLClassLoader(parents[0], clSpec);
+            return new MutableURLClassLoader(parent, clSpec);
         }
         if (spec instanceof CachingClassLoader.Spec) {
-            return new CachingClassLoader(parents[0]);
+            return new CachingClassLoader(parent);
         }
         if (spec instanceof FilteringClassLoader.Spec) {
             FilteringClassLoader.Spec clSpec = (FilteringClassLoader.Spec) spec;
-            return new FilteringClassLoader(parents[0], clSpec);
+            return new FilteringClassLoader(parent, clSpec);
         }
         throw new IllegalArgumentException(String.format("Don't know how to create a ClassLoader from spec %s", spec));
     }
