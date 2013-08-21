@@ -16,8 +16,9 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestClassLoader
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -47,49 +48,16 @@ abstract class AbstractClassGraphSpec extends Specification {
     }
 
     /**
-     * Returns an isolated URLClassLoader with the given classpath and parent.
+     * Returns a URLClassLoader with the given classpath and parent. Parent defaults to system ClassLoader.
      */
     URLClassLoader urlClassLoader(ClassLoader parent = ClassLoader.systemClassLoader.parent, List<File> classpath) {
         return new URLClassLoader(classpath.collect { it.toURI().toURL() } as URL[], parent)
     }
 
     /**
-     * Returns a custom ClassLoader with the given classpath and parent.
+     * Returns a custom ClassLoader with the given classpath and parent. Parent defaults to system ClassLoader.
      */
     ClassLoader customClassLoader(ClassLoader parent = ClassLoader.systemClassLoader.parent, List<File> classpath) {
-        def loader = new ClassLoader(parent) {
-            @Override
-            protected URL findResource(String name) {
-                for (File file : classpath) {
-                    if (file.isDirectory()) {
-                        def classFile = new File(file, name)
-                        if (classFile.exists()) {
-                            return classFile.toURI().toURL()
-                        }
-                    } else if (file.isFile()) {
-                        def url = new URL("jar:${file.toURI().toURL()}!/${name}")
-                        try {
-                            url.openStream().close()
-                            return url
-                        } catch (FileNotFoundException) {
-                            // Ignore
-                        }
-                    }
-                }
-                return null
-            }
-
-            @Override
-            protected Class<?> findClass(String name) throws ClassNotFoundException {
-                String resource = name.replace('.', '/') + '.class'
-                URL url = findResource(resource)
-                if (url == null) {
-                    throw new ClassNotFoundException("Could not find class '${name}'")
-                }
-                def byteCode = url.bytes
-                return defineClass(name, byteCode, 0, byteCode.length)
-            }
-        }
-        return loader
+        return new TestClassLoader(parent, classpath)
     }
 }
