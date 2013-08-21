@@ -15,140 +15,109 @@
  */
 package org.gradle.internal.classloader
 
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Specification
 
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+class MultiParentClassLoaderTest extends Specification {
+    private ClassLoader parent1 = Mock()
+    private ClassLoader parent2 = Mock()
+    private MultiParentClassLoader loader = new MultiParentClassLoader(parent1, parent2)
 
-@RunWith(JMock.class)
-class MultiParentClassLoaderTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private ClassLoader parent1
-    private ClassLoader parent2
-    private MultiParentClassLoader loader
-
-    @Before
-    public void setup() {
-        parent1 = context.mock(ClassLoader)
-        parent2 = context.mock(ClassLoader)
-        loader = new MultiParentClassLoader(parent1, parent2)
-    }
-
-    @Test
     public void parentsAreNotVisibleViaSuperClass() {
-        assertThat(loader.parent, nullValue())
+        expect:
+        loader.parent == null
     }
 
-    @Test
     public void loadsClassFromParentsInOrderSpecified() {
-        Class stringClass = String.class
-        Class integerClass = Integer.class
+        given:
+        _ * parent1.loadClass('string') >> String
+        _ * parent1.loadClass('integer') >> { throw new ClassNotFoundException() }
+        _ * parent2.loadClass('integer') >> Integer
 
-        context.checking {
-            allowing(parent1).loadClass('string')
-            will(returnValue(stringClass))
-            allowing(parent1).loadClass('integer')
-            will(throwException(new ClassNotFoundException()))
-            allowing(parent2).loadClass('integer')
-            will(returnValue(integerClass))
-        }
-
-        assertThat(loader.loadClass('string'), equalTo(String.class))
-        assertThat(loader.loadClass('string', true), equalTo(String.class))
-        assertThat(loader.loadClass('integer'), equalTo(Integer.class))
-        assertThat(loader.loadClass('integer', true), equalTo(Integer.class))
+        expect:
+        loader.loadClass('string') == String
+        loader.loadClass('string', true) == String
+        loader.loadClass('integer') == Integer
+        loader.loadClass('integer', true) == Integer
     }
 
-    @Test
     public void throwsCNFExceptionWhenClassNotFound() {
-        context.checking {
-            allowing(parent1).loadClass('string')
-            will(throwException(new ClassNotFoundException()))
-            allowing(parent2).loadClass('string')
-            will(throwException(new ClassNotFoundException()))
-        }
+        given:
+        _ * parent1.loadClass('string') >> { throw new ClassNotFoundException() }
+        _ * parent2.loadClass('string') >> { throw new ClassNotFoundException() }
 
-        try {
-            loader.loadClass('string')
-            fail()
-        } catch (ClassNotFoundException e) {
-            assertThat(e.message, equalTo('string not found.'))
-        }
+        when:
+        loader.loadClass('string')
+
+        then:
+        ClassNotFoundException e = thrown()
+        e.message == 'string not found.'
     }
     
-    @Test
     public void loadsPackageFromParentsInOrderSpecified() {
-        Package stringPackage = String.class.getPackage()
-        Package listPackage = List.class.getPackage()
+        def stringPackage = String.class.getPackage()
+        def listPackage = List.class.getPackage()
 
-        context.checking {
-            allowing(parent1).getPackage('string')
-            will(returnValue(stringPackage))
-            allowing(parent1).getPackage('list')
-            will(returnValue(null))
-            allowing(parent2).getPackage('list')
-            will(returnValue(listPackage))
-        }
+        given:
+        _ * parent1.getPackage('string') >> stringPackage
+        _ * parent1.getPackage('list') >> null
+        _ * parent2.getPackage('list') >> listPackage
 
-        assertThat(loader.getPackage('string'), sameInstance(stringPackage))
-        assertThat(loader.getPackage('list'), sameInstance(listPackage))
+        expect:
+        loader.getPackage('string') == stringPackage
+        loader.getPackage('list') == listPackage
     }
 
-    @Test
     public void containsUnionOfPackagesFromAllParents() {
-        Package package1 = context.mock(Package.class, 'p1')
-        Package package2 = context.mock(Package.class, 'p2')
+        def package1 = Stub(Package)
+        def package2 = Stub(Package)
+        def package3 = Stub(Package)
 
-        context.checking {
-            allowing(parent1).getPackages()
-            will(returnValue([package1] as Package[]))
-            allowing(parent2).getPackages()
-            will(returnValue([package2] as Package[]))
-        }
+        given:
+        _ * parent1.getPackages() >> ([package1] as Package[])
+        _ * parent2.getPackages() >> ([package1, package2, package3] as Package[])
 
-        assertThat(loader.getPackages(), hasItemInArray(package1))
-        assertThat(loader.getPackages(), hasItemInArray(package2))
+        expect:
+        loader.getPackages() == [package1, package2, package3] as Package[]
     }
 
-    @Test
     public void loadsResourceFromParentsInOrderSpecified() {
         URL resource1 = new File('res1').toURI().toURL()
         URL resource2 = new File('res2').toURI().toURL()
 
-        context.checking {
-            allowing(parent1).getResource('resource1')
-            will(returnValue(resource1))
-            allowing(parent1).getResource('resource2')
-            will(returnValue(null))
-            allowing(parent2).getResource('resource2')
-            will(returnValue(resource2))
-        }
+        given:
+        _ * parent1.getResource('resource1') >> resource1
+        _ * parent1.getResource('resource2') >> null
+        _ * parent2.getResource('resource2') >> resource2
 
-        assertThat(loader.getResource('resource1'), equalTo(resource1))
-        assertThat(loader.getResource('resource2'), equalTo(resource2))
+        expect:
+        loader.getResource('resource1') == resource1
+        loader.getResource('resource2') == resource2
     }
     
-    @Test
     public void containsUnionOfResourcesFromAllParents() {
         URL resource1 = new File('res1').toURI().toURL()
         URL resource2 = new File('res2').toURI().toURL()
+        URL resource3 = new File('res3').toURI().toURL()
 
-        context.checking {
-            allowing(parent1).getResources('resource1')
-            will(returnValue(Collections.enumeration([resource1])))
-            allowing(parent2).getResources('resource1')
-            will(returnValue(Collections.enumeration([resource2, resource1])))
-        }
+        given:
+        _ * parent1.getResources('resource') >> { return Collections.enumeration([resource1, resource2]) }
+        _ * parent2.getResources('resource') >> { return Collections.enumeration([resource1, resource3]) }
 
-        Enumeration resources = loader.getResources('resource1')
-        assertTrue(resources.hasMoreElements())
-        assertThat(resources.nextElement(), sameInstance(resource1))
-        assertTrue(resources.hasMoreElements())
-        assertThat(resources.nextElement(), sameInstance(resource2))
-        assertFalse(resources.hasMoreElements())
+        expect:
+        def resources = loader.getResources('resource').collect { it }
+        resources == [resource1, resource2, resource3]
+    }
+
+    public void visitsSelfAndParents() {
+        def visitor = Mock(ClassLoaderVisitor)
+
+        when:
+        loader.visit(visitor)
+
+        then:
+        1 * visitor.visitSpec({it instanceof MultiParentClassLoader.Spec})
+        1 * visitor.visitParent(parent1)
+        1 * visitor.visitParent(parent2)
+        0 * visitor._
     }
 }

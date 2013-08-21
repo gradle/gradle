@@ -15,162 +15,218 @@
  */
 package org.gradle.internal.classloader
 
-import org.hamcrest.Matcher
 import org.junit.Before
 import org.junit.Test
 import org.junit.runners.BlockJUnit4ClassRunner
+import spock.lang.Specification
 
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.junit.Assert.fail
 
-class FilteringClassLoaderTest {
+class FilteringClassLoaderTest extends Specification {
     private final FilteringClassLoader classLoader = new FilteringClassLoader(FilteringClassLoaderTest.class.getClassLoader())
 
-    @Test
     void passesThroughSystemClasses() {
-        assertThat(classLoader.loadClass(String.class.name), sameInstance(String.class))
+        expect:
+        canLoadClass(String)
     }
 
-    @Test
     void passesThroughSystemPackages() {
-        assertThat(classLoader.getPackage('java.lang'), notNullValue(Package.class))
-        assertThat(classLoader.getPackages(), hasPackage('java.lang'))
+        expect:
+        canSeePackage('java.lang')
     }
 
-    private Matcher<Package[]> hasPackage(String name) {
-        Matcher matcher = [matches: {Package p -> p.name == name }, describeTo: {description -> description.appendText("has package '$name'")}] as Matcher
-        return hasItemInArray(matcher)
-    }
-
-    @Test
     void passesThroughSystemResources() {
-        assertThat(classLoader.getResource('com/sun/jndi/ldap/jndiprovider.properties'), notNullValue())
-        assertThat(classLoader.getResourceAsStream('com/sun/jndi/ldap/jndiprovider.properties'), notNullValue())
-        assertTrue(classLoader.getResources('com/sun/jndi/ldap/jndiprovider.properties').hasMoreElements())
+        expect:
+        canSeeResource('com/sun/jndi/ldap/jndiprovider.properties')
     }
 
-    @Test
-    void filtersClasses() {
+    void filtersClassesByDefault() {
+        given:
         classLoader.parent.loadClass(Test.class.name)
 
-        try {
-            classLoader.loadClass(Test.class.name, false)
-            fail()
-        } catch (ClassNotFoundException e) {
-            assertThat(e.message, equalTo("$Test.name not found.".toString()))
-        }
-        try {
-            classLoader.loadClass(Test.class.name)
-            fail()
-        } catch (ClassNotFoundException e) {
-            assertThat(e.message, equalTo("$Test.name not found.".toString()))
-        }
+        when:
+        classLoader.loadClass(Test.class.name, false)
+
+        then:
+        ClassNotFoundException e = thrown()
+        e.message == "$Test.name not found."
+
+        when:
+        classLoader.loadClass(Test.class.name)
+
+        then:
+        ClassNotFoundException e2 = thrown()
+        e2.message == "$Test.name not found."
     }
 
-    @Test
-    void filtersPackages() {
-        assertThat(classLoader.parent.getPackage('org.junit'), notNullValue())
+    void filtersPackagesByDefault() {
+        given:
+        assert classLoader.parent.getPackage('org.junit') != null
 
-        assertThat(classLoader.getPackage('org.junit'), nullValue())
-        assertThat(classLoader.getPackages(), not(hasPackage('org.junit')))
+        expect:
+        cannotSeePackage('org.junit')
     }
 
-    @Test
-    void filtersResources() {
-        assertThat(classLoader.parent.getResource('org/gradle/util/ClassLoaderTest.txt'), notNullValue())
-        assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), nullValue())
-        assertThat(classLoader.getResourceAsStream('org/gradle/util/ClassLoaderTest.txt'), nullValue())
-        assertFalse(classLoader.getResources('org/gradle/util/ClassLoaderTest.txt').hasMoreElements())
+    void filtersResourcesByDefault() {
+        given:
+        assert classLoader.parent.getResource('org/gradle/util/ClassLoaderTest.txt') != null
+
+        expect:
+        cannotSeeResource('org/gradle/util/ClassLoaderTest.txt')
     }
 
-    @Test
-    void passesThroughClassesInSpecifiedPackages() {
+    void passesThroughClassesInSpecifiedPackagesAndSubPackages() {
+        given:
+        cannotLoadClass(Test)
+        cannotLoadClass(BlockJUnit4ClassRunner)
+
+        and:
         classLoader.allowPackage('org.junit')
-        assertThat(classLoader.loadClass(Test.class.name), sameInstance(Test.class))
-        assertThat(classLoader.loadClass(Test.class.name, false), sameInstance(Test.class))
-        assertThat(classLoader.loadClass(BlockJUnit4ClassRunner.class.name), sameInstance(BlockJUnit4ClassRunner.class))
+
+        expect:
+        canLoadClass(Test)
+        canLoadClass(Before)
+        canLoadClass(BlockJUnit4ClassRunner)
     }
 
-    @Test
     void passesThroughSpecifiedClasses() {
+        given:
+        cannotLoadClass(Test)
+
+        and:
         classLoader.allowClass(Test.class)
-        assertThat(classLoader.loadClass(Test.class.name), sameInstance(Test.class))
-        try {
-            classLoader.loadClass(Before.class.name)
-            fail()
-        } catch (ClassNotFoundException e) {
-            // expected
-        }
+
+        expect:
+        canLoadClass(Test)
+        cannotLoadClass(Before)
     }
 
-    @Test
     void filtersSpecifiedClasses() {
+        given:
+        cannotLoadClass(Test)
+        cannotLoadClass(Before)
+
+        and:
         classLoader.allowPackage("org.junit")
         classLoader.disallowClass("org.junit.Test")
 
+        expect:
         canLoadClass(Before)
         cannotLoadClass(Test)
     }
 
-    @Test
     void disallowClassWinsOverAllowClass() {
+        given:
         classLoader.allowClass(Test)
         classLoader.disallowClass(Test.name)
 
+        expect:
         cannotLoadClass(Test)
     }
 
-    @Test
-    void passesThroughSpecifiedPackages() {
-        assertThat(classLoader.getPackage('org.junit'), nullValue())
-        assertThat(classLoader.getPackages(), not(hasPackage('org.junit')))
+    void passesThroughSpecifiedPackagesAndSubPackages() {
+        given:
+        cannotSeePackage('org.junit')
+        cannotSeePackage('org.junit.runner')
 
+        and:
         classLoader.allowPackage('org.junit')
 
-        assertThat(classLoader.getPackage('org.junit'), notNullValue())
-        assertThat(classLoader.getPackages(), hasPackage('org.junit'))
-        assertThat(classLoader.getPackage('org.junit.runner'), notNullValue())
-        assertThat(classLoader.getPackages(), hasPackage('org.junit.runner'))
+        expect:
+        canSeePackage('org.junit')
+        canSeePackage('org.junit.runner')
     }
 
-    @Test
     void passesThroughResourcesInSpecifiedPackages() {
-        assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), nullValue())
+        given:
+        cannotSeeResource('org/gradle/util/ClassLoaderTest.txt')
 
         classLoader.allowPackage('org.gradle')
 
-        assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), notNullValue())
-        assertThat(classLoader.getResourceAsStream('org/gradle/util/ClassLoaderTest.txt'), notNullValue())
-        assertTrue(classLoader.getResources('org/gradle/util/ClassLoaderTest.txt').hasMoreElements())
+        expect:
+        canSeeResource('org/gradle/util/ClassLoaderTest.txt')
     }
 
-    @Test
     void passesThroughResourcesWithSpecifiedPrefix() {
-        assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), nullValue())
+        given:
+        cannotSeeResource('org/gradle/util/ClassLoaderTest.txt')
 
+        and:
         classLoader.allowResources('org/gradle')
 
-        assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), notNullValue())
-        assertThat(classLoader.getResourceAsStream('org/gradle/util/ClassLoaderTest.txt'), notNullValue())
-        assertTrue(classLoader.getResources('org/gradle/util/ClassLoaderTest.txt').hasMoreElements())
+        expect:
+        canSeeResource('org/gradle/util/ClassLoaderTest.txt')
     }
 
-    @Test
     void passesThroughSpecifiedResources() {
-        assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), nullValue())
+        given:
+        cannotSeeResource('org/gradle/util/ClassLoaderTest.txt')
 
+        and:
         classLoader.allowResource('org/gradle/util/ClassLoaderTest.txt')
 
-        assertThat(classLoader.getResource('org/gradle/util/ClassLoaderTest.txt'), notNullValue())
-        assertThat(classLoader.getResourceAsStream('org/gradle/util/ClassLoaderTest.txt'), notNullValue())
-        assertTrue(classLoader.getResources('org/gradle/util/ClassLoaderTest.txt').hasMoreElements())
+        expect:
+        canSeeResource('org/gradle/util/ClassLoaderTest.txt')
+    }
+
+    void "visits self and parent"() {
+        def visitor = Mock(ClassLoaderVisitor)
+        given:
+        classLoader.allowClass(Test)
+        classLoader.allowPackage("org.junit")
+        classLoader.allowResource("a/b/c")
+        classLoader.disallowClass(Before.name)
+
+        when:
+        classLoader.visit(visitor)
+
+        then:
+        1 * visitor.visitSpec({it instanceof FilteringClassLoader.Spec}) >> { FilteringClassLoader.Spec spec ->
+            spec.classNames == [Test.name]
+            spec.disallowedClassNames == [Before.name]
+            spec.packageNames == ["org.junit"]
+            spec.packagePrefixes == ["org.junit."]
+            spec.resourceNames == ["a/b/c"]
+            spec.resourcePrefixes == ["org/junit/"]
+        }
+        1 * visitor.visitParent(classLoader.parent)
+        0 * visitor._
+    }
+
+    void cannotSeeResource(String name) {
+        assert classLoader.getResource(name) == null
+        assert classLoader.getResourceAsStream(name) == null
+        assert !classLoader.getResources(name).hasMoreElements()
+    }
+
+    void canSeeResource(String name) {
+        assert classLoader.getResource(name) != null
+        def instr = classLoader.getResourceAsStream(name)
+        assert instr != null
+        instr.close()
+        assert classLoader.getResources(name).hasMoreElements()
+    }
+
+    void canSeePackage(String name) {
+        assert classLoader.getPackage(name) != null
+        assert classLoader.packages.any { it.name == name }
+    }
+
+    void cannotSeePackage(String name) {
+        assert classLoader.getPackage(name) == null
+        assert !classLoader.packages.any { it.name == name }
     }
 
     void canLoadClass(Class<?> clazz) {
-        assert classLoader.loadClass(clazz.name) == clazz
+        assert classLoader.loadClass(clazz.name, false).is(clazz)
+        assert classLoader.loadClass(clazz.name).is(clazz)
     }
 
     void cannotLoadClass(Class<?> clazz) {
+        try {
+            classLoader.loadClass(clazz.name, false)
+            fail()
+        } catch (ClassNotFoundException expected) {}
         try {
             classLoader.loadClass(clazz.name)
             fail()

@@ -39,6 +39,9 @@ public class ClassLoaderVisitor {
         }
     }
 
+    public void visitSpec(ClassLoaderSpec spec) {
+    }
+
     public void visitClassPath(URL[] classPath) {
     }
 

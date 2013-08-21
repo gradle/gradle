@@ -29,7 +29,7 @@ import java.util.*;
  * A ClassLoader which hides all non-system classes, packages and resources. Allows certain non-system packages and classes to be declared as visible. By default, only the Java system classes,
  * packages and resources are visible.
  */
-public class FilteringClassLoader extends ClassLoader {
+public class FilteringClassLoader extends ClassLoader implements ClassLoaderHierarchy {
     private static final Set<ClassLoader> SYSTEM_CLASS_LOADERS = new HashSet<ClassLoader>();
     private static final ClassLoader EXT_CLASS_LOADER;
     private static final Set<String> SYSTEM_PACKAGES = new HashSet<String>();
@@ -54,6 +54,21 @@ public class FilteringClassLoader extends ClassLoader {
 
     public FilteringClassLoader(ClassLoader parent) {
         super(parent);
+    }
+
+    public FilteringClassLoader(ClassLoader parent, Spec spec) {
+        super(parent);
+        packageNames.addAll(spec.packageNames);
+        packagePrefixes.addAll(spec.packagePrefixes);
+        resourceNames.addAll(spec.resourceNames);
+        resourcePrefixes.addAll(spec.resourcePrefixes);
+        classNames.addAll(spec.classNames);
+        disallowedClassNames.addAll(spec.classNames);
+    }
+
+    public void visit(ClassLoaderVisitor visitor) {
+        visitor.visitSpec(new Spec(classNames, packageNames, packagePrefixes, resourcePrefixes, resourceNames, disallowedClassNames));
+        visitor.visitParent(getParent());
     }
 
     @Override
@@ -211,5 +226,50 @@ public class FilteringClassLoader extends ClassLoader {
      */
     public void allowResource(String resourceName) {
         resourceNames.add(resourceName);
+    }
+
+    public static class Spec extends ClassLoaderSpec {
+        final Set<String> packageNames;
+        final Set<String> packagePrefixes;
+        final Set<String> resourcePrefixes;
+        final Set<String> resourceNames;
+        final Set<String> classNames;
+        final Set<String> disallowedClassNames;
+
+        public Spec(Set<String> classNames, Set<String> packageNames, Set<String> packagePrefixes, Set<String> resourcePrefixes, Set<String> resourceNames, Set<String> disallowedClassNames) {
+            this.classNames = new HashSet<String>(classNames);
+            this.packageNames = new HashSet<String>(packageNames);
+            this.packagePrefixes = new HashSet<String>(packagePrefixes);
+            this.resourcePrefixes = new HashSet<String>(resourcePrefixes);
+            this.resourceNames = new HashSet<String>(resourceNames);
+            this.disallowedClassNames = new HashSet<String>(disallowedClassNames);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            Spec other = (Spec) obj;
+            return other.packageNames.equals(packageNames)
+                    && other.packagePrefixes.equals(packagePrefixes)
+                    && other.resourceNames.equals(resourceNames)
+                    && other.resourcePrefixes.equals(resourcePrefixes)
+                    && other.classNames.equals(classNames)
+                    && other.disallowedClassNames.equals(disallowedClassNames);
+        }
+
+        @Override
+        public int hashCode() {
+            return packageNames.hashCode()
+                    ^ packagePrefixes.hashCode()
+                    ^ resourceNames.hashCode()
+                    ^ resourcePrefixes.hashCode()
+                    ^ classNames.hashCode()
+                    ^ disallowedClassNames.hashCode();
+        }
     }
 }

@@ -46,6 +46,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     }
 
     public void visit(ClassLoaderVisitor visitor) {
+        visitor.visitSpec(new Spec());
         for (ClassLoader parent : parents) {
             visitor.visitParent(parent);
         }
@@ -105,5 +106,17 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
             }
         }
         return Collections.enumeration(resources);
+    }
+
+    public static class Spec extends ClassLoaderSpec {
+        @Override
+        public boolean equals(Object obj) {
+            return obj != null && obj.getClass().equals(Spec.class);
+        }
+
+        @Override
+        public int hashCode() {
+            return getClass().getName().hashCode();
+        }
     }
 }

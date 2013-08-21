@@ -17,10 +17,12 @@
 package org.gradle.internal.classloader;
 
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.util.CollectionUtils;
 
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
+import java.util.List;
 
 public class MutableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
     public MutableURLClassLoader(ClassLoader parent, URL... urls) {
@@ -35,7 +37,12 @@ public class MutableURLClassLoader extends URLClassLoader implements ClassLoader
         super(classPath.getAsURLArray(), parent);
     }
 
+    public MutableURLClassLoader(ClassLoader parent, Spec spec) {
+        this(parent, spec.classpath);
+    }
+
     public void visit(ClassLoaderVisitor visitor) {
+        visitor.visitSpec(new Spec(CollectionUtils.toList(getURLs())));
         visitor.visitClassPath(getURLs());
         visitor.visitParent(getParent());
     }
@@ -48,6 +55,35 @@ public class MutableURLClassLoader extends URLClassLoader implements ClassLoader
     public void addURLs(Iterable<URL> urls) {
         for (URL url : urls) {
             addURL(url);
+        }
+    }
+
+    public static class Spec extends ClassLoaderSpec {
+        final List<URL> classpath;
+
+        public Spec(List<URL> classpath) {
+            this.classpath = classpath;
+        }
+
+        public List<URL> getClasspath() {
+            return classpath;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            Spec other = (Spec) obj;
+            return classpath.equals(other.classpath);
+        }
+
+        @Override
+        public int hashCode() {
+            return classpath.hashCode();
         }
     }
 }

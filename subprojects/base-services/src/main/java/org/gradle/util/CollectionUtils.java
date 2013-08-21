@@ -201,6 +201,18 @@ public abstract class CollectionUtils {
         return list;
     }
 
+    public static <T> List<T> toList(T[] things) {
+        if (things == null || things.length == 0) {
+            return new ArrayList<T>(0);
+        }
+
+        List<T> list = new ArrayList<T>(things.length);
+        for (T thing : things) {
+            list.add(thing);
+        }
+        return list;
+    }
+
     public static <T> Set<T> toSet(Iterable<? extends T> things) {
         if (things == null) {
             return new HashSet<T>(0);

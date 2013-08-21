@@ -20,7 +20,7 @@ import com.google.common.collect.MapMaker;
 
 import java.util.concurrent.ConcurrentMap;
 
-public class CachingClassLoader extends ClassLoader {
+public class CachingClassLoader extends ClassLoader implements ClassLoaderHierarchy {
     private static final Object MISSING_CLASS = new Object();
     private final ConcurrentMap<String, Object> loadedClasses = new MapMaker().weakValues().makeMap();
 
@@ -45,5 +45,22 @@ public class CachingClassLoader extends ClassLoader {
         }
         loadedClasses.putIfAbsent(name, result);
         return result;
+    }
+
+    public void visit(ClassLoaderVisitor visitor) {
+        visitor.visitSpec(new Spec());
+        visitor.visitParent(getParent());
+    }
+
+    public static class Spec extends ClassLoaderSpec {
+        @Override
+        public boolean equals(Object obj) {
+            return obj != null && obj.getClass().equals(Spec.class);
+        }
+
+        @Override
+        public int hashCode() {
+            return getClass().getName().hashCode();
+        }
     }
 }

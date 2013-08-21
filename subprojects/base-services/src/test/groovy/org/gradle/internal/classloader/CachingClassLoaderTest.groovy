@@ -63,4 +63,16 @@ class CachingClassLoaderTest extends Specification {
         and:
         0 * parent._
     }
+
+    def "visits self and parent"() {
+        def visitor = Mock(ClassLoaderVisitor)
+
+        when:
+        classLoader.visit(visitor)
+
+        then:
+        1 * visitor.visitSpec({it instanceof CachingClassLoader.Spec})
+        1 * visitor.visitParent(parent)
+        0 * visitor._
+    }
 }

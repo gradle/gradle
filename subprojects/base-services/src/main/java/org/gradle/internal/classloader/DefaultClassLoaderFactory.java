@@ -77,6 +77,27 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         return classLoader;
     }
 
+    public ClassLoader createClassLoader(ClassLoaderSpec spec, ClassLoader... parents) {
+        if (spec instanceof MultiParentClassLoader.Spec) {
+            return new MultiParentClassLoader(parents);
+        }
+        if (parents.length != 1) {
+            throw new IllegalArgumentException("Expected a single parent.");
+        }
+        if (spec instanceof MutableURLClassLoader.Spec) {
+            MutableURLClassLoader.Spec clSpec = (MutableURLClassLoader.Spec) spec;
+            return new MutableURLClassLoader(parents[0], clSpec);
+        }
+        if (spec instanceof CachingClassLoader.Spec) {
+            return new CachingClassLoader(parents[0]);
+        }
+        if (spec instanceof FilteringClassLoader.Spec) {
+            FilteringClassLoader.Spec clSpec = (FilteringClassLoader.Spec) spec;
+            return new FilteringClassLoader(parents[0], clSpec);
+        }
+        throw new IllegalArgumentException(String.format("Don't know how to create a ClassLoader from spec %s", spec));
+    }
+
     private void makeServiceVisible(ServiceLocator locator, FilteringClassLoader classLoader, Class<?> serviceType) {
         classLoader.allowClass(locator.getFactory(serviceType).getImplementationClass());
         classLoader.allowResource("META-INF/services/" + serviceType.getName());

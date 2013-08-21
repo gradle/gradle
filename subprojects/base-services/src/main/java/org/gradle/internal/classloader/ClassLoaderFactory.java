@@ -38,4 +38,9 @@ public interface ClassLoaderFactory {
      * @return The ClassLoader
      */
     FilteringClassLoader createFilteringClassLoader(ClassLoader parent);
+
+    /**
+     * Creates a ClassLoader from its spec.
+     */
+    ClassLoader createClassLoader(ClassLoaderSpec spec, ClassLoader... parents);
 }
