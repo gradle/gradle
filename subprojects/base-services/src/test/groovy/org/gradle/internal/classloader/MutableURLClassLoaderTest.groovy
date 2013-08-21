@@ -21,7 +21,7 @@ import spock.lang.Specification
 class MutableURLClassLoaderTest extends Specification {
     def "visits self and parent"() {
         def visitor = Mock(ClassLoaderVisitor)
-        def parent = Stub(ClassLoader)
+        def parent = Mock(ClassLoader)
         def classPath = [new File("a").toURI().toURL(), new File("b").toURI().toURL()]
         def cl = new MutableURLClassLoader(parent, classPath)
 
