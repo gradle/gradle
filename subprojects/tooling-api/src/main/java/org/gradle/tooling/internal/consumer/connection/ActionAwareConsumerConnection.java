@@ -24,9 +24,6 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
     private final InternalBuildActionExecutor executor;
 
@@ -38,20 +35,14 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
     @Override
     public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         ClassLoader actionClassLoader = action.getClass().getClassLoader();
-        return executor.run(new BuildActionAdapter<T>(action, adapter), new DefaultBuildActionSerializationDetails(Arrays.<Class<?>>asList(BuildActionAdapter.class, action.getClass()), actionClassLoader), operationParameters).getModel();
+        return executor.run(new BuildActionAdapter<T>(action, adapter), new DefaultBuildActionSerializationDetails(actionClassLoader), operationParameters).getModel();
     }
 
     private static class DefaultBuildActionSerializationDetails implements BuildActionSerializationDetails {
         private final ClassLoader classLoader;
-        private final List<Class<?>> actionClasses;
 
-        private DefaultBuildActionSerializationDetails(List<Class<?>> actionClasses, ClassLoader classLoader) {
+        private DefaultBuildActionSerializationDetails(ClassLoader classLoader) {
             this.classLoader = classLoader;
-            this.actionClasses = actionClasses;
-        }
-
-        public List<Class<?>> getActionClasses() {
-            return actionClasses;
         }
 
         public ClassLoader getResultClassLoader() {

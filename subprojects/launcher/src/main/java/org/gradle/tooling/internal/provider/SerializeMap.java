@@ -16,16 +16,16 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.Nullable;
+import java.util.UUID;
 
-/**
- * Implementations don't need to be thread-safe
- */
 public interface SerializeMap {
     /**
-     * Returns the details to use to reconstruct the given ClassLoader in the recipient. Return null to
-     * use the default details for the given ClassLoader.
+     * Visits a class to be serialized, returning the id of the deserialize ClassLoader to associate this class with.
      */
-    @Nullable
-    ClassLoaderDetails getDetails(ClassLoader target);
+    UUID visitClass(Class<?> target);
+
+    /**
+     * Returns the set of ClassLoaders to use in to deserialize the graph.
+     */
+    Iterable<ClassLoaderDetails> getClassLoaders();
 }

@@ -18,9 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Nullable;
 
-/**
- * Implementations don't need to be thread-safe
- */
 public interface DeserializeMap {
     /**
      * Reconstructs the ClassLoader received from the originator. Return null to use the default for the given

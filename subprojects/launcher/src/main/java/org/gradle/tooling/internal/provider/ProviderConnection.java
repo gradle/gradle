@@ -47,10 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
@@ -113,11 +110,17 @@ public class ProviderConnection {
     }
 
     public Object run(InternalBuildAction<?> clientAction, final BuildActionSerializationDetails serializationDetails, ProviderOperationParameters providerParameters) {
-        List<URL> classPath = actionClasspathFactory.getClassPathFor(serializationDetails.getActionClasses());
-        final ClassLoaderDetails actionClassLoader = new ClassLoaderDetails(UUID.randomUUID(), new MutableURLClassLoader.Spec(classPath));
+        final UUID classLoaderId = UUID.randomUUID();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction, new SerializeMap() {
-            public ClassLoaderDetails getDetails(ClassLoader target) {
-                return actionClassLoader;
+            Set<URL> classPath = new LinkedHashSet<URL>();
+
+            public UUID visitClass(Class<?> target) {
+                actionClasspathFactory.getClassPathFor(target, classPath);
+                return classLoaderId;
+            }
+
+            public Iterable<ClassLoaderDetails> getClassLoaders() {
+                return Arrays.asList(new ClassLoaderDetails(classLoaderId, new MutableURLClassLoader.Spec(new ArrayList<URL>(classPath))));
             }
         });
 
@@ -127,7 +130,7 @@ public class ProviderConnection {
 
         return payloadSerializer.deserialize(result, new DeserializeMap() {
             public ClassLoader getClassLoader(ClassLoaderDetails classLoaderDetails) {
-                if (classLoaderDetails.uuid.equals(actionClassLoader.uuid)) {
+                if (classLoaderDetails.uuid.equals(classLoaderId)) {
                     return serializationDetails.getResultClassLoader();
                 }
                 return null;

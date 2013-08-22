@@ -23,10 +23,7 @@ import org.gradle.internal.jvm.Jvm;
 
 import java.io.*;
 import java.lang.reflect.Proxy;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @ThreadSafe
 public class PayloadSerializer {
@@ -52,23 +49,16 @@ public class PayloadSerializer {
         }
     }
 
-    public SerializedPayload serialize(final Object payload) {
-        return doSerialize(payload, new DefaultSerializeMap(null));
+    public SerializedPayload serialize(Object payload) {
+        return doSerialize(payload, new DefaultSerializeSession());
     }
 
-    public SerializedPayload serialize(final Object payload, SerializeMap map) {
-        return doSerialize(payload, new DefaultSerializeMap(map));
+    public SerializedPayload serialize(Object payload, SerializeMap map) {
+        return doSerialize(payload, new MapBackedSerializeSession(map));
     }
 
-    private SerializedPayload doSerialize(final Object payload, final DefaultSerializeMap map) {
+    private SerializedPayload doSerialize(final Object payload, final SerializeSession map) {
         try {
-            final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
-            final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
-            final Set<ClassLoader> systemClassLoaders = new HashSet<ClassLoader>();
-            for (ClassLoader cl = ClassLoader.getSystemClassLoader().getParent(); cl != null; cl = cl.getParent()) {
-                systemClassLoaders.add(cl);
-            }
-
             ByteArrayOutputStream content = new ByteArrayOutputStream();
             ObjectOutputStream objectStream = new ObjectOutputStream(content) {
                 @Override
@@ -92,36 +82,14 @@ public class PayloadSerializer {
                 }
 
                 private void writeClassLoader(Class<?> targetClass) throws IOException {
-                    writeShort(getClassLoaderId(targetClass));
-                }
-
-                private short getClassLoaderId(Class<?> targetClass) {
-                    ClassLoader classLoader = targetClass.getClassLoader();
-                    if (classLoader == null || systemClassLoaders.contains(classLoader)) {
-                        return SYSTEM_CLASS_LOADER_ID;
-                    }
-
-                    Short id = classLoaderIds.get(classLoader);
-                    if (id != null) {
-                        return id;
-                    }
-                    if (classLoaderIds.size() == Short.MAX_VALUE) {
-                        throw new UnsupportedOperationException();
-                    }
-                    ClassLoaderDetails details = map.getDetails(classLoader);
-                    id = (short) (classLoaderIds.size() + SYSTEM_CLASS_LOADER_ID + 1);
-
-                    classLoaderIds.put(classLoader, id);
-                    classLoaderDetails.put(id, details);
-
-                    return id;
+                    writeShort(map.getClassLoaderId(targetClass));
                 }
             };
 
             objectStream.writeObject(payload);
             objectStream.close();
 
-            return new SerializedPayload(classLoaderDetails, content.toByteArray());
+            return new SerializedPayload(map.getClassLoaders(), content.toByteArray());
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -190,22 +158,88 @@ public class PayloadSerializer {
         }
     }
 
-    private class DefaultSerializeMap {
-        final SerializeMap overrides;
+    private abstract class SerializeSession {
+        final Set<ClassLoader> systemClassLoaders = new HashSet<ClassLoader>();
 
-        private DefaultSerializeMap(SerializeMap overrides) {
+        protected SerializeSession() {
+            for (ClassLoader cl = ClassLoader.getSystemClassLoader().getParent(); cl != null; cl = cl.getParent()) {
+                systemClassLoaders.add(cl);
+            }
+        }
+
+        protected short getClassLoaderId(Class<?> targetClass) {
+            ClassLoader classLoader = targetClass.getClassLoader();
+            if (classLoader == null || systemClassLoaders.contains(classLoader)) {
+                return SYSTEM_CLASS_LOADER_ID;
+            }
+            return doGetClassLoaderId(targetClass);
+        }
+
+        public abstract Map<Short, ClassLoaderDetails> getClassLoaders();
+
+        protected abstract short doGetClassLoaderId(Class<?> targetClass);
+    }
+
+    private class DefaultSerializeSession extends SerializeSession {
+        final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
+        final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
+
+        @Override
+        protected short doGetClassLoaderId(Class<?> targetClass) {
+            ClassLoader classLoader = targetClass.getClassLoader();
+            Short id = classLoaderIds.get(classLoader);
+            if (id != null) {
+                return id;
+            }
+            if (classLoaderIds.size() == Short.MAX_VALUE) {
+                throw new UnsupportedOperationException();
+            }
+            ClassLoaderDetails details = classLoaderRegistry.getDetails(classLoader);
+            id = (short) (classLoaderIds.size() + SYSTEM_CLASS_LOADER_ID + 1);
+
+            classLoaderIds.put(classLoader, id);
+            classLoaderDetails.put(id, details);
+
+            return id;
+        }
+
+        public Map<Short, ClassLoaderDetails> getClassLoaders() {
+            return classLoaderDetails;
+        }
+    }
+
+    private class MapBackedSerializeSession extends SerializeSession {
+        final SerializeMap overrides;
+        final Map<UUID, Short> sessionId = new HashMap<UUID, Short>();
+
+        private MapBackedSerializeSession(SerializeMap overrides) {
             this.overrides = overrides;
         }
 
-        public ClassLoaderDetails getDetails(final ClassLoader classLoader) {
-            ClassLoaderDetails details = null;
-            if (overrides != null) {
-                details = overrides.getDetails(classLoader);
+        @Override
+        protected short doGetClassLoaderId(Class<?> targetClass) {
+            UUID uuid = overrides.visitClass(targetClass);
+            Short id = sessionId.get(uuid);
+            if (id != null) {
+                return id;
             }
-            if (details == null) {
-                details = classLoaderRegistry.getDetails(classLoader);
+
+            if (sessionId.size() == Short.MAX_VALUE) {
+                throw new UnsupportedOperationException();
             }
-            return details;
+            id = (short) (sessionId.size() + SYSTEM_CLASS_LOADER_ID + 1);
+            sessionId.put(uuid, id);
+
+            return id;
+        }
+
+        @Override
+        public Map<Short, ClassLoaderDetails> getClassLoaders() {
+            HashMap<Short, ClassLoaderDetails> result = new HashMap<Short, ClassLoaderDetails>();
+            for (ClassLoaderDetails details : overrides.getClassLoaders()) {
+                result.put(sessionId.get(details.uuid), details);
+            }
+            return result;
         }
     }
 

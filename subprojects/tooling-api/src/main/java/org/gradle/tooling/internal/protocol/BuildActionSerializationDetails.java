@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import java.util.List;
-
 /**
  * TODO:ADAM - Remove this
  *
@@ -30,12 +28,6 @@ import java.util.List;
  * @see ConnectionVersion4
  */
 public interface BuildActionSerializationDetails {
-    /**
-     * Returns the classes which need be visible to de-serialize the action in the build process. The protocol classes are
-     * made visible to the classes loaded from this classpath.
-     */
-    List<Class<?>> getActionClasses();
-
     /**
      * Returns the ClassLoader to use to de-serialize the result.
      */

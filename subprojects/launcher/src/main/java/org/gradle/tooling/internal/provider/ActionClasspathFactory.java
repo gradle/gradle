@@ -42,25 +42,20 @@ public class ActionClasspathFactory {
         this.classPathCache = new MapMaker().weakKeys().makeMap();
     }
 
-    public List<URL> getClassPathFor(Iterable<Class<?>> targetClasses) {
-        Set<URL> fullClassPath = new LinkedHashSet<URL>();
+    public void getClassPathFor(Class<?> targetClass, Collection<URL> dest) {
         lock.lock();
         try {
-            for (Class<?> actionClass : targetClasses) {
-                Collection<URL> classPath = classPathCache.get(actionClass);
-                if (classPath == null) {
-                    Set<Class<?>> visited = new HashSet<Class<?>>();
-                    classPath = new LinkedHashSet<URL>();
-                    find(actionClass, visited, classPath);
-                    classPathCache.put(actionClass, classPath);
-                }
-                fullClassPath.addAll(classPath);
+            Collection<URL> classPath = classPathCache.get(targetClass);
+            if (classPath == null) {
+                Set<Class<?>> visited = new HashSet<Class<?>>();
+                classPath = new LinkedHashSet<URL>();
+                find(targetClass, visited, classPath);
+                classPathCache.put(targetClass, classPath);
             }
+            dest.addAll(classPath);
         } finally {
             lock.unlock();
         }
-
-        return new ArrayList<URL>(fullClassPath);
     }
 
     /**
