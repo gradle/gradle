@@ -109,13 +109,17 @@ public class ProviderConnection {
         return payloadSerializer.deserialize(model);
     }
 
-    public Object run(InternalBuildAction<?> clientAction, final BuildActionSerializationDetails serializationDetails, ProviderOperationParameters providerParameters) {
+    public Object run(InternalBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
+        // TODO:ADAM - generating a new UUID each time means that we're creating a new ClassLoader in the build process each time the action is executed
         final UUID classLoaderId = UUID.randomUUID();
+        final Set<ClassLoader> candidates = new LinkedHashSet<ClassLoader>();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction, new SerializeMap() {
             Set<URL> classPath = new LinkedHashSet<URL>();
 
             public UUID visitClass(Class<?> target) {
+                // TODO:ADAM - don't visit system classes
                 classpathInferer.getClassPathFor(target, classPath);
+                candidates.add(target.getClassLoader());
                 return classLoaderId;
             }
 
@@ -129,9 +133,17 @@ public class ProviderConnection {
         SerializedPayload result = run(action, providerParameters, params.properties);
 
         return payloadSerializer.deserialize(result, new DeserializeMap() {
-            public ClassLoader getClassLoader(ClassLoaderDetails classLoaderDetails) {
+            public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
                 if (classLoaderDetails.uuid.equals(classLoaderId)) {
-                    return serializationDetails.getResultClassLoader();
+                    // TODO:ADAM - This isn't quite right
+                    for (ClassLoader candidate : candidates) {
+                        try {
+                            return candidate.loadClass(className);
+                        } catch (ClassNotFoundException e) {
+                            // Ignore
+                        }
+                    }
+                    throw new UnsupportedOperationException("Unexpected class received in response.");
                 }
                 return null;
             }

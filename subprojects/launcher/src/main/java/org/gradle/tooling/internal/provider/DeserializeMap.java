@@ -20,9 +20,8 @@ import org.gradle.api.Nullable;
 
 public interface DeserializeMap {
     /**
-     * Reconstructs the ClassLoader received from the originator. Return null to use the default for the given
-     * details.
+     * Loads a received Class. Return null to use the default.
      */
     @Nullable
-    ClassLoader getClassLoader(ClassLoaderDetails classLoaderDetails);
+    Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException;
 }

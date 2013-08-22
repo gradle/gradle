@@ -69,7 +69,6 @@ public class PayloadSerializer {
 
                 @Override
                 protected void annotateProxyClass(Class<?> cl) throws IOException {
-                    writeClassLoader(cl);
                     writeInt(cl.getInterfaces().length);
                     for (Class<?> type : cl.getInterfaces()) {
                         writeClass(type);
@@ -103,16 +102,10 @@ public class PayloadSerializer {
         return doDeserialize(payload, new DefaultDeserializeMap(map));
     }
 
-    private Object doDeserialize(SerializedPayload payload, DefaultDeserializeMap map) {
+    private Object doDeserialize(SerializedPayload payload, final DefaultDeserializeMap map) {
         try {
-            final Map<Short, ClassLoader> classLoaders = new HashMap<Short, ClassLoader>();
-            for (ClassLoader cl = ClassLoader.getSystemClassLoader().getParent(); cl != null; cl = cl.getParent()) {
-                classLoaders.put(SYSTEM_CLASS_LOADER_ID, ClassLoader.getSystemClassLoader().getParent());
-            }
-            Map<Short, ClassLoaderDetails> detailsMap = (Map<Short, ClassLoaderDetails>) payload.getHeader();
-            for (Map.Entry<Short, ClassLoaderDetails> entry : detailsMap.entrySet()) {
-                classLoaders.put(entry.getKey(), map.getClassLoader(entry.getValue()));
-            }
+            final ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader().getParent();
+            final Map<Short, ClassLoaderDetails> classLoaderDetails = (Map<Short, ClassLoaderDetails>) payload.getHeader();
 
             final ObjectInputStream objectStream = new ObjectInputStream(new ByteArrayInputStream(payload.getSerializedModel())) {
                 @Override
@@ -131,25 +124,23 @@ public class PayloadSerializer {
                 }
 
                 private Class<?> readClass() throws IOException, ClassNotFoundException {
-                    ClassLoader classLoader = readClassLoader();
+                    short id = readShort();
                     String className = readUTF();
-                    return Class.forName(className, false, classLoader);
+                    if (id == SYSTEM_CLASS_LOADER_ID) {
+                        return Class.forName(className, false, systemClassLoader);
+                    }
+                    ClassLoaderDetails classLoader = classLoaderDetails.get(id);
+                    return map.resolveClass(classLoader, className);
                 }
 
                 @Override
                 protected Class<?> resolveProxyClass(String[] interfaces) throws IOException, ClassNotFoundException {
-                    ClassLoader classLoader = readClassLoader();
                     int count = readInt();
                     Class<?>[] actualInterfaces = new Class<?>[count];
                     for (int i = 0; i < count; i++) {
                         actualInterfaces[i] = readClass();
                     }
-                    return Proxy.getProxyClass(classLoader, actualInterfaces);
-                }
-
-                private ClassLoader readClassLoader() throws IOException {
-                    short id = readShort();
-                    return classLoaders.get(id);
+                    return Proxy.getProxyClass(actualInterfaces[0].getClassLoader(), actualInterfaces);
                 }
             };
             return objectStream.readObject();
@@ -245,20 +236,26 @@ public class PayloadSerializer {
 
     private class DefaultDeserializeMap {
         final DeserializeMap overrides;
+        final Map<UUID, ClassLoader> classLoaders = new HashMap<UUID, ClassLoader>();
 
         private DefaultDeserializeMap(DeserializeMap overrides) {
             this.overrides = overrides;
         }
 
-        public ClassLoader getClassLoader(ClassLoaderDetails details) {
-            ClassLoader classLoader = null;
+        public Class<?> resolveClass(ClassLoaderDetails details, String className) throws ClassNotFoundException {
+            Class<?> aClass = null;
             if (overrides != null) {
-                classLoader = overrides.getClassLoader(details);
+                aClass = overrides.resolveClass(details, className);
             }
-            if (classLoader == null) {
-                classLoader = classLoaderRegistry.getClassLoader(details);
+            if (aClass != null) {
+                return aClass;
             }
-            return classLoader;
+            ClassLoader cl = classLoaders.get(details.uuid);
+            if (cl == null) {
+                cl = classLoaderRegistry.getClassLoader(details);
+                classLoaders.put(details.uuid, cl);
+            }
+            return Class.forName(className, false, cl);
         }
     }
 

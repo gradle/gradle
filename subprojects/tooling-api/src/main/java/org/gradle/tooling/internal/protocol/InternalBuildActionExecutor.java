@@ -42,7 +42,6 @@ public interface InternalBuildActionExecutor extends InternalProtocolInterface {
      * @since 1.8-rc-1
      */
     <T> BuildResult<T> run(InternalBuildAction<T> action,
-                           BuildActionSerializationDetails serializationDetails,
                            BuildParameters operationParameters) throws
             BuildExceptionVersion1,
             InternalUnsupportedBuildArgumentException,

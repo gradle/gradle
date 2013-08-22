@@ -128,10 +128,10 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     /**
      * This is used by consumers 1.8-rc-1 and later.
      */
-    public <T> BuildResult<T> run(InternalBuildAction<T> action, BuildActionSerializationDetails serializationDetails, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
+    public <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         logTargetVersion();
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
-        Object results = connection.run(action, serializationDetails, providerParameters);
+        Object results = connection.run(action, providerParameters);
         return new ProviderBuildResult<T>((T) results);
     }
 

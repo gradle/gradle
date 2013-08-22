@@ -34,20 +34,7 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
 
     @Override
     public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        ClassLoader actionClassLoader = action.getClass().getClassLoader();
-        return executor.run(new BuildActionAdapter<T>(action, adapter), new DefaultBuildActionSerializationDetails(actionClassLoader), operationParameters).getModel();
-    }
-
-    private static class DefaultBuildActionSerializationDetails implements BuildActionSerializationDetails {
-        private final ClassLoader classLoader;
-
-        private DefaultBuildActionSerializationDetails(ClassLoader classLoader) {
-            this.classLoader = classLoader;
-        }
-
-        public ClassLoader getResultClassLoader() {
-            return classLoader;
-        }
+        return executor.run(new BuildActionAdapter<T>(action, adapter), operationParameters).getModel();
     }
 
     private static class BuildActionAdapter<T> implements InternalBuildAction<T> {
