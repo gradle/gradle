@@ -68,6 +68,19 @@ Faster builds when daemon used. Reasonable increase of heap consumption.
 
 - add performance tests with the daemon
 
+## Hint the vm to gc after build in the daemon completes
+
+Full gc scans are unavoidable when the daemon is used. It's because at the end of the build, there will be lots of objects in the tenured space.
+It's better if the full scan happens 'outside' of the user's build, because full scan pauses the entire vm.
+
+### User visible changes
+
+It will be hard to prove but in theory daemon builds should be more consistent and faster.
+
+### Implementation
+
+Trigger gc() when the daemon sits idle, after the build completes.
+
 # Other potential spikes/stories:
 
 1. Daemon rebuilds and caches the model after the build. This way, next time we run the build, the configured model is already built and configuration time is zero.
