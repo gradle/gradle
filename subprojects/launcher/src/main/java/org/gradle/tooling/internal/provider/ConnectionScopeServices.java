@@ -35,7 +35,7 @@ public class ConnectionScopeServices extends DefaultServiceRegistry {
                 get(GradleLauncherFactory.class),
                 new PayloadSerializer(
                         new ModelClassLoaderFactory()),
-                new ActionClasspathFactory());
+                new ClasspathInferer());
     }
 
     protected ProtocolToModelAdapter createProtocolToModelAdapter() {

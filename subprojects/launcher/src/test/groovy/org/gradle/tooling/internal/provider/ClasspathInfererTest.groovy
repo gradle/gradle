@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.provider
 import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.tooling.BuildAction
 
-class ActionClasspathFactoryTest extends AbstractClassGraphSpec {
-    def factory = new ActionClasspathFactory()
+class ClasspathInfererTest extends AbstractClassGraphSpec {
+    def factory = new ClasspathInferer()
 
     def "determines action and tooling API classpath when loaded via a URLClassLoader"() {
         def cl = urlClassLoader(toolingApiClassPath + isolatedClasses(CustomAction, CustomModel))

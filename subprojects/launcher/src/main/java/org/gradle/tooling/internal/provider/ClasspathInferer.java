@@ -33,12 +33,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @ThreadSafe
-public class ActionClasspathFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ActionClasspathFactory.class);
+public class ClasspathInferer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClasspathInferer.class);
     private final Lock lock = new ReentrantLock();
     private final Map<Class<?>, Collection<URL>> classPathCache;
 
-    public ActionClasspathFactory() {
+    public ClasspathInferer() {
         this.classPathCache = new MapMaker().weakKeys().makeMap();
     }
 

@@ -52,15 +52,15 @@ import java.util.*;
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final PayloadSerializer payloadSerializer;
-    private final ActionClasspathFactory actionClasspathFactory;
+    private final ClasspathInferer classpathInferer;
     private final LoggingServiceRegistry loggingServices;
     private final GradleLauncherFactory gradleLauncherFactory;
 
-    public ProviderConnection(LoggingServiceRegistry loggingServices, GradleLauncherFactory gradleLauncherFactory, PayloadSerializer payloadSerializer, ActionClasspathFactory actionClasspathFactory) {
+    public ProviderConnection(LoggingServiceRegistry loggingServices, GradleLauncherFactory gradleLauncherFactory, PayloadSerializer payloadSerializer, ClasspathInferer classpathInferer) {
         this.loggingServices = loggingServices;
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.payloadSerializer = payloadSerializer;
-        this.actionClasspathFactory = actionClasspathFactory;
+        this.classpathInferer = classpathInferer;
     }
 
     public void configure(ProviderConnectionParameters parameters) {
@@ -115,7 +115,7 @@ public class ProviderConnection {
             Set<URL> classPath = new LinkedHashSet<URL>();
 
             public UUID visitClass(Class<?> target) {
-                actionClasspathFactory.getClassPathFor(target, classPath);
+                classpathInferer.getClassPathFor(target, classPath);
                 return classLoaderId;
             }
 
