@@ -29,10 +29,10 @@ import java.util.*;
 public class PayloadSerializer {
     private static final short SYSTEM_CLASS_LOADER_ID = (short) 1;
     private final Transformer<ObjectStreamClass, Class<?>> classLookup;
-    private final ClassLoaderRegistry classLoaderRegistry;
+    private final PayloadClassLoaderRegistry classLoaderRegistry;
 
-    public PayloadSerializer(ModelClassLoaderFactory classLoaderFactory) {
-        classLoaderRegistry = new ClassLoaderRegistry(classLoaderFactory);
+    public PayloadSerializer(PayloadClassLoaderRegistry registry) {
+        classLoaderRegistry = registry;
 
         // On Java 6, there is a public method to lookup a class descriptor given a class. On Java 5, we have to use reflection
         // TODO:ADAM - move this into the service registry

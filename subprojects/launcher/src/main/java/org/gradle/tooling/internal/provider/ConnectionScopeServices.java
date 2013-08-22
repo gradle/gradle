@@ -34,7 +34,9 @@ public class ConnectionScopeServices extends DefaultServiceRegistry {
                 get(LoggingServiceRegistry.class),
                 get(GradleLauncherFactory.class),
                 new PayloadSerializer(
-                        new ModelClassLoaderFactory()),
+                        new ClientSidePayloadClassLoaderRegistry(
+                                new DefaultPayloadClassLoaderRegistry(
+                                        new ModelClassLoaderFactory()))),
                 new ClasspathInferer());
     }
 

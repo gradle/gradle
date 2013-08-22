@@ -16,12 +16,18 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.internal.service.DefaultServiceRegistry;
+public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
+    private final PayloadClassLoaderRegistry delegate;
 
-class ToolingGlobalScopeServices extends DefaultServiceRegistry {
-    protected PayloadSerializer createPayloadSerializer() {
-        return new PayloadSerializer(
-                new DefaultPayloadClassLoaderRegistry(
-                        new ModelClassLoaderFactory()));
+    public ClientSidePayloadClassLoaderRegistry(PayloadClassLoaderRegistry delegate) {
+        this.delegate = delegate;
+    }
+
+    public ClassLoaderDetails getDetails(ClassLoader classLoader) {
+        return delegate.getDetails(classLoader);
+    }
+
+    public ClassLoader getClassLoader(ClassLoaderDetails details) {
+        return delegate.getClassLoader(details);
     }
 }

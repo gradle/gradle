@@ -32,14 +32,14 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @ThreadSafe
-public class ClassLoaderRegistry {
+public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
     private final Lock lock = new ReentrantLock();
     private final ModelClassLoaderFactory classLoaderFactory;
     // TODO:ADAM - don't use strong references
     private final Map<ClassLoader, ClassLoaderDetails> classLoaderDetails = Maps.newHashMap();
     private final Map<UUID, ClassLoader> classLoaderIds = Maps.newHashMap();
 
-    public ClassLoaderRegistry(ModelClassLoaderFactory modelClassLoaderFactory) {
+    public DefaultPayloadClassLoaderRegistry(ModelClassLoaderFactory modelClassLoaderFactory) {
         this.classLoaderFactory = modelClassLoaderFactory;
     }
 
