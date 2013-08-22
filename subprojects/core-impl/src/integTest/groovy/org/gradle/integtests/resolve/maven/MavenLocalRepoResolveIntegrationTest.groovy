@@ -16,9 +16,11 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 
@@ -126,6 +128,172 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
         then:
         hasArtifact(moduleA)
+    }
+
+    @Issue('GRADLE-2034')
+    def "mavenLocal fails to resolve artifact if contains pom but not artifact"() {
+        given:
+        m2Installation.mavenRepo().module('group', 'projectA', '1.2').publishPom()
+
+        when:
+        ExecutionFailure failure = runAndFail 'retrieve'
+
+        then:
+        failure.assertHasCause('Could not find group:projectA:1.2')
+    }
+
+    @Issue('GRADLE-2034')
+    def "mavenLocal skipped if contains pom but no artifact"() {
+        given:
+        def anotherRepo = maven("another-local-repo")
+        m2Installation.mavenRepo().module('group', 'projectA', '1.2').publishPom()
+        def moduleARemote = anotherRepo.module('group', 'projectA', '1.2').publish()
+
+        and:
+        buildFile << """
+        repositories{
+            maven { url "${anotherRepo.uri}" }
+        }
+        """
+
+        when:
+        run 'retrieve'
+
+        then:
+        hasArtifact(moduleARemote)
+    }
+
+    @Issue('GRADLE-2034')
+    def "mavenLocal resolves pom packaging"() {
+        given:
+        def childModule = m2Installation.mavenRepo().module('group', 'projectB', '1.2').publish()
+        def pomModule = m2Installation.mavenRepo().module('group', 'projectA', '1.2')
+        pomModule.packaging = 'pom'
+        pomModule.type = 'pom'
+        pomModule.dependsOn('group', 'projectB', '1.2')
+        pomModule.publish()
+
+        when:
+        run 'retrieve'
+
+        then:
+        hasArtifact(childModule)
+    }
+
+    @Issue('GRADLE-2034')
+    def "mavenLocal fails to resolve snapshot artifact if contains pom but not artifact"() {
+        given:
+        m2Installation.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publishPom()
+
+        and:
+        buildFile.text = """
+                repositories {
+                    mavenLocal()
+                }
+                configurations { compile }
+                dependencies {
+                    compile 'group:projectA:1.2-SNAPSHOT'
+                }
+
+                task retrieve(type: Sync) {
+                    from configurations.compile
+                    into 'build'
+                }"""
+
+        when:
+        ExecutionFailure failure = runAndFail 'retrieve'
+
+        then:
+        failure.assertHasCause('Could not find group:projectA:1.2-SNAPSHOT')
+    }
+
+    @Issue('GRADLE-2034')
+    def "mavenLocal fails to resolve non-unique snapshot artifact if contains pom but not artifact"() {
+        given:
+        m2Installation.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publishPom()
+
+        and:
+        buildFile.text = """
+                repositories {
+                    mavenLocal()
+                }
+                configurations { compile }
+                dependencies {
+                    compile 'group:projectA:1.2-SNAPSHOT'
+                }
+
+                task retrieve(type: Sync) {
+                    from configurations.compile
+                    into 'build'
+                }"""
+
+        when:
+        ExecutionFailure failure = runAndFail 'retrieve'
+
+        then:
+        failure.assertHasCause('Could not find group:projectA:1.2-SNAPSHOT')
+    }
+
+    @Issue('GRADLE-2034')
+    def "mavenLocal skipped if contains pom but no artifact for snapshot"() {
+        given:
+        def anotherRepo = maven("another-local-repo")
+        m2Installation.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publishPom()
+        def moduleARemote = anotherRepo.module('group', 'projectA', '1.2-SNAPSHOT').publish()
+
+        and:
+        buildFile.text = """
+                repositories {
+                    mavenLocal()
+                    maven { url "${anotherRepo.uri}" }
+                }
+                configurations { compile }
+                dependencies {
+                    compile 'group:projectA:1.2-SNAPSHOT'
+                }
+
+                task retrieve(type: Sync) {
+                    from configurations.compile
+                    into 'build'
+                }
+        """
+
+        when:
+        run 'retrieve'
+
+        then:
+        hasArtifact(moduleARemote)
+    }
+
+    @Issue('GRADLE-2034')
+    def "mavenLocal skipped if contains pom but no artifact for non-unique snapshot"() {
+        given:
+        def anotherRepo = maven("another-local-repo")
+        m2Installation.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publishPom()
+        def moduleARemote = anotherRepo.module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publish()
+
+        and:
+        buildFile.text = """
+                repositories {
+                    mavenLocal()
+                    maven { url "${anotherRepo.uri}" }
+                }
+                configurations { compile }
+                dependencies {
+                    compile 'group:projectA:1.2-SNAPSHOT'
+                }
+
+                task retrieve(type: Sync) {
+                    from configurations.compile
+                    into 'build'
+                }
+        """
+
+        when:
+        run 'retrieve'
+
+        then:
+        hasArtifact(moduleARemote)
     }
 
     def hasArtifact(MavenModule module) {

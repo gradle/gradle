@@ -30,6 +30,7 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
 
     private ModuleDescriptor moduleDescriptor;
     private boolean changing;
+    private boolean metaDataOnly;
     private State state = State.Unknown;
     private ModuleSource moduleSource;
     private List<DependencyMetaData> dependencies;
@@ -158,6 +159,11 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         return changing;
     }
 
+    public boolean isMetaDataOnly() {
+        assertResolved();
+        return metaDataOnly;
+    }
+
     public ModuleSource getModuleSource() {
         assertResolved();
         return moduleSource;
@@ -181,6 +187,11 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     public void setChanging(boolean changing) {
         assertResolved();
         this.changing = changing;
+    }
+
+    public void setMetaDataOnly(boolean metaDataOnly) {
+        assertResolved();
+        this.metaDataOnly = metaDataOnly;
     }
 
     public void setStatus(String status) {

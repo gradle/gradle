@@ -196,7 +196,11 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         }
 
         DefaultModuleDescriptor moduleDescriptor = mdBuilder.getModuleDescriptor();
-        return new ModuleDescriptorAdapter(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
+        ModuleDescriptorAdapter adapter = new ModuleDescriptorAdapter(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
+        if ("pom".equals(pomReader.getPackaging())) {
+            adapter.setMetaDataOnly(true);
+        }
+        return adapter;
     }
 
     private ModuleDescriptor parseOtherPom(DescriptorParseContext ivySettings,

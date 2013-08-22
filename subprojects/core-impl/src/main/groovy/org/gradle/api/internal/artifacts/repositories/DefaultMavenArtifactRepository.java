@@ -104,12 +104,20 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return resolver;
     }
 
-    private RepositoryTransport getTransport(String scheme) {
+    protected RepositoryTransport getTransport(String scheme) {
         if (scheme.equalsIgnoreCase("file")) {
             return transportFactory.createFileTransport(getName());
         } else {
             return transportFactory.createHttpTransport(getName(), getCredentials());
         }
+    }
+
+    protected LocallyAvailableResourceFinder<ArtifactRevisionId> getLocallyAvailableResourceFinder() {
+        return locallyAvailableResourceFinder;
+    }
+
+    protected ModuleMetadataProcessor getMetadataProcessor() {
+        return metadataProcessor;
     }
 
 }

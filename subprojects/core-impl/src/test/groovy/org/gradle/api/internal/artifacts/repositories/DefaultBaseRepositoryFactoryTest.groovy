@@ -124,7 +124,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
 
         then:
         def repo = factory.createMavenLocalRepository()
-        repo instanceof DefaultMavenArtifactRepository
+        repo instanceof DefaultMavenLocalArtifactRepository
         repo.url == repoDir.toURI()
     }
 
