@@ -16,16 +16,16 @@
 
 package org.gradle.tooling.internal.provider;
 
-import java.util.UUID;
+import java.util.Map;
 
 public interface SerializeMap {
     /**
      * Visits a class to be serialized, returning the id of the deserialize ClassLoader to associate this class with.
      */
-    UUID visitClass(Class<?> target);
+    short visitClass(Class<?> target);
 
     /**
      * Returns the set of ClassLoaders to use in to deserialize the graph.
      */
-    Iterable<ClassLoaderDetails> getClassLoaders();
+    Map<Short, ClassLoaderDetails> getClassLoaders();
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.tooling.internal.provider;
 
+import net.jcip.annotations.ThreadSafe;
+
+@ThreadSafe
 public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
     private final PayloadClassLoaderRegistry delegate;
 
@@ -23,11 +26,11 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         this.delegate = delegate;
     }
 
-    public ClassLoaderDetails getDetails(ClassLoader classLoader) {
-        return delegate.getDetails(classLoader);
+    public SerializeMap newSerializeSession() {
+        return delegate.newSerializeSession();
     }
 
-    public ClassLoader getClassLoader(ClassLoaderDetails details) {
-        return delegate.getClassLoader(details);
+    public DeserializeMap newDeserializeSession() {
+        return delegate.newDeserializeSession();
     }
 }

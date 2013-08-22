@@ -37,7 +37,10 @@ import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
+import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GUtil;
@@ -112,19 +115,19 @@ public class ProviderConnection {
     public Object run(InternalBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
         // TODO:ADAM - generating a new UUID each time means that we're creating a new ClassLoader in the build process each time the action is executed
         final UUID classLoaderId = UUID.randomUUID();
+        final short classLoaderSessionId = 2;
         final Set<ClassLoader> candidates = new LinkedHashSet<ClassLoader>();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction, new SerializeMap() {
             Set<URL> classPath = new LinkedHashSet<URL>();
 
-            public UUID visitClass(Class<?> target) {
-                // TODO:ADAM - don't visit system classes
+            public short visitClass(Class<?> target) {
                 classpathInferer.getClassPathFor(target, classPath);
                 candidates.add(target.getClassLoader());
-                return classLoaderId;
+                return classLoaderSessionId;
             }
 
-            public Iterable<ClassLoaderDetails> getClassLoaders() {
-                return Arrays.asList(new ClassLoaderDetails(classLoaderId, new MutableURLClassLoader.Spec(new ArrayList<URL>(classPath))));
+            public Map<Short, ClassLoaderDetails> getClassLoaders() {
+                return Collections.singletonMap(classLoaderSessionId, new ClassLoaderDetails(classLoaderId, new MutableURLClassLoader.Spec(new ArrayList<URL>(classPath))));
             }
         });
 
