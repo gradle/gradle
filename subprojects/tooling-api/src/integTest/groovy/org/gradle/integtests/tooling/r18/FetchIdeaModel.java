@@ -18,14 +18,10 @@ package org.gradle.integtests.tooling.r18;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.eclipse.EclipseProject;
+import org.gradle.tooling.model.idea.IdeaProject;
 
-class CustomAction implements BuildAction<CustomModel> {
-    public CustomModel execute(BuildController controller) {
-        CustomModel model = new CustomModel();
-        model.gradle = controller.getModel(GradleProject.class);
-        model.eclipse = controller.getModel(EclipseProject.class);
-        return model;
+public class FetchIdeaModel implements BuildAction<IdeaProject> {
+    public IdeaProject execute(BuildController controller) {
+        return controller.getModel(IdeaProject.class);
     }
 }

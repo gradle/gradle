@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.model.idea.IdeaProject
 import spock.lang.Ignore
 
 @ToolingApiVersion('>=1.8')
@@ -31,11 +32,18 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         file("settings.gradle") << 'rootProject.name="hello-world"'
 
         when:
-        CustomModel result = withConnection { it.action(new CustomAction()).run() }
+        CustomModel customModel = withConnection { it.action(new FetchCustomModel()).run() }
 
         then:
-        result.gradle.name == "hello-world"
-        result.eclipse.gradleProject.name == "hello-world"
+        customModel.gradle.name == "hello-world"
+        customModel.eclipse.gradleProject.name == "hello-world"
+
+        when:
+        IdeaProject ideaModel = withConnection { it.action(new FetchIdeaModel()).run() }
+
+        then:
+        ideaModel.name == "hello-world"
+        ideaModel.modules.size() == 1
     }
 
     @Ignore("work in progress")
@@ -51,7 +59,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion('<1.8')
     def "gives reasonable error message when target Gradle version does not support build actions"() {
         when:
-        maybeFailWithConnection { it.action(new CustomAction()).run() }
+        maybeFailWithConnection { it.action(new FetchCustomModel()).run() }
 
         then:
         UnsupportedVersionException e = thrown()
