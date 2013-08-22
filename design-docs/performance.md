@@ -48,20 +48,25 @@ Potential implementation plan:
 
 # Daemon
 
-# Cache task history (for up-to-date checks) in memory across builds
+## Cache task history (for up-to-date checks) in memory across builds
 
 Results from a spike show 30% speed improvement for the 'fully' incremental build.
-So it's worth spending more time on it.
 
-Considerations:
+### User visible changes
 
- - storing more stuff in memory impacts the heap and also gc performance
- - feature only useful when daemon is used so perhaps it's worth enabling it only ran with the daemon.
- - expiration of the cache. The task history is a set of files, but we can check only taskArtifacts file.
- If it was touched it means that we should throw away the cache.
- Later, we might improve it and smartly expire parts of the cache.
- - when do we check if cache is expired? Every time we lock the task artifact cache.
- We might check lastModified or write some sequence number to the cache.
+Faster builds when daemon used. Reasonable increase of heap consumption.
+
+### Implementation
+
+- provide implementation of TaskArtifactStateCacheAccess that ads in-memory caching capabilitites
+- expire the cache data when cache file's last modified time changes. Check for expiration before locking the file, remember the last modified before unlocking.
+- the implementation can be improved in various ways (e.g. stop using the last modified, we know when cross-process lock is requested by other processes)
+- the cache should have some bounds otherwise it will use a lot of memory for gigantic builds. Initially, we will cap the cache size.
+- enable caching only when daemon is used
+
+### Test coverage
+
+- add performance tests with the daemon
 
 # Other potential spikes/stories:
 
