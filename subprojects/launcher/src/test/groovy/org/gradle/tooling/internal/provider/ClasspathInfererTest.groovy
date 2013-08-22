@@ -27,19 +27,11 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def actionClass = cl.loadClass(CustomAction.name)
 
         expect:
-        def classpath = factory.getClassPathFor([actionClass])
+        def classpath = []
+        factory.getClassPathFor(actionClass, classpath)
         def loader = new MutableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
         def action = loader.loadClass(CustomAction.name).newInstance()
         action.execute(null)
-    }
-
-    def "caches classpath for a given action class"() {
-        def cl = customClassLoader(toolingApiClassPath + isolatedClasses(CustomAction, CustomModel))
-        def actionClass = cl.loadClass(CustomAction.name)
-
-        expect:
-        def classpath = factory.getClassPathFor([actionClass])
-        factory.getClassPathFor([actionClass]) == classpath
     }
 
     def "determines action and tooling API classpath when loaded via custom ClassLoader implementation"() {
@@ -47,7 +39,8 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def actionClass = cl.loadClass(CustomAction.name)
 
         expect:
-        def classpath = factory.getClassPathFor([actionClass])
+        def classpath = []
+        factory.getClassPathFor(actionClass, classpath)
         def loader = new MutableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
         def action = loader.loadClass(CustomAction.name).newInstance()
         action.execute(null)
@@ -59,7 +52,8 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def actionClass = cl.loadClass(CustomAction.name)
 
         expect:
-        def classpath = factory.getClassPathFor([actionClass])
+        def classpath = []
+        factory.getClassPathFor(actionClass, classpath)
         def loader = new MutableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
         def action = loader.loadClass(CustomAction.name).newInstance()
         action.execute(null)
