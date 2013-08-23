@@ -345,13 +345,12 @@ class CompositeDomainObjectSetTest extends Specification {
 
         and:
         component1 << "a" << "c"
-        component2 << "a" << "d"
+        component2 << "a" << "d" << "a"
 
         then:
-        calledFor == ["c", "d"]
+        calledFor == ["a", "c", "d"]
     }
 
-    @IgnoreRest
     def "all notifications are only fired once for each in composite"() {
         given:
         def component1 = collection("a")
