@@ -29,7 +29,7 @@ import java.util.Set;
 
 @ThreadSafe
 public class PayloadSerializer {
-    private static final short SYSTEM_CLASS_LOADER_ID = (short) 0;
+    private static final short SYSTEM_CLASS_LOADER_ID = (short) -1;
     private static final Set<ClassLoader> SYSTEM_CLASS_LOADERS = new HashSet<ClassLoader>();
     private final Transformer<ObjectStreamClass, Class<?>> classLookup;
     private final PayloadClassLoaderRegistry classLoaderRegistry;
@@ -59,10 +59,7 @@ public class PayloadSerializer {
     }
 
     public SerializedPayload serialize(Object payload) {
-        return serialize(payload, classLoaderRegistry.newSerializeSession());
-    }
-
-    public SerializedPayload serialize(Object payload, final SerializeMap map) {
+        final SerializeMap map = classLoaderRegistry.newSerializeSession();
         try {
             ByteArrayOutputStream content = new ByteArrayOutputStream();
             final ObjectOutputStream objectStream = new ObjectOutputStream(content) {
@@ -109,14 +106,7 @@ public class PayloadSerializer {
     }
 
     public Object deserialize(SerializedPayload payload) {
-        return doDeserialize(payload, new DefaultDeserializeMap(null, classLoaderRegistry.newDeserializeSession()));
-    }
-
-    public Object deserialize(SerializedPayload payload, DeserializeMap map) {
-        return doDeserialize(payload, new DefaultDeserializeMap(map, classLoaderRegistry.newDeserializeSession()));
-    }
-
-    private Object doDeserialize(SerializedPayload payload, final DefaultDeserializeMap map) {
+        final DeserializeMap map = classLoaderRegistry.newDeserializeSession();
         try {
             final ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader().getParent();
             final Map<Short, ClassLoaderDetails> classLoaderDetails = (Map<Short, ClassLoaderDetails>) payload.getHeader();
@@ -162,26 +152,4 @@ public class PayloadSerializer {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
-
-    private class DefaultDeserializeMap {
-        final DeserializeMap overrides;
-        final DeserializeMap map;
-
-        private DefaultDeserializeMap(DeserializeMap overrides, DeserializeMap map) {
-            this.overrides = overrides;
-            this.map = map;
-        }
-
-        public Class<?> resolveClass(ClassLoaderDetails details, String className) throws ClassNotFoundException {
-            Class<?> aClass = null;
-            if (overrides != null) {
-                aClass = overrides.resolveClass(details, className);
-            }
-            if (aClass != null) {
-                return aClass;
-            }
-            return map.resolveClass(details, className);
-        }
-    }
-
 }

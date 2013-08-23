@@ -17,20 +17,81 @@
 package org.gradle.tooling.internal.provider;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.classloader.MutableURLClassLoader;
+
+import java.net.URL;
+import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @ThreadSafe
 public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
+    private static final short CLIENT_CLASS_LOADER_ID = 1;
     private final PayloadClassLoaderRegistry delegate;
+    private final Lock lock = new ReentrantLock();
+    private final ClasspathInferer classpathInferer;
+    // TODO - don't use strong references
+    private final Map<Set<ClassLoader>, UUID> classLoaderIds = new HashMap<Set<ClassLoader>, UUID>();
+    private final Map<UUID, Set<ClassLoader>> classLoaders = new HashMap<UUID, Set<ClassLoader>>();
 
-    public ClientSidePayloadClassLoaderRegistry(PayloadClassLoaderRegistry delegate) {
+    public ClientSidePayloadClassLoaderRegistry(PayloadClassLoaderRegistry delegate, ClasspathInferer classpathInferer) {
         this.delegate = delegate;
+        this.classpathInferer = classpathInferer;
     }
 
     public SerializeMap newSerializeSession() {
-        return delegate.newSerializeSession();
+        final Set<ClassLoader> candidates = new LinkedHashSet<ClassLoader>();
+        final Set<URL> classPath = new LinkedHashSet<URL>();
+
+        return new SerializeMap() {
+            public short visitClass(Class<?> target) {
+                classpathInferer.getClassPathFor(target, classPath);
+                candidates.add(target.getClassLoader());
+                return CLIENT_CLASS_LOADER_ID;
+            }
+
+            public Map<Short, ClassLoaderDetails> getClassLoaders() {
+                lock.lock();
+                UUID uuid;
+                try {
+                    uuid = classLoaderIds.get(candidates);
+                    if (uuid == null) {
+                        uuid = UUID.randomUUID();
+                        classLoaderIds.put(candidates, uuid);
+                        classLoaders.put(uuid, candidates);
+                    }
+                } finally {
+                    lock.unlock();
+                }
+                return Collections.singletonMap(CLIENT_CLASS_LOADER_ID, new ClassLoaderDetails(uuid, new MutableURLClassLoader.Spec(new ArrayList<URL>(classPath))));
+            }
+        };
     }
 
     public DeserializeMap newDeserializeSession() {
-        return delegate.newDeserializeSession();
+        final DeserializeMap deserializeMap = delegate.newDeserializeSession();
+        return new DeserializeMap() {
+            public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
+                Set<ClassLoader> candidates;
+                lock.lock();
+                try {
+                    candidates = classLoaders.get(classLoaderDetails.uuid);
+                } finally {
+                    lock.unlock();
+                }
+                if (candidates != null) {
+                    // TODO:ADAM - This isn't quite right
+                    for (ClassLoader candidate : candidates) {
+                        try {
+                            return candidate.loadClass(className);
+                        } catch (ClassNotFoundException e) {
+                            // Ignore
+                        }
+                    }
+                    throw new UnsupportedOperationException("Unexpected class received in response.");
+                }
+                return deserializeMap.resolveClass(classLoaderDetails, className);
+            }
+        };
     }
 }

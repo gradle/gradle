@@ -22,7 +22,6 @@ import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.Factory;
-import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -49,21 +48,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final PayloadSerializer payloadSerializer;
-    private final ClasspathInferer classpathInferer;
     private final LoggingServiceRegistry loggingServices;
     private final GradleLauncherFactory gradleLauncherFactory;
 
-    public ProviderConnection(LoggingServiceRegistry loggingServices, GradleLauncherFactory gradleLauncherFactory, PayloadSerializer payloadSerializer, ClasspathInferer classpathInferer) {
+    public ProviderConnection(LoggingServiceRegistry loggingServices, GradleLauncherFactory gradleLauncherFactory, PayloadSerializer payloadSerializer) {
         this.loggingServices = loggingServices;
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.payloadSerializer = payloadSerializer;
-        this.classpathInferer = classpathInferer;
     }
 
     public void configure(ProviderConnectionParameters parameters) {
@@ -113,44 +111,13 @@ public class ProviderConnection {
     }
 
     public Object run(InternalBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
-        // TODO:ADAM - generating a new UUID each time means that we're creating a new ClassLoader in the build process each time the action is executed
-        final UUID classLoaderId = UUID.randomUUID();
-        final short classLoaderSessionId = 2;
-        final Set<ClassLoader> candidates = new LinkedHashSet<ClassLoader>();
-        SerializedPayload serializedAction = payloadSerializer.serialize(clientAction, new SerializeMap() {
-            Set<URL> classPath = new LinkedHashSet<URL>();
-
-            public short visitClass(Class<?> target) {
-                classpathInferer.getClassPathFor(target, classPath);
-                candidates.add(target.getClassLoader());
-                return classLoaderSessionId;
-            }
-
-            public Map<Short, ClassLoaderDetails> getClassLoaders() {
-                return Collections.singletonMap(classLoaderSessionId, new ClassLoaderDetails(classLoaderId, new MutableURLClassLoader.Spec(new ArrayList<URL>(classPath))));
-            }
-        });
+        SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
 
         BuildAction<SerializedPayload> action = new ClientProvidedBuildAction(serializedAction);
         Parameters params = initParams(providerParameters);
         SerializedPayload result = run(action, providerParameters, params.properties);
 
-        return payloadSerializer.deserialize(result, new DeserializeMap() {
-            public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
-                if (classLoaderDetails.uuid.equals(classLoaderId)) {
-                    // TODO:ADAM - This isn't quite right
-                    for (ClassLoader candidate : candidates) {
-                        try {
-                            return candidate.loadClass(className);
-                        } catch (ClassNotFoundException e) {
-                            // Ignore
-                        }
-                    }
-                    throw new UnsupportedOperationException("Unexpected class received in response.");
-                }
-                return null;
-            }
-        });
+        return payloadSerializer.deserialize(result);
     }
 
     private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {
