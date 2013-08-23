@@ -81,9 +81,11 @@ public class CompositeDomainObjectSet<T> extends DefaultDomainObjectSet<T> {
     }
     
     public void addCollection(DomainObjectCollection<? extends T> collection) {
-        getStore().addComposited(collection);
-        collection.all(getEventRegister().getAddAction());
-        collection.whenObjectRemoved(getEventRegister().getRemoveAction());
+        if (!getStore().getCollections().contains(collection)) {
+            getStore().addComposited(collection);
+            collection.all(getEventRegister().getAddAction());
+            collection.whenObjectRemoved(getEventRegister().getRemoveAction());
+        }
     }
 
     public void removeCollection(DomainObjectCollection<? extends T> collection) {

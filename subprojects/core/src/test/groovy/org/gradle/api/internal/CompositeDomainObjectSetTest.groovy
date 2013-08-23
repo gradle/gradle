@@ -399,4 +399,28 @@ class CompositeDomainObjectSetTest extends Specification {
         thrown UnsupportedOperationException
     }
 
+    def "behaves when the same collection added"() {
+        def same = collection("a", "b")
+        def composite = composite(same, same, same)
+
+        expect:
+        composite.toList() == ['a', 'b']
+
+        when:
+        same << 'c'
+
+        then:
+        composite.toList() == ['a', 'b', 'c']
+    }
+
+    def "removing collection removes all instances"() {
+        def instance = collection("a", "b")
+        def composite = composite(instance, instance)
+
+        when:
+        composite.removeCollection(instance)
+
+        then:
+        composite.toList() == []
+    }
 }
