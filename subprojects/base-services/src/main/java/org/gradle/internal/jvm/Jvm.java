@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Jvm implements JavaInfo {
     
@@ -39,12 +40,18 @@ public class Jvm implements JavaInfo {
     private final File javaHome;
     private final boolean userSupplied;
     private final JavaVersion javaVersion;
+    private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
 
     public static Jvm current() {
-        return create(null);
+        Jvm jvm = CURRENT.get();
+        if (jvm == null) {
+            CURRENT.compareAndSet(null, create(null));
+            jvm = CURRENT.get();
+        }
+        return jvm;
     }
 
-    private static Jvm create(File javaBase) {
+    static Jvm create(File javaBase) {
         String vendor = System.getProperty("java.vm.vendor");
         if (vendor.toLowerCase().startsWith("apple inc.")) {
             return new AppleJvm(OperatingSystem.current(), javaBase);
@@ -209,11 +216,15 @@ public class Jvm implements JavaInfo {
                 return toolsJar;
             }
         }
-        if (javaHome.getName().matches("jre\\d+") && os.isWindows()) {
-            javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", SystemProperties.getJavaVersion()));
-            toolsJar = new File(javaHome, "lib/tools.jar");
-            if (toolsJar.exists()) {
-                return toolsJar;
+
+        if (os.isWindows()) {
+            String version = SystemProperties.getJavaVersion();
+            if (javaHome.getName().matches("jre\\d+") || javaHome.getName().equals(String.format("jre%s", version))) {
+                javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", version));
+                toolsJar = new File(javaHome, "lib/tools.jar");
+                if (toolsJar.exists()) {
+                    return toolsJar;
+                }
             }
         }
 
