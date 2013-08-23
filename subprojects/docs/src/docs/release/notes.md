@@ -258,9 +258,13 @@ meta-data handling. The changes should generally be backwards compatible, howeve
 
 Note that using Ivy `DependencyResolver` implementations is deprecated, and we recommend that you use Gradle's repository implementations instead.
 
-### The order of resolved artifacts is slightly different
+### The order of resolved files and artifacts is different
 
-todo
+The order of resolved artifacts and resolved files has changed, however the change is transparent to the vast majority of builds.
+This change was necessary to implement important performance improvements mentioned early in the release notes.
+This change may impact the order of files of a resolved configuration, consequently, it may impact the classpaths.
+However, in majority of cases, the change will be transparent because Gradle continues to respect the order of declared dependencies
+and it is reflected in the order of resolved artifacts and files.
 
 ## External contributions
 
