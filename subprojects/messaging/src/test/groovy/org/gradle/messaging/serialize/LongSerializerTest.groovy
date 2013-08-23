@@ -23,17 +23,18 @@ class LongSerializerTest extends Specification {
 
     def "writes and reads Longs"() {
         def bytes = new ByteArrayOutputStream();
+        def encoder = new OutputStreamBackedEncoder(bytes)
 
         when:
-        serializer.write(bytes, 144L)
+        serializer.write(encoder, 144L)
 
         then:
-        serializer.read(new ByteArrayInputStream(bytes.toByteArray())) == 144L
+        serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray()))) == 144L
     }
 
     def "does not permit null"() {
         when:
-        serializer.write(new ByteArrayOutputStream(), null)
+        serializer.write(new OutputStreamBackedEncoder(new ByteArrayOutputStream()), null)
 
         then:
         thrown(IllegalArgumentException)

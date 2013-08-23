@@ -17,6 +17,8 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.UncheckedException;
+import org.gradle.messaging.serialize.InputStreamBackedDecoder;
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
 import org.gradle.messaging.serialize.Serializer;
 
 import java.io.ByteArrayInputStream;
@@ -42,7 +44,8 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
         }
         try {
             ByteArrayInputStream instr = new ByteArrayInputStream(serialised);
-            return valueSerializer.read(instr);
+            InputStreamBackedDecoder decoder = new InputStreamBackedDecoder(instr);
+            return valueSerializer.read(decoder);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -50,8 +53,10 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
 
     public void put(K key, V value) {
         ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+        OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(outstr);
         try {
-            valueSerializer.write(outstr, value);
+            valueSerializer.write(encoder, value);
+            encoder.flush();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

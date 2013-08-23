@@ -31,6 +31,8 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.messaging.serialize.DataStreamBackedSerializer;
 import org.gradle.messaging.serialize.DefaultSerializer;
+import org.gradle.messaging.serialize.InputStreamBackedDecoder;
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
 import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -161,7 +163,9 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
             dataOutput.writeBoolean(value.isChanging);
             dataOutput.writeLong(value.createTimestamp);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            moduleSourceSerializer.write(outputStream, value.moduleSource);
+            OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(outputStream);
+            moduleSourceSerializer.write(encoder, value.moduleSource);
+            encoder.flush();
             byte[] serializedModuleSource = outputStream.toByteArray();
             dataOutput.writeInt(serializedModuleSource.length);
             dataOutput.write(serializedModuleSource);
@@ -178,7 +182,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
             int count = dataInput.readInt();
             byte[] serializedModuleSource = new byte[count];
             dataInput.readFully(serializedModuleSource);
-            ModuleSource moduleSource = moduleSourceSerializer.read(new ByteArrayInputStream(serializedModuleSource));
+            ModuleSource moduleSource = moduleSourceSerializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(serializedModuleSource)));
             count = dataInput.readInt();
             byte[] encodedHash = new byte[count];
             dataInput.readFully(encodedHash);

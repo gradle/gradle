@@ -24,7 +24,6 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 public class ResolvedConfigurationIdentifierSerializer extends DataStreamBackedSerializer<ResolvedConfigurationIdentifier> {
-
     private final ModuleVersionIdentifierSerializer idSerializer = new ModuleVersionIdentifierSerializer();
 
     @Override

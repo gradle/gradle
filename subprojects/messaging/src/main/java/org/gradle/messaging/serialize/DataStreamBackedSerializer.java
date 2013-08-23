@@ -19,14 +19,14 @@ package org.gradle.messaging.serialize;
 import java.io.*;
 
 public abstract class DataStreamBackedSerializer<T> implements Serializer<T> {
-    public T read(InputStream instr) throws Exception {
-        DataInputStream dataInputStream = new DataInputStream(instr);
-        return read((DataInput) dataInputStream);
+    public T read(Decoder decoder) throws Exception {
+        DataInputStream dataInputStream = new DataInputStream(decoder.getInputStream());
+        return read(dataInputStream);
     }
 
-    public void write(OutputStream outstr, T value) throws Exception {
-        DataOutputStream output = new DataOutputStream(outstr);
-        write((DataOutput) output, value);
+    public void write(Encoder encoder, T value) throws Exception {
+        DataOutputStream output = new DataOutputStream(encoder.getOutputStream());
+        write(output, value);
         output.flush();
     }
 

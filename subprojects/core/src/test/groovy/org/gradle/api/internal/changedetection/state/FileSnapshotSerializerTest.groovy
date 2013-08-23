@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.messaging.serialize.InputStreamBackedDecoder
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 
 class FileSnapshotSerializerTest extends Specification {
@@ -25,10 +27,11 @@ class FileSnapshotSerializerTest extends Specification {
 
     def "handles default snapshots"() {
         def bytes = new ByteArrayOutputStream()
-        new FileSnapshotSerializer().write(bytes, snapshot)
+        def encoder = new OutputStreamBackedEncoder(bytes)
 
         when:
-        DefaultFileSnapshotter.FileCollectionSnapshotImpl out = new FileSnapshotSerializer().read(new ByteArrayInputStream(bytes.toByteArray()))
+        new FileSnapshotSerializer().write(encoder, snapshot)
+        DefaultFileSnapshotter.FileCollectionSnapshotImpl out = new FileSnapshotSerializer().read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())))
 
         then:
         out.snapshots.size() == 1
@@ -37,10 +40,11 @@ class FileSnapshotSerializerTest extends Specification {
 
     def "handles output snapshots"() {
         def bytes = new ByteArrayOutputStream()
-        new FileSnapshotSerializer().write(bytes, outputSnapshot)
+        def encoder = new OutputStreamBackedEncoder(bytes)
 
         when:
-        OutputFilesSnapshotter.OutputFilesSnapshot out = new FileSnapshotSerializer().read(new ByteArrayInputStream(bytes.toByteArray()))
+        new FileSnapshotSerializer().write(encoder, outputSnapshot)
+        OutputFilesSnapshotter.OutputFilesSnapshot out = new FileSnapshotSerializer().read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())))
 
         then:
         out.rootFileIds == ["foo": 1L, "bar": 2L]

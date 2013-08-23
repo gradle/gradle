@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
+import org.gradle.messaging.serialize.InputStreamBackedDecoder
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 
 class ModuleVersionSelectionReasonSerializerTest extends Specification {
@@ -40,14 +42,16 @@ class ModuleVersionSelectionReasonSerializerTest extends Specification {
         thrown(IllegalArgumentException)
 
         when:
-        serializer.read(new ByteArrayInputStream("foo".bytes))
+        serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream("foo".bytes)))
+
         then:
         thrown(IllegalArgumentException)
     }
 
     void check(ModuleVersionSelectionReason reason) {
         def bytes = new ByteArrayOutputStream()
-        serializer.write(bytes, reason)
-        assert serializer.read(new ByteArrayInputStream(bytes.toByteArray())) == reason
+        def encoder = new OutputStreamBackedEncoder(bytes)
+        serializer.write(encoder, reason)
+        assert serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray()))) == reason
     }
 }

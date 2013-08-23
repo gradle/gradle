@@ -26,9 +26,10 @@ class DefaultSerializerTest extends Specification {
         Object o = cl.newInstance()
 
         when:
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
-        serializer.write(outputStream, o)
-        Object r = serializer.read(new ByteArrayInputStream(outputStream.toByteArray()))
+        def outputStream = new ByteArrayOutputStream()
+        def encoder = new OutputStreamBackedEncoder(outputStream)
+        serializer.write(encoder, o)
+        Object r = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(outputStream.toByteArray())))
 
         then:
         cl.isInstance(r)

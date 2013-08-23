@@ -20,6 +20,8 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.DataStreamBackedSerializer;
 import org.gradle.messaging.serialize.DefaultSerializer;
+import org.gradle.messaging.serialize.InputStreamBackedDecoder;
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
 
 import java.io.*;
 import java.util.*;
@@ -241,7 +243,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     byte[] serializedMap = new byte[inputProperties];
                     dataInput.readFully(serializedMap);
                     DefaultSerializer<Map> defaultSerializer = new DefaultSerializer<Map>(classLoader);
-                    Map<String, Object> map = defaultSerializer.read(new ByteArrayInputStream(serializedMap));
+                    Map<String, Object> map = defaultSerializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(serializedMap)));
                     execution.setInputProperties(map);
                 } else {
                     execution.setInputProperties(new HashMap<String, Object>());
@@ -263,7 +265,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 } else {
                     DefaultSerializer<Map> defaultSerializer = new DefaultSerializer<Map>(classLoader);
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    defaultSerializer.write(outputStream, execution.getInputProperties());
+                    OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(outputStream);
+                    defaultSerializer.write(encoder, execution.getInputProperties());
+                    encoder.flush();
                     byte[] serializedMap = outputStream.toByteArray();
                     dataOutput.writeInt(serializedMap.length);
                     dataOutput.write(serializedMap);

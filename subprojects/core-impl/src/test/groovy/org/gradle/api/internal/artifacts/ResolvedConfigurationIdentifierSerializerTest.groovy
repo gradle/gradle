@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts
 
+import org.gradle.messaging.serialize.InputStreamBackedDecoder
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -26,11 +28,12 @@ class ResolvedConfigurationIdentifierSerializerTest extends Specification {
 
     def "serializes"() {
         def bytes = new ByteArrayOutputStream()
+        def encoder = new OutputStreamBackedEncoder(bytes)
         def id = newId("org", "foo", "2.0")
-        s.write(bytes, new ResolvedConfigurationIdentifier(id, "conf"))
 
         when:
-        def out = s.read(new ByteArrayInputStream(bytes.toByteArray()))
+        s.write(encoder, new ResolvedConfigurationIdentifier(id, "conf"))
+        def out = s.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())))
 
         then:
         out.configuration == "conf"

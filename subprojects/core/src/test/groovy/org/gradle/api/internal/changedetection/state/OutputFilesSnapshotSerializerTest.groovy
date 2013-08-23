@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.messaging.serialize.InputStreamBackedDecoder
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 
 class OutputFilesSnapshotSerializerTest extends Specification {
@@ -24,12 +26,13 @@ class OutputFilesSnapshotSerializerTest extends Specification {
 
     def "reads and writes the snapshot"() {
         def bytes = new ByteArrayOutputStream()
+        def encoder = new OutputStreamBackedEncoder(bytes)
         def snapshot = new DefaultFileSnapshotter.FileCollectionSnapshotImpl(["1": new DefaultFileSnapshotter.DirSnapshot()])
         def outputSnapshot = new OutputFilesSnapshotter.OutputFilesSnapshot(["x": 14L], snapshot)
-        serializer.write(bytes, outputSnapshot)
 
         when:
-        OutputFilesSnapshotter.OutputFilesSnapshot out = serializer.read(new ByteArrayInputStream(bytes.toByteArray()))
+        serializer.write(encoder, outputSnapshot)
+        OutputFilesSnapshotter.OutputFilesSnapshot out = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())))
 
         then:
         ((DefaultFileSnapshotter.FileCollectionSnapshotImpl)out.filesSnapshot).snapshots.size() == 1

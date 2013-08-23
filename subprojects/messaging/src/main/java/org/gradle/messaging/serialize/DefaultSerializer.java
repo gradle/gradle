@@ -17,7 +17,9 @@ package org.gradle.messaging.serialize;
 
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 
 public class DefaultSerializer<T> implements Serializer<T> {
     private ClassLoader classLoader;
@@ -38,16 +40,16 @@ public class DefaultSerializer<T> implements Serializer<T> {
         this.classLoader = classLoader;
     }
 
-    public T read(InputStream instr) throws Exception {
+    public T read(Decoder decoder) throws Exception {
         try {
-            return (T) new ClassLoaderObjectInputStream(instr, classLoader).readObject();
+            return (T) new ClassLoaderObjectInputStream(decoder.getInputStream(), classLoader).readObject();
         } catch (StreamCorruptedException e) {
             return null;
         }
     }
 
-    public void write(OutputStream outstr, T value) throws IOException {
-        ObjectOutputStream objectStr = new ObjectOutputStream(outstr);
+    public void write(Encoder encoder, T value) throws IOException {
+        ObjectOutputStream objectStr = new ObjectOutputStream(encoder.getOutputStream());
         objectStr.writeObject(value);
         objectStr.flush();
     }
