@@ -2,6 +2,28 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Improved performance and memory consumption
+
+Gradle 1.8 uses less memory. Some builds, especially those really big ones, will get faster.
+The less memory Gradle uses, the less expensive garbage collection is, and effectively, the faster your builds are.
+The heart of this performance improvement is avoiding creation of some expensive objects.
+Instead, the information is streamed to disk and read back only when necessary.
+The information Gradle stores on the disk is the extra resolution result information - it is not needed by typical builds.
+Therefore, typical builds get faster and all builds will use less memory.
+
+#### Serialization of the resolution results.
+
+The dependency resolution results consume a lot of memory in big projects. Hence, in Gradle 1.8,
+the resolution information (like [`ResolutionResult`](javadoc/org/gradle/api/artifacts/result/ResolutionResult.html)
+or [`ResolvedConfiguration`](javadoc/org/gradle/api/artifacts/ResolvedConfiguration.html) is streamed to disk during the dependency resolution.
+When this information is requested, it is read from the disk.
+The api does not change, however, only the implementation details are different.
+To avoid slowdowns with more I/O operations, the resolution results are cached.
+Typical builds will get faster, some builds may get a bit slower, however the overall user experience will get better.
+For example, the 'gradle clean build' may be faster but 'gradle idea' might get a little bit slower.
+It is because in order to generate the IDE metadata, the 'idea' plugin needs to access the full dependency graph
+and this information is read from the disk.
+
 ### Tooling API
 
 Information about the build script for a project is now available via the `GradleProject` tooling API model.
