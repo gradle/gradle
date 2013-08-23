@@ -176,7 +176,7 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
                             break;
                         case DONE:
                             ResolvedModuleVersionResult root = builder.complete().getRoot();
-                            LOG.info("Loaded resolution results ({}) from {}", clock.getTime(), store);
+                            LOG.debug("Loaded resolution results ({}) from {}", clock.getTime(), store);
                             return root;
                         default:
                             throw new IllegalArgumentException("Unknown value type: " + type);

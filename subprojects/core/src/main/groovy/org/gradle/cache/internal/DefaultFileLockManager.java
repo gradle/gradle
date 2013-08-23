@@ -395,12 +395,14 @@ public class DefaultFileLockManager implements FileLockManager {
                 if (port != -1) { //we don't like the assumption about the port very much
                     OwnerInfo ownerInfo = readInformationRegion(System.currentTimeMillis()); //no need for timeout here, as we're already looping with timeout
                     if (ownerInfo.port != -1) {
-                        LOGGER.info("The file lock is held by a different Gradle process (pid: {}, operation: {}). Will attempt to ping owner at port {}", ownerInfo.pid, ownerInfo.operation, ownerInfo.port);
+                        LOGGER.debug("The file lock is held by a different Gradle process (pid: {}, operation: {}). Will attempt to ping owner at port {}", ownerInfo.pid, ownerInfo.operation, ownerInfo.port);
                         fileLockContentionHandler.pingOwner(ownerInfo.port, ownerInfo.lockId, displayName);
                     } else {
                         LOGGER.debug("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
                     }
                 }
+                //TODO SF it would really nice to print some message to the user after say 2 seconds of waiting
+                //saying what gradle is doing, and why we're waiting.
                 Thread.sleep(200L);
             } while (System.currentTimeMillis() < waitUntil);
             return null;

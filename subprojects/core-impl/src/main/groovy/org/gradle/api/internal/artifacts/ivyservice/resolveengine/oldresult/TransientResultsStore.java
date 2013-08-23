@@ -134,7 +134,7 @@ public class TransientResultsStore {
                         id = s.read((DataInput) input);
                         results.root = results.allDependencies.get(id);
                         //root should be the last
-                        LOG.info("Loaded resolved configuration results ({}) from {}", clock.getTime(), binaryStore);
+                        LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getTime(), binaryStore);
                         return results;
                     case FIRST_LVL:
                         id = s.read((DataInput) input);

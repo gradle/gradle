@@ -46,7 +46,7 @@ public class CachedStoreFactory<T> {
     }
 
     public void close() {
-        LOG.info(displayName + " cache closed. Cache reads: "
+        LOG.debug(displayName + " cache closed. Cache reads: "
                 + stats.readsFromCache + ", disk reads: "
                 + stats.readsFromDisk + " (avg: " + prettyTime(stats.getDiskReadsAvgMs()) + ", total: " + prettyTime(stats.diskReadsTotalMs.get()) + ")");
     }
