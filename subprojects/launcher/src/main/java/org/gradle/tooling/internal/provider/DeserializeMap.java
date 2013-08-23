@@ -16,13 +16,9 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.Nullable;
-
 public interface DeserializeMap {
     /**
-     * Reconstructs the ClassLoader received from the originator. Return null to use the default for the given
-     * details.
+     * Loads a serialized Class.
      */
-    @Nullable
-    ClassLoader getClassLoader(ClassLoaderDetails classLoaderDetails);
+    Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException;
 }

@@ -73,8 +73,8 @@ class JvmTest extends Specification {
         TestFile software = tmpDir.createDir('software')
         software.create {
             jdk {
-                jre { lib { file 'rt.jar' }}
-                lib { file 'tools.jar'}
+                jre { lib { file 'rt.jar' } }
+                lib { file 'tools.jar' }
             }
         }
 
@@ -91,7 +91,7 @@ class JvmTest extends Specification {
         given:
         TestFile software = tmpDir.createDir('software')
         software.create {
-            jre { lib { file 'rt.jar' }}
+            jre { lib { file 'rt.jar' } }
         }
 
         when:
@@ -115,15 +115,21 @@ class JvmTest extends Specification {
     }
 
     def "looks for tools Jar in sibling of JRE's Java home directory on Windows"() {
-        TestFile javaHomeDir = tmpDir.createDir('jdk1.6.0')
-        TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
-        System.properties['java.home'] = tmpDir.createDir('jre6').absolutePath
-        System.properties['java.version'] = '1.6.0'
+        TestFile jdkDir = tmpDir.createDir(jdkDirName)
+        TestFile toolsJar = jdkDir.file('lib/tools.jar').createFile()
+        TestFile jreDir = tmpDir.createDir(jreDirName)
+        System.properties['java.home'] = jreDir.absolutePath
+        System.properties['java.version'] = version
         _ * os.windows >> true
 
         expect:
-        jvm.javaHome == javaHomeDir
+        jvm.javaHome == jdkDir
         jvm.toolsJar == toolsJar
+
+        where:
+        version    | jreDirName    | jdkDirName
+        '1.6.0'    | 'jre6'        | 'jdk1.6.0'
+        '1.5.0_22' | 'jre1.5.0_22' | 'jdk1.5.0_22'
     }
 
     def "uses system property to locate Java home directory when tools Jar not found"() {
@@ -135,17 +141,26 @@ class JvmTest extends Specification {
         jvm.toolsJar == null
     }
 
+    def "uses system property to determine if Sun/Oracle JVM"() {
+        when:
+        System.properties['java.vm.vendor'] = 'Sun'
+        def jvm = Jvm.create(null)
+
+        then:
+        jvm.getClass() == Jvm
+    }
+
     def "uses system property to determine if Apple JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'Apple Inc.'
-        def jvm = Jvm.current()
+        def jvm = Jvm.create(null)
 
         then:
         jvm.getClass() == Jvm.AppleJvm
 
         when:
         System.properties['java.vm.vendor'] = 'Sun'
-        jvm = Jvm.current()
+        jvm = Jvm.create(null)
 
         then:
         jvm.getClass() == Jvm
@@ -154,7 +169,7 @@ class JvmTest extends Specification {
     def "uses system property to determine if IBM JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'IBM Corporation'
-        def jvm = Jvm.current()
+        def jvm = Jvm.create(null)
 
         then:
         jvm.getClass() == Jvm.IbmJvm
@@ -176,7 +191,7 @@ class JvmTest extends Specification {
 
         then:
         home.file(theOs.getExecutableName("jre/bin/javadoc")).absolutePath ==
-            Jvm.forHome(home.file("jre")).getExecutable("javadoc").absolutePath
+                Jvm.forHome(home.file("jre")).getExecutable("javadoc").absolutePath
     }
 
     def "finds tools.jar if java home supplied"() {
@@ -193,7 +208,7 @@ class JvmTest extends Specification {
 
         then:
         home.file("jdk/lib/tools.jar").absolutePath ==
-            Jvm.forHome(home.file("jdk")).toolsJar.absolutePath
+                Jvm.forHome(home.file("jdk")).toolsJar.absolutePath
     }
 
     def "provides decent feedback if executable not found"() {
@@ -259,7 +274,7 @@ class JvmTest extends Specification {
         then:
         thrown(IllegalArgumentException)
     }
-    
+
     def "describes accurately when created for supplied java home"() {
         when:
         def jvm = new Jvm(theOs, new File('dummyFolder'))

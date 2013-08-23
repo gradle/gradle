@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.integtests.tooling.r18;
 
-/**
- * TODO:ADAM - Remove this
- *
- * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
- *
- * <p>Consumer compatibility: This interface is used by all consumer versions from 1.8-rc-1.</p>
- * <p>Provider compatibility: This interface is implemented by all provider versions from 1.8-rc-1.</p>
- *
- * @since 1.8-rc-1
- * @see ConnectionVersion4
- */
-public interface BuildActionSerializationDetails {
-    /**
-     * Returns the ClassLoader to use to de-serialize the result.
-     */
-    ClassLoader getResultClassLoader();
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.idea.IdeaProject;
+
+public class FetchIdeaModel implements BuildAction<IdeaProject> {
+    public IdeaProject execute(BuildController controller) {
+        return controller.getModel(IdeaProject.class);
+    }
 }

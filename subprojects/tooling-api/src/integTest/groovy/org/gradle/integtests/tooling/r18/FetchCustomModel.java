@@ -21,7 +21,7 @@ import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
-class CustomAction implements BuildAction<CustomModel> {
+class FetchCustomModel implements BuildAction<CustomModel> {
     public CustomModel execute(BuildController controller) {
         CustomModel model = new CustomModel();
         model.gradle = controller.getModel(GradleProject.class);

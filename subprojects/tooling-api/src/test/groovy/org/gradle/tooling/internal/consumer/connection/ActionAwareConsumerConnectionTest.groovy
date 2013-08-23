@@ -44,7 +44,7 @@ class ActionAwareConsumerConnectionTest extends Specification {
         result == '[result]'
 
         and:
-        1 * target.run(_, _, parameters) >> { InternalBuildAction protocolAction, def serializeDetails, def params ->
+        1 * target.run(_, parameters) >> { InternalBuildAction protocolAction, def params ->
             def actionResult = protocolAction.execute(buildController)
             return Stub(BuildResult) {
                 getModel() >> actionResult

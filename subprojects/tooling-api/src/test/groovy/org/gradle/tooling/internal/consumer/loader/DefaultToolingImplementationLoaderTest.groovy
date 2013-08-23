@@ -15,21 +15,17 @@
  */
 package org.gradle.tooling.internal.consumer.loader
 
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.actor.ActorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.Distribution
-import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnection
-import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection
-import org.gradle.tooling.internal.consumer.connection.ConnectionVersion4BackedConsumerConnection
-import org.gradle.tooling.internal.consumer.connection.InternalConnectionBackedConsumerConnection
-import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection
+import org.gradle.tooling.internal.consumer.connection.*
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException
-import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.slf4j.Logger
@@ -108,7 +104,7 @@ class TestMetaData implements ConnectionMetaDataVersion1 {
 }
 
 class TestConnection extends TestR16Connection implements InternalBuildActionExecutor {
-    def <T> BuildResult<T> run(InternalBuildAction<T> action, BuildActionSerializationDetails serializationDetails, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
+    def <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         throw new UnsupportedOperationException()
     }
 }

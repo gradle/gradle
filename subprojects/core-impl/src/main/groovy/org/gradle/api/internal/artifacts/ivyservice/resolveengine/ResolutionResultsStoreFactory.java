@@ -73,8 +73,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         for (SimpleBinaryStore store : stores.values()) {
             store.close();
         }
-        //TODO SF trim down to debug before 1.8 (also the old/newModel.close())
-        LOG.info("Deleted {} resolution results binary files in {}", stores.size(), clock.getTime());
+        LOG.debug("Deleted {} resolution results binary files in {}", stores.size(), clock.getTime());
         oldModelCache.close();
         newModelCache.close();
     }

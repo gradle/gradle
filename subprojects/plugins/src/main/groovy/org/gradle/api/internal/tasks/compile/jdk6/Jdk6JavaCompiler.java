@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.internal.jvm.Jvm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,7 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -50,7 +52,7 @@ public class Jdk6JavaCompiler implements Compiler<JavaCompileSpec>, Serializable
 
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        JavaCompiler compiler = findCompiler();
         if(compiler==null){
             throw new RuntimeException("Cannot find System Java Compiler. Ensure that you have installed a JDK (not just a JRE) and configured your JAVA_HOME system variable to point to the according directory.");
         }
@@ -58,5 +60,20 @@ public class Jdk6JavaCompiler implements Compiler<JavaCompileSpec>, Serializable
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
         Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(spec.getSource());
         return compiler.getTask(null, null, null, options, null, compilationUnits);
+    }
+
+    private static JavaCompiler findCompiler() {
+        File realJavaHome = Jvm.current().getJavaHome();
+        File javaHomeFromToolProvidersPointOfView = new File(System.getProperty("java.home"));
+        if (realJavaHome.equals(javaHomeFromToolProvidersPointOfView)) {
+            return ToolProvider.getSystemJavaCompiler();
+        }
+
+        System.setProperty("java.home", realJavaHome.getAbsolutePath());
+        try {
+            return ToolProvider.getSystemJavaCompiler();
+        } finally {
+            System.setProperty("java.home", javaHomeFromToolProvidersPointOfView.getAbsolutePath());
+        }
     }
 }

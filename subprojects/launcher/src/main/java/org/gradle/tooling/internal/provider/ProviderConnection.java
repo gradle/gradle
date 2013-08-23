@@ -22,7 +22,6 @@ import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.Factory;
-import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -37,7 +36,10 @@ import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
+import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GUtil;
@@ -46,21 +48,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final PayloadSerializer payloadSerializer;
-    private final ClasspathInferer classpathInferer;
     private final LoggingServiceRegistry loggingServices;
     private final GradleLauncherFactory gradleLauncherFactory;
 
-    public ProviderConnection(LoggingServiceRegistry loggingServices, GradleLauncherFactory gradleLauncherFactory, PayloadSerializer payloadSerializer, ClasspathInferer classpathInferer) {
+    public ProviderConnection(LoggingServiceRegistry loggingServices, GradleLauncherFactory gradleLauncherFactory, PayloadSerializer payloadSerializer) {
         this.loggingServices = loggingServices;
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.payloadSerializer = payloadSerializer;
-        this.classpathInferer = classpathInferer;
     }
 
     public void configure(ProviderConnectionParameters parameters) {
@@ -109,33 +110,14 @@ public class ProviderConnection {
         return payloadSerializer.deserialize(model);
     }
 
-    public Object run(InternalBuildAction<?> clientAction, final BuildActionSerializationDetails serializationDetails, ProviderOperationParameters providerParameters) {
-        final UUID classLoaderId = UUID.randomUUID();
-        SerializedPayload serializedAction = payloadSerializer.serialize(clientAction, new SerializeMap() {
-            Set<URL> classPath = new LinkedHashSet<URL>();
-
-            public UUID visitClass(Class<?> target) {
-                classpathInferer.getClassPathFor(target, classPath);
-                return classLoaderId;
-            }
-
-            public Iterable<ClassLoaderDetails> getClassLoaders() {
-                return Arrays.asList(new ClassLoaderDetails(classLoaderId, new MutableURLClassLoader.Spec(new ArrayList<URL>(classPath))));
-            }
-        });
+    public Object run(InternalBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
+        SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
 
         BuildAction<SerializedPayload> action = new ClientProvidedBuildAction(serializedAction);
         Parameters params = initParams(providerParameters);
         SerializedPayload result = run(action, providerParameters, params.properties);
 
-        return payloadSerializer.deserialize(result, new DeserializeMap() {
-            public ClassLoader getClassLoader(ClassLoaderDetails classLoaderDetails) {
-                if (classLoaderDetails.uuid.equals(classLoaderId)) {
-                    return serializationDetails.getResultClassLoader();
-                }
-                return null;
-            }
-        });
+        return payloadSerializer.deserialize(result);
     }
 
     private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {

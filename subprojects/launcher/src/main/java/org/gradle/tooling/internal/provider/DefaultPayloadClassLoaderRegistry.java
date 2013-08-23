@@ -24,10 +24,7 @@ import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.util.CollectionUtils;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -43,7 +40,45 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         this.classLoaderFactory = modelClassLoaderFactory;
     }
 
-    public ClassLoader getClassLoader(ClassLoaderDetails details) {
+    public SerializeMap newSerializeSession() {
+        return new SerializeMap() {
+            final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
+            final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
+
+            public short visitClass(Class<?> target) {
+                ClassLoader classLoader = target.getClassLoader();
+                Short id = classLoaderIds.get(classLoader);
+                if (id != null) {
+                    return id;
+                }
+                if (classLoaderIds.size() == Short.MAX_VALUE) {
+                    throw new UnsupportedOperationException();
+                }
+                ClassLoaderDetails details = getDetails(classLoader);
+                id = (short) (classLoaderIds.size() + 1);
+
+                classLoaderIds.put(classLoader, id);
+                classLoaderDetails.put(id, details);
+
+                return id;
+            }
+
+            public Map<Short, ClassLoaderDetails> getClassLoaders() {
+                return classLoaderDetails;
+            }
+        };
+    }
+
+    public DeserializeMap newDeserializeSession() {
+        return new DeserializeMap() {
+            public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
+                ClassLoader classLoader = getClassLoader(classLoaderDetails);
+                return Class.forName(className, false, classLoader);
+            }
+        };
+    }
+
+    private ClassLoader getClassLoader(ClassLoaderDetails details) {
         lock.lock();
         try {
             ClassLoader classLoader = classLoaderIds.get(details.uuid);
@@ -70,7 +105,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         }
     }
 
-    public ClassLoaderDetails getDetails(ClassLoader classLoader) {
+    private ClassLoaderDetails getDetails(ClassLoader classLoader) {
         lock.lock();
         try {
             ClassLoaderDetails details = classLoaderDetails.get(classLoader);

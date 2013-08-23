@@ -24,6 +24,4 @@ import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 @LegacyConsumerInterface("org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency")
 @Deprecated
 public class DefaultIdeaSingleEntryLibraryDependency extends org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaSingleEntryLibraryDependency {
-    //TODO:ADAM - remove this
-    private static final long serialVersionUID = 0;
 }

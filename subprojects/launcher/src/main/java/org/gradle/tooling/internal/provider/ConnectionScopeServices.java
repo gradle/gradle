@@ -36,8 +36,9 @@ public class ConnectionScopeServices extends DefaultServiceRegistry {
                 new PayloadSerializer(
                         new ClientSidePayloadClassLoaderRegistry(
                                 new DefaultPayloadClassLoaderRegistry(
-                                        new ModelClassLoaderFactory()))),
-                new ClasspathInferer());
+                                        new ModelClassLoaderFactory()),
+                                new ClasspathInferer()))
+        );
     }
 
     protected ProtocolToModelAdapter createProtocolToModelAdapter() {

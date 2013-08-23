@@ -16,8 +16,11 @@
 
 package org.gradle.tooling.internal.provider;
 
-public interface PayloadClassLoaderRegistry {
-    ClassLoader getClassLoader(ClassLoaderDetails details);
+import net.jcip.annotations.ThreadSafe;
 
-    ClassLoaderDetails getDetails(ClassLoader classLoader);
+@ThreadSafe
+public interface PayloadClassLoaderRegistry {
+    SerializeMap newSerializeSession();
+
+    DeserializeMap newDeserializeSession();
 }
