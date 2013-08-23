@@ -16,19 +16,21 @@
 
 package org.gradle.messaging.serialize;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 public class InputStreamBackedDecoder implements Decoder, Closeable {
-    private final InputStream inputStream;
+    private final DataInputStream inputStream;
 
     public InputStreamBackedDecoder(InputStream inputStream) {
-        this.inputStream = inputStream;
+        this.inputStream = new DataInputStream(inputStream);
     }
 
     public InputStream getInputStream() {
         return inputStream;
+    }
+
+    public long readLong() throws IOException {
+        return inputStream.readLong();
     }
 
     public void close() throws IOException {

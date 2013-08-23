@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.serialize;
+package org.gradle.messaging.serialize
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
+class StreamBackedCodecTest extends AbstractCodecTest {
+    @Override
+    byte[] encode(Closure closure) {
+        def bytes = new ByteArrayOutputStream()
+        def encoder = new OutputStreamBackedEncoder(bytes)
+        closure.call(encoder)
+        encoder.close()
+        return bytes.toByteArray()
+    }
 
-/**
- * Provides a way to decode structured data from a backing byte stream.
- */
-public interface Decoder {
-    /**
-     * Returns an InputStream which can be used to read raw bytes.
-     */
-    InputStream getInputStream();
-
-    /**
-     * Reads a long value that was written using {@link Encoder#writeLong(long)}.
-     *
-     * @throws EOFException when the end of the byte stream is reached.
-     */
-    long readLong() throws EOFException, IOException;
+    @Override
+    void decode(byte[] bytes, Closure closure) {
+        def decoder = new InputStreamBackedDecoder(new ByteArrayInputStream(bytes))
+        closure.call(decoder)
+    }
 }

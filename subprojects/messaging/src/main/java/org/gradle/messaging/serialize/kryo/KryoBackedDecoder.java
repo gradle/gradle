@@ -14,25 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.serialize;
+package org.gradle.messaging.serialize.kryo;
+
+import com.esotericsoftware.kryo.io.Input;
+import org.gradle.messaging.serialize.Decoder;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * Provides a way to decode structured data from a backing byte stream.
- */
-public interface Decoder {
-    /**
-     * Returns an InputStream which can be used to read raw bytes.
-     */
-    InputStream getInputStream();
+public class KryoBackedDecoder implements Decoder {
+    private final Input input;
 
     /**
-     * Reads a long value that was written using {@link Encoder#writeLong(long)}.
-     *
-     * @throws EOFException when the end of the byte stream is reached.
+     * Note that this decoder uses buffering, so will attempt to read beyond the end of the encoded data.
+     * This means you should use this type only when this decoder will be used to decode the entire stream.
      */
-    long readLong() throws EOFException, IOException;
+    public KryoBackedDecoder(InputStream inputStream) {
+        input = new Input(inputStream);
+    }
+
+    public InputStream getInputStream() {
+        return input;
+    }
+
+    public long readLong() throws EOFException, IOException {
+        return input.readLong();
+    }
 }

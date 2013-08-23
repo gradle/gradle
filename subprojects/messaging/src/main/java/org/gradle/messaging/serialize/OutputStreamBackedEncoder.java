@@ -17,18 +17,23 @@
 package org.gradle.messaging.serialize;
 
 import java.io.Closeable;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 public class OutputStreamBackedEncoder implements Encoder, Closeable {
-    private final OutputStream outputStream;
+    private final DataOutputStream outputStream;
 
     public OutputStreamBackedEncoder(OutputStream outputStream) {
-        this.outputStream = outputStream;
+        this.outputStream = new DataOutputStream(outputStream);
     }
 
     public OutputStream getOutputStream() {
         return outputStream;
+    }
+
+    public void writeLong(long value) throws IOException {
+        outputStream.writeLong(value);
     }
 
     public void flush() throws IOException {

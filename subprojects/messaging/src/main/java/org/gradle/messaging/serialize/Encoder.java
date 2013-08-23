@@ -16,6 +16,7 @@
 
 package org.gradle.messaging.serialize;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 public interface Encoder {
@@ -23,4 +24,9 @@ public interface Encoder {
      * Returns an OutputStream which can be used to write raw bytes.
      */
     OutputStream getOutputStream();
+
+    /**
+     * Writes a long value.
+     */
+    void writeLong(long value) throws IOException;
 }
