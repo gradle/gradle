@@ -29,19 +29,19 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 
 public class ModuleVersionSelectionReasonSerializer extends DataStreamBackedSerializer<ModuleVersionSelectionReason> {
 
-    private static final BiMap<Short, ModuleVersionSelectionReason> REASONS = HashBiMap.create(6);
+    private static final BiMap<Byte, ModuleVersionSelectionReason> REASONS = HashBiMap.create(6);
 
     static {
-        REASONS.put((short) 1, REQUESTED);
-        REASONS.put((short) 2, ROOT);
-        REASONS.put((short) 3, FORCED);
-        REASONS.put((short) 4, CONFLICT_RESOLUTION);
-        REASONS.put((short) 5, SELECTED_BY_RULE);
-        REASONS.put((short) 6, CONFLICT_RESOLUTION_BY_RULE);
+        REASONS.put((byte) 1, REQUESTED);
+        REASONS.put((byte) 2, ROOT);
+        REASONS.put((byte) 3, FORCED);
+        REASONS.put((byte) 4, CONFLICT_RESOLUTION);
+        REASONS.put((byte) 5, SELECTED_BY_RULE);
+        REASONS.put((byte) 6, CONFLICT_RESOLUTION_BY_RULE);
     }
 
     public ModuleVersionSelectionReason read(DataInput dataInput) throws IOException {
-        short id = dataInput.readShort();
+        byte id = dataInput.readByte();
         ModuleVersionSelectionReason out = REASONS.get(id);
         if (out == null) {
             throw new IllegalArgumentException("Unable to find selection reason with id: " + id);
@@ -50,10 +50,10 @@ public class ModuleVersionSelectionReasonSerializer extends DataStreamBackedSeri
     }
 
     public void write(DataOutput dataOutput, ModuleVersionSelectionReason value) throws IOException {
-        Short id = REASONS.inverse().get(value);
+        Byte id = REASONS.inverse().get(value);
         if (id == null) {
             throw new IllegalArgumentException("Unknown selection reason: " + value);
         }
-        dataOutput.writeShort(id.intValue());
+        dataOutput.writeByte(id);
     }
 }
