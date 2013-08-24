@@ -58,6 +58,11 @@ public class OutputStreamBackedEncoder extends AbstractEncoder implements Encode
         }
     }
 
+    public void writeBinary(byte[] bytes, int offset, int count) throws IOException {
+        outputStream.writeInt(count);
+        outputStream.write(bytes, offset, count);
+    }
+
     public void writeByte(byte value) throws IOException {
         outputStream.writeByte(value);
     }

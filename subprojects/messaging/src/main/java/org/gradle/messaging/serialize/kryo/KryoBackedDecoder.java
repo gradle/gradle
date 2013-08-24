@@ -22,6 +22,7 @@ import org.gradle.messaging.serialize.AbstractDecoder;
 import org.gradle.messaging.serialize.Decoder;
 
 import java.io.EOFException;
+import java.io.IOException;
 import java.io.InputStream;
 
 public class KryoBackedDecoder extends AbstractDecoder implements Decoder {
@@ -94,6 +95,17 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder {
     public String readNullableString() throws EOFException {
         try {
             return input.readString();
+        } catch (KryoException e) {
+            throw maybeEndOfStream(e);
+        }
+    }
+
+    public byte[] readBinary() throws IOException {
+        try {
+            int length = input.readInt(true);
+            byte[] result = new byte[length];
+            input.readBytes(result);
+            return result;
         } catch (KryoException e) {
             throw maybeEndOfStream(e);
         }

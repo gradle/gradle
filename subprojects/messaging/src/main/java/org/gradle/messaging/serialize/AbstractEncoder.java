@@ -33,6 +33,10 @@ public abstract class AbstractEncoder implements Encoder {
         writeBytes(bytes, 0, bytes.length);
     }
 
+    public void writeBinary(byte[] bytes) throws IOException {
+        writeBinary(bytes, 0, bytes.length);
+    }
+
     private class EncoderStream extends OutputStream {
         @Override
         public void write(byte[] buffer) throws IOException {

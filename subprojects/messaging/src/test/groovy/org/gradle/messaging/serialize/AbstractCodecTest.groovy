@@ -128,6 +128,43 @@ abstract class AbstractCodecTest extends Specification {
         thrown(EOFException)
     }
 
+    def "can encode and decode byte array"() {
+        expect:
+        def bytes = encode { Encoder encoder ->
+            encoder.writeBinary([] as byte[])
+            encoder.writeBinary([1, 2, 3, 4] as byte[])
+            encoder.writeBinary([0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7] as byte[], 2, 3)
+        }
+        decode(bytes) { Decoder decoder ->
+            assert decoder.readBinary() == [] as byte[]
+            assert decoder.readBinary() == [1, 2, 3, 4] as byte[]
+            assert decoder.readBinary() == [0xc3, 0xc4, 0xc5] as byte[]
+        }
+    }
+
+    def "decode fails when byte array cannot be fully read"() {
+        given:
+        def bytes = truncate { Encoder encoder ->
+            encoder.writeBinary([1, 2, 3, 4] as byte[])
+        }
+
+        when:
+        decode(bytes) { Decoder decoder ->
+            decoder.readBinary()
+        }
+
+        then:
+        thrown(EOFException)
+
+        when:
+        decode([] as byte[]) { Decoder decoder ->
+            decoder.readBinary()
+        }
+
+        then:
+        thrown(EOFException)
+    }
+
     def "can encode and decode a long"() {
         expect:
         def bytes = encode { Encoder encoder ->

@@ -23,7 +23,7 @@ import java.io.OutputStream;
 
 public interface Encoder {
     /**
-     * Returns an OutputStream which can be used to write byte content directly to the stream.
+     * Returns an OutputStream that can be used to write byte content to the stream.
      */
     OutputStream getOutputStream();
 
@@ -33,14 +33,24 @@ public interface Encoder {
     void writeByte(byte value) throws IOException;
 
     /**
-     * Writes the given bytes to the stream.
+     * Writes the given bytes to the stream. Does not encode any length information.
      */
     void writeBytes(byte[] bytes) throws IOException;
 
     /**
-     * Writes the given bytes to the stream.
+     * Writes the given bytes to the stream. Does not encode any length information.
      */
     void writeBytes(byte[] bytes, int offset, int count) throws IOException;
+
+    /**
+     * Writes the given byte array to the stream. Encodes the bytes and some length information.
+     */
+    void writeBinary(byte[] bytes) throws IOException;
+
+    /**
+     * Writes the given byte array to the stream. Encodes the bytes and some length information.
+     */
+    void writeBinary(byte[] bytes, int offset, int count) throws IOException;
 
     /**
      * Writes a signed 64 bit long value. The implementation may encode the value as a variable number of bytes, not necessarily as 8 bytes.

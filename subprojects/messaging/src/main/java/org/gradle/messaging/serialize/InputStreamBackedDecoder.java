@@ -54,6 +54,13 @@ public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder
         }
     }
 
+    public byte[] readBinary() throws IOException {
+        int length = inputStream.readInt();
+        byte[] result = new byte[length];
+        inputStream.readFully(result);
+        return result;
+    }
+
     public byte readByte() throws IOException {
         return (byte)(inputStream.readByte() & 0xff);
     }

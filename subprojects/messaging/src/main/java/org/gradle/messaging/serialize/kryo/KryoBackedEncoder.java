@@ -62,6 +62,11 @@ public class KryoBackedEncoder extends AbstractEncoder implements Encoder {
         output.writeString(value);
     }
 
+    public void writeBinary(byte[] bytes, int offset, int count) throws IOException {
+        output.writeInt(count, true);
+        output.writeBytes(bytes, offset, count);
+    }
+
     public void flush() {
         output.flush();
     }

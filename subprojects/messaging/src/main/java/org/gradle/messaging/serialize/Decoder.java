@@ -89,4 +89,11 @@ public interface Decoder {
      * @throws EOFException when the end of the byte stream is reached before the specified number of bytes were read.
      */
     void readBytes(byte[] buffer, int offset, int count) throws EOFException, IOException;
+
+    /**
+     * Reads a byte array. Can read any byte array written using {@link Encoder#writeBinary(byte[])} or {@link Encoder#writeBinary(byte[], int, int)}.
+     *
+     * @throws EOFException when the end of the byte stream is reached before the byte array was fully read.
+     */
+    byte[] readBinary() throws EOFException, IOException;
 }
