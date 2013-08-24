@@ -16,6 +16,8 @@
 
 package org.gradle.messaging.serialize;
 
+import org.gradle.api.Nullable;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,9 +32,61 @@ public interface Decoder {
     InputStream getInputStream();
 
     /**
-     * Reads a long value that was written using {@link Encoder#writeLong(long)}.
+     * Reads a signed 64 bit long value. Can read any value that was written using {@link Encoder#writeLong(long)}.
+     *
+     * @throws EOFException when the end of the byte stream is reached before the long value can be fully read.
+     */
+    long readLong() throws EOFException, IOException;
+
+    /**
+     * Reads a signed 32 bit int value. Can read any value that was written using {@link Encoder#writeInt(int)}.
+     *
+     * @throws EOFException when the end of the byte stream is reached before the int value can be fully read.
+     */
+    int readInt() throws EOFException, IOException;
+
+    /**
+     * Reads a boolean value. Can read any value that was written using {@link Encoder#writeBoolean(boolean)}.
+     *
+     * @throws EOFException when the end of the byte stream is reached before the boolean value can be fully read.
+     */
+    boolean readBoolean() throws EOFException, IOException;
+
+    /**
+     * Reads a non-null string value. Can read any value that was written using {@link Encoder#writeString(CharSequence)}.
+     *
+     * @throws EOFException when the end of the byte stream is reached before the string can be fully read.
+     */
+    String readString() throws EOFException, IOException;
+
+    /**
+     * Reads a nullable string value. Can reads any value that was written using {@link Encoder#writeNullableString(CharSequence)}.
+     *
+     * @throws EOFException when the end of the byte stream is reached before the string can be fully read.
+     */
+    @Nullable
+    String readNullableString() throws EOFException, IOException;
+
+    /**
+     * Reads a byte value. Can read any byte value that was written using one of the raw byte methods on {@link Encoder}, such as {@link Encoder#writeByte(byte)} or {@link Encoder#getOutputStream()}
      *
      * @throws EOFException when the end of the byte stream is reached.
      */
-    long readLong() throws EOFException, IOException;
+    byte readByte() throws EOFException, IOException;
+
+    /**
+     * Reads bytes into the given buffer, filling the buffer. Can read any byte values that were written using one of the raw byte methods on {@link Encoder}, such as {@link
+     * Encoder#writeBytes(byte[])} or {@link Encoder#getOutputStream()}
+     *
+     * @throws EOFException when the end of the byte stream is reached before the buffer is full.
+     */
+    void readBytes(byte[] buffer) throws EOFException, IOException;
+
+    /**
+     * Reads the specified number of bytes into the given buffer. Can read any byte values that were written using one of the raw byte methods on {@link Encoder}, such as {@link
+     * Encoder#writeBytes(byte[])} or {@link Encoder#getOutputStream()}
+     *
+     * @throws EOFException when the end of the byte stream is reached before the specified number of bytes were read.
+     */
+    void readBytes(byte[] buffer, int offset, int count) throws EOFException, IOException;
 }

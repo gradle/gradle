@@ -16,17 +16,54 @@
 
 package org.gradle.messaging.serialize;
 
+import org.gradle.api.Nullable;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
 public interface Encoder {
     /**
-     * Returns an OutputStream which can be used to write raw bytes.
+     * Returns an OutputStream which can be used to write byte content directly to the stream.
      */
     OutputStream getOutputStream();
 
     /**
-     * Writes a long value.
+     * Writes a byte value to the stream.
+     */
+    void writeByte(byte value) throws IOException;
+
+    /**
+     * Writes the given bytes to the stream.
+     */
+    void writeBytes(byte[] bytes) throws IOException;
+
+    /**
+     * Writes the given bytes to the stream.
+     */
+    void writeBytes(byte[] bytes, int offset, int count) throws IOException;
+
+    /**
+     * Writes a signed 64 bit long value. The implementation may encode the value as a variable number of bytes, not necessarily as 8 bytes.
      */
     void writeLong(long value) throws IOException;
+
+    /**
+     * Writes a signed 32 bit int value. The implementation may encode the value as a variable number of bytes, not necessarily as 4 bytes.
+     */
+    void writeInt(int value) throws IOException;
+
+    /**
+     * Writes a boolean value.
+     */
+    void writeBoolean(boolean value) throws IOException;
+
+    /**
+     * Writes a non-null string value.
+     */
+    void writeString(CharSequence value) throws IOException;
+
+    /**
+     * Writes a nullable string value.
+     */
+    void writeNullableString(@Nullable CharSequence value) throws IOException;
 }

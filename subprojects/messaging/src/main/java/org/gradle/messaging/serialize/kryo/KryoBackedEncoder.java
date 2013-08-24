@@ -17,24 +17,49 @@
 package org.gradle.messaging.serialize.kryo;
 
 import com.esotericsoftware.kryo.io.Output;
+import org.gradle.api.Nullable;
+import org.gradle.messaging.serialize.AbstractEncoder;
 import org.gradle.messaging.serialize.Encoder;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class KryoBackedEncoder implements Encoder {
+public class KryoBackedEncoder extends AbstractEncoder implements Encoder {
     private final Output output;
 
     public KryoBackedEncoder(OutputStream outputStream) {
         output = new Output(outputStream);
     }
 
-    public OutputStream getOutputStream() {
-        return output;
+    public void writeByte(byte value) {
+        output.writeByte(value);
     }
 
-    public void writeLong(long value) throws IOException {
+    public void writeBytes(byte[] bytes, int offset, int count) {
+        output.writeBytes(bytes, offset, count);
+    }
+
+    public void writeLong(long value) {
         output.writeLong(value);
+    }
+
+    public void writeInt(int value) throws IOException {
+        output.writeInt(value);
+    }
+
+    public void writeBoolean(boolean value) throws IOException {
+        output.writeBoolean(value);
+    }
+
+    public void writeString(CharSequence value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Cannot encode a null string.");
+        }
+        output.writeString(value);
+    }
+
+    public void writeNullableString(@Nullable CharSequence value) {
+        output.writeString(value);
     }
 
     public void flush() {

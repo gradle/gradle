@@ -18,17 +18,15 @@ package org.gradle.messaging.serialize
 
 class StreamBackedCodecTest extends AbstractCodecTest {
     @Override
-    byte[] encode(Closure closure) {
-        def bytes = new ByteArrayOutputStream()
-        def encoder = new OutputStreamBackedEncoder(bytes)
+    void encodeTo(OutputStream outputStream, Closure<Encoder> closure) {
+        def encoder = new OutputStreamBackedEncoder(outputStream)
         closure.call(encoder)
-        encoder.close()
-        return bytes.toByteArray()
+        encoder.flush()
     }
 
     @Override
-    void decode(byte[] bytes, Closure closure) {
-        def decoder = new InputStreamBackedDecoder(new ByteArrayInputStream(bytes))
+    void decodeFrom(InputStream inputStream, Closure<Decoder> closure) {
+        def decoder = new InputStreamBackedDecoder(inputStream)
         closure.call(decoder)
     }
 }

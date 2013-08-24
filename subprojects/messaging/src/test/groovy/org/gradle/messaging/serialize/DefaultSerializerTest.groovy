@@ -15,9 +15,7 @@
  */
 package org.gradle.messaging.serialize
 
-import spock.lang.Specification
-
-class DefaultSerializerTest extends Specification {
+class DefaultSerializerTest extends SerializerSpec {
     def canSerializeAndDeserializeObject() {
         GroovyClassLoader classLoader = new GroovyClassLoader(getClass().classLoader)
         DefaultSerializer serializer = new DefaultSerializer(classLoader)
@@ -26,10 +24,7 @@ class DefaultSerializerTest extends Specification {
         Object o = cl.newInstance()
 
         when:
-        def outputStream = new ByteArrayOutputStream()
-        def encoder = new OutputStreamBackedEncoder(outputStream)
-        serializer.write(encoder, o)
-        Object r = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(outputStream.toByteArray())))
+        def r = serialize(o, serializer)
 
         then:
         cl.isInstance(r)

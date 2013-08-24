@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.serialize.kryo
+package org.gradle.messaging.serialize
 
-import org.gradle.messaging.serialize.AbstractCodecTest
-import org.gradle.messaging.serialize.Decoder
-import org.gradle.messaging.serialize.Encoder
+import spock.lang.Specification
 
-class KryoBackedCodecTest extends AbstractCodecTest {
-    @Override
-    void encodeTo(OutputStream outputStream, Closure<Encoder> closure) {
-        def encoder = new KryoBackedEncoder(outputStream)
-        closure.call(encoder)
+class SerializerSpec extends Specification {
+    def serialize(def value, Serializer serializer) {
+        def bytes = new ByteArrayOutputStream()
+        def encoder = new OutputStreamBackedEncoder(bytes)
+        serializer.write(encoder, value)
         encoder.flush()
-    }
 
-    @Override
-    void decodeFrom(InputStream inputStream, Closure<Decoder> closure) {
-        def decoder = new KryoBackedDecoder(inputStream)
-        closure.call(decoder)
+        return serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())))
     }
 }

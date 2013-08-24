@@ -18,19 +18,48 @@ package org.gradle.messaging.serialize;
 
 import java.io.*;
 
-public class InputStreamBackedDecoder implements Decoder, Closeable {
+public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder, Closeable {
     private final DataInputStream inputStream;
 
     public InputStreamBackedDecoder(InputStream inputStream) {
         this.inputStream = new DataInputStream(inputStream);
     }
 
-    public InputStream getInputStream() {
-        return inputStream;
+    @Override
+    protected int maybeReadBytes(byte[] buffer, int offset, int count) throws IOException {
+        return inputStream.read(buffer, offset, count);
     }
 
     public long readLong() throws IOException {
         return inputStream.readLong();
+    }
+
+    public int readInt() throws EOFException, IOException {
+        return inputStream.readInt();
+    }
+
+    public boolean readBoolean() throws EOFException, IOException {
+        return inputStream.readBoolean();
+    }
+
+    public String readString() throws EOFException, IOException {
+        return inputStream.readUTF();
+    }
+
+    public String readNullableString() throws EOFException, IOException {
+        if (inputStream.readBoolean()) {
+            return inputStream.readUTF();
+        } else {
+            return null;
+        }
+    }
+
+    public byte readByte() throws IOException {
+        return (byte)(inputStream.readByte() & 0xff);
+    }
+
+    public void readBytes(byte[] buffer, int offset, int count) throws IOException {
+        inputStream.readFully(buffer, offset, count);
     }
 
     public void close() throws IOException {

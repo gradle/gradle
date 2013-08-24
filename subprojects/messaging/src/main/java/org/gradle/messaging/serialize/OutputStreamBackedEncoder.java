@@ -16,28 +16,57 @@
 
 package org.gradle.messaging.serialize;
 
+import org.gradle.api.Nullable;
+
 import java.io.Closeable;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class OutputStreamBackedEncoder implements Encoder, Closeable {
+public class OutputStreamBackedEncoder extends AbstractEncoder implements Encoder, Closeable {
     private final DataOutputStream outputStream;
 
     public OutputStreamBackedEncoder(OutputStream outputStream) {
         this.outputStream = new DataOutputStream(outputStream);
     }
 
-    public OutputStream getOutputStream() {
-        return outputStream;
-    }
-
     public void writeLong(long value) throws IOException {
         outputStream.writeLong(value);
     }
 
+    public void writeInt(int value) throws IOException {
+        outputStream.writeInt(value);
+    }
+
+    public void writeBoolean(boolean value) throws IOException {
+        outputStream.writeBoolean(value);
+    }
+
+    public void writeString(CharSequence value) throws IOException {
+        if (value == null) {
+            throw new IllegalArgumentException("Cannot encode a null string.");
+        }
+        outputStream.writeUTF(value.toString());
+    }
+
+    public void writeNullableString(@Nullable CharSequence value) throws IOException {
+        if (value == null) {
+            outputStream.writeBoolean(false);
+        } else {
+            outputStream.writeBoolean(true);
+            outputStream.writeUTF(value.toString());
+        }
+    }
+
+    public void writeByte(byte value) throws IOException {
+        outputStream.writeByte(value);
+    }
+
+    public void writeBytes(byte[] bytes, int offset, int count) throws IOException {
+        outputStream.write(bytes, offset, count);
+    }
+
     public void flush() throws IOException {
-        outputStream.flush();
     }
 
     public void close() throws IOException {

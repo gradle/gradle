@@ -15,21 +15,13 @@
  */
 package org.gradle.messaging.serialize
 
-import spock.lang.Specification
-
-class LongSerializerTest extends Specification {
+class LongSerializerTest extends SerializerSpec {
 
     def serializer = new LongSerializer()
 
     def "writes and reads Longs"() {
-        def bytes = new ByteArrayOutputStream();
-        def encoder = new OutputStreamBackedEncoder(bytes)
-
-        when:
-        serializer.write(encoder, 144L)
-
-        then:
-        serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray()))) == 144L
+        expect:
+        serialize(144L, serializer) == 144L
     }
 
     def "does not permit null"() {

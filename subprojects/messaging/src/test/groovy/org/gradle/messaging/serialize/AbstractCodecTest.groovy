@@ -19,13 +19,13 @@ package org.gradle.messaging.serialize
 import spock.lang.Specification
 
 abstract class AbstractCodecTest extends Specification {
-    def "can encode and decode raw bytes"() {
+    def "can encode and decode raw bytes using Stream view"() {
         expect:
         def bytes = encode { Encoder encoder ->
             encoder.outputStream.write(Byte.MIN_VALUE)
             encoder.outputStream.write(Byte.MAX_VALUE)
             encoder.outputStream.write(-1)
-            encoder.outputStream.write([1,2,3,4] as byte[])
+            encoder.outputStream.write([1, 2, 3, 4] as byte[])
             encoder.outputStream.write([0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7] as byte[], 2, 4)
         }
         decode(bytes) { Decoder decoder ->
@@ -36,9 +36,96 @@ abstract class AbstractCodecTest extends Specification {
             assert buffer[1] == 1
             assert buffer[2] == 2
             assert decoder.inputStream.read() == 3
+            assert decoder.inputStream.read() == 4
+            assert decoder.inputStream.read() == 0xc3
             def content = decoder.inputStream.bytes
-            assert content == [4, 0xc3, 0xc4, 0xc5, 0xc6] as byte[]
+            assert content == [0xc4, 0xc5, 0xc6] as byte[]
+
+            assert decoder.inputStream.read() == -1
+            assert decoder.inputStream.read(buffer) == -1
+            assert decoder.inputStream.read(buffer, 0, 1) == -1
         }
+    }
+
+    def "ignores close on InputStream"() {
+        def inputStream = Mock(InputStream)
+
+        when:
+        decodeFrom(inputStream) { Decoder decoder ->
+            decoder.inputStream.close()
+        }
+
+        then:
+        0 * inputStream.close()
+    }
+
+    def "ignores close or flush on OutputStream"() {
+        def outputStream = Mock(OutputStream)
+
+        when:
+        encodeTo(outputStream) { Encoder encoder ->
+            encoder.outputStream.flush()
+            encoder.outputStream.close()
+        }
+
+        then:
+        0 * outputStream.close()
+        0 * outputStream.flush()
+    }
+
+    def "can encode and decode raw bytes"() {
+        expect:
+        def bytes = encode { Encoder encoder ->
+            encoder.writeByte(Byte.MIN_VALUE)
+            encoder.writeByte(Byte.MAX_VALUE)
+            encoder.writeByte(-1 as byte)
+            encoder.writeBytes([1, 2, 3, 4] as byte[])
+            encoder.writeBytes([0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7] as byte[], 2, 1)
+        }
+        decode(bytes) { Decoder decoder ->
+            def buffer = new byte[2]
+            decoder.readBytes(buffer)
+            assert buffer == [Byte.MIN_VALUE, Byte.MAX_VALUE] as byte[]
+            assert decoder.readByte() == -1 as byte
+            decoder.readBytes(buffer, 0, 2)
+            assert buffer[0] == 1
+            assert buffer[1] == 2
+            assert decoder.readByte() == 3
+            assert decoder.readByte() == 4
+            assert decoder.readByte() == 0xc3 as byte
+        }
+    }
+
+    def "decode fails when requested number of raw bytes are not available"() {
+        given:
+        def bytes = encode { Encoder encoder ->
+            encoder.writeBytes([0xc1, 0xc2, 0xc3] as byte[])
+        }
+
+        when:
+        decode(bytes) { Decoder decoder ->
+            decoder.readBytes(new byte[4])
+        }
+
+        then:
+        thrown(EOFException)
+
+        when:
+        decode(bytes) { Decoder decoder ->
+            decoder.readBytes(new byte[10], 0, 5)
+        }
+
+        then:
+        thrown(EOFException)
+
+        when:
+        decode(bytes) { Decoder decoder ->
+            decoder.readBytes(new byte[3], 0, 3)
+            decoder.readByte()
+        }
+
+        then:
+        thrown(EOFException)
     }
 
     def "can encode and decode a long"() {
@@ -59,7 +146,164 @@ abstract class AbstractCodecTest extends Specification {
         Long.MIN_VALUE | _
     }
 
-    abstract byte[] encode(Closure closure)
+    def "decode fails when long cannot be fully read"() {
+        given:
+        def bytes = truncate { Encoder encoder ->
+            encoder.writeLong(0xa40745f3L)
+        }
 
-    abstract void decode(byte[] bytes, Closure closure)
+        when:
+        decode(bytes) { Decoder decoder ->
+            decoder.readLong()
+        }
+
+        then:
+        thrown(EOFException)
+    }
+
+    def "can encode and decode an int"() {
+        expect:
+        def bytes = encode { Encoder encoder ->
+            encoder.writeInt(value as int)
+        }
+        decode(bytes) { Decoder decoder ->
+            assert decoder.readInt() == value
+        }
+
+        where:
+        value             | _
+        0                 | _
+        12                | _
+        -1                | _
+        Integer.MAX_VALUE | _
+        Integer.MIN_VALUE | _
+    }
+
+    def "decode fails when int cannot be fully read"() {
+        given:
+        def bytes = truncate { Encoder encoder ->
+            encoder.writeInt(0xa40745f)
+        }
+
+        when:
+        decode(bytes) { Decoder decoder ->
+            decoder.readInt()
+        }
+
+        then:
+        thrown(EOFException)
+    }
+
+    def "can encode and decode a boolean"() {
+        expect:
+        def bytes = encode { Encoder encoder ->
+            encoder.writeBoolean(true)
+            encoder.writeBoolean(false)
+        }
+        decode(bytes) { Decoder decoder ->
+            assert decoder.readBoolean()
+            assert !decoder.readBoolean()
+        }
+    }
+
+    def "decode fails when boolean cannot be fully read"() {
+        given:
+        def bytes = truncate { Encoder encoder ->
+            encoder.writeBoolean(true)
+        }
+
+        when:
+        decode(bytes) { Decoder decoder ->
+            decoder.readBoolean()
+        }
+
+        then:
+        thrown(EOFException)
+    }
+
+    def "can encode and decode a string"() {
+        expect:
+        def bytes = encode { Encoder encoder ->
+            encoder.writeString(value)
+        }
+        decode(bytes) { Decoder decoder ->
+            assert decoder.readString() == value.toString()
+        }
+
+        where:
+        value                            | _
+        ""                               | _
+        "all ascii"                      | _
+        "\u0000\u0101\u3100"             | _
+        "${1 + 2}"                       | _
+        new StringBuilder("some string") | _
+    }
+
+    def "decode fails when string cannot be fully read"() {
+        given:
+        def bytes = truncate { Encoder encoder ->
+            encoder.writeString("hi")
+        }
+
+        when:
+        decode(bytes) { Decoder decoder ->
+            decoder.readString()
+        }
+
+        then:
+        thrown(EOFException)
+    }
+
+    def "cannot encode a null string"() {
+        when:
+        encode { Encoder encoder ->
+            encoder.writeString(null)
+        }
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
+    def "can encode and decode a nullable string"() {
+        expect:
+        def bytes = encode { Encoder encoder ->
+            encoder.writeNullableString(value)
+        }
+        decode(bytes) { Decoder decoder ->
+            assert decoder.readNullableString() == value?.toString()
+        }
+
+        where:
+        value                            | _
+        null                             | _
+        ""                               | _
+        "all ascii"                      | _
+        "\u0000\u0101\u3100"             | _
+        "${1 + 2}"                       | _
+        new StringBuilder("some string") | _
+    }
+
+    abstract void encodeTo(OutputStream outputStream, Closure<Encoder> closure)
+
+    byte[] encode(Closure<Encoder> closure) {
+        def bytes = new ByteArrayOutputStream()
+        encodeTo(bytes, closure)
+        return bytes.toByteArray()
+    }
+
+    byte[] truncate(Closure<Encoder> closure) {
+        def bytes = new ByteArrayOutputStream()
+        encodeTo(bytes, closure)
+        def result = bytes.toByteArray()
+        if (result.length < 2) {
+            return [] as byte[]
+        }
+        return result[0..result.length - 2] as byte[]
+    }
+
+    abstract void decodeFrom(InputStream inputStream, Closure<Decoder> closure)
+
+    void decode(byte[] bytes, Closure<Decoder> closure) {
+        decodeFrom(new ByteArrayInputStream(bytes), closure)
+    }
 }
