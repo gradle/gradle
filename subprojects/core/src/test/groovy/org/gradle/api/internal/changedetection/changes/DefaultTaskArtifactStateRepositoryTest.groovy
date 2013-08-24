@@ -58,10 +58,9 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     TaskInternal task = builder.task()
     DefaultTaskArtifactStateRepository repository
 
-
     def setup() {
         CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.createDir("user-home"), null, CacheUsage.ON, new InMemoryCacheFactory())
-        TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository)
+        TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpInMemoryPersistentCacheDecoratorFactory())
         FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher(), cacheAccess)
         FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess)
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, new RandomLongIdGenerator()))

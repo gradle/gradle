@@ -20,6 +20,12 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.messaging.serialize.Serializer;
 
 public interface TaskArtifactStateCacheAccess {
+
+    /**
+     * Creates actual cache instance.
+     */
+    <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType, Serializer<V> valueSerializer);
+
     /**
      * Performs some work against the cache. Acquires exclusive locks the appropriate resources, so that the given action is the only
      * action to execute across all processes (including this one). Releases the locks and all resources at the end of the action.
@@ -43,6 +49,4 @@ public interface TaskArtifactStateCacheAccess {
      * <p>This method is re-entrant, so that an action can call back into this method.</p>
      */
     void longRunningOperation(String operationDisplayName, Runnable runnable);
-
-    <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType, Serializer<V> valueSerializer);
 }

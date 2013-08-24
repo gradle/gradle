@@ -76,9 +76,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                                 snapshotRepository.remove(execution.outputFilesSnapshotId);
                             }
                         }
+                        history.beforeSerialized();
                         taskHistoryCache.put(task.getPath(), history);
                     }
                 });
+            }
+
+            public void removeCurrentExecution() {
+                history.configurations.remove(0);
             }
         };
     }
@@ -169,6 +174,17 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private static class TaskHistory {
         private static final int MAX_HISTORY_ENTRIES = 3;
         private final List<LazyTaskExecution> configurations = new ArrayList<LazyTaskExecution>();
+        public String toString() {
+            return super.toString() + "[" + configurations.size() + "]";
+        }
+
+        public void beforeSerialized() {
+            //cleaning up the transient fields, so that any in-memory caching is happy
+            for (LazyTaskExecution c : configurations) {
+                c.cacheAccess = null;
+                c.snapshotRepository = null;
+            }
+        }
     }
 
     //TODO SF extract & unit test

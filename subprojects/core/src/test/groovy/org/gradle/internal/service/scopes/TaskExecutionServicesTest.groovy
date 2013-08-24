@@ -16,6 +16,7 @@
 package org.gradle.internal.service.scopes
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter
 import org.gradle.api.invocation.Gradle
@@ -34,21 +35,18 @@ class TaskExecutionServicesTest extends Specification {
 
     def "makes a TaskExecutor available"() {
         given:
-        ListenerManager listenerManager = Mock()
-        StartParameter startParameter = Mock()
         CacheRepository cacheRepository = Mock()
-        Instantiator instantiator = Mock();
         DirectoryCacheBuilder cacheBuilder = Mock()
-        PersistentCache cache = Mock()
-        _ * parent.get(ListenerManager) >> listenerManager
-        _ * parent.get(StartParameter) >> startParameter
+        _ * parent.get(ListenerManager) >> Mock(ListenerManager)
+        _ * parent.get(StartParameter) >> Mock(StartParameter)
         _ * parent.get(CacheRepository) >> cacheRepository
-        _ * parent.get(Instantiator) >> instantiator
+        _ * parent.get(Instantiator) >> Mock(Instantiator)
+        _ * parent.get(InMemoryTaskArtifactCache) >> Mock(InMemoryTaskArtifactCache)
         _ * cacheRepository.cache(!null) >> cacheBuilder
         _ * cacheBuilder.forObject(gradle) >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         _ * cacheBuilder.withLockMode(!null) >> cacheBuilder
-        _ * cacheBuilder.open() >> cache
+        _ * cacheBuilder.open() >> Mock(PersistentCache)
 
         expect:
         services.get(TaskExecuter) instanceof ExecuteAtMostOnceTaskExecuter

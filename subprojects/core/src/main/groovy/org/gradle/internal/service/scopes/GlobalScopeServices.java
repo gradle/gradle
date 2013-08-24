@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -133,6 +134,10 @@ public class GlobalScopeServices extends DefaultServiceRegistry {
                 new DefaultProcessMetaDataProvider(
                         get(ProcessEnvironment.class)),
                 get(FileLockContentionHandler.class));
+    }
+
+    protected InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
+        return new InMemoryTaskArtifactCache();
     }
 
     private DefaultFileLockContentionHandler createFileLockContentionHandler() {

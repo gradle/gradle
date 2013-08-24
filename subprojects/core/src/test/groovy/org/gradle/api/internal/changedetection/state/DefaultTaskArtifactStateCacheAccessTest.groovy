@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.changedetection.changes.NoOpInMemoryPersistentCacheDecoratorFactory
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
@@ -26,7 +27,7 @@ import spock.lang.Specification
 class DefaultTaskArtifactStateCacheAccessTest extends Specification {
     final GradleInternal gradle = Mock()
     final CacheRepository cacheRepository = Mock()
-    final DefaultTaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository)
+    final DefaultTaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpInMemoryPersistentCacheDecoratorFactory())
     
     def "opens backing cache on first use"() {
         DirectoryCacheBuilder cacheBuilder = Mock()

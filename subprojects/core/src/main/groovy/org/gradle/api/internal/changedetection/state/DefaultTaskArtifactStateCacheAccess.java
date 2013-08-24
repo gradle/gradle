@@ -29,24 +29,26 @@ import java.io.File;
 public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCacheAccess {
     private final Gradle gradle;
     private final CacheRepository cacheRepository;
+    private InMemoryPersistentCacheDecorator inMemoryDecorator;
     private PersistentCache cache;
     private final Object lock = new Object();
 
-    public DefaultTaskArtifactStateCacheAccess(Gradle gradle, CacheRepository cacheRepository) {
+    public DefaultTaskArtifactStateCacheAccess(Gradle gradle, CacheRepository cacheRepository, Factory<InMemoryPersistentCacheDecorator> decoratorFactory) {
         this.gradle = gradle;
         this.cacheRepository = cacheRepository;
+        this.inMemoryDecorator = decoratorFactory.create();
     }
 
     private PersistentCache getCache() {
         //TODO SF just do it in the constructor
         synchronized (lock) {
             if (cache == null) {
-                cache = cacheRepository
+                cache = inMemoryDecorator.withMemoryCaching(cacheRepository
                         .cache("taskArtifacts")
                         .forObject(gradle)
                         .withDisplayName("task artifact state cache")
                         .withLockMode(FileLockManager.LockMode.Exclusive)
-                        .open();
+                        .open());
             }
             return cache;
         }
