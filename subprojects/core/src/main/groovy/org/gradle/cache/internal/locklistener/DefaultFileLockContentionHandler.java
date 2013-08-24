@@ -49,13 +49,13 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         return new Runnable() {
             public void run() {
                 try {
-                    LOGGER.info("Starting file lock listener thread.");
+                    LOGGER.debug("Starting file lock listener thread.");
                     doRun();
                 } catch (Throwable t) {
                     //Logging exception here is only needed because by default Gradle does not show the stack trace
                     LOGGER.error("Problems handling incoming cache access requests.", t);
                 } finally {
-                    LOGGER.info("File lock listener thread completed.");
+                    LOGGER.debug("File lock listener thread completed.");
                 }
             }
 
