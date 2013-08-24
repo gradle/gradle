@@ -18,10 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 import org.gradle.messaging.serialize.InputStreamBackedDecoder
-import org.gradle.messaging.serialize.OutputStreamBackedEncoder
-import spock.lang.Specification
+import org.gradle.messaging.serialize.SerializerSpec
 
-class ModuleVersionSelectionReasonSerializerTest extends Specification {
+class ModuleVersionSelectionReasonSerializerTest extends SerializerSpec {
 
     private serializer = new ModuleVersionSelectionReasonSerializer()
 
@@ -49,9 +48,7 @@ class ModuleVersionSelectionReasonSerializerTest extends Specification {
     }
 
     void check(ModuleVersionSelectionReason reason) {
-        def bytes = new ByteArrayOutputStream()
-        def encoder = new OutputStreamBackedEncoder(bytes)
-        serializer.write(encoder, reason)
-        assert serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray()))) == reason
+        def result = serialize(reason, serializer)
+        assert result == reason
     }
 }

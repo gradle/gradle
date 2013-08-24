@@ -51,6 +51,7 @@ def allJarJars = tasks.withType(JarJar)
 ideaModule.dependsOn allJarJars
 eclipseClasspath.dependsOn allJarJars
 useTestFixtures()
+useTestFixtures(project: ":messaging")
 
 def avoidConflictingPlexusComponents(JarJar task) {
     //DefaultSecDispatcher component is configured in 2 different jars (META-INF/plexus/components.xml).
