@@ -19,6 +19,7 @@ package org.gradle.launcher.cli;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.Actions;
+import org.gradle.internal.DefaultStartParameter;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -28,10 +29,7 @@ import org.gradle.initialization.*;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.launcher.cli.converter.DaemonCommandLineConverter;
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
-import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
-import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
+import org.gradle.launcher.cli.converter.*;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
@@ -107,13 +105,14 @@ class BuildActionsFactory implements CommandLineAction {
         layoutToPropertiesConverter.convert(layout, properties);
         propertiesConverter.convert(commandLine, properties);
 
-        StartParameter startParameter = new StartParameter();
+        DefaultStartParameter startParameter = new DefaultStartParameter();
         propertiesToStartParameterConverter.convert(properties, startParameter);
         commandLineConverter.convert(commandLine, startParameter);
 
         DaemonParameters daemonParameters = new DaemonParameters(layout);
         propertiesToDaemonParametersConverter.convert(properties, daemonParameters);
         daemonConverter.convert(commandLine, daemonParameters);
+        new DaemonParametersToStartParameterConverter().convert(daemonParameters, startParameter);
 
         if (commandLine.hasOption(STOP)) {
             return stopAllDaemons(daemonParameters, loggingServices);

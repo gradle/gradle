@@ -112,8 +112,11 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return the new parameters.
      */
     public StartParameter newInstance() {
-        StartParameter p = newBuild();
+        return prepareNewInstance(new StartParameter());
+    }
 
+    protected StartParameter prepareNewInstance(StartParameter p) {
+        prepareNewBuild(p);
         p.buildFile = buildFile;
         p.projectDir = projectDir;
         p.settingsFile = settingsFile;
@@ -129,7 +132,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.initScripts = new ArrayList<File>(initScripts);
         p.dryRun = dryRun;
         p.projectCacheDir = projectCacheDir;
-
         return p;
     }
 
@@ -140,8 +142,10 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return The new parameters.
      */
     public StartParameter newBuild() {
-        StartParameter p = new StartParameter();
+        return prepareNewBuild(new StartParameter());
+    }
 
+    protected StartParameter prepareNewBuild(StartParameter p) {
         p.gradleUserHomeDir = gradleUserHomeDir;
         p.cacheUsage = cacheUsage;
         p.setLogLevel(getLogLevel());
@@ -155,7 +159,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.refreshDependencies = refreshDependencies;
         p.parallelThreadCount = parallelThreadCount;
         p.configureOnDemand = configureOnDemand;
-
         return p;
     }
 
