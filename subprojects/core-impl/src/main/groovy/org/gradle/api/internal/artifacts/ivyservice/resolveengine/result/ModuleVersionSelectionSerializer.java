@@ -19,27 +19,23 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
-public class ModuleVersionSelectionSerializer extends DataStreamBackedSerializer<ModuleVersionSelection> {
+public class ModuleVersionSelectionSerializer implements Serializer<ModuleVersionSelection> {
 
     private final ModuleVersionIdentifierSerializer idSerializer = new ModuleVersionIdentifierSerializer();
     private final ModuleVersionSelectionReasonSerializer reasonSerializer = new ModuleVersionSelectionReasonSerializer();
 
-    @Override
-    public ModuleVersionSelection read(DataInput dataInput) throws IOException {
-        ModuleVersionIdentifier id = idSerializer.read(dataInput);
-        ModuleVersionSelectionReason reason = reasonSerializer.read(dataInput);
+    public ModuleVersionSelection read(Decoder decoder) throws Exception {
+        ModuleVersionIdentifier id = idSerializer.read(decoder);
+        ModuleVersionSelectionReason reason = reasonSerializer.read(decoder);
         return new DefaultModuleVersionSelection(id, reason);
     }
 
-    @Override
-    public void write(DataOutput dataOutput, ModuleVersionSelection value) throws IOException {
-        idSerializer.write(dataOutput, value.getSelectedId());
-        reasonSerializer.write(dataOutput, value.getSelectionReason());
+    public void write(Encoder encoder, ModuleVersionSelection value) throws Exception {
+        idSerializer.write(encoder, value.getSelectedId());
+        reasonSerializer.write(encoder, value.getSelectionReason());
     }
 }

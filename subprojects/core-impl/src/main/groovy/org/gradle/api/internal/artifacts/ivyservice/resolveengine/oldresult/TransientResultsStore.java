@@ -25,9 +25,14 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.InputStreamBackedDecoder;
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
 import org.gradle.util.Clock;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
@@ -36,34 +41,36 @@ public class TransientResultsStore {
 
     private final static Logger LOG = Logging.getLogger(TransientResultsStore.class);
 
-    private static final short NEW_DEP = 1;
-    private static final short ROOT = 2;
-    private static final short FIRST_LVL = 3;
-    private static final short PARENT_CHILD = 4;
-    private static final short PARENT_ARTIFACT = 5;
+    private static final byte NEW_DEP = 1;
+    private static final byte ROOT = 2;
+    private static final byte FIRST_LVL = 3;
+    private static final byte PARENT_CHILD = 4;
+    private static final byte PARENT_ARTIFACT = 5;
 
     private final Object lock = new Object();
     private final int offset;
 
     private DataOutputStream output;
+    private Encoder encoder;
     private BinaryStore binaryStore;
     private Store<TransientConfigurationResults> cache;
+    private final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer = new ResolvedConfigurationIdentifierSerializer();
 
     public TransientResultsStore(BinaryStore binaryStore, Store<TransientConfigurationResults> cache) {
         this.binaryStore = binaryStore;
         this.cache = cache;
         this.output = binaryStore.getOutput();
+        encoder = new OutputStreamBackedEncoder(output);
         this.offset = output.size();
     }
 
-    private void writeId(short type, ResolvedConfigurationIdentifier... ids) {
+    private void writeId(byte type, ResolvedConfigurationIdentifier... ids) {
         try {
-            output.writeShort(type);
-            ResolvedConfigurationIdentifierSerializer s = new ResolvedConfigurationIdentifierSerializer();
+            encoder.writeByte(type);
             for (ResolvedConfigurationIdentifier id : ids) {
-                s.write((DataOutput) output, id);
+                resolvedConfigurationIdentifierSerializer.write(encoder, id);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw throwAsUncheckedException(e);
         }
     }
@@ -81,6 +88,7 @@ public class TransientResultsStore {
             throw throwAsUncheckedException(e);
         } finally {
             output = null;
+            encoder = null;
         }
     }
 
@@ -95,7 +103,7 @@ public class TransientResultsStore {
     public void parentSpecificArtifact(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, long artifactId) {
         writeId(PARENT_ARTIFACT, child, parent);
         try {
-            output.writeLong(artifactId);
+            encoder.writeLong(artifactId);
         } catch (IOException e) {
             throw throwAsUncheckedException(e);
         }
@@ -115,44 +123,48 @@ public class TransientResultsStore {
     private TransientConfigurationResults deserialize(ResolvedContentsMapping mapping, int offset) {
         Clock clock = new Clock();
         DefaultTransientConfigurationResults results = new DefaultTransientConfigurationResults();
-        DataInputStream input = binaryStore.getInput();
         int valuesRead = 0;
-        short type = -1;
+        byte type = -1;
         try {
-            input.skipBytes(offset);
-            while (true) {
-                ResolvedConfigurationIdentifierSerializer s = new ResolvedConfigurationIdentifierSerializer();
-                type = input.readShort();
-                ResolvedConfigurationIdentifier id;
-                valuesRead++;
-                switch (type) {
-                    case NEW_DEP:
-                        id = s.read((DataInput) input);
-                        results.allDependencies.put(id, new DefaultResolvedDependency(id.getId(), id.getConfiguration()));
-                        break;
-                    case ROOT:
-                        id = s.read((DataInput) input);
-                        results.root = results.allDependencies.get(id);
-                        //root should be the last
-                        LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getTime(), binaryStore);
-                        return results;
-                    case FIRST_LVL:
-                        id = s.read((DataInput) input);
-                        results.firstLevelDependencies.put(mapping.getModuleDependency(id), results.allDependencies.get(id));
-                        break;
-                    case PARENT_CHILD:
-                        DefaultResolvedDependency parent = results.allDependencies.get(s.read((DataInput) input));
-                        DefaultResolvedDependency child = results.allDependencies.get(s.read((DataInput) input));
-                        parent.addChild(child);
-                        break;
-                    case PARENT_ARTIFACT:
-                        DefaultResolvedDependency c = results.allDependencies.get(s.read((DataInput) input));
-                        DefaultResolvedDependency p = results.allDependencies.get(s.read((DataInput) input));
-                        c.addParentSpecificArtifacts(p, newHashSet(mapping.getArtifact(input.readLong())));
-                        break;
+            DataInputStream input = binaryStore.getInput();
+            try {
+                input.skipBytes(offset);
+                InputStreamBackedDecoder decoder = new InputStreamBackedDecoder(input);
+                while (true) {
+                    type = decoder.readByte();
+                    ResolvedConfigurationIdentifier id;
+                    valuesRead++;
+                    switch (type) {
+                        case NEW_DEP:
+                            id = resolvedConfigurationIdentifierSerializer.read(decoder);
+                            results.allDependencies.put(id, new DefaultResolvedDependency(id.getId(), id.getConfiguration()));
+                            break;
+                        case ROOT:
+                            id = resolvedConfigurationIdentifierSerializer.read(decoder);
+                            results.root = results.allDependencies.get(id);
+                            //root should be the last
+                            LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getTime(), binaryStore);
+                            return results;
+                        case FIRST_LVL:
+                            id = resolvedConfigurationIdentifierSerializer.read(decoder);
+                            results.firstLevelDependencies.put(mapping.getModuleDependency(id), results.allDependencies.get(id));
+                            break;
+                        case PARENT_CHILD:
+                            DefaultResolvedDependency parent = results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
+                            DefaultResolvedDependency child = results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
+                            parent.addChild(child);
+                            break;
+                        case PARENT_ARTIFACT:
+                            DefaultResolvedDependency c = results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
+                            DefaultResolvedDependency p = results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
+                            c.addParentSpecificArtifacts(p, newHashSet(mapping.getArtifact(decoder.readLong())));
+                            break;
+                    }
                 }
+            } finally {
+                input.close();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Problems loading the resolved configuration (" + clock.getTime() + ") from " + binaryStore.diagnose()
                     + ". Read " + valuesRead + " values, last was: " + type, e);
         }

@@ -16,32 +16,29 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-class DefaultFileSnapshotterSerializer extends DataStreamBackedSerializer<FileCollectionSnapshot> {
-
-    @Override
-    public FileCollectionSnapshot read(DataInput dataInput) throws Exception {
+class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnapshot> {
+    public FileCollectionSnapshot read(Decoder decoder) throws Exception {
         Map<String, DefaultFileSnapshotter.FileSnapshot> snapshots = new HashMap<String, DefaultFileSnapshotter.FileSnapshot>();
         DefaultFileSnapshotter.FileCollectionSnapshotImpl snapshot = new DefaultFileSnapshotter.FileCollectionSnapshotImpl(snapshots);
-        int snapshotsCount = dataInput.readInt();
+        int snapshotsCount = decoder.readInt();
         for (int i = 0; i < snapshotsCount; i++) {
-            String key = dataInput.readUTF();
-            byte fileSnapshotKind = dataInput.readByte();
+            String key = decoder.readString();
+            byte fileSnapshotKind = decoder.readByte();
             if (fileSnapshotKind == 1) {
                 snapshots.put(key, new DefaultFileSnapshotter.DirSnapshot());
             } else if (fileSnapshotKind == 2) {
                 snapshots.put(key, new DefaultFileSnapshotter.MissingFileSnapshot());
             } else if (fileSnapshotKind == 3) {
-                byte hashSize = dataInput.readByte();
+                byte hashSize = decoder.readByte();
                 byte[] hash = new byte[hashSize];
-                dataInput.readFully(hash);
+                decoder.readBytes(hash);
                 snapshots.put(key, new DefaultFileSnapshotter.FileHashSnapshot(hash));
             } else {
                 throw new RuntimeException("Unable to read serialized file collection snapshot. Unrecognized value found in the data stream.");
@@ -50,22 +47,21 @@ class DefaultFileSnapshotterSerializer extends DataStreamBackedSerializer<FileCo
         return snapshot;
     }
 
-    @Override
-    public void write(DataOutput dataOutput, FileCollectionSnapshot value) throws IOException {
+    public void write(Encoder encoder, FileCollectionSnapshot value) throws Exception {
         DefaultFileSnapshotter.FileCollectionSnapshotImpl cached = (DefaultFileSnapshotter.FileCollectionSnapshotImpl) value;
-        dataOutput.writeInt(cached.snapshots.size());
+        encoder.writeInt(cached.snapshots.size());
         for (String key : cached.snapshots.keySet()) {
-            dataOutput.writeUTF(key);
+            encoder.writeString(key);
             DefaultFileSnapshotter.FileSnapshot fileSnapshot = cached.snapshots.get(key);
             if (fileSnapshot instanceof DefaultFileSnapshotter.DirSnapshot) {
-                dataOutput.writeByte(1);
+                encoder.writeByte((byte) 1);
             } else if (fileSnapshot instanceof DefaultFileSnapshotter.MissingFileSnapshot) {
-                dataOutput.writeByte(2);
+                encoder.writeByte((byte) 2);
             } else if (fileSnapshot instanceof DefaultFileSnapshotter.FileHashSnapshot) {
-                dataOutput.writeByte(3);
+                encoder.writeByte((byte) 3);
                 byte[] hash = ((DefaultFileSnapshotter.FileHashSnapshot) fileSnapshot).hash;
-                dataOutput.writeByte(hash.length);
-                dataOutput.write(hash);
+                encoder.writeByte((byte) hash.length);
+                encoder.writeBytes(hash);
             }
         }
     }

@@ -17,25 +17,21 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
-public class ModuleVersionIdentifierSerializer extends DataStreamBackedSerializer<ModuleVersionIdentifier> {
-    @Override
-    public void write(DataOutput dataOutput, ModuleVersionIdentifier value) throws IOException {
-        dataOutput.writeUTF(value.getGroup());
-        dataOutput.writeUTF(value.getName());
-        dataOutput.writeUTF(value.getVersion());
+public class ModuleVersionIdentifierSerializer implements Serializer<ModuleVersionIdentifier> {
+    public void write(Encoder encoder, ModuleVersionIdentifier value) throws Exception {
+        encoder.writeString(value.getGroup());
+        encoder.writeString(value.getName());
+        encoder.writeString(value.getVersion());
     }
 
-    @Override
-    public ModuleVersionIdentifier read(DataInput dataInput) throws IOException {
-        String group = dataInput.readUTF();
-        String module = dataInput.readUTF();
-        String version = dataInput.readUTF();
+    public ModuleVersionIdentifier read(Decoder decoder) throws Exception {
+        String group = decoder.readString();
+        String module = decoder.readString();
+        String version = decoder.readString();
         return DefaultModuleVersionIdentifier.newId(group, module, version);
     }
 }

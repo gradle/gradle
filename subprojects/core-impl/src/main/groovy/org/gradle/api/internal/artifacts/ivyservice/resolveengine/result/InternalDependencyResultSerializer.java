@@ -20,22 +20,24 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
 
-import java.io.*;
 import java.util.Map;
 
 public class InternalDependencyResultSerializer {
+    private final static byte SUCCESSFUL = 0;
+    private final static byte FAILED = 1;
+    private final ModuleVersionSelectorSerializer moduleVersionSelectorSerializer = new ModuleVersionSelectorSerializer();
+    private final ModuleVersionSelectionReasonSerializer moduleVersionSelectionReasonSerializer = new ModuleVersionSelectionReasonSerializer();
+    private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
 
-    private final static int SUCCESSFUL = 0;
-    private final static int FAILED = 1;
-
-    public InternalDependencyResult read(InputStream instr, Map<ModuleVersionSelector, ModuleVersionResolveException> failures) throws IOException {
-        DataInputStream dataInput = new DataInputStream(instr);
-        ModuleVersionSelector requested = new ModuleVersionSelectorSerializer().read((DataInput) dataInput);
-        ModuleVersionSelectionReason reason = new ModuleVersionSelectionReasonSerializer().read((DataInput) dataInput);
-        byte resultByte = dataInput.readByte();
+    public InternalDependencyResult read(Decoder decoder, Map<ModuleVersionSelector, ModuleVersionResolveException> failures) throws Exception {
+        ModuleVersionSelector requested = moduleVersionSelectorSerializer.read(decoder);
+        ModuleVersionSelectionReason reason = moduleVersionSelectionReasonSerializer.read(decoder);
+        byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
-            ModuleVersionSelection selected = new ModuleVersionSelectionSerializer().read((DataInput) dataInput);
+            ModuleVersionSelection selected = moduleVersionSelectionSerializer.read(decoder);
             return new DefaultInternalDependencyResult(requested, selected, reason, null);
         } else if (resultByte == FAILED) {
             ModuleVersionResolveException failure = failures.get(requested);
@@ -45,14 +47,14 @@ public class InternalDependencyResultSerializer {
         }
     }
 
-    public void write(OutputStream outstr, InternalDependencyResult value) throws IOException {
-        DataOutputStream dataOutput = new DataOutputStream(outstr);
-        new ModuleVersionSelectorSerializer().write((DataOutput) dataOutput, value.getRequested());
-        new ModuleVersionSelectionReasonSerializer().write((DataOutput) dataOutput, value.getReason());
-        if (value.getFailure() == null) {dataOutput.writeByte(SUCCESSFUL);
-            new ModuleVersionSelectionSerializer().write((DataOutput) dataOutput, value.getSelected());
+    public void write(Encoder encoder, InternalDependencyResult value) throws Exception {
+        moduleVersionSelectorSerializer.write(encoder, value.getRequested());
+        moduleVersionSelectionReasonSerializer.write(encoder, value.getReason());
+        if (value.getFailure() == null) {
+            encoder.writeByte(SUCCESSFUL);
+            moduleVersionSelectionSerializer.write(encoder, value.getSelected());
         } else {
-            dataOutput.writeByte(FAILED);
+            encoder.writeByte(FAILED);
         }
     }
 }

@@ -17,25 +17,21 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
-public class ResolvedConfigurationIdentifierSerializer extends DataStreamBackedSerializer<ResolvedConfigurationIdentifier> {
+public class ResolvedConfigurationIdentifierSerializer implements Serializer<ResolvedConfigurationIdentifier> {
     private final ModuleVersionIdentifierSerializer idSerializer = new ModuleVersionIdentifierSerializer();
 
-    @Override
-    public ResolvedConfigurationIdentifier read(DataInput dataInput) throws IOException {
-        ModuleVersionIdentifier id = idSerializer.read(dataInput);
-        String configuration = dataInput.readUTF();
+    public ResolvedConfigurationIdentifier read(Decoder decoder) throws Exception {
+        ModuleVersionIdentifier id = idSerializer.read(decoder);
+        String configuration = decoder.readString();
         return new ResolvedConfigurationIdentifier(id, configuration);
     }
 
-    @Override
-    public void write(DataOutput dataOutput, ResolvedConfigurationIdentifier value) throws IOException {
-        idSerializer.write(dataOutput, value.getId());
-        dataOutput.writeUTF(value.getConfiguration());
+    public void write(Encoder encoder, ResolvedConfigurationIdentifier value) throws Exception {
+        idSerializer.write(encoder, value.getId());
+        encoder.writeString(value.getConfiguration());
     }
 }

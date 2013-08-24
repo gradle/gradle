@@ -19,15 +19,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*;
 
-public class ModuleVersionSelectionReasonSerializer extends DataStreamBackedSerializer<ModuleVersionSelectionReason> {
+public class ModuleVersionSelectionReasonSerializer implements Serializer<ModuleVersionSelectionReason> {
 
     private static final BiMap<Byte, ModuleVersionSelectionReason> REASONS = HashBiMap.create(6);
 
@@ -40,8 +38,8 @@ public class ModuleVersionSelectionReasonSerializer extends DataStreamBackedSeri
         REASONS.put((byte) 6, CONFLICT_RESOLUTION_BY_RULE);
     }
 
-    public ModuleVersionSelectionReason read(DataInput dataInput) throws IOException {
-        byte id = dataInput.readByte();
+    public ModuleVersionSelectionReason read(Decoder decoder) throws Exception {
+        byte id = decoder.readByte();
         ModuleVersionSelectionReason out = REASONS.get(id);
         if (out == null) {
             throw new IllegalArgumentException("Unable to find selection reason with id: " + id);
@@ -49,11 +47,11 @@ public class ModuleVersionSelectionReasonSerializer extends DataStreamBackedSeri
         return out;
     }
 
-    public void write(DataOutput dataOutput, ModuleVersionSelectionReason value) throws IOException {
+    public void write(Encoder encoder, ModuleVersionSelectionReason value) throws Exception {
         Byte id = REASONS.inverse().get(value);
         if (id == null) {
             throw new IllegalArgumentException("Unknown selection reason: " + value);
         }
-        dataOutput.writeByte(id);
+        encoder.writeByte(id);
     }
 }
