@@ -9,6 +9,7 @@ h2 {
 }
 
 table.history {
+    margin-top: 30px;
     font-size: 10pt;
 }
 
@@ -18,7 +19,7 @@ th {
 
 td {
     white-space: nowrap;
-    padding-right: 5px;
+    padding-right: 8px;
 }
 
 #footer {
@@ -33,7 +34,9 @@ td {
 
 .chart {
     width: 950px;
-    height: 350px;
+    height: 300px;
+    margin-top: 40px;
+    margin-bottom: 40px;
 }
 
 #tooltip {

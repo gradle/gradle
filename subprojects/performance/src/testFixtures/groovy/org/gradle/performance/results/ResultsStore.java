@@ -16,7 +16,10 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.performance.fixture.*;
+import org.gradle.performance.fixture.BaselineVersion;
+import org.gradle.performance.fixture.DataReporter;
+import org.gradle.performance.fixture.MeasuredOperationList;
+import org.gradle.performance.fixture.PerformanceResults;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
@@ -24,7 +27,10 @@ import org.gradle.performance.measure.MeasuredOperation;
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * A {@link DataReporter} implementation that stores results in an H2 relational database.
@@ -154,10 +160,7 @@ public class ResultsStore implements DataReporter {
                     buildsForTest.close();
                     executionsForName.close();
 
-                    ArrayList<PerformanceResults> oldestFirst = new ArrayList<PerformanceResults>(results);
-                    Collections.reverse(oldestFirst);
-
-                    return new TestExecutionHistory(testName, new ArrayList<String>(allVersions), results, oldestFirst);
+                    return new TestExecutionHistory(testName, new ArrayList<String>(allVersions), results);
                 }
             });
         } catch (Exception e) {

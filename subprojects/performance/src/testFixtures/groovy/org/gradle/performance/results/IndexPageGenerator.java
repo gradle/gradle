@@ -68,7 +68,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         for (int i = 0; i < testHistory.getResults().size() && i < 5; i++) {
                             PerformanceResults performanceResults = testHistory.getResults().get(i);
                             tr();
-                                td().text(format.format(new Date(performanceResults.getTestTime()))).end();
+                                td().text(timeStampFormat.format(new Date(performanceResults.getTestTime()))).end();
                                 td().text(performanceResults.getVersionUnderTest()).end();
                                 td().text(performanceResults.getVcsBranch()).end();
                                 for (String version : testHistory.getBaselineVersions()) {

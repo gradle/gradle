@@ -60,19 +60,28 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                             text("[" + j + ", " + executionTime + "]");
                         }
                         text("] };\n");
+                        text("var labels = [");
+                        for (int i = 0; i < sortedResults.size(); i++) {
+                            PerformanceResults results = sortedResults.get(i);
+                            if (i > 0) {
+                                text(", ");
+                            }
+                            text("'" + dateFormat.format(results.getTestTime()) + "'");
+                        }
+                        text("];\n");
                         text("var data = [current");
                         for (int i = 0; i < testHistory.getBaselineVersions().size(); i++) {
                             text(", v" + i);
                         }
                         text("];\n");
-                        text("var options = { series: { points: { show: true }, lines: { show: true } }, legend: { noColumns: 0, margin: 1 }, grid: { hoverable: true, clickable: true } };\n");
+                        text("var options = { series: { points: { show: true }, lines: { show: true } }, legend: { noColumns: 0, margin: 1 }, grid: { hoverable: true, clickable: true }, xaxis: { tickFormatter: function(index, value) { return labels[index]; } } };\n");
                         text("$.plot('#executionTimeChart', data, options);\n");
                         text("var previousPoint = null;\n");
                         text("$('#executionTimeChart').bind('plothover', function (event, pos, item) {\n");
                         text("    if (!item) {");
                         text("        $('#tooltip').hide();");
                         text("    } else {");
-                        text("        var text = 'Version: ' + item.series.label + ' execution time: ' + item.datapoint[1] + 's';");
+                        text("        var text = 'Version: ' + item.series.label + ', date: ' + labels[item.dataIndex] + ', execution time: ' + item.datapoint[1] + 's';");
                         text("        $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();");
                         text("    }");
                         text("});\n");
@@ -82,46 +91,40 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                 body();
                 div().id("content");
                     h2().text(String.format("Test %s", testHistory.getName())).end();
+                    h3().text("Average execution time").end();
                     div().id("executionTimeChart").classAttr("chart").end();
                     div().id("tooltip").end();
+                    h3().text("Test history").end();
                     table().classAttr("history");
                         tr();
-                            th().colspan("8").end();
+                            th().colspan("3").end();
                             th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average execution time").end();
                             th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average heap usage").end();
+                            th().colspan("5").text("Details").end();
                         end();
                         tr();
                             th().text("Date").end();
+                            th().text("Test version").end();
+                            th().text("Branch").end();
+                            for (String version : testHistory.getBaselineVersions()) {
+                                th().text(version).end();
+                            }
+                            th().text("Current").end();
+                            for (String version : testHistory.getBaselineVersions()) {
+                                th().text(version).end();
+                            }
+                            th().text("Current").end();
                             th().text("Test project").end();
                             th().text("Tasks").end();
-                            th().text("Test version").end();
                             th().text("Operating System").end();
                             th().text("JVM").end();
-                            th().text("Branch").end();
-                            th().text("Commit").end();
-                            for (String version : testHistory.getBaselineVersions()) {
-                                th().text(version).end();
-                            }
-                            th().text("Current").end();
-                            for (String version : testHistory.getBaselineVersions()) {
-                                th().text(version).end();
-                            }
-                            th().text("Current").end();
+                            th().text("Commit Id").end();
                         end();
                         for (PerformanceResults performanceResults : testHistory.getResults()) {
                             tr();
-                                td().text(format.format(new Date(performanceResults.getTestTime()))).end();
-                                td().text(performanceResults.getTestProject()).end();
-                                td();
-                                    text(Joiner.on(", ").join(performanceResults.getArgs()));
-                                    text(" ");
-                                    text(Joiner.on(", ").join(performanceResults.getTasks()));
-                                end();
+                                td().text(timeStampFormat.format(new Date(performanceResults.getTestTime()))).end();
                                 td().text(performanceResults.getVersionUnderTest()).end();
-                                td().text(performanceResults.getOperatingSystem()).end();
-                                td().text(performanceResults.getJvm()).end();
                                 td().text(performanceResults.getVcsBranch()).end();
-                                td().text(performanceResults.getVcsCommit()).end();
                                 for (String version : testHistory.getBaselineVersions()) {
                                     BaselineVersion baselineVersion = performanceResults.baseline(version);
                                     if (baselineVersion.getResults().isEmpty()) {
@@ -140,6 +143,15 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                                     }
                                 }
                                 td().text(performanceResults.getCurrent().avgMemory().format()).end();
+                                td().text(performanceResults.getTestProject()).end();
+                                td();
+                                    text(Joiner.on(", ").join(performanceResults.getArgs()));
+                                    text(" ");
+                                    text(Joiner.on(", ").join(performanceResults.getTasks()));
+                                end();
+                                td().text(performanceResults.getOperatingSystem()).end();
+                                td().text(performanceResults.getJvm()).end();
+                                td().text(performanceResults.getVcsCommit()).end();
                             end();
                         }
                     end();
