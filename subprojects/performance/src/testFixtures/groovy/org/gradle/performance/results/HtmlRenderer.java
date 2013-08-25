@@ -16,18 +16,19 @@
 
 package org.gradle.performance.results;
 
-import java.io.File;
+import org.gradle.reporting.ReportRenderer;
+import org.gradle.util.GFileUtils;
 
-public class ReportGenerator {
-    void generate(final ResultsStore store, File outputDirectory) {
+import java.io.*;
+
+public class HtmlRenderer {
+    public <T> void render(T model, ReportRenderer<T, Writer> renderer, File outputFile) throws IOException {
+        GFileUtils.parentMkdirs(outputFile);
+        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
         try {
-            HtmlRenderer htmlRenderer = new HtmlRenderer();
-            htmlRenderer.render(store, new IndexPageGenerator(), new File(outputDirectory, "index.html"));
-            for (String testName : store.getTestNames()) {
-                htmlRenderer.render(store.getTestResults(testName), new TestPageGenerator(), new File(outputDirectory, testName.replaceAll("\\s+", "-") + ".html"));
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not generate performance test report to '%s'.", outputDirectory), e);
+            renderer.render(model, writer);
+        } finally {
+            writer.close();
         }
     }
 }
