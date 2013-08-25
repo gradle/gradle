@@ -103,17 +103,12 @@ class CppPluginTest extends Specification {
         ss2.exportedHeaders.srcDirs*.name == ["headers", "h3"]
     }
 
-    def "creates tasks for each executable"() {
+    def "creates source sets and tasks for each executable"() {
         given:
         dsl {
             apply plugin: CppPlugin
-            sources {
-                main {}
-            }
             executables {
                 test {
-                    source sources.main.cpp
-
                     binaries.all {
                         define "NDEBUG"
                         compilerArgs "ARG1", "ARG2"
@@ -124,9 +119,11 @@ class CppPluginTest extends Specification {
         }
 
         expect:
+        project.sources.collect {it.name} == ['test']
         def binary = project.binaries.testExecutable
 
-        def compile = project.tasks.compileTestExecutableMainCpp
+        and:
+        def compile = project.tasks.compileTestExecutableTestCpp
         compile instanceof CppCompile
         compile.toolChain == binary.toolChain
         compile.macros == ["NDEBUG"]
@@ -138,7 +135,7 @@ class CppPluginTest extends Specification {
         link.toolChain == binary.toolChain
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == project.binaries.testExecutable.outputFile
-        link Matchers.dependsOn("compileTestExecutableMainCpp")
+        link Matchers.dependsOn("assembleTestExecutableTestAsm", "compileTestExecutableTestC", "compileTestExecutableTestCpp")
 
         and:
         def lifecycle = project.tasks.testExecutable
@@ -160,13 +157,8 @@ class CppPluginTest extends Specification {
         given:
         dsl {
             apply plugin: CppPlugin
-            sources {
-                main {}
-            }
             libraries {
                 test {
-                    source sources.main.cpp
-
                     binaries.all {
                         define "NDEBUG"
                         compilerArgs "ARG1", "ARG2"
@@ -185,7 +177,7 @@ class CppPluginTest extends Specification {
         def sharedLib = project.binaries.testSharedLibrary
         def staticLib = project.binaries.testStaticLibrary
 
-        def sharedCompile = project.tasks.compileTestSharedLibraryMainCpp
+        def sharedCompile = project.tasks.compileTestSharedLibraryTestCpp
         sharedCompile instanceof CppCompile
         sharedCompile.toolChain == sharedLib.toolChain
         sharedCompile.macros == ["NDEBUG"]
@@ -197,14 +189,14 @@ class CppPluginTest extends Specification {
         link.toolChain == sharedLib.toolChain
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == sharedLib.outputFile
-        link Matchers.dependsOn("compileTestSharedLibraryMainCpp")
+        link Matchers.dependsOn("assembleTestSharedLibraryTestAsm", "compileTestSharedLibraryTestC", "compileTestSharedLibraryTestCpp")
 
         and:
         def sharedLibraryTask = project.tasks.testSharedLibrary
         sharedLibraryTask Matchers.dependsOn("linkTestSharedLibrary")
 
         and:
-        def staticCompile = project.tasks.compileTestStaticLibraryMainCpp
+        def staticCompile = project.tasks.compileTestStaticLibraryTestCpp
         staticCompile instanceof CppCompile
         staticCompile.toolChain == staticLib.toolChain
         staticCompile.macros == ["NDEBUG"]
@@ -216,7 +208,7 @@ class CppPluginTest extends Specification {
         staticLink.toolChain == staticLib.toolChain
         staticLink.outputFile == staticLib.outputFile
         staticLink.staticLibArgs == ["LIB1", "LIB2"]
-        staticLink Matchers.dependsOn("compileTestStaticLibraryMainCpp")
+        staticLink Matchers.dependsOn("assembleTestStaticLibraryTestAsm", "compileTestStaticLibraryTestC", "compileTestStaticLibraryTestCpp")
 
         and:
         def staticLibraryTask = project.tasks.testStaticLibrary

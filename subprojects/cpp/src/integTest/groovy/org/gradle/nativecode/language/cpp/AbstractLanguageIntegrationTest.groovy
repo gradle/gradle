@@ -29,13 +29,9 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         given:
         buildFile << """
             apply plugin: "cpp"
-            sources {
-                main {}
-            }
+
             executables {
-                main {
-                    source sources.main
-                }
+                main {}
             }
             binaries.all {
                 $helloWorldApp.customArgs
@@ -58,12 +54,8 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         given:
         buildFile << """
             apply plugin: "cpp"
-            sources {
-                main {}
-            }
             executables {
                 main {
-                    source sources.main
                     binaries.all {
                         compilerArgs "-DFRENCH"
                     }
@@ -90,12 +82,8 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         given:
         buildFile << """
             apply plugin: "cpp"
-            sources {
-                main {}
-            }
             executables {
                 main {
-                    source sources.main
                     binaries.all {
                         define "FRENCH"
                     }
@@ -124,19 +112,11 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             apply plugin: "cpp"
 
-            sources {
-                main {}
-                hello {}
-            }
             executables {
-                main {
-                    source sources.main
-                }
+                main {}
             }
             libraries {
-                hello {
-                    source sources.hello
-                }
+                hello {}
             }
             sources.main.c.lib libraries.hello
             binaries.all {
@@ -166,18 +146,11 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             apply plugin: "cpp"
 
-            sources {
-                main {}
-                hello {}
-            }
             executables {
-                main {
-                    source sources.main
-                }
+                main {}
             }
             libraries {
                 hello {
-                    source sources.hello
                     binaries.withType(StaticLibraryBinary) {
                         define "FRENCH"
                     }

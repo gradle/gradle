@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.language.base.BinaryContainer
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.nativecode.base.*
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.base.tasks.*
@@ -33,8 +34,17 @@ public class NativeBinariesPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
         project.getPlugins().apply(NativeBinariesModelPlugin.class);
-        final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
 
+        // Create a functionalSourceSet for each native component, with the same name
+        ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
+        project.getExtensions().getByType(ExecutableContainer).all { Executable exe ->
+            exe.source projectSourceSet.maybeCreate(exe.name)
+        }
+        project.getExtensions().getByType(LibraryContainer).all { Library lib ->
+            lib.source projectSourceSet.maybeCreate(lib.name)
+        }
+
+        final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
         binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
             bindSourceSetLibsToBinary(binary)
             createTasks(project, binary)

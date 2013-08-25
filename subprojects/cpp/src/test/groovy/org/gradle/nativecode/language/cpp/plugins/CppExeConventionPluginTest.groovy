@@ -30,8 +30,8 @@ class CppExeConventionPluginTest extends Specification {
 
         expect:
         def executable = project.executables.main
-        def sourceSet = project.sources.main.cpp
+        def sourceSet = project.sources.main
         executable.baseName == project.name
-        executable.source as List == [sourceSet]
+        executable.source as List == [sourceSet.asm, sourceSet.c, sourceSet.cpp]
     }
 }
