@@ -150,6 +150,10 @@ public class Jvm implements JavaInfo {
         return findExecutable("java");
     }
 
+    public File getJavacExecutable() throws JavaHomeException {
+        return findExecutable("javac");
+    }
+
     /**
      * {@inheritDoc}
      */

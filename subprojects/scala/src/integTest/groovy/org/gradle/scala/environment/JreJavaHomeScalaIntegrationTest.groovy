@@ -51,8 +51,9 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                         compile 'org.scala-lang:scala-library:2.9.2'
                     }
 
-                    compileScala{
-                        options.fork = ${forkMode}
+                    compileScala {
+                        scalaCompileOptions.useAnt = ${useAnt}
+                        scalaCompileOptions.fork = ${forkMode}
                     }
                     """
         when:
@@ -62,7 +63,11 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/main/org/test/ScalaClazz.class").exists()
 
         where:
-        forkMode << [false, true]
+        forkMode | useAnt
+//        false    | false
+        false    | true
+        true     | false
+        true     | true
     }
 
     @Requires(TestPrecondition.WINDOWS)

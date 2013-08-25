@@ -50,8 +50,10 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/main/org/test/GroovyClazz.class").exists()
 
         where:
-        forkMode << [false, true, false]
-        useAnt << [false, false, true]
+        forkMode | useAnt
+        false    | false
+        false    | true
+        true     | false
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -67,23 +69,24 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
             }
             compileGroovy {
                 options.fork = ${forkMode}
-                DeprecationLogger.whileDisabled {
-                    options.useAnt = ${useAnt}
-                    groovyOptions.useAnt = ${useAnt}
-                }
+                options.useAnt = ${useAnt}
+                groovyOptions.useAnt = ${useAnt}
             }
             """
         when:
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
         envVars.put("Path", "C:\\Windows\\System32")
-        executer.withEnvironmentVars(envVars).withTasks("compileGroovy").run()
+        executer.withEnvironmentVars(envVars).withDeprecationChecksDisabled().withTasks("compileGroovy").run()
 
         then:
         file("build/classes/main/org/test/JavaClazz.class").exists()
         file("build/classes/main/org/test/GroovyClazz.class").exists()
+
         where:
-        forkMode << [false, true, false]
-        useAnt << [false, false, true]
+        forkMode | useAnt
+        false    | false
+        false    | true
+        true     | false
     }
 
     private writeJavaTestSource(String srcDir, String clazzName = "JavaClazz") {
