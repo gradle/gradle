@@ -16,7 +16,7 @@
 
 package org.gradle.performance.fixture
 
-import org.gradle.process.internal.ExecHandleBuilder
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 class Git {
     private static Git git
@@ -31,27 +31,12 @@ class Git {
     }
 
     private Git() {
-        commitId = determineCommitId()
-        branchName = determineBranchName()
-    }
-
-    private static String determineCommitId() {
-        def output = new ByteArrayOutputStream()
-        def builder = new ExecHandleBuilder()
-        builder.workingDir = new File(".").absoluteFile
-        builder.commandLine = ["git", "log", "-1", "--format=%H"]
-        builder.standardOutput = output
-        builder.build().start().waitForFinish().assertNormalExitValue()
-        return new String(output.toByteArray())
-    }
-
-    private static String determineBranchName() {
-        def output = new ByteArrayOutputStream()
-        def builder = new ExecHandleBuilder()
-        builder.workingDir = new File(".").absoluteFile
-        builder.commandLine = ["git", "symbolic-ref", "--short", "HEAD"]
-        builder.standardOutput = output
-        builder.build().start().waitForFinish().assertNormalExitValue()
-        return new String(output.toByteArray())
+        def repository = new FileRepositoryBuilder().findGitDir().build()
+        try {
+            branchName = repository.branch
+            commitId = repository.getRef(repository.fullBranch).objectId.name
+        } finally {
+            repository.close()
+        }
     }
 }
