@@ -23,7 +23,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class OutputStreamBackedEncoder extends AbstractEncoder implements Encoder, Closeable {
+public class OutputStreamBackedEncoder extends AbstractEncoder implements Closeable, FlushableEncoder {
     private final DataOutputStream outputStream;
 
     public OutputStreamBackedEncoder(OutputStream outputStream) {
@@ -35,6 +35,10 @@ public class OutputStreamBackedEncoder extends AbstractEncoder implements Encode
     }
 
     public void writeInt(int value) throws IOException {
+        outputStream.writeInt(value);
+    }
+
+    public void writeSizeInt(int value) throws IOException {
         outputStream.writeInt(value);
     }
 
@@ -72,6 +76,7 @@ public class OutputStreamBackedEncoder extends AbstractEncoder implements Encode
     }
 
     public void flush() throws IOException {
+        outputStream.flush();
     }
 
     public void close() throws IOException {

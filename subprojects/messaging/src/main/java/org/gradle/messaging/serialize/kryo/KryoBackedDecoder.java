@@ -80,6 +80,14 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder {
         }
     }
 
+    public int readSizeInt() throws EOFException {
+        try {
+            return input.readInt(true);
+        } catch (KryoException e) {
+            throw maybeEndOfStream(e);
+        }
+    }
+
     public boolean readBoolean() throws EOFException {
         try {
             return input.readBoolean();

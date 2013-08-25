@@ -63,6 +63,12 @@ public interface Encoder {
     void writeInt(int value) throws IOException;
 
     /**
+     * Writes a signed 32 bit int value whose value is likely to be small and positive but may not be. The implementation may encode the value as a variable number of bytes, not necessarily as 4
+     * bytes.
+     */
+    void writeSizeInt(int value) throws IOException;
+
+    /**
      * Writes a boolean value.
      */
     void writeBoolean(boolean value) throws IOException;

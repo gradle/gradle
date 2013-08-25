@@ -46,6 +46,13 @@ public interface Decoder {
     int readInt() throws EOFException, IOException;
 
     /**
+     * Reads a signed 32 bit int value. Can read any value that was written using {@link Encoder#writeSizeInt(int)}.
+     *
+     * @throws EOFException when the end of the byte stream is reached before the int value can be fully read.
+     */
+    int readSizeInt() throws EOFException, IOException;
+
+    /**
      * Reads a boolean value. Can read any value that was written using {@link Encoder#writeBoolean(boolean)}.
      *
      * @throws EOFException when the end of the byte stream is reached before the boolean value can be fully read.

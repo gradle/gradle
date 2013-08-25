@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.serialize
+package org.gradle.messaging.serialize;
 
-class StreamBackedCodecTest extends AbstractCodecTest {
-    @Override
-    void encodeTo(OutputStream outputStream, Closure<Encoder> closure) {
-        def encoder = new OutputStreamBackedEncoder(outputStream)
-        closure.call(encoder)
-    }
+import java.io.Flushable;
+import java.io.IOException;
 
-    @Override
-    void decodeFrom(InputStream inputStream, Closure<Decoder> closure) {
-        def decoder = new InputStreamBackedDecoder(inputStream)
-        closure.call(decoder)
-    }
+public interface FlushableEncoder extends Encoder, Flushable {
+    void flush() throws IOException;
 }

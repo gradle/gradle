@@ -231,6 +231,47 @@ abstract class AbstractCodecTest extends Specification {
         thrown(EOFException)
     }
 
+    def "can encode and decode a size int"() {
+        expect:
+        def bytesA = encode { Encoder encoder ->
+            encoder.writeSizeInt(a as int)
+        }
+        def bytesB = encode { Encoder encoder ->
+            encoder.writeSizeInt(b as int)
+        }
+        decode(bytesA) { Decoder decoder ->
+            assert decoder.readSizeInt() == a
+        }
+        decode(bytesB) { Decoder decoder ->
+            assert decoder.readSizeInt() == b
+        }
+        bytesA.length <= bytesB.length
+
+        where:
+        a                 | b
+        0                 | 0x1ff
+        0x2ff             | 0x1000
+        0x1000            | -1
+        Integer.MAX_VALUE | -1
+        Integer.MAX_VALUE | -0xc3412
+        Integer.MAX_VALUE | Integer.MIN_VALUE
+    }
+
+    def "decode fails when size int cannot be fully read"() {
+        given:
+        def bytes = truncate { Encoder encoder ->
+            encoder.writeSizeInt(0xa40745f)
+        }
+
+        when:
+        decode(bytes) { Decoder decoder ->
+            decoder.readSizeInt()
+        }
+
+        then:
+        thrown(EOFException)
+    }
+
     def "can encode and decode a boolean"() {
         expect:
         def bytes = encode { Encoder encoder ->

@@ -38,6 +38,10 @@ public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder
         return inputStream.readInt();
     }
 
+    public int readSizeInt() throws EOFException, IOException {
+        return inputStream.readInt();
+    }
+
     public boolean readBoolean() throws EOFException, IOException {
         return inputStream.readBoolean();
     }

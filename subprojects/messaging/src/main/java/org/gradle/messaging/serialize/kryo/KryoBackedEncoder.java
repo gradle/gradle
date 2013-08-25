@@ -47,6 +47,10 @@ public class KryoBackedEncoder extends AbstractEncoder implements Encoder {
         output.writeInt(value);
     }
 
+    public void writeSizeInt(int value) throws IOException {
+        output.writeInt(value, true);
+    }
+
     public void writeBoolean(boolean value) throws IOException {
         output.writeBoolean(value);
     }
