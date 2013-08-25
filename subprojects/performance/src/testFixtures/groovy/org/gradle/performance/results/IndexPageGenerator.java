@@ -38,7 +38,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 div().id("content");
                     h2().text("All tests").end();
                     List<String> testNames = store.getTestNames();
-                    table();
+                    table().classAttr("history");
                     for (String testName : testNames) {
                         TestExecutionHistory testHistory = store.getTestResults(testName);
                         tr();

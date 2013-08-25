@@ -1,11 +1,20 @@
 apply from: 'src/generator.groovy'
+apply plugin: 'javascript-base'
 
 configurations {
     junit
+    reports
+}
+
+repositories {
+    javaScript.googleApis()
 }
 
 dependencies {
     junit 'junit:junit:4.11'
+    reports "jquery:jquery.min:1.8.0@js"
+    reports "flot:flot:0.8.1:min@js"
+
     compile libraries.groovy
     testFixturesCompile project(':internalIntegTesting')
     testFixturesCompile 'com.googlecode.jatl:jatl:0.2.2'
@@ -17,6 +26,12 @@ dependencies {
 
 useTestFixtures()
 useClassycle()
+
+task reportResources(type: Copy) {
+    from configurations.reports
+    into "$generatedResourcesDir/org/gradle/reporting"
+}
+sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
 
 task small(type: ProjectGeneratorTask, description: 'Generates a small project') {
 }

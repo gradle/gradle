@@ -22,13 +22,15 @@ import java.util.List;
 
 public class TestExecutionHistory {
     private final String name;
-    List<String> versions;
-    List<PerformanceResults> results;
+    private final List<String> versions;
+    private final List<PerformanceResults> newestFirst;
+    private final List<PerformanceResults> oldestFirst;
 
-    public TestExecutionHistory(String name, List<String> versions, List<PerformanceResults> results) {
+    public TestExecutionHistory(String name, List<String> versions, List<PerformanceResults> newestFirst, List<PerformanceResults> oldestFirst) {
         this.name = name;
         this.versions = versions;
-        this.results = results;
+        this.newestFirst = newestFirst;
+        this.oldestFirst = oldestFirst;
     }
 
     public String getName() {
@@ -39,7 +41,17 @@ public class TestExecutionHistory {
         return versions;
     }
 
+    /**
+     * Returns results from most recent to least recent.
+     */
     public List<PerformanceResults> getResults() {
-        return results;
+        return newestFirst;
+    }
+
+    /**
+     * Returns results from least recent to most recent.
+     */
+    public List<PerformanceResults> getResultsOldestFirst() {
+        return oldestFirst;
     }
 }

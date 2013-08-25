@@ -19,11 +19,15 @@ package org.gradle.performance.results;
 import com.google.common.base.Joiner;
 import com.googlecode.jatl.Html;
 import org.gradle.performance.fixture.BaselineVersion;
+import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.fixture.PerformanceResults;
+import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
     @Override
@@ -33,11 +37,54 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                 head();
                     headSection(this);
                     title().text(String.format("Profile test %s report", testHistory.getName())).end();
+                    script();
+                        text("$(function() {\n");
+                        List<PerformanceResults> sortedResults = testHistory.getResultsOldestFirst();
+                        for (int i = 0; i < testHistory.getBaselineVersions().size(); i++) {
+                            String version = testHistory.getBaselineVersions().get(i);
+                            text("var v" + i + " = {");
+                            text("label: '" + version + "',");
+                            text("data: [");
+                            renderData(sortedResults, version, this);
+                            text("] };\n");
+                        }
+                        text("var current = {");
+                        text("label: 'current',");
+                        text("data: [");
+                        for (int j = 0; j < sortedResults.size(); j++) {
+                            PerformanceResults results = sortedResults.get(j);
+                            BigDecimal executionTime = results.getCurrent().avgTime().toUnits(Duration.SECONDS).getValue();
+                            if (j > 0) {
+                                text(", ");
+                            }
+                            text("[" + j + ", " + executionTime + "]");
+                        }
+                        text("] };\n");
+                        text("var data = [current");
+                        for (int i = 0; i < testHistory.getBaselineVersions().size(); i++) {
+                            text(", v" + i);
+                        }
+                        text("];\n");
+                        text("var options = { series: { points: { show: true }, lines: { show: true } }, legend: { noColumns: 0, margin: 1 }, grid: { hoverable: true, clickable: true } };\n");
+                        text("$.plot('#executionTimeChart', data, options);\n");
+                        text("var previousPoint = null;\n");
+                        text("$('#executionTimeChart').bind('plothover', function (event, pos, item) {\n");
+                        text("    if (!item) {");
+                        text("        $('#tooltip').hide();");
+                        text("    } else {");
+                        text("        var text = 'Version: ' + item.series.label + ' execution time: ' + item.datapoint[1] + 's';");
+                        text("        $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();");
+                        text("    }");
+                        text("});\n");
+                        text("});");
+                    end();
                 end();
                 body();
                 div().id("content");
                     h2().text(String.format("Test %s", testHistory.getName())).end();
-                    table();
+                    div().id("executionTimeChart").classAttr("chart").end();
+                    div().id("tooltip").end();
+                    table().classAttr("history");
                         tr();
                             th().colspan("8").end();
                             th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average execution time").end();
@@ -100,5 +147,21 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                 footer(this);
             endAll();
         }};
+    }
+
+    private void renderData(List<PerformanceResults> resultsList, String version, Html html) {
+        boolean empty = true;
+        for (int j = 0; j < resultsList.size(); j++) {
+            PerformanceResults results = resultsList.get(j);
+            MeasuredOperationList measuredOperations = results.baseline(version).getResults();
+            if (!empty) {
+                html.text(", ");
+            }
+            if (!measuredOperations.isEmpty()) {
+                BigDecimal executionTime = measuredOperations.avgTime().toUnits(Duration.SECONDS).getValue();
+                html.text("[" + j + ", " + executionTime + "]");
+                empty = false;
+            }
+        }
     }
 }

@@ -154,7 +154,10 @@ public class ResultsStore implements DataReporter {
                     buildsForTest.close();
                     executionsForName.close();
 
-                    return new TestExecutionHistory(testName, new ArrayList<String>(allVersions), results);
+                    ArrayList<PerformanceResults> oldestFirst = new ArrayList<PerformanceResults>(results);
+                    Collections.reverse(oldestFirst);
+
+                    return new TestExecutionHistory(testName, new ArrayList<String>(allVersions), results, oldestFirst);
                 }
             });
         } catch (Exception e) {

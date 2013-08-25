@@ -1,0 +1,47 @@
+body {
+    font-family: sans-serif;
+    margin: 3em;
+}
+
+h2 {
+    font-size: 14pt;
+    margin-top: 2em;
+}
+
+table.history {
+    font-size: 10pt;
+}
+
+th {
+    text-align: left;
+}
+
+td {
+    white-space: nowrap;
+    padding-right: 5px;
+}
+
+#footer {
+    margin-top: 4em;
+    font-size: 8pt;
+}
+
+.test-execution {
+    font-size: 14pt;
+    padding-top: 1em;
+}
+
+.chart {
+    width: 950px;
+    height: 350px;
+}
+
+#tooltip {
+    position: absolute;
+    display: none;
+    font-size: 10pt;
+    background-color: #fee;
+    border: solid 1px #fdd;
+    opacity: 0.80;
+    padding: 2px;
+}

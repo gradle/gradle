@@ -16,7 +16,11 @@
 
 package org.gradle.performance.results;
 
+import org.apache.commons.lang.StringUtils;
+import org.gradle.util.GFileUtils;
+
 import java.io.File;
+import java.net.URL;
 
 public class ReportGenerator {
     void generate(final ResultsStore store, File outputDirectory) {
@@ -26,8 +30,17 @@ public class ReportGenerator {
             for (String testName : store.getTestNames()) {
                 htmlRenderer.render(store.getTestResults(testName), new TestPageGenerator(), new File(outputDirectory, testName.replaceAll("\\s+", "-") + ".html"));
             }
+            copyResource("jquery.min-1.8.0.js", outputDirectory);
+            copyResource("flot-0.8.1-min.js", outputDirectory);
+            copyResource("style.css", outputDirectory);
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not generate performance test report to '%s'.", outputDirectory), e);
         }
+    }
+
+    private void copyResource(String resourceName, File outputDirectory) {
+        URL resource = getClass().getClassLoader().getResource("org/gradle/reporting/" + resourceName);
+        String dir = StringUtils.substringAfterLast(resourceName, ".");
+        GFileUtils.copyURLToFile(resource, new File(outputDirectory, dir + "/" + resourceName));
     }
 }

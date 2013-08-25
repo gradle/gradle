@@ -34,8 +34,20 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
     }
 
     protected void headSection(Html html) {
-        html.meta().httpEquiv("Content-Type").content("text/html; charset=utf-8");
-        html.style().text("body { font-family: sans-serif; margin: 3em; } h2 { font-size: 14pt; margin-top: 2em; } table { width: 100%; font-size: 10pt; } th { text-align: left; } td { white-space: nowrap } #footer { margin-top: 4em; font-size: 8pt; } .test-execution { font-size: 14pt; padding-top: 1em; }").end();
+        html.meta()
+                .httpEquiv("Content-Type")
+                .content("text/html; charset=utf-8");
+        html.link()
+                .rel("stylesheet")
+                .type("text/css")
+                .href("css/style.css")
+                .end();
+        html.script()
+                .src("js/jquery.min-1.8.0.js")
+                .end();
+        html.script()
+                .src("js/flot-0.8.1-min.js")
+                .end();
     }
 
     protected void footer(Html html) {
