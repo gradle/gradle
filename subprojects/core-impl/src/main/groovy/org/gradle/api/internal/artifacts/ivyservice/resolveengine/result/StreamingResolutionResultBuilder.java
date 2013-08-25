@@ -28,10 +28,7 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.InputStreamBackedDecoder;
-import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
+import org.gradle.messaging.serialize.*;
 import org.gradle.util.Clock;
 
 import java.io.*;
@@ -49,8 +46,7 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
     private final static byte DEPENDENCY = 3;
     private final static byte DONE = 4;
 
-    private final DataOutputStream output;
-    private final Encoder encoder;
+    private final FlushableEncoder encoder;
     private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures = new HashMap<ModuleVersionSelector, ModuleVersionResolveException>();
     private final BinaryStore store;
     private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
@@ -62,15 +58,15 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
     public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedModuleVersionResult> cache) {
         this.store = store;
         this.cache = cache;
-        output = store.getOutput();
-        encoder = new OutputStreamBackedEncoder(output);
+        DataOutputStream output = store.getOutput();
         offset = output.size();
+        encoder = new OutputStreamBackedEncoder(output);
     }
 
     public ResolutionResult complete() {
         try {
             encoder.writeByte(DONE);
-            output.flush();
+            encoder.flush();
         } catch (IOException e) {
             throw throwAsUncheckedException(e);
         }

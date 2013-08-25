@@ -25,7 +25,7 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.FlushableEncoder;
 import org.gradle.messaging.serialize.InputStreamBackedDecoder;
 import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
 import org.gradle.util.Clock;
@@ -50,8 +50,7 @@ public class TransientResultsStore {
     private final Object lock = new Object();
     private final int offset;
 
-    private DataOutputStream output;
-    private Encoder encoder;
+    private FlushableEncoder encoder;
     private BinaryStore binaryStore;
     private Store<TransientConfigurationResults> cache;
     private final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer = new ResolvedConfigurationIdentifierSerializer();
@@ -59,9 +58,9 @@ public class TransientResultsStore {
     public TransientResultsStore(BinaryStore binaryStore, Store<TransientConfigurationResults> cache) {
         this.binaryStore = binaryStore;
         this.cache = cache;
-        this.output = binaryStore.getOutput();
-        encoder = new OutputStreamBackedEncoder(output);
+        DataOutputStream output = binaryStore.getOutput();
         this.offset = output.size();
+        encoder = new OutputStreamBackedEncoder(output);
     }
 
     private void writeId(byte type, ResolvedConfigurationIdentifier... ids) {
@@ -83,11 +82,10 @@ public class TransientResultsStore {
         writeId(ROOT, id);
         LOG.debug("Flushing results stream (offset: {}) {}. Wrote root {}.", offset, binaryStore, id);
         try {
-            output.flush();
+            encoder.flush();
         } catch (IOException e) {
             throw throwAsUncheckedException(e);
         } finally {
-            output = null;
             encoder = null;
         }
     }
@@ -111,12 +109,11 @@ public class TransientResultsStore {
 
     public TransientConfigurationResults load(final ResolvedContentsMapping mapping) {
         synchronized (lock) {
-            TransientConfigurationResults value = cache.load(new Factory<TransientConfigurationResults>() {
+            return cache.load(new Factory<TransientConfigurationResults>() {
                 public TransientConfigurationResults create() {
                     return deserialize(mapping, offset);
                 }
             });
-            return value;
         }
     }
 
