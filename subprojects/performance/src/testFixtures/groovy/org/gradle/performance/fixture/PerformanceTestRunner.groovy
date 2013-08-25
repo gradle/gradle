@@ -64,6 +64,8 @@ public class PerformanceTestRunner {
                 jvm: Jvm.current().toString(),
                 operatingSystem: OperatingSystem.current().toString(),
                 versionUnderTest: GradleVersion.current().getVersion(),
+                vcsBranch: Git.current().branchName,
+                vcsCommit: Git.current().commitId,
                 testTime: System.currentTimeMillis())
 
         def releasedDistributions = new ReleasedVersionDistributions()

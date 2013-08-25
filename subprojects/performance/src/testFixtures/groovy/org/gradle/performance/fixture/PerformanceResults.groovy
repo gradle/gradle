@@ -29,6 +29,8 @@ public class PerformanceResults {
     String operatingSystem
     long testTime
     String versionUnderTest
+    String vcsBranch
+    String vcsCommit
 
     private final Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()
     final MeasuredOperationList current = new MeasuredOperationList(name:  "Current Gradle")

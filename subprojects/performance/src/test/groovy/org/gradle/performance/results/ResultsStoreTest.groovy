@@ -35,7 +35,9 @@ class ResultsStoreTest extends ResultSpecification {
                 operatingSystem: "some-os",
                 jvm: "java 6",
                 testTime: 10000,
-                versionUnderTest: "1.7-rc-1")
+                versionUnderTest: "1.7-rc-1",
+                vcsBranch: "master",
+                vcsCommit: "1234")
         def baseline1 = result1.baseline("1.0")
         def baseline2 = result1.baseline("1.5")
         result1.current << operation(executionTime: minutes(12), heapUsed: kbytes(12.33))
@@ -84,6 +86,8 @@ class ResultsStoreTest extends ResultSpecification {
         results[0].jvm == "java 6"
         results[0].testTime == 10000
         results[0].versionUnderTest == '1.7-rc-1'
+        results[0].vcsBranch == 'master'
+        results[0].vcsCommit == '1234'
         results[0].current.size() == 1
         results[0].current[0].executionTime == minutes(12)
         results[0].current[0].totalMemoryUsed == kbytes(12.33)

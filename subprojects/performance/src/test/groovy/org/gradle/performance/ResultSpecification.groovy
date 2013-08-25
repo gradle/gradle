@@ -33,6 +33,7 @@ class ResultSpecification extends Specification {
         results.operatingSystem = "some os"
         results.jvm = "java 6"
         results.versionUnderTest = "1.7-rc-1"
+        results.vcsBranch = "master"
         options.each { key, value -> results."$key" = value }
         return results
     }

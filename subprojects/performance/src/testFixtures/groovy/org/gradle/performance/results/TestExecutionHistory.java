@@ -21,12 +21,18 @@ import org.gradle.performance.fixture.PerformanceResults;
 import java.util.List;
 
 public class TestExecutionHistory {
+    private final String name;
     List<String> versions;
     List<PerformanceResults> results;
 
-    public TestExecutionHistory(List<String> versions, List<PerformanceResults> results) {
+    public TestExecutionHistory(String name, List<String> versions, List<PerformanceResults> results) {
+        this.name = name;
         this.versions = versions;
         this.results = results;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public List<String> getBaselineVersions() {
