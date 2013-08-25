@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.cpp.plugins
+
+import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.nativecode.base.NativeBinary
 import org.gradle.nativecode.base.NativeDependencySet
 import org.gradle.nativecode.base.SharedLibraryBinary
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.language.cpp.CppSourceSet
+import org.gradle.nativecode.language.cpp.internal.DefaultCppSourceSet
 import org.gradle.nativecode.language.cpp.tasks.CppCompile
 
 import javax.inject.Inject
@@ -40,12 +45,30 @@ class CppLangPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.getPlugins().apply(LanguageBasePlugin.class);
 
+        ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
+        projectSourceSet.all(new Action<FunctionalSourceSet>() {
+            public void execute(final FunctionalSourceSet functionalSourceSet) {
+                applyConventions(project, functionalSourceSet)
+            }
+        });
+
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
             binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
                 def compileTask = createCompileTask(project, binary, sourceSet)
                 binary.builderTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
             }
         }
+    }
+
+    private void applyConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
+        // Establish defaults for all cpp source sets
+        functionalSourceSet.withType(CppSourceSet).all { sourceSet ->
+            sourceSet.exportedHeaders.srcDir "src/${functionalSourceSet.name}/headers"
+            sourceSet.source.srcDir "src/${functionalSourceSet.name}/cpp"
+        }
+
+        // Add a single C++ source set
+        functionalSourceSet.add(instantiator.newInstance(DefaultCppSourceSet.class, "cpp", functionalSourceSet, project));
     }
 
     private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {

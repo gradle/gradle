@@ -15,16 +15,20 @@
  */
 package org.gradle.nativecode.language.c.plugins
 
+import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.nativecode.base.NativeBinary
 import org.gradle.nativecode.base.NativeDependencySet
 import org.gradle.nativecode.base.SharedLibraryBinary
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.language.c.CSourceSet
+import org.gradle.nativecode.language.c.internal.DefaultCSourceSet
 import org.gradle.nativecode.language.c.tasks.CCompile
 
 import javax.inject.Inject
@@ -41,6 +45,13 @@ class CLangPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.getPlugins().apply(LanguageBasePlugin.class);
 
+        ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
+        projectSourceSet.all(new Action<FunctionalSourceSet>() {
+            public void execute(final FunctionalSourceSet functionalSourceSet) {
+                applyConventions(project, functionalSourceSet)
+            }
+        });
+
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
             binary.source.withType(CSourceSet).all { CSourceSet sourceSet ->
                 def compileTask = createCompileTask(project, binary, sourceSet)
@@ -48,6 +59,19 @@ class CLangPlugin implements Plugin<ProjectInternal> {
             }
         }
     }
+
+
+    private void applyConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
+        // Defaults for all C source sets
+        functionalSourceSet.withType(CSourceSet).all { sourceSet ->
+            sourceSet.exportedHeaders.srcDir "src/${functionalSourceSet.name}/headers"
+            sourceSet.source.srcDir "src/${functionalSourceSet.name}/c"
+        }
+
+        // Create a single C source set
+        functionalSourceSet.add(instantiator.newInstance(DefaultCSourceSet.class, "c", functionalSourceSet, project));
+    }
+
 
     private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
         def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CCompile) {

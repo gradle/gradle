@@ -15,14 +15,18 @@
  */
 package org.gradle.nativecode.language.asm.plugins
 
+import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.nativecode.base.NativeBinary
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.language.asm.AssemblerSourceSet
+import org.gradle.nativecode.language.asm.internal.DefaultAssemblerSourceSet
 import org.gradle.nativecode.language.asm.tasks.Assemble
 
 import javax.inject.Inject
@@ -39,12 +43,29 @@ class AssemblerLangPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.getPlugins().apply(LanguageBasePlugin.class);
 
+        ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
+        projectSourceSet.all(new Action<FunctionalSourceSet>() {
+            public void execute(final FunctionalSourceSet functionalSourceSet) {
+                applyConventions(project, functionalSourceSet)
+            }
+        });
+
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
             binary.source.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->
                 def compileTask = createAssembleTask(project, binary, sourceSet)
                 binary.builderTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
             }
         }
+    }
+
+    private void applyConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
+        // Defaults for all assembler source sets
+        functionalSourceSet.withType(AssemblerSourceSet).all { sourceSet ->
+            sourceSet.source.srcDir "src/${functionalSourceSet.name}/asm"
+        }
+
+        // Create a single assembler source set
+        functionalSourceSet.add(instantiator.newInstance(DefaultAssemblerSourceSet.class, "asm", functionalSourceSet, project));
     }
 
     private def createAssembleTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
