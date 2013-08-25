@@ -30,13 +30,8 @@ class AssemblyLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         given:
         buildFile << """
             apply plugin: "cpp"
-            sources {
-                main {}
-            }
             executables {
-                main {
-                    source sources.main
-                }
+                main {}
             }
         """
 

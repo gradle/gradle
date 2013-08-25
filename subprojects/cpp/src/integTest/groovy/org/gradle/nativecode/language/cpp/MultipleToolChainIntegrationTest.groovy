@@ -50,13 +50,8 @@ ${toolChainConfig}
                 }
             }
 
-            sources {
-                main {}
-            }
             executables {
-                main {
-                    source sources.main
-                }
+                main {}
             }
 """
 
@@ -87,14 +82,8 @@ ${toolChain.buildScriptConfig}
                     linker.exe = "does_not_exist"
                 }
             }
-
-            sources {
-                main {}
-            }
             executables {
-                main {
-                    source sources.main
-                }
+                main {}
             }
 """
 

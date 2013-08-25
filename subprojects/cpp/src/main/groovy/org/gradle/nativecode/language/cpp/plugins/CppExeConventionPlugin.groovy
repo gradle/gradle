@@ -41,13 +41,9 @@ class CppExeConventionPlugin implements Plugin<Project> {
         project.plugins.apply(CppPlugin)
         
         project.with {
-            sources {
-                main {}
-            }
             executables {
                 main {
                     baseName = project.name
-                    source sources.main.cpp
                 }
             }
         }

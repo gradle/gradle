@@ -31,9 +31,7 @@ sources {
     }
 }
 executables {
-    main {
-        source sources.main
-    }
+    main {}
 }
 
 if (os.macOsX) {

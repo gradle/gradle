@@ -49,12 +49,12 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
         buildFile << """
             apply plugin: "cpp"
             sources {
-                main {}
+                test {}
             }
             executables {
                 main {
-                    source sources.main.cpp
-                    source sources.main.c
+                    source sources.test.cpp
+                    source sources.test.c
                 }
             }
         """
@@ -74,14 +74,14 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
         buildFile << """
             apply plugin: "cpp"
             sources {
-                main {}
+                test {}
             }
             executables {
                 main {}
             }
             binaries.all {
-                source sources.main.cpp
-                source sources.main.c
+                source sources.test.cpp
+                source sources.test.c
             }
         """
 
@@ -100,13 +100,13 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
         buildFile << """
             apply plugin: "cpp"
             sources {
-                main {}
+                test {}
             }
             executables {
                 main {}
             }
             binaries.all {
-                source sources.main
+                source sources.test
             }
         """
         
@@ -120,7 +120,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
     def "ignores java sources added to binary"() {
         given:
         useMixedSources()
-        file("src/main/java/HelloWorld.java") << """
+        file("src/test/java/HelloWorld.java") << """
     This would not compile
 """
 
@@ -128,14 +128,12 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
         buildFile << """
             apply plugin: "cpp"
             apply plugin: "java"
-            sources {
-                main {}
-            }
+
             executables {
                 main {
-                    source sources.main.cpp
-                    source sources.main.c
-                    source sources.main.java
+                    source sources.test.cpp
+                    source sources.test.c
+                    source sources.test.java
                 }
             }
          """
@@ -148,7 +146,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
     }
 
     private def useMixedSources() {
-        helloWorldApp.writeSources(file("src/main"))
+        helloWorldApp.writeSources(file("src/test"))
     }
 
     def "build fails when link executable fails"() {

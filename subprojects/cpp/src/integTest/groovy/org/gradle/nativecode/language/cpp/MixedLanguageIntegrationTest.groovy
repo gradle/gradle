@@ -54,9 +54,7 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                 }
             }
             executables {
-                main {
-                    source sources.main
-                }
+                main {}
             }
             binaries.all {
                 $helloWorldApp.customArgs

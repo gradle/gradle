@@ -46,19 +46,11 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         buildFile << """
             apply plugin: 'cpp'
 
-            sources {
-                main {}
-                hello {}
-            }
-
             executables {
-                main {
-                    source sources.main
-                }
+                main {}
             }
             libraries {
                 hello {
-                    source sources.hello
                     binaries.withType(SharedLibraryBinary) {
                         define "DLL_EXPORT"
                     }

@@ -102,12 +102,8 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         buildFile << """
             apply plugin: "cpp-exe"
 
-            sources {
-                hello {}
-            }
             libraries {
                 hello {
-                    source sources.hello.cpp
                     binaries.all {
                         outputFile file('${staticLibrary("build/hello").toURI()}')
                         define 'ENABLE_GREETING'
@@ -177,7 +173,6 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
             }
             executables {
                 main {
-                    source sources.main.cpp
                     binaries.all {
                         source sources.util.cpp
                     }

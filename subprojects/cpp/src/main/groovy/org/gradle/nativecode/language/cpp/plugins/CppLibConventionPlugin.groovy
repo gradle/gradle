@@ -43,13 +43,9 @@ class CppLibConventionPlugin implements Plugin<Project> {
         project.plugins.apply(CppPlugin)
 
         project.with {
-            sources {
-                main {}
-            }
             libraries {
                 main {
                     baseName = project.name
-                    source sources.main.cpp
                 }
             }
         }

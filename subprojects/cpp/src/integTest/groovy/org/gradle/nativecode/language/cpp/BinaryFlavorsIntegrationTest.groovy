@@ -33,13 +33,8 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         when:
         buildFile << """
             apply plugin: "cpp"
-            sources {
-                main {}
-                hello {}
-            }
             libraries {
                 hello {
-                    source sources.hello
                     binaries.withType(StaticLibraryBinary) {
                         define "FRENCH"
                     }
@@ -47,7 +42,6 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             }
             executables {
                 main {
-                    source sources.main
                     flavors {
                         english {}
                         french {}
@@ -81,13 +75,8 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         when:
         buildFile << """
             apply plugin: "cpp"
-            sources {
-                main {}
-                hello {}
-            }
             libraries {
                 hello {
-                    source sources.hello
                     flavors {
                         english {}
                         french {}
@@ -101,7 +90,6 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             }
             executables {
                 main {
-                    source sources.main
                     flavors {
                         english {}
                         french {}
@@ -130,13 +118,8 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         when:
         buildFile << """
             apply plugin: "cpp"
-            sources {
-                main {}
-                hello {}
-            }
             libraries {
                 hello {
-                    source sources.hello
                     flavors {
                         english {}
                         french {}
@@ -150,7 +133,6 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             }
             executables {
                 main {
-                    source sources.main
                     flavors {
                         english {}
                         french {}
@@ -179,13 +161,8 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         when:
         buildFile << """
             apply plugin: "cpp"
-            sources {
-                main {}
-                hello {}
-            }
             libraries {
                 hello {
-                    source sources.hello
                     flavors {
                         english {}
                         french {}
@@ -194,7 +171,6 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             }
             executables {
                 main {
-                    source sources.main
                     flavors {
                         english {}
                         german {}
