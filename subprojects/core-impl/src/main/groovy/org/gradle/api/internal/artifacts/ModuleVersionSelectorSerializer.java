@@ -17,25 +17,23 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
 
-public class ModuleVersionSelectorSerializer extends DataStreamBackedSerializer<ModuleVersionSelector> {
-    public ModuleVersionSelector read(DataInput dataInput) throws IOException {
-        String group = dataInput.readUTF();
-        String name = dataInput.readUTF();
-        String version = dataInput.readUTF();
+public class ModuleVersionSelectorSerializer implements Serializer<ModuleVersionSelector> {
+    public ModuleVersionSelector read(Decoder decoder) throws Exception {
+        String group = decoder.readString();
+        String name = decoder.readString();
+        String version = decoder.readString();
         return newSelector(group, name, version);
     }
 
-    public void write(DataOutput dataOutput, ModuleVersionSelector value) throws IOException {
-        dataOutput.writeUTF(value.getGroup());
-        dataOutput.writeUTF(value.getName());
-        dataOutput.writeUTF(value.getVersion());
+    public void write(Encoder encoder, ModuleVersionSelector value) throws Exception {
+        encoder.writeString(value.getGroup());
+        encoder.writeString(value.getName());
+        encoder.writeString(value.getVersion());
     }
 }

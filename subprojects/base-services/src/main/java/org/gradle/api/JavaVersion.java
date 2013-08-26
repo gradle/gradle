@@ -114,4 +114,8 @@ public enum JavaVersion {
     private String getName() {
         return name().substring("VERSION_".length()).replace('_', '.');
     }
+
+    public String getMajorVersion() {
+        return name().substring(10);
+    }
 }

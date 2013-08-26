@@ -25,7 +25,7 @@ import spock.lang.Unroll
 
 class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreIf({ AvailableJavaHomes.bestJre == null})
+    @IgnoreIf({ AvailableJavaHomes.bestJre == null })
     @Unroll
     def "java compilation works in forking mode = #forkMode and useAnt = #useAnt when JAVA_HOME is set to JRE"() {
         given:
@@ -34,19 +34,21 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle') << """
         println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
         apply plugin:'java'
-        compileJava{
+        compileJava {
             options.fork = ${forkMode}
-            DeprecationLogger.whileDisabled { options.useAnt = ${useAnt} }
+            options.useAnt = ${useAnt}
         }
         """
         when:
-        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileJava").run().output
+        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withDeprecationChecksDisabled().withTasks("compileJava").run().output
         then:
         file("build/classes/main/org/test/JavaClazz.class").exists()
 
         where:
-        forkMode << [false, true, false]
-        useAnt << [false, false, true]
+        forkMode | useAnt
+        false    | false
+        false    | true
+        true     | false
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -55,21 +57,23 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         given:
         writeJavaTestSource("src/main/java");
         file('build.gradle') << """
-                    apply plugin:'java'
-                    compileJava{
-                        options.fork = ${forkMode}
-                        DeprecationLogger.whileDisabled { options.useAnt = ${useAnt} }
+        apply plugin:'java'
+        compileJava {
+            options.fork = ${forkMode}
+            options.useAnt = ${useAnt}
         }
         """
         def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
         envVars.put("Path", "C:\\Windows\\System32")
         when:
-        executer.withEnvironmentVars(envVars).withTasks("compileJava").run()
+        executer.withEnvironmentVars(envVars).withDeprecationChecksDisabled().withTasks("compileJava").run()
         then:
         file("build/classes/main/org/test/JavaClazz.class").exists()
         where:
-            forkMode << [false, true, false]
-            useAnt << [false, false, true]
+        forkMode | useAnt
+        false    | false
+        false    | true
+        true     | false
     }
 
     private writeJavaTestSource(String srcDir) {

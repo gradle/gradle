@@ -16,20 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import spock.lang.Specification
+import org.gradle.messaging.serialize.SerializerSpec
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
-class ModuleVersionSelectionSerializerTest extends Specification {
+class ModuleVersionSelectionSerializerTest extends SerializerSpec {
 
     def serializer = new ModuleVersionSelectionSerializer()
 
     def "serializes"() {
-        def bytes = new ByteArrayOutputStream();
-        serializer.write(bytes, new DefaultModuleVersionSelection(newId("org", "foo", "2.0"), VersionSelectionReasons.REQUESTED))
+        def selection = new DefaultModuleVersionSelection(newId("org", "foo", "2.0"), VersionSelectionReasons.REQUESTED)
 
         when:
-        def result = serializer.read(new ByteArrayInputStream(bytes.toByteArray()))
+        def result = serialize(selection, serializer)
 
         then:
         result.selectionReason == VersionSelectionReasons.REQUESTED

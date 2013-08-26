@@ -16,49 +16,46 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-class OutputFilesSnapshotSerializer extends DataStreamBackedSerializer<FileCollectionSnapshot> {
+class OutputFilesSnapshotSerializer implements Serializer<FileCollectionSnapshot> {
 
-    @Override
-    public FileCollectionSnapshot read(DataInput dataInput) throws Exception {
+    public FileCollectionSnapshot read(Decoder decoder) throws Exception {
         Map<String, Long> rootFileIds = new HashMap<String, Long>();
-        int rootFileIdsCount = dataInput.readInt();
+        int rootFileIdsCount = decoder.readInt();
         for (int i = 0; i < rootFileIdsCount; i++) {
-            String key = dataInput.readUTF();
-            boolean notNull = dataInput.readBoolean();
-            Long value = notNull? dataInput.readLong() : null;
+            String key = decoder.readString();
+            boolean notNull = decoder.readBoolean();
+            Long value = notNull? decoder.readLong() : null;
             rootFileIds.put(key, value);
         }
         FileSnapshotSerializer serializer = new FileSnapshotSerializer();
-        FileCollectionSnapshot snapshot = serializer.read(dataInput);
+        FileCollectionSnapshot snapshot = serializer.read(decoder);
 
         return new OutputFilesSnapshotter.OutputFilesSnapshot(rootFileIds, snapshot);
     }
 
-    @Override
-    public void write(DataOutput dataOutput, FileCollectionSnapshot currentValue) throws IOException {
+    public void write(Encoder encoder, FileCollectionSnapshot currentValue) throws Exception {
         OutputFilesSnapshotter.OutputFilesSnapshot value = (OutputFilesSnapshotter.OutputFilesSnapshot) currentValue;
         int rootFileIds = value.rootFileIds.size();
-        dataOutput.writeInt(rootFileIds);
+        encoder.writeInt(rootFileIds);
         for (String key : value.rootFileIds.keySet()) {
             Long id = value.rootFileIds.get(key);
-            dataOutput.writeUTF(key);
+            encoder.writeString(key);
             if (id == null) {
-                dataOutput.writeBoolean(false);
+                encoder.writeBoolean(false);
             } else {
-                dataOutput.writeBoolean(true);
-                dataOutput.writeLong(id);
+                encoder.writeBoolean(true);
+                encoder.writeLong(id);
             }
         }
 
         FileSnapshotSerializer serializer = new FileSnapshotSerializer();
-        serializer.write(dataOutput, value.filesSnapshot);
+        serializer.write(encoder, value.filesSnapshot);
     }
 }

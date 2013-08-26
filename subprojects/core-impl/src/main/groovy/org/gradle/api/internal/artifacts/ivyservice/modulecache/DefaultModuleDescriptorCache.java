@@ -29,8 +29,7 @@ import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
-import org.gradle.messaging.serialize.DefaultSerializer;
+import org.gradle.messaging.serialize.*;
 import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,53 +134,45 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         }
     }
 
-    private static class RevisionKeySerializer extends DataStreamBackedSerializer<RevisionKey> {
+    private static class RevisionKeySerializer implements Serializer<RevisionKey> {
         private final ModuleVersionIdentifierSerializer identifierSerializer = new ModuleVersionIdentifierSerializer();
 
-        @Override
-        public void write(DataOutput dataOutput, RevisionKey value) throws IOException {
-            dataOutput.writeUTF(value.repositoryId);
-            identifierSerializer.write(dataOutput, value.moduleVersionIdentifier);
+        public void write(Encoder encoder, RevisionKey value) throws Exception {
+            encoder.writeString(value.repositoryId);
+            identifierSerializer.write(encoder, value.moduleVersionIdentifier);
         }
 
-        @Override
-        public RevisionKey read(DataInput dataInput) throws IOException {
-            String resolverId = dataInput.readUTF();
-            ModuleVersionIdentifier identifier = identifierSerializer.read(dataInput);
+        public RevisionKey read(Decoder decoder) throws Exception {
+            String resolverId = decoder.readString();
+            ModuleVersionIdentifier identifier = identifierSerializer.read(decoder);
             return new RevisionKey(resolverId, identifier);
         }
     }
 
-    private static class ModuleDescriptorCacheEntrySerializer extends DataStreamBackedSerializer<ModuleDescriptorCacheEntry> {
+    private static class ModuleDescriptorCacheEntrySerializer implements Serializer<ModuleDescriptorCacheEntry> {
         private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>(ModuleSource.class.getClassLoader());
 
-        @Override
-        public void write(DataOutput dataOutput, ModuleDescriptorCacheEntry value) throws IOException {
-            dataOutput.writeBoolean(value.isMissing);
-            dataOutput.writeBoolean(value.isChanging);
-            dataOutput.writeLong(value.createTimestamp);
+        public void write(Encoder encoder, ModuleDescriptorCacheEntry value) throws Exception {
+            encoder.writeBoolean(value.isMissing);
+            encoder.writeBoolean(value.isChanging);
+            encoder.writeLong(value.createTimestamp);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            moduleSourceSerializer.write(outputStream, value.moduleSource);
+            OutputStreamBackedEncoder sourceEncoder = new OutputStreamBackedEncoder(outputStream);
+            moduleSourceSerializer.write(sourceEncoder, value.moduleSource);
+            sourceEncoder.flush();
             byte[] serializedModuleSource = outputStream.toByteArray();
-            dataOutput.writeInt(serializedModuleSource.length);
-            dataOutput.write(serializedModuleSource);
+            encoder.writeBinary(serializedModuleSource);
             byte[] hash = value.moduleDescriptorHash.toByteArray();
-            dataOutput.writeInt(hash.length);
-            dataOutput.write(hash);
+            encoder.writeBinary(hash);
         }
 
-        @Override
-        public ModuleDescriptorCacheEntry read(DataInput dataInput) throws Exception {
-            boolean isMissing = dataInput.readBoolean();
-            boolean isChanging = dataInput.readBoolean();
-            long createTimestamp = dataInput.readLong();
-            int count = dataInput.readInt();
-            byte[] serializedModuleSource = new byte[count];
-            dataInput.readFully(serializedModuleSource);
-            ModuleSource moduleSource = moduleSourceSerializer.read(new ByteArrayInputStream(serializedModuleSource));
-            count = dataInput.readInt();
-            byte[] encodedHash = new byte[count];
-            dataInput.readFully(encodedHash);
+        public ModuleDescriptorCacheEntry read(Decoder decoder) throws Exception {
+            boolean isMissing = decoder.readBoolean();
+            boolean isChanging = decoder.readBoolean();
+            long createTimestamp = decoder.readLong();
+            byte[] serializedModuleSource = decoder.readBinary();
+            ModuleSource moduleSource = moduleSourceSerializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(serializedModuleSource)));
+            byte[] encodedHash = decoder.readBinary();
             BigInteger hash = new BigInteger(encodedHash);
             return new ModuleDescriptorCacheEntry(isChanging, isMissing, createTimestamp, hash, moduleSource);
         }

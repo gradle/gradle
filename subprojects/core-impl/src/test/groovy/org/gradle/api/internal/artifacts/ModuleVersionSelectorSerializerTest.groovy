@@ -16,20 +16,16 @@
 
 package org.gradle.api.internal.artifacts
 
-import spock.lang.Specification
+import org.gradle.messaging.serialize.SerializerSpec
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-class ModuleVersionSelectorSerializerTest extends Specification {
-
+class ModuleVersionSelectorSerializerTest extends SerializerSpec {
     private serializer = new ModuleVersionSelectorSerializer()
 
     def "serializes"() {
-        def bytes = new ByteArrayOutputStream()
-        serializer.write(bytes, newSelector("org", "foo", "5.0"))
-
         when:
-        def result = serializer.read(new ByteArrayInputStream(bytes.toByteArray()))
+        def result = serialize(newSelector("org", "foo", "5.0"), serializer)
 
         then:
         result == newSelector("org", "foo", "5.0")

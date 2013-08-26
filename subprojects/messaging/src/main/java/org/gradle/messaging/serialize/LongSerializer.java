@@ -15,22 +15,15 @@
  */
 package org.gradle.messaging.serialize;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
-public class LongSerializer extends DataStreamBackedSerializer<Long> {
-
-    @Override
-    public Long read(DataInput dataInput) throws Exception {
-        return dataInput.readLong();
+public class LongSerializer implements Serializer<Long> {
+    public Long read(Decoder decoder) throws Exception {
+        return decoder.readLong();
     }
 
-    @Override
-    public void write(DataOutput dataOutput, Long value) throws IOException {
+    public void write(Encoder encoder, Long value) throws Exception {
         if (value == null) {
             throw new IllegalArgumentException("This serializer does not serialize null values.");
         }
-        dataOutput.writeLong(value);
+        encoder.writeLong(value);
     }
 }

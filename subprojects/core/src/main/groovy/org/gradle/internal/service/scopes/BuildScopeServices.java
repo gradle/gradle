@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
-import org.gradle.api.internal.artifacts.TopLevelDependencyManagementServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
@@ -50,6 +49,7 @@ import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.reflect.Instantiator;
@@ -68,7 +68,6 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
-import org.gradle.internal.classloader.ClassLoaderFactory;
 
 /**
  * Contains the singleton services for a single build invocation.
@@ -262,11 +261,5 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
         public Module getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
-    }
-
-    protected TopLevelDependencyManagementServices createGlobalDependencyManagementServices() {
-        ClassLoader coreImplClassLoader = get(ClassLoaderRegistry.class).getCoreImplClassLoader();
-        ServiceLocator serviceLocator = new ServiceLocator(coreImplClassLoader);
-        return serviceLocator.getFactory(TopLevelDependencyManagementServices.class).newInstance();
     }
 }

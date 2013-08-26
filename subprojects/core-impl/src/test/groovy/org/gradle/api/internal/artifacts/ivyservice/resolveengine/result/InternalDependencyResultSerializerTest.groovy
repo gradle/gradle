@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+import org.gradle.messaging.serialize.InputStreamBackedDecoder
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -37,8 +39,10 @@ class InternalDependencyResultSerializerTest extends Specification {
 
         when:
         def bytes = new ByteArrayOutputStream()
-        serializer.write(bytes, successful)
-        def out = serializer.read(new ByteArrayInputStream(bytes.toByteArray()), [:])
+        def encoder = new OutputStreamBackedEncoder(bytes)
+        serializer.write(encoder, successful)
+        encoder.flush()
+        def out = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())), [:])
 
         then:
         out.requested == newSelector("org", "foo", "1.0")
@@ -60,10 +64,12 @@ class InternalDependencyResultSerializerTest extends Specification {
 
         when:
         def bytes = new ByteArrayOutputStream()
-        serializer.write(bytes, failed)
+        def encoder = new OutputStreamBackedEncoder(bytes)
+        serializer.write(encoder, failed)
+        encoder.flush()
         Map<ModuleVersionSelector, ModuleVersionResolveException> map = new HashMap<>()
         map.put(requested, failure)
-        def out = serializer.read(new ByteArrayInputStream(bytes.toByteArray()), map)
+        def out = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())), map)
 
         then:
         out.requested == newSelector("x", "y", "1.0")

@@ -93,6 +93,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new DefaultDependencyResolutionServices(this, resolver, dependencyMetaDataProvider, projectFinder, domainObjectContext);
     }
 
+    protected InMemoryDependencyMetadataCache createInMemoryDependencyMetadataCache() {
+        return new InMemoryDependencyMetadataCache();
+    }
+
     protected ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter() {
         return new ResolveModuleDescriptorConverter(
                 get(ModuleDescriptorFactory.class),
@@ -276,7 +280,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(CacheLockingManager.class),
                 startParameterResolutionOverride,
                 get(BuildCommencedTimeProvider.class),
-                get(TopLevelDependencyManagementServices.class).get(InMemoryDependencyMetadataCache.class));
+                get(InMemoryDependencyMetadataCache.class));
     }
 
     protected ArtifactDependencyResolver createArtifactDependencyResolver() {

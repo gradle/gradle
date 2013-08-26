@@ -18,22 +18,45 @@ package org.gradle.performance.results;
 
 import org.gradle.performance.fixture.PerformanceResults;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TestExecutionHistory {
-    List<String> versions;
-    List<PerformanceResults> results;
+    private final String name;
+    private final List<String> versions;
+    private final List<PerformanceResults> newestFirst;
+    private List<PerformanceResults> oldestFirst;
 
-    public TestExecutionHistory(List<String> versions, List<PerformanceResults> results) {
+    public TestExecutionHistory(String name, List<String> versions, List<PerformanceResults> newestFirst) {
+        this.name = name;
         this.versions = versions;
-        this.results = results;
+        this.newestFirst = newestFirst;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public List<String> getBaselineVersions() {
         return versions;
     }
 
+    /**
+     * Returns results from most recent to least recent.
+     */
     public List<PerformanceResults> getResults() {
-        return results;
+        return newestFirst;
+    }
+
+    /**
+     * Returns results from least recent to most recent.
+     */
+    public List<PerformanceResults> getResultsOldestFirst() {
+        if (oldestFirst == null) {
+            oldestFirst = new ArrayList<PerformanceResults>(newestFirst);
+            Collections.reverse(oldestFirst);
+        }
+        return oldestFirst;
     }
 }

@@ -16,40 +16,35 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
+class FileSnapshotSerializer implements Serializer<FileCollectionSnapshot> {
 
-class FileSnapshotSerializer extends DataStreamBackedSerializer<FileCollectionSnapshot> {
+    private final DefaultFileSnapshotterSerializer defaultSnapshotSerializer = new DefaultFileSnapshotterSerializer();
+    private final OutputFilesSnapshotSerializer outputSnapshotSerializer = new OutputFilesSnapshotSerializer();
 
-    @Override
-    public FileCollectionSnapshot read(DataInput dataInput) throws Exception {
-        byte kind = dataInput.readByte();
+    public FileCollectionSnapshot read(Decoder decoder) throws Exception {
+        byte kind = decoder.readByte();
         if (kind == 1) {
-            DefaultFileSnapshotterSerializer serializer = new DefaultFileSnapshotterSerializer();
-            return serializer.read(dataInput);
+            return defaultSnapshotSerializer.read(decoder);
         } else if (kind == 2) {
-            OutputFilesSnapshotSerializer serializer = new OutputFilesSnapshotSerializer();
-            return serializer.read(dataInput);
+            return outputSnapshotSerializer.read(decoder);
         } else {
             throw new RuntimeException("Unable to read from file snapshot cache. Unexpected value found in the data stream.");
         }
     }
 
-    @Override
-    public void write(DataOutput dataOutput, FileCollectionSnapshot value) throws IOException {
+    public void write(Encoder encoder, FileCollectionSnapshot value) throws Exception {
         if (value instanceof DefaultFileSnapshotter.FileCollectionSnapshotImpl) {
-            dataOutput.writeByte(1);
+            encoder.writeByte((byte) 1);
             DefaultFileSnapshotter.FileCollectionSnapshotImpl cached = (DefaultFileSnapshotter.FileCollectionSnapshotImpl) value;
-            DefaultFileSnapshotterSerializer serializer = new DefaultFileSnapshotterSerializer();
-            serializer.write(dataOutput, cached);
+            defaultSnapshotSerializer.write(encoder, cached);
         } else if (value instanceof OutputFilesSnapshotter.OutputFilesSnapshot) {
-            dataOutput.writeByte(2);
+            encoder.writeByte((byte) 2);
             OutputFilesSnapshotter.OutputFilesSnapshot cached = (OutputFilesSnapshotter.OutputFilesSnapshot) value;
-            OutputFilesSnapshotSerializer serializer = new OutputFilesSnapshotSerializer();
-            serializer.write(dataOutput, cached);
+            outputSnapshotSerializer.write(encoder, cached);
         } else {
             throw new RuntimeException("Unable to write to file snapshot cache. Unexpected type to write: " + value);
         }

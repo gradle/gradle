@@ -20,6 +20,7 @@ import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.Factory
+import org.gradle.internal.jvm.Jvm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -45,6 +46,9 @@ class AntJavaCompiler implements org.gradle.api.internal.tasks.compile.Compiler<
                 target: spec.targetCompatibility,
                 source: spec.sourceCompatibility
         ]
+        if (spec.compileOptions.fork && !spec.compileOptions.forkOptions.executable) {
+            spec.compileOptions.forkOptions.executable = Jvm.current().javacExecutable
+        }
 
         Map options = otherArgs + spec.compileOptions.optionMap()
         LOGGER.info("Compiling with Ant javac task.")

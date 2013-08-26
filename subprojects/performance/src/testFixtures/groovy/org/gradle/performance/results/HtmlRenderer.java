@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.performance.results;
 
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.reporting.ReportRenderer;
+import org.gradle.util.GFileUtils;
 
-/**
- * Dependency management services with the same characteristic as {@link org.gradle.internal.service.scopes.BuildScopeServices}.
- */
-public interface TopLevelDependencyManagementServices extends ServiceRegistry {}
+import java.io.*;
+
+public class HtmlRenderer {
+    public <T> void render(T model, ReportRenderer<T, Writer> renderer, File outputFile) throws IOException {
+        GFileUtils.parentMkdirs(outputFile);
+        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
+        try {
+            renderer.render(model, writer);
+        } finally {
+            writer.close();
+        }
+    }
+}

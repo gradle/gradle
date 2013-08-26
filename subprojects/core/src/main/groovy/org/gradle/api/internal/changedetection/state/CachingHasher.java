@@ -16,9 +16,12 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.messaging.serialize.DataStreamBackedSerializer;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
 
-import java.io.*;
+import java.io.File;
+import java.io.Serializable;
 
 public class CachingHasher implements Hasher {
     private final PersistentIndexedCache<File, FileInfo> cache;
@@ -56,23 +59,18 @@ public class CachingHasher implements Hasher {
         }
     }
 
-    private static class FileInfoSerializer extends DataStreamBackedSerializer<FileInfo> {
-        @Override
-        public FileInfo read(DataInput input) throws IOException {
-            int hashLength = input.readInt();
-            byte[] hash = new byte[hashLength];
-            input.readFully(hash);
-            long timestamp = input.readLong();
-            long length = input.readLong();
+    private static class FileInfoSerializer implements Serializer<FileInfo> {
+        public FileInfo read(Decoder decoder) throws Exception {
+            byte[] hash = decoder.readBinary();
+            long timestamp = decoder.readLong();
+            long length = decoder.readLong();
             return new FileInfo(hash, length, timestamp);
         }
 
-        @Override
-        public void write(DataOutput output, FileInfo value) throws IOException {
-            output.writeInt(value.hash.length);
-            output.write(value.hash);
-            output.writeLong(value.timestamp);
-            output.writeLong(value.length);
+        public void write(Encoder encoder, FileInfo value) throws Exception {
+            encoder.writeBinary(value.hash);
+            encoder.writeLong(value.timestamp);
+            encoder.writeLong(value.length);
         }
     }
 }

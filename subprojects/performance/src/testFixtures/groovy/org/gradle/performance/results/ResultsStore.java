@@ -16,7 +16,11 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.performance.fixture.*;
+import org.gradle.internal.UncheckedException;
+import org.gradle.performance.fixture.BaselineVersion;
+import org.gradle.performance.fixture.DataReporter;
+import org.gradle.performance.fixture.MeasuredOperationList;
+import org.gradle.performance.fixture.PerformanceResults;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
@@ -24,6 +28,9 @@ import org.gradle.performance.measure.MeasuredOperation;
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.*;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -32,9 +39,19 @@ import java.util.*;
 public class ResultsStore implements DataReporter {
     private final File dbFile;
     private Connection connection;
+    private final long ignoreV17Before;
 
     public ResultsStore(File dbFile) {
         this.dbFile = dbFile;
+
+        // Ignore some broken samples before the given date
+        DateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        timeStampFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        try {
+            ignoreV17Before = timeStampFormat.parse("2013-07-03 00:00:00").getTime();
+        } catch (ParseException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public void report(final PerformanceResults results) {
@@ -42,7 +59,7 @@ public class ResultsStore implements DataReporter {
             withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws Exception {
                     long testId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm) values (?, ?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getTestTime()));
@@ -52,6 +69,8 @@ public class ResultsStore implements DataReporter {
                         statement.setObject(6, results.getArgs());
                         statement.setString(7, results.getOperatingSystem());
                         statement.setString(8, results.getJvm());
+                        statement.setString(9, results.getVcsBranch());
+                        statement.setString(10, results.getVcsCommit());
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -109,7 +128,7 @@ public class ResultsStore implements DataReporter {
                 public TestExecutionHistory execute(Connection connection) throws Exception {
                     List<PerformanceResults> results = new ArrayList<PerformanceResults>();
                     Set<String> allVersions = new TreeSet<String>();
-                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm from testExecution where testId = ? order by executionTime desc");
+                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
                     PreparedStatement buildsForTest = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes from testOperation where testExecution = ?");
                     executionsForName.setString(1, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
@@ -124,6 +143,8 @@ public class ResultsStore implements DataReporter {
                         performanceResults.setArgs(toArray(testExecutions.getObject(6)));
                         performanceResults.setOperatingSystem(testExecutions.getString(7));
                         performanceResults.setJvm(testExecutions.getString(8));
+                        performanceResults.setVcsBranch(testExecutions.getString(9));
+                        performanceResults.setVcsCommit(testExecutions.getString(10));
 
                         results.add(performanceResults);
 
@@ -131,6 +152,10 @@ public class ResultsStore implements DataReporter {
                         ResultSet builds = buildsForTest.executeQuery();
                         while (builds.next()) {
                             String version = builds.getString(1);
+                            if ("1.7".equals(version) && performanceResults.getTestTime() <= ignoreV17Before) {
+                                // Ignore some broken samples
+                                continue;
+                            }
                             BigDecimal executionTimeMs = builds.getBigDecimal(2);
                             BigDecimal heapUsageBytes = builds.getBigDecimal(3);
                             MeasuredOperation operation = new MeasuredOperation();
@@ -150,7 +175,7 @@ public class ResultsStore implements DataReporter {
                     buildsForTest.close();
                     executionsForName.close();
 
-                    return new TestExecutionHistory(new ArrayList<String>(allVersions), results);
+                    return new TestExecutionHistory(testName, new ArrayList<String>(allVersions), results);
                 }
             });
         } catch (Exception e) {
@@ -184,17 +209,24 @@ public class ResultsStore implements DataReporter {
             dbFile.getParentFile().mkdirs();
             Class.forName("org.h2.Driver");
             connection = DriverManager.getConnection(String.format("jdbc:h2:%s", dbFile.getAbsolutePath()), "sa", "");
-        }
-        try {
-            Statement statement = connection.createStatement();
-            statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, targetVersion varchar not null, testProject varchar not null, tasks array not null, args array not null, operatingSystem varchar not null, jvm varchar not null)");
-            statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
-            statement.close();
-        } catch (Exception e) {
-            connection.close();
-            connection = null;
+            try {
+                initSchema(connection);
+            } catch (Exception e) {
+                connection.close();
+                connection = null;
+                throw e;
+            }
         }
         return action.execute(connection);
+    }
+
+    private void initSchema(Connection connection) throws Exception {
+        Statement statement = connection.createStatement();
+        statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, targetVersion varchar not null, testProject varchar not null, tasks array not null, args array not null, operatingSystem varchar not null, jvm varchar not null)");
+        statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
+        statement.execute("alter table testExecution add column if not exists vcsBranch varchar not null default 'master'");
+        statement.execute("alter table testExecution add column if not exists vcsCommit varchar");
+        statement.close();
     }
 
     private interface ConnectionAction<T> {

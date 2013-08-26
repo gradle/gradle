@@ -1,0 +1,50 @@
+body {
+    font-family: sans-serif;
+    margin: 3em;
+}
+
+h2 {
+    font-size: 14pt;
+    margin-top: 2em;
+}
+
+table.history {
+    margin-top: 30px;
+    font-size: 10pt;
+}
+
+th {
+    text-align: left;
+}
+
+td {
+    white-space: nowrap;
+    padding-right: 8px;
+}
+
+#footer {
+    margin-top: 4em;
+    font-size: 8pt;
+}
+
+.test-execution {
+    font-size: 14pt;
+    padding-top: 1em;
+}
+
+.chart {
+    width: 950px;
+    height: 300px;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+#tooltip {
+    position: absolute;
+    display: none;
+    font-size: 10pt;
+    background-color: #fee;
+    border: solid 1px #fdd;
+    opacity: 0.80;
+    padding: 2px;
+}

@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.messaging.serialize.kryo
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.messaging.serialize.AbstractCodecTest
+import org.gradle.messaging.serialize.Decoder
+import org.gradle.messaging.serialize.Encoder
 
-public class DefaultTopLevelDependencyManagementServices extends DefaultServiceRegistry implements TopLevelDependencyManagementServices {
+class KryoBackedCodecTest extends AbstractCodecTest {
+    @Override
+    void encodeTo(OutputStream outputStream, Closure<Encoder> closure) {
+        def encoder = new KryoBackedEncoder(outputStream)
+        closure.call(encoder)
+        encoder.flush()
+    }
 
-    protected InMemoryDependencyMetadataCache createInMemoryDependencyMetadataCache() {
-        return new InMemoryDependencyMetadataCache();
+    @Override
+    void decodeFrom(InputStream inputStream, Closure<Decoder> closure) {
+        def decoder = new KryoBackedDecoder(inputStream)
+        closure.call(decoder)
     }
 }
