@@ -68,7 +68,6 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(TemporaryFileProvider) >> Mock(TemporaryFileProvider)
         _ * parent.get(ProjectAccessListener) >> Mock(ProjectAccessListener)
         _ * parent.get(FileResolver) >> Stub(FileResolver)
-        _ * parent.get(TopLevelDependencyManagementServices) >> Mock(TopLevelDependencyManagementServices)
     }
 
     private CacheRepository initCacheRepository() {
