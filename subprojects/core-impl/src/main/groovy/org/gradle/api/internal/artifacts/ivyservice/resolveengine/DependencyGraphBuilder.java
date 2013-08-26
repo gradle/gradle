@@ -150,15 +150,18 @@ public class DependencyGraphBuilder {
         ModuleVersionIdentifier root = resolveState.root.toId();
         listener.start(root);
 
+        // Visit the nodes
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             if (resolvedConfiguration.isSelected()) {
-                resolvedConfiguration.attachToParents(result);
+                result.newResolvedDependency(resolvedConfiguration.getResult());
                 resolvedConfiguration.collectFailures(failureState);
                 listener.resolvedModuleVersion(resolvedConfiguration.moduleRevision);
             }
         }
+        // Visit the edges
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             if (resolvedConfiguration.isSelected()) {
+                resolvedConfiguration.attachToParents(result);
                 listener.resolvedConfiguration(resolvedConfiguration.toId(), resolvedConfiguration.outgoingEdges);
             }
         }
@@ -686,7 +689,7 @@ public class DependencyGraphBuilder {
         final ResolveState resolveState;
         final Set<DependencyEdge> incomingEdges = new LinkedHashSet<DependencyEdge>();
         final Set<DependencyEdge> outgoingEdges = new LinkedHashSet<DependencyEdge>();
-        ResolvedConfigurationIdentifier result;
+        final ResolvedConfigurationIdentifier result;
         ModuleVersionSpec previousTraversal;
         Set<ResolvedArtifact> artifacts;
 
@@ -694,6 +697,7 @@ public class DependencyGraphBuilder {
             this.moduleRevision = moduleRevision;
             this.resolveState = resolveState;
             this.metaData = moduleRevision.metaData.getConfiguration(configurationName);
+            result = new ResolvedConfigurationIdentifier(moduleRevision.id, configurationName);
             moduleRevision.addConfiguration(this);
         }
 
@@ -713,11 +717,6 @@ public class DependencyGraphBuilder {
         }
 
         public ResolvedConfigurationIdentifier getResult() {
-            if (result == null) {
-                result = new ResolvedConfigurationIdentifier(moduleRevision.id, metaData.getName());
-                resolveState.builder.newResolvedDependency(result);
-            }
-
             return result;
         }
 
