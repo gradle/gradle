@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyRes
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.cache.CacheAccess
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
@@ -48,10 +47,10 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final ModuleMetadataProcessor metadataProcessor = Mock()
     final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory = Mock()
 
+
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
-            metaDataParser, metadataProcessor, legacyDependencyResolverRepositoryFactory,
-            Mock(CacheAccess)
+            metaDataParser, metadataProcessor, legacyDependencyResolverRepositoryFactory
     )
 
     def testCreateResolverWithStringDescription() {

@@ -52,9 +52,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ResolutionResu
 import org.gradle.api.internal.artifacts.mvnsettings.*;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryArtifactCache;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.legacy.CustomIvyResolverRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.legacy.DownloadingRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.legacy.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -246,8 +246,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         get(ArtifactRevisionIdFileStore.class),
                         new TmpDirTemporaryFileProvider(),
                         get(CacheLockingManager.class)
-                ),
-                get(CacheLockingManager.class)
+                )
         );
     }
 
@@ -348,8 +347,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         get(LocallyAvailableResourceFinder.class),
                         new DefaultMetaDataParser(new ParserRegistry()),
                         getComponentMetadataHandler(),
-                        get(LegacyDependencyResolverRepositoryFactory.class),
-                        get(CacheLockingManager.class)
+                        get(LegacyDependencyResolverRepositoryFactory.class)
                 );
             }
 
