@@ -26,6 +26,7 @@ import spock.lang.Unroll
 class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
+    @Requires(TestPrecondition.JDK6)
     @Unroll
     def "scala java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
         given:
