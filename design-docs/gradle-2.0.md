@@ -55,6 +55,10 @@ The public API for launching Gradle is now the tooling API. The `GradleBuild` ta
 
 The following stories are candidates to be included in Gradle 2.0.
 
+## Remove the Ant-task based Scala compiler
+
+* Change the default for `useAnt` to `false` and deprecate the `useAnt` property.
+
 ## Decouple publishing DSL from Maven Ant tasks
 
 * Change the old publishing DSL to use the Maven 3 classes instead of Maven 2 classes. This affects:
