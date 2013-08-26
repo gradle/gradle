@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.performance.fixture.BaselineVersion;
 import org.gradle.performance.fixture.DataReporter;
 import org.gradle.performance.fixture.MeasuredOperationList;
@@ -27,10 +28,10 @@ import org.gradle.performance.measure.MeasuredOperation;
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * A {@link DataReporter} implementation that stores results in an H2 relational database.
@@ -38,9 +39,19 @@ import java.util.TreeSet;
 public class ResultsStore implements DataReporter {
     private final File dbFile;
     private Connection connection;
+    private final long ignoreV17Before;
 
     public ResultsStore(File dbFile) {
         this.dbFile = dbFile;
+
+        // Ignore some broken samples before the given date
+        DateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        timeStampFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        try {
+            ignoreV17Before = timeStampFormat.parse("2013-07-03 00:00:00").getTime();
+        } catch (ParseException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public void report(final PerformanceResults results) {
@@ -141,6 +152,10 @@ public class ResultsStore implements DataReporter {
                         ResultSet builds = buildsForTest.executeQuery();
                         while (builds.next()) {
                             String version = builds.getString(1);
+                            if ("1.7".equals(version) && performanceResults.getTestTime() <= ignoreV17Before) {
+                                // Ignore some broken samples
+                                continue;
+                            }
                             BigDecimal executionTimeMs = builds.getBigDecimal(2);
                             BigDecimal heapUsageBytes = builds.getBigDecimal(3);
                             MeasuredOperation operation = new MeasuredOperation();
