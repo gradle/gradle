@@ -15,12 +15,14 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -51,12 +53,15 @@ abstract public class AvailableJavaHomes {
         }
 
         if (OperatingSystem.current().isMacOsX()) {
-            File registeredJvms = new File("/Library/Java/JavaVirtualMachines");
-            if (registeredJvms.isDirectory()) {
-                for (File candidate : registeredJvms.listFiles()) {
-                    javaHome = GFileUtils.canonicalise(new File(candidate, "Contents/Home"));
-                    if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome, "bin/java").isFile()) {
-                        return javaHome;
+            // Search in the install dir used by the Apple jvms, followed by the install dir used by the OpenJDK jvms
+            List<File> installDirs = Arrays.asList(new File("/System/Library/Java/JavaVirtualMachines"), new File("/Library/Java/JavaVirtualMachines"));
+            for (File installDir : installDirs) {
+                if (installDir.isDirectory()) {
+                    for (File candidate : installDir.listFiles()) {
+                        javaHome = GFileUtils.canonicalise(new File(candidate, "Contents/Home"));
+                        if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome, "bin/java").isFile()) {
+                            return javaHome;
+                        }
                     }
                 }
             }
@@ -105,25 +110,13 @@ abstract public class AvailableJavaHomes {
      */
     public static File getBestJre() {
         Jvm jvm = Jvm.current();
-        File jreHome;
-
-        if (OperatingSystem.current().isWindows()) {
-            if (jvm.getJavaVersion().isJava6()) {
-                jreHome = new File(jvm.getJavaHome().getParentFile(), "jre6");
-                if (jreHome.isDirectory() && new File(jreHome, "bin/java.exe").isFile()) {
-                    return jreHome;
-                }
-            }
-            if (jvm.getJavaVersion().isJava7()) {
-                jreHome = new File(jvm.getJavaHome().getParentFile(), "jre7");
-                if (jreHome.isDirectory() && new File(jreHome, "bin/java.exe").isFile()) {
-                    return jreHome;
-                }
-            }
+        Jre jre = jvm.getStandaloneJre();
+        if (jre != null) {
+            return jre.getHomeDir();
         }
-        jreHome = new File(jvm.getJavaHome(), "jre");
-        if (jreHome.isDirectory()) {
-            return jreHome;
+        jre = jvm.getJre();
+        if (jre != null) {
+            return jre.getHomeDir();
         }
         return null;
     }
