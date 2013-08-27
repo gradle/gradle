@@ -77,7 +77,6 @@ public class NativeBinariesPlugin implements Plugin<Project> {
     private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinaryInternal binary) {
         AbstractLinkTask linkTask = project.task(binary.namingScheme.getTaskName("link"), type: linkTaskType(binary)) {
              description = "Links ${binary}"
-             group = BasePlugin.BUILD_GROUP
          }
 
         linkTask.toolChain = binary.toolChain
@@ -102,7 +101,6 @@ public class NativeBinariesPlugin implements Plugin<Project> {
         def namingScheme = ((NativeBinaryInternal) binary).namingScheme
         CreateStaticLibrary task = project.task(namingScheme.getTaskName("create"), type: CreateStaticLibrary) {
              description = "Creates ${binary}"
-             group = BasePlugin.BUILD_GROUP
          }
 
         task.toolChain = binary.toolChain
