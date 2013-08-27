@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.idea.IdeaProject
-import spock.lang.Ignore
 
 @ToolingApiVersion('>=1.8')
 @TargetGradleVersion('>=1.8')
@@ -44,16 +43,30 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         ideaModel.name == "hello-world"
         ideaModel.modules.size() == 1
+
+        when:
+        def nullModel = withConnection { it.action(new NullAction()).run() }
+
+        then:
+        nullModel == null
     }
 
-    @Ignore("work in progress")
     def "client receives the exception thrown by the build action"() {
         when:
         withConnection { it.action(new BrokenAction()).run() }
 
         then:
+        // TODO:ADAM - clean this up
         GradleConnectionException e = thrown()
-        e.cause instanceof BrokenAction.CustomException
+        causes(e).any { it.class.name == BrokenAction.CustomException.name }
+    }
+
+    def causes(Throwable throwable) {
+        def causes = []
+        for (def c = throwable.cause; c != null; c = c.cause) {
+            causes << c
+        }
+        return causes
     }
 
     @TargetGradleVersion('<1.8')
