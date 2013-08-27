@@ -25,3 +25,7 @@ Connection.receive(timeoutValue, timeoutUnits)
     Feels like it might be better to have some service that can run things at scheduled times (a ScheduledExecutorService, say), and just schedule a registry check to run every few minutes. If it notices the entry has gone, it just calls requestStop() on the coordinator and the daemon will stop when it becomes idle. This way we keep this concept entirely out of the coordinator.
     I'd think about implementing the idle timeout in a similar way - it's just another sentinel that is scheduled to run a certain time after a build command finishes. If the daemon is still idle, it calls forceStop().
     There's a bunch of other things we want to do periodically in the daemon - checking for changes to the model, clean up the dependency cache, check if repositories are online, check for new versions of dependencies, that kind of thing.
+
+# Native daemon client
+
+Use our C support to build a native equivalent to `gradle --daemon`.
