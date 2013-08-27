@@ -40,7 +40,7 @@ public class CommandLineCompilerArgumentsToOptionFile<T extends BinaryToolSpec> 
 
     public void collectArguments(T spec, ArgCollector collector) {
         GFileUtils.mkdirs(spec.getTempDir());
-        File optionsFile = new File(spec.getTempDir(), "compiler-options.txt");
+        File optionsFile = new File(spec.getTempDir(), "inputs.txt");
         try {
             PrintWriter writer = new PrintWriter(optionsFile);
             ArgWriter argWriter = argWriterFactory.transform(writer);
