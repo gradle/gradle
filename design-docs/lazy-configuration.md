@@ -276,4 +276,4 @@ Reuse the domain object lifecycle mechanism to warn when:
 - Use to order the various parts of the IDE plugins.
 - Use in the sonar-runner plugin to determine the sonar properties.
 - Detect rules which are mutating something outside of scope (eg `publishing { someTask { ... } }`)
-
+- Allow tasks to be attached to a model object, for each action that can be performed on that object.
