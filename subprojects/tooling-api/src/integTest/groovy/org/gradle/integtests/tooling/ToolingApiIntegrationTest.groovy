@@ -24,7 +24,6 @@ import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
@@ -33,7 +32,6 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
     final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentFinalRelease
-    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     TestFile projectDir
 
@@ -140,18 +138,6 @@ allprojects {
 
         then:
         model != null
-    }
-
-    def "tooling api reports an error when the specified gradle version does not support the tooling api"() {
-        def distroZip = buildContext.distribution('0.9.2').binDistribution
-
-        when:
-        toolingApi.withConnector { connector -> connector.useDistribution(distroZip.toURI()) }
-        toolingApi.maybeFailWithConnection { connection -> connection.getModel(GradleProject.class) }
-
-        then:
-        UnsupportedVersionException e = thrown()
-        e.message == "The specified Gradle distribution '${distroZip.toURI()}' is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
     }
 
     @Issue("GRADLE-2419")
