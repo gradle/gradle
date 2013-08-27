@@ -51,6 +51,6 @@ public abstract class AbstractConsumerConnection implements ConsumerConnection {
     public abstract void configure(ConsumerConnectionParameters connectionParameters);
 
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        throw Exceptions.unsupportedFeature("build actions", getVersionDetails().getVersion());
+        throw Exceptions.unsupportedFeature("execution of build actions provided by the tooling API client", getVersionDetails().getVersion(), "1.8");
     }
 }

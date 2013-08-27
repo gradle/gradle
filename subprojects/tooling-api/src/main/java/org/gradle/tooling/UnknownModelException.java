@@ -28,4 +28,8 @@ public class UnknownModelException extends UnsupportedVersionException {
     public UnknownModelException(String message) {
         super(message);
     }
+
+    public UnknownModelException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

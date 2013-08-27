@@ -48,7 +48,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
         VersionDetails versionDetails = getVersionDetails();
         if (!versionDetails.isModelSupported(modelType)) {
             //don't bother asking the provider for this model
-            throw Exceptions.unknownModel(modelType, versionDetails.getVersion());
+            throw Exceptions.unsupportedModel(modelType, versionDetails.getVersion());
         }
         Class<?> protocolType = modelMapping.getProtocolType(modelType);
         return connection.getTheModel(protocolType, operationParameters);

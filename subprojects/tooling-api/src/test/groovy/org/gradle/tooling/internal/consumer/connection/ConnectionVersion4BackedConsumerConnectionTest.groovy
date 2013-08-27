@@ -15,7 +15,9 @@
  */
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.tooling.BuildAction
 import org.gradle.tooling.UnknownModelException
+import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment
@@ -164,7 +166,19 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
 
         then:
         UnknownModelException e = thrown()
-        e.message == /The version of Gradle you are using (1.0-milestone-5) does not support building a model of type 'CustomModel'./
+        e.message == /The version of Gradle you are using (1.0-milestone-5) does not support building a model of type 'CustomModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions./
+    }
+
+    def "fails when unsupported model is requested"() {
+        metaData.version >> "1.0-milestone-5"
+        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
+
+        when:
+        connection.run(ProjectOutcomes.class, parameters)
+
+        then:
+        UnknownModelException e = thrown()
+        e.message == /The version of Gradle you are using (1.0-milestone-5) does not support building a model of type 'ProjectOutcomes'. Support for building 'ProjectOutcomes' models was added in Gradle 1.2 and is available in all later versions./
     }
 
     def "fails when both tasks and model requested"() {
@@ -180,6 +194,21 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         then:
         UnsupportedOperationConfigurationException e = thrown()
         e.message.startsWith("Unsupported configuration: modelBuilder.forTasks()")
+    }
+
+    def "fails when build action requested"() {
+        metaData.version >> "1.0-milestone-5"
+        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
+
+        given:
+        parameters.tasks >> ['a']
+
+        when:
+        connection.run(Stub(BuildAction), parameters)
+
+        then:
+        UnsupportedVersionException e = thrown()
+        e.message == /The version of Gradle you are using (1.0-milestone-5) does not support execution of build actions provided by the tooling API client. Support for this was added in Gradle 1.8 and is available in all later versions./
     }
 
     def "fails when stdin provided"() {

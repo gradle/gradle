@@ -86,6 +86,22 @@ class ModelMappingTest extends Specification {
         CustomModel                | CustomModel.name
     }
 
+    def "maps model type to version it was added in"() {
+        expect:
+        mapping.getVersionAdded(modelType) == since
+
+        where:
+        modelType                  | since
+        Void                       | "1.0-milestone-3"
+        HierarchicalEclipseProject | "1.0-milestone-3"
+        EclipseProject             | "1.0-milestone-3"
+        IdeaProject                | "1.0-milestone-5"
+        GradleProject              | "1.0-milestone-5"
+        BasicIdeaProject           | "1.0-milestone-5"
+        BuildEnvironment           | "1.0-milestone-8"
+        ProjectOutcomes            | "1.2"
+        CustomModel                | null
+    }
 }
 
 interface CustomModel {}
