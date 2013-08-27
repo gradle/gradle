@@ -39,9 +39,6 @@
                 <td>macros</td>
             </tr>
             <tr>
-                <td>compilerArgs</td>
-            </tr>
-            <tr>
                 <td>linkerArgs</td>
             </tr>
             <tr>
@@ -65,9 +62,6 @@
             </tr>
             <tr>
                 <td>define</td>
-            </tr>
-            <tr>
-                <td>compilerArgs</td>
             </tr>
             <tr>
                 <td>linkerArgs</td>

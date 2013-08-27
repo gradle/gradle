@@ -26,6 +26,7 @@ import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.nativecode.base.NativeBinary
 import org.gradle.nativecode.base.NativeDependencySet
 import org.gradle.nativecode.base.SharedLibraryBinary
+import org.gradle.nativecode.base.ToolChainTool
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.language.c.CSourceSet
 import org.gradle.nativecode.language.c.internal.DefaultCSourceSet
@@ -51,6 +52,18 @@ class CLangPlugin implements Plugin<ProjectInternal> {
                 applyConventions(project, functionalSourceSet)
             }
         });
+
+        // TODO:DAZ Clean this up (would be simpler if it could just apply to all binaries)
+        project.executables.all {
+            it.binaries.all {
+                ext.cCompiler = new ToolChainTool()
+            }
+        }
+        project.libraries.all {
+            it.binaries.all {
+                ext.cCompiler = new ToolChainTool()
+            }
+        }
 
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
             binary.source.withType(CSourceSet).all { CSourceSet sourceSet ->
@@ -89,7 +102,7 @@ class CLangPlugin implements Plugin<ProjectInternal> {
 
         compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
         compileTask.conventionMapping.macros = { binary.macros }
-        compileTask.conventionMapping.compilerArgs = { binary.compilerArgs }
+        compileTask.conventionMapping.compilerArgs = { binary.cCompiler.args }
 
         compileTask
     }

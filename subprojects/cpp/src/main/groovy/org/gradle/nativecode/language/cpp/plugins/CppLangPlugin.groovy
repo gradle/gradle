@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.cpp.plugins
-
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
@@ -26,6 +25,7 @@ import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.nativecode.base.NativeBinary
 import org.gradle.nativecode.base.NativeDependencySet
 import org.gradle.nativecode.base.SharedLibraryBinary
+import org.gradle.nativecode.base.ToolChainTool
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.language.cpp.CppSourceSet
 import org.gradle.nativecode.language.cpp.internal.DefaultCppSourceSet
@@ -51,6 +51,19 @@ class CppLangPlugin implements Plugin<ProjectInternal> {
                 applyConventions(project, functionalSourceSet)
             }
         });
+
+        // TODO:DAZ It's ugly that we can't do this as project.binaries.all, but this is the way I could
+        // add the cppCompiler in time to allow it to be configured within the component.binaries.all block.
+        project.executables.all {
+            it.binaries.all { binary ->
+                binary.ext.cppCompiler = new ToolChainTool()
+            }
+        }
+        project.libraries.all {
+            it.binaries.all { binary ->
+                binary.ext.cppCompiler = new ToolChainTool()
+            }
+        }
 
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
             binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
@@ -87,7 +100,7 @@ class CppLangPlugin implements Plugin<ProjectInternal> {
 
         compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
         compileTask.conventionMapping.macros = { binary.macros }
-        compileTask.conventionMapping.compilerArgs = { binary.compilerArgs }
+        compileTask.conventionMapping.compilerArgs = { binary.cppCompiler.args }
 
         compileTask
     }

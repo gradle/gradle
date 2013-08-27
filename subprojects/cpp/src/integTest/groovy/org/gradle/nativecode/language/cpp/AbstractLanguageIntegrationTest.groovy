@@ -57,7 +57,8 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             executables {
                 main {
                     binaries.all {
-                        compilerArgs "-DFRENCH"
+                        cppCompiler.args "-DFRENCH"
+                        cCompiler.args "-DFRENCH"
                     }
                 }
             }

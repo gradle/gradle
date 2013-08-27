@@ -17,6 +17,7 @@
 package org.gradle.nativecode.language.cpp.plugins
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.nativecode.base.NativeBinary
 import org.gradle.nativecode.base.SharedLibraryBinary
 import org.gradle.nativecode.base.StaticLibraryBinary
 import org.gradle.nativecode.base.tasks.CreateStaticLibrary
@@ -109,10 +110,10 @@ class CppPluginTest extends Specification {
             apply plugin: CppPlugin
             executables {
                 test {
-                    binaries.all {
-                        define "NDEBUG"
-                        compilerArgs "ARG1", "ARG2"
-                        linkerArgs "LINK1", "LINK2"
+                    binaries.all { NativeBinary binary ->
+                        binary.define "NDEBUG"
+                        binary.cppCompiler.args "ARG1", "ARG2"
+                        binary.linkerArgs "LINK1", "LINK2"
                     }
                 }
             }
@@ -161,7 +162,7 @@ class CppPluginTest extends Specification {
                 test {
                     binaries.all {
                         define "NDEBUG"
-                        compilerArgs "ARG1", "ARG2"
+                        cppCompiler.args "ARG1", "ARG2"
                     }
                     binaries.withType(SharedLibraryBinary) {
                         linkerArgs "LINK1", "LINK2"

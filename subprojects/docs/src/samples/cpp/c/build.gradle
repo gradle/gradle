@@ -58,11 +58,11 @@ binaries.all {
 
     // Define toolchain-specific compiler and linker options
     if (toolChain in Gcc) {
-        compilerArgs "-O2"
+        cCompiler.args "-O2"
         linkerArgs "-S"
     }
     if (toolChain in VisualCpp) {
-        compilerArgs "/Z7"
+        cCompiler.args "/Z7"
         linkerArgs "/DEBUG"
     }
 }

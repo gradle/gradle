@@ -36,17 +36,17 @@ sources.exe.cpp.lib libraries.hello
 */
 
 // START SNIPPET all-binaries
-binaries.all {
+binaries.all { binary ->
     // Define a preprocessor macro for every binary
-    define "NDEBUG"
+    binary.define "NDEBUG"
 
     // Define toolchain-specific compiler and linker options
     if (toolChain in Gcc) {
-        compilerArgs "-O2", "-fno-access-control"
+        cppCompiler.args "-O2", "-fno-access-control"
         linkerArgs "-S"
     }
     if (toolChain in VisualCpp) {
-        compilerArgs "/Z7"
+        cppCompiler.args "/Z7"
         linkerArgs "/DEBUG"
     }
 }

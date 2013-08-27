@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativecode.base;
 
-apply plugin: 'cpp'
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-def os = org.gradle.internal.os.OperatingSystem.current()
-def visualCpp = toolChains.defaultToolChain.name == "visualCpp"
-def platform = os.macOsX ? "i386_osx"
-             : os.linux ? "x64_gcc"
-             : visualCpp ? "i386_masm"
-             : "i386_gcc"
+/**
+ * A tool that is part of a tool chain (compiler, linker, assembler, etc).
+ */
+public class ToolChainTool {
+    private final ArrayList<String> args = new ArrayList<String>();
 
-sources {
-    main {
-        asm {
-            source.srcDir "src/main/asm_${platform}"
-        }
+    /**
+     * The arguments passed when executing this tool.
+     */
+    public List<String> getArgs() {
+        return args;
+    }
+
+    /**
+     * Adds a number of arguments to be passed to the tool.
+     */
+    public void args(String... args) {
+        Collections.addAll(this.args, args);
     }
 }
-executables {
-    main {}
-}
-
-if (os.macOsX) {
-    binaries.all {
-        cCompiler.args "-m32"
-        assembler.args "-arch", "i386"
-        linkerArgs "-no_pie", "-arch", "i386"
-    }
-}
-

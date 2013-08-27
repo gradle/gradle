@@ -65,10 +65,10 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                 main {
                     binaries.all {
                         if (toolChain in VisualCpp) {
-                            compilerArgs '/Zi'
+                            cppCompiler.args '/Zi'
                             linkerArgs '/DEBUG'
                         } else {
-                            compilerArgs '-g'
+                            cppCompiler.args '-g'
                         }
                     }
                 }

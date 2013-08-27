@@ -31,16 +31,18 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
             // 32bit assembly on osx
             if (OperatingSystem.current().isMacOsX()) {
                 return """
-                        compilerArgs "-m32"
-                        assemblerArgs "-arch", "i386"
+                        cCompiler.args "-m32"
+                        cppCompiler.args "-m32"
+                        assembler.args "-arch", "i386"
                         linkerArgs "-no_pie", "-arch", "i386"
                 """
             }
             // 32bit gcc assembly on windows
             if (OperatingSystem.current().isWindows()) {
                 return """
-                        compilerArgs "-m32"
-                        assemblerArgs "-march", "i386"
+                        cCompiler.args "-m32"
+                        cppCompiler.args "-m32"
+                        assembler.args "-march", "i386"
                 """
             }
         }

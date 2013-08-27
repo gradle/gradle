@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.asm.plugins
-
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
@@ -24,6 +23,7 @@ import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.nativecode.base.NativeBinary
+import org.gradle.nativecode.base.ToolChainTool
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.language.asm.AssemblerSourceSet
 import org.gradle.nativecode.language.asm.internal.DefaultAssemblerSourceSet
@@ -49,6 +49,18 @@ class AssemblerLangPlugin implements Plugin<ProjectInternal> {
                 applyConventions(project, functionalSourceSet)
             }
         });
+
+        // TODO:DAZ Clean this up
+        project.executables.all {
+            it.binaries.all {
+                ext.assembler = new ToolChainTool()
+            }
+        }
+        project.libraries.all {
+            it.binaries.all {
+                ext.assembler = new ToolChainTool()
+            }
+        }
 
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
             binary.source.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->
@@ -78,7 +90,7 @@ class AssemblerLangPlugin implements Plugin<ProjectInternal> {
         assembleTask.source sourceSet.source
 
         assembleTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
-        assembleTask.conventionMapping.assemblerArgs = { binary.assemblerArgs }
+        assembleTask.conventionMapping.assemblerArgs = { binary.assembler.args }
 
         assembleTask
     }

@@ -162,7 +162,10 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         buildFile << """
             libraries {
                 hello {
-                    binaries.all { compilerArgs '-DFRENCH' }
+                    binaries.all {
+                        cCompiler.args '-DFRENCH'
+                        cppCompiler.args '-DFRENCH'
+                    }
                 }
             }
 """
@@ -293,7 +296,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         given:
         buildFile << """
-            binaries.all { compilerArgs '/Zi'; linkerArgs '/DEBUG'; }
+            binaries.all { cppCompiler.args '/Zi'; cCompiler.args '/Zi'; linkerArgs '/DEBUG'; }
         """
         run "mainExecutable"
 
@@ -302,7 +305,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         when:
         buildFile << """
-            binaries.all { compilerArgs.clear(); linkerArgs.clear(); }
+            binaries.all { cCompiler.args.clear(); cppCompiler.args.clear(); linkerArgs.clear(); }
         """
         run "mainExecutable"
 
