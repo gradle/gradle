@@ -16,6 +16,9 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.UnknownModelException
+import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
@@ -32,7 +35,9 @@ import spock.lang.Specification
 
 class ModelBuilderBackedConsumerConnectionTest extends Specification {
     final target = Mock(TestModelBuilder) {
-        getMetaData() >> Mock(ConnectionMetaDataVersion1)
+        getMetaData() >> Mock(ConnectionMetaDataVersion1) {
+            getVersion() >> '1.2'
+        }
     }
     final adapter = Stub(ProtocolToModelAdapter)
     final modelMapping = Mock(ModelMapping)
@@ -67,6 +72,36 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         then:
         1 * modelMapping.getModelIdentifierFromModelType(GradleProject) >> modelIdentifier
         1 * target.getModel(modelIdentifier, parameters) >> Stub(BuildResult)
+    }
+
+    def "maps internal unknown model exception to API exception"() {
+        def parameters = Stub(ConsumerOperationParameters)
+        def modelIdentifier = Stub(ModelIdentifier)
+
+        given:
+        _ * modelMapping.getModelIdentifierFromModelType(GradleProject) >> modelIdentifier
+        _ * target.getModel(modelIdentifier, parameters) >> { throw new InternalUnsupportedModelException() }
+
+        when:
+        connection.run(GradleProject, parameters)
+
+        then:
+        UnknownModelException e = thrown()
+        e.message == /No model of type 'GradleProject' is available in this build./
+    }
+
+    def "fails when build action requested"() {
+        def parameters = Stub(ConsumerOperationParameters)
+
+        given:
+        parameters.tasks >> ['a']
+
+        when:
+        connection.run(Stub(BuildAction), parameters)
+
+        then:
+        UnsupportedVersionException e = thrown()
+        e.message == /The version of Gradle you are using (1.2) does not support execution of build actions provided by the tooling API client. Support for this was added in Gradle 1.8 and is available in all later versions./
     }
 
     interface TestModelBuilder extends ModelBuilder, ConnectionVersion4, ConfigurableConnection {

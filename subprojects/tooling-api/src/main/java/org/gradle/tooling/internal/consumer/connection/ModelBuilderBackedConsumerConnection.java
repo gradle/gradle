@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.ModelBuilder;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.*;
 
 /**
  * An adapter for a {@link ModelBuilder} based provider.
@@ -41,7 +40,13 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
-        Object model = builder.getModel(modelIdentifier, operationParameters).getModel();
+        BuildResult<?> result;
+        try {
+            result = builder.getModel(modelIdentifier, operationParameters);
+        } catch (InternalUnsupportedModelException e) {
+            throw new UnknownModelException(String.format("No model of type '%s' is available in this build.", type.getSimpleName()), e);
+        }
+        Object model = result.getModel();
         return adapter.adapt(type, model);
     }
 
