@@ -259,3 +259,21 @@ Reuse the domain object lifecycle mechanism to warn when:
 # Open issues
 
 - Fire events before and after configuration of domain objects.
+
+# Spike
+
+- Rules that operate on collections.
+- Finer grained models and rules.
+- DSL to configure tasks. Have this triggered on demand as tasks are requested.
+- Extension <-> model bridging.
+- Views.
+- Rule ordering to close things as late as possible.
+- Change detection.
+- Persistence, immutable views, etc.
+- Determine an id and display name for a rule.
+- Use to build the tooling API models. Don't configure things that aren't required.
+- Use to replace task placeholders.
+- Use to order the various parts of the IDE plugins.
+- Use in the sonar-runner plugin to determine the sonar properties.
+- Detect rules which are mutating something outside of scope (eg `publishing { someTask { ... } }`)
+
