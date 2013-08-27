@@ -29,7 +29,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
 
 import java.io.*;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
@@ -59,7 +58,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         synchronized (lock) {
             SimpleBinaryStore store = stores.get(storeKey);
             if (store == null) {
-                File storeFile = temp.createTemporaryFile("gradle", UUID.randomUUID().toString() + ".bin");
+                File storeFile = temp.createTemporaryFile("gradle", ".bin");
                 storeFile.deleteOnExit();
                 store = new SimpleBinaryStore(storeFile);
                 stores.put(storeKey, store);
@@ -78,7 +77,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         newModelCache.close();
     }
 
-    public Store<TransientConfigurationResults> createOldModelCache(final ConfigurationInternal configuration) {
+    public Store<TransientConfigurationResults> createOldModelCache(ConfigurationInternal configuration) {
         return oldModelCache.createCachedStore(configuration.getPath());
     }
 

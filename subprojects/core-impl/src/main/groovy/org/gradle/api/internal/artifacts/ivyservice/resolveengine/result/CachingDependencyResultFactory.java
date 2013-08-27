@@ -51,7 +51,6 @@ public class CachingDependencyResultFactory {
         if (!resolvedDependencies.containsKey(key)) {
             resolvedDependencies.put(key, new DefaultResolvedDependencyResult(requested, selected, from));
         }
-        DefaultResolvedDependencyResult out = resolvedDependencies.get(key);
-        return out;
+        return resolvedDependencies.get(key);
     }
 }
