@@ -26,7 +26,11 @@ and this information is read from the disk.
 
 ### Tooling API
 
-Information about the build script for a project is now available via the `GradleProject` tooling API model.
+This release includes a number of improvements to the tooling API. The tooling API is used to embed Gradle in applications such as IDEs, CI servers and other
+applications.
+
+* Information about the build script for a project is now available via the `GradleProject` tooling API model.
+* Batch operations can be performed in a single request, improving tooling performance.
 
 ### Early preparations for Gradle 2.0
 
