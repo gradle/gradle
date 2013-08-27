@@ -19,7 +19,7 @@ package org.gradle.tooling;
 import org.gradle.api.Incubating;
 
 /**
- * Provides a {@link BuildAction} various ways to control and access a Gradle build.
+ * Provides a {@link BuildAction} various ways to control a Gradle build and access information about the build.
  *
  * @since 1.8
  */

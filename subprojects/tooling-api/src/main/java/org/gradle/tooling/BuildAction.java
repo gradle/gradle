@@ -23,6 +23,8 @@ import java.io.Serializable;
 /**
  * An action that executes against a Gradle build and produces a result of type {@code T}.
  *
+ * <p>You can execute a {@code BuildAction} using the {@link ProjectConnection#action(BuildAction)} method.</p>
+ *
  * @param <T> The type of result produced by this action.
  * @since 1.8
  */
