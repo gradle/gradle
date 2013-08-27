@@ -16,5 +16,10 @@
 
 package org.gradle.tooling.internal.protocol;
 
+/**
+ * Thrown when the requested model is not available.
+ *
+ * @since 1.6-rc-1
+ */
 public class InternalUnsupportedModelException extends RuntimeException {
 }
