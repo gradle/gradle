@@ -69,6 +69,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         return causes
     }
 
+    @ToolingApiVersion('current')
     @TargetGradleVersion('<1.8')
     def "gives reasonable error message when target Gradle version does not support build actions"() {
         when:
@@ -76,6 +77,6 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support build actions."
+        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support execution of build actions provided by the tooling API client. Support for this was added in Gradle 1.8 and is available in all later versions."
     }
 }
