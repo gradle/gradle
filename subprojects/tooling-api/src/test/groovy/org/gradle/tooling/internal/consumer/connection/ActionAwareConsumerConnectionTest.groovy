@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
@@ -50,6 +51,23 @@ class ActionAwareConsumerConnectionTest extends Specification {
             }
         }
         1 * action.execute({ it instanceof BuildControllerAdapter }) >> 'result'
+    }
+
+    def "adapts build action failure"() {
+        def action = Mock(BuildAction)
+        def parameters = Stub(ConsumerOperationParameters)
+        def failure = new RuntimeException()
+
+        when:
+        connection.run(action, parameters)
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message == /The supplied build action failed with an exception./
+        e.cause == failure
+
+        and:
+        1 * target.run(_, parameters) >> { throw new InternalBuildActionFailureException(failure) }
     }
 
     interface TestModelBuilder extends ModelBuilder, ConnectionVersion4, ConfigurableConnection, InternalBuildActionExecutor {

@@ -37,12 +37,13 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
      *          {@link #setStandardInput(java.io.InputStream)}, {@link #setJavaHome(java.io.File)},
      *          {@link #setJvmArguments(String...)}.
      * @throws UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
+     * @throws BuildActionFailureException When the build action fails with an exception.
      * @throws BuildException On some failure executing the Gradle build.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.
      * @since 1.8
      */
-    T run() throws GradleConnectionException, IllegalStateException, UnsupportedOperationConfigurationException, UnsupportedVersionException, UnsupportedBuildArgumentException, BuildException;
+    T run() throws GradleConnectionException, IllegalStateException, UnsupportedOperationConfigurationException, UnsupportedVersionException, UnsupportedBuildArgumentException, BuildException, BuildActionFailureException;
 
     /**
      * Starts executing the action, passing the result to the given handler when complete. This method returns immediately, and the result is later passed to the given handler's {@link

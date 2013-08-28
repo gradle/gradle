@@ -36,8 +36,9 @@ public interface InternalBuildActionExecutor extends InternalProtocolInterface {
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.8-rc-1.</p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.8-rc-1.</p>
      *
-     * @throws org.gradle.tooling.internal.protocol.BuildExceptionVersion1 On build failure.
-     * @throws org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
+     * @throws BuildExceptionVersion1 On build failure.
+     * @throws InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
+     * @throws InternalBuildActionFailureException When the action fails with an exception.
      * @throws IllegalStateException When this connection has been stopped.
      * @since 1.8-rc-1
      */
@@ -45,5 +46,6 @@ public interface InternalBuildActionExecutor extends InternalProtocolInterface {
                            BuildParameters operationParameters) throws
             BuildExceptionVersion1,
             InternalUnsupportedBuildArgumentException,
+            InternalBuildActionFailureException,
             IllegalStateException;
 }

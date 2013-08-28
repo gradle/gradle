@@ -54,7 +54,7 @@ class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Seria
                 try {
                     model = action.execute(internalBuildController);
                 } catch (RuntimeException e) {
-                    failure.set(payloadSerializer.serialize(e));
+                    failure.set(payloadSerializer.serialize(new InternalBuildActionFailureException(e)));
                 }
                 result.set(payloadSerializer.serialize(model));
             }

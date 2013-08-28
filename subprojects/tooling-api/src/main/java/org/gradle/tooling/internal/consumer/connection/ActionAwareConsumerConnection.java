@@ -17,13 +17,11 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildActionFailureException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
-import org.gradle.tooling.internal.protocol.InternalBuildController;
+import org.gradle.tooling.internal.protocol.*;
 
 public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
     private final InternalBuildActionExecutor executor;
@@ -35,7 +33,13 @@ public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerCon
 
     @Override
     public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return executor.run(new BuildActionAdapter<T>(action, adapter), operationParameters).getModel();
+        BuildResult<T> result;
+        try {
+            result = executor.run(new BuildActionAdapter<T>(action, adapter), operationParameters);
+        } catch (InternalBuildActionFailureException e) {
+            throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());
+        }
+        return result.getModel();
     }
 
     private static class BuildActionAdapter<T> implements InternalBuildAction<T> {

@@ -19,8 +19,8 @@ package org.gradle.integtests.tooling.r18
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.idea.IdeaProject
 
@@ -57,8 +57,8 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         withConnection { it.action(new BrokenAction()).run() }
 
         then:
-        // TODO:ADAM - clean this up
-        GradleConnectionException e = thrown()
+        BuildActionFailureException e = thrown()
+        e.message == /The supplied build action failed with an exception./
         e.cause instanceof BrokenAction.CustomException
     }
 
