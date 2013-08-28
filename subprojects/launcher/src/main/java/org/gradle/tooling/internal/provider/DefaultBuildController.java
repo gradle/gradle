@@ -36,12 +36,16 @@ class DefaultBuildController implements InternalBuildController {
         return new ProviderBuildResult<Object>(gradle);
     }
 
-    public BuildResult<?> getModel(final ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
+    public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
+        if (target != null) {
+            return null;
+        }
+
         ToolingModelBuilder builder;
         try {
             builder = modelBuilderRegistry.getBuilder(modelIdentifier.getName());
         } catch (UnknownModelException e) {
-            throw (InternalUnsupportedModelException)(new InternalUnsupportedModelException()).initCause(e);
+            throw (InternalUnsupportedModelException) (new InternalUnsupportedModelException()).initCause(e);
         }
         Object model = builder.buildAll(modelIdentifier.getName(), gradle.getDefaultProject());
         return new ProviderBuildResult<Object>(model);

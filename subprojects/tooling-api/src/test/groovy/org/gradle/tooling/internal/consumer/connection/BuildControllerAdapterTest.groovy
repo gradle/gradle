@@ -43,7 +43,7 @@ class BuildControllerAdapterTest extends Specification {
         def failure = new RuntimeException()
 
         given:
-        _ * internalController.getModel(_) >> { throw new InternalUnsupportedModelException().initCause(failure) }
+        _ * internalController.getModel(null, _) >> { throw new InternalUnsupportedModelException().initCause(failure) }
 
         when:
         controller.getModel(String)
@@ -59,13 +59,13 @@ class BuildControllerAdapterTest extends Specification {
         def model = Stub(GradleBuild)
 
         when:
-        def result = controller.getBuildModel()
+        def result = controller.buildModel
 
         then:
         result == model
 
         and:
-        1 * internalController.getModel(_) >> { ModelIdentifier identifier ->
+        1 * internalController.getModel(null, _) >> { def target, ModelIdentifier identifier ->
             assert identifier.name == 'GradleBuild'
             return Stub(BuildResult) {
                 getModel() >> protocolModel

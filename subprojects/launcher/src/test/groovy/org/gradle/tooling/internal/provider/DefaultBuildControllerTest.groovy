@@ -38,7 +38,7 @@ class DefaultBuildControllerTest extends Specification {
         _ * registry.getBuilder('some.model') >> { throw failure }
 
         when:
-        controller.getModel(modelId)
+        controller.getModel(null, modelId)
 
         then:
         InternalUnsupportedModelException e = thrown()

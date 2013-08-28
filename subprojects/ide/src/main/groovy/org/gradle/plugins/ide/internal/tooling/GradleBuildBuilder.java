@@ -19,12 +19,33 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.api.Project;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class GradleBuildBuilder implements ToolingModelBuilder {
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.GradleBuild");
     }
 
-    public Object buildAll(String modelName, Project project) {
-        return new DefaultGradleBuild();
+    public DefaultGradleBuild buildAll(String modelName, Project target) {
+        Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<Project, BasicGradleProject>();
+        BasicGradleProject rootProject = convert(target.getRootProject(), convertedProjects);
+        DefaultGradleBuild model = new DefaultGradleBuild().setRootProject(rootProject);
+        for (Project project : target.getRootProject().getAllprojects()) {
+            model.addProject(convertedProjects.get(project));
+        }
+        return model;
+    }
+
+    private BasicGradleProject convert(Project project, Map<Project, BasicGradleProject> convertedProjects) {
+        BasicGradleProject converted = new BasicGradleProject().setName(project.getName()).setPath(project.getPath());
+        if (project.getParent() != null) {
+            converted.setParent(convertedProjects.get(project.getParent()));
+        }
+        convertedProjects.put(project, converted);
+        for (Project child : project.getChildProjects().values()) {
+            converted.addChild(convert(child, convertedProjects));
+        }
+        return converted;
     }
 }

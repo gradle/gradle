@@ -46,8 +46,8 @@ allprojects {
 
         then:
         result != null
+        result.keySet() == ['test', 'a', 'b', 'c'] as Set
         // TODO:ADAM - switch this on
-//        result.keySet() == [':', ':a', ':b', ':b:c'] as Set
 //        result.values().each {
 //            assert it.description == 'some project'
 //            assert it.tasks.any {it.name == 'buildStuff' }
@@ -61,8 +61,7 @@ allprojects {
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }
 
         then:
-        model != null
-        // TODO:ADAM - switch this on
-//        model.projects*.name as Set == ['test', 'a', 'b', 'c'] as Set
+        model.rootProject.name == 'test'
+        model.projects*.name == ['test', 'a', 'b', 'c']
     }
 }

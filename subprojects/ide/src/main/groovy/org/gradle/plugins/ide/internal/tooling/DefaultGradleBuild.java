@@ -16,18 +16,28 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-
 import java.io.Serializable;
-import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultGradleBuild implements Serializable {
-    public DefaultGradleProject getRootProject() {
-        return null;
+    private BasicGradleProject rootProject;
+    private Set<BasicGradleProject> projects = new LinkedHashSet<BasicGradleProject>();
+
+    public BasicGradleProject getRootProject() {
+        return rootProject;
     }
 
-    public Set<DefaultGradleProject> getProjects() {
-        return Collections.emptySet();
+    public DefaultGradleBuild setRootProject(BasicGradleProject rootProject) {
+        this.rootProject = rootProject;
+        return this;
+    }
+
+    public Set<? extends BasicGradleProject> getProjects() {
+        return projects;
+    }
+
+    public void addProject(BasicGradleProject project) {
+        projects.add(project);
     }
 }

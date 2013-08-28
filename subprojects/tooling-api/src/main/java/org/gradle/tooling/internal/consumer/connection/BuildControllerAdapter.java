@@ -40,23 +40,23 @@ class BuildControllerAdapter implements BuildController {
     }
 
     public <T> T getModel(Class<T> modelType) throws UnknownModelException {
+        return getModel(null, modelType);
+    }
+
+    public GradleBuild getBuildModel() {
+        return getModel(null, GradleBuild.class);
+    }
+
+    public <T> T getModel(Element target, Class<T> modelType) throws UnknownModelException {
         ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(modelType);
 
         BuildResult<?> result;
         try {
-            result = buildController.getModel(modelIdentifier);
+            result = buildController.getModel(null, modelIdentifier);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(modelType, e);
         }
 
         return adapter.adapt(modelType, result.getModel());
-    }
-
-    public GradleBuild getBuildModel() {
-        return getModel(GradleBuild.class);
-    }
-
-    public <T> T getModel(Element target, Class<T> modelType) throws UnknownModelException {
-        throw new UnsupportedOperationException();
     }
 }
