@@ -1,4 +1,3 @@
-
 This spec defines a number of stories to improve IDE integration in Gradle
 
 # Candidates
@@ -114,3 +113,12 @@ Extend the above mechanism to support prompting the user, when running via the t
 ## Cancelled build is gracefully stopped
 
 Improve cancellation so that the build is given an opportunity to finish up cleanly.
+
+# More candidates
+
+Some more features to mix into the above plan:
+
+- Provide notifications when model has changed.
+- Provide some way to search repositories, to offer content assistance with dependency notations.
+- Don't configure the projects when `GradleBuild` model is requested.
+- Don't configure the tasks when they are not requested.
