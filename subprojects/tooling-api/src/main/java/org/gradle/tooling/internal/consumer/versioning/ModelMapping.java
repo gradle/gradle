@@ -22,6 +22,7 @@ import org.gradle.api.Nullable;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
+import org.gradle.tooling.model.GradleBuild;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
@@ -53,6 +54,7 @@ public class ModelMapping {
         map.put(BuildEnvironment.class, "1.0-milestone-8");
         map.put(ProjectOutcomes.class, "1.2");
         map.put(Void.class, "1.0-milestone-3");
+        map.put(GradleBuild.class, "1.8");
     }
 
     static void addModelToProtocolMappings(Map<Class<?>, Class<?>> map) {
@@ -122,10 +124,6 @@ public class ModelMapping {
     @Nullable
     public String getVersionAdded(Class<?> modelType) {
         return MODEL_VERSIONS.get(modelType);
-    }
-
-    public boolean isBuiltInModel(Class<?> modelType) {
-        return MODEL_TO_PROTOCOL_MAP.containsKey(modelType);
     }
 
     private static class DefaultModelIdentifier implements ModelIdentifier {
