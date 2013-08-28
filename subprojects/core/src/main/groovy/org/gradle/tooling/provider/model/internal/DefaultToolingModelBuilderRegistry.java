@@ -19,6 +19,7 @@ package org.gradle.tooling.provider.model.internal;
 import org.gradle.api.Project;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.UnknownModelException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +49,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
             return match;
         }
 
-        throw new UnsupportedOperationException(String.format("No builders are available to build a model of type '%s'.", modelName));
+        throw new UnknownModelException(String.format("No builders are available to build a model of type '%s'.", modelName));
     }
 
     private static class VoidToolingModelBuilder implements ToolingModelBuilder {

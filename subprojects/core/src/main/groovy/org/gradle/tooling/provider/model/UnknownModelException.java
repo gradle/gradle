@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,16 @@
 
 package org.gradle.tooling.provider.model;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 
 /**
- * A registry of tooling model builders. Adding a builder to this registry makes a model (or models) available via the tooling API.
+ * Thrown when an unknown tooling model is requested.
  */
 @Incubating
-public interface ToolingModelBuilderRegistry {
-    void register(ToolingModelBuilder builder);
-
-    ToolingModelBuilder getBuilder(String modelName) throws UnknownModelException;
+public class UnknownModelException extends GradleException {
+    public UnknownModelException(String message) {
+        super(message);
+    }
 }
+

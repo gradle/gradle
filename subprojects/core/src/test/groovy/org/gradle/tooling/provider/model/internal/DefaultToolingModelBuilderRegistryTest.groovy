@@ -18,6 +18,7 @@ package org.gradle.tooling.provider.model.internal
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.UnknownModelException
 import spock.lang.Specification
 
 class DefaultToolingModelBuilderRegistryTest extends Specification {
@@ -49,7 +50,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         registy.getBuilder("model")
 
         then:
-        UnsupportedOperationException e = thrown()
+        UnknownModelException e = thrown()
         e.message == "No builders are available to build a model of type 'model'."
     }
 
