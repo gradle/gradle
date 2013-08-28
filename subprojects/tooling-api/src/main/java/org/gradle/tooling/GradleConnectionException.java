@@ -17,6 +17,8 @@ package org.gradle.tooling;
 
 /**
  * Thrown when there is some problem using a Gradle connection.
+ *
+ * @since 1.0-milestone-3
  */
 public class GradleConnectionException extends RuntimeException {
     public GradleConnectionException(String message) {
