@@ -23,6 +23,8 @@ import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
 
+import java.io.IOException;
+
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*;
 
 public class ModuleVersionSelectionReasonSerializer implements Serializer<ModuleVersionSelectionReason> {
@@ -38,7 +40,7 @@ public class ModuleVersionSelectionReasonSerializer implements Serializer<Module
         REASONS.put((byte) 6, CONFLICT_RESOLUTION_BY_RULE);
     }
 
-    public ModuleVersionSelectionReason read(Decoder decoder) throws Exception {
+    public ModuleVersionSelectionReason read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
         ModuleVersionSelectionReason out = REASONS.get(id);
         if (out == null) {
@@ -47,7 +49,7 @@ public class ModuleVersionSelectionReasonSerializer implements Serializer<Module
         return out;
     }
 
-    public void write(Encoder encoder, ModuleVersionSelectionReason value) throws Exception {
+    public void write(Encoder encoder, ModuleVersionSelectionReason value) throws IOException {
         Byte id = REASONS.inverse().get(value);
         if (id == null) {
             throw new IllegalArgumentException("Unknown selection reason: " + value);

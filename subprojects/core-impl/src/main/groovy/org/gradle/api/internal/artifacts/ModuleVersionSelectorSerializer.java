@@ -21,17 +21,19 @@ import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
 
+import java.io.IOException;
+
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
 
 public class ModuleVersionSelectorSerializer implements Serializer<ModuleVersionSelector> {
-    public ModuleVersionSelector read(Decoder decoder) throws Exception {
+    public ModuleVersionSelector read(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String name = decoder.readString();
         String version = decoder.readString();
         return newSelector(group, name, version);
     }
 
-    public void write(Encoder encoder, ModuleVersionSelector value) throws Exception {
+    public void write(Encoder encoder, ModuleVersionSelector value) throws IOException {
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getName());
         encoder.writeString(value.getVersion());

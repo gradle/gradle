@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 
+import java.io.IOException;
 import java.util.Map;
 
 public class InternalDependencyResultSerializer {
@@ -32,7 +33,7 @@ public class InternalDependencyResultSerializer {
     private final ModuleVersionSelectionReasonSerializer moduleVersionSelectionReasonSerializer = new ModuleVersionSelectionReasonSerializer();
     private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
 
-    public InternalDependencyResult read(Decoder decoder, Map<ModuleVersionSelector, ModuleVersionResolveException> failures) throws Exception {
+    public InternalDependencyResult read(Decoder decoder, Map<ModuleVersionSelector, ModuleVersionResolveException> failures) throws IOException {
         ModuleVersionSelector requested = moduleVersionSelectorSerializer.read(decoder);
         ModuleVersionSelectionReason reason = moduleVersionSelectionReasonSerializer.read(decoder);
         byte resultByte = decoder.readByte();
@@ -47,7 +48,7 @@ public class InternalDependencyResultSerializer {
         }
     }
 
-    public void write(Encoder encoder, InternalDependencyResult value) throws Exception {
+    public void write(Encoder encoder, InternalDependencyResult value) throws IOException {
         moduleVersionSelectorSerializer.write(encoder, value.getRequested());
         moduleVersionSelectionReasonSerializer.write(encoder, value.getReason());
         if (value.getFailure() == null) {

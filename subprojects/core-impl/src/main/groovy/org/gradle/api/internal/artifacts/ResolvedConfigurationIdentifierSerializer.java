@@ -21,16 +21,18 @@ import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
 
+import java.io.IOException;
+
 public class ResolvedConfigurationIdentifierSerializer implements Serializer<ResolvedConfigurationIdentifier> {
     private final ModuleVersionIdentifierSerializer idSerializer = new ModuleVersionIdentifierSerializer();
 
-    public ResolvedConfigurationIdentifier read(Decoder decoder) throws Exception {
+    public ResolvedConfigurationIdentifier read(Decoder decoder) throws IOException {
         ModuleVersionIdentifier id = idSerializer.read(decoder);
         String configuration = decoder.readString();
         return new ResolvedConfigurationIdentifier(id, configuration);
     }
 
-    public void write(Encoder encoder, ResolvedConfigurationIdentifier value) throws Exception {
+    public void write(Encoder encoder, ResolvedConfigurationIdentifier value) throws IOException {
         idSerializer.write(encoder, value.getId());
         encoder.writeString(value.getConfiguration());
     }
