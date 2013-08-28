@@ -19,30 +19,51 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.*;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.UnknownModelException;
 
 import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class BuildModelAction implements BuildAction<SerializedPayload>, Serializable {
+public class BuildModelAction implements BuildAction<BuildActionResult>, Serializable {
     private final boolean runTasks;
     private final String modelName;
-    private SerializedPayload model;
 
     public BuildModelAction(String modelName, boolean runTasks) {
         this.modelName = modelName;
         this.runTasks = runTasks;
     }
 
-    public SerializedPayload run(BuildController buildController) {
+    public BuildActionResult run(BuildController buildController) {
         DefaultGradleLauncher launcher = (DefaultGradleLauncher) buildController.getLauncher();
+
+        // The following is all very awkward because the contract for BuildController is still just a
+        // rough wrapper around GradleLauncher, which means we can only get at the model and various
+        // services by using listeners.
+
+        final AtomicReference<SerializedPayload> model = new AtomicReference<SerializedPayload>();
+        final AtomicReference<RuntimeException> failure = new AtomicReference<RuntimeException>();
+        final Action<GradleInternal> action = new Action<GradleInternal>() {
+            public void execute(GradleInternal gradle) {
+                ToolingModelBuilderRegistry builderRegistry = getToolingModelBuilderRegistry(gradle);
+                ToolingModelBuilder builder;
+                try {
+                    builder = builderRegistry.getBuilder(modelName);
+                } catch (UnknownModelException e) {
+                    failure.set((InternalUnsupportedModelException) (new InternalUnsupportedModelException().initCause(e)));
+                    return;
+                }
+                Object result = builder.buildAll(modelName, gradle.getDefaultProject());
+                model.set(getPayloadSerializer(gradle).serialize(result));
+            }
+        };
 
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
                 public void onTasksFinished(GradleInternal gradle) {
-                    ToolingModelBuilder builder = getToolingModelBuilderRegistry(gradle).getBuilder(modelName);
-                    Object result = builder.buildAll(modelName, gradle.getDefaultProject());
-                    model = getPayloadSerializer(gradle).serialize(result);
+                    action.execute(gradle);
                 }
             });
             buildController.run();
@@ -50,15 +71,16 @@ public class BuildModelAction implements BuildAction<SerializedPayload>, Seriali
             launcher.addListener(new ModelConfigurationListener() {
                 public void onConfigure(GradleInternal gradle) {
                     ensureAllProjectsEvaluated(gradle);
-                    ToolingModelBuilder builder = getToolingModelBuilderRegistry(gradle).getBuilder(modelName);
-                    Object result = builder.buildAll(modelName, gradle.getDefaultProject());
-                    model = getPayloadSerializer(gradle).serialize(result);
+                    action.execute(gradle);
                 }
             });
             buildController.configure();
         }
 
-        return model;
+        if (failure.get() != null) {
+            throw failure.get();
+        }
+        return new BuildActionResult(model.get(), null);
     }
 
     private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {

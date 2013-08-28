@@ -27,28 +27,40 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicReference;
 
-class ClientProvidedBuildAction implements BuildAction<SerializedPayload>, Serializable {
+class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Serializable {
     private final SerializedPayload action;
 
     public ClientProvidedBuildAction(SerializedPayload action) {
         this.action = action;
     }
 
-    public SerializedPayload run(final BuildController buildController) {
+    public BuildActionResult run(final BuildController buildController) {
         final DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) buildController.getLauncher();
-        PayloadSerializer payloadSerializer = gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
+        final PayloadSerializer payloadSerializer = gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
         final InternalBuildAction<?> action = (InternalBuildAction<?>) payloadSerializer.deserialize(this.action);
-        final AtomicReference<Object> result = new AtomicReference<Object>();
+
+        // The following is all very awkward because the contract for BuildController is still just a
+        // rough wrapper around GradleLauncher, which means we can only get at the model and various
+        // services by using listeners.
+
+        final AtomicReference<SerializedPayload> result = new AtomicReference<SerializedPayload>();
+        final AtomicReference<SerializedPayload> failure = new AtomicReference<SerializedPayload>();
 
         gradleLauncher.addListener(new ModelConfigurationListener() {
             public void onConfigure(final GradleInternal gradle) {
                 ToolingModelBuilderRegistry builderRegistry = gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
                 InternalBuildController internalBuildController = new DefaultBuildController(gradle, builderRegistry);
-                result.set(action.execute(internalBuildController));
+                Object model = null;
+                try {
+                    model = action.execute(internalBuildController);
+                } catch (RuntimeException e) {
+                    failure.set(payloadSerializer.serialize(e));
+                }
+                result.set(payloadSerializer.serialize(model));
             }
         });
-
         buildController.configure();
-        return payloadSerializer.serialize(result.get());
+
+        return new BuildActionResult(result.get(), failure.get());
     }
 }

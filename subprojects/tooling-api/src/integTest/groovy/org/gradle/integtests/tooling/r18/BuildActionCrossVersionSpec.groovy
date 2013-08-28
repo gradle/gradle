@@ -59,7 +59,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         // TODO:ADAM - clean this up
         GradleConnectionException e = thrown()
-        causes(e).any { it.class.name == BrokenAction.CustomException.name }
+        e.cause instanceof BrokenAction.CustomException
     }
 
     def "client receives the exception thrown when action requests unknown model"() {
