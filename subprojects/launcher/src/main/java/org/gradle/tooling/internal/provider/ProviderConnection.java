@@ -42,6 +42,7 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
+import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -100,8 +101,8 @@ public class ProviderConnection {
         } catch (RuntimeException e) {
             for (Throwable t = e; t != null; t = t.getCause()) {
                 // TODO:ADAM - This is not right, it's just to get an initial implementation going
-                if (t instanceof UnsupportedOperationException) {
-                    throw new InternalUnsupportedModelException();
+                if (t instanceof UnknownModelException) {
+                    throw (InternalUnsupportedModelException)(new InternalUnsupportedModelException().initCause(t));
                 }
             }
             throw e;
