@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.binary.EncodedWriteAction;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.EncodedWriteAction;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;

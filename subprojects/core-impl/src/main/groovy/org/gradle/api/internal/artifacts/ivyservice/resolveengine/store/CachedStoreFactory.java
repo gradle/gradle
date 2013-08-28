@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

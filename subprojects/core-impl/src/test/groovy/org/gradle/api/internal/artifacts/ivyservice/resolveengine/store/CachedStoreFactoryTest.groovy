@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store
 
 import org.gradle.internal.Factory
 import spock.lang.Specification
@@ -24,8 +24,8 @@ class CachedStoreFactoryTest extends Specification {
     def "stores results"() {
         def factory = new CachedStoreFactory("some cache")
 
-        def results1 = Mock(TransientConfigurationResults)
-        def results2 = Mock(TransientConfigurationResults)
+        def results1 = new Object()
+        def results2 = new Object()
 
         def store1 = factory.createCachedStore("conf1")
         def store1b = factory.createCachedStore("conf1")

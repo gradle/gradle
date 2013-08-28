@@ -20,7 +20,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifierSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.binary.EncodedWriteAction;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.EncodedWriteAction;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
