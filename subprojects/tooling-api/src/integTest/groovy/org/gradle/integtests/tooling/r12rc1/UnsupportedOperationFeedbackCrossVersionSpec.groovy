@@ -28,7 +28,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class UnsupportedOperationFeedbackCrossVersionSpec extends ToolingApiSpecification {
     def "fails when attempting to run tasks when building a model"() {
         when:
-        maybeFailWithConnection { ProjectConnection connection ->
+        withConnection { ProjectConnection connection ->
             connection.model(EclipseProject.class).forTasks('eclipse').get()
         }
 

@@ -35,7 +35,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
 
     def "tooling api reports an error when requesting a model using a gradle version that does not implement the tooling api"() {
         when:
-        toolingApi.maybeFailWithConnection { connection -> connection.getModel(GradleProject.class) }
+        toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         UnsupportedVersionException e = thrown()
@@ -44,7 +44,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
 
     def "tooling api reports an error when running a build using a gradle version does not implement the tooling api"() {
         when:
-        toolingApi.maybeFailWithConnection { connection -> connection.newBuild().run() }
+        toolingApi.withConnection { connection -> connection.newBuild().run() }
 
         then:
         UnsupportedVersionException e = thrown()
@@ -53,7 +53,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
 
     def "tooling api reports an error when running a build action using a gradle version does not implement the tooling api"() {
         when:
-        toolingApi.maybeFailWithConnection { connection -> connection.action(new NullAction()).run() }
+        toolingApi.withConnection { connection -> connection.action(new NullAction()).run() }
 
         then:
         UnsupportedVersionException e = thrown()

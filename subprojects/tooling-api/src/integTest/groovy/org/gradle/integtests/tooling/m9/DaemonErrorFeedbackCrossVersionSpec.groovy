@@ -35,7 +35,7 @@ class DaemonErrorFeedbackCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.isEmbedded = false
 
         when:
-        maybeFailWithConnection {
+        withConnection {
             it.newBuild()
                     .setJvmArguments("-Xasdf")
                     .run()

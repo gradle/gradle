@@ -95,7 +95,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion('<1.8')
     def "gives reasonable error message when target Gradle version does not support build actions"() {
         when:
-        maybeFailWithConnection { it.action(new FetchCustomModel()).run() }
+        withConnection { it.action(new FetchCustomModel()).run() }
 
         then:
         UnsupportedVersionException e = thrown()

@@ -15,14 +15,12 @@
  */
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.util.GradleVersion
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -61,20 +59,7 @@ class ToolingApi {
     }
 
     public <T> T withConnection(GradleConnector connector, Closure<T> cl) {
-        try {
-            return withConnectionRaw(connector, cl)
-        } catch (UnsupportedVersionException e) {
-            throw new IntegrationTestHint(e);
-        }
-    }
-
-    public void maybeFailWithConnection(Closure cl) {
-        GradleConnector connector = connector()
-        try {
-            withConnectionRaw(connector, cl)
-        } catch (Throwable e) {
-            throw e
-        }
+        return withConnectionRaw(connector, cl)
     }
 
     private validate(Throwable throwable) {

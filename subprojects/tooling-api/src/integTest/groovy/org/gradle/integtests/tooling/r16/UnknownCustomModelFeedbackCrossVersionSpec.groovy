@@ -27,7 +27,7 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
     @TargetGradleVersion(">=1.6")
     def "fails gracefully when unknown model requested when custom models are supported by the target version"() {
         when:
-        maybeFailWithConnection { it.getModel(CustomModel.class) }
+        withConnection { it.getModel(CustomModel.class) }
 
         then:
         UnknownModelException e = thrown()
@@ -38,7 +38,7 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
     @TargetGradleVersion("<1.6")
     def "fails gracefully when unknown model requested when custom models are not supported by the target version"() {
         when:
-        maybeFailWithConnection { it.getModel(CustomModel.class) }
+        withConnection { it.getModel(CustomModel.class) }
 
         then:
         UnknownModelException e = thrown()
@@ -49,7 +49,7 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
     @TargetGradleVersion("current")
     def "fails gracefully when unknown model requested by old tooling API version"() {
         when:
-        maybeFailWithConnection { it.getModel(CustomModel.class) }
+        withConnection { it.getModel(CustomModel.class) }
 
         then:
         GradleConnectionException e = thrown()

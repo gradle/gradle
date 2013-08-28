@@ -26,7 +26,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 class UnsupportedModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
     def "fails gracefully when unsupported model requested"() {
         when:
-        maybeFailWithConnection { it.getModel(model) }
+        withConnection { it.getModel(model) }
 
         then:
         UnknownModelException e = thrown()

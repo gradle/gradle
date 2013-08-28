@@ -38,7 +38,7 @@ class StrictLongRunningOperationCrossVersionSpec extends ToolingApiSpecification
     def "fails eagerly when java home unsupported for model"() {
         def java = AvailableJavaHomes.bestAlternative
         when:
-        maybeFailWithConnection {
+        withConnection {
             def model = it.model(BuildEnvironment.class)
             model.setJavaHome(java)
             model.get()
@@ -53,7 +53,7 @@ class StrictLongRunningOperationCrossVersionSpec extends ToolingApiSpecification
     def "fails eagerly when java home unsupported for build"() {
         def java = AvailableJavaHomes.bestAlternative
         when:
-        maybeFailWithConnection {
+        withConnection {
             def build = it.newBuild()
             build.setJavaHome(java)
             build.forTasks('tasks').run()
@@ -66,7 +66,7 @@ class StrictLongRunningOperationCrossVersionSpec extends ToolingApiSpecification
 
     def "fails eagerly when java args unsupported"() {
         when:
-        maybeFailWithConnection {
+        withConnection {
             def model = it.model(BuildEnvironment.class)
             model.setJvmArguments("-Xmx512m")
             model.get()
@@ -79,7 +79,7 @@ class StrictLongRunningOperationCrossVersionSpec extends ToolingApiSpecification
 
     def "fails eagerly when standard input unsupported"() {
         when:
-        maybeFailWithConnection {
+        withConnection {
             def model = it.model(BuildEnvironment.class)
             model.setStandardInput(new ByteArrayInputStream('yo!'.bytes))
             model.get()
