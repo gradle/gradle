@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r18
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.idea.IdeaProject
@@ -59,6 +60,27 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         // TODO:ADAM - clean this up
         GradleConnectionException e = thrown()
         causes(e).any { it.class.name == BrokenAction.CustomException.name }
+    }
+
+    def "client receives the exception thrown when action requests unknown model"() {
+        when:
+        withConnection { it.action(new FetchUnknownModel()).run() }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "client receives the exception thrown when build fails"() {
+        given:
+        buildFile << 'throw new RuntimeException("broken")'
+
+        when:
+        withConnection { it.action(new FetchCustomModel()).run() }
+
+        then:
+        // TODO:ADAM - clean this up
+        BuildException e = thrown()
+        e.message.startsWith('Could not run build action using')
     }
 
     def causes(Throwable throwable) {
