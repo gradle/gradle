@@ -22,8 +22,6 @@ import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 import java.io.Serializable;
@@ -44,17 +42,8 @@ class ClientProvidedBuildAction implements BuildAction<SerializedPayload>, Seria
 
         gradleLauncher.addListener(new ModelConfigurationListener() {
             public void onConfigure(final GradleInternal gradle) {
-                InternalBuildController internalBuildController = new InternalBuildController() {
-                    public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
-                        return new ProviderBuildResult<Object>(gradle);
-                    }
-
-                    public BuildResult<?> getModel(final ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
-                        ToolingModelBuilder builder = gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class).getBuilder(modelIdentifier.getName());
-                        Object model = builder.buildAll(modelIdentifier.getName(), gradle.getDefaultProject());
-                        return new ProviderBuildResult<Object>(model);
-                    }
-                };
+                ToolingModelBuilderRegistry builderRegistry = gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
+                InternalBuildController internalBuildController = new DefaultBuildController(gradle, builderRegistry);
                 result.set(action.execute(internalBuildController));
             }
         });

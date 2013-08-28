@@ -19,6 +19,8 @@ package org.gradle.tooling.internal.provider;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.classloader.MutableURLClassLoader;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -30,9 +32,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
     private final PayloadClassLoaderRegistry delegate;
     private final Lock lock = new ReentrantLock();
     private final ClasspathInferer classpathInferer;
-    // TODO - don't use strong references
-    private final Map<Set<ClassLoader>, UUID> classLoaderIds = new HashMap<Set<ClassLoader>, UUID>();
-    private final Map<UUID, Set<ClassLoader>> classLoaders = new HashMap<UUID, Set<ClassLoader>>();
+    private final Map<UUID, LocalClassLoader> classLoaders = new LinkedHashMap<UUID, LocalClassLoader>();
 
     public ClientSidePayloadClassLoaderRegistry(PayloadClassLoaderRegistry delegate, ClasspathInferer classpathInferer) {
         this.delegate = delegate;
@@ -54,12 +54,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
                 lock.lock();
                 UUID uuid;
                 try {
-                    uuid = classLoaderIds.get(candidates);
-                    if (uuid == null) {
-                        uuid = UUID.randomUUID();
-                        classLoaderIds.put(candidates, uuid);
-                        classLoaders.put(uuid, candidates);
-                    }
+                    uuid = getUuid(candidates);
                 } finally {
                     lock.unlock();
                 }
@@ -75,7 +70,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
                 Set<ClassLoader> candidates;
                 lock.lock();
                 try {
-                    candidates = classLoaders.get(classLoaderDetails.uuid);
+                    candidates = getClassLoaders(classLoaderDetails.uuid);
                 } finally {
                     lock.unlock();
                 }
@@ -93,5 +88,55 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
                 return deserializeMap.resolveClass(classLoaderDetails, className);
             }
         };
+    }
+
+    private Set<ClassLoader> getClassLoaders(UUID uuid) {
+        LocalClassLoader localClassLoader = classLoaders.get(uuid);
+        if (localClassLoader == null) {
+            return null;
+        }
+        Set<ClassLoader> candidates = new LinkedHashSet<ClassLoader>();
+        for (Reference<ClassLoader> reference : localClassLoader.classLoaders) {
+            ClassLoader classLoader = reference.get();
+            if (classLoader != null) {
+                candidates.add(classLoader);
+            }
+        }
+        return candidates;
+    }
+
+    private UUID getUuid(Set<ClassLoader> candidates) {
+        for (LocalClassLoader localClassLoader : new ArrayList<LocalClassLoader>(classLoaders.values())) {
+            Set<ClassLoader> localCandidates = new LinkedHashSet<ClassLoader>();
+            for (Reference<ClassLoader> reference : localClassLoader.classLoaders) {
+                ClassLoader cl = reference.get();
+                if (cl != null) {
+                    localCandidates.add(cl);
+                }
+            }
+            if (localCandidates.isEmpty()) {
+                classLoaders.remove(localClassLoader.uuid);
+                continue;
+            }
+            if (localCandidates.equals(candidates)) {
+                return localClassLoader.uuid;
+            }
+        }
+
+        LocalClassLoader details = new LocalClassLoader(UUID.randomUUID());
+        for (ClassLoader candidate : candidates) {
+            details.classLoaders.add(new WeakReference<ClassLoader>(candidate));
+        }
+        classLoaders.put(details.uuid, details);
+        return details.uuid;
+    }
+
+    private static class LocalClassLoader {
+        private final Set<Reference<ClassLoader>> classLoaders = new LinkedHashSet<Reference<ClassLoader>>();
+        private final UUID uuid;
+
+        private LocalClassLoader(UUID uuid) {
+            this.uuid = uuid;
+        }
     }
 }

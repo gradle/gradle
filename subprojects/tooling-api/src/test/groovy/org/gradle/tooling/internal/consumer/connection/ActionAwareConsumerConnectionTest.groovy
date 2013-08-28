@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
@@ -41,7 +40,7 @@ class ActionAwareConsumerConnectionTest extends Specification {
         def result = connection.run(action, parameters)
 
         then:
-        result == '[result]'
+        result == 'result'
 
         and:
         1 * target.run(_, parameters) >> { InternalBuildAction protocolAction, def params ->
@@ -50,15 +49,7 @@ class ActionAwareConsumerConnectionTest extends Specification {
                 getModel() >> actionResult
             }
         }
-        1 * action.execute(_) >> { BuildController controller ->
-            return controller.getModel(String)
-        }
-        1 * buildController.getModel(_) >> {
-            return Stub(BuildResult) {
-                getModel() >> 'result'
-            }
-        }
-        1 * adapter.adapt(String, 'result') >> '[result]'
+        1 * action.execute({ it instanceof BuildControllerAdapter }) >> 'result'
     }
 
     interface TestModelBuilder extends ModelBuilder, ConnectionVersion4, ConfigurableConnection, InternalBuildActionExecutor {

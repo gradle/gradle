@@ -20,6 +20,7 @@ import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
 public class Exceptions {
@@ -51,16 +52,20 @@ public class Exceptions {
     public static UnknownModelException unsupportedModel(Class<?> modelType, String targetVersion) {
         ModelMapping modelMapping = new ModelMapping();
         if (modelMapping.isBuiltInModel(modelType)) {
-            throw new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'. Support for building '%s' models was added in Gradle %s and is available in all later versions.",
+            return new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'. Support for building '%s' models was added in Gradle %s and is available in all later versions.",
                     targetVersion, modelType.getSimpleName(), modelType.getSimpleName(), modelMapping.getVersionAdded(modelType)));
         } else {
-            throw new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions.",
+            return new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions.",
                     targetVersion, modelType.getSimpleName()));
         }
     }
 
+    public static UnknownModelException unknownModel(Class<?> type, InternalUnsupportedModelException failure) {
+        return new UnknownModelException(String.format("No model of type '%s' is available in this build.", type.getSimpleName()), failure.getCause());
+    }
+
     public static UnsupportedVersionException unsupportedFeature(String feature, String targetVersion, String versionAdded) {
-        throw new UnsupportedVersionException(String.format("The version of Gradle you are using (%s) does not support %s. Support for this was added in Gradle %s and is available in all later versions.",
+        return new UnsupportedVersionException(String.format("The version of Gradle you are using (%s) does not support %s. Support for this was added in Gradle %s and is available in all later versions.",
                 targetVersion, feature, versionAdded));
     }
 }
