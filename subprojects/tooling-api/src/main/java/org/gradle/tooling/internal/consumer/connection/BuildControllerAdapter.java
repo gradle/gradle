@@ -24,6 +24,8 @@ import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.model.Element;
+import org.gradle.tooling.model.GradleBuild;
 import org.gradle.tooling.model.internal.Exceptions;
 
 class BuildControllerAdapter implements BuildController {
@@ -48,5 +50,13 @@ class BuildControllerAdapter implements BuildController {
         }
 
         return adapter.adapt(modelType, result.getModel());
+    }
+
+    public GradleBuild getBuildModel() {
+        return getModel(GradleBuild.class);
+    }
+
+    public <T> T getModel(Element target, Class<T> modelType) throws UnknownModelException {
+        throw new UnsupportedOperationException();
     }
 }

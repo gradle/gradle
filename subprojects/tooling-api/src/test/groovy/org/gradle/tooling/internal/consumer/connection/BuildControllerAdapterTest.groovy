@@ -19,13 +19,25 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
+import org.gradle.tooling.internal.protocol.BuildResult
 import org.gradle.tooling.internal.protocol.InternalBuildController
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
+import org.gradle.tooling.internal.protocol.ModelIdentifier
+import org.gradle.tooling.model.GradleBuild
 import spock.lang.Specification
 
 class BuildControllerAdapterTest extends Specification {
-    def internalController = Stub(InternalBuildController)
-    def controller = new BuildControllerAdapter(Stub(ProtocolToModelAdapter), internalController, Stub(ModelMapping))
+    def internalController = Mock(InternalBuildController)
+    def adapter = Mock(ProtocolToModelAdapter)
+    def mapping = Stub(ModelMapping) {
+        getModelIdentifierFromModelType(_) >> { Class type ->
+            return Stub(ModelIdentifier) {
+                getName() >> type.simpleName
+            }
+        }
+    }
+    def controller = new BuildControllerAdapter(adapter, internalController, mapping)
 
     def "unpacks unsupported model exception"() {
         def failure = new RuntimeException()
@@ -40,5 +52,25 @@ class BuildControllerAdapterTest extends Specification {
         UnknownModelException e = thrown()
         e.message == /No model of type 'String' is available in this build./
         e.cause == failure
+    }
+
+    def "fetches build model"() {
+        def protocolModel = Stub(InternalProtocolInterface)
+        def model = Stub(GradleBuild)
+
+        when:
+        def result = controller.getBuildModel()
+
+        then:
+        result == model
+
+        and:
+        1 * internalController.getModel(_) >> { ModelIdentifier identifier ->
+            assert identifier.name == 'GradleBuild'
+            return Stub(BuildResult) {
+                getModel() >> protocolModel
+            }
+        }
+        1 * adapter.adapt(GradleBuild, protocolModel) >> model
     }
 }

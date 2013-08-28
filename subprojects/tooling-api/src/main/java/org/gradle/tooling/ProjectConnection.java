@@ -68,8 +68,9 @@ public interface ProjectConnection {
 
     /**
      * Starts fetching a snapshot of the given model, passing the result to the given handler when complete. This method returns immediately, and the result is later
-     * passed to the given handler's {@link ResultHandler#onComplete(Object)} method. If the operation fails, the handler's
-     * {@link ResultHandler#onFailure(GradleConnectionException)} method is called with the appropriate exception.
+     * passed to the given handler's {@link ResultHandler#onComplete(Object)} method.
+     *
+     * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)} method is called with the appropriate exception.
      * See {@link #getModel(Class)} for a description of the various exceptions that the operation may fail with.
      *
      * <p>This method is simply a convenience for calling {@code model(modelType).get(handler)}</p>
@@ -92,6 +93,21 @@ public interface ProjectConnection {
 
     /**
      * Creates a builder which can be used to build the model of the given type.
+     *
+     * <p>Any of following models types may be available, depending on the version of Gradle being used by the target
+     * build:
+     *
+     * <ul>
+     *     <li>{@link org.gradle.tooling.model.GradleBuild}</li>
+     *     <li>{@link org.gradle.tooling.model.build.BuildEnvironment}</li>
+     *     <li>{@link org.gradle.tooling.model.GradleProject}</li>
+     *     <li>{@link org.gradle.tooling.model.idea.IdeaProject}</li>
+     *     <li>{@link org.gradle.tooling.model.idea.BasicIdeaProject}</li>
+     *     <li>{@link org.gradle.tooling.model.eclipse.EclipseProject}</li>
+     *     <li>{@link org.gradle.tooling.model.eclipse.HierarchicalEclipseProject}</li>
+     * </ul>
+     *
+     * <p>A build may also expose additional custom tooling models.
      *
      * @param modelType The model type
      * @param <T> The model type.
