@@ -186,6 +186,8 @@ models is used.
 
 - Action builds a result and this result is received by the client.
     - Returns a custom result type
+    - Returns null
+    - Returns a built-in tooling model (such as `IdeaProject`)
     - Returns a custom result type that references a built-in tooling model
     - Returns a custom result type that references multiple tooling models
     - Returns a custom result type that references a custom tooling model whose implementation uses classes that conflict with the client
@@ -198,15 +200,55 @@ models is used.
     - Target Gradle version does not support consumer actions.
     - The action throws an exception.
     - A failure occurs configuring the build.
+    - A failure occurs building a requested model.
     - The action cannot be serialized or deserialized.
     - The action result cannot be serialized or deserialized.
+    - The action throws an exception that cannot be serialized or deserialized.
     - The Gradle process is killed before the action completes.
     - The action requests an unknown model.
     - The action is compiled for Java 6 but the build runs with Java 5.
 
 ## Story: Tooling API build action iterates over the projects of build
 
-Extend `BuildController` to add methods to query which projects are included in the build, and to request a model from a given project.
+1. Add a new `GradleBuild` model which contains information about which projects are included in the build.
+2. Extend `BuildController` to add methods to query a model for a given project.
+
+
+    interface GradleBuild {
+        HierarchicalElement getRootProject();
+        Set<? extends HierarchicalElement> getProjects();
+    }
+
+    interface BuildController {
+        <T> T getModel(HierarchicalElement element, Class<T> modelType) throws UnknownModelException;
+    }
+
+### Test cases
+
+- For all Gradle versions, can request the `GradleBuild` model via `ProjectConnection`.
+- Can request the `GradleBuild` model via a build action.
+- Can request a model for a given project.
+- Client receives decent feedback when
+    - Requests a model from an unknown project.
+    - Requests an unknown model.
+
+## Story: Tooling API client determines whether model is present
+
+This story adds support for conditionally locating a model, if it is present
+
+    interface BuildController {
+        <T> T findModel(Class<T> type); // returns null when model not present
+        <T> T findModel(HierarchicalElement element, Class<T> type); // returns null when model not present
+    }
+
+    interface ModelBuilder<T> {
+        T find(); // returns null when model not present
+    }
+
+### Test cases
+
+- Client receives null for unknown model, for all target Gradle versions.
+- Build action receives null for unknown model, for all target Gradle versions >= 1.8
 
 ## Story: Expose the IDE output directories
 
