@@ -21,7 +21,9 @@ import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.ModelConfigurationListener;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
+import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
+import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 import java.io.Serializable;
@@ -43,8 +45,8 @@ class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Seria
         // rough wrapper around GradleLauncher, which means we can only get at the model and various
         // services by using listeners.
 
-        final AtomicReference<SerializedPayload> result = new AtomicReference<SerializedPayload>();
-        final AtomicReference<SerializedPayload> failure = new AtomicReference<SerializedPayload>();
+        final AtomicReference<Object> result = new AtomicReference<Object>();
+        final AtomicReference<RuntimeException> failure = new AtomicReference<RuntimeException>();
 
         gradleLauncher.addListener(new ModelConfigurationListener() {
             public void onConfigure(final GradleInternal gradle) {
@@ -54,13 +56,16 @@ class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Seria
                 try {
                     model = action.execute(internalBuildController);
                 } catch (RuntimeException e) {
-                    failure.set(payloadSerializer.serialize(new InternalBuildActionFailureException(e)));
+                    failure.set(new InternalBuildActionFailureException(e));
                 }
-                result.set(payloadSerializer.serialize(model));
+                result.set(model);
             }
         });
         buildController.configure();
 
-        return new BuildActionResult(result.get(), failure.get());
+        if (failure.get() != null) {
+            return new BuildActionResult(null, payloadSerializer.serialize(failure.get()));
+        }
+        return new BuildActionResult(payloadSerializer.serialize(result.get()), null);
     }
 }

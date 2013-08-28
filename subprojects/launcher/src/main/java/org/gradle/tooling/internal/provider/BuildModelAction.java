@@ -38,12 +38,13 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
 
     public BuildActionResult run(BuildController buildController) {
         DefaultGradleLauncher launcher = (DefaultGradleLauncher) buildController.getLauncher();
+        final PayloadSerializer payloadSerializer = launcher.getGradle().getServices().get(PayloadSerializer.class);
 
         // The following is all very awkward because the contract for BuildController is still just a
         // rough wrapper around GradleLauncher, which means we can only get at the model and various
         // services by using listeners.
 
-        final AtomicReference<SerializedPayload> model = new AtomicReference<SerializedPayload>();
+        final AtomicReference<Object> model = new AtomicReference<Object>();
         final AtomicReference<RuntimeException> failure = new AtomicReference<RuntimeException>();
         final Action<GradleInternal> action = new Action<GradleInternal>() {
             public void execute(GradleInternal gradle) {
@@ -56,7 +57,7 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
                     return;
                 }
                 Object result = builder.buildAll(modelName, gradle.getDefaultProject());
-                model.set(getPayloadSerializer(gradle).serialize(result));
+                model.set(result);
             }
         };
 
@@ -80,15 +81,11 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
         if (failure.get() != null) {
             throw failure.get();
         }
-        return new BuildActionResult(model.get(), null);
+        return new BuildActionResult(payloadSerializer.serialize(model.get()), null);
     }
 
     private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
         return gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
-    }
-
-    private PayloadSerializer getPayloadSerializer(GradleInternal gradle) {
-        return gradle.getDefaultProject().getServices().get(PayloadSerializer.class);
     }
 
     private void ensureAllProjectsEvaluated(GradleInternal gradle) {
