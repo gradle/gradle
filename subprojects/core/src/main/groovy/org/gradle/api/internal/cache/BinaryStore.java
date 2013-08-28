@@ -18,9 +18,24 @@ package org.gradle.api.internal.cache;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 
 public interface BinaryStore {
-    DataOutputStream getOutput();
-    DataInputStream getInput();
-    String diagnose();
+    void write(WriteAction write);
+    //done writing data, release any resources
+    BinaryData done();
+
+    public static interface WriteAction {
+        void write(DataOutputStream output) throws IOException;
+    }
+
+    public static interface ReadAction<T> {
+        T read(DataInputStream input) throws IOException;
+    }
+
+    public static interface BinaryData {
+        <T> T read(ReadAction<T> readAction);
+        //done reading data, release any resources
+        void done();
+    }
 }

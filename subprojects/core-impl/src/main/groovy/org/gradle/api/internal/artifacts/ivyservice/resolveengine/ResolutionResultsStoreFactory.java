@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
-//Draft, needs rework, along with BinaryStore interface, etc.
 public class ResolutionResultsStoreFactory implements Closeable {
     private final static Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
 
@@ -88,6 +87,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private static class SimpleBinaryStore implements BinaryStore {
         private File file;
         private DataOutputStream outputStream;
+        private int offset = -1;
 
         public SimpleBinaryStore(File file) {
             this.file = file;
@@ -98,8 +98,15 @@ public class ResolutionResultsStoreFactory implements Closeable {
             }
         }
 
-        public DataOutputStream getOutput() {
-            return outputStream;
+        public void write(WriteAction write) {
+            if (offset == -1) {
+                this.offset = outputStream.size();
+            }
+            try {
+                write.write(outputStream);
+            } catch (IOException e) {
+                throw new RuntimeException("Problems writing to " + diagnose(), e);
+            }
         }
 
         public DataInputStream getInput() {
@@ -119,6 +126,17 @@ public class ResolutionResultsStoreFactory implements Closeable {
             return "Binary store in " + file;
         }
 
+        public BinaryData done() {
+            try {
+                outputStream.flush();
+                return new SimpleBinaryData(file, offset, diagnose());
+            } catch (IOException e) {
+                throw new RuntimeException("Problems flushing data to " + diagnose(), e);
+            } finally {
+                offset = -1;
+            }
+        }
+
         public void close() {
             try {
                 outputStream.close();
@@ -126,6 +144,44 @@ public class ResolutionResultsStoreFactory implements Closeable {
                 throw throwAsUncheckedException(e);
             }
             file.delete();
+        }
+
+        private static class SimpleBinaryData implements BinaryData {
+            private DataInputStream input;
+            private File inputFile;
+            private int offset;
+            private final String sourceDescription;
+
+            public SimpleBinaryData(File inputFile, int offset, String sourceDescription) {
+                this.inputFile = inputFile;
+                this.offset = offset;
+                this.sourceDescription = sourceDescription;
+            }
+
+            public <T> T read(ReadAction<T> readAction) {
+                try {
+                    if (input == null) {
+                        input = new DataInputStream(new BufferedInputStream(new FileInputStream(inputFile)));
+                        input.skipBytes(offset);
+                    }
+                    return readAction.read(input);
+                } catch (IOException e) {
+                    throw new RuntimeException("Problems reading data from " + sourceDescription, e);
+                }
+            }
+
+            public void done() {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    throw new RuntimeException("Problems closing the " + sourceDescription, e);
+                }
+                input = null;
+            }
+
+            public String toString() {
+                return sourceDescription;
+            }
         }
     }
 }

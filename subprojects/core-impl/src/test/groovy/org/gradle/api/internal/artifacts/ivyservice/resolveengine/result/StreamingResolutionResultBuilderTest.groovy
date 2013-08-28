@@ -30,7 +30,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
     StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore())
 
-    def "maintains single result in byte stream"() {
+    def "result can be read multiple times"() {
         builder.start(newId("org", "root", "1.0"))
 
         when:

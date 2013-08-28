@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.binary;
 
 import org.gradle.api.internal.cache.BinaryStore;
+import org.gradle.messaging.serialize.FlushableEncoder;
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
 
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
-public class DummyBinaryStore implements BinaryStore {
-
-    private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-    private DataOutputStream output = new DataOutputStream(bytes);
-
-    public DataOutputStream getOutput() {
-        return output;
+public abstract class EncodedWriteAction implements BinaryStore.WriteAction {
+    public final void write(DataOutputStream output) throws IOException {
+        write(new OutputStreamBackedEncoder(output));
     }
 
-    public DataInputStream getInput() {
-        return new DataInputStream(new ByteArrayInputStream(bytes.toByteArray()));
-    }
-
-    public String diagnose() {
-        return "dummy in-memory binary store";
-    }
+    public abstract void write(FlushableEncoder encoder) throws IOException;
 }
