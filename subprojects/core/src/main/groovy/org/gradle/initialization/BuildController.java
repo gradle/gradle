@@ -20,7 +20,7 @@ import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 
 /**
- * This is intended to replace {@link GradleLauncher} internally. It's pretty rough at the moment.
+ * This is intended to eventually replace {@link GradleLauncher} internally. It's pretty rough at the moment.
  */
 public interface BuildController {
     /**
