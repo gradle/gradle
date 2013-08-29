@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
+import org.gradle.util.GStreamUtil;
 
 import java.io.*;
 import java.util.concurrent.ConcurrentMap;
@@ -159,7 +160,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
                 try {
                     if (input == null) {
                         input = new DataInputStream(new BufferedInputStream(new FileInputStream(inputFile)));
-                        input.skipBytes(offset);
+                        GStreamUtil.skipBytes(offset, input);
                     }
                     return readAction.read(input);
                 } catch (IOException e) {
