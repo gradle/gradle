@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r16
+package org.gradle.tooling.internal.protocol;
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.UnknownModelException
-
-@ToolingApiVersion('>=1.6')
-class UnknownModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
-    def "fails gracefully when unknown model requested"() {
-        when:
-        maybeFailWithConnection { it.getModel(CustomModel.class) }
-
-        then:
-        UnknownModelException e = thrown()
-        // TODO:ADAM - clean up message
-        e.message.contains('CustomModel')
+/**
+ * A wrapper thrown when a build action fails with an exception. The failure will be attached as the cause of this exception.
+ *
+ * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
+ *
+ * @since 1.8-rc-1
+ */
+public class InternalBuildActionFailureException extends RuntimeException {
+    public InternalBuildActionFailureException(Throwable cause) {
+        super(cause);
     }
 }

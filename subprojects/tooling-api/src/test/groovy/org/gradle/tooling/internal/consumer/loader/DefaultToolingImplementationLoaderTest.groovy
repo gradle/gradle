@@ -20,7 +20,6 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.actor.ActorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.*
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
@@ -36,10 +35,10 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     Distribution distribution = Mock()
     ProgressLoggerFactory loggerFactory = Mock()
+    final loader = new DefaultToolingImplementationLoader()
 
     def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
-        def loader = new DefaultToolingImplementationLoader()
         distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(
                 getToolingApiResourcesDir(connectionImplementation),
                 ClasspathUtil.getClasspathForClass(TestConnection.class),
@@ -78,18 +77,14 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         return ClasspathUtil.getClasspathForResource(getClass().classLoader, "org/gradle/build-receipt.properties")
     }
 
-    def failsWhenNoImplementationDeclared() {
-        ClassLoader cl = new ClassLoader() {}
-        def loader = new DefaultToolingImplementationLoader(cl)
+    def "creates broken connection when resource not found"() {
+        def loader = new DefaultToolingImplementationLoader()
 
-        when:
-        loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true))
+        given:
+        distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath()
 
-        then:
-        UnsupportedVersionException e = thrown()
-        e.message == "The specified <dist-display-name> is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
-        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath()
-        _ * distribution.displayName >> '<dist-display-name>'
+        expect:
+        loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true)) instanceof NoToolingApiConnection
     }
 }
 

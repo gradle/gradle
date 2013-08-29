@@ -50,7 +50,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         VersionDetails versionDetails = getVersionDetails();
         if (!versionDetails.isModelSupported(type)) {
             //don't bother asking the provider for this model
-            Exceptions.unknownModel(type, versionDetails.getVersion());
+            throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
         }
 
         Class<?> protocolType = modelMapping.getProtocolType(type);

@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
+package org.gradle.util;
 
-import org.gradle.api.internal.cache.BinaryStore;
+import java.io.DataInput;
+import java.io.IOException;
 
-import java.io.*;
+public class GStreamUtil {
 
-public class DummyBinaryStore implements BinaryStore {
+    //skips 'n' bytes,
+    public static int skipBytes(int n, DataInput input) throws IOException {
+        int total = 0;
+        int cur;
 
-    private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-    private DataOutputStream output = new DataOutputStream(bytes);
-
-    public DataOutputStream getOutput() {
-        return output;
-    }
-
-    public DataInputStream getInput() {
-        return new DataInputStream(new ByteArrayInputStream(bytes.toByteArray()));
-    }
-
-    public String diagnose() {
-        return "dummy in-memory binary store";
+        while ((total<n) && ((cur = input.skipBytes(n - total)) > 0)) {
+            total += cur;
+        }
+        return total;
     }
 }

@@ -37,16 +37,17 @@ public interface InternalBuildController {
     BuildResult<?> getBuildModel() throws BuildExceptionVersion1;
 
     /**
-     * Returns the requested model.
+     * Returns the requested model for a target object.
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.8-rc-1.</p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.8-rc-1.</p>
      *
+     * @param target The target object. May be null, in which case a default target is used.
      * @param modelIdentifier The identifier of the model to build.
      * @throws BuildExceptionVersion1 On build failure.
      * @throws InternalUnsupportedModelException When the requested model is not supported.
      * @since 1.8-rc-1
      */
-    BuildResult<?> getModel(ModelIdentifier modelIdentifier) throws BuildExceptionVersion1,
+    BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1,
             InternalUnsupportedModelException;
 }

@@ -23,6 +23,7 @@ import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
+import java.lang.reflect.InvocationHandler
 import java.nio.channels.ByteChannel
 import java.nio.channels.Channel
 
@@ -360,7 +361,7 @@ class ProtocolToModelAdapterTest extends Specification {
         }
     }
 
-    def "wrapper objects can be serialized"() {
+    def "view objects can be serialized"() {
         def protocolModel = new TestProtocolProjectImpl()
 
         given:
@@ -373,6 +374,30 @@ class ProtocolToModelAdapterTest extends Specification {
         copiedModel instanceof TestProject
         copiedModel != model
         copiedModel.name == "name"
+    }
+
+    def "unpacks source object from view"() {
+        def source = new Object()
+
+        given:
+        def view = adapter.adapt(TestProject.class, source)
+
+        expect:
+        adapter.unpack(view).is(source)
+    }
+
+    def "fails when source object is not a view object"() {
+        when:
+        adapter.unpack("not a view")
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        adapter.unpack(java.lang.reflect.Proxy.newProxyInstance(getClass().classLoader, [Runnable] as Class[], Stub(InvocationHandler)))
+
+        then:
+        thrown(IllegalArgumentException)
     }
 }
 

@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyRes
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.cache.CacheAccess;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -46,7 +45,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final MetaDataParser metaDataParser;
     private final ModuleMetadataProcessor metadataProcessor;
     private final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory;
-    private final CacheAccess cacheAccess;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -55,8 +53,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
                                         MetaDataParser metaDataParser,
                                         ModuleMetadataProcessor metadataProcessor,
-                                        LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory,
-                                        CacheAccess cacheAccess) {
+                                        LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
@@ -65,7 +62,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.metaDataParser = metaDataParser;
         this.metadataProcessor = metadataProcessor;
         this.legacyDependencyResolverRepositoryFactory = legacyDependencyResolverRepositoryFactory;
-        this.cacheAccess = cacheAccess;
     }
 
     public ArtifactRepository createRepository(Object userDescription) {
@@ -130,7 +126,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public FixedResolverArtifactRepository createResolverBackedRepository(DependencyResolver resolver) {
-        return new FixedResolverArtifactRepository(resolver, cacheAccess);
+        return new FixedResolverArtifactRepository(resolver);
     }
 
     private PasswordCredentials createPasswordCredentials() {

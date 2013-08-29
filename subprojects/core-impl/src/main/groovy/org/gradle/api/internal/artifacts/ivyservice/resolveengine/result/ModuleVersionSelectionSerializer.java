@@ -23,18 +23,20 @@ import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
 
+import java.io.IOException;
+
 public class ModuleVersionSelectionSerializer implements Serializer<ModuleVersionSelection> {
 
     private final ModuleVersionIdentifierSerializer idSerializer = new ModuleVersionIdentifierSerializer();
     private final ModuleVersionSelectionReasonSerializer reasonSerializer = new ModuleVersionSelectionReasonSerializer();
 
-    public ModuleVersionSelection read(Decoder decoder) throws Exception {
+    public ModuleVersionSelection read(Decoder decoder) throws IOException {
         ModuleVersionIdentifier id = idSerializer.read(decoder);
         ModuleVersionSelectionReason reason = reasonSerializer.read(decoder);
         return new DefaultModuleVersionSelection(id, reason);
     }
 
-    public void write(Encoder encoder, ModuleVersionSelection value) throws Exception {
+    public void write(Encoder encoder, ModuleVersionSelection value) throws IOException {
         idSerializer.write(encoder, value.getSelectedId());
         reasonSerializer.write(encoder, value.getSelectionReason());
     }

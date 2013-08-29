@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Adapts some source object to some target type.
+ * Adapts some source object to some target view type.
  */
 public class ProtocolToModelAdapter implements Serializable {
     private static final MethodInvoker NO_OP_HANDLER = new NoOpMethodInvoker();
@@ -55,12 +55,15 @@ public class ProtocolToModelAdapter implements Serializable {
         this.targetTypeProvider = targetTypeProvider;
     }
 
+    /**
+     * Adapts the source object to a view object.
+     */
     public <T, S> T adapt(Class<T> targetType, S sourceObject) {
         return adapt(targetType, sourceObject, NO_OP_MAPPER);
     }
 
     /**
-     * Adapts the source object.
+     * Adapts the source object to a view object.
      *
      * @param mixInClass A bean that provides implementations for methods of the target type. If this bean implements the given method, it is preferred over the source object's implementation.
      */
@@ -75,7 +78,7 @@ public class ProtocolToModelAdapter implements Serializable {
     }
 
     /**
-     * Adapts the source object.
+     * Adapts the source object to a view object.
      *
      * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided
      * {@link SourceObjectMapping}.
@@ -102,6 +105,17 @@ public class ProtocolToModelAdapter implements Serializable {
             mixInMethodInvoker.setProxy(proxy);
         }
         return wrapperType.cast(proxy);
+    }
+
+    /**
+     * Unpacks the source object from a given view object.
+     */
+    public Object unpack(Object viewObject) {
+        if (!Proxy.isProxyClass(viewObject.getClass()) || !(Proxy.getInvocationHandler(viewObject) instanceof InvocationHandlerImpl)) {
+            throw new IllegalArgumentException("The given object is not a view object");
+        }
+        InvocationHandlerImpl handler = (InvocationHandlerImpl) Proxy.getInvocationHandler(viewObject);
+        return handler.delegate;
     }
 
     private static class DefaultSourceObjectMapping implements SourceObjectMapping {

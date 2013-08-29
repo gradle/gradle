@@ -14,35 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
 import com.google.common.collect.MapMaker;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.CachedStoreFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
+import org.gradle.util.GStreamUtil;
 
 import java.io.*;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
-//Draft, needs rework, along with BinaryStore interface, etc.
 public class ResolutionResultsStoreFactory implements Closeable {
     private final static Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
 
     private final TemporaryFileProvider temp;
-    private final CachedStoreFactory<TransientConfigurationResults> oldModelCache =
-            new CachedStoreFactory<TransientConfigurationResults>("Resolution result");
-    private final CachedStoreFactory<ResolvedModuleVersionResult> newModelCache =
-            new CachedStoreFactory<ResolvedModuleVersionResult>("Resolved configuration");
+    private final CachedStoreFactory oldModelCache =
+            new CachedStoreFactory("Resolution result");
+    private final CachedStoreFactory newModelCache =
+            new CachedStoreFactory("Resolved configuration");
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this.temp = temp;
@@ -59,7 +55,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         synchronized (lock) {
             SimpleBinaryStore store = stores.get(storeKey);
             if (store == null) {
-                File storeFile = temp.createTemporaryFile("gradle", UUID.randomUUID().toString() + ".bin");
+                File storeFile = temp.createTemporaryFile("gradle", ".bin");
                 storeFile.deleteOnExit();
                 store = new SimpleBinaryStore(storeFile);
                 stores.put(storeKey, store);
@@ -78,17 +74,18 @@ public class ResolutionResultsStoreFactory implements Closeable {
         newModelCache.close();
     }
 
-    public Store<TransientConfigurationResults> createOldModelCache(final ConfigurationInternal configuration) {
+    public <T> Store<T> createOldModelCache(ConfigurationInternal configuration) {
         return oldModelCache.createCachedStore(configuration.getPath());
     }
 
-    public Store<ResolvedModuleVersionResult> createNewModelCache(ConfigurationInternal configuration) {
+    public <T> Store<T> createNewModelCache(ConfigurationInternal configuration) {
         return newModelCache.createCachedStore(configuration.getPath());
     }
 
     private static class SimpleBinaryStore implements BinaryStore {
         private File file;
         private DataOutputStream outputStream;
+        private int offset = -1;
 
         public SimpleBinaryStore(File file) {
             this.file = file;
@@ -99,8 +96,15 @@ public class ResolutionResultsStoreFactory implements Closeable {
             }
         }
 
-        public DataOutputStream getOutput() {
-            return outputStream;
+        public void write(WriteAction write) {
+            if (offset == -1) {
+                this.offset = outputStream.size();
+            }
+            try {
+                write.write(outputStream);
+            } catch (IOException e) {
+                throw new RuntimeException("Problems writing to " + diagnose(), e);
+            }
         }
 
         public DataInputStream getInput() {
@@ -120,6 +124,17 @@ public class ResolutionResultsStoreFactory implements Closeable {
             return "Binary store in " + file;
         }
 
+        public BinaryData done() {
+            try {
+                outputStream.flush();
+                return new SimpleBinaryData(file, offset, diagnose());
+            } catch (IOException e) {
+                throw new RuntimeException("Problems flushing data to " + diagnose(), e);
+            } finally {
+                offset = -1;
+            }
+        }
+
         public void close() {
             try {
                 outputStream.close();
@@ -127,6 +142,44 @@ public class ResolutionResultsStoreFactory implements Closeable {
                 throw throwAsUncheckedException(e);
             }
             file.delete();
+        }
+
+        private static class SimpleBinaryData implements BinaryData {
+            private DataInputStream input;
+            private File inputFile;
+            private int offset;
+            private final String sourceDescription;
+
+            public SimpleBinaryData(File inputFile, int offset, String sourceDescription) {
+                this.inputFile = inputFile;
+                this.offset = offset;
+                this.sourceDescription = sourceDescription;
+            }
+
+            public <T> T read(ReadAction<T> readAction) {
+                try {
+                    if (input == null) {
+                        input = new DataInputStream(new BufferedInputStream(new FileInputStream(inputFile)));
+                        GStreamUtil.skipBytes(offset, input);
+                    }
+                    return readAction.read(input);
+                } catch (Exception e) {
+                    throw new RuntimeException("Problems reading data from " + sourceDescription, e);
+                }
+            }
+
+            public void done() {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    throw new RuntimeException("Problems closing the " + sourceDescription, e);
+                }
+                input = null;
+            }
+
+            public String toString() {
+                return sourceDescription;
+            }
         }
     }
 }

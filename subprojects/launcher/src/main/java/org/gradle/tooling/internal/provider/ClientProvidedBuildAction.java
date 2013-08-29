@@ -21,45 +21,49 @@ import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.ModelConfigurationListener;
-import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
+import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
+import org.gradle.tooling.internal.protocol.InternalBuildController;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicReference;
 
-class ClientProvidedBuildAction implements BuildAction<SerializedPayload>, Serializable {
+class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Serializable {
     private final SerializedPayload action;
 
     public ClientProvidedBuildAction(SerializedPayload action) {
         this.action = action;
     }
 
-    public SerializedPayload run(final BuildController buildController) {
+    public BuildActionResult run(final BuildController buildController) {
         final DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) buildController.getLauncher();
-        PayloadSerializer payloadSerializer = gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
+        final PayloadSerializer payloadSerializer = gradleLauncher.getGradle().getServices().get(PayloadSerializer.class);
         final InternalBuildAction<?> action = (InternalBuildAction<?>) payloadSerializer.deserialize(this.action);
+
+        // The following is all very awkward because the contract for BuildController is still just a
+        // rough wrapper around GradleLauncher, which means we can only get at the model and various
+        // services by using listeners.
+
         final AtomicReference<Object> result = new AtomicReference<Object>();
+        final AtomicReference<RuntimeException> failure = new AtomicReference<RuntimeException>();
 
         gradleLauncher.addListener(new ModelConfigurationListener() {
             public void onConfigure(final GradleInternal gradle) {
-                InternalBuildController internalBuildController = new InternalBuildController() {
-                    public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
-                        return new ProviderBuildResult<Object>(gradle);
-                    }
-
-                    public BuildResult<?> getModel(final ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
-                        ToolingModelBuilder builder = gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class).getBuilder(modelIdentifier.getName());
-                        Object model = builder.buildAll(modelIdentifier.getName(), gradle.getDefaultProject());
-                        return new ProviderBuildResult<Object>(model);
-                    }
-                };
-                result.set(action.execute(internalBuildController));
+                InternalBuildController internalBuildController = new DefaultBuildController(gradle);
+                Object model = null;
+                try {
+                    model = action.execute(internalBuildController);
+                } catch (RuntimeException e) {
+                    failure.set(new InternalBuildActionFailureException(e));
+                }
+                result.set(model);
             }
         });
-
         buildController.configure();
-        return payloadSerializer.serialize(result.get());
+
+        if (failure.get() != null) {
+            return new BuildActionResult(null, payloadSerializer.serialize(failure.get()));
+        }
+        return new BuildActionResult(payloadSerializer.serialize(result.get()), null);
     }
 }

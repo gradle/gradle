@@ -17,6 +17,8 @@ package org.gradle.tooling;
 
 /**
  * Thrown when the target Gradle version does not support a particular feature.
+ *
+ * @since 1.0-milestone-3
  */
 public class UnsupportedVersionException extends GradleConnectionException {
     public UnsupportedVersionException(String message) {

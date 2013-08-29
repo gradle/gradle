@@ -19,9 +19,9 @@ package org.gradle.tooling.exceptions;
 import org.gradle.tooling.GradleConnectionException;
 
 /**
- * Thrown when the {@link org.gradle.tooling.BuildLauncher} has been configured
- * with unsupported build arguments. For more information see docs for
- * {@link org.gradle.tooling.BuildLauncher#withArguments(String...)} method.
+ * Thrown when the {@link org.gradle.tooling.LongRunningOperation} has been configured
+ * with unsupported build arguments. For more information see the
+ * {@link org.gradle.tooling.LongRunningOperation#withArguments(String...)} method.
  */
 public class UnsupportedBuildArgumentException extends GradleConnectionException {
     public UnsupportedBuildArgumentException(String message) {

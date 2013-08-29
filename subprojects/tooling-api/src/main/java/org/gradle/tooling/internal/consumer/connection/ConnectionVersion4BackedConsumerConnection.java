@@ -85,7 +85,7 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         }
         if (!versionDetails.isModelSupported(modelType)) {
             //don't bother asking the provider for this model
-            throw Exceptions.unknownModel(modelType, versionDetails.getVersion());
+            throw Exceptions.unsupportedModel(modelType, versionDetails.getVersion());
         }
         Class<? extends ProjectVersion3> protocolType = modelMapping.getProtocolType(modelType).asSubclass(ProjectVersion3.class);
         return getDelegate().getModel(protocolType, operationParameters);

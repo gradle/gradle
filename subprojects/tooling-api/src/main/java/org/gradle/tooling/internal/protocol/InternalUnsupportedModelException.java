@@ -16,5 +16,16 @@
 
 package org.gradle.tooling.internal.protocol;
 
+/**
+ * A wrapper thrown when some requested model is not available. Any details will be made available in the cause of
+ * the exception.
+ *
+ * <p>Consumer compatibility: Versions 1.6-rc-1 and later use this type.</p>
+ * <p>Provider compatibility: Versions prior to 1.8-rc-1 did not attach any cause to this exception.</p>
+ *
+ * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
+ *
+ * @since 1.6-rc-1
+ */
 public class InternalUnsupportedModelException extends RuntimeException {
 }

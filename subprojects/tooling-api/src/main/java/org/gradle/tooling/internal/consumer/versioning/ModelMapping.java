@@ -22,6 +22,7 @@ import org.gradle.api.Nullable;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
+import org.gradle.tooling.model.GradleBuild;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
@@ -30,15 +31,30 @@ import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class ModelMapping {
     private static final BiMap<Class<?>, Class<?>> MODEL_TO_PROTOCOL_MAP = HashBiMap.create();
     private static final BiMap<Class<?>, String> MODEL_NAME_MAP = HashBiMap.create();
+    private static final Map<Class<?>, String> MODEL_VERSIONS = new HashMap<Class<?>, String>();
 
     static {
         addModelToProtocolMappings(MODEL_TO_PROTOCOL_MAP);
         addModelNameMappings(MODEL_NAME_MAP);
+        addModelVersions(MODEL_VERSIONS);
+    }
+
+    private static void addModelVersions(Map<Class<?>, String> map) {
+        map.put(HierarchicalEclipseProject.class, "1.0-milestone-3");
+        map.put(EclipseProject.class, "1.0-milestone-3");
+        map.put(IdeaProject.class, "1.0-milestone-5");
+        map.put(GradleProject.class, "1.0-milestone-5");
+        map.put(BasicIdeaProject.class, "1.0-milestone-5");
+        map.put(BuildEnvironment.class, "1.0-milestone-8");
+        map.put(ProjectOutcomes.class, "1.2");
+        map.put(Void.class, "1.0-milestone-3");
+        map.put(GradleBuild.class, "1.8");
     }
 
     static void addModelToProtocolMappings(Map<Class<?>, Class<?>> map) {
@@ -103,6 +119,11 @@ public class ModelMapping {
             return null;
         }
         return getProtocolType(modelType);
+    }
+
+    @Nullable
+    public String getVersionAdded(Class<?> modelType) {
+        return MODEL_VERSIONS.get(modelType);
     }
 
     private static class DefaultModelIdentifier implements ModelIdentifier {

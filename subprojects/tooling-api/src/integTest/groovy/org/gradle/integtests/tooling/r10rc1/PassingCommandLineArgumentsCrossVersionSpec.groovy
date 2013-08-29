@@ -107,7 +107,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "gives decent feedback for invalid option"() {
         when:
-        maybeFailWithConnection { ProjectConnection it ->
+        withConnection { ProjectConnection it ->
             it.newBuild().withArguments('--foreground').run()
         }
 

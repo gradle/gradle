@@ -16,6 +16,8 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
+import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 
 import java.io.File;
 import java.io.InputStream;
@@ -125,22 +127,25 @@ public interface ModelBuilder<T> extends LongRunningOperation {
      * Fetch the model, blocking until it is available.
      *
      * @return The model.
-     * @throws UnsupportedVersionException When the target Gradle version does not support the features required to build this model.
+     * @throws UnsupportedVersionException When the target Gradle version does not support building models.
      * @throws UnknownModelException When the target Gradle version or build does not support the requested model.
-     * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
-     *          when you have configured the long running operation with a settings
-     *          like: {@link #setStandardInput(java.io.InputStream)}, {@link #setJavaHome(java.io.File)},
-     *          {@link #setJvmArguments(String...)} but those settings are not supported on the target Gradle version.
+     * @throws UnsupportedOperationConfigurationException
+     *          When the target Gradle version does not support some requested configuration option such as
+     *          {@link #setStandardInput(java.io.InputStream)}, {@link #setJavaHome(java.io.File)},
+     *          {@link #setJvmArguments(String...)}.
+     * @throws UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
      * @throws BuildException On some failure executing the Gradle build.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.
      * @since 1.0-milestone-3
      */
-    T get() throws GradleConnectionException;
+    T get() throws GradleConnectionException, UnsupportedVersionException, UnknownModelException, UnsupportedOperationConfigurationException, BuildException, IllegalStateException, UnsupportedBuildArgumentException;
 
     /**
      * Starts fetching the model, passing the result to the given handler when complete. This method returns immediately, and the result is later passed to the given
-     * handler's {@link ResultHandler#onComplete(Object)} method. If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)}
+     * handler's {@link ResultHandler#onComplete(Object)} method.
+     *
+     * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)}
      * method is called with the appropriate exception. See {@link #get()} for a description of the various exceptions that the operation may fail with.
      *
      * @param handler The handler to supply the result to.

@@ -39,7 +39,6 @@ task jarjarJar(type: JarJarJar) {
     exclude "META-INF/**"
     exclude "*classpath.properties"
 
-
     rule('org.gradle.**', '@0')
     rule('org.slf4j.**', '@0')
 

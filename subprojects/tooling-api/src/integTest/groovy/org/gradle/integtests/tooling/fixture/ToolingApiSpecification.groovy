@@ -101,10 +101,6 @@ abstract class ToolingApiSpecification extends Specification {
         toolingApi.connector()
     }
 
-    void maybeFailWithConnection(Closure cl) {
-        toolingApi.maybeFailWithConnection(cl)
-    }
-
     TestFile getProjectDir() {
         temporaryFolder.testDirectory
     }

@@ -21,14 +21,16 @@ import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
 
+import java.io.IOException;
+
 public class ModuleVersionIdentifierSerializer implements Serializer<ModuleVersionIdentifier> {
-    public void write(Encoder encoder, ModuleVersionIdentifier value) throws Exception {
+    public void write(Encoder encoder, ModuleVersionIdentifier value) throws IOException {
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getName());
         encoder.writeString(value.getVersion());
     }
 
-    public ModuleVersionIdentifier read(Decoder decoder) throws Exception {
+    public ModuleVersionIdentifier read(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String module = decoder.readString();
         String version = decoder.readString();

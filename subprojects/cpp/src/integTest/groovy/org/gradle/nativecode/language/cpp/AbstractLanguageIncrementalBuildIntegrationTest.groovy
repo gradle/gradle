@@ -19,6 +19,7 @@
 
 package org.gradle.nativecode.language.cpp
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativecode.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativecode.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -226,7 +227,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         def snapshot = executable.snapshot()
 
         and:
-        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : "'-S'"
+        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-no_pie'" : "'-q'";
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
             executables {
@@ -245,6 +246,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         skipped mainCompileTask
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
+        executedAndNotSkipped ":installMainExecutable"
 
         and:
         executable.assertExists()

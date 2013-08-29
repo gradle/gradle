@@ -25,8 +25,32 @@ import java.util.List;
 
 public class GradleVersionSpec {
     public static Spec<GradleVersion> toSpec(String constraint) {
+        String trimmed = constraint.trim();
+        if (trimmed.equals("current")) {
+            return new Spec<GradleVersion>() {
+                public boolean isSatisfiedBy(GradleVersion element) {
+                    return element.equals(GradleVersion.current());
+                }
+            };
+        }
+        if (trimmed.equals("!current")) {
+            return new Spec<GradleVersion>() {
+                public boolean isSatisfiedBy(GradleVersion element) {
+                    return !element.equals(GradleVersion.current());
+                }
+            };
+        }
+        if (trimmed.startsWith("=")) {
+            final GradleVersion target = GradleVersion.version(trimmed.substring(1)).getBaseVersion();
+            return new Spec<GradleVersion>() {
+                public boolean isSatisfiedBy(GradleVersion element) {
+                    return element.getBaseVersion().equals(target);
+                }
+            };
+        }
+
         List<Spec> specs = new ArrayList<Spec>();
-        String[] patterns = constraint.trim().split("\\s+");
+        String[] patterns = trimmed.split("\\s+");
         for (String value : patterns) {
             if (value.startsWith(">=")) {
                 final GradleVersion minVersion = GradleVersion.version(value.substring(2));

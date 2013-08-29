@@ -38,7 +38,6 @@ import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
-import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -90,40 +89,25 @@ public class ProviderConnection {
                     params.daemonParams.getEffectiveJvmArgs());
         }
 
-        BuildAction<SerializedPayload> action = new BuildModelAction(modelName, tasks != null);
-
-        // TODO:ADAM - need to clean up error handling here
-
-        SerializedPayload model;
-        try {
-            model = run(action, providerParameters, params.properties);
-        } catch (RuntimeException e) {
-            for (Throwable t = e; t != null; t = t.getCause()) {
-                // TODO:ADAM - This is not right, it's just to get an initial implementation going
-                if (t instanceof UnsupportedOperationException) {
-                    throw new InternalUnsupportedModelException();
-                }
-            }
-            throw e;
-        }
-
-        return payloadSerializer.deserialize(model);
+        BuildAction<BuildActionResult> action = new BuildModelAction(modelName, tasks != null);
+        return run(action, providerParameters, params.properties);
     }
 
     public Object run(InternalBuildAction<?> clientAction, ProviderOperationParameters providerParameters) {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
-
-        BuildAction<SerializedPayload> action = new ClientProvidedBuildAction(serializedAction);
         Parameters params = initParams(providerParameters);
-        SerializedPayload result = run(action, providerParameters, params.properties);
-
-        return payloadSerializer.deserialize(result);
+        BuildAction<BuildActionResult> action = new ClientProvidedBuildAction(serializedAction);
+        return run(action, providerParameters, params.properties);
     }
 
-    private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {
+    private Object run(BuildAction<? extends BuildActionResult> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {
         BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
-        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters, action, properties);
-        return executer.execute(configuringAction, operationParameters);
+        ConfiguringBuildAction<BuildActionResult> configuringAction = new ConfiguringBuildAction<BuildActionResult>(operationParameters, action, properties);
+        BuildActionResult result = executer.execute(configuringAction, operationParameters);
+        if (result.failure != null) {
+            throw (RuntimeException) payloadSerializer.deserialize(result.failure);
+        }
+        return payloadSerializer.deserialize(result.result);
     }
 
     private BuildActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters) {

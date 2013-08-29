@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.MapMaker;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
@@ -32,11 +32,12 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
     private final Lock lock = new ReentrantLock();
     private final ModelClassLoaderFactory classLoaderFactory;
-    // TODO:ADAM - don't use strong references
-    private final Map<ClassLoader, ClassLoaderDetails> classLoaderDetails = Maps.newHashMap();
-    private final Map<UUID, ClassLoader> classLoaderIds = Maps.newHashMap();
+    private Map<ClassLoader, ClassLoaderDetails> classLoaderDetails;
+    private Map<UUID, ClassLoader> classLoaderIds;
 
     public DefaultPayloadClassLoaderRegistry(ModelClassLoaderFactory modelClassLoaderFactory) {
+        classLoaderDetails = new MapMaker().weakKeys().makeMap();
+        classLoaderIds = new MapMaker().weakValues().makeMap();
         this.classLoaderFactory = modelClassLoaderFactory;
     }
 

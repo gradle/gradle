@@ -73,6 +73,54 @@ class GradleVersionSpecTest extends Specification {
         !spec.isSatisfiedBy(GradleVersion.version("12.45"))
     }
 
+    def "equals version constraint matches versions with same base version"() {
+        def spec = GradleVersionSpec.toSpec("=1.4")
+
+        expect:
+        spec.isSatisfiedBy(GradleVersion.version("1.4"))
+        spec.isSatisfiedBy(GradleVersion.version("1.4-rc-7"))
+        spec.isSatisfiedBy(GradleVersion.version("1.4-12341010120000+1000"))
+
+        !spec.isSatisfiedBy(GradleVersion.version("1.0-milestone-9"))
+        !spec.isSatisfiedBy(GradleVersion.version("0.9.2"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.5"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.5-rc-1"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.5-12341010120000+1000"))
+        !spec.isSatisfiedBy(GradleVersion.version("12.45"))
+    }
+
+    def "current version constraint matches current version"() {
+        def spec = GradleVersionSpec.toSpec("current")
+
+        expect:
+        spec.isSatisfiedBy(GradleVersion.current())
+
+        !spec.isSatisfiedBy(GradleVersion.version("1.0-milestone-9"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.4-rc-7"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.4-12341010120000+1000"))
+        !spec.isSatisfiedBy(GradleVersion.version("0.9.2"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.5"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.5-rc-1"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.5-12341010120000+1000"))
+        !spec.isSatisfiedBy(GradleVersion.version("12.45"))
+    }
+
+    def "not current version constraint matches everything other than current version"() {
+        def spec = GradleVersionSpec.toSpec("!current")
+
+        expect:
+        !spec.isSatisfiedBy(GradleVersion.current())
+
+        spec.isSatisfiedBy(GradleVersion.version("1.0-milestone-9"))
+        spec.isSatisfiedBy(GradleVersion.version("1.4-rc-7"))
+        spec.isSatisfiedBy(GradleVersion.version("1.4-12341010120000+1000"))
+        spec.isSatisfiedBy(GradleVersion.version("0.9.2"))
+        spec.isSatisfiedBy(GradleVersion.version("1.5"))
+        spec.isSatisfiedBy(GradleVersion.version("1.5-rc-1"))
+        spec.isSatisfiedBy(GradleVersion.version("1.5-12341010120000+1000"))
+        spec.isSatisfiedBy(GradleVersion.version("12.45"))
+    }
+
     def "range constraint matches all versions inside range"() {
         def spec = GradleVersionSpec.toSpec(">=1.0 <=1.4")
 
