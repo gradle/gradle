@@ -227,7 +227,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         def snapshot = executable.snapshot()
 
         and:
-        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-no_pie'" : "'--build-id=uuid'";
+        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-no_pie'" : "'-q'";
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
             executables {
