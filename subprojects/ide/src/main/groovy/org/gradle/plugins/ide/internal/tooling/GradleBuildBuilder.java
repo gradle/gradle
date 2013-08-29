@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
+import org.gradle.tooling.internal.gradle.BasicGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.LinkedHashMap;

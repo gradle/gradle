@@ -16,21 +16,21 @@
 
 package org.gradle.integtests.tooling.r18;
 
+import org.gradle.integtests.tooling.r16.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleBuild;
-import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class MultiProjectAction implements BuildAction<Map<String, GradleProject>> {
-    public Map<String, GradleProject> execute(BuildController controller) {
+public class MultiProjectAction implements BuildAction<Map<String, CustomModel>> {
+    public Map<String, CustomModel> execute(BuildController controller) {
         GradleBuild gradleBuild = controller.getBuildModel();
-        Map<String, GradleProject> projects = new HashMap<String, GradleProject>();
+        Map<String, CustomModel> projects = new HashMap<String, CustomModel>();
         for (HierarchicalElement project : gradleBuild.getProjects()) {
-            projects.put(project.getName(), controller.getModel(project, GradleProject.class));
+            projects.put(project.getName(), controller.getModel(project, CustomModel.class));
         }
         return projects;
     }

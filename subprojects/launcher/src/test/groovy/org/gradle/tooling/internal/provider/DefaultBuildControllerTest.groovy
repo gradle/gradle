@@ -17,8 +17,12 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.service.scopes.ServiceRegistryFactory
+import org.gradle.tooling.internal.gradle.BasicGradleProject
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
+import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.UnknownModelException
 import spock.lang.Specification
@@ -26,15 +30,22 @@ import spock.lang.Specification
 class DefaultBuildControllerTest extends Specification {
     def gradle = Stub(GradleInternal)
     def registry = Stub(ToolingModelBuilderRegistry)
-    def controller = new DefaultBuildController(gradle, registry)
+    def project = Stub(ProjectInternal) {
+        getServices() >> Stub(ServiceRegistryFactory) {
+            get(ToolingModelBuilderRegistry) >> registry
+        }
+    }
+    def modelId = Stub(ModelIdentifier) {
+        getName() >> 'some.model'
+    }
+    def modelBuilder = Stub(ToolingModelBuilder)
+    def controller = new DefaultBuildController(gradle)
 
     def "adapts model not found exception to protocol exception"() {
-        def modelId = Stub(ModelIdentifier) {
-            getName() >> 'some.model'
-        }
         def failure = new UnknownModelException("not found")
 
         given:
+        _ * gradle.defaultProject >> project
         _ * registry.getBuilder('some.model') >> { throw failure }
 
         when:
@@ -43,5 +54,38 @@ class DefaultBuildControllerTest extends Specification {
         then:
         InternalUnsupportedModelException e = thrown()
         e.cause == failure
+    }
+
+    def "uses builder for specified project"() {
+        def target = new BasicGradleProject().setPath(":some:path")
+        def rootProject = Stub(ProjectInternal)
+        def model = new Object()
+
+        given:
+        _ * gradle.rootProject >> rootProject
+        _ * rootProject.project(":some:path") >> project
+        _ * registry.getBuilder("some.model") >> modelBuilder
+        _ * modelBuilder.buildAll("some.model", project) >> model
+
+        when:
+        def result = controller.getModel(target, modelId)
+
+        then:
+        result.getModel() == model
+    }
+
+    def "uses builder for default project when none specified"() {
+        def model = new Object()
+
+        given:
+        _ * gradle.defaultProject >> project
+        _ * registry.getBuilder("some.model") >> modelBuilder
+        _ * modelBuilder.buildAll("some.model", project) >> model
+
+        when:
+        def result = controller.getModel(null, modelId)
+
+        then:
+        result.getModel() == model
     }
 }

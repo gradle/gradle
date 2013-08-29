@@ -49,10 +49,11 @@ class BuildControllerAdapter implements BuildController {
 
     public <T> T getModel(Element target, Class<T> modelType) throws UnknownModelException {
         ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(modelType);
+        Object originalTarget = target == null ? null : adapter.unpack(target);
 
         BuildResult<?> result;
         try {
-            result = buildController.getModel(null, modelIdentifier);
+            result = buildController.getModel(originalTarget, modelIdentifier);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(modelType, e);
         }

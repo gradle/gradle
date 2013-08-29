@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildController
 import org.gradle.tooling.internal.protocol.InternalProtocolInterface
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
+import org.gradle.tooling.model.Element
 import org.gradle.tooling.model.GradleBuild
 import spock.lang.Specification
 
@@ -54,23 +55,46 @@ class BuildControllerAdapterTest extends Specification {
         e.cause == failure
     }
 
+    def "fetches model for target object"() {
+        def model = new Object()
+        def targetElement = new Object()
+        def modelElement = Stub(Element)
+        def modelView = Stub(GradleBuild)
+
+        when:
+        def result = controller.getModel(modelElement, GradleBuild)
+
+        then:
+        result == modelView
+
+        and:
+        1 * adapter.unpack(modelElement) >> targetElement
+        1 * internalController.getModel(targetElement, _) >> { def target, ModelIdentifier identifier ->
+            assert identifier.name == 'GradleBuild'
+            return Stub(BuildResult) {
+                getModel() >> model
+            }
+        }
+        1 * adapter.adapt(GradleBuild, model) >> modelView
+    }
+
     def "fetches build model"() {
-        def protocolModel = Stub(InternalProtocolInterface)
-        def model = Stub(GradleBuild)
+        def model = Stub(InternalProtocolInterface)
+        def modelView = Stub(GradleBuild)
 
         when:
         def result = controller.buildModel
 
         then:
-        result == model
+        result == modelView
 
         and:
         1 * internalController.getModel(null, _) >> { def target, ModelIdentifier identifier ->
             assert identifier.name == 'GradleBuild'
             return Stub(BuildResult) {
-                getModel() >> protocolModel
+                getModel() >> model
             }
         }
-        1 * adapter.adapt(GradleBuild, protocolModel) >> model
+        1 * adapter.adapt(GradleBuild, model) >> modelView
     }
 }

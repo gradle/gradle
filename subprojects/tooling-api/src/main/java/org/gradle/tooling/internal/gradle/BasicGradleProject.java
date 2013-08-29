@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.tooling;
+package org.gradle.tooling.internal.gradle;
 
 import java.io.Serializable;
 import java.util.LinkedHashSet;
@@ -25,6 +25,11 @@ public class BasicGradleProject implements Serializable {
     private String path;
     private BasicGradleProject parent;
     private Set<BasicGradleProject> children = new LinkedHashSet<BasicGradleProject>();
+
+    @Override
+    public String toString() {
+        return "GradleProject{path='" + path + "\'}";
+    }
 
     public String getPath() {
         return path;

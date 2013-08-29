@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import org.gradle.tooling.internal.gradle.BasicGradleProject;
+
 import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;

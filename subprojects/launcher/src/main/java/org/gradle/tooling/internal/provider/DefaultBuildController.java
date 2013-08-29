@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.tooling.internal.gradle.BasicGradleProject;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -25,11 +27,9 @@ import org.gradle.tooling.provider.model.UnknownModelException;
 
 class DefaultBuildController implements InternalBuildController {
     private final GradleInternal gradle;
-    private final ToolingModelBuilderRegistry modelBuilderRegistry;
 
-    public DefaultBuildController(GradleInternal gradle, ToolingModelBuilderRegistry modelBuilderRegistry) {
+    public DefaultBuildController(GradleInternal gradle) {
         this.gradle = gradle;
-        this.modelBuilderRegistry = modelBuilderRegistry;
     }
 
     public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
@@ -37,9 +37,17 @@ class DefaultBuildController implements InternalBuildController {
     }
 
     public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
-        if (target != null) {
-            return null;
+        ToolingModelBuilderRegistry modelBuilderRegistry;
+        ProjectInternal project;
+        if (target == null) {
+            project = gradle.getDefaultProject();
+        } else if (target instanceof BasicGradleProject) {
+            BasicGradleProject gradleProject = (BasicGradleProject) target;
+            project = gradle.getRootProject().project(gradleProject.getPath());
+        } else {
+            throw new IllegalArgumentException("Don't know how to build models for " + target);
         }
+        modelBuilderRegistry = project.getServices().get(ToolingModelBuilderRegistry.class);
 
         ToolingModelBuilder builder;
         try {
@@ -47,7 +55,7 @@ class DefaultBuildController implements InternalBuildController {
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) (new InternalUnsupportedModelException()).initCause(e);
         }
-        Object model = builder.buildAll(modelIdentifier.getName(), gradle.getDefaultProject());
+        Object model = builder.buildAll(modelIdentifier.getName(), project);
         return new ProviderBuildResult<Object>(model);
     }
 }

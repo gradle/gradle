@@ -24,7 +24,6 @@ import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicReference;
@@ -50,8 +49,7 @@ class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Seria
 
         gradleLauncher.addListener(new ModelConfigurationListener() {
             public void onConfigure(final GradleInternal gradle) {
-                ToolingModelBuilderRegistry builderRegistry = gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
-                InternalBuildController internalBuildController = new DefaultBuildController(gradle, builderRegistry);
+                InternalBuildController internalBuildController = new DefaultBuildController(gradle);
                 Object model = null;
                 try {
                     model = action.execute(internalBuildController);
