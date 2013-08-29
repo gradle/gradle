@@ -111,7 +111,11 @@ It will be hard to prove but in theory daemon builds should be more consistent a
 
 ### Implementation
 
-Trigger gc() when the daemon sits idle, after the build completes.
+ - Add new DaemonCommandAction, say DaemonHygiene.
+ - Slot it in the actions chain so that it is executed after the build has completed, and the user received the 'build successful' message
+ - This action needs to be stateful (currently all actions are created per build request)
+ - This action may perform gc at the end of the build, but not too often, say once per 2 minutes.
+ - This action may perform other hygiene actions, monitor memory usage, etc.
 
 ## Other potential spikes/stories:
 
