@@ -163,7 +163,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
                         GStreamUtil.skipBytes(offset, input);
                     }
                     return readAction.read(input);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     throw new RuntimeException("Problems reading data from " + sourceDescription, e);
                 }
             }

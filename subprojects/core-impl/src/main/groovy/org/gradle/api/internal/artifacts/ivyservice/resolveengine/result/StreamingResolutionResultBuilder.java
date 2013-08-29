@@ -151,7 +151,7 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
             }
         }
 
-        private ResolvedModuleVersionResult deserialize(DataInputStream input) throws IOException {
+        private ResolvedModuleVersionResult deserialize(DataInputStream input) {
             int valuesRead = 0;
             byte type = -1;
             Clock clock = new Clock();
@@ -188,7 +188,7 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
                     }
                 }
             } catch (IOException e) {
-                throw new IOException("Problems loading the resolution results (" + clock.getTime() + "). "
+                throw new RuntimeException("Problems loading the resolution results (" + clock.getTime() + "). "
                         + "Read " + valuesRead + " values, last was: " + type, e);
             }
         }

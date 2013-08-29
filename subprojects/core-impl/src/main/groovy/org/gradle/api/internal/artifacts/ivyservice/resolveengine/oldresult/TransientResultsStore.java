@@ -115,7 +115,7 @@ public class TransientResultsStore {
         }
     }
 
-    private TransientConfigurationResults deserialize(DataInputStream input, ResolvedContentsMapping mapping) throws IOException {
+    private TransientConfigurationResults deserialize(DataInputStream input, ResolvedContentsMapping mapping) {
         Clock clock = new Clock();
         DefaultTransientConfigurationResults results = new DefaultTransientConfigurationResults();
         int valuesRead = 0;
@@ -156,7 +156,7 @@ public class TransientResultsStore {
                 }
             }
         } catch (IOException e) {
-            throw new IOException("Problems loading (" + clock.getTime() + ") the resolved configuration. Read " + valuesRead + " values, last was: " + type, e);
+            throw new RuntimeException("Problems loading (" + clock.getTime() + ") the resolved configuration. Read " + valuesRead + " values, last was: " + type, e);
         }
     }
 }
