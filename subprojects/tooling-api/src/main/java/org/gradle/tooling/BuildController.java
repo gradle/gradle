@@ -17,6 +17,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.tooling.model.Element;
 import org.gradle.tooling.model.GradleBuild;
 
@@ -56,6 +57,18 @@ public interface BuildController {
     <T> T getModel(Class<T> modelType) throws UnknownModelException;
 
     /**
+     * Fetches a snapshot of the model of the given type, if available.
+     *
+     * <p>See {@link #getModel(Class)} for more details.</p>
+     *
+     * @param modelType The model type.
+     * @param <T> The model type.
+     * @return The model, or null if not present.
+     */
+    @Nullable
+    <T> T findModel(Class<T> modelType);
+
+    /**
      * Returns an overview of the Gradle build, including some basic details of the projects that make up the build.
      * This is equivalent to calling {@code #getModel(GradleBuild)}.
      *
@@ -64,7 +77,16 @@ public interface BuildController {
     GradleBuild getBuildModel();
 
     /**
-     * Fetches a snapshot of the model of the given type for the given element, usually a project.
+     * Fetches a snapshot of the model of the given type for the given element, usually a Gradle project.
+     *
+     * <p>The following elements are supported:
+     *
+     * <ul>
+     *     <li>Any {@link org.gradle.tooling.model.GradleProject}</li>
+     *     <li>Any {@link org.gradle.tooling.model.eclipse.EclipseProject}</li>
+     *     <li>Any {@link org.gradle.tooling.model.idea.IdeaModule}</li>
+     *     <li>A value returned by {@link org.gradle.tooling.model.GradleBuild#getProjects()} or {@link org.gradle.tooling.model.GradleBuild#getRootProject()}.</li>
+     * </ul>
      *
      * <p>See {@link #getModel(Class)} for more details.
      *
@@ -75,4 +97,16 @@ public interface BuildController {
      * @throws UnknownModelException When the target project does not support the requested model.
      */
     <T> T getModel(Element target, Class<T> modelType) throws UnknownModelException;
+
+    /**
+     * Fetches a snapshot of the model of the given type, if available.
+     *
+     * <p>See {@link #getModel(Element, Class)} for more details.</p>
+     *
+     * @param modelType The model type.
+     * @param <T> The model type.
+     * @return The model, or null if not present.
+     */
+    @Nullable
+    <T> T findModel(Element target, Class<T> modelType);
 }

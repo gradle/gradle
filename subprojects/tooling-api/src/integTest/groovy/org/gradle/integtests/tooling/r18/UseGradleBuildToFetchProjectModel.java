@@ -25,7 +25,7 @@ import org.gradle.tooling.model.HierarchicalElement;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MultiProjectAction implements BuildAction<Map<String, CustomModel>> {
+public class UseGradleBuildToFetchProjectModel implements BuildAction<Map<String, CustomModel>> {
     public Map<String, CustomModel> execute(BuildController controller) {
         GradleBuild gradleBuild = controller.getBuildModel();
         Map<String, CustomModel> projects = new HashMap<String, CustomModel>();

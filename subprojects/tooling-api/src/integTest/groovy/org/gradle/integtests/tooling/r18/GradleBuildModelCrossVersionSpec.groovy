@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleBuild
-import org.gradle.integtests.tooling.r16.CustomModel
 
 @ToolingApiVersion(">=1.8")
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
@@ -34,46 +33,9 @@ rootProject.name = 'test'
         buildFile << """
 allprojects {
     description = "project \$name"
-    apply plugin: CustomPlugin
     task buildStuff
 }
-
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
-import org.gradle.tooling.provider.model.ToolingModelBuilder
-import javax.inject.Inject
-
-class CustomModel implements Serializable {
-    String value
-}
-class CustomBuilder implements ToolingModelBuilder {
-    boolean canBuild(String modelName) {
-        return modelName == 'org.gradle.integtests.tooling.r16.CustomModel'
-    }
-    Object buildAll(String modelName, Project project) {
-        return new CustomModel(value: project.path)
-    }
-}
-class CustomPlugin implements Plugin<Project> {
-    @Inject
-    CustomPlugin(ToolingModelBuilderRegistry registry) {
-        registry.register(new CustomBuilder())
-    }
-
-    public void apply(Project project) {
-    }
-}
 """
-    }
-
-    @TargetGradleVersion(">=1.8")
-    def "can request models from various projects"() {
-        when:
-        Map<String, CustomModel> result = withConnection { connection -> connection.action(new MultiProjectAction()).run() }
-
-        then:
-        result != null
-        result.keySet() == ['test', 'a', 'b', 'c'] as Set
-        result.values()*.value as Set == [':', ':a', ':b', ':b:c'] as Set
     }
 
     // TODO:ADAM - make this work for all target versions

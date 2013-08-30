@@ -43,8 +43,26 @@ class BuildControllerAdapter implements BuildController {
         return getModel(null, modelType);
     }
 
+    public <T> T findModel(Class<T> modelType) {
+        try {
+            return getModel(modelType);
+        } catch (UnknownModelException e) {
+            // Ignore
+            return null;
+        }
+    }
+
     public GradleBuild getBuildModel() {
         return getModel(null, GradleBuild.class);
+    }
+
+    public <T> T findModel(Element target, Class<T> modelType) {
+        try {
+            return getModel(target, modelType);
+        } catch (UnknownModelException e) {
+            // Ignore
+            return null;
+        }
     }
 
     public <T> T getModel(Element target, Class<T> modelType) throws UnknownModelException {

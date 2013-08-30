@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.tooling.internal.gradle.BasicGradleProject;
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -41,8 +41,8 @@ class DefaultBuildController implements InternalBuildController {
         ProjectInternal project;
         if (target == null) {
             project = gradle.getDefaultProject();
-        } else if (target instanceof BasicGradleProject) {
-            BasicGradleProject gradleProject = (BasicGradleProject) target;
+        } else if (target instanceof GradleProjectIdentity) {
+            GradleProjectIdentity gradleProject = (GradleProjectIdentity) target;
             project = gradle.getRootProject().project(gradleProject.getPath());
         } else {
             throw new IllegalArgumentException("Don't know how to build models for " + target);
