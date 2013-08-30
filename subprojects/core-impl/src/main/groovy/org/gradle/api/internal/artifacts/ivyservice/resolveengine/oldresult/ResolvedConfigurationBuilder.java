@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 
 import java.util.Set;
 
-//listens to result events tailored for old resolved dependency graph
+//builds old model of resolved dependency graph based on the result events
 public interface ResolvedConfigurationBuilder {
 
     void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedConfigurationIdentifier dependency);

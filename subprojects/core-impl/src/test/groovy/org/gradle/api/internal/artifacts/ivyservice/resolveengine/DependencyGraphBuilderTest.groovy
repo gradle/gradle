@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Defa
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBinaryStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
@@ -44,7 +44,7 @@ class DependencyGraphBuilderTest extends Specification {
     final ConfigurationInternal configuration = Mock()
     final ModuleConflictResolver conflictResolver = Mock()
     final DependencyToModuleVersionIdResolver dependencyResolver = Mock()
-    final ResolvedConfigurationListener listener = Mock()
+    final ResolutionResultBuilder resultBuilder = Mock()
     final ModuleVersionMetaData root = revision('root')
     final ModuleToModuleVersionResolver moduleResolver = Mock()
     final DependencyToConfigurationResolver dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
@@ -78,11 +78,11 @@ class DependencyGraphBuilderTest extends Specification {
     private DefaultLenientConfiguration resolve() {
         def results = new DefaultResolvedConfigurationBuilder(Stub(ResolvedArtifactFactory),
                 new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()))
-        builder.resolve(configuration, listener, results)
+        builder.resolve(configuration, resultBuilder, results)
         new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
     }
 
-    def "correctly notifies the resolved configuration listener"() {
+    def "correctly notifies the resolution result builder"() {
         given:
         def a = revision("a")
         def b = revision("b")
@@ -97,11 +97,11 @@ class DependencyGraphBuilderTest extends Specification {
         resolve()
 
         then:
-        1 * listener.start(newId("group", "root", "1.0"))
+        1 * resultBuilder.start(newId("group", "root", "1.0"))
         then:
-        1 * listener.resolvedConfiguration({ it.name == 'root' }, { it*.requested.name == ['a', 'b'] })
+        1 * resultBuilder.resolvedConfiguration({ it.name == 'root' }, { it*.requested.name == ['a', 'b'] })
         then:
-        1 * listener.resolvedConfiguration({ it.name == 'a' }, { it*.requested.name == ['c', 'd'] && it*.failure.count { it != null } == 1 })
+        1 * resultBuilder.resolvedConfiguration({ it.name == 'a' }, { it*.requested.name == ['c', 'd'] && it*.failure.count { it != null } == 1 })
     }
 
     def "does not resolve a given dynamic module selector more than once"() {

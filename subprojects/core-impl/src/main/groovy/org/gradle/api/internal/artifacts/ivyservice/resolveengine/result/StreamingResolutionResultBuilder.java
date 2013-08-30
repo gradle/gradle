@@ -41,7 +41,7 @@ import java.util.*;
 /**
  * by Szczepan Faber on 7/28/13
  */
-public class StreamingResolutionResultBuilder implements ResolvedConfigurationListener {
+public class StreamingResolutionResultBuilder implements ResolutionResultBuilder {
 
     private final static byte ROOT = 1;
     private final static byte MODULE = 2;
@@ -71,7 +71,7 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
         return new DefaultResolutionResult(rootSource);
     }
 
-    public ResolvedConfigurationListener start(final ModuleVersionIdentifier root) {
+    public ResolutionResultBuilder start(final ModuleVersionIdentifier root) {
         store.write(new EncodedWriteAction() {
             public void write(FlushableEncoder encoder) throws IOException {
                 encoder.writeByte(ROOT);

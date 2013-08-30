@@ -34,7 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,15 +59,15 @@ public class DependencyGraphBuilder {
     }
 
     public void resolve(ConfigurationInternal configuration,
-                        ResolvedConfigurationListener listener,
-                        ResolvedConfigurationBuilder configurationBuilder) throws ResolveException {
+                        ResolutionResultBuilder newModelBuilder,
+                        ResolvedConfigurationBuilder oldModelBuilder) throws ResolveException {
         DefaultBuildableModuleVersionResolveResult rootModule = new DefaultBuildableModuleVersionResolveResult();
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
-        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, configurationBuilder);
+        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, oldModelBuilder);
         traverseGraph(resolveState);
 
-        assembleResult(resolveState, configurationBuilder, listener);
+        assembleResult(resolveState, oldModelBuilder, newModelBuilder);
     }
 
     /**
@@ -145,28 +145,28 @@ public class DependencyGraphBuilder {
     /**
      * Populates the result from the graph traversal state.
      */
-    private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder result, ResolvedConfigurationListener listener) {
+    private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder oldModelBuilder, ResolutionResultBuilder newModelBuilder) {
         FailureState failureState = new FailureState(resolveState.root);
         ModuleVersionIdentifier root = resolveState.root.toId();
-        listener.start(root);
+        newModelBuilder.start(root);
 
         // Visit the nodes
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             if (resolvedConfiguration.isSelected()) {
-                result.newResolvedDependency(resolvedConfiguration.getResult());
+                oldModelBuilder.newResolvedDependency(resolvedConfiguration.getResult());
                 resolvedConfiguration.collectFailures(failureState);
-                listener.resolvedModuleVersion(resolvedConfiguration.moduleRevision);
+                newModelBuilder.resolvedModuleVersion(resolvedConfiguration.moduleRevision);
             }
         }
         // Visit the edges
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             if (resolvedConfiguration.isSelected()) {
-                resolvedConfiguration.attachToParents(result);
-                listener.resolvedConfiguration(resolvedConfiguration.toId(), resolvedConfiguration.outgoingEdges);
+                resolvedConfiguration.attachToParents(oldModelBuilder);
+                newModelBuilder.resolvedConfiguration(resolvedConfiguration.toId(), resolvedConfiguration.outgoingEdges);
             }
         }
-        failureState.attachFailures(result);
-        result.done(resolveState.root.getResult());
+        failureState.attachFailures(oldModelBuilder);
+        oldModelBuilder.done(resolveState.root.getResult());
     }
 
     private static class FailureState {
@@ -361,21 +361,21 @@ public class DependencyGraphBuilder {
             return artifacts;
         }
 
-        public void attachToParents(ConfigurationNode childConfiguration, ResolvedConfigurationBuilder result) {
+        public void attachToParents(ConfigurationNode childConfiguration, ResolvedConfigurationBuilder oldModelBuilder) {
             ResolvedConfigurationIdentifier parent = from.getResult();
             ResolvedConfigurationIdentifier child = childConfiguration.getResult();
-            result.addChild(parent, child);
+            oldModelBuilder.addChild(parent, child);
 
             Set<ResolvedArtifact> artifacts = getArtifacts(childConfiguration);
             if (artifacts.isEmpty()) {
                 artifacts = childConfiguration.getArtifacts();
             }
             //TODO SF merge with addChild
-            result.addParentSpecificArtifacts(child, parent, artifacts);
+            oldModelBuilder.addParentSpecificArtifacts(child, parent, artifacts);
 
             if (parent == resolveState.root.getResult()) {
                 EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) dependencyDescriptor;
-                result.addFirstLevelDependency(enhancedDependencyDescriptor.getModuleDependency(), child);
+                oldModelBuilder.addFirstLevelDependency(enhancedDependencyDescriptor.getModuleDependency(), child);
             }
         }
 
@@ -793,10 +793,10 @@ public class DependencyGraphBuilder {
             return moduleRevision.state == ModuleState.Selected;
         }
 
-        public void attachToParents(ResolvedConfigurationBuilder result) {
+        public void attachToParents(ResolvedConfigurationBuilder oldModelBuilder) {
             LOGGER.debug("Attaching {} to its parents.", this);
             for (DependencyEdge dependency : incomingEdges) {
-                dependency.attachToParents(this, result);
+                dependency.attachToParents(this, oldModelBuilder);
             }
         }
 

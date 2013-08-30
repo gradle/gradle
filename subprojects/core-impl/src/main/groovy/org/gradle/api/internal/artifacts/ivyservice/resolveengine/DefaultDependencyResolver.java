@@ -31,10 +31,10 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.cache.BinaryStore;
@@ -91,7 +91,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
                 BinaryStore newModelStore = storeFactory.createBinaryStore("new-model");
                 Store<ResolvedModuleVersionResult> newModelCache = storeFactory.createNewModelCache(configuration.getPath());
-                ResolvedConfigurationListener newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache);
+                ResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache);
 
                 BinaryStore oldModelStore = storeFactory.createBinaryStore("old-model");
                 Store<TransientConfigurationResults> oldModelCache = storeFactory.createOldModelCache(configuration.getPath());
