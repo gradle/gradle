@@ -72,13 +72,16 @@ class DefaultBinaryStore implements BinaryStore {
 
     public void close() {
         try {
-            outputStream.close();
+            if (outputStream != null) {
+                outputStream.close();
+            }
         } catch (IOException e) {
             throw throwAsUncheckedException(e);
+        } finally {
+            file.delete();
+            outputStream = null;
+            file = null;
         }
-        file.delete();
-        outputStream = null;
-        file = null;
     }
 
     private static class SimpleBinaryData implements BinaryData {
