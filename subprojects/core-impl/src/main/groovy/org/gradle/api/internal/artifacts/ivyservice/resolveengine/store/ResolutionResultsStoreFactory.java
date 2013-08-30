@@ -23,6 +23,7 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.util.Clock;
 
 import java.io.*;
@@ -63,12 +64,12 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     public void close() throws IOException {
         Clock clock = new Clock();
-        for (DefaultBinaryStore store : stores.values()) {
-            store.close();
-        }
+        new CompositeStoppable()
+                .add(stores.values())
+                .add(oldModelCache)
+                .add(newModelCache)
+                .stop();
         LOG.debug("Deleted {} resolution results binary files in {}", stores.size(), clock.getTime());
-        oldModelCache.close();
-        newModelCache.close();
     }
 
     public <T> Store<T> createOldModelCache(ConfigurationInternal configuration) {
