@@ -26,10 +26,6 @@ public class DummyBinaryStore implements BinaryStore {
         write.write(output)
     }
 
-    String diagnose() {
-        "dummy in-memory binary store"
-    }
-
     BinaryStore.BinaryData done() {
         new BinaryStore.BinaryData() {
             DataInputStream input
