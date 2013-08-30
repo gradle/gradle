@@ -41,6 +41,10 @@ public class ResultsStore implements DataReporter {
     private Connection connection;
     private final long ignoreV17Before;
 
+    public ResultsStore() {
+        this(new File(System.getProperty("user.home"), ".gradle-performance-test-data/results"));
+    }
+
     public ResultsStore(File dbFile) {
         this.dbFile = dbFile;
 

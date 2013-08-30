@@ -16,6 +16,7 @@ dependencies {
     reports "flot:flot:0.8.1:min@js"
 
     compile libraries.groovy
+    testFixturesCompile libraries.slf4j_api
     testFixturesCompile project(':internalIntegTesting')
     testFixturesCompile 'com.googlecode.jatl:jatl:0.2.2'
     testFixturesCompile 'org.eclipse.jgit:org.eclipse.jgit:3.0.0.201306101825-r'
@@ -124,16 +125,27 @@ task all(dependsOn: generators)
 
 task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects])
 
-integTestTasks.all {
-    dependsOn prepareSamples
-    maxParallelForks = 1
+task report {
+    def reportDir = new File(buildDir, "performance-tests/report")
+    inputs.files sourceSets.testFixtures.runtimeClasspath
+    outputs.dir reportDir
 
-    testLogging {
-        showStandardStreams = true
-        lifecycle {
-            exceptionFormat 'full'
+    doLast {
+        def cl = new URLClassLoader(sourceSets.testFixtures.runtimeClasspath.collect { it.toURI().toURL()} as URL[], ClassLoader.systemClassLoader.parent)
+        def store = cl.loadClass("org.gradle.performance.results.ResultsStore").newInstance()
+        try {
+            def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
+            generator.generate(store, reportDir)
+        } finally {
+            store.close()
         }
     }
+}
+
+integTestTasks.all {
+    dependsOn prepareSamples
+    finalizedBy report
+    maxParallelForks = 1
 }
 
 eclipse {
