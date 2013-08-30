@@ -37,9 +37,9 @@ import java.io.IOException;
 import static com.google.common.collect.Sets.newHashSet;
 
 //TODO SF unit coverage
-public class TransientResultsStore {
+public class TransientConfigurationResultsBuilder {
 
-    private final static Logger LOG = Logging.getLogger(TransientResultsStore.class);
+    private final static Logger LOG = Logging.getLogger(TransientConfigurationResultsBuilder.class);
 
     private static final byte NEW_DEP = 1;
     private static final byte ROOT = 2;
@@ -54,7 +54,7 @@ public class TransientResultsStore {
     private final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer = new ResolvedConfigurationIdentifierSerializer();
     private BinaryStore.BinaryData binaryData;
 
-    public TransientResultsStore(BinaryStore binaryStore, Store<TransientConfigurationResults> cache) {
+    public TransientConfigurationResultsBuilder(BinaryStore binaryStore, Store<TransientConfigurationResults> cache) {
         this.binaryStore = binaryStore;
         this.cache = cache;
     }

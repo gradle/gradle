@@ -43,11 +43,11 @@ public class DefaultResolvedConfigurationBuilder implements
 
     private ResolvedArtifactFactory resolvedArtifactFactory;
 
-    private final TransientResultsStore store;
+    private final TransientConfigurationResultsBuilder builder;
 
-    public DefaultResolvedConfigurationBuilder(ResolvedArtifactFactory resolvedArtifactFactory, TransientResultsStore resultsStore) {
+    public DefaultResolvedConfigurationBuilder(ResolvedArtifactFactory resolvedArtifactFactory, TransientConfigurationResultsBuilder builder) {
         this.resolvedArtifactFactory = resolvedArtifactFactory;
-        this.store = resultsStore;
+        this.builder = builder;
     }
 
     public void addUnresolvedDependency(UnresolvedDependency unresolvedDependency) {
@@ -55,33 +55,33 @@ public class DefaultResolvedConfigurationBuilder implements
     }
 
     public void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedConfigurationIdentifier dependency) {
-        store.firstLevelDependency(dependency);
+        builder.firstLevelDependency(dependency);
         //we don't serialise the module dependencies at this stage so we need to keep track
         //of the mapping module dependency <-> resolved dependency
         modulesMap.put(dependency, moduleDependency);
     }
 
     public void done(ResolvedConfigurationIdentifier root) {
-        store.done(root);
+        builder.done(root);
     }
 
     public void addChild(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child) {
-        store.parentChildMapping(parent, child);
+        builder.parentChildMapping(parent, child);
     }
 
     public void addParentSpecificArtifacts(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, Set<ResolvedArtifact> artifacts) {
         for (ResolvedArtifact a : artifacts) {
-            store.parentSpecificArtifact(child, parent, ((DefaultResolvedArtifact)a).getId());
+            builder.parentSpecificArtifact(child, parent, ((DefaultResolvedArtifact) a).getId());
         }
     }
 
     public void newResolvedDependency(ResolvedConfigurationIdentifier id) {
-        store.resolvedDependency(id);
+        builder.resolvedDependency(id);
     }
 
     public ResolvedArtifact newArtifact(final ResolvedConfigurationIdentifier owner, Artifact artifact, ArtifactResolver artifactResolver) {
         Factory<File> artifactSource = resolvedArtifactFactory.artifactSource(artifact, artifactResolver);
-        Factory<ResolvedDependency> dependencySource = new ResolvedDependencyFactory(owner, store, this);
+        Factory<ResolvedDependency> dependencySource = new ResolvedDependencyFactory(owner, builder, this);
         long id = idGenerator.generateId();
         ResolvedArtifact newArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(owner.getId()), dependencySource, artifact, artifactSource, id);
         artifacts.put(id, newArtifact);
@@ -93,7 +93,7 @@ public class DefaultResolvedConfigurationBuilder implements
     }
 
     public TransientConfigurationResults more() {
-        return store.load(this);
+        return builder.load(this);
     }
 
     public Set<ResolvedArtifact> getArtifacts() {
@@ -118,17 +118,17 @@ public class DefaultResolvedConfigurationBuilder implements
 
     private static class ResolvedDependencyFactory implements Factory<ResolvedDependency> {
         private final ResolvedConfigurationIdentifier owner;
-        private TransientResultsStore store;
+        private TransientConfigurationResultsBuilder builder;
         private ResolvedContentsMapping mapping;
 
-        public ResolvedDependencyFactory(ResolvedConfigurationIdentifier owner, TransientResultsStore store, ResolvedContentsMapping mapping) {
+        public ResolvedDependencyFactory(ResolvedConfigurationIdentifier owner, TransientConfigurationResultsBuilder builder, ResolvedContentsMapping mapping) {
             this.owner = owner;
-            this.store = store;
+            this.builder = builder;
             this.mapping = mapping;
         }
 
         public ResolvedDependency create() {
-            return store.load(mapping).getResolvedDependency(owner);
+            return builder.load(mapping).getResolvedDependency(owner);
         }
     }
 }
