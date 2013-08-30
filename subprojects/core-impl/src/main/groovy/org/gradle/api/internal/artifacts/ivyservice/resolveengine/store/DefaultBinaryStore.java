@@ -110,7 +110,9 @@ class DefaultBinaryStore implements BinaryStore {
 
         public void done() {
             try {
-                input.close();
+                if (input != null) {
+                    input.close();
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Problems closing the " + sourceDescription, e);
             }
