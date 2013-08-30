@@ -49,14 +49,6 @@ class DefaultBinaryStore implements BinaryStore {
         }
     }
 
-    public DataInputStream getInput() {
-        try {
-            return new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
-        } catch (FileNotFoundException e) {
-            throw throwAsUncheckedException(e);
-        }
-    }
-
     private String diagnose() {
         return toString() + " (exist: " + file.exists() + ")";
     }
