@@ -17,6 +17,7 @@ package org.gradle.cache.internal.btree;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.internal.stream.RandomAccessFileInputStream;
+import org.gradle.cache.internal.stream.RandomAccessFileOutputStream;
 
 import java.io.*;
 import java.util.zip.CRC32;
@@ -239,29 +240,6 @@ public class FileBackedBlockStore implements BlockStore {
         public RuntimeException blockCorruptedException() {
             return new CorruptedCacheException(String.format("Corrupted %s found in %s.", this,
                     FileBackedBlockStore.this));
-        }
-    }
-
-    private static class RandomAccessFileOutputStream extends OutputStream {
-        private final RandomAccessFile file;
-
-        private RandomAccessFileOutputStream(RandomAccessFile file) {
-            this.file = file;
-        }
-
-        @Override
-        public void write(int i) throws IOException {
-            file.write(i);
-        }
-
-        @Override
-        public void write(byte[] bytes) throws IOException {
-            file.write(bytes);
-        }
-
-        @Override
-        public void write(byte[] bytes, int offset, int length) throws IOException {
-            file.write(bytes, offset, length);
         }
     }
 
