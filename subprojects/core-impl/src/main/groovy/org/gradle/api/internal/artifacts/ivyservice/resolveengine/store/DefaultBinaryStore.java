@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
 import org.gradle.api.internal.cache.BinaryStore;
+import org.gradle.cache.internal.stream.RandomAccessFileInputStream;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.util.GStreamUtil;
 
 import java.io.*;
@@ -84,11 +86,13 @@ class DefaultBinaryStore implements BinaryStore {
         }
     }
 
-    private static class SimpleBinaryData implements BinaryData {
-        private DataInputStream input;
-        private File inputFile;
-        private int offset;
+    private static class SimpleBinaryData implements BinaryStore.BinaryData {
+        private final int offset;
+        private final File inputFile;
         private final String sourceDescription;
+
+        private DataInputStream input;
+        private CompositeStoppable resources = new CompositeStoppable();
 
         public SimpleBinaryData(File inputFile, int offset, String sourceDescription) {
             this.inputFile = inputFile;
@@ -96,11 +100,13 @@ class DefaultBinaryStore implements BinaryStore {
             this.sourceDescription = sourceDescription;
         }
 
-        public <T> T read(ReadAction<T> readAction) {
+        public <T> T read(BinaryStore.ReadAction<T> readAction) {
             try {
                 if (input == null) {
-                    input = new DataInputStream(new BufferedInputStream(new FileInputStream(inputFile)));
-                    GStreamUtil.skipBytes(offset, input);
+                    RandomAccessFile randomAccess = new RandomAccessFile(inputFile, "r");
+                    GStreamUtil.skipBytes(offset, randomAccess);
+                    input = new DataInputStream(new BufferedInputStream(new RandomAccessFileInputStream(randomAccess)));
+                    resources.add(randomAccess, input);
                 }
                 return readAction.read(input);
             } catch (Exception e) {
@@ -110,13 +116,12 @@ class DefaultBinaryStore implements BinaryStore {
 
         public void done() {
             try {
-                if (input != null) {
-                    input.close();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Problems closing the " + sourceDescription, e);
+                resources.stop();
+            } catch (Exception e) {
+                throw new RuntimeException("Problems cleaning resources of " + sourceDescription, e);
             }
             input = null;
+            resources = null;
         }
 
         public String toString() {
