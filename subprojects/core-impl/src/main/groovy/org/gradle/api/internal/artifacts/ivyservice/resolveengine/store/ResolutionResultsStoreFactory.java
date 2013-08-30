@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
-import com.google.common.collect.MapMaker;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
@@ -26,7 +25,10 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.util.Clock;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ResolutionResultsStoreFactory implements Closeable {
@@ -41,24 +43,22 @@ public class ResolutionResultsStoreFactory implements Closeable {
         this.temp = temp;
     }
 
-    private final Map<String, DefaultBinaryStore> stores = new MapMaker().makeMap();
-    private final Object lock = new Object();
+    private final Map<String, DefaultBinaryStore> stores = new HashMap<String, DefaultBinaryStore>();
 
     public BinaryStore createBinaryStore(String id) {
         String storeKey = Thread.currentThread().getId() + id; //one store per thread
         if (stores.containsKey(storeKey)) {
             return stores.get(storeKey);
         }
-        synchronized (lock) {
-            DefaultBinaryStore store = stores.get(storeKey);
-            if (store == null) {
-                File storeFile = temp.createTemporaryFile("gradle", ".bin");
-                storeFile.deleteOnExit();
-                store = new DefaultBinaryStore(storeFile);
-                stores.put(storeKey, store);
-            }
-            return store;
+
+        DefaultBinaryStore store = stores.get(storeKey);
+        if (store == null) {
+            File storeFile = temp.createTemporaryFile("gradle", ".bin");
+            storeFile.deleteOnExit();
+            store = new DefaultBinaryStore(storeFile);
+            stores.put(storeKey, store);
         }
+        return store;
     }
 
     public void close() throws IOException {
