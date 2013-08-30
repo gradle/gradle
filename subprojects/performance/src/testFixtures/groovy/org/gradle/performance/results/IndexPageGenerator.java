@@ -43,7 +43,6 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         TestExecutionHistory testHistory = store.getTestResults(testName);
                         tr();
                             th().colspan("6").classAttr("test-execution");
-                                a().name(testName).end();
                                 text(testName);
                             end();
                         end();
@@ -57,18 +56,18 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             th().text("Test version").end();
                             th().text("Branch").end();
                             for (String version : testHistory.getBaselineVersions()) {
-                                th().text(version).end();
+                                th().classAttr("numeric").text(version).end();
                             }
-                            th().text("Current").end();
+                            th().classAttr("numeric").text("Current").end();
                             for (String version : testHistory.getBaselineVersions()) {
-                                th().text(version).end();
+                                th().classAttr("numeric").text(version).end();
                             }
-                            th().text("Current").end();
+                            th().classAttr("numeric").text("Current").end();
                         end();
                         for (int i = 0; i < testHistory.getResults().size() && i < 5; i++) {
                             PerformanceResults performanceResults = testHistory.getResults().get(i);
                             tr();
-                                td().text(timeStampFormat.format(new Date(performanceResults.getTestTime()))).end();
+                                td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();
                                 td().text(performanceResults.getVersionUnderTest()).end();
                                 td().text(performanceResults.getVcsBranch()).end();
                                 for (String version : testHistory.getBaselineVersions()) {
@@ -76,24 +75,24 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                     if (baselineVersion.getResults().isEmpty()) {
                                         td().text("").end();
                                     } else {
-                                        td().text(baselineVersion.getResults().avgTime().format()).end();
+                                        td().classAttr("numeric").text(baselineVersion.getResults().avgTime().format()).end();
                                     }
                                 }
-                                td().text(performanceResults.getCurrent().avgTime().format()).end();
+                                td().classAttr("numeric").text(performanceResults.getCurrent().avgTime().format()).end();
                                 for (String version : testHistory.getBaselineVersions()) {
                                     BaselineVersion baselineVersion = performanceResults.baseline(version);
                                     if (baselineVersion.getResults().isEmpty()) {
                                         td().text("").end();
                                     } else {
-                                        td().text(baselineVersion.getResults().avgMemory().format()).end();
+                                        td().classAttr("numeric").text(baselineVersion.getResults().avgMemory().format()).end();
                                     }
                                 }
-                                td().text(performanceResults.getCurrent().avgMemory().format()).end();
+                                td().classAttr("numeric").text(performanceResults.getCurrent().avgMemory().format()).end();
                             end();
                         }
                         tr();
                             td().colspan("6");
-                                String url = testName.replaceAll("\\s+", "-") + ".html";
+                                String url = testHistory.getId() + ".html";
                                 a().href(url).text("details...").end();
                             end();
                         end();

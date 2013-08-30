@@ -1,6 +1,8 @@
 body {
     font-family: sans-serif;
+    font-size: 12pt;
     margin: 3em;
+    color: #444;
 }
 
 h2 {
@@ -8,35 +10,42 @@ h2 {
     margin-top: 2em;
 }
 
-table.history {
-    margin-top: 30px;
-    font-size: 10pt;
-}
-
-th {
-    text-align: left;
-}
-
-td {
-    white-space: nowrap;
-    padding-right: 8px;
-}
-
 #footer {
     margin-top: 4em;
     font-size: 8pt;
 }
 
-.test-execution {
+table.history {
+    margin-top: 20px;
+    font-size: 10pt;
+}
+
+th, td {
+    white-space: nowrap;
+    padding-right: 8px;
+    text-align: left;
+}
+
+th.numeric, td.numeric {
+    text-align: right;
+}
+
+th.test-execution {
     font-size: 14pt;
     padding-top: 1em;
 }
 
 .chart {
-    width: 950px;
-    height: 300px;
-    margin-top: 40px;
-    margin-bottom: 40px;
+    width: 1000px;
+    height: 280px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.chart p {
+    font-size: 8pt;
+    color: #a0a0a0;
+    text-align: center;
 }
 
 #tooltip {
@@ -46,5 +55,5 @@ td {
     background-color: #fee;
     border: solid 1px #fdd;
     opacity: 0.80;
-    padding: 2px;
+    padding: 3px;
 }
