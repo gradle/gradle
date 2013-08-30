@@ -23,6 +23,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.gradle.util.Clock.prettyTime;
@@ -37,7 +38,7 @@ public class CachedStoreFactory<T> {
 
     public CachedStoreFactory(String displayName) {
         this.displayName = displayName;
-        cache = CacheBuilder.newBuilder().maximumSize(100).build();
+        cache = CacheBuilder.newBuilder().maximumSize(100).expireAfterAccess(10000, TimeUnit.MILLISECONDS).build();
         stats = new Stats();
     }
 
