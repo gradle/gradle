@@ -215,7 +215,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
                 return null;
             }
 
-            return metaDataParser.parseModuleMetaData(cachedResource, new ExternalResourceResolverDescriptorParseContext(nestedResolver, this, dependencyRevisionId));
+            return metaDataParser.parseMetaData(new ExternalResourceResolverDescriptorParseContext(nestedResolver, this, dependencyRevisionId), cachedResource);
         } else {
             // Create dummy metadata where no metadata artifact exists
             DefaultModuleDescriptor md = DefaultModuleDescriptor.newDefaultInstance(artifact.getModuleRevisionId());

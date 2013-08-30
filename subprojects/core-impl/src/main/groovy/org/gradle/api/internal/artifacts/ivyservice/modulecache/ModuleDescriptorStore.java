@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionRes
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -33,14 +33,14 @@ import java.io.File;
 public class ModuleDescriptorStore {
 
     public static final String FILE_PATH_PATTERN = "module-metadata/%s/%s/%s/%s/ivy.xml";
-    private final ModuleDescriptorParser parser;
+    private final IvyXmlModuleDescriptorParser descriptorParser;
     private final PathKeyFileStore pathKeyFileStore;
-    private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
+    private final IvyModuleDescriptorWriter descriptorWriter;
 
-    public ModuleDescriptorStore(PathKeyFileStore pathKeyFileStore, IvyModuleDescriptorWriter ivyModuleDescriptorWriter, ModuleDescriptorParser ivyXmlModuleDescriptorParser) {
+    public ModuleDescriptorStore(PathKeyFileStore pathKeyFileStore, IvyModuleDescriptorWriter descriptorWriter, IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser) {
         this.pathKeyFileStore = pathKeyFileStore;
-        this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
-        parser = ivyXmlModuleDescriptorParser;
+        this.descriptorWriter = descriptorWriter;
+        this.descriptorParser = ivyXmlModuleDescriptorParser;
     }
 
     // TODO:DAZ Persisted module descriptors should be self-contained: should not need to resolve included descriptors
@@ -58,7 +58,7 @@ public class ModuleDescriptorStore {
         return pathKeyFileStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
-                    ivyModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
+                    descriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
@@ -68,7 +68,7 @@ public class ModuleDescriptorStore {
 
     private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile, DependencyToModuleVersionResolver resolver) {
         DescriptorParseContext parserSettings = new CachedModuleDescriptorParseContext(resolver, "integration");
-        return parser.parseMetaData(parserSettings, moduleDescriptorFile, false).getDescriptor();
+        return descriptorParser.parseMetaData(parserSettings, moduleDescriptorFile, false).getDescriptor();
     }
 
     private String getFilePath(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {

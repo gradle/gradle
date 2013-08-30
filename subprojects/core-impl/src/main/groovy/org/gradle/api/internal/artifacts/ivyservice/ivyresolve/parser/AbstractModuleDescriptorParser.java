@@ -24,7 +24,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
 
-public abstract class AbstractModuleDescriptorParser implements ModuleDescriptorParser {
+public abstract class AbstractModuleDescriptorParser implements MetaDataParser {
     public MutableModuleVersionMetaData parseMetaData(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
         LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(descriptorFile);
         LocallyAvailableExternalResource resource = new DefaultLocallyAvailableExternalResource(descriptorFile.toURI().toString(), localResource);

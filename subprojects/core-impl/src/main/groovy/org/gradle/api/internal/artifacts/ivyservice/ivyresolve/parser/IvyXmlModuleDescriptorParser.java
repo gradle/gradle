@@ -80,10 +80,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         return "Ivy file";
     }
 
-    public boolean accept(ExternalResource res) {
-        return true; // this the default parser, it thus accepts all resources
-    }
-
     protected abstract static class AbstractParser extends DefaultHandler {
         private static final String DEFAULT_CONF_MAPPING = "*->*";
 

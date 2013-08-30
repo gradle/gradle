@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
-import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,11 +36,6 @@ import java.util.Map;
  */
 public final class GradlePomModuleDescriptorParser extends AbstractModuleDescriptorParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradlePomModuleDescriptorParser.class);
-
-    public boolean accept(ExternalResource res) {
-        return res.getName().endsWith(".pom") || res.getName().endsWith("pom.xml")
-                || res.getName().endsWith("project.xml");
-    }
 
     @Override
     protected String getTypeName() {
