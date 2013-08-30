@@ -29,14 +29,16 @@ class DefaultBinaryStore implements BinaryStore {
 
     public DefaultBinaryStore(File file) {
         this.file = file;
-        try {
-            outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
-        } catch (FileNotFoundException e) {
-            throw throwAsUncheckedException(e);
-        }
     }
 
     public void write(WriteAction write) {
+        if (outputStream == null) {
+            try {
+                outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
+            } catch (FileNotFoundException e) {
+                throw throwAsUncheckedException(e);
+            }
+        }
         if (offset == -1) {
             this.offset = outputStream.size();
         }
@@ -55,18 +57,19 @@ class DefaultBinaryStore implements BinaryStore {
         }
     }
 
-    public String diagnose() {
+    private String diagnose() {
         return toString() + " (exist: " + file.exists() + ")";
     }
 
-    @Override
     public String toString() {
         return "Binary store in " + file;
     }
 
     public BinaryData done() {
         try {
-            outputStream.flush();
+            if (outputStream != null) {
+                outputStream.flush();
+            }
             return new SimpleBinaryData(file, offset, diagnose());
         } catch (IOException e) {
             throw new RuntimeException("Problems flushing data to " + diagnose(), e);
@@ -82,6 +85,8 @@ class DefaultBinaryStore implements BinaryStore {
             throw throwAsUncheckedException(e);
         }
         file.delete();
+        outputStream = null;
+        file = null;
     }
 
     private static class SimpleBinaryData implements BinaryData {
