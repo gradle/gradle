@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
@@ -50,12 +49,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final MetaDataProvider metaDataProvider;
     private final Instantiator instantiator;
-    private final MetaDataParser metaDataParser;
     private final ModuleMetadataProcessor metadataProcessor;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, Instantiator instantiator,
-                                        MetaDataParser metaDataParser, ModuleMetadataProcessor metadataProcessor) {
+                                        ModuleMetadataProcessor metadataProcessor) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -64,7 +62,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.layout = new GradleRepositoryLayout();
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiator;
-        this.metaDataParser = metaDataParser;
         this.metadataProcessor = metadataProcessor;
     }
 
@@ -116,7 +113,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new IvyResolver(
                 getName(), httpTransport,
                 locallyAvailableResourceFinder,
-                metaDataParser, metadataProcessor, metaDataProvider.dynamicResolve);
+                metadataProcessor, metaDataProvider.dynamicResolve);
     }
 
     public URI getUrl() {

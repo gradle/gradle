@@ -15,20 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
 public class DefaultMetaDataParser implements MetaDataParser {
-    private final ParserRegistry parserRegistry;
+    private final ModuleDescriptorParser parser;
 
-    public DefaultMetaDataParser(ParserRegistry parserRegistry) {
-        this.parserRegistry = parserRegistry;
+    public DefaultMetaDataParser(ModuleDescriptorParser parser) {
+        this.parser = parser;
     }
 
     public MutableModuleVersionMetaData parseModuleMetaData(LocallyAvailableExternalResource resource, DescriptorParseContext context) throws MetaDataParseException {
-        ModuleDescriptorParser parser = parserRegistry.forResource(resource);
-        ModuleDescriptor moduleDescriptor = parser.parseDescriptor(context, resource, true);
-        return new ModuleDescriptorAdapter(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
+        return parser.parseMetaData(context, resource);
     }
 }

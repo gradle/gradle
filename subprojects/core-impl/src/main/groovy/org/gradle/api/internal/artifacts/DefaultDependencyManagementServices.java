@@ -40,8 +40,6 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DefaultMetaDataParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ParserRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
@@ -345,7 +343,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         instantiator,
                         get(RepositoryTransportFactory.class),
                         get(LocallyAvailableResourceFinder.class),
-                        new DefaultMetaDataParser(new ParserRegistry()),
                         getComponentMetadataHandler(),
                         get(LegacyDependencyResolverRepositoryFactory.class)
                 );

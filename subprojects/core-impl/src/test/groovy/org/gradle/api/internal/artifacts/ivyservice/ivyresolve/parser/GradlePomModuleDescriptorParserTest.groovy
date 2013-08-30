@@ -227,7 +227,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
     }
 
     private ModuleDescriptor parsePom() {
-        parser.parseDescriptor(parseContext, pomFile, true)
+        parser.parseMetaData(parseContext, pomFile, true).descriptor
     }
 
     private void hasArtifact(ModuleDescriptor descriptor, String name, String type, String ext, String classifier = null) {

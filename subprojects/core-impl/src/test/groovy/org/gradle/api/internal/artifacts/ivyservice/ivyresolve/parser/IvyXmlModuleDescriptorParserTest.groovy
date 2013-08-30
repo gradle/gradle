@@ -57,24 +57,24 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     </dependencies>
 </ivy-module>
 """
-        ModuleDescriptor md = parser.parseDescriptor(parseContext, file, true)
+        ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
 
         and:
 
         then:
         md != null
-        "myorg" == md.getModuleRevisionId().getOrganisation()
-        "mymodule" == md.getModuleRevisionId().getName()
-        "myrev" == md.getModuleRevisionId().getRevision()
-        "integration" == md.getStatus()
-        md.getConfigurations() != null
-        Arrays.asList(new Configuration("default")) == Arrays.asList(md.getConfigurations())
+        "myorg" == md.moduleRevisionId.organisation
+        "mymodule" == md.moduleRevisionId.name
+        "myrev" == md.moduleRevisionId.revision
+        "integration" == md.status
+        md.configurations != null
+        Arrays.asList(new Configuration("default")) == Arrays.asList(md.configurations)
         md.getArtifacts("default") != null
         1 == md.getArtifacts("default").length
-        "mymodule" == md.getArtifacts("default")[0].getName()
-        "jar" == md.getArtifacts("default")[0].getType()
-        md.getDependencies() != null
-        0 == md.getDependencies().length
+        "mymodule" == md.getArtifacts("default")[0].name
+        "jar" == md.getArtifacts("default")[0].type
+        md.dependencies != null
+        0 == md.dependencies.length
     }
 
     public void "fails when configuration extends an unknown configuration"() throws IOException {
@@ -91,7 +91,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseDescriptor(parseContext, file, true)
+        parser.parseMetaData(parseContext, file, true)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -114,7 +114,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseDescriptor(parseContext, file, true)
+        parser.parseMetaData(parseContext, file, true)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -130,7 +130,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseDescriptor(parseContext, file, true)
+        parser.parseMetaData(parseContext, file, true)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -146,7 +146,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseDescriptor(parseContext, file, true)
+        parser.parseMetaData(parseContext, file, true)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -159,7 +159,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         file.text = resources.getResource("test-full.xml").text
 
         when:
-        ModuleDescriptor md = parser.parseDescriptor(parseContext, file, true)
+        ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
 
         then:
         assertNotNull(md)
@@ -240,7 +240,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseDescriptor(parseContext, file, false)
+        def descriptor = parser.parseMetaData(parseContext, file, false).descriptor
         def dependency = descriptor.dependencies.first()
 
         then:
@@ -278,7 +278,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseDescriptor(parseContext, file, false)
+        def descriptor = parser.parseMetaData(parseContext, file, false).descriptor
 
         then:
         def dependency1 = descriptor.dependencies[0]

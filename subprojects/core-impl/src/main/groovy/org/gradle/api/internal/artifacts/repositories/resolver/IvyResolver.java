@@ -17,7 +17,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DefaultMetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 
@@ -30,10 +31,10 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                       MetaDataParser metaDataParser, ModuleMetadataProcessor metadataProcessor,
+                       ModuleMetadataProcessor metadataProcessor,
                        boolean dynamicResolve
     ) {
-        super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, metaDataParser, metadataProcessor);
+        super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, new DefaultMetaDataParser(new DownloadedIvyModuleDescriptorParser()), metadataProcessor);
         this.transport = transport;
         this.transport.configureCacheManager(this);
         this.dynamicResolve = dynamicResolve;

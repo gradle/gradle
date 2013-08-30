@@ -29,6 +29,7 @@ import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.gradle.api.Action;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.UrlExternalResource;
@@ -62,11 +63,16 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
 
-    protected DefaultModuleDescriptor doParseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
+    protected MutableModuleVersionMetaData doParseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = new Parser(this, ivySettings, resource, resource.getLocalResource().getFile().toURI().toURL());
         parser.setValidate(validate);
         parser.parse();
-        return parser.getModuleDescriptor();
+        DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
+        postProcess(moduleDescriptor);
+        return new ModuleDescriptorAdapter(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
+    }
+
+    protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {
     }
 
     @Override

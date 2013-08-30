@@ -40,7 +40,7 @@ class MavenResolverTest extends Specification {
     @Unroll
     def "setUseMavenMetaData '#value' adapts versionLister to #classname"() {
         setup:
-        MavenResolver testresolver = new MavenResolver("test maven resolver", rootUri, repositoryTransport, locallyAvailableResourceFinder, parser, processor)
+        MavenResolver testresolver = new MavenResolver("test maven resolver", rootUri, repositoryTransport, locallyAvailableResourceFinder, processor)
         when:
         testresolver.setUseMavenMetadata(value)
         then:

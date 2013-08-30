@@ -34,7 +34,7 @@ class DownloadedIvyModuleDescriptorParserTest extends Specification {
 """
         when:
         parserSettings.substitute(_ as String) >> {String value -> value}
-        def descriptor = parser.parseDescriptor(parserSettings, ivyFile, true)
+        def descriptor = parser.parseMetaData(parserSettings, ivyFile, true).descriptor
 
         then:
         !descriptor.default

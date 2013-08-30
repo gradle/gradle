@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -42,7 +41,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
-    private final MetaDataParser metaDataParser;
     private final ModuleMetadataProcessor metadataProcessor;
     private final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory;
 
@@ -51,7 +49,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                        MetaDataParser metaDataParser,
                                         ModuleMetadataProcessor metadataProcessor,
                                         LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
@@ -59,7 +56,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.instantiator = instantiator;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.metaDataParser = metaDataParser;
         this.metadataProcessor = metadataProcessor;
         this.legacyDependencyResolverRepositoryFactory = legacyDependencyResolverRepositoryFactory;
     }
@@ -87,7 +83,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
-        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, metaDataParser, metadataProcessor);
+        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, metadataProcessor);
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
@@ -111,13 +107,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, instantiator, metaDataParser, metadataProcessor
-        );
+                locallyAvailableResourceFinder, instantiator, metadataProcessor);
     }
 
     public MavenArtifactRepository createMavenRepository() {
         return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, metaDataParser, metadataProcessor
+                locallyAvailableResourceFinder, metadataProcessor
         );
     }
 

@@ -49,8 +49,8 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
 
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
-            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
-            metaDataParser, metadataProcessor, legacyDependencyResolverRepositoryFactory
+            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder
+            , metadataProcessor, legacyDependencyResolverRepositoryFactory
     )
 
     def testCreateResolverWithStringDescription() {

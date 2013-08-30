@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
@@ -26,13 +25,21 @@ import org.gradle.internal.resource.local.LocallyAvailableResource;
 import java.io.File;
 
 public abstract class AbstractModuleDescriptorParser implements ModuleDescriptorParser {
-    public ModuleDescriptor parseDescriptor(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
+    public MutableModuleVersionMetaData parseMetaData(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
         LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(descriptorFile);
         LocallyAvailableExternalResource resource = new DefaultLocallyAvailableExternalResource(descriptorFile.toURI().toString(), localResource);
         return parseDescriptor(ivySettings, resource, validate);
     }
 
-    public DefaultModuleDescriptor parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
+    public MutableModuleVersionMetaData parseMetaData(DescriptorParseContext ivySettings, File descriptorFile) throws MetaDataParseException {
+        return parseMetaData(ivySettings, descriptorFile, true);
+    }
+
+    public MutableModuleVersionMetaData parseMetaData(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource) throws MetaDataParseException {
+        return parseDescriptor(ivySettings, resource, true);
+    }
+
+    protected MutableModuleVersionMetaData parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
         try {
             return doParseDescriptor(ivySettings, resource, validate);
         } catch (MetaDataParseException e) {
@@ -44,5 +51,5 @@ public abstract class AbstractModuleDescriptorParser implements ModuleDescriptor
 
     protected abstract String getTypeName();
 
-    protected abstract DefaultModuleDescriptor doParseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws Exception;
+    protected abstract MutableModuleVersionMetaData doParseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws Exception;
 }
