@@ -156,7 +156,7 @@ public class StreamingResolutionResultBuilder implements ResolvedConfigurationLi
             byte type = -1;
             Clock clock = new Clock();
             try {
-                ResolutionResultBuilder builder = new ResolutionResultBuilder();
+                DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
                 Decoder decoder = new InputStreamBackedDecoder(input);
                 while (true) {
                     type = decoder.readByte();

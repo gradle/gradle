@@ -26,9 +26,9 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 
-class ResolutionResultBuilderSpec extends Specification {
+class DefaultResolutionResultBuilderSpec extends Specification {
 
-    def builder = new ResolutionResultBuilder()
+    def builder = new DefaultResolutionResultBuilder()
 
     def "builds basic graph"() {
         given:
