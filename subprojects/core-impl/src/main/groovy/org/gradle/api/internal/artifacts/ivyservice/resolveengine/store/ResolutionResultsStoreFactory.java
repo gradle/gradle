@@ -27,22 +27,21 @@ import org.gradle.internal.CompositeStoppable;
 import org.gradle.util.Clock;
 
 import java.io.*;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Map;
 
 public class ResolutionResultsStoreFactory implements Closeable {
     private final static Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
 
     private final TemporaryFileProvider temp;
-    private final CachedStoreFactory oldModelCache =
-            new CachedStoreFactory("Resolution result");
-    private final CachedStoreFactory newModelCache =
-            new CachedStoreFactory("Resolved configuration");
+
+    private CachedStoreFactory oldModelCache;
+    private CachedStoreFactory newModelCache;
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this.temp = temp;
     }
 
-    private final ConcurrentMap<String, DefaultBinaryStore> stores = new MapMaker().makeMap();
+    private final Map<String, DefaultBinaryStore> stores = new MapMaker().makeMap();
     private final Object lock = new Object();
 
     public BinaryStore createBinaryStore(String id) {
@@ -70,13 +69,21 @@ public class ResolutionResultsStoreFactory implements Closeable {
                 .add(newModelCache)
                 .stop();
         LOG.debug("Deleted {} resolution results binary files in {}", stores.size(), clock.getTime());
+        oldModelCache = null;
+        newModelCache = null;
     }
 
     public <T> Store<T> createOldModelCache(ConfigurationInternal configuration) {
+        if (oldModelCache == null) {
+            oldModelCache = new CachedStoreFactory("Resolution result");
+        }
         return oldModelCache.createCachedStore(configuration.getPath());
     }
 
     public <T> Store<T> createNewModelCache(ConfigurationInternal configuration) {
+        if (newModelCache == null) {
+            newModelCache = new CachedStoreFactory("Resolved configuration");
+        }
         return newModelCache.createCachedStore(configuration.getPath());
     }
 
