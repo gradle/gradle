@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -73,18 +72,18 @@ public class ResolutionResultsStoreFactory implements Closeable {
         newModelCache = null;
     }
 
-    public <T> Store<T> createOldModelCache(ConfigurationInternal configuration) {
+    public <T> Store<T> createOldModelCache(String id) {
         if (oldModelCache == null) {
             oldModelCache = new CachedStoreFactory("Resolution result");
         }
-        return oldModelCache.createCachedStore(configuration.getPath());
+        return oldModelCache.createCachedStore(id);
     }
 
-    public <T> Store<T> createNewModelCache(ConfigurationInternal configuration) {
+    public <T> Store<T> createNewModelCache(String id) {
         if (newModelCache == null) {
             newModelCache = new CachedStoreFactory("Resolved configuration");
         }
-        return newModelCache.createCachedStore(configuration.getPath());
+        return newModelCache.createCachedStore(id);
     }
 
 }
