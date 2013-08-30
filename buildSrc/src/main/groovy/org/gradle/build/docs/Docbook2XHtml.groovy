@@ -18,7 +18,7 @@ package org.gradle.build.docs
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileVisitDetails
-import org.gradle.util.ClasspathUtil
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.api.tasks.*
 import org.gradle.api.logging.LogLevel
 
