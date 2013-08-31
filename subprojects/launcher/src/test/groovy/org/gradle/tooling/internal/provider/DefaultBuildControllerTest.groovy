@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
-import org.gradle.tooling.internal.gradle.BasicGradleProject
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -57,11 +57,12 @@ class DefaultBuildControllerTest extends Specification {
     }
 
     def "uses builder for specified project"() {
-        def target = new BasicGradleProject().setPath(":some:path")
+        def target = Stub(GradleProjectIdentity)
         def rootProject = Stub(ProjectInternal)
         def model = new Object()
 
         given:
+        _ * target.path >> ":some:path"
         _ * gradle.rootProject >> rootProject
         _ * rootProject.project(":some:path") >> project
         _ * registry.getBuilder("some.model") >> modelBuilder

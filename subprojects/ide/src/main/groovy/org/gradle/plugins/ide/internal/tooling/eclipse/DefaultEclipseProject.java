@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import com.google.common.collect.Lists;
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.*;
 import org.gradle.tooling.model.GradleProject;
@@ -25,7 +26,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultEclipseProject implements EclipseProjectVersion3, Serializable {
+public class DefaultEclipseProject implements EclipseProjectVersion3, Serializable, GradleProjectIdentity {
     private final String name;
     private final String path;
     private EclipseProjectVersion3 parent;

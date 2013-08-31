@@ -20,7 +20,7 @@ import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class BasicGradleProject implements Serializable {
+public class BasicGradleProject implements Serializable, GradleProjectIdentity {
     private String name;
     private String path;
     private BasicGradleProject parent;

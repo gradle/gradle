@@ -27,7 +27,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultGradleProject implements InternalGradleProject, GradleProject, Serializable {
+public class DefaultGradleProject implements InternalGradleProject, GradleProject, Serializable, GradleProjectIdentity {
 
     private String name;
     private String description;

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.tooling;
-
-import org.gradle.tooling.internal.gradle.BasicGradleProject;
+package org.gradle.tooling.internal.gradle;
 
 import java.io.Serializable;
 import java.util.LinkedHashSet;

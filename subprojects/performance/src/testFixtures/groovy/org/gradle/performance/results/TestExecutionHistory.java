@@ -34,6 +34,10 @@ public class TestExecutionHistory {
         this.newestFirst = newestFirst;
     }
 
+    public String getId() {
+        return name.replaceAll("\\s+", "-");
+    }
+
     public String getName() {
         return name;
     }

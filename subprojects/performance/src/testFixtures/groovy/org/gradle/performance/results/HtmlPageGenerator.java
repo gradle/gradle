@@ -21,19 +21,9 @@ import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GradleVersion;
 
 import java.io.Writer;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 
 public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
-    protected final DateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    protected final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-    public HtmlPageGenerator() {
-        timeStampFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
+    protected final FormatSupport format = new FormatSupport();
 
     protected void headSection(Html html) {
         html.meta()
@@ -55,7 +45,7 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
     protected void footer(Html html) {
         html.div()
                 .id("footer")
-                .text(String.format("Generated at %s by %s", timeStampFormat.format(new Date()), GradleVersion.current()))
+                .text(String.format("Generated at %s by %s", format.executionTimestamp(), GradleVersion.current()))
                 .end();
     }
 }

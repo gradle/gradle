@@ -19,11 +19,7 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
-import org.gradle.tooling.internal.protocol.BuildResult
-import org.gradle.tooling.internal.protocol.InternalBuildController
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface
-import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
-import org.gradle.tooling.internal.protocol.ModelIdentifier
+import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.model.Element
 import org.gradle.tooling.model.GradleBuild
 import spock.lang.Specification
@@ -78,6 +74,21 @@ class BuildControllerAdapterTest extends Specification {
         1 * adapter.adapt(GradleBuild, model) >> modelView
     }
 
+    def "fetches missing model for target object"() {
+        def targetElement = new Object()
+        def modelElement = Stub(Element)
+
+        when:
+        def result = controller.findModel(modelElement, GradleBuild)
+
+        then:
+        result == null
+
+        and:
+        1 * adapter.unpack(modelElement) >> targetElement
+        1 * internalController.getModel(targetElement, _) >> { throw new InternalUnsupportedModelException() }
+    }
+
     def "fetches build model"() {
         def model = Stub(InternalProtocolInterface)
         def modelView = Stub(GradleBuild)
@@ -96,5 +107,16 @@ class BuildControllerAdapterTest extends Specification {
             }
         }
         1 * adapter.adapt(GradleBuild, model) >> modelView
+    }
+
+    def "fetches missing model"() {
+        when:
+        def result = controller.findModel(GradleBuild)
+
+        then:
+        result == null
+
+        and:
+        1 * internalController.getModel(null, _) >> { throw new InternalUnsupportedModelException() }
     }
 }

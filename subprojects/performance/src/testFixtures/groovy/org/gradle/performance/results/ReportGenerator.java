@@ -25,11 +25,18 @@ import java.net.URL;
 public class ReportGenerator {
     void generate(final ResultsStore store, File outputDirectory) {
         try {
-            HtmlRenderer htmlRenderer = new HtmlRenderer();
-            htmlRenderer.render(store, new IndexPageGenerator(), new File(outputDirectory, "index.html"));
+            FileRenderer fileRenderer = new FileRenderer();
+            TestPageGenerator testHtmlRenderer = new TestPageGenerator();
+            TestDataGenerator testDataRenderer = new TestDataGenerator();
+
+            fileRenderer.render(store, new IndexPageGenerator(), new File(outputDirectory, "index.html"));
+
             for (String testName : store.getTestNames()) {
-                htmlRenderer.render(store.getTestResults(testName), new TestPageGenerator(), new File(outputDirectory, testName.replaceAll("\\s+", "-") + ".html"));
+                TestExecutionHistory testResults = store.getTestResults(testName);
+                fileRenderer.render(testResults, testHtmlRenderer, new File(outputDirectory, testResults.getId() + ".html"));
+                fileRenderer.render(testResults, testDataRenderer, new File(outputDirectory, testResults.getId() + ".json"));
             }
+
             copyResource("jquery.min-1.8.0.js", outputDirectory);
             copyResource("flot-0.8.1-min.js", outputDirectory);
             copyResource("style.css", outputDirectory);

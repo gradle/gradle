@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
@@ -26,7 +27,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultIdeaModule implements Serializable {
+public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     private String name;
     private List<? extends IdeaContentRoot> contentRoots = new LinkedList<IdeaContentRoot>();
     private DefaultIdeaProject parent;
@@ -91,6 +92,10 @@ public class DefaultIdeaModule implements Serializable {
     public DefaultIdeaModule setGradleProject(GradleProject gradleProject) {
         this.gradleProject = gradleProject;
         return this;
+    }
+
+    public String getPath() {
+        return gradleProject.getPath();
     }
 
     public IdeaCompilerOutput getCompilerOutput() {
