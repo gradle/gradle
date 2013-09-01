@@ -47,6 +47,28 @@ class DefaultBinaryStoreTest extends Specification {
         store.close()
     }
 
+    def "data can be re-read"() {
+        def store = new DefaultBinaryStore(temp.file("foo.bin"))
+
+        when:
+        store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
+        store.write({ it.writeUTF("x") } as BinaryStore.WriteAction)
+        def data = store.done()
+
+        then:
+        data.read({ it.readInt() } as BinaryStore.ReadAction) == 10
+        data.read({ it.readUTF() } as BinaryStore.ReadAction) == "x"
+        data.done()
+
+        then:
+        data.read({ it.readInt() } as BinaryStore.ReadAction) == 10
+        data.read({ it.readUTF() } as BinaryStore.ReadAction) == "x"
+        data.done()
+
+        cleanup:
+        store.close()
+    }
+
     def "may be empty"() {
         def store = new DefaultBinaryStore(temp.file("foo.bin"))
 
