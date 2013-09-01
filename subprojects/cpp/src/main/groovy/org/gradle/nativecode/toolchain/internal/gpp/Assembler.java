@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.toolchain.internal.gpp;
 
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
@@ -51,7 +52,7 @@ class Assembler implements Compiler<AssembleSpec> {
 
         public AssemblerSpecToArguments(File inputFile) {
             this.inputFile = inputFile;
-            this.outputFileName = inputFile.getName() + ".o";
+            this.outputFileName = FilenameUtils.removeExtension(inputFile.getName()) + ".o";
         }
 
         public void collectArguments(AssembleSpec spec, ArgCollector collector) {
