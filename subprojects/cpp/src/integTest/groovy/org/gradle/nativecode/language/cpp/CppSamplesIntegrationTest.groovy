@@ -23,7 +23,7 @@ import org.junit.Rule
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample c = new Sample(temporaryFolder, 'cpp/c')
-    @Rule public final Sample asm = new Sample(temporaryFolder, 'cpp/c-with-assembler')
+    @Rule public final Sample assembler = new Sample(temporaryFolder, 'cpp/assembler')
     @Rule public final Sample cpp = new Sample(temporaryFolder, 'cpp/cpp')
     @Rule public final Sample cppExe = new Sample(temporaryFolder, 'cpp/cpp-exe')
     @Rule public final Sample cppLib = new Sample(temporaryFolder, 'cpp/cpp-lib')
@@ -31,9 +31,9 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample variants = new Sample(temporaryFolder, 'cpp/variants')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'cpp/dependencies')
 
-    def "asm"() {
+    def "assembler"() {
         given:
-        sample asm
+        sample assembler
 
         when:
         run "installMainExecutable"
@@ -42,7 +42,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":assembleMainExecutableMainAsm", ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("cpp/c-with-assembler/build/install/mainExecutable").exec().out == "5 + 7 = 12\n"
+        installation("cpp/assembler/build/install/mainExecutable").exec().out == "5 + 7 = 12\n"
     }
 
     def "c"() {
