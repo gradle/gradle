@@ -16,10 +16,12 @@
 
 apply plugin: 'cpp'
 
-def os = org.gradle.internal.os.OperatingSystem.current()
+def osName = System.getProperty("os.name").toLowerCase();
+def osx = osName.contains("mac os x") || osName.contains("darwin")
+def linux = osName.contains("linux")
 def visualCpp = toolChains.defaultToolChain.name == "visualCpp"
-def platform = os.macOsX ? "i386_osx"
-             : os.linux ? "x64_gcc"
+def platform = osx ? "i386_osx"
+             : linux ? "x64_gcc"
              : visualCpp ? "i386_masm"
              : "i386_gcc"
 
@@ -34,7 +36,7 @@ executables {
     main {}
 }
 
-if (os.macOsX) {
+if (osx) {
     binaries.all {
         cCompiler.args "-m32"
         assembler.args "-arch", "i386"
