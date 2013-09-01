@@ -92,7 +92,7 @@ class DefaultBinaryStore implements BinaryStore {
         private final String sourceDescription;
 
         private DataInputStream input;
-        private CompositeStoppable resources = new CompositeStoppable();
+        private CompositeStoppable resources;
 
         public SimpleBinaryData(File inputFile, int offset, String sourceDescription) {
             this.inputFile = inputFile;
@@ -106,7 +106,7 @@ class DefaultBinaryStore implements BinaryStore {
                     RandomAccessFile randomAccess = new RandomAccessFile(inputFile, "r");
                     GStreamUtil.skipBytes(offset, randomAccess);
                     input = new DataInputStream(new BufferedInputStream(new RandomAccessFileInputStream(randomAccess)));
-                    resources.add(randomAccess, input);
+                    resources = new CompositeStoppable().add(randomAccess, input);
                 }
                 return readAction.read(input);
             } catch (Exception e) {
@@ -116,7 +116,9 @@ class DefaultBinaryStore implements BinaryStore {
 
         public void done() {
             try {
-                resources.stop();
+                if (resources != null) {
+                    resources.stop();
+                }
             } catch (Exception e) {
                 throw new RuntimeException("Problems cleaning resources of " + sourceDescription, e);
             }
