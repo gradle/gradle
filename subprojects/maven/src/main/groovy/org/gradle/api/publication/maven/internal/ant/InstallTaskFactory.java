@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.gradle.api.publication.maven.internal.ant;
 
+
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.DefaultArtifactRepository;
@@ -24,28 +25,28 @@ import org.gradle.internal.Factory;
 
 import java.io.File;
 
-public class NoInstallDeployTaskFactory implements Factory<CustomDeployTask> {
+public class InstallTaskFactory implements Factory<CustomInstallTask> {
     private final Factory<File> temporaryDirFactory;
 
-    public NoInstallDeployTaskFactory(Factory<File> temporaryDirFactory) {
-        this.temporaryDirFactory = temporaryDirFactory;
+    public InstallTaskFactory(Factory<File> temporaryDirFactory) {
+            this.temporaryDirFactory = temporaryDirFactory;
     }
 
-    public CustomDeployTask create() {
-        return new NoInstallDeployTask(temporaryDirFactory);
+    public CustomInstallTask create() {
+            return new InstallTask(temporaryDirFactory);
     }
 
-    private static class NoInstallDeployTask extends CustomDeployTask {
+    private static class InstallTask extends CustomInstallTask {
         private final Factory<File> tmpDirFactory;
 
-        public NoInstallDeployTask(Factory<File> tmpDirFactory) {
+        public InstallTask(Factory<File> tmpDirFactory) {
             this.tmpDirFactory = tmpDirFactory;
         }
 
         @Override
         protected ArtifactRepository createLocalArtifactRepository() {
             ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, getLocalRepository().getLayout());
-            return new DefaultArtifactRepository("local", tmpDirFactory.create().toURI().toString(), repositoryLayout);
+            return new DefaultArtifactRepository("local", getLocalRepository().getPath().toURI().toString(), repositoryLayout);
         }
 
         @Override
@@ -54,3 +55,4 @@ public class NoInstallDeployTaskFactory implements Factory<CustomDeployTask> {
         }
     }
 }
+

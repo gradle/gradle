@@ -21,6 +21,9 @@ import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.publish.internal.PublishOperation;
+import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
+import org.gradle.api.publish.maven.internal.publisher.*;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -33,6 +36,7 @@ import javax.inject.Inject;
  */
 @Incubating
 public class PublishToMavenLocal extends PublishToMavenRepository {
+
     private final BaseRepositoryFactory baseRepositoryFactory;
 
     @Inject
@@ -51,5 +55,19 @@ public class PublishToMavenLocal extends PublishToMavenRepository {
         }
 
         return super.getRepository();
+    }
+
+    @Override
+    protected void doPublish(final MavenPublicationInternal publication, final MavenArtifactRepository repository) {
+        new PublishOperation(publication, repository) {
+            @Override
+            protected void publish() throws Exception {
+                // TODO:DAZ inject this
+                MavenPublisher antBackedPublisher = new AntTaskBackedMavenLocalPublisher(getLoggingManagerFactory(), getTemporaryDirFactory());
+                MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(antBackedPublisher);
+                MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
+                validatingPublisher.publish(publication.asNormalisedPublication(), repository);
+            }
+        }.run();
     }
 }

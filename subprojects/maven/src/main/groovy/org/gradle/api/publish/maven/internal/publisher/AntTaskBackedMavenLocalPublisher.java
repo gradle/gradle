@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,38 +17,31 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
-import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.publication.maven.internal.ant.CustomDeployTask;
-import org.gradle.api.publication.maven.internal.ant.DeployTaskFactory;
+import org.gradle.api.publication.maven.internal.ant.CustomInstallTask;
+import org.gradle.api.publication.maven.internal.ant.InstallTaskFactory;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
 
 import java.io.File;
 
-public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPublisher {
+public class AntTaskBackedMavenLocalPublisher extends AbstractAntTaskBackedMavenPublisher {
 
-    public AntTaskBackedMavenPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, Factory<File> temporaryDirFactory) {
+    public AntTaskBackedMavenLocalPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, Factory<File> temporaryDirFactory) {
         super(loggingManagerFactory, temporaryDirFactory);
     }
 
+    @Override
     protected void postConfigure(InstallDeployTaskSupport task, MavenArtifactRepository artifactRepository) {
-        CustomDeployTask deployTask = (CustomDeployTask) task;
-        addRepository(deployTask, artifactRepository);
+        //No extra configuration for mavenLocal
     }
 
+    @Override
     protected InstallDeployTaskSupport createDeployTask() {
-        Factory<CustomDeployTask> deployTaskFactory = new DeployTaskFactory(temporaryDirFactory);
-        CustomDeployTask deployTask = deployTaskFactory.create();
+        Factory<CustomInstallTask> deployTaskFactory = new InstallTaskFactory(temporaryDirFactory);
+        CustomInstallTask deployTask = deployTaskFactory.create();
         deployTask.setProject(AntUtil.createProject());
-        deployTask.setUniqueVersion(true);
         return deployTask;
     }
-
-    private void addRepository(CustomDeployTask deployTask, MavenArtifactRepository artifactRepository) {
-        RemoteRepository mavenRepository = new MavenRemoteRepositoryFactory(artifactRepository).create();
-        deployTask.addRemoteRepository(mavenRepository);
-    }
-
 }
