@@ -52,9 +52,14 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
             #include <stdio.h>
             #include "hello.h"
 
+            #ifdef FRENCH
+            char* greeting() {
+                return "${HELLO_WORLD_FRENCH}";
+            }
+            #endif
             void DLL_FUNC sayHello() {
                 #ifdef FRENCH
-                printf("${HELLO_WORLD_FRENCH}\\n");
+                printf("%s\\n", greeting());
                 #else
                 printf("${HELLO_WORLD}\\n");
                 #endif
