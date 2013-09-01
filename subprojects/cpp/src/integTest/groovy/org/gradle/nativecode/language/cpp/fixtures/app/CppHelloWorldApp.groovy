@@ -65,9 +65,15 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
             #include <iostream>
             #include "hello.h"
 
+            #ifdef FRENCH
+            const char* greeting() {
+                return "${HELLO_WORLD_FRENCH}";
+            }
+            #endif
+
             void DLL_FUNC sayHello() {
                 #ifdef FRENCH
-                std::cout << "${HELLO_WORLD_FRENCH}" << std::endl;
+                std::cout << greeting() << std::endl;
                 #else
                 std::cout << "${HELLO_WORLD}" << std::endl;
                 #endif
