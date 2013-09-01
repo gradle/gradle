@@ -90,7 +90,7 @@ class AssemblerLangPlugin implements Plugin<ProjectInternal> {
         assembleTask.source sourceSet.source
 
         assembleTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
-        assembleTask.conventionMapping.assemblerArgs = { binary.assembler.args }
+        assembleTask.assemblerArgs = binary.assembler.args
 
         assembleTask
     }

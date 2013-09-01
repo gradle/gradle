@@ -101,8 +101,8 @@ class CLangPlugin implements Plugin<ProjectInternal> {
         }
 
         compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
-        compileTask.conventionMapping.macros = { binary.macros }
-        compileTask.conventionMapping.compilerArgs = { binary.cCompiler.args }
+        compileTask.macros = binary.macros
+        compileTask.compilerArgs = binary.cCompiler.args
 
         compileTask
     }

@@ -99,8 +99,8 @@ class CppLangPlugin implements Plugin<ProjectInternal> {
         }
 
         compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
-        compileTask.conventionMapping.macros = { binary.macros }
-        compileTask.conventionMapping.compilerArgs = { binary.cppCompiler.args }
+        compileTask.macros = binary.macros
+        compileTask.compilerArgs = binary.cppCompiler.args
 
         compileTask
     }
