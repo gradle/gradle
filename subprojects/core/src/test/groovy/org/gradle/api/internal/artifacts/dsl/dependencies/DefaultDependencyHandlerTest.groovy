@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
 import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import spock.lang.Specification
 
 class DefaultDependencyHandlerTest extends Specification {
@@ -26,7 +27,7 @@ class DefaultDependencyHandlerTest extends Specification {
     private ProjectFinder projectFinder = Mock()
     private DependencySet dependencySet = Mock()
 
-    private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory, projectFinder)
+    private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory, projectFinder, Stub(ComponentMetadataHandler))
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration

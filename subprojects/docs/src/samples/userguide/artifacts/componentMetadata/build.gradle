@@ -17,16 +17,15 @@ repositories {
     // END SNIPPET latest-selector
 
     // START SNIPPET custom-status-scheme
-    componentMetadata {
-        eachComponent { ComponentMetadataDetails details ->
-            if (details.id.group == "air.birds") {
-                details.statusScheme = ["bronze", "silver", "gold", "platinum"]
-            }
-        }
-    }
-
     dependencies {
         config3 "air.birds:albatros:latest.silver"
+        componentMetadata {
+            eachComponent { ComponentMetadataDetails details ->
+                if (details.id.group == "air.birds") {
+                    details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+                }
+            }
+        }
     }
     // END SNIPPET custom-status-scheme
 

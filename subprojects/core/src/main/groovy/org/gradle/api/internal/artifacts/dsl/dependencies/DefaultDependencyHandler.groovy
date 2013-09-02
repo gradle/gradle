@@ -19,20 +19,23 @@ package org.gradle.api.internal.artifacts.dsl.dependencies
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
 
 class DefaultDependencyHandler implements DependencyHandler {
-    ConfigurationContainer configurationContainer
-    DependencyFactory dependencyFactory
-    ProjectFinder projectFinder
+    private final ConfigurationContainer configurationContainer
+    private final DependencyFactory dependencyFactory
+    private final ProjectFinder projectFinder
+    private final ComponentMetadataHandler metadataHandler
 
     def DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory,
-                                 ProjectFinder projectFinder) {
+                                 ProjectFinder projectFinder, ComponentMetadataHandler metadataHandler) {
         this.configurationContainer = configurationContainer
         this.dependencyFactory = dependencyFactory
         this.projectFinder = projectFinder
+        this.metadataHandler = metadataHandler
     }
 
     public Dependency add(String configurationName, Object dependencyNotation) {
@@ -103,4 +106,13 @@ class DefaultDependencyHandler implements DependencyHandler {
         }
         return null;
     }
+
+    public void componentMetadata(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getComponentMetadata());
+    }
+
+    public ComponentMetadataHandler getComponentMetadata() {
+        return metadataHandler;
+    }
+
 }

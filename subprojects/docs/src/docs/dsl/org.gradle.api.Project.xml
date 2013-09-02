@@ -38,9 +38,6 @@
                 <td>dependencies</td>
             </tr>
             <tr>
-                <td>componentMetadata</td>
-            </tr>
-            <tr>
                 <td>dependsOnProjects</td>
             </tr>
             <tr>
@@ -133,9 +130,6 @@
             </tr>
             <tr>
                 <td>dependencies</td>
-            </tr>
-            <tr>
-                <td>componentMetadata</td>
             </tr>
             <tr>
                 <td>artifacts</td>

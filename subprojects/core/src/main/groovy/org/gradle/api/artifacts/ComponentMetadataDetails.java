@@ -24,6 +24,8 @@ import java.util.List;
  * Describes a resolved component's metadata, which typically originates from
  * a component descriptor (Ivy file, Maven POM). Some parts of the metadata can be changed
  * via metadata rules (see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}.
+ *
+ * @since 1.8
  */
 @Incubating
 @NonExtensible

@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 
 import java.util.Map;
@@ -318,4 +319,26 @@ public interface DependencyHandler {
      * @return The dependency.
      */
     Dependency localGroovy();
+
+    /**
+     * Returns the component metadata handler for this project. The returned handler can be used for adding rules
+     * that modify the metadata of depended-on software components.
+     *
+     * @return the component metadata handler for this project
+     * @since 1.8
+     */
+    @Incubating
+    ComponentMetadataHandler getComponentMetadata();
+
+    /**
+     * Configures module metadata for this project.
+     *
+     * <p>This method executes the given closure against the {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler} for this project. The {@link
+     * org.gradle.api.artifacts.dsl.ComponentMetadataHandler} is passed to the closure as the closure's delegate.
+     *
+     * @param configureClosure the closure to use to configure module metadata
+     * @since 1.8
+     */
+    @Incubating
+    void componentMetadata(Closure configureClosure);
 }
