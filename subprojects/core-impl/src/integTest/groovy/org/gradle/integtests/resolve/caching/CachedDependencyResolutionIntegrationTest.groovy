@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyHttpModule
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
 /**
