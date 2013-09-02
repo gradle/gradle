@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionRes
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -44,12 +43,14 @@ public class ResolveIvyFactory {
     private final CacheLockingManager cacheLockingManager;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final TimeProvider timeProvider;
-    private InMemoryDependencyMetadataCache inMemoryCache;
+    private final InMemoryDependencyMetadataCache inMemoryCache;
+    private final VersionMatcher versionMatcher;
+    private final LatestStrategy latestStrategy;
 
     public ResolveIvyFactory(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
                              CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                              CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride,
-                             TimeProvider timeProvider, InMemoryDependencyMetadataCache inMemoryCache) {
+                             TimeProvider timeProvider, InMemoryDependencyMetadataCache inMemoryCache, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.moduleResolutionCache = moduleResolutionCache;
         this.moduleDescriptorCache = moduleDescriptorCache;
         this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
@@ -57,16 +58,15 @@ public class ResolveIvyFactory {
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.timeProvider = timeProvider;
         this.inMemoryCache = inMemoryCache;
+        this.versionMatcher = versionMatcher;
+        this.latestStrategy = latestStrategy;
     }
 
     public IvyAdapter create(ConfigurationInternal configuration, Iterable<? extends ResolutionAwareRepository> repositories) {
         ResolutionRules resolutionRules = configuration.getResolutionStrategy().getResolutionRules();
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
-        VersionMatcher versionMatcher = ResolverStrategy.INSTANCE.getVersionMatcher();
-        LatestStrategy comparatorLatestStrategy = ResolverStrategy.INSTANCE.getLatestStrategy();
-
-        UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, comparatorLatestStrategy);
+        UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, latestStrategy);
         DependencyToModuleVersionResolver parentLookupResolver = new ParentModuleLookupResolver(userResolverChain, cacheLockingManager);
 
         for (ResolutionAwareRepository repository : repositories) {
@@ -96,7 +96,7 @@ public class ResolveIvyFactory {
             userResolverChain.add(localAwareRepository);
         }
 
-        return new DefaultIvyAdapter(versionMatcher, comparatorLatestStrategy, userResolverChain);
+        return new DefaultIvyAdapter(versionMatcher, latestStrategy, userResolverChain);
     }
 
     private void ivyContextualize(IvyAwareModuleVersionRepository ivyAwareRepository, UserResolverChain userResolverChain, String configurationName) {

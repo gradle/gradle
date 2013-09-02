@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -43,15 +45,19 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private List<Object> additionalUrls = new ArrayList<Object>();
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final ModuleMetadataProcessor metadataProcessor;
+    private final VersionMatcher versionMatcher;
+    private final LatestStrategy latestStrategy;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                          ModuleMetadataProcessor metadataProcessor) {
+                                          ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.metadataProcessor = metadataProcessor;
+        this.versionMatcher = versionMatcher;
+        this.latestStrategy = latestStrategy;
     }
 
     public URI getUrl() {
@@ -97,7 +103,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        MavenResolver resolver = new MavenResolver(getName(), rootUri, getTransport(rootUri.getScheme()), locallyAvailableResourceFinder, metadataProcessor);
+        MavenResolver resolver = new MavenResolver(getName(), rootUri, getTransport(rootUri.getScheme()),
+                locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl, null);
         }

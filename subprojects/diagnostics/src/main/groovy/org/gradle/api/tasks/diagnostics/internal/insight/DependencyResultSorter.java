@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 
@@ -34,15 +33,18 @@ public class DependencyResultSorter {
      * If requested matches selected then it will override the version comparison
      * so that the dependency that was selected is more prominent.
      */
-    public static Collection<DependencyEdge> sort(Collection<DependencyEdge> input) {
+    public static Collection<DependencyEdge> sort(Collection<DependencyEdge> input, VersionMatcher versionMatcher) {
         List<DependencyEdge> out = new ArrayList<DependencyEdge>(input);
-        Collections.sort(out, new DependencyComparator());
+        Collections.sort(out, new DependencyComparator(versionMatcher));
         return out;
     }
 
     private static class DependencyComparator implements Comparator<DependencyEdge> {
+        private final VersionMatcher matcher;
 
-        private final VersionMatcher matcher = ResolverStrategy.INSTANCE.getVersionMatcher();
+        private DependencyComparator(VersionMatcher matcher) {
+            this.matcher = matcher;
+        }
 
         public int compare(DependencyEdge left, DependencyEdge right) {
             ModuleVersionSelector leftRequested = left.getRequested();

@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * accept(). Note that it can't work with latest time strategy, cause no time is known for the
  * limits of the range. Therefore only purely revision based LatestStrategy can be used.
  */
-class VersionRangeMatcher implements VersionMatcher {
+public class VersionRangeMatcher implements VersionMatcher {
     private static final String OPEN_INC = "[";
 
     private static final String OPEN_EXC = "]";

@@ -24,6 +24,8 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskAction
@@ -85,11 +87,14 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     private final StyledTextOutput output;
     private final GraphRenderer renderer;
+    private final VersionMatcher versionMatcher;
 
     @Inject
     DependencyInsightReportTask(StyledTextOutputFactory outputFactory) {
         output = outputFactory.create(getClass());
         renderer = new GraphRenderer(output);
+        // not sure how to get access to VersionMatcher service (defined in DefaultDependencyManagementServices) from here
+        this.versionMatcher = ResolverStrategy.INSTANCE.getVersionMatcher();
     }
 
     /**

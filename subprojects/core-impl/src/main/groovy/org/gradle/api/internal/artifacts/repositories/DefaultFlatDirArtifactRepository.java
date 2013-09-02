@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -40,15 +42,19 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final ModuleMetadataProcessor metadataProcessor;
+    private final VersionMatcher versionMatcher;
+    private final LatestStrategy latestStrategy;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
                                             LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                            ModuleMetadataProcessor metadataProcessor) {
+                                            ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.metadataProcessor = metadataProcessor;
+        this.versionMatcher = versionMatcher;
+        this.latestStrategy = latestStrategy;
     }
 
     public Set<File> getDirs() {
@@ -86,7 +92,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
 
-        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createFileTransport(getName()), locallyAvailableResourceFinder, metadataProcessor, false);
+        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createFileTransport(getName()),
+                locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, false);
         for (File root : dirs) {
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");

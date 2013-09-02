@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.repositories
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -36,9 +38,12 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ExternalResourceRepository resourceRepository = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ModuleMetadataProcessor metadataProcessor = Mock()
+    final VersionMatcher versionMatcher = Mock()
+    final LatestStrategy latestStrategy = Mock()
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
-            fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, new DirectInstantiator(), metadataProcessor
+            fileResolver, credentials, transportFactory, locallyAvailableResourceFinder,
+            new DirectInstantiator(), metadataProcessor, versionMatcher, latestStrategy
     )
 
     def "default values"() {

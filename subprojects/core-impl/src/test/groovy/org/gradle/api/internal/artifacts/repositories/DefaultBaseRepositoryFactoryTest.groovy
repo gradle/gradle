@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -46,11 +48,12 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final MetaDataParser metaDataParser = Mock()
     final ModuleMetadataProcessor metadataProcessor = Mock()
     final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory = Mock()
-
+    final VersionMatcher versionMatcher = Mock()
+    final LatestStrategy latestStrategy = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder
-            , metadataProcessor, legacyDependencyResolverRepositoryFactory
+            , metadataProcessor, legacyDependencyResolverRepositoryFactory, versionMatcher, latestStrategy
     )
 
     def testCreateResolverWithStringDescription() {

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.*
 
 /**
@@ -28,7 +29,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.*
  */
 public class DependencyInsightReporter {
 
-    Collection<RenderableDependency> prepare(Collection<DependencyResult> input) {
+    Collection<RenderableDependency> prepare(Collection<DependencyResult> input, VersionMatcher versionMatcher) {
         def out = new LinkedList<RenderableDependency>()
         def dependencies = input.collect {
             if (it instanceof UnresolvedDependencyResult) {
@@ -38,7 +39,7 @@ public class DependencyInsightReporter {
             }
         }
 
-        def sorted = DependencyResultSorter.sort(dependencies)
+        def sorted = DependencyResultSorter.sort(dependencies, versionMatcher)
 
         //remember if module id was annotated
         def annotated = new HashSet<ModuleVersionIdentifier>()

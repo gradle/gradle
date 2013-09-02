@@ -25,7 +25,6 @@ public class ResolverStrategy {
     public static final ResolverStrategy INSTANCE = new ResolverStrategy();
 
     private final VersionMatcher versionMatcher;
-    private final LatestStrategy latestStrategy;
     private final Map<String, PatternMatcher> matchers = Maps.newHashMap();
 
     private ResolverStrategy() {
@@ -34,9 +33,7 @@ public class ResolverStrategy {
         chain.add(new SubVersionMatcher(new ExactVersionMatcher()));
         chain.add(new LatestVersionMatcher());
         chain.add(new ExactVersionMatcher());
-
         versionMatcher = chain;
-        latestStrategy = new LatestVersionStrategy(chain);
 
         addMatcher(ExactPatternMatcher.INSTANCE);
         addMatcher(RegexpPatternMatcher.INSTANCE);
@@ -50,10 +47,6 @@ public class ResolverStrategy {
 
     public VersionMatcher getVersionMatcher() {
         return versionMatcher;
-    }
-
-    public LatestStrategy getLatestStrategy() {
-        return latestStrategy;
     }
 
     public PatternMatcher getPatternMatcher(String name) {

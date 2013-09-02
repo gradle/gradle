@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -43,6 +45,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final ModuleMetadataProcessor metadataProcessor;
     private final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory;
+    private final VersionMatcher versionMatcher;
+    private final LatestStrategy latestStrategy;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -50,7 +54,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
                                         ModuleMetadataProcessor metadataProcessor,
-                                        LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory) {
+                                        LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory,
+                                        VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
@@ -58,6 +63,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.metadataProcessor = metadataProcessor;
         this.legacyDependencyResolverRepositoryFactory = legacyDependencyResolverRepositoryFactory;
+        this.versionMatcher = versionMatcher;
+        this.latestStrategy = latestStrategy;
     }
 
     public ArtifactRepository createRepository(Object userDescription) {
@@ -83,7 +90,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
-        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, metadataProcessor);
+        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory,
+                locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy);
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
@@ -107,12 +115,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, instantiator, metadataProcessor);
+                locallyAvailableResourceFinder, instantiator, metadataProcessor, versionMatcher, latestStrategy);
     }
 
     public MavenArtifactRepository createMavenRepository() {
         return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, metadataProcessor
+                locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy
         );
     }
 

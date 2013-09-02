@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 
@@ -30,10 +32,11 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                       ModuleMetadataProcessor metadataProcessor,
-                       boolean dynamicResolve
-    ) {
-        super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, new DownloadedIvyModuleDescriptorParser(), metadataProcessor);
+                       ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher,
+                       LatestStrategy latestStrategy, boolean dynamicResolve) {
+        super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()),
+                locallyAvailableResourceFinder, new DownloadedIvyModuleDescriptorParser(), metadataProcessor,
+                versionMatcher, latestStrategy);
         this.transport = transport;
         this.transport.configureCacheManager(this);
         this.dynamicResolve = dynamicResolve;

@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 
 import java.util.*;
 
-class LatestVersionStrategy implements LatestStrategy {
+public class LatestVersionStrategy implements LatestStrategy {
     private final VersionMatcher versionMatcher;
 
     public LatestVersionStrategy(VersionMatcher versionMatcher) {

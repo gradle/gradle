@@ -40,6 +40,8 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
@@ -277,7 +279,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(CacheLockingManager.class),
                 startParameterResolutionOverride,
                 get(BuildCommencedTimeProvider.class),
-                get(InMemoryDependencyMetadataCache.class));
+                get(InMemoryDependencyMetadataCache.class),
+                get(VersionMatcher.class),
+                get(LatestStrategy.class));
     }
 
     protected ArtifactDependencyResolver createArtifactDependencyResolver() {
@@ -303,6 +307,14 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected ResolutionResultsStoreFactory createResolutionResultsStoreFactory() {
         return new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider());
+    }
+
+    protected VersionMatcher createVersionMatcher() {
+        return ResolverStrategy.INSTANCE.getVersionMatcher();
+    }
+
+    protected LatestStrategy createLatestStrategy() {
+        return new LatestVersionStrategy(get(VersionMatcher.class));
     }
 
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
@@ -344,7 +356,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         get(RepositoryTransportFactory.class),
                         get(LocallyAvailableResourceFinder.class),
                         getComponentMetadataHandler(),
-                        get(LegacyDependencyResolverRepositoryFactory.class)
+                        get(LegacyDependencyResolverRepositoryFactory.class),
+                        get(VersionMatcher.class),
+                        get(LatestStrategy.class)
                 );
             }
 

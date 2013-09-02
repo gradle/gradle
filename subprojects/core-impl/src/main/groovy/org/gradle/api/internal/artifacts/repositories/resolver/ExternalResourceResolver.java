@@ -100,16 +100,16 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
                                     ExternalResourceRepository repository,
                                     VersionLister versionLister,
                                     LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                    MetaDataParser metaDataParser, ModuleMetadataProcessor metadataProcessor) {
+                                    MetaDataParser metaDataParser, ModuleMetadataProcessor metadataProcessor,
+                                    VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.name = name;
         this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.metaDataParser = metaDataParser;
         this.metadataProcessor = metadataProcessor;
-
-        latestStrategy = ResolverStrategy.INSTANCE.getLatestStrategy();
-        versionMatcher = ResolverStrategy.INSTANCE.getVersionMatcher();
+        this.versionMatcher = versionMatcher;
+        this.latestStrategy = latestStrategy;
     }
 
     public String getId() {
