@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyHttpModule
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.spockframework.util.TextUtil
+import spock.lang.Issue
 
 /**
  * We are using Ivy here, but the strategy is the same for any kind of repository.
@@ -61,7 +63,6 @@ task retrieve(type: Sync) {
     void initialResolve() {
         module.expectIvyGet()
         module.expectJarGet()
-
         resolve()
     }
 
@@ -216,5 +217,24 @@ task retrieve(type: Sync) {
         then:
         headThenGetRequests()
         changedResolve()
+    }
+
+    @Issue("GRADLE-2781")
+    def "no leading zeros in sha1 checksums supported"() {
+        given:
+        server.etags = null
+        server.sendLastModified = false
+        byte[] jarBytes = [0, 0, 0, 5]
+        module.jarFile.bytes = jarBytes
+        initialResolve()
+        expect:
+        headThenSha1Requests()
+        trimLeadingZerosFromSHA1()
+        unchangedResolve()
+    }
+
+    def trimLeadingZerosFromSHA1() {
+        //remove leading zeros from sha1 checksum
+        new File("${module.jarFile.absolutePath}.sha1").text = "e14c6ef59816760e2c9b5a57157e8ac9de4012"
     }
 }
