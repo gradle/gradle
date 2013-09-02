@@ -29,6 +29,7 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.search.ModuleEntry;
 import org.apache.ivy.core.search.OrganisationEntry;
 import org.apache.ivy.core.search.RevisionEntry;
+import org.apache.ivy.plugins.latest.LatestStrategy;
 import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
@@ -248,6 +249,22 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
 
     public void setChecksums(String checksums) {
         resolver.setChecksums(checksums);
+    }
+
+    public LatestStrategy getLatestStrategy() {
+        throw new UnsupportedOperationException("getLatestStrategy");
+    }
+
+    public void setLatestStrategy(LatestStrategy latestStrategy) {
+        throw new UnsupportedOperationException("setLatestStrategy");
+    }
+
+    public String getLatest() {
+        throw new UnsupportedOperationException("getLatest");
+    }
+
+    public void setLatest(String strategyName) {
+        throw new UnsupportedOperationException("setLatest");
     }
 
     public void setChangingMatcher(String changingMatcherName) {

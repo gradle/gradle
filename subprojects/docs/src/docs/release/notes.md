@@ -302,6 +302,13 @@ This change may impact the order of files of a resolved configuration, consequen
 However, in majority of cases, the change will be transparent because Gradle continues to respect the order of declared dependencies
 and it is reflected in the order of resolved artifacts and files.
 
+### Ivy `DependencyResolver` implementations returned by Gradle APIs no longer support `latestStrategy` methods
+
+Ivy `DependencyResolver` implementations returned by Gradle APIs such as `repositories.mavenRepo` no longer support the following methods:
+`getLatestStrategy`, `setLatestStrategy`, `getLatest`, `setLatest`. Calling one of these methods will now throw an `UnsupportedOperationException`.
+
+Note that using Ivy `DependencyResolver` implementations is deprecated, and we recommend that you use Gradle's repository implementations instead.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
