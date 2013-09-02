@@ -27,13 +27,13 @@ class MavenComponentMetadataRulesIntegrationTest extends AbstractDependencyResol
         buildFile << """
 configurations { compile }
 repositories { maven { url "${mavenRepo().uri}" } }
+def allDetails = []
 dependencies {
     compile 'group1:projectA:1.0'
     compile 'group2:projectB:2.0-SNAPSHOT'
-}
-def allDetails = []
-componentMetadata {
-  eachComponent { allDetails << it }
+    componentMetadata {
+        eachComponent { allDetails << it }
+    }
 }
 
 task verify {

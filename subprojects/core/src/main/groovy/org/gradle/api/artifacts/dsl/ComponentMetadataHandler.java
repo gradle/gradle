@@ -24,17 +24,21 @@ import org.gradle.api.artifacts.ComponentMetadataDetails;
  *
  * <p> Example:
  * <pre autoTested=''>
- * componentMetadata {
- *     eachComponent { ComponentMetadataDetails details ->
- *         if (details.id.group == "org.foo") {
- *             def version = details.id.version
- *             // assuming status is last part of version string
- *             details.status = version.substring(version.lastIndexOf("-") + 1)
- *             details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+ * dependencies {
+ *     componentMetadata {
+ *         eachComponent { ComponentMetadataDetails details ->
+ *             if (details.id.group == "org.foo") {
+ *                 def version = details.id.version
+ *                 // assuming status is last part of version string
+ *                 details.status = version.substring(version.lastIndexOf("-") + 1)
+ *                 details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+ *             }
  *         }
  *     }
  * }
  * </pre>
+ *
+ * @since 1.8
  */
 @Incubating
 public interface ComponentMetadataHandler {

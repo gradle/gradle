@@ -22,22 +22,23 @@ class IvyCustomStatusLatestVersionIntegrationTest extends AbstractIntegrationSpe
         given:
         buildFile << """
 repositories {
-  ivy {
-      url "${ivyRepo.uri}"
-  }
+    ivy {
+        url "${ivyRepo.uri}"
+    }
 }
 configurations { compile }
 dependencies {
-  compile 'org.test:projectA:latest.$status'
+    compile 'org.test:projectA:latest.$status'
+    componentMetadata {
+        eachComponent { details ->
+            details.statusScheme = ["bronze", "silver", "gold", "platin"]
+        }
+    }
 }
-componentMetadata {
-  eachComponent { details ->
-      details.statusScheme = ["bronze", "silver", "gold", "platin"]
-  }
-}
+
 task retrieve(type: Sync) {
-  from configurations.compile
-  into 'libs'
+    from configurations.compile
+    into 'libs'
 }
 """
 

@@ -372,7 +372,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         public DependencyHandler getDependencyHandler() {
             if (dependencyHandler == null) {
-                dependencyHandler = new DefaultDependencyHandler(getConfigurationContainer(), parent.get(DependencyFactory.class), projectFinder);
+                dependencyHandler = new DefaultDependencyHandler(getConfigurationContainer(), parent.get(DependencyFactory.class), projectFinder, getComponentMetadataHandler());
             }
             return dependencyHandler;
         }

@@ -71,21 +71,21 @@ What can a status (scheme) be used for? Most notably, a dependency can request t
 
 Ivy users will be familiar with this feature. 'Latest' version resolution also works together with custom status schemes:
 
-    componentMetadata {
-        eachComponent { ComponentMetadataDetails details ->
-            if (details.id.group == "org.foo") {
-                // declare a custom status scheme
-                details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+    dependencies {
+        // the highest version with status silver, gold, or platinum
+        compile "org.foo:bar:latest.silver"
+        componentMetadata {
+            eachComponent { ComponentMetadataDetails details ->
+                if (details.id.group == "org.foo") {
+                    // declare a custom status scheme
+                    details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+                }
             }
         }
     }
 
-    dependencies {
-        // the highest version with status silver, gold, or platinum
-        compile "org.foo:bar:latest.silver"
-    }
-
-For further API details, see ... Future Gradle versions will likely allow more pieces of module metadata to be manipulated.
+For API details, see [`ComponentMetadataHandler`](javadoc/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html).
+Future Gradle versions will likely allow more pieces of module metadata to be manipulated.
 
 ### Create native libraries and executables from C and Assembler sources (i)
 
