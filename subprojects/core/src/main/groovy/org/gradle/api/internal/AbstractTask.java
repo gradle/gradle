@@ -50,7 +50,10 @@ import org.gradle.util.GFileUtils;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
@@ -568,7 +571,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public boolean add(Object action) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().add(Action)");
             if (action == null) {
                 throw new InvalidUserDataException("Action must not be null!");
             }
@@ -577,7 +579,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public void add(int index, Object action) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().add(Index, Action)");
             if (action == null) {
                 throw new InvalidUserDataException("Action must not be null!");
             }
@@ -586,7 +587,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public boolean addAll(Collection actions) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().addAll(Actions)");
             if (actions == null) {
                 throw new InvalidUserDataException("Actions must not be null!");
             }
@@ -595,7 +595,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public boolean addAll(int index, Collection actions) {
-            taskStatusNagger.nagIfTaskNotInConfigurableState("Task.getActions().addAll(Actions)");
             if (actions == null) {
                 throw new InvalidUserDataException("Actions must not be null!");
             }
