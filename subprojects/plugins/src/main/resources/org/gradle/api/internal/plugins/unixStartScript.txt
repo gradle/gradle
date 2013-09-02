@@ -60,10 +60,10 @@ while [ -h "\$PRG" ] ; do
         PRG=`dirname "\$PRG"`"/\$link"
     fi
 done
-SAVED="`pwd`"
+
+# Set the working directory to $APP_HOME
 cd "`dirname \"\$PRG\"`/${appHomeRelativePath}" >&-
 APP_HOME="`pwd -P`"
-cd "\$SAVED" >&-
 
 CLASSPATH=$classpath
 
