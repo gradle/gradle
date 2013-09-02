@@ -87,6 +87,38 @@ Ivy users will be familiar with this feature. 'Latest' version resolution also w
 
 For further API details, see ... Future Gradle versions will likely allow more pieces of module metadata to be manipulated.
 
+### Create native libraries and executables from C and Assembler sources (i)
+
+With Gradle 1.8, it is now possible to include 'C' and 'Assembler' source files to create a native library or executable. The C sources are compiled
+with relevant compiler settings, and Assembler sources are translated directly by the assembler.
+
+Including C and Assembler sources in your project is straightforward. Whereas C++ sources are contained in a 'cpp' source directory,
+C source files should be located in a 'c' directory and Assembler source files in a 'asm' directory. These directory locations are conventional, and
+can be updated in your build script.
+
+    sources {
+        main {
+            c {
+                source {
+                    srcDirs "sourcefiles"
+                    include "**/*.c"
+                }
+                exportedHeaders {
+                    srcDirs "includes"
+                }
+            }
+            asm {
+                source {
+                    srcDirs "sourcefiles", "assemblerfiles"
+                    include "**/*.s"
+                }
+            }
+        }
+    }
+
+Note that support for building native binaries is under active development, and this functionality is very likely to be changed and improved in upcoming
+releases.
+
 <!--
 ### Example new and noteworthy
 -->
