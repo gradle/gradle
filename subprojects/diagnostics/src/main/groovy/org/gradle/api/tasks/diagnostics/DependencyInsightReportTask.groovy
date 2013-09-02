@@ -173,7 +173,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             return
         }
 
-        def sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies)
+        def sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionMatcher)
 
         def nodeRenderer = new NodeRenderer() {
             void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
