@@ -121,6 +121,7 @@ Some more features to mix into the above plan:
 - Provide notifications when model has changed.
 - Provide some way to search repositories, to offer content assistance with dependency notations.
 - Don't configure the projects when `GradleBuild` model is requested.
+- Configure projects as required when using configure-on-demand.
 - Don't configure the tasks when they are not requested.
 - Deal with non-standard wrapper meta-data location.
 - More accurate content assistance.
