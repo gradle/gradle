@@ -41,7 +41,7 @@ class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, getTransport(rootUri.getScheme()), getLocallyAvailableResourceFinder(), getMetadataProcessor());
+        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, getTransport(rootUri.getScheme()), getLocallyAvailableResourceFinder(), getMetadataProcessor(), versionMatcher, latestStrategy);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl, null);
         }
