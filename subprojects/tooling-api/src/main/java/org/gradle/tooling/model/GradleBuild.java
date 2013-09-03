@@ -25,19 +25,17 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface GradleBuild {
-    // TODO:ADAM - need some other type to represent a project - HierarchicalElement has `description` property
-
     /**
      * Returns the root project for this build.
      *
      * @return The root project
      */
-    HierarchicalElement getRootProject();
+    BasicGradleProject getRootProject();
 
     /**
      * Returns the set of all projects for this build. Will include the root project and any ancestors.
      *
      * @return The set of all projects.
      */
-    DomainObjectSet<? extends HierarchicalElement> getProjects();
+    DomainObjectSet<? extends BasicGradleProject> getProjects();
 }

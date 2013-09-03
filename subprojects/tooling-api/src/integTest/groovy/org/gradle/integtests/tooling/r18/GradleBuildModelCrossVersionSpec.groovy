@@ -46,8 +46,12 @@ allprojects {
 
         then:
         model.rootProject.name == 'test'
+        model.rootProject.path == ':'
+        model.rootProject.parent == null
+        model.rootProject.projectDirectory == projectDir
         model.rootProject.children.size() == 2
         model.rootProject.children.every { it.parent == model.rootProject }
         model.projects*.name == ['test', 'a', 'b', 'c']
+        model.projects*.path == [':', ':a', ':b', ':b:c']
     }
 }

@@ -19,8 +19,8 @@ package org.gradle.integtests.tooling.r18;
 import org.gradle.integtests.tooling.r16.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.BasicGradleProject;
 import org.gradle.tooling.model.GradleBuild;
-import org.gradle.tooling.model.HierarchicalElement;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +29,7 @@ public class UseGradleBuildToFetchProjectModel implements BuildAction<Map<String
     public Map<String, CustomModel> execute(BuildController controller) {
         GradleBuild gradleBuild = controller.getBuildModel();
         Map<String, CustomModel> projects = new HashMap<String, CustomModel>();
-        for (HierarchicalElement project : gradleBuild.getProjects()) {
+        for (BasicGradleProject project : gradleBuild.getProjects()) {
             projects.put(project.getName(), controller.getModel(project, CustomModel.class));
         }
         return projects;

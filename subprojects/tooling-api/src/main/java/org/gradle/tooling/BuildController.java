@@ -18,8 +18,8 @@ package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
-import org.gradle.tooling.model.Element;
 import org.gradle.tooling.model.GradleBuild;
+import org.gradle.tooling.model.Model;
 
 /**
  * Provides a {@link BuildAction} various ways to control a Gradle build and access information about the build.
@@ -82,10 +82,10 @@ public interface BuildController {
      * <p>The following elements are supported:
      *
      * <ul>
+     *     <li>Any {@link org.gradle.tooling.model.BasicGradleProject}</li>
      *     <li>Any {@link org.gradle.tooling.model.GradleProject}</li>
      *     <li>Any {@link org.gradle.tooling.model.eclipse.EclipseProject}</li>
      *     <li>Any {@link org.gradle.tooling.model.idea.IdeaModule}</li>
-     *     <li>A value returned by {@link org.gradle.tooling.model.GradleBuild#getProjects()} or {@link org.gradle.tooling.model.GradleBuild#getRootProject()}.</li>
      * </ul>
      *
      * <p>See {@link #getModel(Class)} for more details.
@@ -96,17 +96,17 @@ public interface BuildController {
      * @return The model.
      * @throws UnknownModelException When the target project does not support the requested model.
      */
-    <T> T getModel(Element target, Class<T> modelType) throws UnknownModelException;
+    <T> T getModel(Model target, Class<T> modelType) throws UnknownModelException;
 
     /**
      * Fetches a snapshot of the model of the given type, if available.
      *
-     * <p>See {@link #getModel(Element, Class)} for more details.</p>
+     * <p>See {@link #getModel(Model, Class)} for more details.</p>
      *
      * @param modelType The model type.
      * @param <T> The model type.
      * @return The model, or null if not present.
      */
     @Nullable
-    <T> T findModel(Element target, Class<T> modelType);
+    <T> T findModel(Model target, Class<T> modelType);
 }
