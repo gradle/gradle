@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
-import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.Logger;
@@ -32,45 +31,64 @@ import java.util.Map;
 
 public class ResolutionResultsStoreFactory implements Closeable {
     private final static Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
+    private static final int DEFAULT_MAX_SIZE = 2000000000; //2 gigs
 
     private final TemporaryFileProvider temp;
+    private int maxSize;
 
     private CachedStoreFactory oldModelCache;
     private CachedStoreFactory newModelCache;
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
+        this(temp, DEFAULT_MAX_SIZE);
+    }
+
+    /**
+     * @param temp
+     * @param maxSize - indicates the approx. maximum size of the binary store that will trigger rolling of the file
+     */
+    ResolutionResultsStoreFactory(TemporaryFileProvider temp, int maxSize) {
         this.temp = temp;
+        this.maxSize = maxSize;
     }
 
     private final Map<String, DefaultBinaryStore> stores = new HashMap<String, DefaultBinaryStore>();
+    private final CompositeStoppable cleanUpLater = new CompositeStoppable();
 
-    public BinaryStore createBinaryStore(String id) {
+    public DefaultBinaryStore createBinaryStore(String id) {
         String storeKey = Thread.currentThread().getId() + id; //one store per thread
         DefaultBinaryStore store = stores.get(storeKey);
-        if (store == null) {
+        if (store == null || isFull(store)) {
             File storeFile = temp.createTemporaryFile("gradle", ".bin");
             storeFile.deleteOnExit();
             store = new DefaultBinaryStore(storeFile);
             stores.put(storeKey, store);
+            cleanUpLater.add(store);
         }
         return store;
     }
 
+    //offset based implementation is only safe up to certain figure
+    //because of the int max value
+    //for large streams/files (huge builds), we need to roll the file
+    //otherwise the stream.size() returns max integer and the offset is no longer correct
+    private boolean isFull(DefaultBinaryStore store) {
+        return store.getSize() > maxSize;
+    }
+
     public void close() throws IOException {
         Clock clock = new Clock();
-        new CompositeStoppable()
-                .add(stores.values())
-                .add(oldModelCache)
-                .add(newModelCache)
-                .stop();
+        cleanUpLater.stop();
         LOG.debug("Deleted {} resolution results binary files in {}", stores.size(), clock.getTime());
         oldModelCache = null;
         newModelCache = null;
+        stores.clear();
     }
 
     public <T> Store<T> createOldModelCache(String id) {
         if (oldModelCache == null) {
             oldModelCache = new CachedStoreFactory("Resolution result");
+            cleanUpLater.add(oldModelCache);
         }
         return oldModelCache.createCachedStore(id);
     }
@@ -78,8 +96,8 @@ public class ResolutionResultsStoreFactory implements Closeable {
     public <T> Store<T> createNewModelCache(String id) {
         if (newModelCache == null) {
             newModelCache = new CachedStoreFactory("Resolved configuration");
+            cleanUpLater.add(newModelCache);
         }
         return newModelCache.createCachedStore(id);
     }
-
 }
