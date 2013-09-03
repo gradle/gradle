@@ -95,7 +95,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
-        MavenArtifactRepository mavenRepository = createMavenRepository();
+        MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
+                locallyAvailableResourceFinder, metadataProcessor);
         final File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         mavenRepository.setUrl(localMavenRepository);
         return mavenRepository;

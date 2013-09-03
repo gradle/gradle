@@ -36,6 +36,8 @@ public interface ModuleVersionMetaData {
 
     boolean isChanging();
 
+    boolean isMetaDataOnly();
+
     String getStatus();
 
     List<String> getStatusScheme();

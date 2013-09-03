@@ -179,25 +179,29 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
             }
         } else {
             try {
-                ModuleVersionMetaData moduleVersionMetaData;
-                if (ivyRef instanceof DownloadedAndParsedMetaDataArtifact) {
-                    moduleVersionMetaData = ((DownloadedAndParsedMetaDataArtifact) ivyRef).moduleVersionMetaData;
-                } else {
-                    moduleVersionMetaData = getArtifactMetadata(ivyRef.artifact, ivyRef.resource);
-                }
-
-                if (isCheckconsistency()) {
-                    checkMetadataConsistency(DefaultModuleVersionSelector.newSelector(moduleRevisionId), moduleVersionMetaData, ivyRef);
-                }
-                LOGGER.debug("Ivy file found for module '{}' in repository '{}'.", moduleRevisionId, getName());
-                result.resolved(moduleVersionMetaData.getDescriptor(), isChanging(moduleVersionMetaData.getDescriptor()), null);
+                resolveArtifact(ivyRef, moduleRevisionId, result);
             } catch (MetaDataParseException e) {
                 result.failed(new ModuleVersionResolveException(moduleRevisionId, e));
             }
         }
     }
 
-    private MutableModuleVersionMetaData getArtifactMetadata(Artifact artifact, ExternalResource resource) {
+    protected void resolveArtifact(ResolvedArtifact ivyRef, ModuleRevisionId moduleRevisionId, BuildableModuleVersionMetaDataResolveResult result) throws MetaDataParseException {
+        ModuleVersionMetaData moduleVersionMetaData;
+        if (ivyRef instanceof DownloadedAndParsedMetaDataArtifact) {
+            moduleVersionMetaData = ((DownloadedAndParsedMetaDataArtifact) ivyRef).getModuleVersionMetaData();
+        } else {
+            moduleVersionMetaData = getArtifactMetadata(ivyRef.getArtifact(), ivyRef.getResource());
+        }
+
+        if (isCheckconsistency()) {
+            checkMetadataConsistency(DefaultModuleVersionSelector.newSelector(moduleRevisionId), moduleVersionMetaData, ivyRef);
+        }
+        LOGGER.debug("Ivy file found for module '{}' in repository '{}'.", moduleRevisionId, getName());
+        result.resolved(moduleVersionMetaData.getDescriptor(), isChanging(moduleVersionMetaData.getDescriptor()), null);
+    }
+
+    protected MutableModuleVersionMetaData getArtifactMetadata(Artifact artifact, ExternalResource resource) {
         MutableModuleVersionMetaData metadata = doGetArtifactMetadata(artifact, resource);
         metadataProcessor.process(metadata);
         return metadata;
@@ -224,7 +228,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         }
     }
 
-    private void checkMetadataConsistency(ModuleVersionSelector selector, ModuleVersionMetaData metadata,
+    protected void checkMetadataConsistency(ModuleVersionSelector selector, ModuleVersionMetaData metadata,
                                           ResolvedArtifact ivyRef) throws MetaDataParseException {
         List<String> errors = new ArrayList<String>();
         if (!selector.getGroup().equals(metadata.getId().getGroup())) {
@@ -254,7 +258,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         return findResourceUsingPatterns(DefaultModuleVersionSelector.newSelector(mrid), ivyPatterns, artifact, true);
     }
 
-    private ResolvedArtifact findAnyArtifact(ModuleDescriptor md) {
+    protected ResolvedArtifact findAnyArtifact(ModuleDescriptor md) {
         for (Artifact artifact : md.getAllArtifacts()) {
             ResolvedArtifact artifactRef = getArtifactRef(artifact, false);
             if (artifactRef != null) {
@@ -600,7 +604,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         return isM2compatible() ? new M2ResourcePattern(pattern) : new IvyResourcePattern(pattern);
     }
 
-    private boolean isChanging(ModuleDescriptor moduleDescriptor) {
+    protected boolean isChanging(ModuleDescriptor moduleDescriptor) {
         if (changingMatcherName == null || changingPattern == null) {
             return false; // TODO: tell from module metadata (rule)
         }
@@ -620,14 +624,26 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
             this.resource = resource;
             this.artifact = artifact;
         }
+
+        protected ExternalResource getResource() {
+            return resource;
+        }
+
+        protected Artifact getArtifact() {
+            return artifact;
+        }
     }
 
-    private static class DownloadedAndParsedMetaDataArtifact extends ResolvedArtifact {
+    protected static class DownloadedAndParsedMetaDataArtifact extends ResolvedArtifact {
         private final ModuleVersionMetaData moduleVersionMetaData;
 
         public DownloadedAndParsedMetaDataArtifact(ExternalResource resource, Artifact artifact, ModuleVersionMetaData moduleVersionMetaData) {
             super(resource, artifact);
             this.moduleVersionMetaData = moduleVersionMetaData;
+        }
+
+        protected ModuleVersionMetaData getModuleVersionMetaData() {
+            return moduleVersionMetaData;
         }
     }
 }
