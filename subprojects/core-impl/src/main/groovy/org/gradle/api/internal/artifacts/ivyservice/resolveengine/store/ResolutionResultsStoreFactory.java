@@ -46,10 +46,6 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     public BinaryStore createBinaryStore(String id) {
         String storeKey = Thread.currentThread().getId() + id; //one store per thread
-        if (stores.containsKey(storeKey)) {
-            return stores.get(storeKey);
-        }
-
         DefaultBinaryStore store = stores.get(storeKey);
         if (store == null) {
             File storeFile = temp.createTemporaryFile("gradle", ".bin");
