@@ -3,6 +3,32 @@ This feature is really a bucket for key things we want to fix in the short-term 
 
 As this 'feature' is a list of bug fixes, this feature spec will not follow the usual template.
 
+# GRADLE-2861 Handle parent pom with unknown placeholders
+
+See [GRADLE-2861](http://issues.gradle.org/browse/GRADLE-2861)
+
+Currently, the POM parser (inherited from Ivy) attaches special extra attributes to the `ModuleDescriptor` for a POM. These are later used by the POM parser
+when it parses a child POM. Sometimes these attributes cause badly formed XML to be generated, hence the failure listed in the jira issue.
+
+The solution is to have the parser request the parent POM artifact directly, rather than indirectly via the module meta-data:
+
+1. Add a `LocallyAvailableExternalResource DescriptorParseContext.getArtifact(Artifact)` method.
+    - Implementation can reuse the `ModuleVersionResolveResult` from the existing `getModuleDescriptor()` method. This result includes an `ArtifactResolver` which
+      can be used to resolve an `Artifact` to a `File`. There's an example of how to convert a `File` to a `LocallyAvailableExternalResource` instance in
+      `AbstractModuleDescriptorParser.parseMetaData()`.
+2. Change the `GradlePomModuleDescriptorParser.parseOtherPom()` to use this new method to fetch and parse the parent POM artifact, rather than using the parsed
+   `ModuleDescriptor` for the parent. For this step, can continue to represent the parent pom using a `ModuleDescriptor` inside the parser.
+3. Change `GradlePomModuleDescriptorParser` to represent the parent POM using a `PomReader` rather than a `ModuleDescriptor`.
+4. Clean out `GradlePomModuleDescriptorBuilder` so that it no longer defines any extra properties on the parsed `ModuleDescriptor`.
+5. Change `IvyXmlModuleDescriptorParser.parseOtherIvyFile()` to use the new method to fetch and parse the Ivy descriptor artifact.
+6. Remove `DescriptorParseContext.getModuleDescriptor()`.
+
+## Test coverage
+
+* Unignore the existing test case in `BadPomFileResolveIntegrationTest`.
+* Add a test case to `MavenParentPomResolveIntegrationTest` to cover two Maven modules that share a common parent.
+* Add a test case to `MavenParentPomResolveIntegrationTest` to cover a Maven module that has a parent and grandparent module.
+
 # Conflict resolution considers conflicts on production classes
 
 See [this post](http://forums.gradle.org/gradle/topics/npe_in_dependencygraphbuilder_dependencyedge_getfailure)
@@ -330,7 +356,6 @@ It would be good to try to use Maven3 classes to assist with the mapping of [typ
 Until we map these types into the ivy repository model as well:
 * The IDEDependenciesExtractor will need to continue using type+classifier
 * We cannot deprecate the use of classifier='sources'
-
 
 # Correct naming of resolved native binaries
 
