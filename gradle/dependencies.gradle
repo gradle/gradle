@@ -121,13 +121,17 @@ libraries.maven3 = dependencies.module("org.apache.maven:maven-core:3.0.4") {
     dependency "org.apache.maven:maven-repository-metadata:3.0.4@jar"
     dependency "org.apache.maven:maven-plugin-api:3.0.4@jar"
     dependency "org.apache.maven:maven-aether-provider:3.0.4@jar"
-    dependency "org.apache.maven.wagon:wagon-provider-api:2.2@jar"
+
+    dependency 'org.apache.maven.wagon:wagon-http:2.4@jar'
+    dependency 'org.apache.maven.wagon:wagon-provider-api:2.4@jar'
+    dependency 'org.apache.maven.wagon:wagon-http-shared4:2.4@jar'
 
     //eather:
     dependency "org.sonatype.aether:aether-api:1.13.1@jar"
     dependency "org.sonatype.aether:aether-impl:1.13.1@jar"
     dependency "org.sonatype.aether:aether-spi:1.13.1@jar"
     dependency "org.sonatype.aether:aether-util:1.13.1@jar"
+    dependency 'org.sonatype.aether:aether-connector-wagon:1.13.1@jar'
 }
 
 libraries.spock = [

@@ -21,7 +21,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.maven.*
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
+import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -194,6 +197,64 @@ it.exclude group: '*', module: 'badArtifact'
 
         then:
         file("build/libs/testApp-1.0.jar").exists()
+    }
+
+    @Issue("GRADLE-2820")
+    def "remoteparent"() {
+        setup:
+        def repo = setupMavenHttpServer()
+        //update pom with test repo url
+        file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
+
+        expectParentPomRequest(repo)
+        withLocalM2Installation()
+
+        when:
+        run 'setupBuild'
+
+        then:
+        buildFile.exists()
+        settingsFile.exists()
+        wrapperFilesGenerated()
+
+        when:
+        run 'clean', 'build'
+
+        then:
+        file("build/libs/util-2.5.jar").exists()
+    }
+
+    def withLocalM2Installation() {
+        M2Installation m2Installation = new M2Installation(testDirectory)
+        m2Installation.generateUserSettingsFile(maven("local_m2"))
+        using m2Installation
+    }
+
+    PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {
+        MavenHttpModule module = repo.module('util.util.parent', 'util-parent', '3')
+        module.pom.file.parentFile.mkdirs()
+        module.pom.file.text = """
+                    <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+                    \t<modelVersion>4.0.0</modelVersion>
+                        <groupId>util.util.parent</groupId>
+                        <artifactId>util-parent</artifactId>
+                        <version>3</version>
+                        <packaging>pom</packaging>
+                    \t<name>Test Parent Pom</name>
+                        <description>Defaults for Test Maven Build with remote parent projects.</description>
+                    </project>
+                    """
+        module.pom
+        module.pom.expectGet();
+        module.pom.sha1.expectGet();
+        module.pom.md5.expectGet();
+        module.pom
+    }
+
+    MavenHttpRepository setupMavenHttpServer() {
+        HttpServer server = new HttpServer()
+        server.start()
+        new MavenHttpRepository(server, '/maven', maven(file("maven_remote_repo")));
     }
 
     void wrapperFilesGenerated(TestFile parentFolder = file(".")) {
