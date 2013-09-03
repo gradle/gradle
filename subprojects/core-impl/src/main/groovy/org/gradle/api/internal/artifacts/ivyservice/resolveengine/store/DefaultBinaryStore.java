@@ -42,7 +42,11 @@ class DefaultBinaryStore implements BinaryStore {
             }
         }
         if (offset == -1) {
-            this.offset = outputStream.size();
+            offset = outputStream.size();
+            if (offset == Integer.MAX_VALUE) {
+                throw new IllegalStateException("Unable to write to binary store. "
+                        + "The bytes offset has reached a point where using it is unsafe. Please report this error.");
+            }
         }
         try {
             write.write(outputStream);
@@ -84,6 +88,14 @@ class DefaultBinaryStore implements BinaryStore {
             outputStream = null;
             file = null;
         }
+    }
+
+    File getFile() {
+        return file;
+    }
+
+    long getSize() {
+        return file.length();
     }
 
     private static class SimpleBinaryData implements BinaryStore.BinaryData {

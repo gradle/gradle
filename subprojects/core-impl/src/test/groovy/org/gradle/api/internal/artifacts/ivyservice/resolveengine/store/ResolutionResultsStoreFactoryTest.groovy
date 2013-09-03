@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store
 
+import org.gradle.api.internal.cache.BinaryStore
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.gradle.internal.CompositeStoppable
 import spock.lang.Specification
 
 class ResolutionResultsStoreFactoryTest extends Specification {
@@ -30,6 +32,47 @@ class ResolutionResultsStoreFactoryTest extends Specification {
         expect:
         store1 != store2
         store1 == f.createBinaryStore("1")
+    }
+
+    def "rolls the file"() {
+        f = new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider(), 2);
+
+        when:
+        def store = f.createBinaryStore("1")
+        store.write({it.writeByte(1); it.writeByte(2) } as BinaryStore.WriteAction)
+        store.done()
+        def store2 = f.createBinaryStore("1")
+
+        then:
+        store.file == store2.file
+
+        when:
+        store2.write({it.writeByte(4)} as BinaryStore.WriteAction)
+        store2.done()
+
+        then:
+        f.createBinaryStore("1").file != store2.file
+    }
+
+    def "cleans up binary files"() {
+        f = new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider(), 1);
+
+        when:
+        def store = f.createBinaryStore("1")
+        store.write({it.writeByte(1); it.writeByte(2) } as BinaryStore.WriteAction)
+        store.done()
+        def store2 = f.createBinaryStore("1") //rolled
+        def store3 = f.createBinaryStore("2")
+
+        then:
+        store.file != store2.file //rolled
+        [store.file, store2.file, store3.file].each { it.exists() }
+
+        when:
+        new CompositeStoppable().add(store, store2, store3)
+
+        then:
+        [store.file, store2.file, store3.file].each { !it.exists() }
     }
 
     def "provides caches"() {
