@@ -4,7 +4,7 @@ This spec defines a number of stories to improve IDE integration in Gradle
 
 Below is a list of candidates to work on, in approximate priority order:
 
-## IDE visualises and runs aggregate tasks
+## GRADLE-2434 - IDE visualises and runs aggregate tasks
 
 On the command-line I can run `gradle test` and this will find and execute all tasks with name `test` in the current project
 and all its subprojects.
@@ -118,6 +118,8 @@ Improve cancellation so that the build is given an opportunity to finish up clea
 
 Some more features to mix into the above plan:
 
+- Expose unresolved dependencies.
+- Expose dependency graph.
 - Provide notifications when model has changed.
 - Provide some way to search repositories, to offer content assistance with dependency notations.
 - Don't configure the projects when `GradleBuild` model is requested.
