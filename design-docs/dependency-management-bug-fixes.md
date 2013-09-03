@@ -12,16 +12,16 @@ when it parses a child POM. Sometimes these attributes cause badly formed XML to
 
 The solution is to have the parser request the parent POM artifact directly, rather than indirectly via the module meta-data:
 
-1. Add a `LocallyAvailableExternalResource DescriptorParseContext.getArtifact(Artifact)` method.
+1. Add a `LocallyAvailableExternalResource getArtifact(Artifact)` method to `DescriptorParseContext`.
     - Implementation can reuse the `ModuleVersionResolveResult` from the existing `getModuleDescriptor()` method. This result includes an `ArtifactResolver` which
-      can be used to resolve an `Artifact` to a `File`. There's an example of how to convert a `File` to a `LocallyAvailableExternalResource` instance in
+      can be used to resolve an `Artifact` to a `File`. There's an example of how to adapt a `File` to a `LocallyAvailableExternalResource` instance in
       `AbstractModuleDescriptorParser.parseMetaData()`.
 2. Change the `GradlePomModuleDescriptorParser.parseOtherPom()` to use this new method to fetch and parse the parent POM artifact, rather than using the parsed
    `ModuleDescriptor` for the parent. For this step, can continue to represent the parent pom using a `ModuleDescriptor` inside the parser.
 3. Change `GradlePomModuleDescriptorParser` to represent the parent POM using a `PomReader` rather than a `ModuleDescriptor`.
 4. Clean out `GradlePomModuleDescriptorBuilder` so that it no longer defines any extra properties on the parsed `ModuleDescriptor`.
 5. Change `IvyXmlModuleDescriptorParser.parseOtherIvyFile()` to use the new method to fetch and parse the Ivy descriptor artifact.
-6. Remove `DescriptorParseContext.getModuleDescriptor()`.
+6. Remove `DescriptorParseContext.getModuleDescriptor()`. It should no longer be required.
 
 ## Test coverage
 
