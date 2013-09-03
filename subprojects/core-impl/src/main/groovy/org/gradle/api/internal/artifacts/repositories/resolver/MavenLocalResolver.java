@@ -41,48 +41,21 @@ public class MavenLocalResolver extends MavenResolver {
         super(name, rootUri, transport, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy);
     }
 
-    protected void getDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
-        if (isSnapshotVersion(dd)) {
-            getSnapshotDependency(dd, result);
-        } else {
-            resolveIfArtifactPresent(dd, result);
-        }
-    }
+    @Override
+    void getDependencyForFoundIvyFileRef(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, ResolvedArtifact ivyRef) {
+        ModuleVersionMetaData metaData = getArtifactMetadata(ivyRef.getArtifact(), ivyRef.getResource());
 
-    protected void getSnapshotDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
-        final ModuleRevisionId dependencyRevisionId = dd.getDependencyRevisionId();
-        final String uniqueSnapshotVersion = findUniqueSnapshotVersion(dependencyRevisionId);
-        if (uniqueSnapshotVersion != null) {
-            DependencyDescriptor enrichedDependencyDescriptor = enrichDependencyDescriptorWithSnapshotVersionInfo(dd, dependencyRevisionId, uniqueSnapshotVersion);
-            resolveIfArtifactPresent(enrichedDependencyDescriptor, result);
-            if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
-                result.setModuleSource(new TimestampedModuleSource(uniqueSnapshotVersion));
-            }
-        } else {
-            resolveIfArtifactPresent(dd, result);
-        }
-    }
+        if (!metaData.isMetaDataOnly()) {
+            DefaultModuleDescriptor generatedModuleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependencyDescriptor.getAllDependencyArtifacts());
+            ResolvedArtifact artifactRef = findAnyArtifact(generatedModuleDescriptor);
 
-    protected void resolveIfArtifactPresent(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result) {
-        ModuleRevisionId moduleRevisionId = dependencyDescriptor.getDependencyRevisionId();
-        ResolvedArtifact ivyRef = findIvyFileRef(dependencyDescriptor);
-
-        // get module descriptor
-        if (ivyRef == null) {
-            super.getDependency(dependencyDescriptor, result);
-        } else {
-            ModuleVersionMetaData metaData = getArtifactMetadata(ivyRef.getArtifact(), ivyRef.getResource());
-            if (!metaData.isMetaDataOnly()) {
-                DefaultModuleDescriptor generatedModuleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependencyDescriptor.getAllDependencyArtifacts());
-                ResolvedArtifact artifactRef = findAnyArtifact(generatedModuleDescriptor);
-                if (artifactRef != null) {
-                    super.getDependency(dependencyDescriptor, result);
-                } else {
-                    LOGGER.debug("Ivy file found for module '{}' in repository '{}' but no artifact found. Checking next repository.", moduleRevisionId, getName());
-                }
+            if (artifactRef != null) {
+                super.getDependencyForFoundIvyFileRef(dependencyDescriptor, result, moduleRevisionId, ivyRef);
             } else {
-                super.getDependency(dependencyDescriptor, result);
+                LOGGER.debug("Ivy file found for module '{}' in repository '{}' but no artifact found. Checking next repository.", moduleRevisionId, getName());
             }
+        } else {
+            super.getDependencyForFoundIvyFileRef(dependencyDescriptor, result, moduleRevisionId, ivyRef);
         }
     }
 }

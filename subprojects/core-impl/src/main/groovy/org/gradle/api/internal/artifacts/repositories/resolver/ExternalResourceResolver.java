@@ -156,37 +156,45 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
 
         // get module descriptor
         if (ivyRef == null) {
-            if (!isAllownomd()) {
-                LOGGER.debug("No ivy file found for module '{}' in repository '{}'.", moduleRevisionId, getName());
-                result.missing();
-                return;
-            }
-            DefaultModuleDescriptor generatedModuleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependencyDescriptor.getAllDependencyArtifacts());
-            ResolvedArtifact artifactRef = findAnyArtifact(generatedModuleDescriptor);
-            if (artifactRef == null) {
-                LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.", moduleRevisionId, getName());
-                result.missing();
-            } else {
-                long lastModified = artifactRef.resource.getLastModified();
-                if (lastModified != 0) {
-                    generatedModuleDescriptor.setLastModified(lastModified);
-                }
-                LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.", moduleRevisionId, getName());
-                if (isDynamic) {
-                    generatedModuleDescriptor.setResolvedModuleRevisionId(artifactRef.artifact.getModuleRevisionId());
-                }
-                result.resolved(generatedModuleDescriptor, isChanging(generatedModuleDescriptor), null);
-            }
+            getDependencyForMissingIvyFileRef(dependencyDescriptor, result, moduleRevisionId, isDynamic);
         } else {
-            try {
-                resolveArtifact(ivyRef, moduleRevisionId, result);
-            } catch (MetaDataParseException e) {
-                result.failed(new ModuleVersionResolveException(moduleRevisionId, e));
-            }
+            getDependencyForFoundIvyFileRef(dependencyDescriptor, result, moduleRevisionId, ivyRef);
         }
     }
 
-    protected void resolveArtifact(ResolvedArtifact ivyRef, ModuleRevisionId moduleRevisionId, BuildableModuleVersionMetaDataResolveResult result) throws MetaDataParseException {
+    private void getDependencyForMissingIvyFileRef(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, boolean isDynamic) {
+        if (!isAllownomd()) {
+            LOGGER.debug("No ivy file found for module '{}' in repository '{}'.", moduleRevisionId, getName());
+            result.missing();
+            return;
+        }
+        DefaultModuleDescriptor generatedModuleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependencyDescriptor.getAllDependencyArtifacts());
+        ResolvedArtifact artifactRef = findAnyArtifact(generatedModuleDescriptor);
+        if (artifactRef == null) {
+            LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.", moduleRevisionId, getName());
+            result.missing();
+        } else {
+            long lastModified = artifactRef.resource.getLastModified();
+            if (lastModified != 0) {
+                generatedModuleDescriptor.setLastModified(lastModified);
+            }
+            LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.", moduleRevisionId, getName());
+            if (isDynamic) {
+                generatedModuleDescriptor.setResolvedModuleRevisionId(artifactRef.artifact.getModuleRevisionId());
+            }
+            result.resolved(generatedModuleDescriptor, isChanging(generatedModuleDescriptor), null);
+        }
+    }
+
+    void getDependencyForFoundIvyFileRef(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, ResolvedArtifact ivyRef) {
+        try {
+            resolveArtifact(ivyRef, moduleRevisionId, result);
+        } catch (MetaDataParseException e) {
+            result.failed(new ModuleVersionResolveException(moduleRevisionId, e));
+        }
+    }
+
+    private void resolveArtifact(ResolvedArtifact ivyRef, ModuleRevisionId moduleRevisionId, BuildableModuleVersionMetaDataResolveResult result) throws MetaDataParseException {
         ModuleVersionMetaData moduleVersionMetaData;
         if (ivyRef instanceof DownloadedAndParsedMetaDataArtifact) {
             moduleVersionMetaData = ((DownloadedAndParsedMetaDataArtifact) ivyRef).getModuleVersionMetaData();
@@ -604,7 +612,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         return isM2compatible() ? new M2ResourcePattern(pattern) : new IvyResourcePattern(pattern);
     }
 
-    protected boolean isChanging(ModuleDescriptor moduleDescriptor) {
+    private boolean isChanging(ModuleDescriptor moduleDescriptor) {
         if (changingMatcherName == null || changingPattern == null) {
             return false; // TODO: tell from module metadata (rule)
         }
@@ -634,7 +642,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         }
     }
 
-    protected static class DownloadedAndParsedMetaDataArtifact extends ResolvedArtifact {
+    private static class DownloadedAndParsedMetaDataArtifact extends ResolvedArtifact {
         private final ModuleVersionMetaData moduleVersionMetaData;
 
         public DownloadedAndParsedMetaDataArtifact(ExternalResource resource, Artifact artifact, ModuleVersionMetaData moduleVersionMetaData) {

@@ -82,7 +82,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         }
     }
 
-    protected void getSnapshotDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
+    private void getSnapshotDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
         final ModuleRevisionId dependencyRevisionId = dd.getDependencyRevisionId();
         final String uniqueSnapshotVersion = findUniqueSnapshotVersion(dependencyRevisionId);
         if (uniqueSnapshotVersion != null) {
@@ -96,14 +96,14 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         }
     }
 
-    protected DependencyDescriptor enrichDependencyDescriptorWithSnapshotVersionInfo(DependencyDescriptor dd, ModuleRevisionId dependencyRevisionId, String uniqueSnapshotVersion) {
+    private DependencyDescriptor enrichDependencyDescriptorWithSnapshotVersionInfo(DependencyDescriptor dd, ModuleRevisionId dependencyRevisionId, String uniqueSnapshotVersion) {
         Map<String, String> extraAttributes = new HashMap<String, String>(1);
         extraAttributes.put("timestamp", uniqueSnapshotVersion);
         final ModuleRevisionId newModuleRevisionId = ModuleRevisionId.newInstance(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision(), extraAttributes);
         return dd.clone(newModuleRevisionId);
     }
 
-    protected boolean isSnapshotVersion(DependencyDescriptor dd) {
+    private boolean isSnapshotVersion(DependencyDescriptor dd) {
         return dd.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT");
     }
 
@@ -170,7 +170,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return null;
     }
 
-    protected String findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
+    private String findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
         Artifact pomArtifact = DefaultArtifact.newPomArtifact(moduleRevisionId, new Date());
         String metadataLocation = toResourcePattern(getWholePattern()).toModuleVersionPath(pomArtifact) + "/maven-metadata.xml";
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
