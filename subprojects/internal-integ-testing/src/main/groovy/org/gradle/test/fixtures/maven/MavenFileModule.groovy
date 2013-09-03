@@ -219,7 +219,7 @@ class MavenFileModule extends AbstractModule implements MavenModule {
         return new Date(updateFormat.parse("20100101120000").time + publishCount * 1000)
     }
 
-    MavenModule publish() {
+    MavenModule publishPom() {
         moduleDir.createDir()
         def rootMavenMetaData = getRootMetaDataFile()
 
@@ -283,7 +283,12 @@ class MavenFileModule extends AbstractModule implements MavenModule {
 
             writer << "\n</project>"
         }
+        return this
+    }
 
+    MavenModule publish() {
+
+        publishPom()
         artifacts.each { artifact ->
             publishArtifact(artifact)
         }

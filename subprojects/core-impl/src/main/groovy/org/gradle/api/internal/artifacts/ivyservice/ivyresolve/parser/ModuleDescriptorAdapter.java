@@ -33,6 +33,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleDescriptor moduleDescriptor;
     private boolean changing;
+    private boolean metaDataOnly;
     private String status;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
 
@@ -54,6 +55,10 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         return changing;
     }
 
+    public boolean isMetaDataOnly() {
+        return metaDataOnly;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -64,6 +69,10 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
 
     public void setChanging(boolean changing) {
         this.changing = changing;
+    }
+
+    public void setMetaDataOnly(boolean metaDataOnly) {
+        this.metaDataOnly = metaDataOnly;
     }
 
     public void setStatus(String status) {
