@@ -20,6 +20,8 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -28,8 +30,9 @@ import org.gradle.api.internal.file.FileResolver
 
 class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
     DefaultMavenLocalArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, ModuleMetadataProcessor metadataProcessor) {
-        super(fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, metadataProcessor)
+                                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, ModuleMetadataProcessor metadataProcessor,
+                                        VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
+        super(fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy)
     }
 
     protected MavenResolver createRealResolver() {

@@ -22,6 +22,8 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.slf4j.Logger;
@@ -34,9 +36,9 @@ public class MavenLocalResolver extends MavenResolver {
 
     public MavenLocalResolver(String name, URI rootUri, RepositoryTransport transport,
                               LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                              ModuleMetadataProcessor metadataProcessor
-    ) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, metadataProcessor);
+                              ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher,
+                              LatestStrategy latestStrategy) {
+        super(name, rootUri, transport, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy);
     }
 
     protected void getDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
