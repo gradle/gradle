@@ -46,6 +46,8 @@ import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.concurrent.Callable;
 
 /**
@@ -344,9 +346,13 @@ public class JavaBasePlugin implements Plugin<Project> {
         });
         test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
             public Object call() throws Exception {
-                return new File(convention.getTestResultsDir(), String.format("binary/%s", test.getName()));
+                return new File(convention.getTestResultsDir(), String.format("binary/%s", encode(test.getName())));
             }
         });
         test.workingDir(project.getProjectDir());
+    }
+
+    private String encode(String s) throws UnsupportedEncodingException {
+        return URLEncoder.encode(s, "UTF-8");
     }
 }

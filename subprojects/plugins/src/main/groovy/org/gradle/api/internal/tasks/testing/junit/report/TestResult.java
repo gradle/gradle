@@ -28,7 +28,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
     private boolean ignored;
 
     public TestResult(String name, long duration, ClassTestResults classResults) {
-        this.name = name;
+        this.name = name == null ? "" : name;
         this.duration = duration;
         this.classResults = classResults;
     }
