@@ -31,7 +31,7 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
 
     @Override
     String getMainTask() {
-        return "setupBuild"
+        return "init"
     }
 
     @Override
@@ -39,12 +39,12 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         "build-setup"
     }
 
-    def "setupBuild shows up on tasks overview "() {
+    def "init shows up on tasks overview "() {
         when:
         run 'tasks'
 
         then:
-        result.output.contains "setupBuild - Initializes a new Gradle build."
+        result.output.contains "init - Initializes a new Gradle build."
     }
 
     def "creates a simple project when no pom file present and no type specified"() {
@@ -53,7 +53,7 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         assert !settingsFile.exists()
 
         when:
-        run 'setupBuild'
+        run 'init'
 
         then:
         wrapper.generated()
@@ -69,10 +69,10 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile.createFile()
 
         when:
-        run('setupBuild')
+        run('init')
 
         then:
-        result.assertTasksExecuted(":setupBuild")
+        result.assertTasksExecuted(":init")
         result.output.contains("The build file 'build.gradle' already exists. Skipping build initialization.")
 
         and:
@@ -85,10 +85,10 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         settingsFile.createFile()
 
         when:
-        run('setupBuild')
+        run('init')
 
         then:
-        result.assertTasksExecuted(":setupBuild")
+        result.assertTasksExecuted(":init")
         result.output.contains("The settings file 'settings.gradle' already exists. Skipping build initialization.")
 
         and:
@@ -102,10 +102,10 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
 
         when:
         executer.usingBuildScript(customBuildScript)
-        run('setupBuild')
+        run('init')
 
         then:
-        result.assertTasksExecuted(":setupBuild")
+        result.assertTasksExecuted(":init")
         result.output.contains("The build file 'customBuild.gradle' already exists. Skipping build initialization.")
 
         and:
@@ -123,10 +123,10 @@ include 'child'
 
         when:
         executer.usingSettingsFile(customSettings)
-        run('setupBuild')
+        run('init')
 
         then:
-        result.assertTasksExecuted(":setupBuild")
+        result.assertTasksExecuted(":init")
         result.output.contains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
 
         and:
@@ -140,7 +140,7 @@ include 'child'
         pom()
 
         when:
-        run('setupBuild')
+        run('init')
 
         then:
         pomValuesUsed()
@@ -151,15 +151,15 @@ include 'child'
         pom()
 
         when:
-        succeeds('setupBuild', '--type', 'java-library')
+        succeeds('init', '--type', 'java-library')
 
         then:
         pomValuesNotUsed()
     }
 
-    def "gives decent error message when triggered with unknown setupBuild-type"() {
+    def "gives decent error message when triggered with unknown init-type"() {
         when:
-        fails('setupBuild', '--type', 'some-unknown-library')
+        fails('init', '--type', 'some-unknown-library')
 
         then:
         failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")

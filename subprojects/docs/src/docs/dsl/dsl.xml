@@ -355,7 +355,7 @@
                 <td>org.gradle.api.tasks.scala.ScalaDoc</td>
             </tr>
             <tr>
-                <td>org.gradle.buildsetup.tasks.SetupBuild</td>
+                <td>org.gradle.buildsetup.tasks.InitBuild</td>
             </tr>
             <tr>
                 <td>org.gradle.plugins.signing.Sign</td>

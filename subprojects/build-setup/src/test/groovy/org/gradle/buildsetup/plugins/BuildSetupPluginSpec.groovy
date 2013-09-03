@@ -33,7 +33,7 @@ class BuildSetupPluginSpec extends Specification {
         project.evaluate()
         then:
         project.tasks.wrapper instanceof Wrapper
-        Matchers.dependsOn("wrapper").matches(project.tasks.setupBuild)
+        Matchers.dependsOn("wrapper").matches(project.tasks.init)
     }
 
     def "no wrapper task configured if build file already exists"() {
@@ -47,8 +47,8 @@ class BuildSetupPluginSpec extends Specification {
         project.plugins.apply BuildSetupPlugin
 
         then:
-        project.setupBuild != null
-        project.tasks.collect { it.name } == ["setupBuild"]
+        project.init != null
+        project.tasks.collect { it.name } == ["init"]
     }
 
     def "no build file generation if settings file already exists"() {
@@ -59,8 +59,8 @@ class BuildSetupPluginSpec extends Specification {
         project.plugins.apply BuildSetupPlugin
 
         then:
-        project.setupBuild != null
-        project.tasks.collect { it.name } == ["setupBuild"]
+        project.init != null
+        project.tasks.collect { it.name } == ["init"]
     }
 
     def "no build file generation when part of multi-project build"() {
@@ -71,7 +71,7 @@ class BuildSetupPluginSpec extends Specification {
         project.plugins.apply BuildSetupPlugin
 
         then:
-        project.setupBuild != null
-        project.tasks.collect { it.name } == ["setupBuild"]
+        project.init != null
+        project.tasks.collect { it.name } == ["init"]
     }
 }

@@ -33,7 +33,7 @@ files and supporting files.
 From the command-line:
 
 1. User downloads and installs a Gradle distribution.
-2. User runs `gradle setupBuild` from the root directory of the source tree.
+2. User runs `gradle init` from the root directory of the source tree.
 3. User runs the appropriate build comparison task from the root directory.
 4. User modifies Gradle build, if required, directed by the build comparison report.
 
@@ -102,7 +102,7 @@ general purpose:
 * Move the plugin and task implementation to the `org.gradle.buildsetup.plugins` package.
 * Add the new packages to `default-imports.txt`.
 * Move the integration tests to live in the `buildSetup` project.
-* Change the plugin to add a lifecycle task called `setupBuild` that depends on the `maven2Gradle` task.
+* Change the plugin to add a lifecycle task called `init` that depends on the `maven2Gradle` task.
 * Change the plugin to only add the `maven2Gradle` task if the `pom.xml` file exists in the project root directory.
 * Change the plugin to always generate a `settings.gradle` file.
 * Change the plugin to generate an empty `build.gradle` when no `pom.xml` is present. The empty script should include
@@ -114,31 +114,31 @@ general purpose:
 ## Test coverage
 
 * Well-behaved plugin int test for the new plugin.
-* Change the existing integration tests to run the `setupBuild` task.
+* Change the existing integration tests to run the `init` task.
 * Change the existing integration tests to verify that the wrapper files are generated.
 * Change the existing integration tests to verify that a `settings.gradle` is generated.
-* Verify that when `setupBuild` is run in a directory that does not contain a `pom.xml` then an empty `build.gradle` file,
+* Verify that when `init` is run in a directory that does not contain a `pom.xml` then an empty `build.gradle` file,
   plus a `settings.gradle` and the wrapper files are generated.
 
 # Story: User initializes a Gradle build without writing a stub build script (DONE)
 
-This story adds support for automatically applying the `build-setup` plugin when `gradle setupBuild` is run:
+This story adds support for automatically applying the `build-setup` plugin when `gradle init` is run:
 
 1. Add `ProjectConfigureAction` to the plugin project which adds a task rule that applies the `build-setup` plugin
-   when `setupBuild` is requested. It should only apply the plugin to the root project of a build.
-2. Change the `build-setup` plugin so that it adds only the `setupBuild` lifecycle task and no other tasks when
-   any of the following is true. In this case, the `setupBuild` task should simply log a warning when run.
+   when `init` is requested. It should only apply the plugin to the root project of a build.
+2. Change the `build-setup` plugin so that it adds only the `init` lifecycle task and no other tasks when
+   any of the following is true. In this case, the `init` task should simply log a warning when run.
     - The settings script already exists.
     - The current project's build script already exists.
 
 ## Test coverage
 
 * Change the existing integration tests so that they do not create the stub build script that applies the plugin.
-* Running `gradle tasks` in a root directory shows the `setupBuild` task.
-* Running `gradle setupBuild` in a multi-project build logs a warning and does not overwrite existing files.
-* Running `gradle setupBuild` for a project whose `build.gradle` already exists logs a warning and does not overwrite
+* Running `gradle tasks` in a root directory shows the `init` task.
+* Running `gradle init` in a multi-project build logs a warning and does not overwrite existing files.
+* Running `gradle init` for a project whose `build.gradle` already exists logs a warning and does not overwrite
   existing files.
-* Running `gradle setupBuild -b foo.gradle` when `foo.gradle` already exists logs a warning and does not generate
+* Running `gradle init -b foo.gradle` when `foo.gradle` already exists logs a warning and does not generate
   any files.
 
 # Story: User updates Gradle wrapper without defining wrapper task
@@ -166,9 +166,9 @@ This story adds a `wrapper` plugin and support for automatically applying the `w
 
 # Story: Create a Java library project from scratch
 
-This story adds the ability to create a Java library project by running `gradle setupBuild` in an empty directory:
+This story adds the ability to create a Java library project by running `gradle init` in an empty directory:
 
-* Add a `--type` command-line option to `setupBuild`.
+* Add a `--type` command-line option to `init`.
 * When `type` is `java-library` then:
     * Ignore any existing POM.
     * Skip generation if any build or settings files already exist.
@@ -185,14 +185,14 @@ This story adds the ability to create a Java library project by running `gradle 
 From the command-line:
 
 1. User downloads and installs a Gradle distribution.
-2. User runs `gradle setupBuild --type java-library` from an empty directory.
+2. User runs `gradle init --type java-library` from an empty directory.
 3. User edits generated build scripts and source, as appropriate.
 
 ## Test coverage
 
-* Running `gradle setupBuild --type java-library` in an empty directory generates the build files. Running `gradle build` for this project assembles a jar
+* Running `gradle init --type java-library` in an empty directory generates the build files. Running `gradle build` for this project assembles a jar
   and runs the sample test.
-* The POM is ignored when `gradle setupBuild --type java-library` is used.
+* The POM is ignored when `gradle init --type java-library` is used.
 * Decent error message when an unknown type is given.
 * Update existing test coverage to verify that every generated `settings.gradle` sets the root project name.
 
@@ -206,9 +206,9 @@ From the command-line:
 * Can run `gradle setB` or `gradle wrap`
 * When a build script defines a `wrap` task, then calling `gradle wrap` does not apply the `wrapper` plugin.
 * Decent error message when a POM cannot be parsed (this is adding more coverage for a previous story).
-* Running `gradle setupBuild` in an empty directory generates build files that do not blow up when `gradle help` is run (this is adding more coverage for a previous story).
+* Running `gradle init` in an empty directory generates build files that do not blow up when `gradle help` is run (this is adding more coverage for a previous story).
 
-# Story: Update the user guide Java tutorial to use the `setupBuild` task
+# Story: Update the user guide Java tutorial to use the `init` task
 
 # Story: Gradle help message informs user how to setup a build
 
@@ -225,9 +225,9 @@ Gradle build, to let the user know how to create a new build or convert an exist
 ## Test coverage
 
 * The output of `gradle` or `gradle help` in an empty directory includes a message informing the user that there is no Gradle
-  build defined in the current directory, and that they can run `gradle setupBuild` to create one.
+  build defined in the current directory, and that they can run `gradle init` to create one.
 * The output `gradle` or `gradle help` in a directory with no Gradle files and a `pom.xml` includes a message informing the
-  user that they can convert their POM by running `gradle setupBuild`.
+  user that they can convert their POM by running `gradle init`.
 * The `* Try ...` error message from `gradle someTask` in an empty directory includes a similar message to the help output.
 
 # Story: User updates wrapper to use the most recent nightly, release candidate or release
@@ -253,7 +253,7 @@ This story adds the ability for the user to easily update the build to use the m
 
 Better handle the case where there is already some Gradle build scripts.
 
-* When `setupBuild` is run and any of the files that would be generated already exist, warn the user and do not
+* When `init` is run and any of the files that would be generated already exist, warn the user and do not
   overwrite the file.
 
 # Story: Improve POM conversion
@@ -287,7 +287,7 @@ TBD - fix issues with POM conversion to make it more accurate
 ## User interaction
 
 1. User downloads and installs a Gradle distribution.
-2. User runs `gradle setupBuild` from an empty directory.
+2. User runs `gradle init` from an empty directory.
 3. The user is prompted for the type of project they would like to create. Alternatively,
    the user can specify the project type as a command-line option.
 4. User modifies generated build scripts and source, as appropriate.

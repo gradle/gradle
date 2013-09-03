@@ -23,7 +23,7 @@ public class BuildSetupAutoApplyAction implements ProjectConfigureAction {
 
     public void execute(final ProjectInternal projectInternal) {
         if (projectInternal.getParent() == null) {
-            projectInternal.getTasks().addPlaceholderAction("setupBuild", new Runnable() {
+            projectInternal.getTasks().addPlaceholderAction("init", new Runnable() {
                 public void run() {
                     projectInternal.getPlugins().apply("build-setup");
                 }

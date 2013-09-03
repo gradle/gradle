@@ -19,7 +19,7 @@ webapp:libs - Builds the JAR [api:libs]
 
 Build Setup tasks
 -----------------
-setupBuild - Initializes a new Gradle build. [incubating]
+init - Initializes a new Gradle build. [incubating]
 wrapper - Generates Gradle wrapper files. [incubating]
 
 Help tasks

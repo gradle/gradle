@@ -26,13 +26,13 @@ import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistryFactory
-import org.gradle.buildsetup.tasks.SetupBuild
+import org.gradle.buildsetup.tasks.InitBuild
 
 import javax.inject.Inject
 
 @Incubating
 class BuildSetupPlugin implements Plugin<Project> {
-    public static final String SETUP_BUILD_TASK_NAME = "setupBuild"
+    public static final String INIT_BUILD_TASK_NAME = "init"
     public static final String GROUP = 'Build Setup'
 
     private final MavenSettingsProvider mavenSettingsProvider
@@ -51,11 +51,11 @@ class BuildSetupPlugin implements Plugin<Project> {
                 documentationRegistry,
                 fileResolver);
 
-        Task setupBuild = project.getTasks().create(SETUP_BUILD_TASK_NAME, SetupBuild);
+        Task init = project.getTasks().create(INIT_BUILD_TASK_NAME, InitBuild);
         ProjectLayoutSetupRegistry projectLayoutRegistry = projectLayoutRegistryFactory.createProjectLayoutSetupRegistry()
-        setupBuild.projectLayoutRegistry = projectLayoutRegistry
-        setupBuild.group = GROUP
-        setupBuild.description = "Initializes a new Gradle build. [incubating]"
+        init.projectLayoutRegistry = projectLayoutRegistry
+        init.group = GROUP
+        init.description = "Initializes a new Gradle build. [incubating]"
         Closure setupCanBeSkipped = {
             if (project.file("build.gradle").exists()) {
                 return ("The build file 'build.gradle' already exists. Skipping build initialization.")
@@ -71,7 +71,7 @@ class BuildSetupPlugin implements Plugin<Project> {
             }
             return null
         }
-        setupBuild.onlyIf {
+        init.onlyIf {
             def skippedMsg = setupCanBeSkipped()
             if (skippedMsg) {
                 project.logger.warn skippedMsg
@@ -81,7 +81,7 @@ class BuildSetupPlugin implements Plugin<Project> {
         }
 
         if (!setupCanBeSkipped()) {
-            setupBuild.dependsOn("wrapper")
+            init.dependsOn("wrapper")
         }
     }
 }

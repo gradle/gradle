@@ -41,11 +41,11 @@ class BuildSetupAutoApplyActionSpec extends Specification {
 
     }
 
-    def "applies placeholder action for setupBuild on taskcontainer"() {
+    def "applies placeholder action for init on taskcontainer"() {
         when:
         new BuildSetupAutoApplyAction().execute(projectInternal)
         then:
-        1 * taskContainerInternal.addPlaceholderAction("setupBuild", _) >> {args -> args[1].run()}
+        1 * taskContainerInternal.addPlaceholderAction("init", _) >> {args -> args[1].run()}
         1 * projectInternal.getParent() >> null
         1 * projectInternal.getPlugins() >> pluginContainer
         1 * pluginContainer.apply("build-setup")
@@ -57,7 +57,7 @@ class BuildSetupAutoApplyActionSpec extends Specification {
         when:
         new BuildSetupAutoApplyAction().execute(projectInternal)
         then:
-        0 * taskContainerInternal.addPlaceholderAction("setupBuild", _)
+        0 * taskContainerInternal.addPlaceholderAction("init", _)
         0 * projectInternal.getPlugins() >> pluginContainer
         0 * pluginContainer.apply("build-setup")
     }

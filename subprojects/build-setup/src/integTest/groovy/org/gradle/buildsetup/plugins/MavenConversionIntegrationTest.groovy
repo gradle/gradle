@@ -35,7 +35,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
     def "multiModule"() {
         when:
-        run 'setupBuild'
+        run 'init'
 
         then:
         settingsFile.exists()
@@ -67,7 +67,7 @@ Root project 'webinar-parent'
     def "flatmultimodule"() {
         when:
         executer.inDirectory(file("webinar-parent"))
-        run 'setupBuild'
+        run 'init'
 
         then:
         file("webinar-parent/settings.gradle").exists()
@@ -100,7 +100,7 @@ Root project 'webinar-parent'
 
     def "singleModule"() {
         when:
-        run 'setupBuild'
+        run 'init'
 
         then:
         buildFile.exists()
@@ -119,7 +119,7 @@ Root project 'webinar-parent'
 
     def "testjar"() {
         when:
-        run 'setupBuild'
+        run 'init'
 
         then:
         settingsFile.exists()
@@ -136,7 +136,7 @@ Root project 'webinar-parent'
 
     def "enforcerplugin"() {
         when:
-        run 'setupBuild'
+        run 'init'
 
         then:
         settingsFile.exists()
@@ -158,7 +158,7 @@ it.exclude group: '*', module: 'badArtifact'
 
     def "providedNotWar"() {
         when:
-        run 'setupBuild'
+        run 'init'
 
         then:
         settingsFile.exists()
@@ -178,7 +178,7 @@ it.exclude group: '*', module: 'badArtifact'
         pom << "<project>someInvalid pom content</project>"
 
         when:
-        fails 'setupBuild'
+        fails 'init'
 
         then:
         failure.assertHasCause("Could not convert Maven POM $pom to a Gradle build.")
@@ -186,7 +186,7 @@ it.exclude group: '*', module: 'badArtifact'
 
     def "mavenExtensions"() {
         when:
-        run 'setupBuild'
+        run 'init'
         then:
         settingsFile.exists()
         buildFile.exists()
@@ -210,7 +210,7 @@ it.exclude group: '*', module: 'badArtifact'
         withLocalM2Installation()
 
         when:
-        run 'setupBuild'
+        run 'init'
 
         then:
         buildFile.exists()

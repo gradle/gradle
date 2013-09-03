@@ -23,9 +23,9 @@ import org.gradle.buildsetup.plugins.internal.ProjectSetupDescriptor
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class SetupBuildSpec extends Specification {
+class InitBuildSpec extends Specification {
 
-    SetupBuild setupBuild;
+    InitBuild init;
 
     ProjectLayoutSetupRegistry projectLayoutRegistry;
 
@@ -34,14 +34,14 @@ class SetupBuildSpec extends Specification {
     ProjectSetupDescriptor projectSetupDescriptor3
 
     def setup() {
-        setupBuild = TestUtil.builder().build().tasks.create("setupBuild", SetupBuild)
+        init = TestUtil.builder().build().tasks.create("init", InitBuild)
         projectLayoutRegistry = Mock()
         projectSetupDescriptor1 = Mock()
         projectSetupDescriptor2 = Mock()
         projectSetupDescriptor3 = Mock()
         _ * projectSetupDescriptor2.id >> "supported-type"
         _ * projectSetupDescriptor3.id >> "another-supported-type"
-        setupBuild.projectLayoutRegistry = projectLayoutRegistry
+        init.projectLayoutRegistry = projectLayoutRegistry
     }
 
     def "throws GradleException if requested setupDescriptor not supported"() {
@@ -49,8 +49,8 @@ class SetupBuildSpec extends Specification {
         _ * projectLayoutRegistry.get("aType") >> null
         _ * projectLayoutRegistry.all >> [projectSetupDescriptor2, projectSetupDescriptor3]
         when:
-        setupBuild.type = "aType"
-        setupBuild.setupProjectLayout()
+        init.type = "aType"
+        init.setupProjectLayout()
         then:
         def e = thrown(GradleException)
         e.message == "The requested build setup type 'aType' is not supported. Supported types: 'supported-type', 'another-supported-type'."
@@ -62,7 +62,7 @@ class SetupBuildSpec extends Specification {
         1 * projectLayoutRegistry.supports(BuildSetupTypeIds.BASIC) >> true
         1 * projectLayoutRegistry.get(BuildSetupTypeIds.BASIC) >> projectSetupDescriptor1
         when:
-        setupBuild.setupProjectLayout()
+        init.setupProjectLayout()
         then:
         1 * projectSetupDescriptor1.generateProject()
     }

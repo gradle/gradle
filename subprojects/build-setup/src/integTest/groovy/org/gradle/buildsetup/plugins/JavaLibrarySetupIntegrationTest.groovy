@@ -31,7 +31,7 @@ class JavaLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
 
     def "creates sample source if no source present"() {
         when:
-        succeeds('setupBuild', '--type', 'java-library')
+        succeeds('init', '--type', 'java-library')
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -64,7 +64,7 @@ class JavaLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
                 }
         """
         when:
-        succeeds('setupBuild', '--type', 'java-library')
+        succeeds('init', '--type', 'java-library')
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()

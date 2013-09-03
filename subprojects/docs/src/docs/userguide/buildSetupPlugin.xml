@@ -30,7 +30,7 @@
         to a project before they can be used (see <xref linkend="sec:using_plugins"/>).
         The Build Setup plugin is an automatically applied plugin, which means you do not need to apply it explicitly.
         To use the plugin, simply execute the task named
-        <literal>setupBuild</literal>
+        <literal>init</literal>
         where you would like to create the Gradle build.
         There is no need to create a “stub”
         <literal>build.gradle</literal>
@@ -57,13 +57,13 @@
             </thead>
             <tr>
                 <td>
-                    <literal>setupBuild</literal>
+                    <literal>init</literal>
                 </td>
                 <td>
                     <literal>wrapper</literal>
                 </td>
                 <td>
-                    <apilink class="org.gradle.buildsetup.tasks.SetupBuild"/>
+                    <apilink class="org.gradle.buildsetup.tasks.InitBuild"/>
                 </td>
                 <td>Generates a Gradle project.</td>
             </tr>
@@ -83,11 +83,11 @@
     <section>
         <title>What to set up</title>
         <para>The
-            <literal>setupBuild</literal>
+            <literal>init</literal>
             supports different build setup <firstterm>types</firstterm>. The type is specified by supplying a
             <literal>--type</literal>
             argument value. For example, to create a Java library project simply execute:
-            <literal>gradle setupBuild --type java-library</literal>.
+            <literal>gradle init --type java-library</literal>.
         </para>
         <para>
             If a
@@ -137,7 +137,7 @@
                 This works by converting the POM to one or more Gradle files.
                 It is only able to be used if there is a valid "<literal>pom.xml</literal>"
                 file in the directory that the
-                <literal>setupBuild</literal>
+                <literal>init</literal>
                 task is invoked in. This type will be automatically inferred if such a file exists.
             </para>
             <para>
