@@ -133,6 +133,11 @@ public class ModelMapping {
             this.model = model;
         }
 
+        @Override
+        public String toString() {
+            return String.format("tooling model %s", model);
+        }
+
         public String getName() {
             return model;
         }

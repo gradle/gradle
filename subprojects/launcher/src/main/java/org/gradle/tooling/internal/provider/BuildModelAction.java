@@ -71,6 +71,7 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
         } else {
             launcher.addListener(new ModelConfigurationListener() {
                 public void onConfigure(GradleInternal gradle) {
+                    // Currently need to force everything to be configured
                     ensureAllProjectsEvaluated(gradle);
                     action.execute(gradle);
                 }

@@ -22,6 +22,8 @@ import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.*;
@@ -30,6 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @ThreadSafe
 public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPayloadClassLoaderRegistry.class);
     private final Lock lock = new ReentrantLock();
     private final ModelClassLoaderFactory classLoaderFactory;
     private Map<ClassLoader, ClassLoaderDetails> classLoaderDetails;
@@ -95,7 +98,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 parents.add(classLoaderFactory.getClassLoaderFor(ClassLoaderSpec.SYSTEM_CLASS_LOADER, null));
             }
 
-            System.out.println(String.format("=> Creating ClassLoader %s from %s and %s", details.uuid, details.spec, parents));
+            LOGGER.info("Creating ClassLoader {} from {} and {}.", details.uuid, details.spec, parents);
 
             classLoader = classLoaderFactory.getClassLoaderFor(details.spec, parents);
             classLoaderIds.put(details.uuid, classLoader);

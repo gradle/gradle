@@ -71,6 +71,10 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
+    public void withConnector(Closure cl) {
+        toolingApi.withConnector(cl)
+    }
+
     public <T> T withConnection(Closure<T> cl) {
         toolingApi.withConnection(cl)
     }

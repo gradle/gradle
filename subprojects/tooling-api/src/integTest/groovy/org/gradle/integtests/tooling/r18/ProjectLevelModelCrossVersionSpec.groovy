@@ -30,6 +30,8 @@ include 'b'
 include 'b:c'
 rootProject.name = 'test'
 '''
+        file('b').mkdirs()
+
         buildFile << """
 allprojects {
     description = "project \$name"
@@ -65,7 +67,7 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     @TargetGradleVersion(">=1.8")
-    def "can request models from projects"() {
+    def "can use build model to request models for individual projects"() {
         when:
         Map<String, CustomModel> result = withConnection { connection -> connection.action(new UseGradleBuildToFetchProjectModel()).run() }
 
@@ -75,7 +77,31 @@ class CustomPlugin implements Plugin<Project> {
         result.values()*.value as Set == [':', ':a', ':b', ':b:c'] as Set
 
         when:
-        result = withConnection { connection -> connection.action(new UseOtherTypesToFetchProjectModel()).run() }
+        withConnector { connector ->
+            connector.searchUpwards(true)
+            connector.forProjectDirectory(file("b"))
+        }
+        result = withConnection { connection -> connection.action(new UseGradleBuildToFetchProjectModel()).run() }
+
+        then:
+        result != null
+        result.keySet() == ['test', 'a', 'b', 'c'] as Set
+        result.values()*.value as Set == [':', ':a', ':b', ':b:c'] as Set
+
+        when:
+        file('gradle.properties') << 'org.gradle.configureondemand=true'
+        result = withConnection { connection -> connection.action(new UseGradleBuildToFetchProjectModel()).run() }
+
+        then:
+        result != null
+        result.keySet() == ['test', 'a', 'b', 'c'] as Set
+        result.values()*.value as Set == [':', ':a', ':b', ':b:c'] as Set
+    }
+
+    @TargetGradleVersion(">=1.8")
+    def "can request models using various element types"() {
+        when:
+        Map<String, CustomModel> result = withConnection { connection -> connection.action(new UseOtherTypesToFetchProjectModel()).run() }
 
         then:
         result != null
