@@ -127,4 +127,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return metadataProcessor;
     }
 
+    protected VersionMatcher getVersionMatcher() {
+        return versionMatcher;
+    }
+
+    protected LatestStrategy getLatestStrategy() {
+        return latestStrategy;
+    }
 }
