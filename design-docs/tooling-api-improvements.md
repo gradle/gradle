@@ -149,7 +149,7 @@ This story allows a custom plugin to expose a tooling model to any tooling API c
 - Generalise `UnsupportedModelFeedbackCrossVersionSpec`.
 - Plugin attempts to register a model that some other plugin already has registered.
 
-## Story: Tooling API client builds a complex tooling model in a single operation
+## Story: Tooling API client builds a complex tooling model in a single batch operation
 
 This story adds support for a tooling API to query portions of the Gradle model in an efficient way.
 
@@ -208,10 +208,13 @@ models is used.
     - The action requests an unknown model.
     - The action is compiled for Java 6 but the build runs with Java 5.
 
-## Story: Tooling API build action iterates over the projects of build
+## Story: Tooling API build action requests a tooling model for a Gradle project
 
 1. Add a new `GradleBuild` model which contains information about which projects are included in the build.
-2. Extend `BuildController` to add methods to query a model for a given project.
+2. Add a new `BasicGradleProject` type to provide basic structural information about a project.
+3. Extend `BuildController` to add methods to query a model for a given project.
+4. Change `ProjectConnnection.getModel(type)` and `BuildController.getModel(type)` to return only build-level models.
+5. Change `BuildController.getModel(project, type)` to return only project-level models.
 
 
     interface GradleBuild {
@@ -223,11 +226,17 @@ models is used.
         <T> T getModel(HierarchicalElement element, Class<T> modelType) throws UnknownModelException;
     }
 
+Note: there is a breaking change here.
+
 ### Test cases
 
 - For all Gradle versions, can request the `GradleBuild` model via `ProjectConnection`.
 - Can request the `GradleBuild` model via a build action.
-- Can request a model for a given project.
+- Can request a model for a given project:
+    - A `BasicGradleProject` for the specified project, not the root.
+    - A `GradleProject` for the specified project, not the root.
+    - An `IdeaModule` for the specified project, not the root.
+    - An `EclipseProject` for the specified project, not the root.
 - Client receives decent feedback when
     - Requests a model from an unknown project.
     - Requests an unknown model.
@@ -249,6 +258,10 @@ This story adds support for conditionally locating a model, if it is present
 
 - Client receives null for unknown model, for all target Gradle versions.
 - Build action receives null for unknown model, for all target Gradle versions >= 1.8
+
+## Story: Tooling API client changes implementation of a build action
+
+Fix the `ClassLoader` caching in the tooling API so that it can deal with changing implementations.
 
 ## Story: Expose the IDE output directories
 
