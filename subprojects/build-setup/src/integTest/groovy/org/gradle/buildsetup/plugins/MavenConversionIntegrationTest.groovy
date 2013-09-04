@@ -21,7 +21,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.*
+import org.gradle.test.fixtures.maven.M2Installation
+import org.gradle.test.fixtures.maven.MavenHttpModule
+import org.gradle.test.fixtures.maven.MavenHttpRepository
+import org.gradle.test.fixtures.maven.PomHttpArtifact
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Issue
@@ -222,6 +225,46 @@ it.exclude group: '*', module: 'badArtifact'
 
         then:
         file("build/libs/util-2.5.jar").exists()
+    }
+
+    @Issue("GRADLE-2819")
+    def "multiModuleWithRemoteParent"() {
+        setup:
+        def repo = setupMavenHttpServer()
+        //update pom with test repo url
+        file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
+
+        expectParentPomRequest(repo)
+        withLocalM2Installation()
+
+        when:
+        run 'init'
+
+        then:
+        buildFile.exists()
+        settingsFile.exists()
+        wrapperFilesGenerated()
+
+        when:
+        run 'clean', 'build'
+
+        then: //smoke test the build artifacts
+        file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
+        file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
+        file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
+
+        new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+
+        when:
+        run 'projects'
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+Root project 'webinar-parent'
++--- Project ':webinar-api' - Webinar APIs
++--- Project ':webinar-impl' - Webinar implementation
+\\--- Project ':webinar-war' - Webinar web application
+"""))
     }
 
     def withLocalM2Installation() {
