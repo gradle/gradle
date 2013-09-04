@@ -272,6 +272,16 @@ Fix the `ClassLoader` caching in the tooling API so that it can deal with changi
 
 This story allows an IDE to implement a way to select the tasks to execute based on their name, similar to the Gradle command-line.
 
+1. Add an `EntryPoint` model interface, which represents some arbitrary entry point to the build.
+2. Add a `TaskSelector` model interface, which represents an entry point that uses a task name to select the tasks to execute.
+3. Change `GradleTask` to extend `EntryPoint`, so that each task can be used as an entry point.
+4. Add a method to `GradleProject` to expose the task selectors for the project.
+    - For new target Gradle versions, delegate to the provider.
+    - For older target Gradle versions, use a client-side mix-in that assembles the task selectors using the information available in `GradleProject`.
+5. Add methods to `BuildLauncher` to allow a sequence of entry points to be used to specify what the build should execute.
+6. Add `@since` and `@Incubating` to the new types and methods.
+
+
     interface EntryPoint {
     }
 
@@ -296,9 +306,6 @@ This story allows an IDE to implement a way to select the tasks to execute based
 
 TBD - maybe don't change `forTasks()` but instead add an `execute(Iterable<? extends EntryPoint> tasks)` method.
 
-For new target Gradle versions, delegate to the provider. For older target Gradle versions, implement client-side conversion using the
-information available in `GradleProject`.
-
 ### Test cases
 
 - Can request the entry points for a given project hierarchy
@@ -308,6 +315,77 @@ information available in `GradleProject`.
 - Executing a task selector when task is also present in subprojects runs all the matching tasks, for the above cases.
 - Executing a task (as an `EntryPoint`) when task is also present in subprojects run the specified task only and nothing from subprojects.
 - Can request the entry points for all target Gradle versions.
+
+## Story: Tooling API client cancels an operation
+
+Represent the execution of a long running operation using a `Future`. This `Future` can be used to cancel the operation.
+
+    interface BuildFuture<T> extends Future<T> {
+        void onSuccess(Action<? super T> action); // called immediately if the operation has completed successfully
+        void onFailure(Action<? super GradleConnectionException> action); // called immediately if the operation has failed
+        void onComplete(ResultHandler<? super T> handler); // called immediately if the operation has completed successfully
+    }
+
+    interface ModelBuilder<T> {
+        BuildInvocation<T> fetch(); // starts building the model, does not block
+        ...
+    }
+
+    interface BuildLauncher {
+        BuildInvocation<Void> start(); // starts running the build, does not block
+        ...
+    }
+
+    interface BuildActionExecuter<T> {
+        BuildInvocation<T> start(); // starts running the build, does not block
+        ...
+    }
+
+    BuildFuture<GradleProject> model = connection.model(GradleProject.class).fetch();
+    model.cancel(true);
+
+    BuildFuture<Void> build = connection.newBuild().forTasks('a').start();
+    build.get();
+
+    BuildFuture<CustomModel> action = connection.action(new MyAction()).start();
+    CustomModel m = action.get();
+
+### Implementation
+
+The overall plan is to start close to the client and gradually move the asynchronous execution and cancellation closer
+to the build:
+
+Use futures to represent the existing asynchronous behaviour:
+1. Change internal class `BlockingResultHandler` to implement `BuildInvocation` and reuse this type to implement the futures.
+2. Implementation should discard handlers once they have been notified, so they can be garbage collected.
+
+Push asynchronous execution down to the provider:
+1. Change `AsyncConsumerActionExecutor.run()` to return a future (not necessarily a `Future`) instead of accepting a
+   result handler.
+2. Rework `DefaultAsyncConsumerActionExecutor` and `LazyConsumerActionExecutor` into a lazy `AsyncConsumerActionExecutor`
+   implementation that composes two asynchronous operations into a single operation, represented by a composite future. The
+   first operation creates the real `AsyncConsumerActionExecutor` (possibly downloading the distribution) and the second dispatches
+   the client action to this executor once it is available.
+3. Add a new asynchronous protocol interface similar to `AsyncConsumerActionExecutor` that allows actions to be queued up for
+   execution, returning a future representing the result.
+4. For provider connections that implement this protocol interface, delegate to the provider to execute the action. For
+   connections that do not, adapt the connection in the client.
+
+Forward cancellation requests to the daemon:
+1. When `Future.cancel()` is called by the client, close the daemon connection. The daemon will stop the build and exit.
+
+For target versions that do not support cancellation, `Future.cancel()` always returns false.
+
+### Test cases
+
+- Client blocks until results available when using `get()`
+- Client receives failure when using `get()` and operation fails
+- Client receives timeout exception when blocking with timeout
+- Client can cancel operation
+    - Stops the operation for all target versions that support cancellation
+    - Returns `false` for all older target versions
+- Client is notified when result is available
+- Client is notified when operation fails
 
 ## Story: Expose the IDE output directories
 
@@ -356,3 +434,5 @@ Need to allow a debug port to be specified, as hard-coded port 5005 can conflict
 # Open issues
 
 * Replace `LongRunningOperation.standardOutput` and `standardError` with overloads that take a `Writer`, and (later) deprecate the `OutputStream` variants.
+* Handle cancellation during the Gradle distribution download.
+* Daemon cleanly stops the build when cancellation is requested.
