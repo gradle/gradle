@@ -233,7 +233,7 @@ Note: there is a breaking change here.
 
 ### Test cases
 
-- For all Gradle versions, can request the `GradleBuild` model via `ProjectConnection`.
+- Can request the `GradleBuild` model via `ProjectConnection`.
 - Can request the `GradleBuild` model via a build action.
 - Can request a model for a given project:
     - A `BasicGradleProject` for the specified project, not the root.
@@ -246,6 +246,28 @@ Note: there is a breaking change here.
 - Client receives decent feedback when
     - Requests a model from an unknown project.
     - Requests an unknown model.
+
+## Story: Tooling API client requests build model for old Gradle version
+
+This story adds support for the `GradleBuild` model for older target Gradle versions.
+
+### Implementation
+
+Change the implementations of `ConsumerConnection.run(type, parameters)` so that when asked for a `GradleBuild` model, they instead
+request the `GradleProject` model and then convert it to a `DefaultGradleBuild` instance. See `ConnectionVersion4BackedConsumerConnection.doGetModel()`
+for an example of this kind of thing.
+
+For the `ModelBuilderBackedConsumerConnection` implementation, if the provider Gradle version supports the `GradleBuild` model (is >= 1.8-rc-1) then
+forward to the provider, as it does now.
+
+To implement this cleanly, one option might be to introduce some chain of model producers into the `ConsumerConnection` subclasses, so that each producer is
+asked in turn whether it can produce the requested model. The last producer can delegate to the provider connection. Stop at the first producer that can
+produce the model.
+
+### Test cases
+
+- For all Gradle versions, can request the `GradleBuild` model via `ProjectConnection`. This basically means removing the `@TargetGradleVersion` from
+  the test case in `GradleBuildModelCrossVersionSpec`.
 
 ## Story: Tooling API client determines whether model is available
 
