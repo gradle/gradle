@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.gradle;
-
-import org.gradle.tooling.model.gradle.GradleScript;
-
-import java.io.File;
-import java.io.Serializable;
-
-public class DefaultGradleScript implements GradleScript, Serializable {
-    private File sourceFile;
-
-    public File getSourceFile() {
-        return sourceFile;
-    }
-
-    public void setSourceFile(File sourceFile) {
-        this.sourceFile = sourceFile;
-    }
-}
+/**
+ * The tooling models for Gradle builds and projects.
+ */
+package org.gradle.tooling.model.gradle;

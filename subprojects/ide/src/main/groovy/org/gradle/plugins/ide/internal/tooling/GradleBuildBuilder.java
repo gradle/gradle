@@ -26,7 +26,7 @@ import java.util.Map;
 
 public class GradleBuildBuilder implements ToolingModelBuilder {
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.GradleBuild");
+        return modelName.equals("org.gradle.tooling.model.gradle.GradleBuild");
     }
 
     public DefaultGradleBuild buildAll(String modelName, Project target) {

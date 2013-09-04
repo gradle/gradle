@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.consumer.versioning
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1
-import org.gradle.tooling.model.GradleBuild
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -89,7 +89,7 @@ class ModelMappingTest extends Specification {
         BasicIdeaProject           | "org.gradle.tooling.model.idea.BasicIdeaProject"
         BuildEnvironment           | "org.gradle.tooling.model.build.BuildEnvironment"
         ProjectOutcomes            | "org.gradle.tooling.model.outcomes.ProjectOutcomes"
-        GradleBuild                | "org.gradle.tooling.model.GradleBuild"
+        GradleBuild                | "org.gradle.tooling.model.gradle.GradleBuild"
         CustomModel                | CustomModel.name
     }
 

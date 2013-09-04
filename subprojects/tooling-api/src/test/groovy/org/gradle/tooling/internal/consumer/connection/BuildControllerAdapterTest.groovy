@@ -21,7 +21,7 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.model.Element
-import org.gradle.tooling.model.GradleBuild
+import org.gradle.tooling.model.gradle.GradleBuild
 import spock.lang.Specification
 
 class BuildControllerAdapterTest extends Specification {

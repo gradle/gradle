@@ -28,7 +28,7 @@ class GradleBuildBuilderTest extends Specification {
 
     def "builds model"() {
         expect:
-        def model = builder.buildAll("org.gradle.tooling.model.GradleBuild", startProject)
+        def model = builder.buildAll("org.gradle.tooling.model.gradle.GradleBuild", startProject)
         model.rootProject.path == ":"
         model.rootProject.name == "root"
         model.rootProject.parent == null

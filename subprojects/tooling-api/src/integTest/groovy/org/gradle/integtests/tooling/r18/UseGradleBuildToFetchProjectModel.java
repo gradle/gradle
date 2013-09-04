@@ -19,8 +19,8 @@ package org.gradle.integtests.tooling.r18;
 import org.gradle.integtests.tooling.r16.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.BasicGradleProject;
-import org.gradle.tooling.model.GradleBuild;
+import org.gradle.tooling.model.gradle.BasicGradleProject;
+import org.gradle.tooling.model.gradle.GradleBuild;
 
 import java.util.HashMap;
 import java.util.Map;

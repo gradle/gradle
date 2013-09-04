@@ -24,7 +24,7 @@ import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.model.GradleBuild;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.internal.Exceptions;
 

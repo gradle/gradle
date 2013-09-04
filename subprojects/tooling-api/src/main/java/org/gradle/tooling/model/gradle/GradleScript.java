@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model;
+package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+
+import java.io.File;
 
 /**
- * Provides information about the structure of a Gradle build.
+ * Represents a Gradle script. A Gradle script may be a build script, settings script or initialization script.
  *
  * @since 1.8
  */
 @Incubating
-public interface GradleBuild {
+public interface GradleScript {
     /**
-     * Returns the root project for this build.
+     * Returns the source file for this script, or {@code null} if this script has no associated source file.
+     * If this method returns a non-null value, the given source file will exist.
      *
-     * @return The root project
+     * @return The source file. Returns null if the script has no associated source file.
+     * @since 1.8
      */
-    BasicGradleProject getRootProject();
-
-    /**
-     * Returns the set of all projects for this build. Will include the root project and any ancestors.
-     *
-     * @return The set of all projects.
-     */
-    DomainObjectSet<? extends BasicGradleProject> getProjects();
+    @Nullable
+    File getSourceFile();
 }

@@ -98,7 +98,7 @@ public interface ProjectConnection {
      * build:
      *
      * <ul>
-     *     <li>{@link org.gradle.tooling.model.GradleBuild}</li>
+     *     <li>{@link org.gradle.tooling.model.gradle.GradleBuild}</li>
      *     <li>{@link org.gradle.tooling.model.build.BuildEnvironment}</li>
      *     <li>{@link org.gradle.tooling.model.GradleProject}</li>
      *     <li>{@link org.gradle.tooling.model.idea.IdeaProject}</li>

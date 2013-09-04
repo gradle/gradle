@@ -18,7 +18,7 @@ package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
-import org.gradle.tooling.model.GradleBuild;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.Model;
 
 /**
@@ -82,7 +82,7 @@ public interface BuildController {
      * <p>The following elements are supported:
      *
      * <ul>
-     *     <li>Any {@link org.gradle.tooling.model.BasicGradleProject}</li>
+     *     <li>Any {@link org.gradle.tooling.model.gradle.BasicGradleProject}</li>
      *     <li>Any {@link org.gradle.tooling.model.GradleProject}</li>
      *     <li>Any {@link org.gradle.tooling.model.eclipse.EclipseProject}</li>
      *     <li>Any {@link org.gradle.tooling.model.idea.IdeaModule}</li>

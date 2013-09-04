@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model;
+package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.Model;
 
 import java.io.File;
 
