@@ -71,7 +71,7 @@ An example usage:
 This story exposes some information about how a build script will be compiled. This information can be used by an
 IDE to provide some basic content assistance for a build script.
 
-1. Introduce a new hierachy to represent a classpath element. Retrofit the IDEA and Eclipse models to use this.
+1. Introduce a new hierarchy to represent a classpath element. Retrofit the IDEA and Eclipse models to use this.
     - Should expose a set of files, a set of source archives and a set of API docs.
 2. Add `compileClasspath` property to `GradleScript` to expose the build script classpath.
 3. Include the Gradle API and core plugins in the script classpath.
@@ -217,13 +217,15 @@ models is used.
 5. Change `BuildController.getModel(project, type)` to return only project-level models.
 
 
+    interface BasicGradleProject { }
+
     interface GradleBuild {
-        HierarchicalElement getRootProject();
-        Set<? extends HierarchicalElement> getProjects();
+        BasicGradleProject getRootProject();
+        Set<? extends BasicGradleProject> getProjects();
     }
 
     interface BuildController {
-        <T> T getModel(HierarchicalElement element, Class<T> modelType) throws UnknownModelException;
+        <T> T getModel(Model target, Class<T> modelType) throws UnknownModelException;
     }
 
 Note: there is a breaking change here.
@@ -237,6 +239,9 @@ Note: there is a breaking change here.
     - A `GradleProject` for the specified project, not the root.
     - An `IdeaModule` for the specified project, not the root.
     - An `EclipseProject` for the specified project, not the root.
+- Cannot request a build model for a project:
+    - Cannot request a `BuildModel`.
+    - Cannot request a `BuildEnvironment`.
 - Client receives decent feedback when
     - Requests a model from an unknown project.
     - Requests an unknown model.
@@ -247,7 +252,7 @@ This story adds support for conditionally locating a model, if it is present
 
     interface BuildController {
         <T> T findModel(Class<T> type); // returns null when model not present
-        <T> T findModel(HierarchicalElement element, Class<T> type); // returns null when model not present
+        <T> T findModel(Model target, Class<T> type); // returns null when model not present
     }
 
     interface ModelBuilder<T> {
@@ -262,6 +267,47 @@ This story adds support for conditionally locating a model, if it is present
 ## Story: Tooling API client changes implementation of a build action
 
 Fix the `ClassLoader` caching in the tooling API so that it can deal with changing implementations.
+
+## Story: GRADLE-2434 - Expose the aggregate tasks for a project
+
+This story allows an IDE to implement a way to select the tasks to execute based on their name, similar to the Gradle command-line.
+
+    interface EntryPoint {
+    }
+
+    interface TaskSelector extends EntryPoint {
+        String getName(); // A display name
+    }
+
+    interface GradleTask extends EntryPoint {
+        ...
+    }
+
+    interface GradleProject {
+        DomainObjectSet<? extends TaskSelector> getTaskSelectors();
+        ...
+    }
+
+    interface BuildLauncher {
+        BuildLauncher forTasks(Iterable<? extends EntryPoint> tasks);
+        BuildLauncher forTasks(EntryPoint... tasks);
+        ...
+    }
+
+TBD - maybe don't change `forTasks()` but instead add an `execute(Iterable<? extends EntryPoint> tasks)` method.
+
+For new target Gradle versions, delegate to the provider. For older target Gradle versions, implement client-side conversion using the
+information available in `GradleProject`.
+
+### Test cases
+
+- Can request the entry points for a given project hierarchy
+    - Task is present in some subprojects but not the target project
+    - Task is present in target project but no subprojects
+    - Task is present in target project and some subprojects
+- Executing a task selector when task is also present in subprojects runs all the matching tasks, for the above cases.
+- Executing a task (as an `EntryPoint`) when task is also present in subprojects run the specified task only and nothing from subprojects.
+- Can request the entry points for all target Gradle versions.
 
 ## Story: Expose the IDE output directories
 
@@ -309,6 +355,4 @@ Need to allow a debug port to be specified, as hard-coded port 5005 can conflict
 
 # Open issues
 
-* Discovery or registration?
-* Per-build or per-project?
 * Replace `LongRunningOperation.standardOutput` and `standardError` with overloads that take a `Writer`, and (later) deprecate the `OutputStream` variants.

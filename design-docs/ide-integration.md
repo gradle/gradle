@@ -6,6 +6,8 @@ Below is a list of candidates to work on, in approximate priority order:
 
 ## GRADLE-2434 - IDE visualises and runs aggregate tasks
 
+See [tooling-api-improvements.md](tooling-api-improvements.md):
+
 On the command-line I can run `gradle test` and this will find and execute all tasks with name `test` in the current project
 and all its subprojects.
 
@@ -15,7 +17,7 @@ Expose some information to allow the IDE to visualise this and execute builds gi
 
 On the command-line I can run `gradle tasks` and see the 'main' tasks for the build, and `gradle tasks --all` to see all the tasks.
 
-Expose some information to allow the IDE to visual this.
+Expose some information to allow the IDE to visualise this.
 
 ## Tooling API client cancels an operation
 
@@ -26,7 +28,7 @@ Later stories incrementally add more graceful cancellation handling.
 
 ## Expose build script compilation details
 
-As per [tooling-api-improvements.md](tooling-api-improvements.md):
+See [tooling-api-improvements.md](tooling-api-improvements.md):
 
 Expose some details to allow some basic content assistance for build scripts:
 
@@ -39,9 +41,9 @@ Expose some details to allow some basic content assistance for build scripts:
 Introduce some stress and stability tests for the tooling API and daemon to the performance test suite. Does not include
 fixing any leaks or stability problems exposed by these tests. Additional stories will be added to take care of such issues.
 
-## Buildscript classpath can contain a changing jar
+## Build script classpath can contain a changing jar
 
-Fix ClassLoader caching to detect when a buildscript classpath has changed.
+Fix ClassLoader caching to detect when a build script classpath has changed.
 
 Fix the ClassLoading implementation to avoid locking these Jars on Windows.
 
@@ -51,36 +53,54 @@ Fix GRADLE-2275.
 
 ## Expose the publications of a project
 
-As per [tooling-api-improvements.md](tooling-api-improvements.md):
+See [tooling-api-improvements.md](tooling-api-improvements.md):
 
 Expose the publications of a project so that the IDE can wire together Gradle and Maven builds.
 
 ## Expose Java components to the IDE
 
-As per [tooling-api-improvements.md](tooling-api-improvements.md):
+See [tooling-api-improvements.md](tooling-api-improvements.md):
 
 Expose Java language level and other details about a Java component.
 
+Expose the corresponding Eclipse and IDEA model.
+
 ## Expose Groovy components to the IDE
 
-As per [tooling-api-improvements.md](tooling-api-improvements.md):
+See [tooling-api-improvements.md](tooling-api-improvements.md):
 
 Expose Groovy language level and other details about a Groovy component.
+
+Expose the corresponding Eclipse and IDEA model.
 
 ## Expose Scala components to the IDE
 
 Expose Scala language level and other details about a Scala component.
 
+Expose the corresponding Eclipse and IDEA model.
+
 ## Expose Web components to the IDE
 
-Expose Web content, servlet API version and other details about a web application.
+Expose Web content, servlet API version, web.xml descriptor, runtime and container classpaths, and other details about a web application.
+
+Expose the corresponding Eclipse and IDEA model.
+
+## Expose J2EE components to the IDE
+
+Expose Ear content, J2EE API versions, deployment descriptor and other details about a J2EE application.
+
+Expose the corresponding Eclipse and IDEA model.
+
+## Expose artifacts to IDEA
+
+Expose details to allow IDEA to build various artifacts: http://www.jetbrains.com/idea/webhelp/configuring-artifacts.html
 
 ## Handle more immutable system properties
 
 Some system properties are immutable, and must be defined when the JVM is started. When these properties change,
 a new daemon instance must be started. Currently, `file.encoding` is supported.
 
-Add support for the following properites:
+Add support for the following properties:
 
 - The jmxremote system properties (GRADLE-2629)
 - The SSL system properties (GRADLE-2367)
@@ -88,7 +108,7 @@ Add support for the following properites:
 ## Prefer a single daemon instance
 
 Improve daemon expiration algorithm so that when there are multiple daemon instances running, one instance is
-selected as the surviour and the others expire quickly (say, as soon as they become idle).
+selected as the survivor and the others expire quickly (say, as soon as they become idle).
 
 ## Daemon process expires when a memory pool is exhausted
 
@@ -124,8 +144,8 @@ Some more features to mix into the above plan:
 - Provide some way to search repositories, to offer content assistance with dependency notations.
 - Don't configure the projects when `GradleBuild` model is requested.
 - Configure projects as required when using configure-on-demand.
-- Don't configure the tasks when they are not requested.
+- Don't configure tasks when they are not requested.
 - Deal with non-standard wrapper meta-data location.
 - More accurate content assistance.
-- Allow editing of dependencies via some UI.
-- Allow Gradle upgrades via some UI.
+- User edits dependencies via some UI.
+- User upgrades Gradle version via some UI.
