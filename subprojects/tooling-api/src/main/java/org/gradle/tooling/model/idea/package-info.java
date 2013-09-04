@@ -15,6 +15,6 @@
  */
 
 /**
- * IntelliJ IDEA related API of the tooling API.
+ * IntelliJ IDEA centric tooling models.
  */
 package org.gradle.tooling.model.idea;

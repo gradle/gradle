@@ -24,8 +24,8 @@ import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.model.Element;
-import org.gradle.tooling.model.GradleBuild;
+import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.internal.Exceptions;
 
 class BuildControllerAdapter implements BuildController {
@@ -56,7 +56,7 @@ class BuildControllerAdapter implements BuildController {
         return getModel(null, GradleBuild.class);
     }
 
-    public <T> T findModel(Element target, Class<T> modelType) {
+    public <T> T findModel(Model target, Class<T> modelType) {
         try {
             return getModel(target, modelType);
         } catch (UnknownModelException e) {
@@ -65,7 +65,7 @@ class BuildControllerAdapter implements BuildController {
         }
     }
 
-    public <T> T getModel(Element target, Class<T> modelType) throws UnknownModelException {
+    public <T> T getModel(Model target, Class<T> modelType) throws UnknownModelException {
         ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(modelType);
         Object originalTarget = target == null ? null : adapter.unpack(target);
 

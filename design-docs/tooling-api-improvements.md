@@ -19,9 +19,9 @@ Note that this is not the same thing as making the IDE plugins more flexible (al
 too). It is about allowing a completely different implementation of the Java domain - such as the Android plugins - to provide
 their own opinion of how the project should be represented in the IDE.
 
-## Built-in Gradle plugins should be less priviledged
+## Built-in Gradle plugins should be less privileged
 
-Currently, the built-in Gradle plugins are priviledged in several ways, such that only built-in plugins can use
+Currently, the built-in Gradle plugins are privileged in several ways, such that only built-in plugins can use
 certain features. One such feature is exposing their models to tooling. The IDE and build comparison models
 are baked into the tooling API. This means that these plugins, and only these plugins, can contribute models to tooling.
 
@@ -36,7 +36,7 @@ This hard-coding has a number of downsides beyond the obvious lack of flexibilit
 * A tooling model must be distributed as part of the core Gradle runtime. This makes it difficult to bust up the
   Gradle distribution.
 
-Over time, we want to make the built-in plugins less priviledged so that the difference between a 'built-in' plugin and
+Over time, we want to make the built-in plugins less privileged so that the difference between a 'built-in' plugin and
 a 'custom' is gradually reduced. Allowing custom plugins to contribute tooling models and changing the build-in plugins
 to use this same mechanism is one step in this direction.
 
@@ -149,7 +149,7 @@ This story allows a custom plugin to expose a tooling model to any tooling API c
 - Generalise `UnsupportedModelFeedbackCrossVersionSpec`.
 - Plugin attempts to register a model that some other plugin already has registered.
 
-## Story: Tooling API client builds a complex tooling model in a single operation
+## Story: Tooling API client builds a complex tooling model in a single batch operation
 
 This story adds support for a tooling API to query portions of the Gradle model in an efficient way.
 
@@ -208,10 +208,13 @@ models is used.
     - The action requests an unknown model.
     - The action is compiled for Java 6 but the build runs with Java 5.
 
-## Story: Tooling API build action iterates over the projects of build
+## Story: Tooling API build action requests a tooling model for a Gradle project
 
 1. Add a new `GradleBuild` model which contains information about which projects are included in the build.
-2. Extend `BuildController` to add methods to query a model for a given project.
+2. Add a new `BasicGradleProject` type to provide basic structural information about a project.
+3. Extend `BuildController` to add methods to query a model for a given project.
+4. Change `ProjectConnection.getModel(type)` and `BuildController.getModel(type)` to return only build-level models.
+5. Change `BuildController.getModel(project, type)` to return only project-level models.
 
 
     interface GradleBuild {
@@ -223,11 +226,17 @@ models is used.
         <T> T getModel(HierarchicalElement element, Class<T> modelType) throws UnknownModelException;
     }
 
+Note: there is a breaking change here.
+
 ### Test cases
 
 - For all Gradle versions, can request the `GradleBuild` model via `ProjectConnection`.
 - Can request the `GradleBuild` model via a build action.
-- Can request a model for a given project.
+- Can request a model for a given project:
+    - A `BasicGradleProject` for the specified project, not the root.
+    - A `GradleProject` for the specified project, not the root.
+    - An `IdeaModule` for the specified project, not the root.
+    - An `EclipseProject` for the specified project, not the root.
 - Client receives decent feedback when
     - Requests a model from an unknown project.
     - Requests an unknown model.
@@ -249,6 +258,10 @@ This story adds support for conditionally locating a model, if it is present
 
 - Client receives null for unknown model, for all target Gradle versions.
 - Build action receives null for unknown model, for all target Gradle versions >= 1.8
+
+## Story: Tooling API client changes implementation of a build action
+
+Fix the `ClassLoader` caching in the tooling API so that it can deal with changing implementations.
 
 ## Story: Expose the IDE output directories
 

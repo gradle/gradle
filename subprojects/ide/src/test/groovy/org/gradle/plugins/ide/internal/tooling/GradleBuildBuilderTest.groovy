@@ -28,10 +28,11 @@ class GradleBuildBuilderTest extends Specification {
 
     def "builds model"() {
         expect:
-        def model = builder.buildAll("org.gradle.tooling.model.GradleBuild", startProject)
+        def model = builder.buildAll("org.gradle.tooling.model.gradle.GradleBuild", startProject)
         model.rootProject.path == ":"
         model.rootProject.name == "root"
         model.rootProject.parent == null
+        model.rootProject.projectDirectory == project.projectDir
         model.rootProject.children.size() == 2
         model.rootProject.children.every { it.parent == model.rootProject }
         model.projects*.name == ["root", "child1", "child2"]

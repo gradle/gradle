@@ -16,6 +16,7 @@
 
 package org.gradle;
 
+import com.google.common.collect.MapMaker;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
@@ -24,15 +25,14 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * A listener which logs the execution of tasks.
  */
 public class TaskExecutionLogger implements TaskExecutionListener {
-    // TODO:PARALLEL Seems to be some thread-safety issues here (get 'failed' logged for wrong task)
-    private final Map<Task, ProgressLogger> currentTasks = new HashMap<Task, ProgressLogger>();
+
+    private final ConcurrentMap<Task, ProgressLogger> currentTasks = new MapMaker().makeMap();
     private final ProgressLoggerFactory progressLoggerFactory;
 
     public TaskExecutionLogger(ProgressLoggerFactory progressLoggerFactory) {

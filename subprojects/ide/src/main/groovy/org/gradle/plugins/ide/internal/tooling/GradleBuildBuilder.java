@@ -26,7 +26,7 @@ import java.util.Map;
 
 public class GradleBuildBuilder implements ToolingModelBuilder {
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.GradleBuild");
+        return modelName.equals("org.gradle.tooling.model.gradle.GradleBuild");
     }
 
     public DefaultGradleBuild buildAll(String modelName, Project target) {
@@ -41,6 +41,7 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
 
     private BasicGradleProject convert(Project project, Map<Project, BasicGradleProject> convertedProjects) {
         BasicGradleProject converted = new BasicGradleProject().setName(project.getName()).setPath(project.getPath());
+        converted.setProjectDirectory(project.getProjectDir());
         if (project.getParent() != null) {
             converted.setParent(convertedProjects.get(project.getParent()));
         }

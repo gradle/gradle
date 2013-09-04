@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import org.gradle.tooling.model.GradleScript;
+import org.gradle.tooling.model.gradle.GradleScript;
 
 import java.io.File;
 import java.io.Serializable;

@@ -16,7 +16,9 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultGradleLauncher;
@@ -49,6 +51,8 @@ class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Seria
 
         gradleLauncher.addListener(new ModelConfigurationListener() {
             public void onConfigure(final GradleInternal gradle) {
+                // Currently need to force everything to be configured
+                ensureAllProjectsEvaluated(gradle);
                 InternalBuildController internalBuildController = new DefaultBuildController(gradle);
                 Object model = null;
                 try {
@@ -65,5 +69,13 @@ class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Seria
             return new BuildActionResult(null, payloadSerializer.serialize(failure.get()));
         }
         return new BuildActionResult(payloadSerializer.serialize(result.get()), null);
+    }
+
+    private void ensureAllProjectsEvaluated(GradleInternal gradle) {
+        gradle.getRootProject().allprojects((Action) new Action<ProjectInternal>() {
+            public void execute(ProjectInternal projectInternal) {
+                projectInternal.evaluate();
+            }
+        });
     }
 }
