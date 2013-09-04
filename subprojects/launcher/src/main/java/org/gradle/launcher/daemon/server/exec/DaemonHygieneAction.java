@@ -15,8 +15,32 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import static java.lang.System.currentTimeMillis;
+
 public class DaemonHygieneAction implements DaemonCommandAction {
+
+    private final long gcDelay;
+    private long nextGcHint;
+
+    public DaemonHygieneAction() {
+        //by default, don't hint for gc more often than once per 2 minutes
+        //because it is a full scan
+        this(1000 * 60 * 2);
+    }
+
+    DaemonHygieneAction(long gcDelay) {
+        this.gcDelay = gcDelay;
+    }
+
     public void execute(DaemonCommandExecution execution) {
         execution.proceed();
+        if (currentTimeMillis() > nextGcHint) {
+            gc();
+            nextGcHint = currentTimeMillis() + gcDelay;
+        }
+    }
+
+    void gc() {
+        System.gc();
     }
 }
