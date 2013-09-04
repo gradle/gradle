@@ -33,7 +33,7 @@ public class InMemoryDependencyMetadataCache implements Stoppable {
 
     private final static Logger LOG = Logging.getLogger(InMemoryDependencyMetadataCache.class);
 
-    Map<String, DependencyMetadataCache> cachePerRepo = new MapMaker().softValues().makeMap();
+    Map<String, DependencyMetadataCache> cachePerRepo = new MapMaker().makeMap();
 
     final DependencyMetadataCacheStats stats = new DependencyMetadataCacheStats();
 
