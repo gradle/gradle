@@ -74,7 +74,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
                         if (toolChain in VisualCpp) {
                             assembler.args '/Zf'
                         } else {
-                            assembler.args '-dynamic'
+                            assembler.args '-W'
                         }
                     }
                 }
