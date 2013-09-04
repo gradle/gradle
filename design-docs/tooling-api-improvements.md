@@ -216,6 +216,7 @@ models is used.
 4. Change `ProjectConnection.getModel(type)` and `BuildController.getModel(type)` to return only build-level models.
 5. Change `BuildController.getModel(project, type)` to return only project-level models.
 
+Here are the above types:
 
     interface BasicGradleProject { }
 
@@ -281,6 +282,7 @@ This story allows an IDE to implement a way to select the tasks to execute based
 5. Add methods to `BuildLauncher` to allow a sequence of entry points to be used to specify what the build should execute.
 6. Add `@since` and `@Incubating` to the new types and methods.
 
+Here are the above types:
 
     interface EntryPoint {
     }
@@ -356,10 +358,12 @@ The overall plan is to start close to the client and gradually move the asynchro
 to the build:
 
 Use futures to represent the existing asynchronous behaviour:
+
 1. Change internal class `BlockingResultHandler` to implement `BuildInvocation` and reuse this type to implement the futures.
 2. Implementation should discard handlers once they have been notified, so they can be garbage collected.
 
 Push asynchronous execution down to the provider:
+
 1. Change `AsyncConsumerActionExecutor.run()` to return a future (not necessarily a `Future`) instead of accepting a
    result handler.
 2. Rework `DefaultAsyncConsumerActionExecutor` and `LazyConsumerActionExecutor` into a lazy `AsyncConsumerActionExecutor`
@@ -372,6 +376,7 @@ Push asynchronous execution down to the provider:
    connections that do not, adapt the connection in the client.
 
 Forward cancellation requests to the daemon:
+
 1. When `Future.cancel()` is called by the client, close the daemon connection. The daemon will stop the build and exit.
 
 For target versions that do not support cancellation, `Future.cancel()` always returns false.
