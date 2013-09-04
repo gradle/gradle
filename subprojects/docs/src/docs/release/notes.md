@@ -42,7 +42,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 <!--
-* [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
+* [John Engelman](https://github.com/johnrengelman) - Existence of pom file requires that declared artifacts can be found in the same repository (GRADLE-2034)
 -->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
