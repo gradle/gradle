@@ -226,7 +226,7 @@ it.exclude group: '*', module: 'badArtifact'
     }
 
     @Issue("GRADLE-2819")
-    def "multiModuleWIthRemoteParent"() {
+    def "multiModuleWithRemoteParent"() {
         setup:
         def repo = setupMavenHttpServer()
         //update pom with test repo url
