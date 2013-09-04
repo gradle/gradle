@@ -19,9 +19,9 @@ Note that this is not the same thing as making the IDE plugins more flexible (al
 too). It is about allowing a completely different implementation of the Java domain - such as the Android plugins - to provide
 their own opinion of how the project should be represented in the IDE.
 
-## Built-in Gradle plugins should be less priviledged
+## Built-in Gradle plugins should be less privileged
 
-Currently, the built-in Gradle plugins are priviledged in several ways, such that only built-in plugins can use
+Currently, the built-in Gradle plugins are privileged in several ways, such that only built-in plugins can use
 certain features. One such feature is exposing their models to tooling. The IDE and build comparison models
 are baked into the tooling API. This means that these plugins, and only these plugins, can contribute models to tooling.
 
@@ -36,7 +36,7 @@ This hard-coding has a number of downsides beyond the obvious lack of flexibilit
 * A tooling model must be distributed as part of the core Gradle runtime. This makes it difficult to bust up the
   Gradle distribution.
 
-Over time, we want to make the built-in plugins less priviledged so that the difference between a 'built-in' plugin and
+Over time, we want to make the built-in plugins less privileged so that the difference between a 'built-in' plugin and
 a 'custom' is gradually reduced. Allowing custom plugins to contribute tooling models and changing the build-in plugins
 to use this same mechanism is one step in this direction.
 
@@ -213,7 +213,7 @@ models is used.
 1. Add a new `GradleBuild` model which contains information about which projects are included in the build.
 2. Add a new `BasicGradleProject` type to provide basic structural information about a project.
 3. Extend `BuildController` to add methods to query a model for a given project.
-4. Change `ProjectConnnection.getModel(type)` and `BuildController.getModel(type)` to return only build-level models.
+4. Change `ProjectConnection.getModel(type)` and `BuildController.getModel(type)` to return only build-level models.
 5. Change `BuildController.getModel(project, type)` to return only project-level models.
 
 
