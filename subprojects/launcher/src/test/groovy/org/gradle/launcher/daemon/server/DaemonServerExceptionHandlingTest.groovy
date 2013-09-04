@@ -29,6 +29,7 @@ import org.gradle.launcher.daemon.server.exec.DaemonCommandAction
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
+import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction
 import org.gradle.launcher.exec.DefaultBuildActionParameters
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -69,7 +70,8 @@ class DaemonServerExceptionHandlingTest extends Specification {
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
                 return new DefaultDaemonCommandExecuter(get(GradleLauncherFactory),
-                        get(ProcessEnvironment), loggingServices.getFactory(LoggingManagerInternal.class).create(), new File("dummy")) {
+                        get(ProcessEnvironment), loggingServices.getFactory(LoggingManagerInternal.class).create(),
+                        new File("dummy"), new NoOpDaemonCommandAction()) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
                         def actions = new LinkedList(super.createActions(daemonContext));
                         configureDeamonActions(actions);

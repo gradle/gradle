@@ -34,14 +34,17 @@ import java.util.List;
 public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     private final LoggingOutputInternal loggingOutput;
     private final GradleLauncherFactory launcherFactory;
+    private DaemonCommandAction hygieneAction;
     private final ProcessEnvironment processEnvironment;
     private final File daemonLog;
 
-    public DefaultDaemonCommandExecuter(GradleLauncherFactory launcherFactory, ProcessEnvironment processEnvironment, LoggingManagerInternal loggingOutput, File daemonLog) {
+    public DefaultDaemonCommandExecuter(GradleLauncherFactory launcherFactory, ProcessEnvironment processEnvironment,
+                                        LoggingManagerInternal loggingOutput, File daemonLog, DaemonCommandAction hygieneAction) {
         this.processEnvironment = processEnvironment;
         this.daemonLog = daemonLog;
         this.loggingOutput = loggingOutput;
         this.launcherFactory = launcherFactory;
+        this.hygieneAction = hygieneAction;
     }
 
     public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned) {
@@ -59,6 +62,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
         return new LinkedList<DaemonCommandAction>(Arrays.asList(
             new CatchAndForwardDaemonFailure(),
+            hygieneAction,
             new HandleStop(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics),
             new EstablishBuildEnvironment(processEnvironment),

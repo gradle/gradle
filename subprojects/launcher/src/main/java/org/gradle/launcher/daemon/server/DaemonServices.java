@@ -31,6 +31,7 @@ import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
+import org.gradle.launcher.daemon.server.exec.DaemonHygieneAction;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -89,7 +90,7 @@ public class DaemonServices extends DefaultServiceRegistry {
                         get(GradleLauncherFactory.class),
                         get(ProcessEnvironment.class),
                         loggingManager,
-                        getDaemonLogFile()),
+                        getDaemonLogFile(), new DaemonHygieneAction()),
                 get(ExecutorFactory.class));
     }
 
