@@ -54,10 +54,8 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
 
         new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
-
         when:
         run 'projects'
-
         then:
         output.contains(toPlatformLineSeparators("""
 Root project 'webinar-parent'
@@ -228,10 +226,13 @@ it.exclude group: '*', module: 'badArtifact'
     }
 
     @Issue("GRADLE-2819")
-    def "multiModuleWithRemoteParent"() {
+    def "multiModuleWIthRemoteParent"() {
         setup:
         def repo = setupMavenHttpServer()
         //update pom with test repo url
+        file(".").listFiles().each { testFile ->
+            println testFile.name
+        }
         file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
 
         expectParentPomRequest(repo)
