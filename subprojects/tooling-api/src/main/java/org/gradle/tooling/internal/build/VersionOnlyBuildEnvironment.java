@@ -16,16 +16,20 @@
 
 package org.gradle.tooling.internal.build;
 
-import org.gradle.tooling.model.build.JavaEnvironment;
-import org.gradle.tooling.model.internal.Exceptions;
+import org.gradle.tooling.model.build.GradleEnvironment;
 
-public class VersionOnlyBuildEnvironment extends DefaultBuildEnvironment {
+public class VersionOnlyBuildEnvironment {
+    private final String gradleVersion;
 
     public VersionOnlyBuildEnvironment(String gradleVersion) {
-        super(gradleVersion, null, null);
+        this.gradleVersion = gradleVersion;
     }
 
-    public JavaEnvironment getJava() {
-        throw Exceptions.unsupportedMethod("getJava()");
+    public GradleEnvironment getGradle() {
+        return new GradleEnvironment() {
+            public String getGradleVersion() {
+                return gradleVersion;
+            }
+        };
     }
 }
