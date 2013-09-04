@@ -269,6 +269,10 @@ produce the model.
 - For all Gradle versions, can request the `GradleBuild` model via `ProjectConnection`. This basically means removing the `@TargetGradleVersion` from
   the test case in `GradleBuildModelCrossVersionSpec`.
 
+## Story: Gradle provider builds build model efficiently
+
+When the `GradleBuild` model is requested, execute only the settings script, and don't configure any of the projects.
+
 ## Story: Tooling API client determines whether model is available
 
 This story adds support for conditionally requesting a model, if it is available
