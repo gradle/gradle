@@ -16,7 +16,6 @@
 
 package org.gradle;
 
-import com.google.common.collect.MapMaker;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
@@ -25,14 +24,15 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
-import java.util.concurrent.ConcurrentMap;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A listener which logs the execution of tasks.
  */
 public class TaskExecutionLogger implements TaskExecutionListener {
 
-    private final ConcurrentMap<Task, ProgressLogger> currentTasks = new MapMaker().makeMap();
+    private final Map<Task, ProgressLogger> currentTasks = new HashMap<Task, ProgressLogger>();
     private final ProgressLoggerFactory progressLoggerFactory;
 
     public TaskExecutionLogger(ProgressLoggerFactory progressLoggerFactory) {

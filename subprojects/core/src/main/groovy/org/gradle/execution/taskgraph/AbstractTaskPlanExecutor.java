@@ -25,6 +25,7 @@ import static org.gradle.util.Clock.prettyTime;
 
 abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(AbstractTaskPlanExecutor.class);
+    private final Object lock = new Object();
 
     protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
         return new TaskExecutorWorker(taskExecutionPlan, taskListener);
@@ -71,11 +72,15 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
         // is wired to the various add/remove listener methods on TaskExecutionGraph
         private void executeTask(TaskInfo taskInfo) {
             TaskInternal task = taskInfo.getTask();
-            taskListener.beforeExecute(task);
+            synchronized (lock) {
+                taskListener.beforeExecute(task);
+            }
             try {
                 task.executeWithoutThrowingTaskFailure();
             } finally {
-                taskListener.afterExecute(task, task.getState());
+                synchronized (lock) {
+                    taskListener.afterExecute(task, task.getState());
+                }
             }
         }
     }
