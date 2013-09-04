@@ -246,9 +246,9 @@ Note: there is a breaking change here.
     - Requests a model from an unknown project.
     - Requests an unknown model.
 
-## Story: Tooling API client determines whether model is present
+## Story: Tooling API client determines whether model is available
 
-This story adds support for conditionally locating a model, if it is present
+This story adds support for conditionally requesting a model, if it is available
 
     interface BuildController {
         <T> T findModel(Class<T> type); // returns null when model not present

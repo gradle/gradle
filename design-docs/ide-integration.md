@@ -6,18 +6,12 @@ Below is a list of candidates to work on, in approximate priority order:
 
 ## GRADLE-2434 - IDE visualises and runs aggregate tasks
 
-See [tooling-api-improvements.md](tooling-api-improvements.md):
-
 On the command-line I can run `gradle test` and this will find and execute all tasks with name `test` in the current project
 and all its subprojects.
 
-Expose some information to allow the IDE to visualise this and execute builds given a task name.
+Expose some information to allow the IDE to visualise this and execute builds in a similar way.
 
-## IDE hides implementation tasks
-
-On the command-line I can run `gradle tasks` and see the 'main' tasks for the build, and `gradle tasks --all` to see all the tasks.
-
-Expose some information to allow the IDE to visualise this.
+See [tooling-api-improvements.md](tooling-api-improvements.md#story-gradle-2434---expose-the-aggregate-tasks-for-a-project)
 
 ## Tooling API client cancels an operation
 
@@ -25,6 +19,14 @@ Add some way for a tooling API client to request that an operation be cancelled.
 
 The implementation will do the same thing as if the daemon client is disconnected, which is to drop the daemon process.
 Later stories incrementally add more graceful cancellation handling.
+
+See [tooling-api-improvements.md](tooling-api-improvements.md#story-tooling-api-client-cancels-an-operation)
+
+## IDE hides implementation tasks
+
+On the command-line I can run `gradle tasks` and see the 'main' tasks for the build, and `gradle tasks --all` to see all the tasks.
+
+Expose some information to allow the IDE to visualise this.
 
 ## Expose build script compilation details
 
