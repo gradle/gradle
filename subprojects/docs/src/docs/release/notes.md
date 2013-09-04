@@ -32,9 +32,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Renamings in BuildSetup plugin
+
+* The incubating ´BuildSetup´ task was renamed to ´InitBuild´.
+* The task ´setupBuild´ provided by the auto-applied BuildSetup plugin was renamed to ´init´.
 
 ## External contributions
 
