@@ -15,6 +15,6 @@
  */
 
 /**
- * A UI-centric model of a Gradle build, provided by the Gradle tooling API.
+ * The general-purpose tooling model types, provided by the tooling API.
  */
 package org.gradle.tooling.model;
