@@ -15,12 +15,15 @@
  */
 package org.gradle.nativecode.base;
 
+import org.gradle.api.Incubating;
+
 import java.util.Collection;
 import java.util.Map;
 
 /**
  * A source set that depends on one or more {@link NativeDependencySet}s to be built.
  */
+@Incubating
 public interface DependentSourceSet {
     /**
      * The libraries that this source set requires.

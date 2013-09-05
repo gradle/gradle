@@ -15,10 +15,28 @@
  */
 package org.gradle.nativecode.language.asm;
 
+import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * A set of assembly language sources.
+ *
+ * <pre autoTested="true">
+ * apply plugin: "assembler"
+ *
+ * sources {
+ *     main {
+ *         // Configure an existing AssemblerSourceSet
+ *         asm {
+ *             source {
+ *                 srcDirs "src/main/i386", "src/shared/asm"
+ *                 include "**{@literal /}*.s"
+ *             }
+ *         }
+ *     }
+ * }
+ * </pre>
  */
+@Incubating
 public interface AssemblerSourceSet extends LanguageSourceSet {
 }

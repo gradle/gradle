@@ -21,7 +21,28 @@ import org.gradle.nativecode.base.DependentSourceSet;
 import org.gradle.nativecode.base.HeaderExportingSourceSet;
 
 /**
- * A representation of a unit of C++ source.
+ * A set of C++ source files.
+ *
+ * <p>A C++ source set contains a set of source files, together with an optional set of exported header files.</p>
+ *
+ * <pre autoTested="true">
+ * apply plugin: "cpp"
+ *
+ * sources {
+ *     main {
+ *         // Configure an existing CppSourceSet
+ *         cpp {
+ *             source {
+ *                 srcDirs "src/main/cpp", "src/shared/c++"
+ *                 include "**{@literal /}*.cpp"
+ *             }
+ *             exportedHeaders {
+ *                 srcDirs "src/main/include", "src/shared/include"
+ *             }
+ *         }
+ *     }
+ * }
+ * </pre>
  */
 @Incubating
 public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {

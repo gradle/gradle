@@ -501,6 +501,15 @@
             <tr>
                 <td>org.gradle.nativecode.base.ToolChainRegistry</td>
             </tr>
+            <tr>
+                <td>org.gradle.nativecode.language.asm.AssemblerSourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.language.c.CSourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativecode.language.cpp.CppSourceSet</td>
+            </tr>
         </table>
     </section>
     <section>

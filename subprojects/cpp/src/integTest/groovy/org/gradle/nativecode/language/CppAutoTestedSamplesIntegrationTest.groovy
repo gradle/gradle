@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.nativecode.base;
+package org.gradle.nativecode.language
 
-import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
+import org.junit.Test
 
-/**
- * A container of native libraries.
- */
-public interface LibraryContainer extends NamedDomainObjectSet<Library> {
+class CppAutoTestedSamplesIntegrationTest extends AbstractAutoTestedSamplesTest{
+
+    @Test
+    void runSamples() {
+        runSamplesFrom("subprojects/cpp/src/main")
+    }
+
 }
+
+

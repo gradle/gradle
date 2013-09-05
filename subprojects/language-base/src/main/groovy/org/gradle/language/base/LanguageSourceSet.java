@@ -31,6 +31,10 @@ public interface LanguageSourceSet extends Named, Buildable {
     // TODO: do we want to keep using SourceDirectorySet in the new API?
     // would feel more natural if dirs could be added directly to LanguageSourceSet
     // could also think about extending SourceDirectorySet
+
+    /**
+     * The source files.
+     */
     SourceDirectorySet getSource();
 
     /**
