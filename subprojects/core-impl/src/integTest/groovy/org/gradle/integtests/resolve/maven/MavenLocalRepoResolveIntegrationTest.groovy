@@ -61,7 +61,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
     def "can resolve artifacts from local m2 with custom local repository defined in user settings.xml"() {
         given:
-        def artifactRepo = maven("artifactrepo")
+        def artifactRepo = mavenLocal("artifactrepo")
         m2Installation.generateUserSettingsFile(artifactRepo)
         def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
 
@@ -74,7 +74,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
     def "can resolve artifacts from local m2 with custom local repository defined in global settings.xml"() {
         given:
-        def artifactRepo = maven("artifactrepo")
+        def artifactRepo = mavenLocal("artifactrepo")
         m2Installation.generateGlobalSettingsFile(artifactRepo)
         def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
 
@@ -87,8 +87,8 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
     def "local repository in user settings take precedence over the local repository global settings"() {
         given:
-        def globalRepo = maven("globalArtifactRepo")
-        def userRepo = maven("userArtifactRepo")
+        def globalRepo = mavenLocal("globalArtifactRepo")
+        def userRepo = mavenLocal("userArtifactRepo")
         m2Installation.generateGlobalSettingsFile(globalRepo).generateUserSettingsFile(userRepo)
         def moduleA = userRepo.module('group', 'projectA', '1.2').publish()
         globalRepo.module('group', 'projectA', '1.2').publishWithChangedContent()

@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -168,6 +169,10 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
 
     public MavenFileRepository maven(Object repo) {
         return new MavenFileRepository(file(repo))
+    }
+
+    public MavenLocalRepository mavenLocal(Object repo) {
+        return new MavenLocalRepository(file(repo))
     }
 
     public MavenFileRepository getMavenRepo() {
