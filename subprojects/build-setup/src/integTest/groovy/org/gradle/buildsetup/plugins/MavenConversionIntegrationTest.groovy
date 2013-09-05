@@ -230,7 +230,7 @@ it.exclude group: '*', module: 'badArtifact'
         file("build/libs/util-2.5.jar").exists()
     }
 
-    @Issue("GRADLE-2878")
+    @Issue("GRADLE-2872")
     def "expandProperties"() {
         setup:
         String module1Version = "1.0"
