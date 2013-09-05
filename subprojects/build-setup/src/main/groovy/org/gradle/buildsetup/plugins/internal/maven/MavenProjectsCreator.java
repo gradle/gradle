@@ -18,6 +18,7 @@ package org.gradle.buildsetup.plugins.internal.maven;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
+import org.gradle.internal.SystemProperties;
 import org.gradle.mvn3.org.apache.maven.execution.*;
 import org.gradle.mvn3.org.apache.maven.project.*;
 import org.gradle.mvn3.org.apache.maven.settings.Settings;
@@ -35,6 +36,7 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 public class MavenProjectsCreator {
@@ -61,6 +63,9 @@ public class MavenProjectsCreator {
         DefaultPlexusContainer container = new DefaultPlexusContainer(containerConfiguration);
         ProjectBuilder builder = container.lookup(ProjectBuilder.class);
         MavenExecutionRequest executionRequest = new DefaultMavenExecutionRequest();
+        final Properties properties = new Properties();
+        properties.putAll(SystemProperties.asMap());
+        executionRequest.setSystemProperties(properties);
         MavenExecutionRequestPopulator populator = container.lookup(MavenExecutionRequestPopulator.class);
         populator.populateFromSettings(executionRequest, settings);
         populator.populateDefaults(executionRequest);
@@ -73,7 +78,6 @@ public class MavenProjectsCreator {
         //the converter should not depend on the order of reactor projects.
         //we should add coverage for nested multi-project builds with multiple parents.
         reactorProjects.add(mavenProject);
-
         List<ProjectBuildingResult> allProjects = builder.build(ImmutableList.of(pomFile), true, buildingRequest);
         CollectionUtils.collect(allProjects, reactorProjects, new Transformer<MavenProject, ProjectBuildingResult>() {
             public MavenProject transform(ProjectBuildingResult original) {
