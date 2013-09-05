@@ -29,7 +29,7 @@ public class BuildableModelElementTest extends Specification {
 
     def "has direct dependencies with no lifecycle task set"() {
         when:
-        element.dependsOn(dependedOn1, dependedOn2)
+        element.builtBy(dependedOn1, dependedOn2)
 
         then:
         element.getBuildDependencies().getDependencies(Stub(Task)) == [dependedOn1, dependedOn2] as Set
@@ -37,9 +37,9 @@ public class BuildableModelElementTest extends Specification {
 
     def "has intervening lifecycle task as dependency when set"() {
         when:
-        element.dependsOn(dependedOn1)
+        element.builtBy(dependedOn1)
         element.setLifecycleTask(lifecycleTask)
-        element.dependsOn(dependedOn2)
+        element.builtBy(dependedOn2)
 
         then:
         element.getBuildDependencies().getDependencies(Stub(Task)) == [lifecycleTask] as Set

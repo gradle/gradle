@@ -70,7 +70,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
 
     public void setBuilderTask(BuildBinaryTask builderTask) {
         this.builderTask = builderTask;
-        dependsOn(builderTask);
+        builtBy(builderTask);
     }
 
     public String getName() {

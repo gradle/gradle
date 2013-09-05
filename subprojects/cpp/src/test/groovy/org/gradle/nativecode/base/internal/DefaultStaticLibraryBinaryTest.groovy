@@ -42,7 +42,7 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         library.headers >> headers
         def lifecycleTask = Stub(Task)
         binary.lifecycleTask = lifecycleTask
-        binary.dependsOn(Stub(Task))
+        binary.builtBy(Stub(Task))
 
         expect:
         def nativeDependency = binary.resolve()

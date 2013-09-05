@@ -97,7 +97,7 @@ public class JvmLanguagePlugin implements Plugin<Project> {
                                 return binary.getResourcesDir();
                             }
                         });
-                        binary.dependsOn(resourcesTask);
+                        binary.builtBy(resourcesTask);
                         resourcesTask.from(resourceSet.getSource());
                     }
                 });

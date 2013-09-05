@@ -44,7 +44,7 @@ public class AbstractBuildableModelElement implements BuildableModelElement {
         };
     }
 
-    public void dependsOn(Object... tasks) {
+    public void builtBy(Object... tasks) {
         buildDependencies.add(tasks);
     }
 

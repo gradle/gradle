@@ -35,5 +35,5 @@ public interface BuildableModelElement extends Buildable {
      * Adds a task that is required for the construction of this element.
      * A task added this way is then added as a dependency of the associated lifecycle task.
      */
-    void dependsOn(Object... tasks);
+    void builtBy(Object... tasks);
 }

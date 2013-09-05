@@ -41,7 +41,7 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         def linkFile = tmpDir.createFile("binary.link")
         def lifecycleTask = Stub(Task)
         binary.setLifecycleTask(lifecycleTask)
-        binary.dependsOn(Stub(Task))
+        binary.builtBy(Stub(Task))
         binary.outputFile = binaryFile
 
         and:

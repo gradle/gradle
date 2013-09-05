@@ -21,7 +21,7 @@ executables {
 binaries.withType(ExecutableBinary) { binary ->
     def linkTask = tasks["link${binary.name.capitalize()}"]
     def stripTask = task("strip${binary.name.capitalize()}") {
-        dependsOn linkTask
+        builtBy linkTask
         doFirst {
             if (binary.toolChain in Gcc) {
                 ["strip", linkTask.outputFile].execute()
