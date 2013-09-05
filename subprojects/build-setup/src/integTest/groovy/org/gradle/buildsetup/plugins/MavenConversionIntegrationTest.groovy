@@ -235,12 +235,30 @@ it.exclude group: '*', module: 'badArtifact'
         setup:
         String module1Version = "1.0"
         String module2Version = "2.0"
+        String module3Version = "3.0"
         def repo = setupMavenHttpServer()
         //update pom with test repo url
         file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
         expectModule(repo, "group", "module1", module1Version);
         expectModule(repo, "group", "module2", module2Version);
+        expectModule(repo, "group", "module3", module3Version);
         System.setProperty("MODULE1_VERSION", "1.0")
+        withLocalM2Installation().globalSettingsFile.createFile().text = """
+<settings>
+    <profiles>
+        <profile>
+          <id>testprofile</id>
+          <properties>
+            <module3-version>3.0</module3-version>
+          </properties>
+        </profile>
+    </profiles>
+    <activeProfiles>
+        <activeProfile>testprofile</activeProfile>
+    </activeProfiles>
+</settings>
+"""
+
         when:
         run 'init'
         then:
@@ -305,10 +323,11 @@ Root project 'webinar-parent'
 """))
     }
 
-    def withLocalM2Installation() {
+    M2Installation withLocalM2Installation() {
         M2Installation m2Installation = new M2Installation(testDirectory)
         m2Installation.generateUserSettingsFile(maven("local_m2"))
         using m2Installation
+        m2Installation
     }
 
     PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {

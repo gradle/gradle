@@ -10,12 +10,17 @@
         <dependency>
             <groupId>group</groupId>
             <artifactId>module1</artifactId>
-            <version>${MODULE1_VERSION}</version> <!-- reference system property-->
+            <version>${MODULE1_VERSION}</version><!-- reference system property-->
         </dependency>
         <dependency>
             <groupId>group</groupId>
             <artifactId>module2</artifactId>
-            <version>${project.version}</version><!--reference project properties -->
+            <version>${project.version}</version><!--reference project property -->
+        </dependency>
+        <dependency>
+            <groupId>group</groupId>
+            <artifactId>module3</artifactId>
+            <version>${module3-version}</version><!--reference profile property -->
         </dependency>
     </dependencies>
     <repositories>
