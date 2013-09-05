@@ -1,3 +1,13 @@
+
+This release continues with on our focus on performance in recent releases. Resolution is more efficient. Tooling API allows faster integration - expect to see
+performance improvements in Android Studio.
+
+Continued with support for native languages, adding C and Assembler to C++.
+
+More dependency management flexibility with component meta-data rules.
+
+Lots of community contributions.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
