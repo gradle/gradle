@@ -46,7 +46,9 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.StandardOutputCapture
+import org.gradle.model.ModelRules
 import org.gradle.model.internal.ModelRegistry
+import org.gradle.model.internal.ModelRegistryBackedModelRules
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
 import org.gradle.util.TestUtil
@@ -101,7 +103,6 @@ class DefaultProjectTest {
     Instantiator instantiatorMock = context.mock(Instantiator)
     SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
-    ModelRegistry modelRegistry = context.mock(ModelRegistry)
 
     @Before
     void setUp() {
@@ -128,6 +129,7 @@ class DefaultProjectTest {
             allowing(projectServiceRegistryFactoryMock).createFor(withParam(notNullValue())); will(returnValue(serviceRegistryMock))
             allowing(serviceRegistryMock).newInstance(TaskContainerInternal); will(returnValue(taskContainerMock))
             allowing(taskContainerMock).getTasksAsDynamicObject(); will(returnValue(new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))))
+            allowing(taskContainerMock).all(withParam(notNullValue()))
             allowing(serviceRegistryMock).get(RepositoryHandler); will(returnValue(repositoryHandlerMock))
             allowing(serviceRegistryMock).get(ConfigurationContainerInternal); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
@@ -149,8 +151,10 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ProcessOperations); will(returnValue(processOperationsMock))
             allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
             allowing(serviceRegistryMock).get(ProjectConfigurationActionContainer); will(returnValue(configureActions))
+            ModelRegistry modelRegistry = context.mock(ModelRegistry)
+            ignoring(modelRegistry)
             allowing(serviceRegistryMock).get(ModelRegistry); will(returnValue(modelRegistry))
-            allowing(modelRegistry).rule(withParam(anything()))
+            allowing(serviceRegistryMock).get(ModelRules); will(returnValue(new ModelRegistryBackedModelRules(modelRegistry)))
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
             allowing(build).getProjectEvaluationBroadcaster();

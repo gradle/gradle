@@ -18,7 +18,6 @@ package org.gradle.configuration.project;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.model.ModelPath;
 
 /**
  * Realizes the project tasks by getting the closed task container from the model registry.
