@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-
 package org.gradle.test.fixtures.maven
 
 import org.gradle.test.fixtures.file.TestFile
 
 /**
- * A fixture for dealing with file Maven repositories.
+ * A fixture for dealing with the Maven Local cache.
  */
-class MavenFileRepository implements MavenRepository {
+class MavenLocalRepository implements MavenRepository {
+
     final TestFile rootDir
 
-    MavenFileRepository(TestFile rootDir) {
+    MavenLocalRepository(TestFile rootDir) {
         this.rootDir = rootDir
     }
 
@@ -33,11 +33,8 @@ class MavenFileRepository implements MavenRepository {
         return rootDir.toURI()
     }
 
-    MavenFileModule module(String groupId, String artifactId, Object version = '1.0') {
+    MavenLocalModule module(String groupId, String artifactId, Object version = '1.0') {
         def artifactDir = rootDir.file("${groupId.replace('.', '/')}/$artifactId/$version")
-        return new MavenFileModule(artifactDir, groupId, artifactId, version as String)
+        return new MavenLocalModule(artifactDir, groupId, artifactId, version as String)
     }
 }
-
-
-

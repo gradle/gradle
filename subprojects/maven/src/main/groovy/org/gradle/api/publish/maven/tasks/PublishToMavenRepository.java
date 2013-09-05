@@ -139,7 +139,11 @@ public class PublishToMavenRepository extends DefaultTask {
         doPublish(publicationInternal, repository);
     }
 
-    private void doPublish(final MavenPublicationInternal publication, final MavenArtifactRepository repository) {
+    protected Factory<LoggingManagerInternal> getLoggingManagerFactory() {
+        return loggingManagerFactory;
+    }
+
+    protected void doPublish(final MavenPublicationInternal publication, final MavenArtifactRepository repository) {
         new PublishOperation(publication, repository) {
             @Override
             protected void publish() throws Exception {
