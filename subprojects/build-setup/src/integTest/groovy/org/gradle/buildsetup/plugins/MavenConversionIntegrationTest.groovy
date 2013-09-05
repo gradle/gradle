@@ -325,7 +325,7 @@ Root project 'webinar-parent'
 
     M2Installation withLocalM2Installation() {
         M2Installation m2Installation = new M2Installation(testDirectory)
-        m2Installation.generateUserSettingsFile(maven("local_m2"))
+        m2Installation.generateUserSettingsFile(mavenLocal("local_m2"))
         using m2Installation
         m2Installation
     }
