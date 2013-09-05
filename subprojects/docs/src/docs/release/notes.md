@@ -24,32 +24,6 @@ For example, the 'gradle clean build' may be faster but 'gradle idea' might get 
 It is because in order to generate the IDE metadata, the 'idea' plugin needs to access the full dependency graph
 and this information is read from the disk.
 
-### Tooling API
-
-This release includes a number of improvements to the tooling API. The tooling API is used by tools such as IDEs, CI servers and other
-applications to execute and query Gradle builds. You can also use the tooling API to embed Gradle in your own applications.
-
-* Information about the build script for a project is now available via the `GradleProject` tooling model.
-* A new `GradleBuild` model provides basic information about a Gradle build without requiring the entire build to be configured,
-  making it a more efficient alternative to the more complete `GradleProject` model.
-* Batch operations can be performed in a single request. This means much faster tooling integrations.
-
-### Early preparations for Gradle 2.0
-
-We've started some initial preparations for a Gradle 2.0 release early next year. At this stage, we're cleaning up the API and marking a
-number of features as deprecated, for removal in Gradle 2.0. You'll find more details below.
-
-Removing unwanted features allows us to reduce the complexity of Gradle, and this means fewer bugs, more features and faster builds for you.
-
-Please be aware that we'll be following our usual feature lifecycle for removing features. Almost every deprecated feature has a non-deprecated replacement
-and this is documented in the deprecation descriptions below. However, some deprecated features do not have a replacement. If you find a feature that
-you use has been deprecated, and there doesn't seem to be a replacement for it that you can use , please let us know as soon as possible via the
-[forums](http://forums.gradle.org).
-
-### New duplicate final handling strategies
-
-TODO - placeholder
-
 ### Component metadata rules
 
 Dependency modules (also called `components`) have metadata associated with them, such as their group, name, version, and dependencies.
@@ -120,6 +94,32 @@ can be updated in your build script.
 
 Note that support for building native binaries is under active development, and this functionality is very likely to be changed and improved in upcoming
 releases.
+
+### New duplicate final handling strategies
+
+TODO - placeholder
+
+### Tooling API
+
+This release includes a number of improvements to the tooling API. The tooling API is used by tools such as IDEs, CI servers and other
+applications to execute and query Gradle builds. You can also use the tooling API to embed Gradle in your own applications.
+
+* Information about the build script for a project is now available via the `GradleProject` tooling model.
+* A new `GradleBuild` model provides basic information about a Gradle build without requiring the entire build to be configured,
+  making it a more efficient alternative to the more complete `GradleProject` model.
+* Batch operations can be performed in a single request. This means much faster tooling integrations.
+
+### Early preparations for Gradle 2.0
+
+We've started some initial preparations for a Gradle 2.0 release early next year. At this stage, we're cleaning up the API and marking a
+number of features as deprecated, for removal in Gradle 2.0. You'll find more details below.
+
+Removing unwanted features allows us to reduce the complexity of Gradle, and this means fewer bugs, more features and faster builds for you.
+
+Please be aware that we'll be following our usual feature lifecycle for removing features. Almost every deprecated feature has a non-deprecated replacement
+and this is documented in the deprecation descriptions below. However, some deprecated features do not have a replacement. If you find a feature that
+you use has been deprecated, and there doesn't seem to be a replacement for it that you can use , please let us know as soon as possible via the
+[forums](http://forums.gradle.org).
 
 <!--
 ### Example new and noteworthy
