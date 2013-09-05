@@ -271,9 +271,18 @@ Reuse the domain object lifecycle mechanism to warn when:
 - Change detection.
 - Persistence, immutable views, etc.
 - Determine an id and display name for a rule.
+- Detect rules which are mutating something outside of scope (eg `publishing { someTask { ... } }`)
+- DSL convenience to define and reference shared values (eg constants)
+- Scopes: project scope, global scope, maybe plugin scope?
+- The rules for a scope may execute in different JVMs or concurrently in the same JVM.
+- Things are private to the scope unless exported
+- Maybe move the settings into the build script in a separate block
+- Some way to statically infer the plugins that are relevant to a scope
+
+Use it:
+
 - Use to build the tooling API models. Don't configure things that aren't required.
 - Use to replace task placeholders.
 - Use to order the various parts of the IDE plugins.
 - Use in the sonar-runner plugin to determine the sonar properties.
-- Detect rules which are mutating something outside of scope (eg `publishing { someTask { ... } }`)
 - Allow tasks to be attached to a model object, for each action that can be performed on that object.
