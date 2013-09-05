@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.test.fixtures.maven.M2Installation
-import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Ignore
@@ -27,7 +27,7 @@ import spock.lang.Ignore
 class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
-    MavenFileRepository m2Repo
+    MavenLocalRepository m2Repo
 
     def "setup"() {
         def m2Installation = new M2Installation(testDirectory)
