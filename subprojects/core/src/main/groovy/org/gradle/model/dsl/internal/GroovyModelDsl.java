@@ -42,8 +42,8 @@ public class GroovyModelDsl implements ModelDsl {
         return new GroovyModelDsl(modelPath == null ? ModelPath.path(name) : modelPath.child(name), modelRules);
     }
 
-    public void configure(Action<?> action) {
-        modelRules.config(modelPath.toString(), action);
+    public void configure(Closure<?> action) {
+        modelRules.config(modelPath.toString(), new ClosureBackedAction<Object>(action));
     }
 
     public ModelDsl propertyMissing(String name) {
@@ -59,7 +59,7 @@ public class GroovyModelDsl implements ModelDsl {
 
         Closure closure = (Closure) args[0];
 
-        get(name).configure(new ClosureBackedAction<Object>(closure));
+        get(name).configure(closure);
 
         return null;
     }

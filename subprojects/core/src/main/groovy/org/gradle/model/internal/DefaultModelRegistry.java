@@ -55,12 +55,16 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public <T> void mutate(String path, List<String> inputPaths, ModelMutator<T> mutator) {
+        mutate(path, new ModelMutation<T>(mutator, toModelPaths(inputPaths)));
+    }
+
+    public <T> void mutate(String path, ModelMutation<T> mutation) {
         ModelPath mutationModelPath = ModelPath.path(path);
         if (store.containsKey(mutationModelPath)) {
             throw new IllegalStateException("model '" + mutationModelPath + "' is finalized");
         }
 
-        mutators.put(mutationModelPath, new ModelMutation<T>(mutator, toModelPaths(inputPaths)));
+        mutators.put(mutationModelPath, mutation);
     }
 
     public <T> T get(String path, Class<T> type) {
@@ -150,25 +154,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (remove) {
                 modelCreationListenerListIterator.remove();
             }
-        }
-    }
-
-    private static class ModelMutation<T> {
-
-        private final ModelMutator<T> mutator;
-        private final ImmutableList<ModelPath> inputPaths;
-
-        public ModelMutation(ModelMutator<T> mutator, ImmutableList<ModelPath> inputPaths) {
-            this.mutator = mutator;
-            this.inputPaths = inputPaths;
-        }
-
-        public ModelMutator<T> getMutator() {
-            return mutator;
-        }
-
-        public ImmutableList<ModelPath> getInputPaths() {
-            return inputPaths;
         }
     }
 

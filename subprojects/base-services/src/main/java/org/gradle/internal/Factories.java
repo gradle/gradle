@@ -24,4 +24,12 @@ public abstract class Factories {
             }
         };
     }
+
+    public static <T> Factory<T> constant(final T item) {
+        return new Factory<T>() {
+            public T create() {
+                return item;
+            }
+        };
+    }
 }

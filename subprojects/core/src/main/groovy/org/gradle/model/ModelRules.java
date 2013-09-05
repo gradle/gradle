@@ -17,6 +17,7 @@
 package org.gradle.model;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Factory;
 
 /**
  * A service for registering model rules.
@@ -26,6 +27,8 @@ import org.gradle.api.Action;
 public interface ModelRules {
 
     <T> void register(String path, T model);
+
+    <T> void register(String path, Class<T> type, Factory<? extends T> model);
 
     <T> void config(String path, Action<T> action);
 

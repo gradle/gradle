@@ -46,6 +46,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.Directory;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -217,11 +218,29 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         final ModelPath tasksModelPath = ModelPath.path(TaskContainerInternal.MODEL_PATH);
         modelRules.register(tasksModelPath.toString(), taskContainer);
+        final Set<String> createdTaskNames = new HashSet<String>();
         taskContainer.all(new Action<Task>() {
             public void execute(Task task) {
-                modelRules.register(tasksModelPath.child(task.getName()).toString(), task);
+                String name = task.getName();
+                if (createdTaskNames.add(name)) {
+                    modelRules.register(tasksModelPath.child(name).toString(), Task.class, new TaskFactory(taskContainer, name));
+                }
             }
         });
+    }
+
+    private static class TaskFactory implements Factory<Task> {
+        private final TaskContainer tasks;
+        private final String name;
+
+        private TaskFactory(TaskContainer tasks, String name) {
+            this.tasks = tasks;
+            this.name = name;
+        }
+
+        public Task create() {
+            return tasks.getByName(name);
+        }
     }
 
     public ProjectInternal getRootProject() {

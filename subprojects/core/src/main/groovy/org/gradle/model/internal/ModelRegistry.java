@@ -24,6 +24,8 @@ public interface ModelRegistry {
 
     public <T> void mutate(String path, List<String> inputPaths, ModelMutator<T> mutator);
 
+    <T> void mutate(String path, ModelMutation<T> mutation);
+
     public <T> T get(String path, Class<T> type);
 
     public void registerListener(ModelCreationListener listener);

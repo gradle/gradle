@@ -19,6 +19,8 @@ package org.gradle.model.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.model.internal.rules.ReflectiveRule;
@@ -39,14 +41,18 @@ public class ModelRegistryBackedModelRules implements ModelRules {
     }
 
     public <T> void register(String path, final T model) {
+        @SuppressWarnings("unchecked") Class<T> aClass = (Class<T>) model.getClass();
+        register(path, aClass, Factories.constant(model));
+    }
+
+    public <T> void register(String path, final Class<T> type, final Factory<? extends T> model) {
         modelRegistry.create(path, ImmutableList.<String>of(), new ModelCreator<T>() {
             public Class<T> getType() {
-                @SuppressWarnings("unchecked") Class<T> aClass = (Class<T>) model.getClass();
-                return aClass;
+                return type;
             }
 
             public T create(Inputs inputs) {
-                return model;
+                return model.create();
             }
         });
     }

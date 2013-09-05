@@ -16,7 +16,7 @@
 
 package org.gradle.model.dsl;
 
-import org.gradle.api.Action;
+import groovy.lang.Closure;
 
 /**
  * Exposes the Groovy level DSL for configuring model elements in a build script.
@@ -25,6 +25,6 @@ public interface ModelDsl {
 
     ModelDsl get(String name);
 
-    void configure(Action<?> action);
+    void configure(Closure<?> closure);
 
 }
