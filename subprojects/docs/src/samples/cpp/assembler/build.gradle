@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-apply plugin: 'cpp'
+apply plugin: 'assembler'
+apply plugin: 'c'
 
 def osName = System.getProperty("os.name").toLowerCase();
 def osx = osName.contains("mac os x") || osName.contains("darwin")

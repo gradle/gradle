@@ -15,7 +15,7 @@
  */
 
 // START SNIPPET apply-plugin
-apply plugin: 'cpp'
+apply plugin: 'c'
 // END SNIPPET apply-plugin
 
 // START SNIPPET sourceSets

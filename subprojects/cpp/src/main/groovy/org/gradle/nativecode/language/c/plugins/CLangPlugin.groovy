@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.nativecode.language.c.plugins
-
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
@@ -23,17 +22,21 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
-import org.gradle.nativecode.base.NativeBinary
-import org.gradle.nativecode.base.NativeDependencySet
-import org.gradle.nativecode.base.SharedLibraryBinary
-import org.gradle.nativecode.base.ToolChainTool
-import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.language.c.CSourceSet
 import org.gradle.nativecode.language.c.internal.DefaultCSourceSet
-import org.gradle.nativecode.language.c.tasks.CCompile
 
 import javax.inject.Inject
 
+/**
+ * Adds core C language support.
+ *
+ * <ul>
+ *     <li>For any {@link FunctionalSourceSet}, adds a conventional {@link CSourceSet} called 'cpp'.</li>
+ *     <li>Establishes a convention for all {@link CSourceSet}s so that sources are located in 'src/<name>/c' and
+ *         headers are located in 'src/<name>/headers'.</li>
+ *     <li>
+ * </ul>
+ */
 @Incubating
 class CLangPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
@@ -52,27 +55,7 @@ class CLangPlugin implements Plugin<ProjectInternal> {
                 applyConventions(project, functionalSourceSet)
             }
         });
-
-        // TODO:DAZ Clean this up (would be simpler if it could just apply to all binaries)
-        project.executables.all {
-            it.binaries.all {
-                ext.cCompiler = new ToolChainTool()
-            }
-        }
-        project.libraries.all {
-            it.binaries.all {
-                ext.cCompiler = new ToolChainTool()
-            }
-        }
-
-        project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
-            binary.source.withType(CSourceSet).all { CSourceSet sourceSet ->
-                def compileTask = createCompileTask(project, binary, sourceSet)
-                binary.builderTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
-            }
-        }
     }
-
 
     private void applyConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
         // Defaults for all C source sets
@@ -83,27 +66,5 @@ class CLangPlugin implements Plugin<ProjectInternal> {
 
         // Create a single C source set
         functionalSourceSet.add(instantiator.newInstance(DefaultCSourceSet.class, "c", functionalSourceSet, project));
-    }
-
-
-    private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
-        def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CCompile) {
-            description = "Compiles the $sourceSet sources of $binary"
-        }
-
-        compileTask.toolChain = binary.toolChain
-        compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
-
-        compileTask.includes sourceSet.exportedHeaders
-        compileTask.source sourceSet.source
-        binary.libs.each { NativeDependencySet deps ->
-            compileTask.includes deps.includeRoots
-        }
-
-        compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
-        compileTask.macros = binary.macros
-        compileTask.compilerArgs = binary.cCompiler.args
-
-        compileTask
     }
 }

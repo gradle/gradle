@@ -30,7 +30,9 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
 
     def "setup"() {
         buildFile << """
-            apply plugin: "cpp"
+            apply plugin: 'assembler'
+            apply plugin: 'c'
+            apply plugin: 'cpp'
 
             libraries {
                 hello {}

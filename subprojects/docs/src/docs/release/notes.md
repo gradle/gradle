@@ -37,6 +37,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 * The incubating ´BuildSetup´ task was renamed to ´InitBuild´.
 * The task ´setupBuild´ provided by the auto-applied BuildSetup plugin was renamed to ´init´.
 
+### 'cpp' plugin changes
+
+* The 'cpp' plugin no longer automatically adds support for C and Assembler sources.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

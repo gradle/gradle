@@ -22,15 +22,20 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
-import org.gradle.nativecode.base.NativeBinary
-import org.gradle.nativecode.base.ToolChainTool
-import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.language.asm.AssemblerSourceSet
 import org.gradle.nativecode.language.asm.internal.DefaultAssemblerSourceSet
-import org.gradle.nativecode.language.asm.tasks.Assemble
 
 import javax.inject.Inject
 
+/**
+ * Adds core Assembler language support.
+ *
+ * <ul>
+ *     <li>For any {@link FunctionalSourceSet}, adds a conventional {@link AssemblerSourceSet} called 'asm'.</li>
+ *     <li>Establishes a convention for all {@link AssemblerSourceSet}s so that sources are located in 'src/<name>/asm'.</li>
+ *     <li>
+ * </ul>
+ */
 @Incubating
 class AssemblerLangPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
@@ -49,25 +54,6 @@ class AssemblerLangPlugin implements Plugin<ProjectInternal> {
                 applyConventions(project, functionalSourceSet)
             }
         });
-
-        // TODO:DAZ Clean this up
-        project.executables.all {
-            it.binaries.all {
-                ext.assembler = new ToolChainTool()
-            }
-        }
-        project.libraries.all {
-            it.binaries.all {
-                ext.assembler = new ToolChainTool()
-            }
-        }
-
-        project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
-            binary.source.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->
-                def compileTask = createAssembleTask(project, binary, sourceSet)
-                binary.builderTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
-            }
-        }
     }
 
     private void applyConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
@@ -78,20 +64,5 @@ class AssemblerLangPlugin implements Plugin<ProjectInternal> {
 
         // Create a single assembler source set
         functionalSourceSet.add(instantiator.newInstance(DefaultAssemblerSourceSet.class, "asm", functionalSourceSet, project));
-    }
-
-    private def createAssembleTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
-        def assembleTask = project.task(binary.namingScheme.getTaskName("assemble", sourceSet.fullName), type: Assemble) {
-            description = "Assembles the $sourceSet sources of $binary"
-        }
-
-        assembleTask.toolChain = binary.toolChain
-
-        assembleTask.source sourceSet.source
-
-        assembleTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
-        assembleTask.assemblerArgs = binary.assembler.args
-
-        assembleTask
     }
 }

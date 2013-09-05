@@ -136,7 +136,7 @@ class CppPluginTest extends Specification {
         link.toolChain == binary.toolChain
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == project.binaries.testExecutable.outputFile
-        link Matchers.dependsOn("assembleTestExecutableTestAsm", "compileTestExecutableTestC", "compileTestExecutableTestCpp")
+        link Matchers.dependsOn("compileTestExecutableTestCpp")
 
         and:
         def lifecycle = project.tasks.testExecutable
@@ -190,7 +190,7 @@ class CppPluginTest extends Specification {
         link.toolChain == sharedLib.toolChain
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == sharedLib.outputFile
-        link Matchers.dependsOn("assembleTestSharedLibraryTestAsm", "compileTestSharedLibraryTestC", "compileTestSharedLibraryTestCpp")
+        link Matchers.dependsOn("compileTestSharedLibraryTestCpp")
 
         and:
         def sharedLibraryTask = project.tasks.testSharedLibrary
@@ -209,7 +209,7 @@ class CppPluginTest extends Specification {
         staticLink.toolChain == staticLib.toolChain
         staticLink.outputFile == staticLib.outputFile
         staticLink.staticLibArgs == ["LIB1", "LIB2"]
-        staticLink Matchers.dependsOn("assembleTestStaticLibraryTestAsm", "compileTestStaticLibraryTestC", "compileTestStaticLibraryTestCpp")
+        staticLink Matchers.dependsOn("compileTestStaticLibraryTestCpp")
 
         and:
         def staticLibraryTask = project.tasks.testStaticLibrary

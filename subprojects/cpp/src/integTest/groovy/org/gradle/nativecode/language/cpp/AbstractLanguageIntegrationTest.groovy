@@ -25,11 +25,18 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
 
     abstract HelloWorldApp getHelloWorldApp()
 
+    def "setup"() {
+        // TODO:DAZ Only apply the required language plugins
+        buildFile << """
+            apply plugin: 'assembler'
+            apply plugin: 'c'
+            apply plugin: 'cpp'
+"""
+    }
+
     def "compile and link executable"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-
             executables {
                 main {}
             }
@@ -53,7 +60,6 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build executable with custom compiler arg"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
             executables {
                 main {
                     binaries.all {
@@ -82,7 +88,6 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build executable with macro defined"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
             executables {
                 main {
                     binaries.all {
@@ -111,8 +116,6 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build shared library and link into executable"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-
             executables {
                 main {}
             }
@@ -145,8 +148,6 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build static library and link into executable"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
-
             executables {
                 main {}
             }

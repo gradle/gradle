@@ -22,17 +22,21 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
-import org.gradle.nativecode.base.NativeBinary
-import org.gradle.nativecode.base.NativeDependencySet
-import org.gradle.nativecode.base.SharedLibraryBinary
-import org.gradle.nativecode.base.ToolChainTool
-import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.language.cpp.CppSourceSet
 import org.gradle.nativecode.language.cpp.internal.DefaultCppSourceSet
-import org.gradle.nativecode.language.cpp.tasks.CppCompile
 
 import javax.inject.Inject
 
+/**
+ * Adds core C++ language support.
+ *
+ * <ul>
+ *     <li>For any {@link FunctionalSourceSet}, adds a conventional {@link CppSourceSet} called 'cpp'.</li>
+ *     <li>Establishes a convention for all {@link CppSourceSet}s so that sources are located in 'src/<name>/cpp' and
+ *         headers are located in 'src/<name>/headers'.</li>
+ *     <li>
+ * </ul>
+ */
 @Incubating
 class CppLangPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
@@ -51,26 +55,6 @@ class CppLangPlugin implements Plugin<ProjectInternal> {
                 applyConventions(project, functionalSourceSet)
             }
         });
-
-        // TODO:DAZ It's ugly that we can't do this as project.binaries.all, but this is the way I could
-        // add the cppCompiler in time to allow it to be configured within the component.binaries.all block.
-        project.executables.all {
-            it.binaries.all { binary ->
-                binary.ext.cppCompiler = new ToolChainTool()
-            }
-        }
-        project.libraries.all {
-            it.binaries.all { binary ->
-                binary.ext.cppCompiler = new ToolChainTool()
-            }
-        }
-
-        project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
-            binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
-                def compileTask = createCompileTask(project, binary, sourceSet)
-                binary.builderTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
-            }
-        }
     }
 
     private void applyConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
@@ -82,26 +66,5 @@ class CppLangPlugin implements Plugin<ProjectInternal> {
 
         // Add a single C++ source set
         functionalSourceSet.add(instantiator.newInstance(DefaultCppSourceSet.class, "cpp", functionalSourceSet, project));
-    }
-
-    private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
-        def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CppCompile) {
-            description = "Compiles the $sourceSet sources of $binary"
-        }
-
-        compileTask.toolChain = binary.toolChain
-        compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
-
-        compileTask.includes sourceSet.exportedHeaders
-        compileTask.source sourceSet.source
-        binary.libs.each { NativeDependencySet deps ->
-            compileTask.includes deps.includeRoots
-        }
-
-        compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
-        compileTask.macros = binary.macros
-        compileTask.compilerArgs = binary.cppCompiler.args
-
-        compileTask
     }
 }

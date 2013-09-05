@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.language.cpp.plugins
+package org.gradle.nativecode.language.c.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
@@ -23,44 +23,43 @@ import org.gradle.nativecode.base.SharedLibraryBinary
 import org.gradle.nativecode.base.ToolChainTool
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.base.plugins.NativeBinariesPlugin
-import org.gradle.nativecode.language.cpp.CppSourceSet
-import org.gradle.nativecode.language.cpp.tasks.CppCompile
+import org.gradle.nativecode.language.c.CSourceSet
+import org.gradle.nativecode.language.c.tasks.CCompile
 import org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin
 import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin
 
 /**
- * A plugin for projects wishing to build native binary components from C++ sources.
+ * A plugin for projects wishing to build native binary components from C sources.
  *
- * <p>Automatically includes the {@link CppLangPlugin} for core C++ support and the {@link NativeBinariesPlugin} for native binary support,
+ * <p>Automatically includes the {@link CLangPlugin} for core C support and the {@link NativeBinariesPlugin} for native binary support,
  * together with the {@link MicrosoftVisualCppPlugin} and {@link GppCompilerPlugin} for core toolchain support.</p>
  *
- * <li>Creates a {@link CppCompile} task for each {@link CppSourceSet} to compile the C++ sources.</li>
+ * <li>Creates a {@link CCompile} task for each {@link CSourceSet} to compile the C sources.</li>
  */
 @Incubating
-class CppPlugin implements Plugin<ProjectInternal> {
+class CPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(MicrosoftVisualCppPlugin)
         project.plugins.apply(GppCompilerPlugin)
 
-        project.plugins.apply(CppLangPlugin)
+        project.plugins.apply(CLangPlugin)
 
-        // TODO:DAZ It's ugly that we can't do this as project.binaries.all, but this is the way I could
-        // add the cppCompiler in time to allow it to be configured within the component.binaries.all block.
+        // TODO:DAZ Clean this up (would be simpler if it could just apply to all binaries)
         project.executables.all {
-            it.binaries.all { binary ->
-                binary.ext.cppCompiler = new ToolChainTool()
+            it.binaries.all {
+                ext.cCompiler = new ToolChainTool()
             }
         }
         project.libraries.all {
-            it.binaries.all { binary ->
-                binary.ext.cppCompiler = new ToolChainTool()
+            it.binaries.all {
+                ext.cCompiler = new ToolChainTool()
             }
         }
 
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
-            binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
+            binary.source.withType(CSourceSet).all { CSourceSet sourceSet ->
                 def compileTask = createCompileTask(project, binary, sourceSet)
                 binary.builderTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
             }
@@ -68,7 +67,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     }
 
     private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
-        def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CppCompile) {
+        def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CCompile) {
             description = "Compiles the $sourceSet sources of $binary"
         }
 
@@ -83,8 +82,9 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
         compileTask.macros = binary.macros
-        compileTask.compilerArgs = binary.cppCompiler.args
+        compileTask.compilerArgs = binary.cCompiler.args
 
         compileTask
     }
+
 }

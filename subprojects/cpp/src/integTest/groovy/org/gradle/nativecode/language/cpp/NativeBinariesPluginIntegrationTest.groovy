@@ -47,6 +47,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
 
         when:
         buildFile << """
+            apply plugin: "c"
             apply plugin: "cpp"
             sources {
                 test {}
@@ -72,6 +73,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
 
         when:
         buildFile << """
+            apply plugin: "c"
             apply plugin: "cpp"
             sources {
                 test {}
@@ -98,6 +100,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
 
         when:
         buildFile << """
+            apply plugin: "c"
             apply plugin: "cpp"
             sources {
                 test {}
@@ -126,6 +129,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
 
         when:
         buildFile << """
+            apply plugin: "c"
             apply plugin: "cpp"
             apply plugin: "java"
 

@@ -43,7 +43,10 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         mainCompileTask = ":compileMainExecutableMain${app.sourceType}"
         libraryCompileTask = ":compileHelloSharedLibraryHello${app.sourceType}"
 
+        // TODO:DAZ Only apply required language plugins
         buildFile << """
+            apply plugin: 'assembler'
+            apply plugin: 'c'
             apply plugin: 'cpp'
 
             executables {

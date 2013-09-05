@@ -50,6 +50,7 @@ class CppPluginIntegrationTest extends AbstractInstalledToolChainIntegrationSpec
     def "build and execute program with non-conventional source layout"() {
         given:
         buildFile << """
+            apply plugin: "c"
             apply plugin: "cpp"
             sources {
                 main {
