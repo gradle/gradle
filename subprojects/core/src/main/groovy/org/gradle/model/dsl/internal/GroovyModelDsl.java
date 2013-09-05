@@ -18,7 +18,6 @@ package org.gradle.model.dsl.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
-import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRules;
