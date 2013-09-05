@@ -196,6 +196,13 @@ the `GradleBuild` task type. The third way is to use the `GradleLauncher` API. T
 
 A number of constants on `ArtifactRepositoryContainer` have been deprecated and will be removed in Gradle 2.0.
 
+### Unused classes
+
+The following classes will be removed in Gradle 2.0. They are no longer used:
+
+* `IllegalOperationAtExecutionTimeException`
+* `AntJavadoc`
+
 ### Open API classes
 
 The Open API has been deprecated for over two years (since Gradle 1.0-milestone-4) and is due to be removed in Gradle 2.0. The entry points to the
@@ -203,13 +210,6 @@ Open API were marked deprecated at that time.
 
 To make the deprecation of the Open API more explicit, all of the Open API classes are now marked as deprecated, in addition to the entry points. All of the
 Open API classes will be removed in Gradle 2.0.
-
-### Unused classes
-
-The following classes will be removed in Gradle 2.0. They are no longer used:
-
-* `IllegalOperationAtExecutionTimeException`
-* `AntJavadoc`
 
 <!--
 ### Example deprecation
@@ -287,6 +287,14 @@ the new Gradle DSL for multiple source sets.
     </tr>
 </table>
 
+### The order of resolved files and artifacts is different
+
+The order of resolved artifacts and resolved files has changed, however the change is transparent to the vast majority of builds.
+This change was necessary to implement important performance improvements mentioned early in the release notes.
+This change may impact the order of files of a resolved configuration, consequently, it may impact the classpaths.
+However, in majority of cases, the change will be transparent because Gradle continues to respect the order of declared dependencies
+and it is reflected in the order of resolved artifacts and files.
+
 ### Changes to handling of Ivy `DependencyResolver` implementations
 
 In order to improve performance and heap usage during dependency resolution, this release includes some internal changes to the way meta-data is
@@ -295,14 +303,6 @@ using Gradle's parser implementations. This means that these resolvers will no l
 meta-data handling. The changes should generally be backwards compatible, however.
 
 Note that using Ivy `DependencyResolver` implementations is deprecated, and we recommend that you use Gradle's repository implementations instead.
-
-### The order of resolved files and artifacts is different
-
-The order of resolved artifacts and resolved files has changed, however the change is transparent to the vast majority of builds.
-This change was necessary to implement important performance improvements mentioned early in the release notes.
-This change may impact the order of files of a resolved configuration, consequently, it may impact the classpaths.
-However, in majority of cases, the change will be transparent because Gradle continues to respect the order of declared dependencies
-and it is reflected in the order of resolved artifacts and files.
 
 ### Ivy `DependencyResolver` implementations returned by Gradle APIs no longer support `latestStrategy` methods
 
