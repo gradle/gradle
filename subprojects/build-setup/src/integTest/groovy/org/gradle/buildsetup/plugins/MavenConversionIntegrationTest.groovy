@@ -242,7 +242,7 @@ it.exclude group: '*', module: 'badArtifact'
         expectModule(repo, "group", "module1", module1Version);
         expectModule(repo, "group", "module2", module2Version);
         expectModule(repo, "group", "module3", module3Version);
-        System.setProperty("MODULE1_VERSION", "1.0")
+        executer.withArgument("-DMODULE1_VERSION=1.0")
         withLocalM2Installation().globalSettingsFile.createFile().text = """
 <settings>
     <profiles>
