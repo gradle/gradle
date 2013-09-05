@@ -28,7 +28,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     final String groupId
     final String artifactId
     final String version
-    private String parentPomSection
+    String parentPomSection
     String type = 'jar'
     String packaging
     int publishCount = 1
@@ -115,10 +115,6 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     MavenModule artifact(Map<String, ?> options) {
         artifacts << options
         return this
-    }
-
-    String getParentPomSection() {
-        return parentPomSection
     }
 
     String getPackaging() {
@@ -338,7 +334,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return this
     }
 
-    private File publishArtifact(Map<String, ?> artifact) {
+    File publishArtifact(Map<String, ?> artifact) {
         def artifactFile = artifactFile(artifact)
         if (type == 'pom') {
             return artifactFile

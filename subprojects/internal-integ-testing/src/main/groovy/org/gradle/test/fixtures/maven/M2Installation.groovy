@@ -37,8 +37,8 @@ class M2Installation implements Action<GradleExecuter> {
         globalSettingsFile = globalMavenDirectory.file("conf/settings.xml")
     }
 
-    MavenLocalRepository mavenRepo() {
-        new MavenLocalRepository(userM2Directory.file("repository"))
+    MavenFileRepository mavenRepo() {
+        new MavenFileRepository(userM2Directory.file("repository"))
     }
 
     M2Installation generateUserSettingsFile(MavenFileRepository userRepository) {
