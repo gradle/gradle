@@ -134,7 +134,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants(* (['projectA-1.2.jar'] + jars))
 
         where:
-        getFunction                    | jars
+        rule                    | jars
         "a"                     | ["projectB-a-1.5.jar", "projectC-1.7.jar"]
         "a->b"                  | ["projectB-b-1.5.jar", "projectD-1.7.jar"]
         "a,b->b"                | ["projectB-b-1.5.jar", "projectD-1.7.jar"]
