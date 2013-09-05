@@ -86,7 +86,11 @@ class MavenPublishPomCustomizationIntegTest extends AbstractIntegrationSpec {
                         }
                     }
                 }
-                generatePomFileForEmptyMavenPublication {
+
+            }
+
+            model {
+                tasks.generatePomFileForEmptyMavenPublication {
                     destination = 'build/generated-pom.xml'
                 }
             }

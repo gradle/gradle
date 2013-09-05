@@ -19,8 +19,8 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.ClassGenerator;
@@ -59,6 +59,10 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.model.ModelRules;
+import org.gradle.model.internal.DefaultModelRegistry;
+import org.gradle.model.internal.ModelRegistry;
+import org.gradle.model.internal.ModelRegistryBackedModelRules;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
@@ -168,6 +172,14 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
         return get(DependencyResolutionServices.class).getComponentMetadataHandler();
     }
 
+    protected ModelRegistry createModelRegistry() {
+        return new DefaultModelRegistry();
+    }
+
+    protected ModelRules createModelRules() {
+        return get(Instantiator.class).newInstance(ModelRegistryBackedModelRules.class, get(ModelRegistry.class));
+    }
+
     protected ScriptHandlerInternal createScriptHandler() {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
                 get(DependencyManagementServices.class),
@@ -192,7 +204,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
 
     public ServiceRegistryFactory createFor(Object domainObject) {
         if (domainObject instanceof TaskInternal) {
-            return new TaskScopeServices(this, project, (TaskInternal)domainObject);
+            return new TaskScopeServices(this, project, (TaskInternal) domainObject);
         }
         throw new UnsupportedOperationException();
     }

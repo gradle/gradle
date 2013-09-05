@@ -20,8 +20,8 @@ publishing {
     }
 }
 // START SNIPPET generate
-publishing {
-    generateDescriptorFileForIvyCustomPublication {
+model {
+    tasks.generateDescriptorFileForIvyCustomPublication {
         destination = file("$buildDir/generated-ivy.xml")
     }
 }

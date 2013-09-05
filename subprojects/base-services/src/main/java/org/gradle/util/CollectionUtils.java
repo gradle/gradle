@@ -37,7 +37,21 @@ public abstract class CollectionUtils {
         return null;
     }
 
+    public static <T> T findFirst(T[] source, Spec<? super T> filter) {
+        for (T thing : source) {
+            if (filter.isSatisfiedBy(thing)) {
+                return thing;
+            }
+        }
+
+        return null;
+    }
+
     public static <T> boolean any(Iterable<? extends T> source, Spec<? super T> filter) {
+        return findFirst(source, filter) != null;
+    }
+
+    public static <T> boolean any(T[] source, Spec<? super T> filter) {
         return findFirst(source, filter) != null;
     }
 

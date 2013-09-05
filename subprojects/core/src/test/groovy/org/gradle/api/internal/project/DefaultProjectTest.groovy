@@ -46,6 +46,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.StandardOutputCapture
+import org.gradle.model.internal.ModelRegistry
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
 import org.gradle.util.TestUtil
@@ -100,6 +101,7 @@ class DefaultProjectTest {
     Instantiator instantiatorMock = context.mock(Instantiator)
     SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
+    ModelRegistry modelRegistry = context.mock(ModelRegistry)
 
     @Before
     void setUp() {
@@ -147,6 +149,8 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ProcessOperations); will(returnValue(processOperationsMock))
             allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
             allowing(serviceRegistryMock).get(ProjectConfigurationActionContainer); will(returnValue(configureActions))
+            allowing(serviceRegistryMock).get(ModelRegistry); will(returnValue(modelRegistry))
+            allowing(modelRegistry).rule(withParam(anything()))
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
             allowing(build).getProjectEvaluationBroadcaster();

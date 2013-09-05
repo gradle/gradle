@@ -34,6 +34,7 @@ import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.logging.StandardOutputCapture;
+import org.gradle.model.internal.ModelRegistry;
 
 public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider {
     ProjectInternal getParent();
@@ -75,4 +76,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
     ExtensionContainerInternal getExtensions();
 
     ProjectConfigurationActionContainer getConfigurationActions();
+
+    ModelRegistry getModelRegistry();
 }

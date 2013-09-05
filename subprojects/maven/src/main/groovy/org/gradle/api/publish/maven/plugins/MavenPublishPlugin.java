@@ -24,16 +24,15 @@ import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.MavenPublishTaskModelRule;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
-import org.gradle.api.publish.maven.internal.plugins.GeneratePomTaskCreator;
-import org.gradle.api.publish.maven.internal.plugins.MavenPublishDynamicTaskCreator;
-import org.gradle.api.publish.maven.internal.plugins.MavenPublishLocalDynamicTaskCreator;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.ModelRules;
 
 import javax.inject.Inject;
 
@@ -50,12 +49,14 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
+    private final ModelRules modelRules;
 
     @Inject
-    public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver) {
+    public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver, ModelRules modelRules) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
+        this.modelRules = modelRules;
     }
 
     public void apply(final Project project) {
@@ -67,24 +68,15 @@ public class MavenPublishPlugin implements Plugin<Project> {
         publishLocalLifecycleTask.setDescription("Publishes all Maven publications produced by this project to the local Maven cache.");
         publishLocalLifecycleTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
 
+        // Can't move this to rules yet, because it has to happen before user deferred configurable actions
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             public void execute(PublishingExtension extension) {
                 // Register factory for MavenPublication
                 extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
-
-                // Create generatePom tasks for any Maven publication
-                GeneratePomTaskCreator descriptorGenerationTaskCreator = new GeneratePomTaskCreator(project);
-                descriptorGenerationTaskCreator.monitor(extension.getPublications());
-
-                // Create publish tasks automatically for any Maven publication and repository combinations
-                MavenPublishDynamicTaskCreator publishTaskCreator = new MavenPublishDynamicTaskCreator(tasks, publishLifecycleTask);
-                publishTaskCreator.monitor(extension.getPublications(), extension.getRepositories());
-
-                // Create install tasks automatically for any Maven publication
-                MavenPublishLocalDynamicTaskCreator publishLocalTaskCreator = new MavenPublishLocalDynamicTaskCreator(tasks, publishLocalLifecycleTask);
-                publishLocalTaskCreator.monitor(extension.getPublications());
             }
         });
+
+        modelRules.rule(new MavenPublishTaskModelRule(project, publishLifecycleTask, publishLocalLifecycleTask));
     }
 
     private class MavenPublicationFactory implements NamedDomainObjectFactory<MavenPublication> {

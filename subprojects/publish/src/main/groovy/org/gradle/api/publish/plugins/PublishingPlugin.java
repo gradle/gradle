@@ -16,16 +16,20 @@
 
 package org.gradle.api.publish.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
-import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.ModelPath;
+import org.gradle.model.ModelRule;
+import org.gradle.model.ModelRules;
 
 import javax.inject.Inject;
 
@@ -41,30 +45,35 @@ public class PublishingPlugin implements Plugin<Project> {
     public static final String PUBLISH_LIFECYCLE_TASK_NAME = "publish";
 
     private final Instantiator instantiator;
-    private final ProjectConfigurationActionContainer configurationActions;
+    private final ModelRules modelRules;
     private final ArtifactPublicationServices publicationServices;
 
     @Inject
-    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ProjectConfigurationActionContainer configurationActions) {
+    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ModelRules modelRules) {
         this.publicationServices = publicationServices;
         this.instantiator = instantiator;
-        this.configurationActions = configurationActions;
+        this.modelRules = modelRules;
     }
 
     public void apply(final Project project) {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
-        project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
+
+        // TODO Registering an extension should register it with the model registry as well
+        PublishingExtension extension = project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
+
+        ModelPath extensionModelPath = ModelPath.path(PublishingExtension.NAME);
+
+        modelRules.register(extensionModelPath.toString(), extension);
+
+        modelRules.rule(new ModelRule() {
+            public void triggerDeferredConfigurables(PublishingExtension publishingExtension) {
+                project.getExtensions().getByType(DefaultPublishingExtension.class);
+            }
+        });
 
         Task publishLifecycleTask = project.getTasks().create(PUBLISH_LIFECYCLE_TASK_NAME);
         publishLifecycleTask.setDescription("Publishes all publications produced by this project.");
         publishLifecycleTask.setGroup(PUBLISH_TASK_GROUP);
-
-        configurationActions.add(new Action<ProjectInternal>() {
-            public void execute(ProjectInternal projectInternal) {
-                // Trigger the configuration of the publishing extension
-                project.getExtensions().getByType(DefaultPublishingExtension.class);
-            }
-        });
     }
 }

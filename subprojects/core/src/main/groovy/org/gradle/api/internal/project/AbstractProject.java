@@ -59,6 +59,11 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
+import org.gradle.model.ModelPath;
+import org.gradle.model.ModelRules;
+import org.gradle.model.dsl.ModelDsl;
+import org.gradle.model.dsl.internal.GroovyModelDsl;
+import org.gradle.model.internal.ModelRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
@@ -147,6 +152,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private ProjectConfigurationActionContainer configurationActions;
 
+    private final ModelRegistry modelRegistry;
+    private final ModelRules modelRules;
+
     private String description;
 
     private final Path path;
@@ -196,6 +204,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         softwareComponentContainer = services.get(SoftwareComponentContainer.class);
         scriptPluginFactory = services.get(ScriptPluginFactory.class);
         configurationActions = services.get(ProjectConfigurationActionContainer.class);
+        modelRegistry = services.get(ModelRegistry.class);
+        modelRules = services.get(ModelRules.class);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {
@@ -204,6 +214,14 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
+
+        final ModelPath tasksModelPath = ModelPath.path(TaskContainerInternal.MODEL_PATH);
+        modelRules.register(tasksModelPath.toString(), taskContainer);
+        taskContainer.all(new Action<Task>() {
+            public void execute(Task task) {
+                modelRules.register(tasksModelPath.child(task.getName()).toString(), task);
+            }
+        });
     }
 
     public ProjectInternal getRootProject() {
@@ -590,7 +608,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         DeprecationLogger.nagUserOfDiscontinuedMethod("Project.dependsOnChildren()");
         return DeprecationLogger.whileDisabled(new Factory<Project>() {
             public Project create() {
-               return dependsOnChildren(false);
+                return dependsOnChildren(false);
             }
         });
     }
@@ -927,6 +945,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return configurationActions;
     }
 
+    public ModelRegistry getModelRegistry() {
+        return modelRegistry;
+    }
+
     @Override
     protected ScriptPluginFactory getScriptPluginFactory() {
         return scriptPluginFactory;
@@ -958,4 +980,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return (ExtensionContainerInternal) getConvention();
     }
 
+    // This is here temporarily as a quick way to expose it in the build script
+    // Longer term it will not be available via Project, but be only available in a build script
+    public void model(Action<? super ModelDsl> action) {
+        action.execute(new GroovyModelDsl(modelRules));
+    }
 }
