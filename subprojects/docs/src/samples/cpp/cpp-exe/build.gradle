@@ -21,13 +21,13 @@ executables {
 binaries.withType(ExecutableBinary) { binary ->
     def linkTask = tasks["link${binary.name.capitalize()}"]
     def stripTask = task("strip${binary.name.capitalize()}") {
-        builtBy linkTask
+        dependsOn linkTask
         doFirst {
             if (binary.toolChain in Gcc) {
                 ["strip", linkTask.outputFile].execute()
             }
         }
     }
-    binary.dependsOn stripTask
+    binary.builtBy stripTask
 }
 // END SNIPPET strip
