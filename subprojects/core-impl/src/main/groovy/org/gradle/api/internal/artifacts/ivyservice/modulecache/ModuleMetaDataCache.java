@@ -25,15 +25,15 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepo
 
 import java.math.BigInteger;
 
-public interface ModuleDescriptorCache {
-    CachedModuleDescriptor cacheMissing(ModuleVersionRepository repository, ModuleVersionIdentifier id, boolean changing);
+public interface ModuleMetaDataCache {
+    CachedMetaData cacheMissing(ModuleVersionRepository repository, ModuleVersionIdentifier id, boolean changing);
 
-    CachedModuleDescriptor cacheMetaData(ModuleVersionRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource);
+    CachedMetaData cacheMetaData(ModuleVersionRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource);
 
     // TODO:DAZ Should not need a resolver to parse the cached descriptors: descriptor should be self-contained.
-    CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver);
+    CachedMetaData getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver);
 
-    interface CachedModuleDescriptor {
+    interface CachedMetaData {
         ResolvedModuleVersion getModuleVersion();
 
         ModuleDescriptor getModuleDescriptor();

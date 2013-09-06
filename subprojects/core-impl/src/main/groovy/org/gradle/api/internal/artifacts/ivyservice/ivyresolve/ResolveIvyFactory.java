@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
@@ -38,7 +38,7 @@ import org.gradle.util.WrapUtil;
 
 public class ResolveIvyFactory {
     private final ModuleResolutionCache moduleResolutionCache;
-    private final ModuleDescriptorCache moduleDescriptorCache;
+    private final ModuleMetaDataCache moduleMetaDataCache;
     private final CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex;
     private final CacheLockingManager cacheLockingManager;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
@@ -47,12 +47,12 @@ public class ResolveIvyFactory {
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
 
-    public ResolveIvyFactory(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
+    public ResolveIvyFactory(ModuleResolutionCache moduleResolutionCache, ModuleMetaDataCache moduleMetaDataCache,
                              CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                              CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride,
                              TimeProvider timeProvider, InMemoryDependencyMetadataCache inMemoryCache, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.moduleResolutionCache = moduleResolutionCache;
-        this.moduleDescriptorCache = moduleDescriptorCache;
+        this.moduleMetaDataCache = moduleMetaDataCache;
         this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
         this.cacheLockingManager = cacheLockingManager;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
@@ -86,7 +86,7 @@ public class ResolveIvyFactory {
             } else {
                 ModuleVersionRepository wrapperRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
                 wrapperRepository = startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
-                localAwareRepository = new CachingModuleVersionRepository(wrapperRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
+                localAwareRepository = new CachingModuleVersionRepository(wrapperRepository, moduleResolutionCache, moduleMetaDataCache, artifactAtRepositoryCachedResolutionIndex,
                         parentLookupResolver, configuration.getResolutionStrategy().getCachePolicy(), timeProvider);
             }
             if (moduleVersionRepository.isDynamicResolveMode()) {

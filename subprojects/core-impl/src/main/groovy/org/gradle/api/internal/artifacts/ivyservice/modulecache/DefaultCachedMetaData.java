@@ -25,14 +25,14 @@ import org.gradle.internal.TimeProvider;
 
 import java.math.BigInteger;
 
-class DefaultCachedModuleDescriptor implements ModuleDescriptorCache.CachedModuleDescriptor {
+class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
     private final ModuleDescriptor moduleDescriptor;
     private final ModuleSource moduleSource;
     private final BigInteger descriptorHash;
     private final boolean isChangingModule;
     private final long ageMillis;
 
-    public DefaultCachedModuleDescriptor(ModuleDescriptorCacheEntry entry, ModuleDescriptor moduleDescriptor, TimeProvider timeProvider) {
+    public DefaultCachedMetaData(ModuleDescriptorCacheEntry entry, ModuleDescriptor moduleDescriptor, TimeProvider timeProvider) {
         this.moduleDescriptor = moduleDescriptor;
         this.moduleSource = entry.moduleSource;
         this.isChangingModule = entry.isChanging;

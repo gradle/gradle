@@ -42,8 +42,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterRes
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleDescriptorCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectModuleRegistry;
@@ -187,8 +187,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         );
     }
 
-    protected ModuleDescriptorCache createModuleDescriptorCache() {
-        return new DefaultModuleDescriptorCache(
+    protected ModuleMetaDataCache createModuleDescriptorCache() {
+        return new DefaultModuleMetaDataCache(
                 get(ArtifactCacheMetaData.class),
                 get(BuildCommencedTimeProvider.class),
                 get(CacheLockingManager.class)
@@ -274,7 +274,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
                 get(ModuleResolutionCache.class),
-                get(ModuleDescriptorCache.class),
+                get(ModuleMetaDataCache.class),
                 get(ArtifactAtRepositoryCachedArtifactIndex.class),
                 get(CacheLockingManager.class),
                 startParameterResolutionOverride,

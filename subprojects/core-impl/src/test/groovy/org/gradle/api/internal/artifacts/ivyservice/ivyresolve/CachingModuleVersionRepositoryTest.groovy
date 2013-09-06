@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePoli
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
@@ -34,7 +34,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
 
     final realRepo = Mock(ModuleVersionRepository)
     final moduleResolutionCache = Mock(ModuleResolutionCache)
-    final moduleDescriptorCache = Mock(ModuleDescriptorCache)
+    final moduleDescriptorCache = Mock(ModuleMetaDataCache)
     final artifactAtRepositoryCache = Mock(CachedArtifactIndex)
     final resolver = Mock(DependencyToModuleVersionResolver)
     final cachePolicy = Mock(CachePolicy)

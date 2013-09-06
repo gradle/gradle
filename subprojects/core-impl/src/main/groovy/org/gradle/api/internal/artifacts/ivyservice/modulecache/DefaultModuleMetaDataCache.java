@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.math.BigInteger;
 
-public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleDescriptorCache.class);
+public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleMetaDataCache.class);
 
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
@@ -48,7 +48,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     private final ModuleDescriptorStore moduleDescriptorStore;
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> cache;
 
-    public DefaultModuleDescriptorCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultModuleMetaDataCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
@@ -68,31 +68,31 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         return cacheLockingManager.createCache(artifactResolutionCacheFile, new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
     }
 
-    public CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver) {
+    public CachedMetaData getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver) {
         ModuleDescriptorCacheEntry moduleDescriptorCacheEntry = getCache().get(createKey(repository, moduleVersionIdentifier));
         if (moduleDescriptorCacheEntry == null) {
             return null;
         }
         if (moduleDescriptorCacheEntry.isMissing) {
-            return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, null, timeProvider);
+            return new DefaultCachedMetaData(moduleDescriptorCacheEntry, null, timeProvider);
         }
         ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleVersionIdentifier, resolver);
         if (descriptor == null) {
             // Descriptor file has been manually deleted - ignore the entry
             return null;
         }
-        return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, descriptor, timeProvider);
+        return new DefaultCachedMetaData(moduleDescriptorCacheEntry, descriptor, timeProvider);
     }
 
-    public CachedModuleDescriptor cacheMissing(ModuleVersionRepository repository, ModuleVersionIdentifier id, boolean changing) {
+    public CachedMetaData cacheMissing(ModuleVersionRepository repository, ModuleVersionIdentifier id, boolean changing) {
         return cacheModuleDescriptor(repository, id, null, null, changing);
     }
 
-    public CachedModuleDescriptor cacheMetaData(ModuleVersionRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource) {
+    public CachedMetaData cacheMetaData(ModuleVersionRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource) {
         return cacheModuleDescriptor(repository, metaData.getId(), metaData.getDescriptor(), moduleSource, metaData.isChanging());
     }
 
-    public CachedModuleDescriptor cacheModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleSource moduleSource, boolean isChanging) {
+    public CachedMetaData cacheModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleSource moduleSource, boolean isChanging) {
         ModuleDescriptorCacheEntry entry;
         if (moduleDescriptor == null) {
             LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", moduleVersionIdentifier, isChanging);
@@ -104,7 +104,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
             entry = createEntry(isChanging, resource.getSha1(), moduleSource);
             getCache().put(createKey(repository, moduleVersionIdentifier), entry);
         }
-        return new DefaultCachedModuleDescriptor(entry, null, timeProvider);
+        return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
     private RevisionKey createKey(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
