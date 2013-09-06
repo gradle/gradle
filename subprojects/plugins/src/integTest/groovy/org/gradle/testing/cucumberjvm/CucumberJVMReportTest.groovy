@@ -19,6 +19,7 @@ class CucumberJVMReportTest extends AbstractIntegrationSpec {
             }
             test {
                testLogging.showStandardStreams = true
+               testLogging.events  'started', 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
                reports.junitXml.enabled = false
                reports.html.enabled = false
             }
