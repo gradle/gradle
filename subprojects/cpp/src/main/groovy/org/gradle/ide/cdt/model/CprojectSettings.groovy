@@ -18,11 +18,11 @@ package org.gradle.ide.cdt.model
 import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativecode.base.Executable
+import org.gradle.binaries.nativebinaries.Executable
 import org.gradle.language.HeaderExportingSourceSet
-import org.gradle.nativecode.base.Library
-import org.gradle.nativecode.base.NativeComponent
-import org.gradle.nativecode.base.NativeDependencySet
+import org.gradle.binaries.nativebinaries.Library
+import org.gradle.binaries.nativebinaries.NativeComponent
+import org.gradle.binaries.nativebinaries.NativeDependencySet
 import org.gradle.language.cpp.CppSourceSet
 
 /**

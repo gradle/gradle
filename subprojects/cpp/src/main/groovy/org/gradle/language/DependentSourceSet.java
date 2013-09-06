@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * A source set that depends on one or more {@link org.gradle.nativecode.base.NativeDependencySet}s to be built.
+ * A source set that depends on one or more {@link org.gradle.binaries.nativebinaries.NativeDependencySet}s to be built.
  */
 @Incubating
 public interface DependentSourceSet {
@@ -34,9 +34,9 @@ public interface DependentSourceSet {
      * Adds a library that this source set requires. This method accepts the following types:
      *
      * <ul>
-     *     <li>A {@link org.gradle.nativecode.base.Library}</li>
-     *     <li>A {@link org.gradle.nativecode.base.LibraryBinary}</li>
-     *     <li>A {@link org.gradle.nativecode.base.NativeDependencySet}</li>
+     *     <li>A {@link org.gradle.binaries.nativebinaries.Library}</li>
+     *     <li>A {@link org.gradle.binaries.nativebinaries.LibraryBinary}</li>
+     *     <li>A {@link org.gradle.binaries.nativebinaries.NativeDependencySet}</li>
      * </ul>
      */
     void lib(Object library);

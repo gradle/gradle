@@ -66,23 +66,23 @@
     <section>
         <title>Component model</title>
         <para>
-            A native binary project defines a set of <apilink class="org.gradle.nativecode.base.Executable"/> and <apilink class="org.gradle.nativecode.base.Library"/> components,
-            each of which Gradle maps to a number of <apilink class="org.gradle.nativecode.base.NativeBinary"/> outputs.
+            A native binary project defines a set of <apilink class="org.gradle.binaries.nativebinaries.Executable"/> and <apilink class="org.gradle.binaries.nativebinaries.Library"/> components,
+            each of which Gradle maps to a number of <apilink class="org.gradle.binaries.nativebinaries.NativeBinary"/> outputs.
             For each <literal>executable</literal> or <literal>library</literal> defined, Gradle adds a <apilink class="org.gradle.language.base.FunctionalSourceSet"/> with the same name.
             Each of these functional source sets will contain a language-specific source set for each of the languages supported by the project.
         </para>
         <para>
             To build either a static or shared native library binary,
-            a <apilink class="org.gradle.nativecode.base.Library"/> component is added to the <literal>libraries</literal> container.
-            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativecode.base.SharedLibraryBinary"/>
-            and at least one <apilink class="org.gradle.nativecode.base.StaticLibraryBinary"/>.
+            a <apilink class="org.gradle.binaries.nativebinaries.Library"/> component is added to the <literal>libraries</literal> container.
+            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.binaries.nativebinaries.SharedLibraryBinary"/>
+            and at least one <apilink class="org.gradle.binaries.nativebinaries.StaticLibraryBinary"/>.
         </para>
         <sample id="cppLibraries" dir="nativeBinary/c" title="Defining a library component">
             <sourcefile file="build.gradle" snippet="libraries"/>
         </sample>
         <para>
             To build an executable binary,
-            an <apilink class="org.gradle.nativecode.base.Executable"/> component is added to the <literal>executables</literal> container
+            an <apilink class="org.gradle.binaries.nativebinaries.Executable"/> component is added to the <literal>executables</literal> container
             and associated with a set of sources.
         </para>
         <sample id="cppExecutables" dir="nativeBinary/c" title="Defining executable components">
@@ -93,7 +93,7 @@
     <section>
         <title>Tasks</title>
         <para>
-            For each <apilink class="org.gradle.nativecode.base.NativeBinary"/> that can be produced by a build,
+            For each <apilink class="org.gradle.binaries.nativebinaries.NativeBinary"/> that can be produced by a build,
             a single <literal>lifecycle task</literal> is constructed that can be used to create that binary, together with a set of sub-tasks that do the actual
             work of compiling, linking or assembling the binary.
         </para>
@@ -102,13 +102,13 @@
                 <tr><td>Component Type</td><td>Native Binary Type</td><td>Lifecycle task</td><td>Location of created binary</td></tr>
             </thread>
             <tr>
-                <td><apilink class="org.gradle.nativecode.base.Executable"/></td><td><apilink class="org.gradle.nativecode.base.ExecutableBinary"/></td><td><literal>mainExecutable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable></filename></td>
+                <td><apilink class="org.gradle.binaries.nativebinaries.Executable"/></td><td><apilink class="org.gradle.binaries.nativebinaries.ExecutableBinary"/></td><td><literal>mainExecutable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable></filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativecode.base.Library"/></td><td><apilink class="org.gradle.nativecode.base.SharedLibraryBinary"/></td><td><literal>mainSharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/lib<replaceable>$project.name</replaceable>.so</filename></td>
+                <td><apilink class="org.gradle.binaries.nativebinaries.Library"/></td><td><apilink class="org.gradle.binaries.nativebinaries.SharedLibraryBinary"/></td><td><literal>mainSharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/lib<replaceable>$project.name</replaceable>.so</filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativecode.base.Library"/></td><td><apilink class="org.gradle.nativecode.base.StaticLibraryBinary"/></td><td><literal>mainStaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable>.a</filename></td>
+                <td><apilink class="org.gradle.binaries.nativebinaries.Library"/></td><td><apilink class="org.gradle.binaries.nativebinaries.StaticLibraryBinary"/></td><td><literal>mainStaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable>.a</filename></td>
             </tr>
         </table>
 
@@ -215,7 +215,7 @@
             <sourcefile file="build.gradle" snippet="all-binaries"/>
         </sample>
         <para>
-            Each binary is associated with a particular <apilink class="org.gradle.nativecode.base.ToolChain"/>, allowing settings to be targeted based on
+            Each binary is associated with a particular <apilink class="org.gradle.binaries.nativebinaries.ToolChain"/>, allowing settings to be targeted based on
             this value.
         </para>
         <para>

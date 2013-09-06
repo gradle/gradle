@@ -475,31 +475,31 @@
         <table>
             <title>Native component core types</title>
             <tr>
-                <td>org.gradle.nativecode.base.NativeComponent</td>
+                <td>org.gradle.binaries.nativebinaries.NativeComponent</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.Executable</td>
+                <td>org.gradle.binaries.nativebinaries.Executable</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.Library</td>
+                <td>org.gradle.binaries.nativebinaries.Library</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.NativeBinary</td>
+                <td>org.gradle.binaries.nativebinaries.NativeBinary</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.ExecutableBinary</td>
+                <td>org.gradle.binaries.nativebinaries.ExecutableBinary</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.SharedLibraryBinary</td>
+                <td>org.gradle.binaries.nativebinaries.SharedLibraryBinary</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.StaticLibraryBinary</td>
+                <td>org.gradle.binaries.nativebinaries.StaticLibraryBinary</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.ToolChain</td>
+                <td>org.gradle.binaries.nativebinaries.ToolChain</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.ToolChainRegistry</td>
+                <td>org.gradle.binaries.nativebinaries.ToolChainRegistry</td>
             </tr>
             <tr>
                 <td>org.gradle.language.assembler.AssemblerSourceSet</td>
@@ -518,25 +518,25 @@
         <table>
             <title>Native component task and plugin types</title>
             <tr>
-                <td>org.gradle.nativecode.language.cpp.tasks.CppCompile</td>
+                <td>org.gradle.binaries.language.cpp.tasks.CppCompile</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.language.c.tasks.CCompile</td>
+                <td>org.gradle.binaries.language.c.tasks.CCompile</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.language.asm.tasks.Assemble</td>
+                <td>org.gradle.binaries.language.asm.tasks.Assemble</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.tasks.LinkExecutable</td>
+                <td>org.gradle.binaries.nativebinaries.tasks.LinkExecutable</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.tasks.LinkSharedLibrary</td>
+                <td>org.gradle.binaries.nativebinaries.tasks.LinkSharedLibrary</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.tasks.CreateStaticLibrary</td>
+                <td>org.gradle.binaries.nativebinaries.tasks.CreateStaticLibrary</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.base.tasks.InstallExecutable</td>
+                <td>org.gradle.binaries.nativebinaries.tasks.InstallExecutable</td>
             </tr>
         </table>
     </section>
