@@ -16,16 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfigurationMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
+import org.gradle.util.CollectionUtils;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     private static final List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
@@ -36,9 +34,15 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     private boolean metaDataOnly;
     private String status;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
+    private List<DependencyMetaData> dependencies;
+    private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
 
     public ModuleDescriptorAdapter(ModuleRevisionId moduleRevisionId, ModuleDescriptor moduleDescriptor) {
-        this.moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
+        this(DefaultModuleVersionIdentifier.newId(moduleRevisionId), moduleDescriptor);
+    }
+
+    public ModuleDescriptorAdapter(ModuleVersionIdentifier identifier, ModuleDescriptor moduleDescriptor) {
+        this.moduleVersionIdentifier = identifier;
         this.moduleDescriptor = moduleDescriptor;
         status = moduleDescriptor.getStatus();
     }
@@ -83,19 +87,129 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         this.statusScheme = statusScheme;
     }
 
-    // The methods will require implementing when we stop handing around ModuleDescriptor and make ModuleVersionMetaData our key internal API.
     public List<DependencyMetaData> getDependencies() {
-        // TODO:DAZ
-        throw new UnsupportedOperationException();
-    }
-
-    public ConfigurationMetaData getConfiguration(String name) {
-        // TODO:DAZ
-        throw new UnsupportedOperationException();
+        if (dependencies == null) {
+            dependencies = new ArrayList<DependencyMetaData>();
+            for (final DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
+                dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
+            }
+        }
+        return dependencies;
     }
 
     public void setDependencies(Iterable<? extends DependencyMetaData> dependencies) {
-        // TODO:DAZ
-        throw new UnsupportedOperationException();
+        this.dependencies = CollectionUtils.toList(dependencies);
+        for (DefaultConfigurationMetaData configuration : configurations.values()) {
+            configuration.dependencies = null;
+        }
+    }
+
+    public DefaultConfigurationMetaData getConfiguration(final String name) {
+        DefaultConfigurationMetaData configuration = configurations.get(name);
+        if (configuration == null) {
+            Configuration descriptor = moduleDescriptor.getConfiguration(name);
+            if (descriptor == null) {
+                return null;
+            }
+            Set<String> hierarchy = new LinkedHashSet<String>();
+            hierarchy.add(name);
+            for (String parent : descriptor.getExtends()) {
+                hierarchy.addAll(getConfiguration(parent).hierarchy);
+            }
+            configuration = new DefaultConfigurationMetaData(descriptor, hierarchy);
+            configurations.put(name, configuration);
+        }
+        return configuration;
+    }
+
+    private class DefaultConfigurationMetaData implements ConfigurationMetaData {
+        private final Configuration descriptor;
+        private final Set<String> hierarchy;
+        private List<DependencyMetaData> dependencies;
+        private Set<Artifact> artifacts;
+        private LinkedHashSet<ExcludeRule> excludeRules;
+
+        private DefaultConfigurationMetaData(Configuration descriptor, Set<String> hierarchy) {
+            this.descriptor = descriptor;
+            this.hierarchy = hierarchy;
+        }
+
+        public ModuleVersionMetaData getModuleVersion() {
+            return ModuleDescriptorAdapter.this;
+        }
+
+        public String getName() {
+            return descriptor.getName();
+        }
+
+        public Set<String> getHierarchy() {
+            return hierarchy;
+        }
+
+        public boolean isTransitive() {
+            return descriptor.isTransitive();
+        }
+
+        public List<DependencyMetaData> getDependencies() {
+            if (dependencies == null) {
+                dependencies = new ArrayList<DependencyMetaData>();
+                for (DependencyMetaData dependency : ModuleDescriptorAdapter.this.getDependencies()) {
+                    if (include(dependency)) {
+                        dependencies.add(dependency);
+                    }
+                }
+            }
+            return dependencies;
+        }
+
+        private boolean include(DependencyMetaData dependency) {
+            String[] moduleConfigurations = dependency.getDescriptor().getModuleConfigurations();
+            for (int i = 0; i < moduleConfigurations.length; i++) {
+                String moduleConfiguration = moduleConfigurations[i];
+                if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
+                    return true;
+                }
+                if (moduleConfiguration.equals("*")) {
+                    boolean include = true;
+                    for (int j = i + 1; j < moduleConfigurations.length && moduleConfigurations[j].startsWith("!"); j++) {
+                        if (moduleConfigurations[j].substring(1).equals(getName())) {
+                            include = false;
+                            break;
+                        }
+                    }
+                    if (include) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public Set<ExcludeRule> getExcludeRules() {
+            if (excludeRules == null) {
+                excludeRules = new LinkedHashSet<ExcludeRule>();
+                for (ExcludeRule excludeRule : moduleDescriptor.getAllExcludeRules()) {
+                    for (String config : excludeRule.getConfigurations()) {
+                        if (hierarchy.contains(config)) {
+                            excludeRules.add(excludeRule);
+                            break;
+                        }
+                    }
+                }
+            }
+            return excludeRules;
+        }
+
+        public Set<Artifact> getArtifacts() {
+            if (artifacts == null) {
+                artifacts = new LinkedHashSet<Artifact>();
+                for (String ancestor : hierarchy) {
+                    for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
+                        artifacts.add(artifact);
+                    }
+                }
+            }
+            return artifacts;
+        }
     }
 }

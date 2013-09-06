@@ -72,9 +72,9 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         then:
         descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Resolved
         descriptor.failure == null
-        descriptor.id == id
-        descriptor.descriptor == moduleDescriptor
-        descriptor.changing
+        descriptor.metaData.id == id
+        descriptor.metaData.descriptor == moduleDescriptor
+        descriptor.metaData.changing
         descriptor.moduleSource == moduleSource
     }
 
@@ -91,7 +91,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
 
         when:
-        def deps = descriptor.dependencies
+        def deps = descriptor.metaData.dependencies
 
         then:
         deps.size() == 2
@@ -99,7 +99,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         deps[1].descriptor == dependency2
 
         when:
-        def deps2 = descriptor.dependencies
+        def deps2 = descriptor.metaData.dependencies
 
         then:
         deps2.is(deps)
@@ -116,13 +116,13 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
 
         when:
-        def config = descriptor.getConfiguration("conf")
+        def config = descriptor.metaData.getConfiguration("conf")
 
         then:
         1 * moduleDescriptor.getConfiguration("conf") >> Stub(Configuration)
 
         when:
-        def config2 = descriptor.getConfiguration("conf")
+        def config2 = descriptor.metaData.getConfiguration("conf")
 
         then:
         config2.is(config)
@@ -142,7 +142,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
 
         expect:
-        descriptor.getConfiguration("conf") == null
+        descriptor.metaData.getConfiguration("conf") == null
     }
 
     def "builds and caches dependencies for a configuration"() {
@@ -169,19 +169,19 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
 
         when:
-        def dependencies = descriptor.getConfiguration("conf").dependencies
+        def dependencies = descriptor.metaData.getConfiguration("conf").dependencies
 
         then:
         dependencies*.descriptor == [dependency1, dependency2, dependency3, dependency5]
 
         and:
-        descriptor.getConfiguration("conf").dependencies.is(dependencies)
+        descriptor.metaData.getConfiguration("conf").dependencies.is(dependencies)
 
         when:
         descriptor.metaData.setDependencies([])
 
         then:
-        descriptor.getConfiguration("conf").dependencies == []
+        descriptor.metaData.getConfiguration("conf").dependencies == []
     }
 
     def "builds and caches artifacts from the module descriptor"() {
@@ -199,13 +199,13 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
 
         when:
-        def artifacts = descriptor.getConfiguration("config").artifacts
+        def artifacts = descriptor.metaData.getConfiguration("config").artifacts
 
         then:
         artifacts as List == [artifact1, artifact2]
 
         and:
-        descriptor.getConfiguration("config").artifacts.is(artifacts)
+        descriptor.metaData.getConfiguration("config").artifacts.is(artifacts)
     }
 
     def "artifacts include those inherited from other configurations"() {
@@ -227,7 +227,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
 
         when:
-        def artifacts = descriptor.getConfiguration("config").artifacts
+        def artifacts = descriptor.metaData.getConfiguration("config").artifacts
 
         then:
         artifacts as List == [artifact2, artifact3, artifact1]
@@ -256,13 +256,13 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
 
         when:
-        def excludeRules = descriptor.getConfiguration("config").excludeRules
+        def excludeRules = descriptor.metaData.getConfiguration("config").excludeRules
 
         then:
         excludeRules as List == [rule1, rule2]
 
         and:
-        descriptor.getConfiguration("config").excludeRules.is(excludeRules)
+        descriptor.metaData.getConfiguration("config").excludeRules.is(excludeRules)
     }
 
     def "can replace the dependencies for the module version"() {
@@ -311,49 +311,6 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         then:
         ModuleVersionResolveException e = thrown()
         e == failure
-    }
-
-    def "cannot get descriptor when not resolved"() {
-        when:
-        descriptor.descriptor
-
-        then:
-        thrown(IllegalStateException)
-    }
-
-    def "cannot get descriptor when failed"() {
-        given:
-        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
-        descriptor.failed(failure)
-
-        when:
-        descriptor.descriptor
-
-        then:
-        ModuleVersionResolveException e = thrown()
-        e == failure
-    }
-
-    def "cannot get descriptor when missing"() {
-        given:
-        descriptor.missing()
-
-        when:
-        descriptor.descriptor
-
-        then:
-        thrown(IllegalStateException)
-    }
-
-    def "cannot get descriptor when probably missing"() {
-        given:
-        descriptor.probablyMissing()
-
-        when:
-        descriptor.descriptor
-
-        then:
-        thrown(IllegalStateException)
     }
 
     def "cannot get module source when failed"() {

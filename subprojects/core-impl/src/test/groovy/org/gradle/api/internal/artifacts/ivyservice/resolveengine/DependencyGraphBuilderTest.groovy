@@ -15,18 +15,26 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
-import org.apache.ivy.core.module.descriptor.*
+import org.apache.ivy.core.module.descriptor.Configuration
+import org.apache.ivy.core.module.descriptor.DefaultArtifact
+import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
-import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.LenientConfiguration
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ResolveException
+import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.*
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaDataResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorAdapter
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder
@@ -841,8 +849,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def revision(String name, String revision = '1.0') {
         DefaultModuleDescriptor descriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("group", name), revision), "release", new Date())
-        DefaultBuildableModuleVersionMetaDataResolveResult metaData = new DefaultBuildableModuleVersionMetaDataResolveResult()
-        metaData.resolved(descriptor, false, null)
+        ModuleVersionMetaData metaData = new ModuleDescriptorAdapter(descriptor.moduleRevisionId, descriptor)
         config(metaData, 'default')
         descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))
         return metaData
