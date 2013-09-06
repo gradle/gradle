@@ -22,15 +22,15 @@ import org.junit.Rule
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule public final Sample c = new Sample(temporaryFolder, 'nativeBinaries/c')
-    @Rule public final Sample assembler = new Sample(temporaryFolder, 'nativeBinaries/assembler')
-    @Rule public final Sample cpp = new Sample(temporaryFolder, 'nativeBinaries/cpp')
-    @Rule public final Sample customLayout = new Sample(temporaryFolder, 'nativeBinaries/custom-layout')
-    @Rule public final Sample cppExe = new Sample(temporaryFolder, 'nativeBinaries/cpp-exe')
-    @Rule public final Sample cppLib = new Sample(temporaryFolder, 'nativeBinaries/cpp-lib')
-    @Rule public final Sample multiProject = new Sample(temporaryFolder, 'nativeBinaries/multi-project')
-    @Rule public final Sample variants = new Sample(temporaryFolder, 'nativeBinaries/variants')
-    @Rule public final Sample dependencies = new Sample(temporaryFolder, 'nativeBinaries/dependencies')
+    @Rule public final Sample c = new Sample(temporaryFolder, 'native-binaries/c')
+    @Rule public final Sample assembler = new Sample(temporaryFolder, 'native-binaries/assembler')
+    @Rule public final Sample cpp = new Sample(temporaryFolder, 'native-binaries/cpp')
+    @Rule public final Sample customLayout = new Sample(temporaryFolder, 'native-binaries/custom-layout')
+    @Rule public final Sample cppExe = new Sample(temporaryFolder, 'native-binaries/cpp-exe')
+    @Rule public final Sample cppLib = new Sample(temporaryFolder, 'native-binaries/cpp-lib')
+    @Rule public final Sample multiProject = new Sample(temporaryFolder, 'native-binaries/multi-project')
+    @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
+    @Rule public final Sample dependencies = new Sample(temporaryFolder, 'native-binaries/dependencies')
 
     def "assembler"() {
         given:
@@ -43,7 +43,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":assembleMainExecutableMainAsm", ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("nativeBinaries/assembler/build/install/mainExecutable").exec().out == "5 + 7 = 12\n"
+        installation("native-binaries/assembler/build/install/mainExecutable").exec().out == "5 + 7 = 12\n"
     }
 
     def "c"() {
@@ -58,7 +58,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
                               ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("cpp/c/build/install/mainExecutable").exec().out == "Hello world!"
+        installation("native-binaries/c/build/install/mainExecutable").exec().out == "Hello world!"
     }
 
     def "cpp"() {
@@ -73,7 +73,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("nativeBinaries/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"
+        installation("native-binaries/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"
     }
 
     def "custom layout"() {
@@ -88,7 +88,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("nativeBinaries/custom-layout/build/install/mainExecutable").exec().out == "Hello world!"
+        installation("native-binaries/custom-layout/build/install/mainExecutable").exec().out == "Hello world!"
     }
 
     def "exe"() {
@@ -102,8 +102,8 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":compileMainExecutableMainCpp", ":linkMainExecutable", ":stripMainExecutable", ":mainExecutable"
 
         and:
-        executable("nativeBinaries/cpp-exe/build/binaries/mainExecutable/sampleExe").exec().out == "Hello, World!\n"
-        installation("nativeBinaries/cpp-exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
+        executable("native-binaries/cpp-exe/build/binaries/mainExecutable/sampleExe").exec().out == "Hello, World!\n"
+        installation("native-binaries/cpp-exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
     }
 
     def "lib"() {
@@ -117,7 +117,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":compileMainSharedLibraryMainCpp", ":linkMainSharedLibrary", ":mainSharedLibrary"
         
         and:
-        sharedLibrary("nativeBinaries/cpp-lib/build/binaries/mainSharedLibrary/sampleLib").assertExists()
+        sharedLibrary("native-binaries/cpp-lib/build/binaries/mainSharedLibrary/sampleLib").assertExists()
         
         when:
         sample cppLib
@@ -127,7 +127,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":compileMainStaticLibraryMainCpp", ":createMainStaticLibrary", ":mainStaticLibrary"
         
         and:
-        staticLibrary("nativeBinaries/cpp-lib/build/binaries/mainStaticLibrary/sampleLib").assertExists()
+        staticLibrary("native-binaries/cpp-lib/build/binaries/mainStaticLibrary/sampleLib").assertExists()
     }
 
     def "variants"() {
@@ -140,11 +140,11 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":compileEnglishMainExecutableExeCpp", ":linkEnglishMainExecutable", ":englishMainExecutable"
 
         and:
-        executable("nativeBinaries/variants/build/binaries/mainExecutable/english/main").assertExists()
-        sharedLibrary("nativeBinaries/variants/build/binaries/helloSharedLibrary/english/hello").assertExists()
+        executable("native-binaries/variants/build/binaries/mainExecutable/english/main").assertExists()
+        sharedLibrary("native-binaries/variants/build/binaries/helloSharedLibrary/english/hello").assertExists()
 
         and:
-        installation("nativeBinaries/variants/build/install/mainExecutable/english").exec().out == "Hello world!\n"
+        installation("native-binaries/variants/build/install/mainExecutable/english").exec().out == "Hello world!\n"
 
         when:
         sample variants
@@ -155,11 +155,11 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":compileFrenchMainExecutableExeCpp", ":linkFrenchMainExecutable", ":frenchMainExecutable"
 
         and:
-        executable("nativeBinaries/variants/build/binaries/mainExecutable/french/main").assertExists()
-        sharedLibrary("nativeBinaries/variants/build/binaries/helloSharedLibrary/french/hello").assertExists()
+        executable("native-binaries/variants/build/binaries/mainExecutable/french/main").assertExists()
+        sharedLibrary("native-binaries/variants/build/binaries/helloSharedLibrary/french/hello").assertExists()
 
         and:
-        installation("nativeBinaries/variants/build/install/mainExecutable/french").exec().out == "Bonjour monde!\n"
+        installation("native-binaries/variants/build/install/mainExecutable/french").exec().out == "Bonjour monde!\n"
     }
 
     def multiProject() {
@@ -173,9 +173,9 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         ":exe:mainExecutable" in executedTasks
 
         and:
-        sharedLibrary("nativeBinaries/multi-project/lib/build/binaries/mainSharedLibrary/lib").assertExists()
-        executable("nativeBinaries/multi-project/exe/build/binaries/mainExecutable/exe").assertExists()
-        installation("nativeBinaries/multi-project/exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
+        sharedLibrary("native-binaries/multi-project/lib/build/binaries/mainSharedLibrary/lib").assertExists()
+        executable("native-binaries/multi-project/exe/build/binaries/mainExecutable/exe").assertExists()
+        installation("native-binaries/multi-project/exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
     }
 
     // Does not work on windows, due to GRADLE-2118
@@ -186,8 +186,8 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         run ":lib:uploadArchives"
 
         then:
-        sharedLibrary("nativeBinaries/dependencies/lib/build/binaries/mainSharedLibrary/lib").assertExists()
-        file("nativeBinaries/dependencies/lib/build/repo/some-org/some-lib/1.0/some-lib-1.0-so.so").isFile()
+        sharedLibrary("native-binaries/dependencies/lib/build/binaries/mainSharedLibrary/lib").assertExists()
+        file("native-binaries/dependencies/lib/build/repo/some-org/some-lib/1.0/some-lib-1.0-so.so").isFile()
 
         when:
         sample dependencies
@@ -198,8 +198,8 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         ":exe:mainExecutable" in nonSkippedTasks
 
         and:
-        executable("nativeBinaries/dependencies/exe/build/binaries/mainExecutable/exe").assertExists()
-        file("nativeBinaries/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
+        executable("native-binaries/dependencies/exe/build/binaries/mainExecutable/exe").assertExists()
+        file("native-binaries/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
     }
 
 }
