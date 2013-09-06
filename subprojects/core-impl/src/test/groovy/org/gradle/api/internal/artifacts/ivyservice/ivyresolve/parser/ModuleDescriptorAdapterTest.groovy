@@ -1,0 +1,199 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
+import org.apache.ivy.core.module.descriptor.*
+import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData
+import spock.lang.Specification
+
+class ModuleDescriptorAdapterTest extends Specification {
+    def id = Stub(ModuleVersionIdentifier)
+    def moduleDescriptor = Mock(ModuleDescriptor)
+    def metaData = new ModuleDescriptorAdapter(id, moduleDescriptor)
+
+    def "builds and caches the dependency meta-data from the module descriptor"() {
+        def dependency1 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        def dependency2 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+
+        given:
+        moduleDescriptor.dependencies >> ([dependency1, dependency2] as DependencyDescriptor[])
+
+        when:
+        def deps = metaData.dependencies
+
+        then:
+        deps.size() == 2
+        deps[0].descriptor == dependency1
+        deps[1].descriptor == dependency2
+
+        when:
+        def deps2 = metaData.dependencies
+
+        then:
+        deps2.is(deps)
+
+        and:
+        0 * moduleDescriptor._
+    }
+
+    def "builds and caches the configuration meta-data from the module descriptor"() {
+        when:
+        def config = metaData.getConfiguration("conf")
+
+        then:
+        1 * moduleDescriptor.getConfiguration("conf") >> Stub(Configuration)
+
+        when:
+        def config2 = metaData.getConfiguration("conf")
+
+        then:
+        config2.is(config)
+
+        and:
+        0 * moduleDescriptor._
+    }
+
+    def "returns null for unknown configuration"() {
+        given:
+        moduleDescriptor.getConfiguration("conf") >> null
+
+        expect:
+        metaData.getConfiguration("conf") == null
+    }
+
+    def "builds and caches dependencies for a configuration"() {
+        def config = Stub(Configuration)
+        def parent = Stub(Configuration)
+        def dependency1 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        dependency1.addDependencyConfiguration("conf", "a")
+        def dependency2 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        dependency2.addDependencyConfiguration("*", "b")
+        def dependency3 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        dependency3.addDependencyConfiguration("super", "c")
+        def dependency4 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        dependency4.addDependencyConfiguration("other", "d")
+        def dependency5 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        dependency5.addDependencyConfiguration("%", "e")
+
+        given:
+        moduleDescriptor.dependencies >> ([dependency1, dependency2, dependency3, dependency4, dependency5] as DependencyDescriptor[])
+        moduleDescriptor.getConfiguration("conf") >> config
+        moduleDescriptor.getConfiguration("super") >> parent
+        config.extends >> ["super"]
+
+        when:
+        def dependencies = metaData.getConfiguration("conf").dependencies
+
+        then:
+        dependencies*.descriptor == [dependency1, dependency2, dependency3, dependency5]
+
+        and:
+        metaData.getConfiguration("conf").dependencies.is(dependencies)
+
+        when:
+        metaData.setDependencies([])
+
+        then:
+        metaData.getConfiguration("conf").dependencies == []
+    }
+
+    def "builds and caches artifacts from the module descriptor"() {
+        def artifact1 = Stub(Artifact)
+        def artifact2 = Stub(Artifact)
+        def config = Stub(Configuration)
+
+        given:
+        moduleDescriptor.getConfiguration("conf") >> config
+        moduleDescriptor.getArtifacts("conf") >> ([artifact1, artifact2] as Artifact[])
+
+        when:
+        def artifacts = metaData.getConfiguration("conf").artifacts
+
+        then:
+        artifacts as List == [artifact1, artifact2]
+
+        and:
+        metaData.getConfiguration("conf").artifacts.is(artifacts)
+    }
+
+    def "artifacts include those inherited from other configurations"() {
+        def config = Stub(Configuration)
+        def parent = Stub(Configuration)
+        def artifact1 = Stub(Artifact)
+        def artifact2 = Stub(Artifact)
+        def artifact3 = Stub(Artifact)
+
+        given:
+        moduleDescriptor.getConfiguration("conf") >> config
+        moduleDescriptor.getConfiguration("super") >> parent
+        config.extends >> ["super"]
+        moduleDescriptor.getArtifacts("conf") >> ([artifact1, artifact2] as Artifact[])
+        moduleDescriptor.getArtifacts("super") >> ([artifact1, artifact3] as Artifact[])
+
+        when:
+        def artifacts = metaData.getConfiguration("conf").artifacts
+
+        then:
+        artifacts as List == [artifact1, artifact2, artifact3]
+    }
+
+    def "builds and caches exclude rules for a configuration"() {
+        def rule1 = Stub(ExcludeRule)
+        def rule2 = Stub(ExcludeRule)
+        def rule3 = Stub(ExcludeRule)
+        def config = Stub(Configuration)
+        def parent = Stub(Configuration)
+
+        given:
+        rule1.configurations >> ["conf"]
+        rule2.configurations >> ["super"]
+        rule3.configurations >> ["other"]
+
+        and:
+        moduleDescriptor.getConfiguration("conf") >> config
+        moduleDescriptor.getConfiguration("super") >> parent
+        config.extends >> ["super"]
+        moduleDescriptor.allExcludeRules >> ([rule1, rule2, rule3] as ExcludeRule[])
+
+        when:
+        def excludeRules = metaData.getConfiguration("conf").excludeRules
+
+        then:
+        excludeRules as List == [rule1, rule2]
+
+        and:
+        metaData.getConfiguration("conf").excludeRules.is(excludeRules)
+    }
+
+    def "can replace the dependencies for the module version"() {
+        def dependency1 = Stub(DependencyMetaData)
+        def dependency2 = Stub(DependencyMetaData)
+
+        when:
+        metaData.dependencies = [dependency1, dependency2]
+
+        then:
+        metaData.dependencies == [dependency1, dependency2]
+
+        and:
+        0 * moduleDescriptor._
+    }
+}

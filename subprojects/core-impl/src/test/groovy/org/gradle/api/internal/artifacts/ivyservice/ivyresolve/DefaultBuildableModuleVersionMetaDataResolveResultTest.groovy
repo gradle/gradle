@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.core.module.descriptor.*
-import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
@@ -25,8 +24,8 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specification {
-    final DefaultBuildableModuleVersionMetaDataResolveResult descriptor = new DefaultBuildableModuleVersionMetaDataResolveResult()
-    ModuleSource moduleSource = Stub()
+    def descriptor = new DefaultBuildableModuleVersionMetaDataResolveResult()
+    def moduleSource = Stub(ModuleSource)
 
     def "has unknown state by default"() {
         expect:
@@ -76,212 +75,6 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.metaData.descriptor == moduleDescriptor
         descriptor.metaData.changing
         descriptor.moduleSource == moduleSource
-    }
-
-    def "builds and caches the dependency meta-data from the module descriptor"() {
-        def id = Stub(ModuleVersionIdentifier)
-        def moduleDescriptor = Mock(ModuleDescriptor)
-        def dependency1 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
-        def dependency2 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
-
-        given:
-        moduleDescriptor.dependencies >> ([dependency1, dependency2] as DependencyDescriptor[])
-
-        and:
-        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
-
-        when:
-        def deps = descriptor.metaData.dependencies
-
-        then:
-        deps.size() == 2
-        deps[0].descriptor == dependency1
-        deps[1].descriptor == dependency2
-
-        when:
-        def deps2 = descriptor.metaData.dependencies
-
-        then:
-        deps2.is(deps)
-
-        and:
-        0 * moduleDescriptor._
-    }
-
-    def "builds and caches the configuration meta-data from the module descriptor"() {
-        def id = Stub(ModuleVersionIdentifier)
-        def moduleDescriptor = Mock(ModuleDescriptor)
-
-        given:
-        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
-
-        when:
-        def config = descriptor.metaData.getConfiguration("conf")
-
-        then:
-        1 * moduleDescriptor.getConfiguration("conf") >> Stub(Configuration)
-
-        when:
-        def config2 = descriptor.metaData.getConfiguration("conf")
-
-        then:
-        config2.is(config)
-
-        and:
-        0 * moduleDescriptor._
-    }
-
-    def "returns null for unknown configuration"() {
-        def id = Stub(ModuleVersionIdentifier)
-        def moduleDescriptor = Mock(ModuleDescriptor)
-
-        given:
-        moduleDescriptor.getConfiguration("conf") >> null
-
-        and:
-        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
-
-        expect:
-        descriptor.metaData.getConfiguration("conf") == null
-    }
-
-    def "builds and caches dependencies for a configuration"() {
-        def id = Stub(ModuleVersionIdentifier)
-        def moduleDescriptor = Stub(ModuleDescriptor)
-        def config = Stub(Configuration)
-        def dependency1 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
-        dependency1.addDependencyConfiguration("conf", "a")
-        def dependency2 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
-        dependency2.addDependencyConfiguration("*", "b")
-        def dependency3 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
-        dependency3.addDependencyConfiguration("super", "c")
-        def dependency4 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
-        dependency4.addDependencyConfiguration("other", "d")
-        def dependency5 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
-        dependency5.addDependencyConfiguration("%", "e")
-
-        given:
-        moduleDescriptor.dependencies >> ([dependency1, dependency2, dependency3, dependency4, dependency5] as DependencyDescriptor[])
-        moduleDescriptor.getConfiguration("conf") >> config
-        config.extends >> ["super"]
-
-        and:
-        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
-
-        when:
-        def dependencies = descriptor.metaData.getConfiguration("conf").dependencies
-
-        then:
-        dependencies*.descriptor == [dependency1, dependency2, dependency3, dependency5]
-
-        and:
-        descriptor.metaData.getConfiguration("conf").dependencies.is(dependencies)
-
-        when:
-        descriptor.metaData.setDependencies([])
-
-        then:
-        descriptor.metaData.getConfiguration("conf").dependencies == []
-    }
-
-    def "builds and caches artifacts from the module descriptor"() {
-        def id = Stub(ModuleVersionIdentifier)
-        def moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "group", "version"), "status", null)
-        def artifact1 = Stub(Artifact)
-        def artifact2 = Stub(Artifact)
-
-        given:
-        moduleDescriptor.addConfiguration(new Configuration("config"))
-        moduleDescriptor.addArtifact("config", artifact1)
-        moduleDescriptor.addArtifact("config", artifact2)
-
-        and:
-        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
-
-        when:
-        def artifacts = descriptor.metaData.getConfiguration("config").artifacts
-
-        then:
-        artifacts as List == [artifact1, artifact2]
-
-        and:
-        descriptor.metaData.getConfiguration("config").artifacts.is(artifacts)
-    }
-
-    def "artifacts include those inherited from other configurations"() {
-        def id = Stub(ModuleVersionIdentifier)
-        def moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "group", "version"), "status", null)
-        def artifact1 = Stub(Artifact)
-        def artifact2 = Stub(Artifact)
-        def artifact3 = Stub(Artifact)
-
-        given:
-        moduleDescriptor.addConfiguration(new Configuration("super"))
-        moduleDescriptor.addConfiguration(new Configuration("config", Configuration.Visibility.PUBLIC, "", ["super"] as String[], true, null))
-        moduleDescriptor.addArtifact("super", artifact1)
-        moduleDescriptor.addArtifact("super", artifact2)
-        moduleDescriptor.addArtifact("config", artifact2)
-        moduleDescriptor.addArtifact("config", artifact3)
-
-        and:
-        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
-
-        when:
-        def artifacts = descriptor.metaData.getConfiguration("config").artifacts
-
-        then:
-        artifacts as List == [artifact2, artifact3, artifact1]
-    }
-
-    def "builds and caches exclude rules for a configuration"() {
-        def id = Stub(ModuleVersionIdentifier)
-        def moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "group", "version"), "status", null)
-        def rule1 = Stub(ExcludeRule)
-        def rule2 = Stub(ExcludeRule)
-        def rule3 = Stub(ExcludeRule)
-
-        given:
-        rule1.configurations >> ["config"]
-        rule2.configurations >> ["super"]
-        rule3.configurations >> ["other"]
-
-        and:
-        moduleDescriptor.addConfiguration(new Configuration("super"))
-        moduleDescriptor.addConfiguration(new Configuration("config", Configuration.Visibility.PUBLIC, "", ["super"] as String[], true, null))
-        moduleDescriptor.addExcludeRule(rule1)
-        moduleDescriptor.addExcludeRule(rule2)
-        moduleDescriptor.addExcludeRule(rule3)
-
-        and:
-        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
-
-        when:
-        def excludeRules = descriptor.metaData.getConfiguration("config").excludeRules
-
-        then:
-        excludeRules as List == [rule1, rule2]
-
-        and:
-        descriptor.metaData.getConfiguration("config").excludeRules.is(excludeRules)
-    }
-
-    def "can replace the dependencies for the module version"() {
-        def id = Stub(ModuleVersionIdentifier)
-        def moduleDescriptor = Mock(ModuleDescriptor)
-        def dependency1 = Stub(DependencyMetaData)
-        def dependency2 = Stub(DependencyMetaData)
-
-        given:
-        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
-
-        when:
-        descriptor.metaData.dependencies = [dependency1, dependency2]
-
-        then:
-        descriptor.metaData.dependencies == [dependency1, dependency2]
-
-        and:
-        0 * moduleDescriptor._
     }
 
     def "cannot get failure when not resolved"() {
