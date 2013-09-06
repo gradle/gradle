@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -33,7 +33,7 @@ class DependencyMetadataCacheTest extends Specification {
     def "caches and supplies remote metadata"() {
         def resolvedResult = Mock(BuildableModuleVersionMetaDataResolveResult.class) {
             getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
-            getMetaData() >> Stub(ModuleVersionMetaData)
+            getMetaData() >> Stub(MutableModuleVersionMetaData)
         }
         cache.newDependencyResult(newSelector("org", "foo", "1.0"), resolvedResult)
         def result = Mock(BuildableModuleVersionMetaDataResolveResult.class)
@@ -59,11 +59,11 @@ class DependencyMetadataCacheTest extends Specification {
 
     def "caches and supplies remote and local metadata"() {
         def resolvedLocal = Mock(BuildableModuleVersionMetaDataResolveResult.class) {
-            getMetaData() >> Mock(ModuleVersionMetaData)
+            getMetaData() >> Mock(MutableModuleVersionMetaData)
             getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
         }
         def resolvedRemote = Mock(BuildableModuleVersionMetaDataResolveResult.class) {
-            getMetaData() >> Mock(ModuleVersionMetaData)
+            getMetaData() >> Mock(MutableModuleVersionMetaData)
             getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
         }
 

@@ -52,11 +52,12 @@ public class IvyDynamicResolveModuleVersionRepository implements LocalAwareModul
     }
 
     private void transformDependencies(BuildableModuleVersionMetaDataResolveResult result) {
+        MutableModuleVersionMetaData metaData = result.getMetaData();
         List<DependencyMetaData> transformed = new ArrayList<DependencyMetaData>();
-        for (DependencyMetaData dependency : result.getMetaData().getDependencies()) {
+        for (DependencyMetaData dependency : metaData.getDependencies()) {
             transformed.add(dependency.withRequestedVersion(dependency.getDescriptor().getDynamicConstraintDependencyRevisionId().getRevision()));
         }
-        result.setDependencies(transformed);
+        metaData.setDependencies(transformed);
     }
 
     public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {

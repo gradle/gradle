@@ -21,4 +21,9 @@ public interface MutableModuleVersionMetaData extends ModuleVersionMetaData {
     void setChanging(boolean changing);
     void setStatus(String status);
     void setStatusScheme(List<String> statusScheme);
+
+    /**
+     * Replaces the dependencies of this module version.
+     */
+    void setDependencies(Iterable<? extends DependencyMetaData> dependencies);
 }

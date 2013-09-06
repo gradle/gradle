@@ -39,7 +39,7 @@ public interface BuildableModuleVersionMetaDataResolveResult {
      *
      * @throws ModuleVersionResolveException If the resolution was not successful.
      */
-    ModuleVersionMetaData getMetaData() throws ModuleVersionResolveException;
+    MutableModuleVersionMetaData getMetaData() throws ModuleVersionResolveException;
 
     @Nullable
     ModuleVersionResolveException getFailure();
@@ -75,9 +75,4 @@ public interface BuildableModuleVersionMetaDataResolveResult {
     public ModuleSource getModuleSource();
 
     void setModuleSource(ModuleSource moduleSource);
-
-    /**
-     * Replaces the dependencies of this module version.
-     */
-    void setDependencies(Iterable<? extends DependencyMetaData> dependencies);
 }

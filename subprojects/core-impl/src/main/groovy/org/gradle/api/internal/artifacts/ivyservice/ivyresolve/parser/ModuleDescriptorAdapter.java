@@ -93,4 +93,9 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         // TODO:DAZ
         throw new UnsupportedOperationException();
     }
+
+    public void setDependencies(Iterable<? extends DependencyMetaData> dependencies) {
+        // TODO:DAZ
+        throw new UnsupportedOperationException();
+    }
 }

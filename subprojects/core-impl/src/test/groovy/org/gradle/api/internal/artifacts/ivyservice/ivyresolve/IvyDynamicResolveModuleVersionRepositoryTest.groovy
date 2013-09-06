@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
     final target = Mock(LocalAwareModuleVersionRepository)
-    final metaData = Mock(ModuleVersionMetaData)
+    final metaData = Mock(MutableModuleVersionMetaData)
     final requestedDependency = Mock(DependencyMetaData)
     final result = Mock(BuildableModuleVersionMetaDataResolveResult)
     final repository = new IvyDynamicResolveModuleVersionRepository(target)
@@ -44,7 +44,7 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
         and:
         1 * metaData.dependencies >> [original]
         1 * original.withRequestedVersion('1.2+') >> transformed
-        1 * result.setDependencies([transformed])
+        1 * metaData.setDependencies([transformed])
     }
 
     def "does nothing when dependency has not been resolved"() {

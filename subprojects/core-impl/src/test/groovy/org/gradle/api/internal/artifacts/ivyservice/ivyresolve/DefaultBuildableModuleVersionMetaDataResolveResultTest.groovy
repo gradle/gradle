@@ -178,7 +178,7 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.getConfiguration("conf").dependencies.is(dependencies)
 
         when:
-        descriptor.setDependencies([])
+        descriptor.metaData.setDependencies([])
 
         then:
         descriptor.getConfiguration("conf").dependencies == []
@@ -275,10 +275,10 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
 
         when:
-        descriptor.dependencies = [dependency1, dependency2]
+        descriptor.metaData.dependencies = [dependency1, dependency2]
 
         then:
-        descriptor.dependencies == [dependency1, dependency2]
+        descriptor.metaData.dependencies == [dependency1, dependency2]
 
         and:
         0 * moduleDescriptor._
