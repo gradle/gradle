@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -105,7 +104,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         m2Installation.userSettingsFile << "invalid content"
 
         when:
-        def failure = runAndFail('retrieve')
+        runAndFail 'retrieve'
 
         then:
         failure.assertThatCause(containsString(String.format("Non-parseable settings %s:", m2Installation.userSettingsFile.absolutePath)));
@@ -136,7 +135,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         m2Installation.mavenRepo().module('group', 'projectA', '1.2').publishPom()
 
         when:
-        ExecutionFailure failure = runAndFail 'retrieve'
+        runAndFail 'retrieve'
 
         then:
         failure.assertHasCause('Could not find group:projectA:1.2')
@@ -171,7 +170,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         pomModule.packaging = 'pom'
         pomModule.type = 'pom'
         pomModule.dependsOn('group', 'projectB', '1.2')
-        pomModule.publish()
+        pomModule.publishPom()
 
         when:
         run 'retrieve'
@@ -201,7 +200,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
                 }"""
 
         when:
-        ExecutionFailure failure = runAndFail 'retrieve'
+        runAndFail 'retrieve'
 
         then:
         failure.assertHasCause('Could not find group:projectA:1.2-SNAPSHOT')
@@ -228,7 +227,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
                 }"""
 
         when:
-        ExecutionFailure failure = runAndFail 'retrieve'
+        runAndFail 'retrieve'
 
         then:
         failure.assertHasCause('Could not find group:projectA:1.2-SNAPSHOT')

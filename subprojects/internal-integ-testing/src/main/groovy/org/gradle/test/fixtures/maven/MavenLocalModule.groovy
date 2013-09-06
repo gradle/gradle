@@ -28,7 +28,7 @@ class MavenLocalModule extends AbstractMavenModule {
         return uniqueSnapshots
     }
 
-    MavenModule withNonUniqueSnapshots() {
+    MavenLocalModule withNonUniqueSnapshots() {
         //NO-OP for mavenLocal cache.
         this
     }
