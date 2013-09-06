@@ -99,7 +99,3 @@ For example, allow `groovy-all` to be replaced with `groovy`, or `log4j` with `l
     - expect that `lib-b:2.1` is used with selection reason 'conflict resolution' and 'changed by action'
 - As above, and expect that the dependency report shows `lib-a:1.2 -> lib-b:2.0` followed by the dependencies for `lib-b:2.0`.
 - As above, and expect that the dependency insight report shows `lib-a:1.2 -> lib-b:2.0` followed by the path to the `lib-a:1.2` dependency.
-
-## Story: declarative substitution of group, module and version
-
-Allow some substitutions to be expressed declaratively, rather than imperatively as a rule.
