@@ -113,13 +113,10 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
     def "reassembles binary with source comment change"() {
         when:
         asmSourceFile << "# A comment at the end of the file\n"
-        run "installMainExecutable"
+        run "mainExecutable"
 
         then:
         executedAndNotSkipped ":assembleHelloSharedLibraryHelloAsm"
-
-        and:
-        install.exec().out == app.englishOutput
     }
 }
 
