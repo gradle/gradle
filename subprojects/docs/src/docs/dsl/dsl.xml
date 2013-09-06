@@ -470,7 +470,7 @@
     </section>
 
     <section>
-        <title>Native component core types</title>
+        <title>Native binary core types</title>
         <para>Used to configure components developed with native code.</para>
         <table>
             <title>Native component core types</title>
@@ -513,8 +513,8 @@
         </table>
     </section>
     <section>
-        <title>Native component task and plugin types</title>
-        <para>Tasks and plugins used to build native code components.</para>
+        <title>Native binary task and plugin types</title>
+        <para>Tasks and plugins used to build native binary components.</para>
         <table>
             <title>Native component task and plugin types</title>
             <tr>
