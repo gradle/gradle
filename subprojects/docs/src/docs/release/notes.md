@@ -2,9 +2,67 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-### Example new and noteworthy
--->
+### Improvements to support for building native binaries from C/C++/Assembler (i)
+
+<!-- TODO:DAZ Flesh these out -->
+
+* New 'assembler' and 'c' plugins to provide separate language support.
+    * The 'cpp' plugin now only provides support for C++ sources.
+    * Separately apply the 'assembler' or 'c' plugins for additional language support.
+
+* Source set for component (executable or library) is automatically created.
+
+<table>
+    <tr><th>Gradle 1.8</th><th>Gradle 1.9</th></tr>
+    <tr>
+    <td>
+<pre>apply plugin: 'cpp'
+sources {
+    main {
+        cpp {}
+    }
+}
+executables {
+    main {
+        source sources.main.cpp
+    }
+}</pre>
+    </td>
+    <td>
+<pre>apply plugin: 'cpp'
+executables {
+    main {}
+}</pre>
+    </td>
+    </tr>
+</table>
+
+* Replaced `compilerArgs`, `assemblerArgs` and `linkerArgs` with language-specific extensions.
+    * Note that the language-specific element is only present if the appropriate plugin has been applied.
+
+<table>
+    <tr><th>Gradle 1.8</th><th>Gradle 1.9</th></tr>
+    <tr>
+    <td>compilerArgs "-W"</td>
+    <td>cppCompiler.args "-W"</td>
+    </tr>
+    <tr>
+    <td>compilerArgs "-W"</td>
+    <td>cCompiler.args "-W"</td>
+    </tr>
+    <tr>
+    <td>assemblerArgs "-arch", "i386"</td>
+    <td>assembler.args "-arch", "i386"</td>
+    </tr>
+    <tr>
+    <td>linkerArgs "-no_pie"</td>
+    <td>linker.args "-no_pie"</td>
+    </tr>
+    <tr>
+    <td>staticLibArgs "-v"</td>
+    <td>staticLibArchiver.args "-v"</td>
+    </tr>
+</table>
 
 ## Promoted features
 
@@ -37,9 +95,17 @@ The following are the newly deprecated items in this Gradle release. If you have
 * The incubating ´BuildSetup´ task was renamed to ´InitBuild´.
 * The task ´setupBuild´ provided by the auto-applied BuildSetup plugin was renamed to ´init´.
 
-### 'cpp' plugin changes
+### Changes to incubating Native Binary support
 
 * The 'cpp' plugin no longer automatically adds support for C and Assembler sources.
+* Replaced `compilerArgs` and `linkerArgs` with `cppCompiler.args` and `linker.args`.
+* Renamed and restructure package organisation for domain, plugin and task classes. If you are referencing
+  these classes directly you may need to update your build script for this reorganisation.
+* The temporary file generated for compiler/linker input has been renamed from "compiler-options.txt" to "input.txt".
+    * This file now only contains file inputs to the tool - all other options are supplied directly via the command line.
+* Object files generated from the assembly of Assembler sources are no longer named '<file>.s.o'.
+* Renamed method: BuildableModelElement.dependsOn() -> BuildableModelElement.builtBy()
+
 
 ## External contributions
 
