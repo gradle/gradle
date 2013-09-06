@@ -31,7 +31,7 @@ import java.util.Set;
 
 public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements StaticLibraryBinary {
     private final Library library;
-    private final ToolChainTool staticArchiver = new ToolChainTool();
+    private final ToolChainTool staticLibArchiver = new ToolChainTool();
 
     public DefaultStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, DefaultBinaryNamingScheme namingScheme) {
         super(library, flavor, toolChain, namingScheme.withTypeString("StaticLibrary"));
@@ -46,8 +46,8 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
         return getToolChain().getStaticLibraryName(getComponent().getBaseName());
     }
 
-    public ToolChainTool getStaticArchiver() {
-        return staticArchiver;
+    public ToolChainTool getStaticLibArchiver() {
+        return staticLibArchiver;
     }
 
     public NativeDependencySet resolve() {

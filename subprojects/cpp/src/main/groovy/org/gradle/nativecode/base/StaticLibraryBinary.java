@@ -27,5 +27,5 @@ public interface StaticLibraryBinary extends LibraryBinary {
     /**
      * The static archiver settings used for creating this binary.
      */
-    ToolChainTool getStaticArchiver();
+    ToolChainTool getStaticLibArchiver();
 }

@@ -204,7 +204,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
         buildFile << """
             apply plugin: "cpp-lib"
             binaries.withType(StaticLibraryBinary) {
-                staticArchiver.args "not_a_file"
+                staticLibArchiver.args "not_a_file"
             }
         """
 

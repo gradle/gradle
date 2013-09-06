@@ -105,7 +105,7 @@ public class NativeBinariesPlugin implements Plugin<Project> {
 
         task.toolChain = binary.toolChain
         task.conventionMapping.outputFile = { binary.outputFile }
-        task.conventionMapping.staticLibArgs = { binary.staticArchiver.args }
+        task.conventionMapping.staticLibArgs = { binary.staticLibArchiver.args }
         return task
     }
 

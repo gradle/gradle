@@ -168,7 +168,7 @@ class CppPluginTest extends Specification {
                         linker.args "LINK1", "LINK2"
                     }
                     binaries.withType(StaticLibraryBinary) {
-                        staticArchiver.args "LIB1", "LIB2"
+                        staticLibArchiver.args "LIB1", "LIB2"
                     }
                 }
             }
