@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 
-<chapter id='cpp'>
-    <title>Native binary support - C++, C and Assembler</title>
+<chapter id='nativeBinaries'>
+    <title>Building native binaries</title>
 
     <note>
         <para>
@@ -77,7 +77,7 @@
             Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativecode.base.SharedLibraryBinary"/>
             and at least one <apilink class="org.gradle.nativecode.base.StaticLibraryBinary"/>.
         </para>
-        <sample id="cppLibraries" dir="cpp/c" title="Defining a library component">
+        <sample id="cppLibraries" dir="nativeBinary/c" title="Defining a library component">
             <sourcefile file="build.gradle" snippet="libraries"/>
         </sample>
         <para>
@@ -85,7 +85,7 @@
             an <apilink class="org.gradle.nativecode.base.Executable"/> component is added to the <literal>executables</literal> container
             and associated with a set of sources.
         </para>
-        <sample id="cppExecutables" dir="cpp/c" title="Defining executable components">
+        <sample id="cppExecutables" dir="nativeBinary/c" title="Defining executable components">
             <sourcefile file="build.gradle" snippet="executables"/>
         </sample>
     </section>
@@ -135,7 +135,7 @@
             <para>
                 C++ language support is provided by means of the <literal>'cpp'</literal> plugin.
             </para>
-            <sample id="cppPlugin" dir="cpp/cpp" title="The 'cpp' plugin">
+            <sample id="cppPlugin" dir="nativeBinary/cpp" title="The 'cpp' plugin">
                 <sourcefile file="build.gradle" snippet="apply-plugin"/>
             </sample>
             <para>
@@ -149,7 +149,7 @@
                 While the <literal>cpp</literal> plugin defines these default locations for each <apilink class="org.gradle.nativecode.language.cpp.CppSourceSet"/>,
                 it is possible to extend or override these defaults to allow for a different project layout.
             </para>
-            <sample id="cppSourceSet" dir="cpp/custom-layout" title="C++ source set">
+            <sample id="cppSourceSet" dir="nativeBinary/custom-layout" title="C++ source set">
                 <sourcefile file="build.gradle" snippet="cpp-sources"/>
             </sample>
             <para>
@@ -164,7 +164,7 @@
             <para>
                 C language support is provided by means of the <literal>'c'</literal> plugin.
             </para>
-            <sample id="cPlugin" dir="cpp/c" title="The 'c' plugin">
+            <sample id="cPlugin" dir="nativeBinary/c" title="The 'c' plugin">
                 <sourcefile file="build.gradle" snippet="apply-plugin"/>
             </sample>
             <para>
@@ -178,7 +178,7 @@
                 While the <literal>c</literal> plugin defines these default locations for each <apilink class="org.gradle.nativecode.language.c.CSourceSet"/>,
                 it is possible to extend or override these defaults to allow for a different project layout.
             </para>
-            <sample id="cSourceSet" dir="cpp/custom-layout" title="C source set">
+            <sample id="cSourceSet" dir="nativeBinary/custom-layout" title="C source set">
                 <sourcefile file="build.gradle" snippet="c-sources"/>
             </sample>
             <para>
@@ -193,7 +193,7 @@
             <para>
                 Assembly language support is provided by means of the <literal>'assembler'</literal> plugin.
             </para>
-            <sample id="assemblerPlugin" dir="cpp/assembler" title="The 'assembler' plugin">
+            <sample id="assemblerPlugin" dir="nativeBinary/assembler" title="The 'assembler' plugin">
                 <sourcefile file="build.gradle" snippet="apply-plugin"/>
             </sample>
             <para>
@@ -211,7 +211,7 @@
             Each binary to be produced is associated with a set of compiler and linker settings, which include command-line arguments as well as macro definitions.
             These settings can be applied to all binaries, an individual binary, or selectively to a group of binaries based on some criteria.
         </para>
-        <sample id="allBinarySettings" dir="cpp/cpp" title="Settings that apply to all binaries">
+        <sample id="allBinarySettings" dir="nativeBinary/cpp" title="Settings that apply to all binaries">
             <sourcefile file="build.gradle" snippet="all-binaries"/>
         </sample>
         <para>
@@ -221,14 +221,14 @@
         <para>
             It is easy to apply settings to all binaries of a particular type:
         </para>
-        <sample id="allSharedLibraryBinarySettings" dir="cpp/c" title="Settings that apply to all shared libraries">
+        <sample id="allSharedLibraryBinarySettings" dir="nativeBinary/c" title="Settings that apply to all shared libraries">
             <sourcefile file="build.gradle" snippet="all-shared-libraries"/>
         </sample>
         <para>
             Furthermore, it is possible to specify settings that apply to all binaries produces for a particular <literal>executable</literal>
             or <literal>library</literal> component:
         </para>
-        <sample id="componentBinarySettings" dir="cpp/assembler" title="Settings that apply to all binaries produced for the 'main' executable component">
+        <sample id="componentBinarySettings" dir="nativeBinary/assembler" title="Settings that apply to all binaries produced for the 'main' executable component">
             <sourcefile file="build.gradle" snippet="assembler-args"/>
         </sample>
         <para>
@@ -238,7 +238,7 @@
             Similarly, settings can be specified to target binaries for a component that are of a particular type:
             eg all <literal>shared libraries</literal> for the <literal>main library</literal> component.
         </para>
-        <sample id="sharedLibraryArgs" dir="cpp/cpp-lib" title="Settings that apply only to shared libraries produced for the 'main' library component">
+        <sample id="sharedLibraryArgs" dir="nativeBinary/cpp-lib" title="Settings that apply only to shared libraries produced for the 'main' library component">
             <sourcefile file="build.gradle" snippet="args"/>
         </sample>
     </section>
@@ -258,13 +258,13 @@
            <para>
                Such a library dependency can be easily provided to source set associated with the <literal>executable</literal> component:
            </para>
-           <sample id="cppSourceLibrary" dir="cpp/cpp" title="Providing a library dependency to the source set">
+           <sample id="cppSourceLibrary" dir="nativeBinary/cpp" title="Providing a library dependency to the source set">
                <sourcefile file="build.gradle" snippet="source-library"/>
            </sample>
            <para>
                Alternatively, a library dependency can be provided directly to the <literal>ExecutableBinary</literal> for the <literal>executable</literal>.
            </para>
-           <sample id="cppBinaryLibrary" dir="cpp/custom-layout" title="Providing a library dependency to the binary">
+           <sample id="cppBinaryLibrary" dir="nativeBinary/custom-layout" title="Providing a library dependency to the binary">
                <sourcefile file="build.gradle" snippet="binary-library"/>
            </sample>
         </section>
@@ -273,7 +273,7 @@
             <para>
                 For a component produced in a different Gradle project, the notation is similar.
             </para>
-            <sample id="cppProjectDependencies" dir="cpp/multi-project" title="Declaring project dependencies">
+            <sample id="cppProjectDependencies" dir="nativeBinary/multi-project" title="Declaring project dependencies">
                 <sourcefile file="build.gradle" snippet="project-dependencies"/>
             </sample>
         </section>
@@ -282,7 +282,7 @@
             <para>
                 External dependencies (i.e. from a repository, not a subproject) are specified using the following syntax:
             </para>
-            <sample id="gppArgs" dir="cpp/dependencies" title="Declaring dependencies">
+            <sample id="gppArgs" dir="nativeBinary/dependencies" title="Declaring dependencies">
                 <sourcefile file="build.gradle" snippet="declaring-dependencies"/>
             </sample>
             <para>
@@ -303,7 +303,7 @@
             The <literal>cpp-exe</literal> and <literal>cpp-lib</literal> plugins configure their respective output binaries to be publishable as part of the
             <literal>archives</literal> configuration. To publish, simply configure the <literal>uploadArchives</literal> task as per usual.
         </para>
-        <sample id="cppPublish" dir="cpp/dependencies" title="Uploading exe or lib">
+        <sample id="cppPublish" dir="nativeBinary/dependencies" title="Uploading exe or lib">
             <sourcefile file="build.gradle" snippet="upload"/>
         </sample>
         <para>
