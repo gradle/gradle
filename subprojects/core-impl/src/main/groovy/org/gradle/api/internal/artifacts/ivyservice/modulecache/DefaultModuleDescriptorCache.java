@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
@@ -81,6 +82,14 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
             return null;
         }
         return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, descriptor, timeProvider);
+    }
+
+    public CachedModuleDescriptor cacheMissing(ModuleVersionRepository repository, ModuleVersionIdentifier id, boolean changing) {
+        return cacheModuleDescriptor(repository, id, null, null, changing);
+    }
+
+    public CachedModuleDescriptor cacheMetaData(ModuleVersionRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource) {
+        return cacheModuleDescriptor(repository, metaData.getId(), metaData.getDescriptor(), moduleSource, metaData.isChanging());
     }
 
     public CachedModuleDescriptor cacheModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleSource moduleSource, boolean isChanging) {

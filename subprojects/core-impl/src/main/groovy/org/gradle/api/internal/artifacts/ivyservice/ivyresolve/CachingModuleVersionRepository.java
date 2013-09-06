@@ -87,15 +87,18 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         delegate.getDependency(forced, result);
         switch (result.getState()) {
             case Missing:
-                final ModuleRevisionId dependencyRevisionId = dependency.getDescriptor().getDependencyRevisionId();
-                final ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(dependencyRevisionId);
-                moduleDescriptorCache.cacheModuleDescriptor(delegate, moduleVersionIdentifier, null, null, dependency.isChanging());
+                ModuleRevisionId dependencyRevisionId = dependency.getDescriptor().getDependencyRevisionId();
+                ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(dependencyRevisionId);
+                moduleDescriptorCache.cacheMissing(delegate, moduleVersionIdentifier, dependency.isChanging());
                 break;
             case Resolved:
-                ModuleVersionMetaData metaData = result.getMetaData();
+                MutableModuleVersionMetaData metaData = result.getMetaData();
+                if (dependency.isChanging()) {
+                    metaData.setChanging(true);
+                }
                 moduleResolutionCache.cacheModuleResolution(delegate, dependency.getRequested(), metaData.getId());
-                final ModuleSource moduleSource = result.getModuleSource();
-                final ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.cacheModuleDescriptor(delegate, metaData.getId(), metaData.getDescriptor(), moduleSource, isChangingDependency(dependency, metaData));
+                ModuleSource moduleSource = result.getModuleSource();
+                ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.cacheMetaData(delegate, metaData, moduleSource);
                 result.setModuleSource(new CachingModuleSource(cachedModuleDescriptor.getDescriptorHash(), cachedModuleDescriptor.isChangingModule(), moduleSource));
                 break;
             case Failed:
