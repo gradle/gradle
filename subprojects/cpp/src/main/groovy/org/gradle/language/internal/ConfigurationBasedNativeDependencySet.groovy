@@ -15,7 +15,7 @@
  */
 package org.gradle.language.internal
 
-import org.gradle.binaries.nativebinaries.NativeDependencySet
+import org.gradle.nativebinaries.NativeDependencySet
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
