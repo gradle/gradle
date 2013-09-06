@@ -502,13 +502,13 @@
                 <td>org.gradle.nativecode.base.ToolChainRegistry</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.language.asm.AssemblerSourceSet</td>
+                <td>org.gradle.language.assembler.AssemblerSourceSet</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.language.c.CSourceSet</td>
+                <td>org.gradle.language.c.CSourceSet</td>
             </tr>
             <tr>
-                <td>org.gradle.nativecode.language.cpp.CppSourceSet</td>
+                <td>org.gradle.language.cpp.CppSourceSet</td>
             </tr>
         </table>
     </section>

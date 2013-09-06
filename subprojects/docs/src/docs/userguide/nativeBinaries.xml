@@ -139,14 +139,14 @@
                 <sourcefile file="build.gradle" snippet="apply-plugin"/>
             </sample>
             <para>
-                C++ sources to be included in a native binary are provided via a <apilink class="org.gradle.nativecode.language.cpp.CppSourceSet"/>,
+                C++ sources to be included in a native binary are provided via a <apilink class="org.gradle.language.cpp.CppSourceSet"/>,
                 which defines a set of C++ source files and optionally a set of exported header files (for a library).
-                By default, for any named component the <apilink class="org.gradle.nativecode.language.cpp.CppSourceSet"/> contains
+                By default, for any named component the <apilink class="org.gradle.language.cpp.CppSourceSet"/> contains
                 <filename>.cpp</filename> source files in <filename>src/${name}/cpp</filename>,
                 and header files in <filename>src/${name}/headers</filename>.
             </para>
             <para>
-                While the <literal>cpp</literal> plugin defines these default locations for each <apilink class="org.gradle.nativecode.language.cpp.CppSourceSet"/>,
+                While the <literal>cpp</literal> plugin defines these default locations for each <apilink class="org.gradle.language.cpp.CppSourceSet"/>,
                 it is possible to extend or override these defaults to allow for a different project layout.
             </para>
             <sample id="cppSourceSet" dir="nativeBinary/custom-layout" title="C++ source set">
@@ -168,14 +168,14 @@
                 <sourcefile file="build.gradle" snippet="apply-plugin"/>
             </sample>
             <para>
-                C sources to be included in a native binary are provided via a <apilink class="org.gradle.nativecode.language.c.CSourceSet"/>,
+                C sources to be included in a native binary are provided via a <apilink class="org.gradle.language.c.CSourceSet"/>,
                 which defines a set of C source files and optionally a set of exported header files (for a library).
-                By default, for any named component the <apilink class="org.gradle.nativecode.language.c.CSourceSet"/> contains
+                By default, for any named component the <apilink class="org.gradle.language.c.CSourceSet"/> contains
                 <filename>.c</filename> source files in <filename>src/${name}/c</filename>,
                 and header files in <filename>src/${name}/headers</filename>.
             </para>
             <para>
-                While the <literal>c</literal> plugin defines these default locations for each <apilink class="org.gradle.nativecode.language.c.CSourceSet"/>,
+                While the <literal>c</literal> plugin defines these default locations for each <apilink class="org.gradle.language.c.CSourceSet"/>,
                 it is possible to extend or override these defaults to allow for a different project layout.
             </para>
             <sample id="cSourceSet" dir="nativeBinary/custom-layout" title="C source set">
@@ -197,9 +197,9 @@
                 <sourcefile file="build.gradle" snippet="apply-plugin"/>
             </sample>
             <para>
-                Assembler sources to be included in a native binary are provided via a <apilink class="org.gradle.nativecode.language.asm.AssemblerSourceSet"/>,
+                Assembler sources to be included in a native binary are provided via a <apilink class="org.gradle.language.assembler.AssemblerSourceSet"/>,
                 which defines a set of Assembler source files.
-                By default, for any named component the <apilink class="org.gradle.nativecode.language.asm.AssemblerSourceSet"/> contains
+                By default, for any named component the <apilink class="org.gradle.language.assembler.AssemblerSourceSet"/> contains
                 <filename>.s</filename> source files under <filename>src/${name}/asm</filename>.
             </para>
         </section>

@@ -19,11 +19,11 @@ import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.nativecode.base.Executable
-import org.gradle.nativecode.base.HeaderExportingSourceSet
+import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.nativecode.base.Library
 import org.gradle.nativecode.base.NativeComponent
 import org.gradle.nativecode.base.NativeDependencySet
-import org.gradle.nativecode.language.cpp.CppSourceSet
+import org.gradle.language.cpp.CppSourceSet
 
 /**
  * Exposes a more logical view of the actual .cproject descriptor file

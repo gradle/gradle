@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes that model aspects of C++ projects.
+ * Classes for building Assembler sources for a native runtime.
  */
 package org.gradle.nativecode.language.asm;

@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes for compiling and linking C sources for a native runtime.
+ * Model classes for building from C language sources.
  */
-package org.gradle.nativecode.language.c;
+package org.gradle.language.c;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.language.cpp.plugins
+package org.gradle.language.c.plugins
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
@@ -22,27 +22,27 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
-import org.gradle.nativecode.language.cpp.CppSourceSet
-import org.gradle.nativecode.language.cpp.internal.DefaultCppSourceSet
+import org.gradle.language.c.CSourceSet
+import org.gradle.language.c.internal.DefaultCSourceSet
 
 import javax.inject.Inject
 
 /**
- * Adds core C++ language support.
+ * Adds core C language support.
  *
  * <ul>
- *     <li>For any {@link FunctionalSourceSet}, adds a conventional {@link CppSourceSet} called 'cpp'.</li>
- *     <li>Establishes a convention for all {@link CppSourceSet}s so that sources are located in 'src/<name>/cpp' and
+ *     <li>For any {@link FunctionalSourceSet}, adds a conventional {@link CSourceSet} called 'cpp'.</li>
+ *     <li>Establishes a convention for all {@link CSourceSet}s so that sources are located in 'src/<name>/c' and
  *         headers are located in 'src/<name>/headers'.</li>
  *     <li>
  * </ul>
  */
 @Incubating
-class CppLangPlugin implements Plugin<ProjectInternal> {
+class CLangPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
 
     @Inject
-    public CppLangPlugin(Instantiator instantiator) {
+    public CLangPlugin(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 
@@ -58,13 +58,13 @@ class CppLangPlugin implements Plugin<ProjectInternal> {
     }
 
     private void applyConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
-        // Establish defaults for all cpp source sets
-        functionalSourceSet.withType(CppSourceSet).all { sourceSet ->
+        // Defaults for all C source sets
+        functionalSourceSet.withType(CSourceSet).all { sourceSet ->
             sourceSet.exportedHeaders.srcDir "src/${functionalSourceSet.name}/headers"
-            sourceSet.source.srcDir "src/${functionalSourceSet.name}/cpp"
+            sourceSet.source.srcDir "src/${functionalSourceSet.name}/c"
         }
 
-        // Add a single C++ source set
-        functionalSourceSet.add(instantiator.newInstance(DefaultCppSourceSet.class, "cpp", functionalSourceSet, project));
+        // Create a single C source set
+        functionalSourceSet.add(instantiator.newInstance(DefaultCSourceSet.class, "c", functionalSourceSet, project));
     }
 }

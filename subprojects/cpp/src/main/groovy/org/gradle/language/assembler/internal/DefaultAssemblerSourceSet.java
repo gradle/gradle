@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-/**
- * Classes for compiling and linking C sources for a native runtime.
- */
-package org.gradle.nativecode.language.c;
+package org.gradle.language.assembler.internal;
+
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.assembler.AssemblerSourceSet;
+import org.gradle.language.internal.AbstractBaseSourceSet;
+
+public class DefaultAssemblerSourceSet extends AbstractBaseSourceSet implements AssemblerSourceSet {
+    public DefaultAssemblerSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
+        super(name, parent, project, "Assembler");
+    }
+}

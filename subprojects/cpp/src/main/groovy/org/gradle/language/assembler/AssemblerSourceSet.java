@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.base;
+package org.gradle.language.assembler;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
- * A source set that exposes headers
+ * A set of assembly language sources.
+ *
+ * <pre autoTested="true">
+ * apply plugin: "assembler"
+ *
+ * sources {
+ *     main {
+ *         // Configure an existing AssemblerSourceSet
+ *         asm {
+ *             source {
+ *                 srcDirs "src/main/i386", "src/shared/asm"
+ *                 include "**{@literal /}*.s"
+ *             }
+ *         }
+ *     }
+ * }
+ * </pre>
  */
 @Incubating
-public interface HeaderExportingSourceSet extends LanguageSourceSet {
-
-    /**
-     * Configure the exported header directories.
-     */
-    void exportedHeaders(Action<SourceDirectorySet> config);
-
-    /**
-     * The headers as a directory set.
-     */
-    SourceDirectorySet getExportedHeaders();
+public interface AssemblerSourceSet extends LanguageSourceSet {
 }

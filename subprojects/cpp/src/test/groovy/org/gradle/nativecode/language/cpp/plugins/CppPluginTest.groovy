@@ -24,7 +24,7 @@ import org.gradle.nativecode.base.tasks.CreateStaticLibrary
 import org.gradle.nativecode.base.tasks.InstallExecutable
 import org.gradle.nativecode.base.tasks.LinkExecutable
 import org.gradle.nativecode.base.tasks.LinkSharedLibrary
-import org.gradle.nativecode.language.cpp.CppSourceSet
+import org.gradle.language.cpp.CppSourceSet
 import org.gradle.nativecode.language.cpp.tasks.CppCompile
 import org.gradle.util.Matchers
 import org.gradle.util.TestUtil

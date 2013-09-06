@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.language.base.internal;
+package org.gradle.language.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
-import org.gradle.nativecode.base.internal.ConfigurationBasedNativeDependencySet;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,8 +32,8 @@ import java.util.Map;
 
 /**
  * A convenience base class for implementing language source sets.
- * Note that this class 'implements' all required methods for {@link org.gradle.nativecode.base.HeaderExportingSourceSet}
- * and {@link org.gradle.nativecode.base.DependentSourceSet} but does not add those types to the API.
+ * Note that this class 'implements' all required methods for {@link org.gradle.language.HeaderExportingSourceSet}
+ * and {@link org.gradle.language.DependentSourceSet} but does not add those types to the API.
  */
 public abstract class AbstractBaseSourceSet implements LanguageSourceSetInternal {
 

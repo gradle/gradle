@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.base.internal
+package org.gradle.language.internal
 
 import org.gradle.nativecode.base.NativeDependencySet
 import org.gradle.api.Project
@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.artifacts.Configuration
 
+// TODO:DAZ Convert to java
 class ConfigurationBasedNativeDependencySet implements NativeDependencySet {
 
     private final String baseName

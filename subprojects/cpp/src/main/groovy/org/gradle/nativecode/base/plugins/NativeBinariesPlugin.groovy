@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.language.DependentSourceSet
 import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.nativecode.base.*

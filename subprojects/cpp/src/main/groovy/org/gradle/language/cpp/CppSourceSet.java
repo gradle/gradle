@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.language.c;
+package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.nativecode.base.DependentSourceSet;
-import org.gradle.nativecode.base.HeaderExportingSourceSet;
+import org.gradle.language.DependentSourceSet;
+import org.gradle.language.HeaderExportingSourceSet;
 
 /**
- * A set of C source files.
+ * A set of C++ source files.
  *
- * <p>A C source set contains a set of source files, together with an optional set of exported header files.</p>
+ * <p>A C++ source set contains a set of source files, together with an optional set of exported header files.</p>
  *
  * <pre autoTested="true">
- * apply plugin: "c"
+ * apply plugin: "cpp"
  *
  * sources {
  *     main {
- *         // Configure an existing CSourceSet
- *         c {
+ *         // Configure an existing CppSourceSet
+ *         cpp {
  *             source {
  *                 srcDirs "src/main/cpp", "src/shared/c++"
- *                 include "**{@literal /}*.c"
+ *                 include "**{@literal /}*.cpp"
  *             }
  *             exportedHeaders {
- *                 srcDirs "src/main/include"
+ *                 srcDirs "src/main/include", "src/shared/include"
  *             }
  *         }
  *     }
@@ -45,5 +45,5 @@ import org.gradle.nativecode.base.HeaderExportingSourceSet;
  * </pre>
  */
 @Incubating
-public interface CSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
+public interface CppSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
 }

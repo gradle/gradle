@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.language.asm.plugins
+package org.gradle.language.assembler.plugins
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
@@ -22,8 +22,8 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
-import org.gradle.nativecode.language.asm.AssemblerSourceSet
-import org.gradle.nativecode.language.asm.internal.DefaultAssemblerSourceSet
+import org.gradle.language.assembler.AssemblerSourceSet
+import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet
 
 import javax.inject.Inject
 

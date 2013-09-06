@@ -13,24 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.language.asm;
+package org.gradle.language.c;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.DependentSourceSet;
+import org.gradle.language.HeaderExportingSourceSet;
 
 /**
- * A set of assembly language sources.
+ * A set of C source files.
+ *
+ * <p>A C source set contains a set of source files, together with an optional set of exported header files.</p>
  *
  * <pre autoTested="true">
- * apply plugin: "assembler"
+ * apply plugin: "c"
  *
  * sources {
  *     main {
- *         // Configure an existing AssemblerSourceSet
- *         asm {
+ *         // Configure an existing CSourceSet
+ *         c {
  *             source {
- *                 srcDirs "src/main/i386", "src/shared/asm"
- *                 include "**{@literal /}*.s"
+ *                 srcDirs "src/main/cpp", "src/shared/c++"
+ *                 include "**{@literal /}*.c"
+ *             }
+ *             exportedHeaders {
+ *                 srcDirs "src/main/include"
  *             }
  *         }
  *     }
@@ -38,5 +45,5 @@ import org.gradle.language.base.LanguageSourceSet;
  * </pre>
  */
 @Incubating
-public interface AssemblerSourceSet extends LanguageSourceSet {
+public interface CSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.base;
+package org.gradle.language;
 
 import org.gradle.api.Incubating;
 
@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * A source set that depends on one or more {@link NativeDependencySet}s to be built.
+ * A source set that depends on one or more {@link org.gradle.nativecode.base.NativeDependencySet}s to be built.
  */
 @Incubating
 public interface DependentSourceSet {
@@ -34,9 +34,9 @@ public interface DependentSourceSet {
      * Adds a library that this source set requires. This method accepts the following types:
      *
      * <ul>
-     *     <li>A {@link Library}</li>
-     *     <li>A {@link LibraryBinary}</li>
-     *     <li>A {@link NativeDependencySet}</li>
+     *     <li>A {@link org.gradle.nativecode.base.Library}</li>
+     *     <li>A {@link org.gradle.nativecode.base.LibraryBinary}</li>
+     *     <li>A {@link org.gradle.nativecode.base.NativeDependencySet}</li>
      * </ul>
      */
     void lib(Object library);

@@ -17,13 +17,14 @@ package org.gradle.nativecode.language.c.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.language.c.plugins.CLangPlugin
 import org.gradle.nativecode.base.NativeBinary
 import org.gradle.nativecode.base.NativeDependencySet
 import org.gradle.nativecode.base.SharedLibraryBinary
 import org.gradle.nativecode.base.ToolChainTool
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.base.plugins.NativeBinariesPlugin
-import org.gradle.nativecode.language.c.CSourceSet
+import org.gradle.language.c.CSourceSet
 import org.gradle.nativecode.language.c.tasks.CCompile
 import org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin
 import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin
@@ -31,7 +32,7 @@ import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin
 /**
  * A plugin for projects wishing to build native binary components from C sources.
  *
- * <p>Automatically includes the {@link CLangPlugin} for core C support and the {@link NativeBinariesPlugin} for native binary support,
+ * <p>Automatically includes the {@link org.gradle.language.c.plugins.CLangPlugin} for core C support and the {@link NativeBinariesPlugin} for native binary support,
  * together with the {@link MicrosoftVisualCppPlugin} and {@link GppCompilerPlugin} for core toolchain support.</p>
  *
  * <li>Creates a {@link CCompile} task for each {@link CSourceSet} to compile the C sources.</li>

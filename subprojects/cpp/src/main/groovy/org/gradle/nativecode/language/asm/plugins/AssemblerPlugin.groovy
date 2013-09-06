@@ -18,11 +18,12 @@ package org.gradle.nativecode.language.asm.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.language.assembler.plugins.AssemblerLangPlugin
 import org.gradle.nativecode.base.NativeBinary
 import org.gradle.nativecode.base.ToolChainTool
 import org.gradle.nativecode.base.internal.NativeBinaryInternal
 import org.gradle.nativecode.base.plugins.NativeBinariesPlugin
-import org.gradle.nativecode.language.asm.AssemblerSourceSet
+import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.nativecode.language.asm.tasks.Assemble
 import org.gradle.nativecode.toolchain.plugins.GppCompilerPlugin
 import org.gradle.nativecode.toolchain.plugins.MicrosoftVisualCppPlugin

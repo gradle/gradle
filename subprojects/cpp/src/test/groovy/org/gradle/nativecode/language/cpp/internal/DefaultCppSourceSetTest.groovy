@@ -16,6 +16,7 @@
 
 package org.gradle.nativecode.language.cpp.internal
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.cpp.internal.DefaultCppSourceSet
 import org.gradle.nativecode.base.Library
 import org.gradle.nativecode.base.LibraryBinary
 import org.gradle.nativecode.base.NativeDependencySet
