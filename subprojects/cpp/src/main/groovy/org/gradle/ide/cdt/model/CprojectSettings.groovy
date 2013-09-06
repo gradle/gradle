@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.cdt.model
+package org.gradle.ide.cdt.model
 
 import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection

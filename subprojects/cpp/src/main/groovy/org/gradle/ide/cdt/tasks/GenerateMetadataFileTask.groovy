@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.cdt.tasks
+package org.gradle.ide.cdt.tasks
 
 import org.gradle.api.Incubating
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.internal.Factory
 import org.gradle.listener.ActionBroadcast
-import org.gradle.nativecode.cdt.model.CprojectSettings
+import org.gradle.ide.cdt.model.CprojectSettings
 import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator

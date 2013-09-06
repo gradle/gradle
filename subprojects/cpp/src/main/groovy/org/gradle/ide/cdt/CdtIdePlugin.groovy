@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativecode.cdt
+package org.gradle.ide.cdt
 
 import org.gradle.api.Incubating
 import org.gradle.api.Project
@@ -21,12 +21,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.Delete
 
-import org.gradle.nativecode.cdt.model.ProjectSettings
-import org.gradle.nativecode.cdt.model.ProjectDescriptor
-import org.gradle.nativecode.cdt.model.CprojectSettings
-import org.gradle.nativecode.cdt.model.CprojectDescriptor
+import org.gradle.ide.cdt.model.ProjectSettings
+import org.gradle.ide.cdt.model.ProjectDescriptor
+import org.gradle.ide.cdt.model.CprojectSettings
+import org.gradle.ide.cdt.model.CprojectDescriptor
 
-import org.gradle.nativecode.cdt.tasks.GenerateMetadataFileTask
+import org.gradle.ide.cdt.tasks.GenerateMetadataFileTask
 
 @Incubating
 class CdtIdePlugin implements Plugin<Project> {
