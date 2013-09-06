@@ -528,6 +528,7 @@ This story adds support for building a native component using multiple tool chai
 
 ### User visible changes
 
+    // Global set of defined tool chains. A future story may allow this to be tweaked per-component
     toolChains {
         gcc(Gcc) {} // binaries with default names, found on Path
         gcc3(Gcc) {
@@ -595,14 +596,16 @@ Introduce the concept of a native platform, which may have an associated archite
 Each ToolChain can be asked if it can build for a particular platform.
 Each variant has a platform associated with it.
 
-- Introduce `Architecture` as a simple type extending Named.
-- Native binaries plugin adds `Platform` and `PlatformContainer` and a container instance named `targetPlatforms`
-- Add `Platform.architecture`, that defaults to the current architecture.
-- If no target platform is defined, then the current platform is added as a default.
+- Native binaries plugin adds new types: `Architecture`, `Platform` and `PlatformContainer`.
+    - Add an extension to `project` of type `PlatformContainer` named `targetPlatforms`.
+- Add `architecture` property to `Platform`
+    - If a platform has no architecture defined, then the architecture of the build machine is used.
+    - If no target platform is defined and added to the PlatformContainer, then the a single default platform is added.
 - Add a `platform` property to `NativeBinary` to allow navigation from the binary to its corresponding platform.
-- Split `PlatformToolChain` out of `ToolChainInternal`, and add `ToolChainInternal.target(Platform) -> PlatformToolChain`.
-- `PlatformToolChain` contains built-in knowledge of arguments required to build for target platform.
-- Variants will be built for all available architectures
+- Split `PlatformToolChain` out of `ToolChainInternal`, with `ToolChainInternal.target(Platform) -> PlatformToolChain`
+    - `PlatformToolChain` may contain built-in knowledge of arguments required to build for target platform.
+    - Additionally, platform-specific arguments may be supplied in the build script
+- For each tool chain, a variant will be built for each defined platform. Later stories will allow a tool chain to only target certain platforms.
     - With a single defined platform, the binary task names and output directories will NOT contain the platform name.
     - With multiple defined platforms, task names and output directories for each variant will include the platform name.
 - When resolving the dependencies of a binary `b`, for a dependency on library `l`:
@@ -614,6 +617,8 @@ Each variant has a platform associated with it.
 
 ### User visible changes
 
+    // Project definition of target platforms.
+    // Later stories may allow this to be separately configured per component.
     targetPlatforms {
         x86_standard {
             architecture "x86" // Synonym for x86-32, IA-32
@@ -652,6 +657,7 @@ Each variant has a platform associated with it.
 
 - Need to be able to build for a single architecture or all available architectures.
 - Need to discover which architectures a tool chain can build for.
+- Need to handle universal binaries.
 - Need separate compiler, linker and assembler options for each platform.
 - Infer the default platform and architecture.
 - Define some conventions for architecture names.
@@ -668,7 +674,7 @@ Each variant has a platform associated with it.
 This story adds support for cross-compilation. Add the concept of an operating system to the platform.
 
 - Add `OperatingSystem` and simple type extending Named
-- Add `Platform.operatingSystem` property. Should default to current operating system.
+- Add `Platform.operatingSystem` property. Should default to the operating system of the build machine.
 - Add `ToolChain.targetPlatform` add to the set of supported target platforms for a tool chain.
 
 ### User visible changes
