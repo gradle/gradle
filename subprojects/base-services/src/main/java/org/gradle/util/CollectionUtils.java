@@ -99,7 +99,8 @@ public abstract class CollectionUtils {
     }
 
     public static <R, I> R[] collectArray(I[] list, Class<R> newType, Transformer<? extends R, ? super I> transformer) {
-        return collectArray(list, (R[]) Array.newInstance(newType, list.length), transformer);
+        @SuppressWarnings("unchecked") R[] destination = (R[]) Array.newInstance(newType, list.length);
+        return collectArray(list, destination, transformer);
     }
 
     public static <R, I> R[] collectArray(I[] list, R[] destination, Transformer<? extends R, ? super I> transformer) {
@@ -205,7 +206,8 @@ public abstract class CollectionUtils {
             return new ArrayList<T>(0);
         }
         if (things instanceof List) {
-            return (List<T>) things;
+            @SuppressWarnings("unchecked") List<T> castThings = (List<T>) things;
+            return castThings;
         }
 
         List<T> list = new ArrayList<T>();
@@ -232,7 +234,8 @@ public abstract class CollectionUtils {
             return new HashSet<T>(0);
         }
         if (things instanceof Set) {
-            return (Set<T>) things;
+            @SuppressWarnings("unchecked") Set<T> castThings = (Set<T>) things;
+            return castThings;
         }
 
         Set<T> set = new LinkedHashSet<T>();
