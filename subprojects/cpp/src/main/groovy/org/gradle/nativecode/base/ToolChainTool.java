@@ -19,7 +19,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-// TODO:DAZ Better name
+// TODO:DAZ Give this a better name, and possibly merge with org.gradle.nativecode.toolchain.Tool
+// Need to work out if it makes sense to set the args when configuring a tool chain, or set the tool exe for a binary.
+// Seems like merging the 2 might work.
 /**
  * A tool that is part of a tool chain (compiler, linker, assembler, etc).
  */
