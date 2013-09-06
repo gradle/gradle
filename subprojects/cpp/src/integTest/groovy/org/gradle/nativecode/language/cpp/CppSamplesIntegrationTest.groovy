@@ -88,7 +88,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("cpp/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"
+        installation("cpp/custom-layout/build/install/mainExecutable").exec().out == "Hello world!"
     }
 
     def "exe"() {

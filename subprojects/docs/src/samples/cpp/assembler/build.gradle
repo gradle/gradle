@@ -38,18 +38,22 @@ sources {
 }
 // END SNIPPET sources
 
+// START SNIPPET assembler-args
 executables {
     main {
+        // END SNIPPET assembler-args
         if (osx) {
-            // START SNIPPET assembler-args
-            binaries.all {
-                assembler.args "-arch", "i386"
-                cCompiler.args "-m32"
-                linkerArgs "-no_pie", "-arch", "i386"
-            }
-            // END SNIPPET assembler-args
+        // START SNIPPET assembler-args
+        binaries.all {
+            assembler.args "-arch", "i386"
+            cCompiler.args "-m32"
+            linkerArgs "-no_pie", "-arch", "i386"
         }
+        // END SNIPPET assembler-args
+        }
+        // START SNIPPET assembler-args
     }
 }
+// END SNIPPET assembler-args
 
 

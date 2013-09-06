@@ -1,25 +1,18 @@
-// START SNIPPET use-plugin
 apply plugin: "cpp-exe"
-// END SNIPPET use-plugin
 
-// START SNIPPET args
 executables {
     main {
         binaries.all {
             // Define a preprocessor macro
             define "NDEBUG"
-            // END SNIPPET args
             // Add some additional compiler arguments
             if (toolChain in Gcc) {
                 cppCompiler.args "-fno-access-control", "-fconserve-space"
             }
-            // START SNIPPET args
         }
     }
 }
-// END SNIPPET args
 
-// START SNIPPET strip
 binaries.withType(ExecutableBinary) { binary ->
     def linkTask = tasks["link${binary.name.capitalize()}"]
     def stripTask = task("strip${binary.name.capitalize()}") {
@@ -32,4 +25,3 @@ binaries.withType(ExecutableBinary) { binary ->
     }
     binary.builtBy stripTask
 }
-// END SNIPPET strip

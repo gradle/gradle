@@ -228,8 +228,8 @@
             Furthermore, it is possible to specify settings that apply to all binaries produces for a particular <literal>executable</literal>
             or <literal>library</literal> component:
         </para>
-        <sample id="componentBinarySettings" dir="cpp/cpp-exe" title="Settings that apply to all binaries produced for the 'main' executable component">
-            <sourcefile file="build.gradle" snippet="args"/>
+        <sample id="componentBinarySettings" dir="cpp/assembler" title="Settings that apply to all binaries produced for the 'main' executable component">
+            <sourcefile file="build.gradle" snippet="assembler-args"/>
         </sample>
         <para>
             The above example will apply the supplied configuration to all <literal>executable</literal> binaries built.
