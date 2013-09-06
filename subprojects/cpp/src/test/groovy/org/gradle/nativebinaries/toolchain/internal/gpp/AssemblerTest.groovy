@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gpp
 
-import org.gradle.nativebinaries.language.asm.internal.AssembleSpec
+import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
 import org.gradle.process.internal.ExecAction
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.language.asm.plugins
+package org.gradle.nativebinaries.language.assembler.plugins
 
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
@@ -24,7 +24,7 @@ import org.gradle.nativebinaries.ToolChainTool
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.language.assembler.AssemblerSourceSet
-import org.gradle.nativebinaries.language.asm.tasks.Assemble
+import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.toolchain.plugins.GppCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin
 

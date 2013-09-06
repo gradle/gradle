@@ -22,7 +22,7 @@ import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.*;
-import org.gradle.nativebinaries.language.asm.internal.AssembleSpec;
+import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.VisualCpp;

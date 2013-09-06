@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-/**
- * Classes for building Assembler sources for a native runtime.
- */
-package org.gradle.nativebinaries.language.asm;
+package org.gradle.nativebinaries.language.assembler.internal;
+
+import org.gradle.nativebinaries.language.internal.AbstractBaseCompileSpec;
+
+public class DefaultAssembleSpec extends AbstractBaseCompileSpec implements AssembleSpec {
+}

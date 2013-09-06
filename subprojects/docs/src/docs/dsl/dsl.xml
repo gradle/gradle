@@ -524,7 +524,7 @@
                 <td>org.gradle.nativebinaries.language.c.tasks.CCompile</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.language.asm.tasks.Assemble</td>
+                <td>org.gradle.nativebinaries.language.assembler.tasks.Assemble</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.tasks.LinkExecutable</td>

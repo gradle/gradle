@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.asm.internal;
-
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
-
-import java.io.File;
-
 /**
- * A compile spec that will be used to generate object files for combining into a native binary.
+ * Classes for building Assembler sources for a native runtime.
  */
-public interface AssembleSpec extends BinaryToolSpec {
-    File getObjectFileDir();
-
-    void setObjectFileDir(File objectFileDir);
-
-    Iterable<File> getSource();
-
-    void setSource(Iterable<File> source);
-
-    Iterable<String> getArgs();
-
-    void setArgs(Iterable<String> args);
-}
+package org.gradle.nativebinaries.language.assembler;
