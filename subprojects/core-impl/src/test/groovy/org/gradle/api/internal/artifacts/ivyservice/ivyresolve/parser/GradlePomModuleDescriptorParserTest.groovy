@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -226,12 +227,42 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         e.cause.message.contains('Element type "modelVersion"')
     }
 
+    @Issue("GRADLE-2034")
+    def "pom with meta data only"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <packaging>pom</packaging>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
+        def metaData = parseMetaData()
+        def descriptor = metaData.descriptor
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
+        descriptor.allArtifacts.length == 0
+        descriptor.dependencies.length == 0
+        parseMetaData().metaDataOnly
+    }
+
     private ModuleDescriptor parsePom() {
-        parser.parseMetaData(parseContext, pomFile, true).descriptor
+        parseMetaData().descriptor
+    }
+
+    private MutableModuleVersionMetaData parseMetaData() {
+        parser.parseMetaData(parseContext, pomFile, true)
     }
 
     private void hasArtifact(ModuleDescriptor descriptor, String name, String type, String ext, String classifier = null) {
-        descriptor.allArtifacts.length == 1
+        assert descriptor.allArtifacts.length == 1
         def artifact = descriptor.allArtifacts.first()
         assert artifact.id == artifactId(descriptor.moduleRevisionId, name, type, ext)
         assert artifact.extraAttributes['classifier'] == classifier
