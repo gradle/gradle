@@ -46,6 +46,8 @@ import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.concurrent.Callable;
 
 /**
@@ -349,4 +351,5 @@ public class JavaBasePlugin implements Plugin<Project> {
         });
         test.workingDir(project.getProjectDir());
     }
+
 }

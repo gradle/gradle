@@ -77,7 +77,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         String name = testDescriptor.getName();
 
         // This is a rather weak contract, but given the current inputs is the best we can do
-        boolean isClassLevelOutput = name.equals(className);
+        boolean isClassLevelOutput = className.equals(name);
 
         if (isClassLevelOutput) {
             outputWriter.onOutput(classResult.getId(), outputEvent);
