@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.util;
 
 import java.io.DataInput;
@@ -21,6 +22,7 @@ import java.io.IOException;
 public class GStreamUtil {
 
     //skips 'n' bytes,
+    //please consider using RandomFileAccess.seek()
     public static int skipBytes(int n, DataInput input) throws IOException {
         int total = 0;
         int cur;

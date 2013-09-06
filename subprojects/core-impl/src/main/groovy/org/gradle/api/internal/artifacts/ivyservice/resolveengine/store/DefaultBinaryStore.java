@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.cache.internal.stream.RandomAccessFileInputStream;
 import org.gradle.internal.CompositeStoppable;
-import org.gradle.util.GStreamUtil;
 
 import java.io.*;
 
@@ -116,7 +115,7 @@ class DefaultBinaryStore implements BinaryStore {
             try {
                 if (input == null) {
                     RandomAccessFile randomAccess = new RandomAccessFile(inputFile, "r");
-                    GStreamUtil.skipBytes(offset, randomAccess);
+                    randomAccess.seek(offset);
                     input = new DataInputStream(new BufferedInputStream(new RandomAccessFileInputStream(randomAccess)));
                     resources = new CompositeStoppable().add(randomAccess, input);
                 }
