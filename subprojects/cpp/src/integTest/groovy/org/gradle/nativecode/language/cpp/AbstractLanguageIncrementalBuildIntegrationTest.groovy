@@ -230,7 +230,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         buildFile << """
             executables {
                 main {
-                    binaries.all { linkerArgs ${escapeString(linkerArgs)} }
+                    binaries.all { linker.args ${escapeString(linkerArgs)} }
                 }
             }
 """
@@ -299,7 +299,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         given:
         buildFile << """
-            binaries.all { cppCompiler.args '/Zi'; cCompiler.args '/Zi'; linkerArgs '/DEBUG'; }
+            binaries.all { cppCompiler.args '/Zi'; cCompiler.args '/Zi'; linker.args '/DEBUG'; }
         """
         run "mainExecutable"
 
@@ -308,7 +308,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         when:
         buildFile << """
-            binaries.all { cCompiler.args.clear(); cppCompiler.args.clear(); linkerArgs.clear(); }
+            binaries.all { cCompiler.args.clear(); cppCompiler.args.clear(); linker.args.clear(); }
         """
         run "mainExecutable"
 

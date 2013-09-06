@@ -113,7 +113,7 @@ class CppPluginTest extends Specification {
                     binaries.all { NativeBinary binary ->
                         binary.define "NDEBUG"
                         binary.cppCompiler.args "ARG1", "ARG2"
-                        binary.linkerArgs "LINK1", "LINK2"
+                        binary.linker.args "LINK1", "LINK2"
                     }
                 }
             }
@@ -165,10 +165,10 @@ class CppPluginTest extends Specification {
                         cppCompiler.args "ARG1", "ARG2"
                     }
                     binaries.withType(SharedLibraryBinary) {
-                        linkerArgs "LINK1", "LINK2"
+                        linker.args "LINK1", "LINK2"
                     }
                     binaries.withType(StaticLibraryBinary) {
-                        staticLibArgs "LIB1", "LIB2"
+                        staticArchiver.args "LIB1", "LIB2"
                     }
                 }
             }

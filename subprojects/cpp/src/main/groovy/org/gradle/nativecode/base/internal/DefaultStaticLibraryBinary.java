@@ -23,20 +23,15 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
-import org.gradle.nativecode.base.Flavor;
-import org.gradle.nativecode.base.Library;
-import org.gradle.nativecode.base.NativeDependencySet;
-import org.gradle.nativecode.base.StaticLibraryBinary;
+import org.gradle.nativecode.base.*;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements StaticLibraryBinary {
     private final Library library;
-    private final ArrayList<Object> staticLibArgs = new ArrayList<Object>();
+    private final ToolChainTool staticArchiver = new ToolChainTool();
 
     public DefaultStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, DefaultBinaryNamingScheme namingScheme) {
         super(library, flavor, toolChain, namingScheme.withTypeString("StaticLibrary"));
@@ -51,12 +46,8 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
         return getToolChain().getStaticLibraryName(getComponent().getBaseName());
     }
 
-    public List<Object> getStaticLibArgs() {
-        return staticLibArgs;
-    }
-
-    public void staticLibArgs(Object... args) {
-        Collections.addAll(staticLibArgs, args);
+    public ToolChainTool getStaticArchiver() {
+        return staticArchiver;
     }
 
     public NativeDependencySet resolve() {

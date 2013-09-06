@@ -27,6 +27,7 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativecode.base.Flavor;
 import org.gradle.nativecode.base.NativeComponent;
 import org.gradle.nativecode.base.NativeDependencySet;
+import org.gradle.nativecode.base.ToolChainTool;
 import org.gradle.nativecode.base.tasks.BuildBinaryTask;
 
 import java.io.File;
@@ -36,7 +37,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final NotationParser<Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final ResolvableNativeDependencySet libs = new ResolvableNativeDependencySet();
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
-    private final ArrayList<Object> linkerArgs = new ArrayList<Object>();
+    private final ToolChainTool linker = new ToolChainTool();
     private final ArrayList<Object> defines = new ArrayList<Object>();
     private final BinaryNamingScheme namingScheme;
     private final Flavor flavor;
@@ -105,12 +106,8 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
         Collections.addAll(this.defines, defines);
     }
 
-    public List<Object> getLinkerArgs() {
-        return linkerArgs;
-    }
-
-    public void linkerArgs(Object... args) {
-        Collections.addAll(linkerArgs, args);
+    public ToolChainTool getLinker() {
+        return linker;
     }
 
     public BinaryNamingScheme getNamingScheme() {

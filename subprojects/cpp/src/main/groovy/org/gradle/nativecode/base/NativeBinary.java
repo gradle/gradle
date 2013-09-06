@@ -100,12 +100,7 @@ public interface NativeBinary extends Binary {
     void define(Object... defines);
 
     /**
-     * The arguments passed when linking this binary.
+     * The settings used for linking this binary.
      */
-    List<Object> getLinkerArgs();
-
-    /**
-     * Adds a number of arguments to be passed to the linker.
-     */
-    void linkerArgs(Object... args);
+    ToolChainTool getLinker();
 }

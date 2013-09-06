@@ -39,7 +39,7 @@
                 <td>macros</td>
             </tr>
             <tr>
-                <td>linkerArgs</td>
+                <td>linker</td>
             </tr>
             <tr>
                 <td>flavor</td>
@@ -62,9 +62,6 @@
             </tr>
             <tr>
                 <td>define</td>
-            </tr>
-            <tr>
-                <td>linkerArgs</td>
             </tr>
         </table>
     </section>

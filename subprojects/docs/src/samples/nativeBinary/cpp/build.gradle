@@ -32,11 +32,11 @@ binaries.all { binary ->
     // Define toolchain-specific compiler and linker options
     if (toolChain in Gcc) {
         cppCompiler.args "-O2", "-fno-access-control"
-        linkerArgs "-S"
+        linker.args "-S"
     }
     if (toolChain in VisualCpp) {
         cppCompiler.args "/Z7"
-        linkerArgs "/DEBUG"
+        linker.args "/DEBUG"
     }
 }
 // END SNIPPET all-binaries
