@@ -2,38 +2,27 @@
 apply plugin: 'cpp'
 // END SNIPPET apply-plugin
 
-// START SNIPPET sourceSets
-sources {
-    exe {}
-    lib {}
-}
-// END SNIPPET sourceSets
-
 // START SNIPPET libraries
 libraries {
-    hello {
-        source sources.lib
-    }
+    hello {}
 }
 // END SNIPPET libraries
 
 // START SNIPPET executables
 executables {
-    main {
-        source sources.exe
-        binaries.all {
-            // Each executable binary produced uses the 'hello' shared library binary
-            lib libraries.hello.shared
-        }
-    }
+    main {}
 }
 // END SNIPPET executables
 
-/*
 // START SNIPPET source-library
-sources.exe.cpp.lib libraries.hello
+sources {
+    main {
+        cpp {
+            lib libraries.hello
+        }
+    }
+}
 // END SNIPPET source-library
-*/
 
 // START SNIPPET all-binaries
 binaries.all { binary ->
@@ -52,13 +41,11 @@ binaries.all { binary ->
 }
 // END SNIPPET all-binaries
 
-// START SNIPPET all-shared-libraries
 // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
 binaries.withType(SharedLibraryBinary) {
     if (toolChain in VisualCpp) {
         define "DLL_EXPORT"
     }
 }
-// END SNIPPET all-shared-libraries
 
 

@@ -18,44 +18,24 @@
 apply plugin: 'c'
 // END SNIPPET apply-plugin
 
-// START SNIPPET sourceSets
-sources {
-    exe {}
-    lib {}
-}
-// END SNIPPET sourceSets
-
 // START SNIPPET libraries
 libraries {
-    hello {
-        source sources.lib
-    }
+    hello {}
 }
 // END SNIPPET libraries
 
 // START SNIPPET executables
 executables {
-    main {
-        source sources.exe
-        binaries.all {
-            // Each executable binary produced uses the 'hello' shared library binary
-            lib libraries.hello.shared
-        }
-    }
+    main {}
 }
 // END SNIPPET executables
 
-/*
 // START SNIPPET source-library
-sources.exe.cpp.lib libraries.hello
+sources.main.c.lib libraries.hello
 // END SNIPPET source-library
-*/
 
-// START SNIPPET all-binaries
+// START SNIPPET compiler-args
 binaries.all {
-    // Define a preprocessor macro for every binary
-    define "NDEBUG"
-
     // Define toolchain-specific compiler and linker options
     if (toolChain in Gcc) {
         cCompiler.args "-O2"
@@ -66,12 +46,13 @@ binaries.all {
         linkerArgs "/DEBUG"
     }
 }
-// END SNIPPET all-binaries
+// END SNIPPET compiler-args
 
 // START SNIPPET all-shared-libraries
 // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
 binaries.withType(SharedLibraryBinary) {
     if (toolChain in VisualCpp) {
+        cCompiler.args "/Z7"
         define "DLL_EXPORT"
     }
 }

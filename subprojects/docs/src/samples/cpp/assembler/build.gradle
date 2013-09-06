@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+// START SNIPPET apply-plugin
 apply plugin: 'assembler'
+// END SNIPPET apply-plugin
 apply plugin: 'c'
 
 def osName = System.getProperty("os.name").toLowerCase();
@@ -26,6 +28,7 @@ def platform = osx ? "i386_osx"
              : visualCpp ? "i386_masm"
              : "i386_gcc"
 
+// START SNIPPET sources
 sources {
     main {
         asm {
@@ -33,15 +36,20 @@ sources {
         }
     }
 }
-executables {
-    main {}
-}
+// END SNIPPET sources
 
-if (osx) {
-    binaries.all {
-        cCompiler.args "-m32"
-        assembler.args "-arch", "i386"
-        linkerArgs "-no_pie", "-arch", "i386"
+executables {
+    main {
+        if (osx) {
+            // START SNIPPET assembler-args
+            binaries.all {
+                assembler.args "-arch", "i386"
+                cCompiler.args "-m32"
+                linkerArgs "-no_pie", "-arch", "i386"
+            }
+            // END SNIPPET assembler-args
+        }
     }
 }
+
 

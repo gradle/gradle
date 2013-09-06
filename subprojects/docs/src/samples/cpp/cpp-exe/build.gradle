@@ -8,10 +8,12 @@ executables {
         binaries.all {
             // Define a preprocessor macro
             define "NDEBUG"
+            // END SNIPPET args
             // Add some additional compiler arguments
             if (toolChain in Gcc) {
                 cppCompiler.args "-fno-access-control", "-fconserve-space"
             }
+            // START SNIPPET args
         }
     }
 }

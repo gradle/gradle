@@ -25,6 +25,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample c = new Sample(temporaryFolder, 'cpp/c')
     @Rule public final Sample assembler = new Sample(temporaryFolder, 'cpp/assembler')
     @Rule public final Sample cpp = new Sample(temporaryFolder, 'cpp/cpp')
+    @Rule public final Sample custom = new Sample(temporaryFolder, 'cpp/custom-layout')
     @Rule public final Sample cppExe = new Sample(temporaryFolder, 'cpp/cpp-exe')
     @Rule public final Sample cppLib = new Sample(temporaryFolder, 'cpp/cpp-lib')
     @Rule public final Sample multiProject = new Sample(temporaryFolder, 'cpp/multi-project')
@@ -53,8 +54,8 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         run "installMainExecutable"
         
         then:
-        executedAndNotSkipped ":compileHelloSharedLibraryLibC", ":linkHelloSharedLibrary", ":helloSharedLibrary",
-                              ":compileMainExecutableExeC", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloC", ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
         installation("cpp/c/build/install/mainExecutable").exec().out == "Hello world!"
@@ -68,8 +69,23 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         run "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloSharedLibraryLibCpp", ":linkHelloSharedLibrary", ":helloSharedLibrary",
-                              ":compileMainExecutableExeCpp", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation("cpp/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"
+    }
+
+    def "custom"() {
+        given:
+        sample custom
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileHelloStaticLibraryHelloC", ":createHelloStaticLibrary", ":helloStaticLibrary",
+                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
         installation("cpp/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"

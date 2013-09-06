@@ -15,141 +15,86 @@
   -->
 
 <chapter id='cpp'>
-    <title>C++ Support</title>
+    <title>Native binary support - C++, C and Assembler</title>
 
     <note>
         <para>
-            The Gradle C++ support is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+            The Gradle support for building native binaries is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
     </note>
 
     <para>
-        The C++ plugins add support for building software comprised of C++ source code, and managing the process of building “native” software in general.
-        While many excellent build tools exist for this space of software development, Gradle offers C++ developers it's trademark power and flexibility
+        The various native binary plugins add support for building native software components from C++, C and Assembler sources.
+        While many excellent build tools exist for this space of software development, Gradle offers developers it's trademark power and flexibility
         together with the dependency management practices more traditionally found in the JVM development space.
-    </para>
-    <para>
-        Gradle offers the ability to execute the same build using different tool chains. At present, you control which tool chain will be used to build
-        by changing the operating system PATH to include the desired tool chain compiler. The following tool chains are supported:
-    </para>
-    <table>
-        <thread>
-            <tr><td>Operating System</td><td>Tool Chain</td><td>Notes</td></tr>
-        </thread>
-        <tr>
-            <td>Linux</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td></td>
-        </tr>
-        <tr>
-            <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Using GCC distributed with XCode.</td>
-        </tr>
-        <tr>
-            <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Windows XP and later, using GCC distributed with Cygwin.</td>
-        </tr>
-        <tr>
-            <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
-        </tr>
-        <tr>
-            <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later.</td>
-        </tr>
-    </table>
-    <para>
-        Currently, there is no direct support for creating multiple variants of the same binary (e.g. 32 bit vs. 64 bit) and there is no direct
-        support for cross platform source configuration (à la <ulink url="http://www.gnu.org/s/autoconf/">autoconf</ulink>) at this time. Support for different
-        compiler chains, managing multiple variants and cross platform source configuration will be added over time, making Gradle a fully capable build tool for C++
-        (and other “native” language) projects.
     </para>
 
     <section>
-        <title>Source code locations</title>
+        <title>Tool chain support</title>
         <para>
-            A C++ project may define a number of source sets, each of which may contain source files and header files.
-            By default, a named <apilink class="org.gradle.nativecode.language.cpp.CppSourceSet"/> contains
-            <filename>.cpp</filename> and <filename>.c</filename> source files in <filename>src/${name}/cpp</filename>,
-            and header files in <filename>src/${name}/headers</filename>.
+            Gradle offers the ability to execute the same build using different tool chains. At present, you control which tool chain will be used to build
+            by changing the operating system PATH to include the desired tool chain compiler. The following tool chains are supported:
         </para>
-        <sample id="cppSourceSets" dir="cpp/cpp" title="Defining 'cpp' source sets">
-            <sourcefile file="build.gradle" snippet="sourceSets"/>
-        </sample>
+        <table>
+            <thread>
+                <tr><td>Operating System</td><td>Tool Chain</td><td>Notes</td></tr>
+            </thread>
+            <tr>
+                <td>Linux</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td></td>
+            </tr>
+            <tr>
+                <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Using GCC distributed with XCode.</td>
+            </tr>
+            <tr>
+                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Windows XP and later, using GCC distributed with Cygwin.</td>
+            </tr>
+            <tr>
+                <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
+            </tr>
+            <tr>
+                <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later.</td>
+            </tr>
+        </table>
         <para>
-            For a library named 'main', files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
-            Header files that should not be exported (but are used internally) should be placed inside the <filename>src/main/cpp</filename> directory (though be aware that
-            such header files should always be referenced in a manner relative to the file including them).
-        </para>
-        <para>
-            While the <literal>cpp</literal> plugin defines these default locations for each <apilink class="org.gradle.nativecode.language.cpp.CppSourceSet"/>,
-            it is possible to extend or override these defaults to allow for a different project layout.
+            Currently, there is no direct support for creating multiple variants of the same binary (e.g. 32 bit vs. 64 bit) and there is no direct
+            support for cross platform source configuration (à la <ulink url="http://www.gnu.org/s/autoconf/">autoconf</ulink>) at this time. Support for different
+            compiler chains, managing multiple variants and cross platform source configuration will be added over time, making Gradle a fully capable build tool for C++
+            (and other “native” language) projects.
         </para>
     </section>
 
     <section>
         <title>Component model</title>
         <para>
-            A C++ project defines a set of <apilink class="org.gradle.nativecode.base.Executable"/> and <apilink class="org.gradle.nativecode.base.Library"/> components,
+            A native binary project defines a set of <apilink class="org.gradle.nativecode.base.Executable"/> and <apilink class="org.gradle.nativecode.base.Library"/> components,
             each of which Gradle maps to a number of <apilink class="org.gradle.nativecode.base.NativeBinary"/> outputs.
-            Each <literal>executable</literal> or <literal>library</literal> is associated with a particular <literal>CppSourceSet</literal>, which contains C++ source files as well as header files.
+            For each <literal>executable</literal> or <literal>library</literal> defined, Gradle adds a <apilink class="org.gradle.language.base.FunctionalSourceSet"/> with the same name.
+            Each of these functional source sets will contain a language-specific source set for each of the languages supported by the project.
         </para>
         <para>
             To build either a static or shared native library binary,
-            a <apilink class="org.gradle.nativecode.base.Library"/> component is added to the <literal>libraries</literal>
-            container and associated with a <literal>CppSourceSet</literal>.
-            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativecode.base.SharedLibraryBinary"/> and
-            at least one <apilink class="org.gradle.nativecode.base.StaticLibraryBinary"/>.
+            a <apilink class="org.gradle.nativecode.base.Library"/> component is added to the <literal>libraries</literal> container.
+            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativecode.base.SharedLibraryBinary"/>
+            and at least one <apilink class="org.gradle.nativecode.base.StaticLibraryBinary"/>.
         </para>
-        <sample id="cppLibraries" dir="cpp/cpp" title="Defining a library component">
+        <sample id="cppLibraries" dir="cpp/c" title="Defining a library component">
             <sourcefile file="build.gradle" snippet="libraries"/>
         </sample>
         <para>
             To build an executable binary,
             an <apilink class="org.gradle.nativecode.base.Executable"/> component is added to the <literal>executables</literal> container
-            and associated with a <literal>CppSourceSet</literal>.
+            and associated with a set of sources.
         </para>
-        <para>
-            Each <literal>executable</literal> component added can produce at least one <apilink class="org.gradle.nativecode.base.ExecutableBinary"/>.
-            If the executable requires a library for compiling and/or linking, then that library can be provided directly to a <literal>binary</literal>.
-        </para>        <sample id="cppExecutables" dir="cpp/cpp" title="Defining executable components">
+        <sample id="cppExecutables" dir="cpp/c" title="Defining executable components">
             <sourcefile file="build.gradle" snippet="executables"/>
         </sample>
-        <para>
-            Alternatively, the library dependency can be specified at the level of the the <literal>CppSourceSet</literal> associated with an <literal>executable</literal> component:
-        </para>
-        <sample id="cppSourceLibrary" dir="cpp/cpp" title="Specifying a source-level library">
-            <sourcefile file="build.gradle" snippet="source-library"/>
-        </sample>
-    </section>
-
-    <section>
-        <title>Plugins</title>
-        <para>
-            All build scripts DSLs, model elements and tasks used to manage C++ projects are added by the <literal>cpp</literal> plugin.
-        </para>
-        <sample id="cppLibraries" dir="cpp/cpp" title="Applying the 'cpp' plugin">
-            <sourcefile file="build.gradle" snippet="apply-plugin"/>
-        </sample>
-        <para>
-            The <literal>cpp</literal> plugin allows you to configure any number of <literal>libraries</literal> and <literal>executables</literal> for your project.
-            However, at times it is more convenient to use either the <literal>cpp-lib</literal> or <literal>cpp-exe</literal> plugins that sit on top of the <literal>cpp</literal>
-            plugin and pre-configure the project to build a single native library or executable respectively.
-        </para>
-        <sample id="useCppExePlugin" dir="cpp/cpp-exe" title="Using the 'cpp-exe' plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-        <sample id="useCppLibPlugin" dir="cpp/cpp-lib" title="Using the 'cpp-lib' plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-        <para>
-            The <literal>cpp-exe</literal> plugin configures the project to build a single executable named <literal>main</literal>,
-            and the <literal>cpp-lib</literal> plugin configures the project to build a shared and static version of a single library named <literal>main</literal>.
-        </para>
-        <para>
-            In both cases, a single source set (<literal>src/main</literal>) containing C++ sources is assumed to exist.
-        </para>
     </section>
 
     <section>
         <title>Tasks</title>
         <para>
-            For each <apilink class="org.gradle.nativecode.base.NativeBinary"/> that can be produced by a build, the <literal>cpp</literal> plugin
-            creates a single <literal>lifecycle task</literal> that can be used to create that binary, together with a set of sub-tasks that do the actual
+            For each <apilink class="org.gradle.nativecode.base.NativeBinary"/> that can be produced by a build,
+            a single <literal>lifecycle task</literal> is constructed that can be used to create that binary, together with a set of sub-tasks that do the actual
             work of compiling, linking or assembling the binary.
         </para>
         <table>
@@ -166,28 +111,102 @@
                 <td><apilink class="org.gradle.nativecode.base.Library"/></td><td><apilink class="org.gradle.nativecode.base.StaticLibraryBinary"/></td><td><literal>mainStaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable>.a</filename></td>
             </tr>
         </table>
-    </section>
 
-    <section>
-        <title>Building</title>
         <section>
-            <title>Compiling on UNIX</title>
+            <title>Working with shared libraries</title>
             <para>
-                The UNIX C++ support is currently based on the <literal>g++</literal> tool which must be installed and on the <literal>PATH</literal>
-                for the Gradle process.
-            </para>
-        </section>
-        <section>
-            <title>Compiling on Windows</title>
-            <para>
-                The Windows C++ support can use either the MinGW <literal>g++</literal> or the Microsoft Visual C++ <literal>cl</literal> tool, either of which must be installed and on the
-                <literal>PATH</literal> for the Gradle process. Gradle searches first for Microsoft Visual C++, and then MinGW.
+                For each executable binary produced, the <literal>cpp</literal> plugin provides an <literal>install${binary.name}</literal> task,
+                which creates a development install of the executable, along with the shared libraries it requires.
+                This allows you to run the executable without needing to install the shared libraries in their final locations.
             </para>
         </section>
     </section>
 
     <section>
-        <title>Configuring the compiler and linker</title>
+        <title>Supported Languages: C, C++ and Assembler</title>
+        <para>
+            Presently, Gradle supports building native binaries from any combination of C++, C and Assembler sources.
+            A native binary project will contain one or more named <literal>FunctionalSourceSet</literal> instances (eg 'main', 'test', etc),
+            each of which can contain <literal>LanguageSourceSet</literal>s containing C++, C or Assembler source files.
+        </para>
+
+        <section>
+            <title>C++ support</title>
+            <para>
+                C++ language support is provided by means of the <literal>'cpp'</literal> plugin.
+            </para>
+            <sample id="cppPlugin" dir="cpp/cpp" title="The 'cpp' plugin">
+                <sourcefile file="build.gradle" snippet="apply-plugin"/>
+            </sample>
+            <para>
+                C++ sources to be included in a native binary are provided via a <apilink class="org.gradle.nativecode.language.cpp.CppSourceSet"/>,
+                which defines a set of C++ source files and optionally a set of exported header files (for a library).
+                By default, for any named component the <apilink class="org.gradle.nativecode.language.cpp.CppSourceSet"/> contains
+                <filename>.cpp</filename> source files in <filename>src/${name}/cpp</filename>,
+                and header files in <filename>src/${name}/headers</filename>.
+            </para>
+            <para>
+                While the <literal>cpp</literal> plugin defines these default locations for each <apilink class="org.gradle.nativecode.language.cpp.CppSourceSet"/>,
+                it is possible to extend or override these defaults to allow for a different project layout.
+            </para>
+            <sample id="cppSourceSet" dir="cpp/custom-layout" title="C++ source set">
+                <sourcefile file="build.gradle" snippet="cpp-sources"/>
+            </sample>
+            <para>
+                For a library named 'main', files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
+                Header files that should not be exported (but are used internally) should be placed inside the <filename>src/main/cpp</filename> directory (though be aware that
+                such header files should always be referenced in a manner relative to the file including them).
+            </para>
+        </section>
+
+        <section>
+            <title>C support</title>
+            <para>
+                C language support is provided by means of the <literal>'c'</literal> plugin.
+            </para>
+            <sample id="cPlugin" dir="cpp/c" title="The 'c' plugin">
+                <sourcefile file="build.gradle" snippet="apply-plugin"/>
+            </sample>
+            <para>
+                C sources to be included in a native binary are provided via a <apilink class="org.gradle.nativecode.language.c.CSourceSet"/>,
+                which defines a set of C source files and optionally a set of exported header files (for a library).
+                By default, for any named component the <apilink class="org.gradle.nativecode.language.c.CSourceSet"/> contains
+                <filename>.c</filename> source files in <filename>src/${name}/c</filename>,
+                and header files in <filename>src/${name}/headers</filename>.
+            </para>
+            <para>
+                While the <literal>c</literal> plugin defines these default locations for each <apilink class="org.gradle.nativecode.language.c.CSourceSet"/>,
+                it is possible to extend or override these defaults to allow for a different project layout.
+            </para>
+            <sample id="cSourceSet" dir="cpp/custom-layout" title="C source set">
+                <sourcefile file="build.gradle" snippet="c-sources"/>
+            </sample>
+            <para>
+                For a library named 'main', files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
+                Header files that should not be exported (but are used internally) should be placed inside the <filename>src/main/c</filename> directory (though be aware that
+                such header files should always be referenced in a manner relative to the file including them).
+            </para>
+        </section>
+
+        <section>
+            <title>Assembler support</title>
+            <para>
+                Assembly language support is provided by means of the <literal>'assembler'</literal> plugin.
+            </para>
+            <sample id="assemblerPlugin" dir="cpp/assembler" title="The 'assembler' plugin">
+                <sourcefile file="build.gradle" snippet="apply-plugin"/>
+            </sample>
+            <para>
+                Assembler sources to be included in a native binary are provided via a <apilink class="org.gradle.nativecode.language.asm.AssemblerSourceSet"/>,
+                which defines a set of Assembler source files.
+                By default, for any named component the <apilink class="org.gradle.nativecode.language.asm.AssemblerSourceSet"/> contains
+                <filename>.s</filename> source files under <filename>src/${name}/asm</filename>.
+            </para>
+        </section>
+    </section>
+
+    <section>
+        <title>Configuring the compiler, assembler and linker</title>
         <para>
             Each binary to be produced is associated with a set of compiler and linker settings, which include command-line arguments as well as macro definitions.
             These settings can be applied to all binaries, an individual binary, or selectively to a group of binaries based on some criteria.
@@ -202,7 +221,7 @@
         <para>
             It is easy to apply settings to all binaries of a particular type:
         </para>
-        <sample id="allSharedLibraryBinarySettings" dir="cpp/cpp" title="Settings that apply to all shared libraries">
+        <sample id="allSharedLibraryBinarySettings" dir="cpp/c" title="Settings that apply to all shared libraries">
             <sourcefile file="build.gradle" snippet="all-shared-libraries"/>
         </sample>
         <para>
@@ -225,24 +244,43 @@
     </section>
 
     <section>
-        <title>Working with shared libraries</title>
-        <para>
-            For each executable binary produced, the <literal>cpp</literal> plugin provides an <literal>install${binary.name}</literal> task,
-            which creates a development install of the executable, along with the shared libraries it requires.
-            This allows you to run the executable without needing to install the shared libraries in their final locations.
-        </para>
-    </section>
-
-    <section>
-        <title>Dependencies</title>
+        <title>Library Dependencies</title>
         <para>
             Dependencies for C++ projects are binary libraries that export header files. The header files are used during compilation, with the compiled
             binary dependency being used during the linking.
         </para>
         <section>
+           <title>Dependencies within the same project</title>
+           <para>
+               A set of sources may depend on header files provided by another binary component within the same project.
+               A common example is a native executable component that uses functions provided by a separate native library component.
+           </para>
+           <para>
+               Such a library dependency can be easily provided to source set associated with the <literal>executable</literal> component:
+           </para>
+           <sample id="cppSourceLibrary" dir="cpp/cpp" title="Providing a library dependency to the source set">
+               <sourcefile file="build.gradle" snippet="source-library"/>
+           </sample>
+           <para>
+               Alternatively, a library dependency can be provided directly to the <literal>ExecutableBinary</literal> for the <literal>executable</literal>.
+           </para>
+           <sample id="cppBinaryLibrary" dir="cpp/custom-layout" title="Providing a library dependency to the binary">
+               <sourcefile file="build.gradle" snippet="binary-library"/>
+           </sample>
+        </section>
+        <section>
+            <title>Project Dependencies</title>
+            <para>
+                For a component produced in a different Gradle project, the notation is similar.
+            </para>
+            <sample id="cppProjectDependencies" dir="cpp/multi-project" title="Declaring project dependencies">
+                <sourcefile file="build.gradle" snippet="project-dependencies"/>
+            </sample>
+        </section>
+        <section>
             <title>External Dependencies</title>
             <para>
-                External dependencies (i.e. from a repository, not a subproject) must be specified using the following syntax:
+                External dependencies (i.e. from a repository, not a subproject) are specified using the following syntax:
             </para>
             <sample id="gppArgs" dir="cpp/dependencies" title="Declaring dependencies">
                 <sourcefile file="build.gradle" snippet="declaring-dependencies"/>
@@ -256,15 +294,6 @@
                 “<literal>zip</literal>” which is a zip file of the exported headers, and another with the classifier “<literal>so</literal>” and extension
                 “<literal>so</literal>” which is the compiled library binary to link against (which is supplied as a direct input to the g++ link operation).
             </para>
-        </section>
-        <section>
-            <title>Project Dependencies</title>
-            <para>
-                The notation for project dependencies is slightly different.
-            </para>
-            <sample id="cppProjectDependencies" dir="cpp/multi-project" title="Declaring project dependencies">
-                <sourcefile file="build.gradle" snippet="project-dependencies"/>
-            </sample>
         </section>
     </section>
 
