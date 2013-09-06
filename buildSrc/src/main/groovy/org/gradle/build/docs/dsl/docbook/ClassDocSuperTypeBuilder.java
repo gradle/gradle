@@ -19,7 +19,6 @@ package org.gradle.build.docs.dsl.docbook;
 import org.gradle.build.docs.dsl.docbook.model.ClassDoc;
 import org.gradle.build.docs.dsl.source.model.ClassMetaData;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ClassDocSuperTypeBuilder {
@@ -32,7 +31,7 @@ public class ClassDocSuperTypeBuilder {
     }
 
     /**
-     * Builds and attaches the supertype of the given class
+     * Builds and attaches the supertypes of the given class
      */
     void build(ClassDoc classDoc) {
         ClassMetaData classMetaData = classDoc.getClassMetaData();
@@ -41,29 +40,15 @@ public class ClassDocSuperTypeBuilder {
             // Assume this is a class and so has implemented all properties and methods somewhere in the superclass hierarchy
             ClassDoc superClass = model.getClassDoc(superClassName);
             classDoc.setSuperClass(superClass);
-            return;
         }
 
-        // Assume this is an interface - pick one interface to be the supertype
-        // TODO - improve the property and methods builders to handle stuff inherited from multiple interfaces
-
         List<String> interfaceNames = classMetaData.getInterfaceNames();
-        List<ClassDoc> candidates = new ArrayList<ClassDoc>();
         for (String interfaceName : interfaceNames) {
             ClassDoc superInterface = model.findClassDoc(interfaceName);
             if (superInterface != null) {
-                candidates.add(superInterface);
+                classDoc.getInterfaces().add(superInterface);
             }
         }
-        if (candidates.isEmpty()) {
-            // No documented supertypes
-            return;
-        }
 
-        ClassDoc superInterface = candidates.get(0);
-        if (candidates.size() > 1) {
-            listener.warning("Ignoring properties and methods inherited from interfaces " + candidates.subList(1, candidates.size()));
-        }
-        classDoc.setSuperClass(superInterface);
     }
 }

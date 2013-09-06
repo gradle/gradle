@@ -65,12 +65,12 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
             valueTitles.add(element);
         }
 
-        ClassDoc superClass = classDoc.getSuperClass();
-
         //adding the properties from the super class onto the inheriting class
         Map<String, PropertyDoc> props = new TreeMap<String, PropertyDoc>();
-        if (superClass != null) {
-            for (PropertyDoc propertyDoc : superClass.getClassProperties()) {
+        List<ClassDoc> superTypes = classDoc.getSuperTypes();
+        for (ClassDoc superType : superTypes) {
+            System.out.println("Getting properties for " + superType.getName());
+            for (PropertyDoc propertyDoc : superType.getClassProperties()) {
                 Map<String, ExtraAttributeDoc> additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>();
                 for (ExtraAttributeDoc attributeDoc : propertyDoc.getAdditionalValues()) {
                     String key = attributeDoc.getKey();
@@ -99,7 +99,7 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
 
             Map<String, ExtraAttributeDoc> additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>();
 
-            if (superClass != null) {
+            if (!superTypes.isEmpty()) {
                 PropertyDoc overriddenProp = props.get(propName);
                 if (overriddenProp != null) {
                     for (ExtraAttributeDoc attributeDoc : overriddenProp.getAdditionalValues()) {

@@ -32,9 +32,12 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
         ClassMetaData classMetaData = classMetaData()
         PropertyMetaData propertyA = property('a', classMetaData, comment: 'prop a')
         PropertyMetaData propertyB = property('b', classMetaData, comment: 'prop b')
-        ClassDoc superDoc = classDoc()
+        ClassDoc superDoc = classDoc('org.gradle.SuperClass')
         PropertyDoc propertyDocA = propertyDoc('a')
         PropertyDoc propertyDocC = propertyDoc('c')
+
+        ClassDoc superType1 = classDoc("org.gradle.SuperType1")
+        ClassDoc superType2 = classDoc("org.gradle.SuperType2")
 
         def content = parse('''
 <section>
@@ -53,20 +56,26 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
         ClassDoc doc = withCategories {
             def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null)
             doc.superClass = superDoc
+            doc.interfaces << superType1
+            doc.interfaces << superType2
             builder.build(doc)
             return doc
         }
 
         then:
-        doc.classProperties.size() == 3
+        doc.classProperties.size() == 5
         doc.classProperties[0].name == 'a'
         doc.classProperties[1].name == 'b'
         doc.classProperties[2].name == 'c'
+        doc.classProperties[3].name == 'd'
+        doc.classProperties[4].name == 'e'
 
         _ * classMetaData.findProperty('b') >> propertyB
         _ * classMetaData.findProperty('a') >> propertyA
-        _ * classMetaData.superClassName >> 'org.gradle.SuperType'
-        _ * superDoc.getClassProperties() >> [propertyDocC, propertyDocA]
+        _ * classMetaData.superClassName >> 'org.gradle.SuperClass'
+        _ * superDoc.classProperties >> [propertyDocC, propertyDocA]
+        _ * superType1.classProperties >> [propertyDoc('d')]
+        _ * superType2.classProperties >> [propertyDoc('d'), propertyDoc('e')]
     }
 
     def canAttachAdditionalValuesToProperty() {
@@ -74,6 +83,7 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
         PropertyMetaData propertyA = property('a', classMetaData, comment: 'prop a')
         PropertyMetaData propertyB = property('b', classMetaData, comment: 'prop b')
         ClassDoc superDoc = classDoc()
+        ClassDoc superType = classDoc("org.gradle.SuperType")
         ExtraAttributeDoc inheritedValue = new ExtraAttributeDoc(parse('<td>inherited</td>'), parse('<td>inherited</td>'))
         ExtraAttributeDoc overriddenValue = new ExtraAttributeDoc(parse('<td>general value</td>'), parse('<td>general</td>'))
         PropertyDoc inheritedPropertyA = propertyDoc('a', additionalValues: [inheritedValue, overriddenValue])
@@ -97,6 +107,7 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
         ClassDoc doc = withCategories {
             def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null)
             doc.superClass = superDoc
+            doc.interfaces << superType
             builder.build(doc)
             return doc
         }
@@ -133,7 +144,8 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
         _ * classMetaData.findProperty('b') >> propertyB
         _ * classMetaData.findProperty('a') >> propertyA
         _ * classMetaData.superClassName >> 'org.gradle.SuperType'
-        _ * superDoc.classProperties >> [inheritedPropertyA, inheritedPropertyB, inheritedPropertyC]
+        _ * superDoc.classProperties >> [inheritedPropertyA, inheritedPropertyB]
+        _ * superType.classProperties >> [inheritedPropertyC]
     }
 
     def classMetaData(String name = 'org.gradle.Class') {

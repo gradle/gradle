@@ -36,6 +36,7 @@ class ClassDoc implements DslElementDoc {
     private final Element propertiesSection
     private final Element methodsSection
     ClassDoc superClass
+    List<ClassDoc> interfaces = []
     List<Element> comment = []
 
     ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ClassExtensionMetaData extensionMetaData) {
@@ -93,6 +94,10 @@ class ClassDoc implements DslElementDoc {
 
     void addClassExtension(ClassExtensionDoc extensionDoc) {
         classExtensions.add(extensionDoc)
+    }
+
+    List<ClassDoc> getSuperTypes() {
+        return superClass == null ? interfaces : [superClass] + interfaces
     }
 
     Element getClassSection() { return classSection }

@@ -32,7 +32,11 @@ class ClassDocMethodsBuilderTest extends XmlSpecification {
         MethodMetaData methodBOverload = method('b', classMetaData)
         MethodDoc methodAOverridden = methodDoc('a')
         MethodDoc methodC = methodDoc('c')
+        MethodDoc methodD = methodDoc('d')
+        MethodDoc methodE = methodDoc('e')
         ClassDoc superClass = classDoc('org.gradle.SuperClass')
+        ClassDoc superType1 = classDoc("org.gradle.SuperType1")
+        ClassDoc superType2 = classDoc("org.gradle.SuperType2")
 
         def content = parse('''
 <section>
@@ -51,23 +55,29 @@ class ClassDocMethodsBuilderTest extends XmlSpecification {
         ClassDoc doc = withCategories {
             def doc = new ClassDoc('org.gradle.Class', content, document, classMetaData, null)
             doc.superClass = superClass
+            doc.interfaces << superType1
+            doc.interfaces << superType2
             builder.build(doc)
             doc
         }
 
         then:
-        doc.classMethods.size() == 4
+        doc.classMethods.size() == 6
 
         doc.classMethods[0].name == 'a'
         doc.classMethods[1].name == 'b'
         doc.classMethods[2].name == 'b'
         doc.classMethods[3].name == 'c'
+        doc.classMethods[4].name == 'd'
+        doc.classMethods[5].name == 'e'
 
         _ * classMetaData.declaredMethods >> ([methodA, methodB, methodBOverload] as Set)
         _ * classMetaData.findDeclaredMethods("a") >> [methodA]
         _ * classMetaData.findDeclaredMethods("b") >> [methodB, methodBOverload]
         _ * classMetaData.superClassName >> 'org.gradle.SuperClass'
         _ * superClass.classMethods >> [methodC, methodAOverridden]
+        _ * superType1.classMethods >> [methodD]
+        _ * superType2.classMethods >> [methodE]
     }
 
     def buildsBlocksForClass() {

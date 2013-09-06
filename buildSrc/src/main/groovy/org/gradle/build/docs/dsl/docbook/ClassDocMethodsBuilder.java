@@ -80,8 +80,7 @@ public class ClassDocMethodsBuilder extends ModelBuilderSupport {
             }
         }
 
-        ClassDoc supertype = classDoc.getSuperClass();
-        if (supertype != null) {
+        for (ClassDoc supertype : classDoc.getSuperTypes()) {
             for (MethodDoc method: supertype.getClassMethods()){
                 if (signatures.add(method.getMetaData().getOverrideSignature())) {
                     classDoc.addClassMethod(method);
