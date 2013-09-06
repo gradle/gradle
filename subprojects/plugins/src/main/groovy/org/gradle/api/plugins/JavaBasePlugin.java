@@ -346,13 +346,10 @@ public class JavaBasePlugin implements Plugin<Project> {
         });
         test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
             public Object call() throws Exception {
-                return new File(convention.getTestResultsDir(), String.format("binary/%s", encode(test.getName())));
+                return new File(convention.getTestResultsDir(), String.format("binary/%s", test.getName()));
             }
         });
         test.workingDir(project.getProjectDir());
     }
 
-    private String encode(String s) throws UnsupportedEncodingException {
-        return URLEncoder.encode(s, "UTF-8");
-    }
 }
