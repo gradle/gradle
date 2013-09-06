@@ -15,18 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
 
 import java.math.BigInteger;
 
 public interface ModuleMetaDataCache {
-    CachedMetaData cacheMissing(ModuleVersionRepository repository, ModuleVersionIdentifier id, boolean changing);
+    CachedMetaData cacheMissing(ModuleVersionRepository repository, ModuleVersionIdentifier id);
 
     CachedMetaData cacheMetaData(ModuleVersionRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource);
 
@@ -36,9 +36,7 @@ public interface ModuleMetaDataCache {
     interface CachedMetaData {
         ResolvedModuleVersion getModuleVersion();
 
-        ModuleDescriptor getModuleDescriptor();
-
-        boolean isChangingModule();
+        MutableModuleVersionMetaData getMetaData();
 
         long getAgeMillis();
 

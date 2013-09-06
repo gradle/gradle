@@ -89,17 +89,14 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             case Missing:
                 ModuleRevisionId dependencyRevisionId = dependency.getDescriptor().getDependencyRevisionId();
                 ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(dependencyRevisionId);
-                moduleMetaDataCache.cacheMissing(delegate, moduleVersionIdentifier, dependency.isChanging());
+                moduleMetaDataCache.cacheMissing(delegate, moduleVersionIdentifier);
                 break;
             case Resolved:
                 MutableModuleVersionMetaData metaData = result.getMetaData();
-                if (dependency.isChanging()) {
-                    metaData.setChanging(true);
-                }
                 moduleResolutionCache.cacheModuleResolution(delegate, dependency.getRequested(), metaData.getId());
                 ModuleSource moduleSource = result.getModuleSource();
                 ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData, moduleSource);
-                result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), cachedMetaData.isChangingModule(), moduleSource));
+                result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), moduleSource));
                 break;
             case Failed:
                 break;
@@ -146,7 +143,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             }
             return;
         }
-        if (cachedMetaData.isChangingModule() || dependency.isChanging()) {
+        if (cachedMetaData.getMetaData().isChanging() || dependency.isChanging()) {
             if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
                 return;
@@ -160,14 +157,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
 
         LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
-        result.resolved(moduleVersionIdentifier, cachedMetaData.getModuleDescriptor(), cachedMetaData.isChangingModule(), new CachingModuleSource(cachedMetaData.getDescriptorHash(), cachedMetaData.isChangingModule(), cachedMetaData.getModuleSource()));
-    }
-
-    private boolean isChangingDependency(DependencyMetaData dependency, ModuleVersionMetaData downloadedModule) {
-        if (dependency.isChanging()) {
-            return true;
-        }
-        return downloadedModule.isChanging();
+        result.resolved(cachedMetaData.getMetaData(), new CachingModuleSource(cachedMetaData.getDescriptorHash(), cachedMetaData.getMetaData().isChanging(), cachedMetaData.getModuleSource()));
     }
 
     public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {

@@ -16,32 +16,35 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorAdapter;
 import org.gradle.internal.TimeProvider;
 
 import java.math.BigInteger;
 
 class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
-    private final ModuleDescriptor moduleDescriptor;
     private final ModuleSource moduleSource;
     private final BigInteger descriptorHash;
-    private final boolean isChangingModule;
     private final long ageMillis;
+    private final MutableModuleVersionMetaData metaData;
 
     public DefaultCachedMetaData(ModuleDescriptorCacheEntry entry, ModuleDescriptor moduleDescriptor, TimeProvider timeProvider) {
-        this.moduleDescriptor = moduleDescriptor;
         this.moduleSource = entry.moduleSource;
-        this.isChangingModule = entry.isChanging;
         this.descriptorHash = entry.moduleDescriptorHash;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
+        if (moduleDescriptor == null) {
+            metaData = null;
+        } else {
+            metaData = new ModuleDescriptorAdapter(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
+            metaData.setChanging(entry.isChanging);
+        }
     }
 
     public boolean isMissing() {
-        return moduleDescriptor == null;
+        return metaData == null;
     }
 
     public ModuleSource getModuleSource() {
@@ -49,16 +52,11 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
     }
 
     public ResolvedModuleVersion getModuleVersion() {
-        ModuleVersionIdentifier moduleVersionIdentifier = isMissing() ? null : DefaultModuleVersionIdentifier.newId(moduleDescriptor.getModuleRevisionId());
-        return new DefaultResolvedModuleVersion(moduleVersionIdentifier);
+        return isMissing() ? null : new DefaultResolvedModuleVersion(getMetaData().getId());
     }
 
-    public ModuleDescriptor getModuleDescriptor() {
-        return moduleDescriptor;
-    }
-
-    public boolean isChangingModule() {
-        return isChangingModule;
+    public MutableModuleVersionMetaData getMetaData() {
+        return metaData;
     }
 
     public long getAgeMillis() {

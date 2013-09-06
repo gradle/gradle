@@ -42,9 +42,14 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     }
 
     public void resolved(ModuleVersionIdentifier id, ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource) {
+        ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(id, descriptor);
+        metaData.setChanging(true);
+        resolved(metaData, moduleSource);
+    }
+
+    public void resolved(MutableModuleVersionMetaData metaData, ModuleSource moduleSource) {
         reset(State.Resolved);
-        metaData = new ModuleDescriptorAdapter(id, descriptor);
-        metaData.setChanging(changing);
+        this.metaData = metaData;
         this.moduleSource = moduleSource;
     }
 

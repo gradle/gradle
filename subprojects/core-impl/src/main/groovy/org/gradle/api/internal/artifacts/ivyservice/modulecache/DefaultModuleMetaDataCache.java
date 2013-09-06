@@ -84,8 +84,8 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new DefaultCachedMetaData(moduleDescriptorCacheEntry, descriptor, timeProvider);
     }
 
-    public CachedMetaData cacheMissing(ModuleVersionRepository repository, ModuleVersionIdentifier id, boolean changing) {
-        return cacheModuleDescriptor(repository, id, null, null, changing);
+    public CachedMetaData cacheMissing(ModuleVersionRepository repository, ModuleVersionIdentifier id) {
+        return cacheModuleDescriptor(repository, id, null, null, false);
     }
 
     public CachedMetaData cacheMetaData(ModuleVersionRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource) {

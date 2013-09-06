@@ -45,14 +45,19 @@ public interface BuildableModuleVersionMetaDataResolveResult {
     ModuleVersionResolveException getFailure();
 
     /**
-     * Marks the module version as resolved, with the given meta-data.
+     * Marks the module version as resolved, with the given meta-data and source.
      */
     void resolved(ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource);
 
     /**
-     * Marks the module version as resolved, with the given meta-data.
+     * Marks the module version as resolved, with the given meta-data and source.
      */
     void resolved(ModuleVersionIdentifier id, ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource);
+
+    /**
+     * Marks the module version as resolved, with the given meta-data and source.
+     */
+    void resolved(MutableModuleVersionMetaData metaData, ModuleSource moduleSource);
 
     /**
      * Marks the resolve as failed with the given exception.
