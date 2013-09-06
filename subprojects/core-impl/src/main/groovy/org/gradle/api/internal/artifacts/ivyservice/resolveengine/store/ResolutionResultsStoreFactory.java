@@ -25,7 +25,6 @@ import org.gradle.util.Clock;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,13 +75,16 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return store.getSize() > maxSize;
     }
 
-    public void close() throws IOException {
-        Clock clock = new Clock();
-        cleanUpLater.stop();
-        LOG.debug("Deleted {} resolution results binary files in {}", stores.size(), clock.getTime());
-        oldModelCache = null;
-        newModelCache = null;
-        stores.clear();
+    public void close() {
+        try {
+            Clock clock = new Clock();
+            cleanUpLater.stop();
+            LOG.debug("Deleted {} resolution results binary files in {}", stores.size(), clock.getTime());
+        } finally {
+            oldModelCache = null;
+            newModelCache = null;
+            stores.clear();
+        }
     }
 
     public <T> Store<T> createOldModelCache(String id) {
