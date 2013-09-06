@@ -233,15 +233,12 @@ it.exclude group: '*', module: 'badArtifact'
     @Issue("GRADLE-2872")
     def "expandProperties"() {
         setup:
-        String module1Version = "1.0"
-        String module2Version = "2.0"
-        String module3Version = "3.0"
         def repo = setupMavenHttpServer()
         //update pom with test repo url
         file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
-        expectModule(repo, "group", "module1", module1Version);
-        expectModule(repo, "group", "module2", module2Version);
-        expectModule(repo, "group", "module3", module3Version);
+        expectModule(repo, "group", "module1", "1.0");
+        expectModule(repo, "group", "module2", "2.0");
+        expectModule(repo, "group", "module3", "3.0");
         executer.withArgument("-DMODULE1_VERSION=1.0")
         withLocalM2Installation().globalSettingsFile.createFile().text = """
 <settings>
@@ -267,20 +264,18 @@ it.exclude group: '*', module: 'badArtifact'
         wrapperFilesGenerated()
 
         when:
-        run 'clean', 'build'
+        succeeds('dependencies', '--configuration', 'default')
 
         then:
-        file("build/libs/util-2.0.jar").exists()
+        output.contains(toPlatformLineSeparators("""
++--- group:module1:1.0
++--- group:module2:2.0
+\\--- group:module3:3.0"""))
     }
 
     def expectModule(MavenHttpRepository repo, String group, String name, String version) {
         MavenHttpModule module1 = repo.module(group, name, version).publish()
-        module1.pom.expectHead()
-        module1.pom.expectGet()
-        module1.pom.sha1.expectGet()
-        module1.artifact.expectHead()
-        module1.artifact.sha1.expectGet()
-        module1.artifact.expectGet()
+        module1.allowAll()
     }
 
     @Issue("GRADLE-2819")
