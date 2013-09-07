@@ -22,11 +22,13 @@ import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.serialize.Serializer;
 
+import java.io.Closeable;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,7 +48,8 @@ public class DefaultCacheAccess implements CacheAccess {
     private final File lockFile;
     private final FileLockManager lockManager;
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
-    private final Set<MultiProcessSafePersistentIndexedCache<?, ?>> caches = new HashSet<MultiProcessSafePersistentIndexedCache<?, ?>>();
+    private final Set<UnitOfWorkParticipant> unitOfWorkParticipants = new HashSet<UnitOfWorkParticipant>();
+    private final Set<Closeable> caches = new HashSet<Closeable>();
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private Thread owner;
@@ -95,10 +98,7 @@ public class DefaultCacheAccess implements CacheAccess {
     private void closeFileLock() {
         try {
             cacheClosedCount++;
-            for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
-                cache.close();
-            }
-            fileLock.close();
+            new CompositeStoppable().add(caches).add(fileLock).stop();
         } finally {
             fileLock = null;
             contended = false;
@@ -282,8 +282,10 @@ public class DefaultCacheAccess implements CacheAccess {
             }
         };
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new MultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
+
         lock.lock();
         try {
+            unitOfWorkParticipants.add(indexedCache);
             caches.add(indexedCache);
             if (fileLock != null) {
                 indexedCache.onStartWork(operations.getDescription());
@@ -304,8 +306,8 @@ public class DefaultCacheAccess implements CacheAccess {
         }
         fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operations.getDescription());
 
-        for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
-            cache.onStartWork(operations.getDescription());
+        for (UnitOfWorkParticipant participant : unitOfWorkParticipants) {
+            participant.onStartWork(operations.getDescription());
         }
 
         lockManager.allowContention(fileLock, whenContended());
