@@ -18,6 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import java.util.List;
 
 public interface MutableModuleVersionMetaData extends ModuleVersionMetaData {
+    /**
+     * Creates a deep copy of this meta-data.
+     */
+    MutableModuleVersionMetaData copy();
+
     void setChanging(boolean changing);
     void setStatus(String status);
     void setStatusScheme(List<String> statusScheme);

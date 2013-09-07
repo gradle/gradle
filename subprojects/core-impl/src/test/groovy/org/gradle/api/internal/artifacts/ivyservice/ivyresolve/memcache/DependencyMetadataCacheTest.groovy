@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData
 import spock.lang.Specification
 
@@ -31,12 +32,20 @@ class DependencyMetadataCacheTest extends Specification {
     def cache = new DependencyMetadataCache(stats)
 
     def "caches and supplies remote metadata"() {
+        def suppliedMetaData = Stub(MutableModuleVersionMetaData)
+        def cachedCopy = Stub(MutableModuleVersionMetaData)
+        def originalMetaData = Stub(MutableModuleVersionMetaData)
+        def source = Stub(ModuleSource)
         def resolvedResult = Mock(BuildableModuleVersionMetaDataResolveResult.class) {
             getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
-            getMetaData() >> Stub(MutableModuleVersionMetaData)
+            getMetaData() >> originalMetaData
+            getModuleSource() >> source
         }
-        cache.newDependencyResult(newSelector("org", "foo", "1.0"), resolvedResult)
         def result = Mock(BuildableModuleVersionMetaDataResolveResult.class)
+
+        given:
+        _ * originalMetaData.copy() >> cachedCopy
+        cache.newDependencyResult(newSelector("org", "foo", "1.0"), resolvedResult)
 
         when:
         def local = cache.supplyLocalMetaData(newSelector("org", "foo", "1.0"), result)
@@ -54,16 +63,25 @@ class DependencyMetadataCacheTest extends Specification {
         then:
         match
         stats.metadataServed == 1
-        1 * result.resolved(_, _, _, _)
+        _ * cachedCopy.copy() >> suppliedMetaData
+        1 * result.resolved(suppliedMetaData, source)
     }
 
     def "caches and supplies remote and local metadata"() {
+        def localSource = Stub(ModuleSource)
+        def localMetaData = Stub(MutableModuleVersionMetaData)
+        _ * localMetaData.copy() >> localMetaData
+        def remoteSource = Stub(ModuleSource)
+        def remoteMetaData = Stub(MutableModuleVersionMetaData)
+        _ * remoteMetaData.copy() >> remoteMetaData
         def resolvedLocal = Mock(BuildableModuleVersionMetaDataResolveResult.class) {
-            getMetaData() >> Mock(MutableModuleVersionMetaData)
+            getMetaData() >> localMetaData
+            getModuleSource() >> localSource
             getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
         }
         def resolvedRemote = Mock(BuildableModuleVersionMetaDataResolveResult.class) {
-            getMetaData() >> Mock(MutableModuleVersionMetaData)
+            getMetaData() >> remoteMetaData
+            getModuleSource() >> remoteSource
             getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
         }
 
@@ -74,14 +92,19 @@ class DependencyMetadataCacheTest extends Specification {
 
         when:
         def local = cache.supplyLocalMetaData(newSelector("org", "local", "1.0"), result)
-        def remote = cache.supplyMetaData(newSelector("org", "remote", "1.0"), result)
 
         then:
         local
+        stats.metadataServed == 1
+        1 * result.resolved(localMetaData, localSource)
+
+        when:
+        def remote = cache.supplyMetaData(newSelector("org", "remote", "1.0"), result)
+
+        then:
         remote
         stats.metadataServed == 2
-        1 * result.resolved(_, _, _, _)
-        1 * result.resolved(_, _, _, _)
+        1 * result.resolved(remoteMetaData, remoteSource)
     }
 
     def "does not cache failed resolves"() {

@@ -196,4 +196,28 @@ class ModuleDescriptorAdapterTest extends Specification {
         and:
         0 * moduleDescriptor._
     }
+
+    def "can make a copy"() {
+        def dependency1 = Stub(DependencyMetaData)
+        def dependency2 = Stub(DependencyMetaData)
+
+        given:
+        metaData.changing = true
+        metaData.metaDataOnly = true
+        metaData.dependencies = [dependency1, dependency2]
+        metaData.status = 'a'
+        metaData.statusScheme = ['a', 'b', 'c']
+
+        when:
+        def copy = metaData.copy()
+
+        then:
+        copy != metaData
+        copy.descriptor == moduleDescriptor
+        copy.changing
+        copy.metaDataOnly
+        copy.dependencies == [dependency1, dependency2]
+        copy.status == 'a'
+        copy.statusScheme == ['a', 'b', 'c']
+    }
 }

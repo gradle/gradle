@@ -38,10 +38,6 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     public void resolved(ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource) {
         ModuleRevisionId moduleRevisionId = descriptor.getModuleRevisionId();
         ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
-        resolved(id, descriptor, changing, moduleSource);
-    }
-
-    public void resolved(ModuleVersionIdentifier id, ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource) {
         ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(id, descriptor);
         metaData.setChanging(true);
         resolved(metaData, moduleSource);

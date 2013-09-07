@@ -47,6 +47,17 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         status = moduleDescriptor.getStatus();
     }
 
+    public MutableModuleVersionMetaData copy() {
+        // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
+        ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor);
+        copy.dependencies = dependencies;
+        copy.changing = changing;
+        copy.metaDataOnly = metaDataOnly;
+        copy.status = status;
+        copy.statusScheme = statusScheme;
+        return copy;
+    }
+
     public ModuleVersionIdentifier getId() {
         return moduleVersionIdentifier;
     }

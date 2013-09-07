@@ -16,33 +16,24 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult.State.*;
 
 class CachedModuleVersionResult {
     private final BuildableModuleVersionMetaDataResolveResult.State state;
-    private final ModuleDescriptor moduleDescriptor;
-    private final boolean isChanging;
+    private final MutableModuleVersionMetaData metaData;
     private final ModuleSource moduleSource;
-    private final ModuleVersionIdentifier id;
 
     public CachedModuleVersionResult(BuildableModuleVersionMetaDataResolveResult result) {
         this.state = result.getState();
         if (state == Resolved) {
-            ModuleVersionMetaData metaData = result.getMetaData();
-            this.id = metaData.getId();
-            this.moduleDescriptor = metaData.getDescriptor();
-            this.isChanging = metaData.isChanging();
+            this.metaData = result.getMetaData().copy();
             this.moduleSource = result.getModuleSource();
         } else {
-            this.id = null;
-            this.moduleDescriptor = null;
-            this.isChanging = false;
+            this.metaData = null;
             this.moduleSource = null;
         }
     }
@@ -54,7 +45,7 @@ class CachedModuleVersionResult {
     public void supply(BuildableModuleVersionMetaDataResolveResult result) {
         assert isCacheable() : "Results are not cacheable, cannot supply the results.";
         if (state == Resolved) {
-            result.resolved(id, moduleDescriptor, isChanging, moduleSource);
+            result.resolved(metaData.copy(), moduleSource);
         } else if (state == Missing) {
             result.missing();
         } else if (state == ProbablyMissing) {
