@@ -48,7 +48,7 @@ public class CachingHasherTest {
     @Before
     public void setup() {
         context.checking(new Expectations(){{
-            one(cacheAccess).createCache(with(equalTo("fileHashes")), with(equalTo(File.class)), with(notNullValue(Class.class)), with(notNullValue(Serializer.class)));
+            one(cacheAccess).createCache(with(equalTo("fileHashes")), with(equalTo(File.class)), with(notNullValue(Serializer.class)));
             will(returnValue(cache));
         }});
         hasher = new CachingHasher(delegate, cacheAccess);

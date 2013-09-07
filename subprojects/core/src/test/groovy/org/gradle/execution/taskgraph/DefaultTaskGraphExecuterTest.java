@@ -587,7 +587,7 @@ public class DefaultTaskGraphExecuterTest {
             throw new UnsupportedOperationException();
         }
 
-        public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType, Serializer<V> valueSerializer) {
+        public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
             throw new UnsupportedOperationException();
         }
     }

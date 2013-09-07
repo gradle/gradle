@@ -24,7 +24,7 @@ public interface TaskArtifactStateCacheAccess {
     /**
      * Creates actual cache instance.
      */
-    <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType, Serializer<V> valueSerializer);
+    <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Serializer<V> valueSerializer);
 
     /**
      * Performs some work against the cache. Acquires exclusive locks the appropriate resources, so that the given action is the only

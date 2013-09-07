@@ -25,7 +25,7 @@ public class CacheBackedFileSnapshotRepository implements FileSnapshotRepository
 
     public CacheBackedFileSnapshotRepository(TaskArtifactStateCacheAccess cacheAccess, IdGenerator<Long> idGenerator) {
         this.idGenerator = idGenerator;
-        cache = cacheAccess.createCache("fileSnapshots", Long.class, FileCollectionSnapshot.class, new FileSnapshotSerializer());
+        cache = cacheAccess.createCache("fileSnapshots", Long.class, new FileSnapshotSerializer());
     }
 
     public Long add(FileCollectionSnapshot snapshot) {

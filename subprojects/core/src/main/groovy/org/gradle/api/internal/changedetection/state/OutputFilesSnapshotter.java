@@ -49,7 +49,7 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
         this.snapshotter = snapshotter;
         this.idGenerator = idGenerator;
         this.cacheAccess = cacheAccess;
-        dirIdentiferCache = cacheAccess.createCache("outputFileStates", String.class, Long.class, new LongSerializer());
+        dirIdentiferCache = cacheAccess.createCache("outputFileStates", String.class, new LongSerializer());
     }
 
     public FileCollectionSnapshot emptySnapshot() {

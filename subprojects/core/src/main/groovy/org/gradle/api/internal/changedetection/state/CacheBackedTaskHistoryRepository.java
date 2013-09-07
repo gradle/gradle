@@ -34,7 +34,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     public CacheBackedTaskHistoryRepository(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotRepository snapshotRepository) {
         this.cacheAccess = cacheAccess;
         this.snapshotRepository = snapshotRepository;
-        taskHistoryCache = cacheAccess.createCache("taskArtifacts", String.class, TaskHistory.class, serializer);
+        taskHistoryCache = cacheAccess.createCache("taskArtifacts", String.class, serializer);
     }
 
     public History getHistory(final TaskInternal task) {

@@ -36,7 +36,7 @@ class DefaultTaskArtifactStateCacheAccessTest extends Specification {
 
         def serializer = new DefaultSerializer<Integer>()
         when:
-        def indexedCache = cacheAccess.createCache("some-cache", String, Integer, serializer)
+        def indexedCache = cacheAccess.createCache("some-cache", String, serializer)
 
         then:
         0 * _._

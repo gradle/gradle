@@ -30,7 +30,7 @@ public class CachingHasher implements Hasher {
 
     public CachingHasher(Hasher hasher, TaskArtifactStateCacheAccess cacheAccess) {
         this.hasher = hasher;
-        cache = cacheAccess.createCache("fileHashes", File.class, FileInfo.class, new FileInfoSerializer());
+        cache = cacheAccess.createCache("fileHashes", File.class, new FileInfoSerializer());
     }
 
     public byte[] hash(File file) {
