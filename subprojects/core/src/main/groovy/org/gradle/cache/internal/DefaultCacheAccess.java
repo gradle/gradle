@@ -61,7 +61,7 @@ public class DefaultCacheAccess implements CacheAccess {
         this(cacheDisplayName, lockFile, lockManager, new CacheAccessOperationsStack());
     }
 
-    public DefaultCacheAccess(String cacheDisplayName, File lockFile, FileLockManager lockManager, CacheAccessOperationsStack operations) {
+    DefaultCacheAccess(String cacheDisplayName, File lockFile, FileLockManager lockManager, CacheAccessOperationsStack operations) {
         this.cacheDiplayName = cacheDisplayName;
         this.lockFile = lockFile;
         this.lockManager = lockManager;
