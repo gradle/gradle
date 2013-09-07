@@ -26,7 +26,7 @@ class CacheBackedFileSnapshotRepositoryTest extends Specification {
     FileSnapshotRepository repository
 
     def setup() {
-        1 * cacheAccess.createCache("fileSnapshots", _, _, _) >> indexedCache
+        1 * cacheAccess.createCache("fileSnapshots", _, _) >> indexedCache
         repository = new CacheBackedFileSnapshotRepository(cacheAccess, idGenerator)
     }
 
