@@ -30,6 +30,8 @@ import org.gradle.messaging.actor.ActorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public class JUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassProcessor.class);
     private final IdGenerator<?> idGenerator;
@@ -37,13 +39,15 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     private final StandardOutputRedirector outputRedirector;
     private final TimeProvider timeProvider = new TrueTimeProvider();
     private final JUnitSpec spec;
+    private final List<String> testNames;
     private JUnitTestClassExecuter executer;
     private Actor resultProcessorActor;
 
-    public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory,
+    public JUnitTestClassProcessor(JUnitSpec spec, List<String> testNames, IdGenerator<?> idGenerator, ActorFactory actorFactory,
                                    StandardOutputRedirector standardOutputRedirector) {
         this.idGenerator = idGenerator;
         this.spec = spec;
+        this.testNames = testNames;
         this.actorFactory = actorFactory;
         this.outputRedirector = standardOutputRedirector;
     }
@@ -65,8 +69,8 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
-        LOGGER.debug("Executing test class {}", testClass.getTestClassName());
-        executer.execute(testClass.getTestClassName());
+        LOGGER.debug("Executing test class {} (methods: {})", testClass.getTestClassName(), testNames);
+        executer.execute(testClass.getTestClassName(), testNames);
     }
 
     public void stop() {

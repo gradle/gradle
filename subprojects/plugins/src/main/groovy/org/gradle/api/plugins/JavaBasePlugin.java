@@ -293,7 +293,17 @@ public class JavaBasePlugin implements Plugin<Project> {
                 test.getLogger().info("Running single tests with pattern: {}", test.getIncludes());
             }
         });
+        String testNames = "";
+        int pos = -1;
+        if ((pos = singleTest.indexOf("#")) > 0) {
+            testNames = singleTest.substring(pos + 1);
+            singleTest = singleTest.substring(0, pos);
+        }
+
         test.setIncludes(WrapUtil.toSet(String.format("**/%s*.class", singleTest)));
+        if (!testNames.trim().isEmpty()) {
+            test.setTestNames(WrapUtil.toList(testNames.split(",")));    
+        }
         failIfNoTestIsExecuted(test, singleTest);
     }
 

@@ -122,6 +122,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private File testClassesDir;
     private File binResultsDir;
     private PatternFilterable patternSet = new PatternSet();
+    private List<String> testNames = new ArrayList<String>();
     private boolean ignoreFailures;
     private FileCollection classpath;
     private TestFramework testFramework;
@@ -773,6 +774,24 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         patternSet.setIncludes(includes);
         return this;
     }
+
+    /**
+     * Returns the names of the tests to run for a single class
+     */
+    public List<String> getTestNames() {
+        return testNames;
+    }
+
+    /**
+     * Sets the names of the tests to run for a single class
+     * 
+     * @param testNames the list of test names
+     */
+    public Test setTestNames(List<String> testNames) {
+        this.testNames = testNames;
+        return this;
+    }
+
 
     /**
      * Returns the exclude patterns for test execution.
