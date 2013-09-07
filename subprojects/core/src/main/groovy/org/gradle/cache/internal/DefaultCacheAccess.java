@@ -281,13 +281,13 @@ public class DefaultCacheAccess implements CacheAccess {
     }
 
     public <K, V> PersistentIndexedCache<K, V> newCache(final File cacheFile, final Class<K> keyType, final Serializer<V> valueSerializer) {
-        return newCache(cacheFile, new DefaultSerializer<K>(keyType.getClassLoader()), valueSerializer);
+        return newCache(new PersistentIndexedCacheParameters(cacheFile, new DefaultSerializer<K>(keyType.getClassLoader()), valueSerializer));
     }
 
-    public <K, V> PersistentIndexedCache<K, V> newCache(final File cacheFile, final Serializer<K> keySerializer, final Serializer<V> valueSerializer) {
+    public <K, V> PersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters parameters) {
         Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
             public BTreePersistentIndexedCache<K, V> create() {
-                return doCreateCache(cacheFile, keySerializer, valueSerializer);
+                return doCreateCache(parameters.getCacheFile(), parameters.getKeySerializer(), parameters.getValueSerializer());
             }
         };
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new MultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);

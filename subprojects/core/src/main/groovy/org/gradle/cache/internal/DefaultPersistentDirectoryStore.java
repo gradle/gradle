@@ -123,7 +123,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return cacheAccess.newCache(cacheFile, keySerializer, valueSerializer);
+        return cacheAccess.newCache(new PersistentIndexedCacheParameters(cacheFile, keySerializer, valueSerializer));
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
