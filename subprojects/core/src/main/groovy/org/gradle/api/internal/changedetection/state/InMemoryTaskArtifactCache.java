@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Serializer;
@@ -115,6 +116,11 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
 
             public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 throw new UnsupportedOperationException("Not supported atm");
+            }
+
+            public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
+                PersistentIndexedCache<K, V> out = target.createCache(parameters);
+                return memCached(parameters.getCacheFile(), out);
             }
 
             public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
