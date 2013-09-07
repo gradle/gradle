@@ -55,7 +55,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             libraries {
                 hello {
                     binaries.withType(SharedLibraryBinary) {
-                        define "DLL_EXPORT"
+                        cppCompiler.define "DLL_EXPORT"
+                        cCompiler.define "DLL_EXPORT"
                     }
                 }
             }

@@ -24,7 +24,6 @@ import org.gradle.language.base.LanguageSourceSet;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 
 // TODO:DAZ These don't apply to all binary subtypes: look at splitting this up in to a number of smaller facets / functional interfaces
 /**
@@ -88,16 +87,6 @@ public interface NativeBinary extends Binary {
      * </ul>
      */
     void lib(Object library);
-
-    /**
-     * The set of preprocessor macros to define when compiling this binary.
-     */
-    List<Object> getMacros();
-
-    /**
-     * Adds a number of preprocessor macros to define when compiling this binary.
-     */
-    void define(Object... defines);
 
     /**
      * The settings used for linking this binary.

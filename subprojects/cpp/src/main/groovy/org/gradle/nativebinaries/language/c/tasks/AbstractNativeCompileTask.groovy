@@ -65,7 +65,7 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
      * Macros that should be defined for the compiler.
      */
     @Input
-    List<String> macros
+    Map<String, String> macros
 
     /**
      * Additional arguments to provide to the compiler.

@@ -25,9 +25,9 @@ sources {
 // END SNIPPET source-library
 
 // START SNIPPET all-binaries
-binaries.all { binary ->
+binaries.all {
     // Define a preprocessor macro for every binary
-    binary.define "NDEBUG"
+    cppCompiler.define "NDEBUG"
 
     // Define toolchain-specific compiler and linker options
     if (toolChain in Gcc) {
@@ -44,7 +44,7 @@ binaries.all { binary ->
 // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
 binaries.withType(SharedLibraryBinary) {
     if (toolChain in VisualCpp) {
-        define "DLL_EXPORT"
+        cppCompiler.define "DLL_EXPORT"
     }
 }
 

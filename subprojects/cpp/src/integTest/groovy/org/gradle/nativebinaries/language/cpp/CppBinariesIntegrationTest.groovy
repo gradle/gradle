@@ -29,7 +29,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                 main {
                     binaries.all {
                         outputFile file('${executable("build/test").toURI()}')
-                        define 'ENABLE_GREETING'
+                        cppCompiler.define 'ENABLE_GREETING'
                     }
                 }
             }
@@ -106,7 +106,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                 hello {
                     binaries.all {
                         outputFile file('${staticLibrary("build/hello").toURI()}')
-                        define 'ENABLE_GREETING'
+                        cppCompiler.define 'ENABLE_GREETING'
                     }
                 }
             }

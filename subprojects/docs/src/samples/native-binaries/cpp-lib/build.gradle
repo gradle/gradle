@@ -7,7 +7,7 @@ libraries {
     main {
         binaries.withType(SharedLibraryBinary) {
             // Define a preprocessor macro that only applies to shared libraries
-            define "DLL_EXPORT"
+            cppCompiler.define "DLL_EXPORT"
         }
     }
 }

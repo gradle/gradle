@@ -18,12 +18,14 @@ package org.gradle.nativebinaries.language.internal;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public abstract class AbstractBaseCompileSpec {
 
     private Iterable<File> includeRoots;
     private Iterable<File> source;
-    private Iterable<String> macros = new ArrayList<String>();
+    private Map<String, String> macros = new LinkedHashMap<String, String>();
     private Iterable<String> args = new ArrayList<String>();
     private File objectFileDir;
     private File tempDir;
@@ -60,11 +62,11 @@ public abstract class AbstractBaseCompileSpec {
         this.tempDir = tempDir;
     }
 
-    public Iterable<String> getMacros() {
+    public Map<String, String> getMacros() {
         return macros;
     }
 
-    public void setMacros(Iterable<String> macros) {
+    public void setMacros(Map<String, String> macros) {
         this.macros = macros;
     }
 

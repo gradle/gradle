@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal.gpp;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
 /**
@@ -26,9 +27,10 @@ import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
  */
 class GeneralGccCompileOptionsToArguments<T extends NativeCompileSpec> implements CompileSpecToArguments<T> {
     public void collectArguments(T spec, ArgCollector collector) {
-        for (String macro : spec.getMacros()) {
-            collector.args("-D" + macro);
+        for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
+            collector.args("-D", macroArg);
         }
+
         collector.args(spec.getArgs());
         collector.args("-c");
         if (spec.isPositionIndependentCode()) {

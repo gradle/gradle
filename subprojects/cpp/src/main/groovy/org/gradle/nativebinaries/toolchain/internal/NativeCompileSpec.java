@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
 
 import java.io.File;
+import java.util.Map;
 
 /**
  * A compile spec that will be used to generate object files for combining into a native binary.
@@ -36,9 +37,9 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     void setSource(Iterable<File> source);
 
-    Iterable<String> getMacros();
+    Map<String, String> getMacros();
 
-    void setMacros(Iterable<String> macros);
+    void setMacros(Map<String, String> macros);
 
     Iterable<String> getArgs();
 

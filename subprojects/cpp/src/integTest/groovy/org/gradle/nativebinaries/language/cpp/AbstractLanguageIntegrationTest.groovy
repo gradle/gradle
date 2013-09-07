@@ -91,7 +91,8 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             executables {
                 main {
                     binaries.all {
-                        define "FRENCH"
+                        cppCompiler.define "FRENCH"
+                        cCompiler.define "FRENCH"
                     }
                 }
             }
@@ -154,7 +155,8 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             libraries {
                 hello {
                     binaries.withType(StaticLibraryBinary) {
-                        define "FRENCH"
+                        cppCompiler.define "FRENCH"
+                        cCompiler.define "FRENCH"
                     }
                 }
             }

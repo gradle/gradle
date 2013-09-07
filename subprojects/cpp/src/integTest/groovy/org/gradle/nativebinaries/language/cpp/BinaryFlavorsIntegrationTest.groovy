@@ -36,7 +36,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             libraries {
                 hello {
                     binaries.withType(StaticLibraryBinary) {
-                        define "FRENCH"
+                        cppCompiler.define "FRENCH"
                     }
                 }
             }
@@ -83,7 +83,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                     }
                     binaries.all {
                         if (flavor == flavors.french) {
-                            define "FRENCH"
+                            cppCompiler.define "FRENCH"
                         }
                     }
                 }
@@ -126,7 +126,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                     }
                     binaries.all {
                         if (flavor == flavors.french) {
-                            define "FRENCH"
+                            cppCompiler.define "FRENCH"
                         }
                     }
                 }

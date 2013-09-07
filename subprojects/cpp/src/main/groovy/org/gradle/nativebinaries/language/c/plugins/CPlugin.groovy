@@ -17,18 +17,15 @@ package org.gradle.nativebinaries.language.c.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.language.c.plugins.CLangPlugin
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeDependencySet
-import org.gradle.nativebinaries.SharedLibraryBinary
-import org.gradle.nativebinaries.ToolChainTool
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.language.c.CSourceSet
+import org.gradle.language.c.plugins.CLangPlugin
+import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.language.c.tasks.CCompile
+import org.gradle.nativebinaries.language.internal.PreprocessorTool
+import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.plugins.GppCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin
-
 /**
  * A plugin for projects wishing to build native binary components from C sources.
  *
@@ -48,15 +45,11 @@ class CPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(CLangPlugin)
 
         // TODO:DAZ Clean this up (would be simpler if it could just apply to all binaries)
-        project.executables.all {
-            it.binaries.all {
-                ext.cCompiler = new ToolChainTool()
-            }
+        project.executables.all { Executable executable ->
+            addLanguageExtensionsToComponent(executable)
         }
-        project.libraries.all {
-            it.binaries.all {
-                ext.cCompiler = new ToolChainTool()
-            }
+        project.libraries.all { Library library ->
+            addLanguageExtensionsToComponent(library)
         }
 
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
@@ -64,6 +57,12 @@ class CPlugin implements Plugin<ProjectInternal> {
                 def compileTask = createCompileTask(project, binary, sourceSet)
                 binary.builderTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
             }
+        }
+    }
+
+    private def addLanguageExtensionsToComponent(NativeComponent component) {
+        component.binaries.all { binary ->
+            binary.ext.cCompiler = new PreprocessorTool()
         }
     }
 
@@ -82,7 +81,7 @@ class CPlugin implements Plugin<ProjectInternal> {
         }
 
         compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
-        compileTask.macros = binary.macros
+        compileTask.macros = binary.cCompiler.macros
         compileTask.compilerArgs = binary.cCompiler.args
 
         compileTask

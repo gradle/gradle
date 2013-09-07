@@ -36,9 +36,6 @@
                 <td>libs</td>
             </tr>
             <tr>
-                <td>macros</td>
-            </tr>
-            <tr>
                 <td>linker</td>
             </tr>
             <tr>
@@ -59,9 +56,6 @@
             </tr>
             <tr>
                 <td>lib</td>
-            </tr>
-            <tr>
-                <td>define</td>
             </tr>
         </table>
     </section>

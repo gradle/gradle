@@ -53,7 +53,7 @@ binaries.all {
 binaries.withType(SharedLibraryBinary) {
     if (toolChain in VisualCpp) {
         cCompiler.args "/Z7"
-        define "DLL_EXPORT"
+        cCompiler.define "DLL_EXPORT"
     }
 }
 // END SNIPPET all-shared-libraries

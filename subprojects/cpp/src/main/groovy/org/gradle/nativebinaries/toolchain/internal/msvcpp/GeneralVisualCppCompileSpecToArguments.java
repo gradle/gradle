@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
+import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
@@ -25,8 +26,9 @@ import java.io.File;
 class GeneralVisualCppCompileSpecToArguments<T extends NativeCompileSpec> implements CompileSpecToArguments<T>  {
     public void collectArguments(T spec, ArgCollector collector) {
         collector.args("/nologo");
-        for (String macro : spec.getMacros()) {
-            collector.args("/D" + macro);
+
+        for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
+            collector.args("/D" + macroArg);
         }
         collector.args(spec.getArgs());
         collector.args("/c");

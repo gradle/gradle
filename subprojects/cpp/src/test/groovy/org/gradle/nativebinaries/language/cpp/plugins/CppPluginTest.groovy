@@ -111,7 +111,8 @@ class CppPluginTest extends Specification {
             executables {
                 test {
                     binaries.all { NativeBinary binary ->
-                        binary.define "NDEBUG"
+                        binary.cppCompiler.define "NDEBUG"
+                        binary.cppCompiler.define "LEVEL", "1"
                         binary.cppCompiler.args "ARG1", "ARG2"
                         binary.linker.args "LINK1", "LINK2"
                     }
@@ -127,7 +128,7 @@ class CppPluginTest extends Specification {
         def compile = project.tasks.compileTestExecutableTestCpp
         compile instanceof CppCompile
         compile.toolChain == binary.toolChain
-        compile.macros == ["NDEBUG"]
+        compile.macros == [NDEBUG:null, LEVEL:"1"]
         compile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
@@ -161,7 +162,7 @@ class CppPluginTest extends Specification {
             libraries {
                 test {
                     binaries.all {
-                        define "NDEBUG"
+                        cppCompiler.define "NDEBUG", "TRUE"
                         cppCompiler.args "ARG1", "ARG2"
                     }
                     binaries.withType(SharedLibraryBinary) {
@@ -181,7 +182,7 @@ class CppPluginTest extends Specification {
         def sharedCompile = project.tasks.compileTestSharedLibraryTestCpp
         sharedCompile instanceof CppCompile
         sharedCompile.toolChain == sharedLib.toolChain
-        sharedCompile.macros == ["NDEBUG"]
+        sharedCompile.macros == [NDEBUG: "TRUE"]
         sharedCompile.compilerArgs == ["ARG1", "ARG2"]
 
         and:
@@ -200,7 +201,7 @@ class CppPluginTest extends Specification {
         def staticCompile = project.tasks.compileTestStaticLibraryTestCpp
         staticCompile instanceof CppCompile
         staticCompile.toolChain == staticLib.toolChain
-        staticCompile.macros == ["NDEBUG"]
+        staticCompile.macros == [NDEBUG: "TRUE"]
         staticCompile.compilerArgs == ["ARG1", "ARG2"]
 
         and:

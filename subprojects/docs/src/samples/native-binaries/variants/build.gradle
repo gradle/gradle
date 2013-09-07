@@ -8,7 +8,7 @@ libraries {
     // Define some common settings for all shared library binaries
     all {
         binaries.withType(SharedLibraryBinary) {
-            define "DLL_EXPORT"
+            cppCompiler.define "DLL_EXPORT"
         }
     }
     hello {
@@ -19,7 +19,7 @@ libraries {
         }
         binaries.all {
             if (flavor == flavors.french) {
-                define "FRENCH"
+                cppCompiler.define "FRENCH"
             }
         }
     }
