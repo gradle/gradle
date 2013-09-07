@@ -316,8 +316,8 @@ class DefaultFileLockManagerTest extends Specification {
 
     def "leaves version 1 lock file after lock on existing file is closed"() {
         testFileLock.withDataOutputStream {
-            it.writeByte(1)
-            it.writeBoolean(false)
+            it.writeByte(2)
+            it.writeInt(0)
         }
 
         when:
@@ -352,7 +352,7 @@ class DefaultFileLockManagerTest extends Specification {
     def "can acquire lock on partially written lock file"() {
         when:
         testFileLock.withDataOutputStream {
-            it.writeByte(1)
+            it.writeByte(2)
         }
         def lock = createLock(mode)
 
@@ -362,8 +362,8 @@ class DefaultFileLockManagerTest extends Specification {
 
         when:
         testFileLock.withDataOutputStream {
-            it.writeByte(1)
-            it.writeBoolean(true)
+            it.writeByte(2)
+            it.writeInt(123)
             it.writeByte(2)
             it.writeByte(12)
         }
@@ -441,10 +441,10 @@ class DefaultFileLockManagerTest extends Specification {
 
     private void isVersion1LockFile(TestFile lockFile) {
         assert lockFile.isFile()
-        assert lockFile.length() == 2
+        assert lockFile.length() == 5
         lockFile.withDataInputStream { str ->
-            assert str.readByte() == 1
-            assert !str.readBoolean()
+            assert str.readByte() == 2
+            assert str.readInt() == 0
         }
     }
 
@@ -453,8 +453,8 @@ class DefaultFileLockManagerTest extends Specification {
         assert lockFile.length() > 3
         assert lockFile.length() <= 2048
         lockFile.withDataInputStream { str ->
-            assert str.readByte() == 1
-            assert !str.readBoolean()
+            assert str.readByte() == 2
+            assert str.readInt() == 0
             assert str.readByte() == 3
             assert str.readInt() == -1
             assert str.readLong() == 678L

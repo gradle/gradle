@@ -22,6 +22,7 @@ import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.id.NoZeroIntegerIdGenerator;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.util.GFileUtils;
 
@@ -38,26 +39,29 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
  * Uses file system locks on a lock file per target file. Each lock file is made up of 2 regions:
  *
  * <ul>
- *     <li>State region: 1 byte version field, 1 byte clean flag.</li>
+ *     <li>State region: 1 byte version field, 2 byte previous owner id (Integer, if ).</li>
  *     <li>Owner information region: 1 byte version field, bunch of other fields, see the code below for more info</li>
  * </ul>
  */
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockManager.class);
     private static final int DEFAULT_LOCK_TIMEOUT = 60000;
-    private static final byte STATE_REGION_PROTOCOL = 1;
-    private static final int STATE_REGION_SIZE = 2;
+    private static final byte STATE_REGION_PROTOCOL = 2;
+    private static final int STATE_REGION_SIZE = 5;
     private static final int STATE_REGION_POS = 0;
     private static final byte INFORMATION_REGION_PROTOCOL = 3;
     private static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
     public static final int INFORMATION_REGION_SIZE = 2052;
     public static final int INFORMATION_REGION_DESCR_CHUNK_LIMIT = 340;
+    private static final int NO_PREVIOUS_OWNER = 0;
+
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
     private final ProcessMetaDataProvider metaDataProvider;
     private final int lockTimeoutMs;
     private final IdGenerator<Long> generator;
     private FileLockContentionHandler fileLockContentionHandler;
     private final long shortTimeoutMs = 10000;
+    private final int ownerId = new NoZeroIntegerIdGenerator().generateId();
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockContentionHandler fileLockContentionHandler) {
         this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler);
@@ -158,7 +162,8 @@ public class DefaultFileLockManager implements FileLockManager {
             assertOpen();
             try {
                 lockFileAccess.seek(STATE_REGION_POS + 1);
-                if (!lockFileAccess.readBoolean()) {
+                int previousOwner = lockFileAccess.readInt();
+                if (previousOwner == NO_PREVIOUS_OWNER) {
                     // Process has crashed while updating target file
                     return false;
                 }
@@ -219,14 +224,14 @@ public class DefaultFileLockManager implements FileLockManager {
         private void markClean() throws IOException {
             lockFileAccess.seek(STATE_REGION_POS);
             lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-            lockFileAccess.writeBoolean(true);
+            lockFileAccess.writeInt(ownerId);
             assert lockFileAccess.getFilePointer() == STATE_REGION_SIZE + STATE_REGION_POS;
         }
 
         private void markDirty() throws IOException {
             lockFileAccess.seek(STATE_REGION_POS);
             lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-            lockFileAccess.writeBoolean(false);
+            lockFileAccess.writeInt(NO_PREVIOUS_OWNER);
             assert lockFileAccess.getFilePointer() == STATE_REGION_SIZE + STATE_REGION_POS;
         }
 
@@ -318,7 +323,7 @@ public class DefaultFileLockManager implements FileLockManager {
                         // File did not exist before locking
                         lockFileAccess.seek(STATE_REGION_POS);
                         lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-                        lockFileAccess.writeBoolean(false);
+                        lockFileAccess.writeInt(NO_PREVIOUS_OWNER);
                     }
                     // Acquire an exclusive lock on the information region and write our details there
                     java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
