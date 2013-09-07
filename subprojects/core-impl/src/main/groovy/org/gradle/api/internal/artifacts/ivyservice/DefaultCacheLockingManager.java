@@ -68,6 +68,6 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return cache.createCache(cacheFile, keySerializer, valueSerializer);
+        return cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFile, keySerializer, valueSerializer));
     }
 }

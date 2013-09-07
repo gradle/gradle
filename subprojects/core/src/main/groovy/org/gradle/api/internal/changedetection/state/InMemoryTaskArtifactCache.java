@@ -105,10 +105,6 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
                 return target.getBaseDir();
             }
 
-            public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-                throw new UnsupportedOperationException("Not supported atm");
-            }
-
             public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
                 PersistentIndexedCache<K, V> out = target.createCache(parameters);
                 return memCached(parameters.getCacheFile(), out);
