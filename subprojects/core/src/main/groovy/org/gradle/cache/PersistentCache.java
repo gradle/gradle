@@ -16,7 +16,6 @@
 package org.gradle.cache;
 
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
-import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 

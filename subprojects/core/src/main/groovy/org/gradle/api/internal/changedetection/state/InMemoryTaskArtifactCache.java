@@ -25,7 +25,6 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 import java.util.HashMap;
