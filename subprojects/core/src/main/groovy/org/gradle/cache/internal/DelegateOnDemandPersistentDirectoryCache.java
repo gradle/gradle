@@ -19,7 +19,6 @@ package org.gradle.cache.internal;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 
