@@ -202,7 +202,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
                         return indexedCache;
                     }
                 };
-                MultiProcessSafePersistentIndexedCache<K, V> safeCache = new MultiProcessSafePersistentIndexedCache<K, V>(cacheFactory, getCache().getLock());
+                MultiProcessSafePersistentIndexedCache<K, V> safeCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(cacheFactory, getCache().getLock());
                 this.indexedCache = new IndexedCacheReference<K, V>(safeCache, this);
             }
             return indexedCache;
