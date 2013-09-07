@@ -49,7 +49,7 @@ class DefaultTaskArtifactStateCacheAccessTest extends Specification {
         1 * cacheBuilder.open() >> backingCache
         _ * cacheBuilder._ >> cacheBuilder
         _ * backingCache.baseDir >> new File("baseDir")
-        1 * backingCache.createCache(new File("baseDir/some-cache.bin"), String, serializer) >> backingIndexedCache
+        1 * backingCache.createCache({it.cacheFile == new File("baseDir/some-cache.bin")}) >> backingIndexedCache
         1 * backingIndexedCache.get("key")
         0 * _._
     }

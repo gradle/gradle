@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
@@ -57,7 +58,7 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
     public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Class<V> valueType, final Serializer<V> valueSerializer) {
         Factory<PersistentIndexedCache> factory = new Factory<PersistentIndexedCache>() {
             public PersistentIndexedCache create() {
-                return getCache().createCache(cacheFile(cacheName), keyType, valueSerializer);
+                return getCache().createCache(new PersistentIndexedCacheParameters(cacheFile(cacheName), keyType, valueSerializer));
             }
         };
         return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class, factory).getSource();

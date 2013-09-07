@@ -79,14 +79,6 @@ public class InMemoryCacheFactory implements CacheFactory {
             return cacheDir;
         }
 
-        public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-            return new InMemoryIndexedCache<K, V>(new DefaultSerializer<V>());
-        }
-
-        public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
-            return new InMemoryIndexedCache<K, V>(valueSerializer);
-        }
-
         public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
             return new InMemoryIndexedCache<K, V>(valueSerializer);
         }
