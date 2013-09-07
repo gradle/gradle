@@ -53,7 +53,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
     public static final int INFORMATION_REGION_SIZE = 2052;
     public static final int INFORMATION_REGION_DESCR_CHUNK_LIMIT = 340;
-    private static final int NO_PREVIOUS_OWNER = 0;
+    private static final int UNKNOWN_PREVIOUS_OWNER = 0;
 
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
     private final ProcessMetaDataProvider metaDataProvider;
@@ -158,23 +158,21 @@ public class DefaultFileLockManager implements FileLockManager {
             return file.equals(lockFile);
         }
 
-        public boolean getUnlockedCleanly() {
+        private int getPreviousOwnerId() {
             assertOpen();
             try {
                 lockFileAccess.seek(STATE_REGION_POS + 1);
-                int previousOwner = lockFileAccess.readInt();
-                if (previousOwner == NO_PREVIOUS_OWNER) {
-                    // Process has crashed while updating target file
-                    return false;
-                }
+                return lockFileAccess.readInt();
             } catch (EOFException e) {
                 // Process has crashed writing to lock file
-                return false;
+                return UNKNOWN_PREVIOUS_OWNER;
             } catch (Exception e) {
                 throw throwAsUncheckedException(e);
             }
+        }
 
-            return true;
+        public boolean getUnlockedCleanly() {
+            return getPreviousOwnerId() != UNKNOWN_PREVIOUS_OWNER;
         }
 
         public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
@@ -231,7 +229,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private void markDirty() throws IOException {
             lockFileAccess.seek(STATE_REGION_POS);
             lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-            lockFileAccess.writeInt(NO_PREVIOUS_OWNER);
+            lockFileAccess.writeInt(UNKNOWN_PREVIOUS_OWNER);
             assert lockFileAccess.getFilePointer() == STATE_REGION_SIZE + STATE_REGION_POS;
         }
 
@@ -323,7 +321,7 @@ public class DefaultFileLockManager implements FileLockManager {
                         // File did not exist before locking
                         lockFileAccess.seek(STATE_REGION_POS);
                         lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-                        lockFileAccess.writeInt(NO_PREVIOUS_OWNER);
+                        lockFileAccess.writeInt(UNKNOWN_PREVIOUS_OWNER);
                     }
                     // Acquire an exclusive lock on the information region and write our details there
                     java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
