@@ -277,7 +277,7 @@ class DefaultCacheAccessTest extends Specification {
 
     def "can create new cache"() {
         when:
-        def cache = access.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
+        def cache = access.newCache(new PersistentIndexedCacheParameters(tmpDir.file('cache.bin'), String.class, Integer.class))
 
         then:
         cache instanceof MultiProcessSafePersistentIndexedCache

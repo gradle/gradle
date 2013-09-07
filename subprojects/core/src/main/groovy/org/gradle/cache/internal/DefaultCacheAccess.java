@@ -276,14 +276,6 @@ public class DefaultCacheAccess implements CacheAccess {
         longRunningOperation(operationDisplayName, Factories.toFactory(action));
     }
 
-    public <K, V> PersistentIndexedCache<K, V> newCache(final File cacheFile, final Class<K> keyType, final Class<V> valueType) {
-        return newCache(cacheFile, keyType, new DefaultSerializer<V>(valueType.getClassLoader()));
-    }
-
-    public <K, V> PersistentIndexedCache<K, V> newCache(final File cacheFile, final Class<K> keyType, final Serializer<V> valueSerializer) {
-        return newCache(new PersistentIndexedCacheParameters(cacheFile, new DefaultSerializer<K>(keyType.getClassLoader()), valueSerializer));
-    }
-
     public <K, V> PersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters parameters) {
         Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
             public BTreePersistentIndexedCache<K, V> create() {

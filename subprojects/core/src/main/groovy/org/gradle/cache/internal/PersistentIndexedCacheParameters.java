@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
@@ -28,6 +29,14 @@ public class PersistentIndexedCacheParameters<K, V> {
         this.cacheFile = cacheFile;
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
+    }
+
+    public PersistentIndexedCacheParameters(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
+        this(cacheFile, new DefaultSerializer<K>(keyType.getClassLoader()), valueSerializer);
+    }
+
+    public PersistentIndexedCacheParameters(File cacheFile, Class<K> keyType, Class<V> valueType) {
+        this(cacheFile, keyType, new DefaultSerializer<V>(valueType.getClassLoader()));
     }
 
     public File getCacheFile() {
