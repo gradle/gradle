@@ -114,10 +114,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         return displayName;
     }
 
-    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-        return cacheAccess.newCache(new PersistentIndexedCacheParameters<K, V>(cacheFile, keyType, valueType));
-    }
-
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
         return cacheAccess.newCache(new PersistentIndexedCacheParameters<K, V>(cacheFile, keyType, valueSerializer));
     }

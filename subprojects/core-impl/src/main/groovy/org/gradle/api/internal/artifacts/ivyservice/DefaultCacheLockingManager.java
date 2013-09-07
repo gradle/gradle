@@ -20,6 +20,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Serializer;
 
@@ -63,7 +64,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-        return cache.createCache(cacheFile, keyType, valueType);
+        return cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFile, keyType, valueType));
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {

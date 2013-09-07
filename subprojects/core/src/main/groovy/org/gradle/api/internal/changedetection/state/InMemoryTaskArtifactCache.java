@@ -110,10 +110,6 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
                 return memCached(cacheFile, out);
             }
 
-            public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-                throw new UnsupportedOperationException("Not supported atm");
-            }
-
             public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 throw new UnsupportedOperationException("Not supported atm");
             }

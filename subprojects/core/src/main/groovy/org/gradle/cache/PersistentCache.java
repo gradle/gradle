@@ -47,16 +47,6 @@ public interface PersistentCache extends CacheAccess {
      *
      * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
      */
-    <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType);
-
-    /**
-     * Creates an indexed cache implementation that is contained within this cache. This method may be used at any time.
-     *
-     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, org.gradle.internal.Factory)}.
-     * In this instance, an exclusive lock will be held on the cache.
-     *
-     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
-     */
     <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer);
 
     /**

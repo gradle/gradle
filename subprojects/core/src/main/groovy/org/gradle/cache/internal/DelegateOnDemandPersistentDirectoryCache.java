@@ -96,10 +96,6 @@ public class DelegateOnDemandPersistentDirectoryCache implements ReferencablePer
         return delegateCache.getBaseDir();
     }
 
-    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-        throw new UnsupportedOperationException();
-    }
-
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
         throw new UnsupportedOperationException();
     }
