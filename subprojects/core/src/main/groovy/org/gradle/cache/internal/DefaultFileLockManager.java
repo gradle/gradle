@@ -116,6 +116,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private final LockMode mode;
         private final String displayName;
         private final String operationDisplayName;
+        private final boolean hasNewOwner;
         private java.nio.channels.FileLock lock;
         private RandomAccessFile lockFileAccess;
         private boolean integrityViolated;
@@ -144,7 +145,9 @@ public class DefaultFileLockManager implements FileLockManager {
             lockFileAccess = new RandomAccessFile(lockFile, "rw");
             try {
                 lock = lock(mode);
-                integrityViolated = !getUnlockedCleanly();
+                int previousOwnerId = getPreviousOwnerId();
+                hasNewOwner = previousOwnerId != ownerId;
+                integrityViolated = previousOwnerId == UNKNOWN_PREVIOUS_OWNER;
             } catch (Throwable t) {
                 // Also releases any locks
                 lockFileAccess.close();
@@ -173,6 +176,10 @@ public class DefaultFileLockManager implements FileLockManager {
 
         public boolean getUnlockedCleanly() {
             return getPreviousOwnerId() != UNKNOWN_PREVIOUS_OWNER;
+        }
+
+        public boolean getHasNewOwner() {
+            return hasNewOwner;
         }
 
         public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {

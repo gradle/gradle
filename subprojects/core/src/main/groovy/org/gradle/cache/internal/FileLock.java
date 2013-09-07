@@ -28,6 +28,14 @@ public interface FileLock extends Closeable, FileAccess {
     boolean getUnlockedCleanly();
 
     /**
+     * Informs if this lock is currently acquired by the same process as the when it was acquired previously.
+     * If single process keeps acquiring and releasing this lock, the method returns false.
+     * If different processes interleave acquiring and releasing this lock, the method may return true.
+     * Returns true if there was not previous owner.
+     */
+    boolean getHasNewOwner();
+
+    /**
      * Returns true if the given file is used by this lock.
      */
     boolean isLockFile(File file);

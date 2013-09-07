@@ -434,6 +434,30 @@ class DefaultFileLockManagerTest extends Specification {
         thrown InsufficientLockModeException
     }
 
+    def "the lock knows if it has a new owner process"() {
+        when:
+        def lock = createLock(Exclusive)
+
+        then:
+        lock.hasNewOwner
+
+        when:
+        lock.writeFile({})
+
+        then:
+        lock.hasNewOwner
+
+        when:
+        lock.close()
+        lock = createLock(Exclusive)
+
+        then:
+        !lock.hasNewOwner
+
+        cleanup:
+        lock?.close()
+    }
+
     private void isEmptyLockFile(TestFile lockFile) {
         assert lockFile.isFile()
         assert lockFile.length() == 0
