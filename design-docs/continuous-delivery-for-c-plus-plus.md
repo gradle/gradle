@@ -369,7 +369,6 @@ To define custom source sets and components:
 ### Open issues
 
 - Use rules to imply the type of each child of a functional source set.
-- Define a functional source set for each component.
 - Separate C++ header file source set type.
 - Need to configure each component and source set lazily.
 - Need to deal with source sets that are generated.
@@ -455,6 +454,21 @@ This story adds support for using assembler source files as inputs to a native b
 - A project can have all C, C++ source and header files and assembly source files in the same source directory.
 
 # Milestone 2
+
+## Story: Simplify configuration of component source sets
+
+In the majority of cases, it makes sense to have a single named functional source set for each component, with
+the source set name and source directory names matching the component name. This story ensures that such a source set
+are created automatically for each component.
+
+- Add a rule to the 'native-binaries' plugin that for each native component:
+    - Creates a functional source set named with the component name, if such a source set does not yet exist.
+    - Configures the functional source set to be a source input for the component.
+- Remove explicit configuration and wiring of functional source sets for each component from tests and samples.
+
+### Test cases
+
+- Programmatically create the functional source set prior to adding the matching component.
 
 ## Story: Build different variants of a native component
 
