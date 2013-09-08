@@ -102,6 +102,7 @@ public class TestTest extends AbstractConventionTaskTest {
     public void testInit() {
         assertThat(test.getTestFramework(), instanceOf(JUnitTestFramework.class));
         assertNull(test.getTestClassesDir());
+        assertNull(test.getAdditionalTests());
         assertNull(test.getClasspath());
         assertNull(test.getTestResultsDir());
         assertNull(test.getTestReportDir());
@@ -159,7 +160,21 @@ public class TestTest extends AbstractConventionTaskTest {
         test.exclude("exclude");
 
         FileTree classFiles = test.getCandidateClassFiles();
-        assertIsDirectoryTree(classFiles, toSet("include"), toSet("exclude"));
+        assertIsDirectoryTree(classFiles, 0, classesDir, toSet("include"), toSet("exclude"));
+    }
+    
+    @org.junit.Test
+    public void testScansForTestClassesInAdditionalClassesDir() {
+        configureTask();
+        File additionalTests = tmpDir.createDir("additionalTests");
+        File additionalClassfile = new File(additionalTests, "AdditionalFileTest.class");
+        GFileUtils.touch(additionalClassfile);
+        test.setAdditionalTests(new SimpleFileCollection(additionalTests));
+        test.include("include");
+        test.exclude("exclude");
+
+        FileTree classFiles = test.getCandidateClassFiles();
+        assertIsDirectoryTree(classFiles, 1, additionalTests, toSet("include"), toSet("exclude"));
     }
 
     @org.junit.Test
@@ -208,16 +223,16 @@ public class TestTest extends AbstractConventionTaskTest {
         assertEquals(1, test.getMaxParallelForks());
     }
 
-    private void assertIsDirectoryTree(FileTree classFiles, Set<String> includes, Set<String> excludes) {
+    private void assertIsDirectoryTree(FileTree classFiles, int index, File dir, Set<String> includes, Set<String> excludes) {
         assertThat(classFiles, instanceOf(CompositeFileTree.class));
         CompositeFileTree files = (CompositeFileTree) classFiles;
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
         files.resolve(context);
         List<? extends FileTree> contents = context.resolveAsFileTrees();
-        FileTreeAdapter adapter = (FileTreeAdapter) contents.get(0);
+        FileTreeAdapter adapter = (FileTreeAdapter) contents.get(index);
         assertThat(adapter.getTree(), instanceOf(DirectoryFileTree.class));
         DirectoryFileTree directoryFileTree = (DirectoryFileTree) adapter.getTree();
-        assertThat(directoryFileTree.getDir(), equalTo(classesDir));
+        assertThat(directoryFileTree.getDir(), equalTo(dir));
         assertThat(directoryFileTree.getPatterns().getIncludes(), equalTo(includes));
         assertThat(directoryFileTree.getPatterns().getExcludes(), equalTo(excludes));
     }
