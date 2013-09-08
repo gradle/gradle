@@ -39,7 +39,7 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
  * Uses file system locks on a lock file per target file. Each lock file is made up of 2 regions:
  *
  * <ul>
- *     <li>State region: 1 byte version field, 2 byte previous owner id (Integer, if ).</li>
+ *     <li>State region: 1 byte version field, 4 bytes previous owner id (int value).</li>
  *     <li>Owner information region: 1 byte version field, bunch of other fields, see the code below for more info</li>
  * </ul>
  */
