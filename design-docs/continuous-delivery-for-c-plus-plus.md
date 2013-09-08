@@ -486,11 +486,11 @@ This story adds initial support for building multiple variants of a native compo
     libraries {
         main {
             flavors {
-                main
-                withOptionalFeature
+                main {}
+                withOptionalFeature {}
             }
             binaries.matching { flavor == flavors.main } {
-                compilerArgs '-DSOME_FEATURE
+                cppCompiler.args '-DSOME_FEATURE
             }
         }
     }
@@ -508,6 +508,7 @@ This will define 4 binaries:
 
 ### Open issues
 
+- Make it easy to have the same set of variants for all components.
 - Add a 'development' assemble task, which chooses a single binary for each component.
 - Need to make standard 'build', 'check' lifecycle tasks available too.
 - Formalise the concept of a naming scheme for binary names, tasks and file paths.

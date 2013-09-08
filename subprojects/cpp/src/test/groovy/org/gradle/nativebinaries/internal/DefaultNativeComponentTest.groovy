@@ -15,14 +15,12 @@
  */
 
 package org.gradle.nativebinaries.internal
-
 import org.gradle.api.Action
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.nativebinaries.Flavor
 import org.gradle.nativebinaries.FlavorContainer
 import spock.lang.Specification
 
@@ -50,11 +48,6 @@ class DefaultNativeComponentTest extends Specification {
         then:
         component.source.contains(sourceSet1)
         component.source.contains(sourceSet2)
-    }
-
-    def "automatically has a single flavor named 'default'"() {
-        expect:
-        component.flavors == [Flavor.DEFAULT] as Set
     }
 
     def "flavors can be added and will replace default flavor"() {

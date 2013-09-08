@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.DefaultExecutableBinary;
+import org.gradle.nativebinaries.internal.DefaultSharedLibraryBinary;
+import org.gradle.nativebinaries.internal.DefaultStaticLibraryBinary;
 
 import java.util.List;
 
-public class CreateNativeBinariesAction implements Action<ProjectInternal> {
+public class CreateNativeBinaries implements Action<ProjectInternal> {
     private final Instantiator instantiator;
 
-    public CreateNativeBinariesAction(Instantiator instantiator) {
+    public CreateNativeBinaries(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 

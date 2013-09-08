@@ -49,6 +49,7 @@ class DefaultLibraryResolverTest extends Specification {
 
     def "returns library dependencies for library with single default flavor"() {
         when:
+        flavorContainer.add(Flavor.DEFAULT)
         library.getBinaries() >> binaries(staticBinary1, sharedBinary1)
 
         and:
@@ -105,7 +106,7 @@ class DefaultLibraryResolverTest extends Specification {
         resolver.withFlavor(flavor1).withType(StaticLibraryBinary.class).resolve() == staticDeps
     }
 
-    def "fails when no library found with defined flavor"() {
+    def "fails when no library found with matching flavor"() {
         when:
         flavorContainer.addAll([flavor1, flavor2])
         library.getBinaries() >> binaries(sharedBinary1, sharedBinary2)

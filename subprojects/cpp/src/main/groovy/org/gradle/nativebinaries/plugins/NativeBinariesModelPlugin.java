@@ -15,13 +15,20 @@
  */
 package org.gradle.nativebinaries.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.nativebinaries.internal.*;
+import org.gradle.nativebinaries.internal.DefaultExecutableContainer;
+import org.gradle.nativebinaries.internal.DefaultLibraryContainer;
+import org.gradle.nativebinaries.internal.DefaultToolChainRegistry;
+import org.gradle.nativebinaries.internal.configure.CreateDefaultFlavors;
+import org.gradle.nativebinaries.internal.configure.CreateNativeBinaries;
 
 import javax.inject.Inject;
 
@@ -62,7 +69,11 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
                 fileResolver
         );
 
-        configurationActions.add(new CreateNativeBinariesAction(instantiator));
+        // TODO:DAZ Lazy configuration actions: need a better way to accomplish these.
+        configurationActions.add(Actions.composite(
+                new CreateDefaultFlavors(),
+                new CreateNativeBinaries(instantiator))
+        );
     }
 
 }

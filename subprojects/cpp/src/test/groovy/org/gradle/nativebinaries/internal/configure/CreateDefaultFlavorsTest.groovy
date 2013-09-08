@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-
-
-package org.gradle.nativebinaries.internal
+package org.gradle.nativebinaries.internal.configure
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.Flavor
+import org.gradle.nativebinaries.internal.DefaultFlavor
+import org.gradle.nativebinaries.internal.DefaultFlavorContainer
 import spock.lang.Specification
 
-class DefaultFlavorContainerTest extends Specification {
+class CreateDefaultFlavorsTest extends Specification {
     def flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
+    def action = new CreateDefaultFlavors()
 
     def "has a single default flavor when not configured"() {
-        expect:
+        when:
+        action.configureDefaultFlavor(flavorContainer)
+
+        then:
         flavorContainer.size() == 1
         flavorContainer == [Flavor.DEFAULT] as Set
     }
@@ -37,6 +41,8 @@ class DefaultFlavorContainerTest extends Specification {
             flavor1 {}
             flavor2 {}
         }
+        and:
+        action.configureDefaultFlavor(flavorContainer)
 
         then:
         flavorContainer.size() == 2
@@ -51,6 +57,8 @@ class DefaultFlavorContainerTest extends Specification {
             it.'default' {}
             flavor2 {}
         }
+        and:
+        action.configureDefaultFlavor(flavorContainer)
 
         then:
         flavorContainer.size() == 3

@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal
+package org.gradle.nativebinaries.internal.configure
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.Flavor
+import org.gradle.nativebinaries.internal.DefaultExecutable
+import org.gradle.nativebinaries.internal.DefaultExecutableBinary
+import org.gradle.nativebinaries.internal.DefaultFlavor
+import org.gradle.nativebinaries.internal.ToolChainInternal
 import spock.lang.Specification
 
 class NativeBinaryFactoryTest extends Specification {
@@ -28,20 +32,6 @@ class NativeBinaryFactoryTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def component = new DefaultExecutable("name", new DirectInstantiator())
 
-    def "does not use flavor in names name when component has only default flavor"() {
-        when:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [])
-        def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, Flavor.DEFAULT)
-
-        then:
-        component.flavors == [Flavor.DEFAULT] as Set
-
-        and:
-        binary.namingScheme.lifecycleTaskName == 'nameExecutable'
-        binary.namingScheme.outputDirectoryBase == 'nameExecutable'
-        binary.namingScheme.getTaskName("link") == 'linkNameExecutable'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileNameExecutableCpp'
-    }
 
     def "does not use flavor in names when component has only one configured flavor"() {
         when:

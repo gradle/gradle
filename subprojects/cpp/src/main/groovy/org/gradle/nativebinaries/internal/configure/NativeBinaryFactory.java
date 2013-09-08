@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Project;
 import org.gradle.internal.reflect.Instantiator;
@@ -22,6 +22,7 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.NativeComponent;
 import org.gradle.nativebinaries.ToolChain;
+import org.gradle.nativebinaries.internal.DefaultNativeBinary;
 
 import java.io.File;
 import java.util.Collection;
