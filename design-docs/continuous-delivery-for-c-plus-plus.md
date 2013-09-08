@@ -390,26 +390,27 @@ This story adds support for C source files as inputs to native binaries.
 - Change the GCC toolchain to:
     - Use `gcc` to compile all source files in a C source set. Should also use `-x c` to force source language to C.
     - Use `g++` to compile all source files in a C++ source set. Should also use `-x c++` to force source language to C++.
-
-### Open issues
-
-- Need a 'cross-platform' and 'platform-specific' source set.
-- Add a convention for C and C++ source directories.
-- Add compile dependencies to each source set.
-- Add link dependencies to each source set, use these to infer the link dependencies of the binary.
-- Should probably not use `g++` to link when there is no C++ source included in a binary.
-- Need separate compiler options for C and C++.
-- Need shared compiler options for C and C++.
-- Need to manually define C++ and C source sets.
-- Need to compose assembler/C/C++ source sets.
-- The "by-convention" plugins need to add "main" C and headers source sets.
-- Change `NativeDependencySet` to handle separate C and C++ headers.
 - Rework the plugins so that there is something like:
     - A `cpp-lang` plugin, which adds support for C++ source sets and compiling them to object files.
     - A `c-lang` plugin, which adds support for C source sets and compiling them to object files
     - An `assembler-lang` plugin, which adds support for assembler source sets and compiling them to object files.
     - A `native-binaries` plugin, which adds the base support for native binaries and components.
-    - A `native-library` and `native-application` plugin, which adds by-convention support for a main library or main application.
+    - 'cpp', 'c' and 'assembler' plugins, which apply the language plugin + native binary support
+- Change `compilerArgs`, `define` and `macros` methods on NativeBinary so that they are language-specific
+    - Replace existing methods with `cppCompiler.args`, `cppCompiler.define` and `cppCompiler.macros`.
+    - Introduce `cCompiler` equivalents
+
+### Open issues
+
+- Need a 'cross-platform' and 'platform-specific' source set.
+- Add compile dependencies to each source set.
+- Add link dependencies to each source set, use these to infer the link dependencies of the binary.
+- Should probably not use `g++` to link when there is no C++ source included in a binary.
+- Need shared compiler options for C and C++.
+- Need to manually define C++ and C source sets.
+- Need to compose assembler/C/C++ source sets.
+- Change `NativeDependencySet` to handle separate C and C++ headers.
+- Convert the 'cpp-lib' and 'cpp-exe' plugins to `native-library` and `native-application`, or simply remove them.
 
 ### Test cases
 
