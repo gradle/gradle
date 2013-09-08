@@ -27,7 +27,7 @@ import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
  * Compiles C++ source files into object files.
  */
 @Incubating
-class CppCompile  extends AbstractNativeCompileTask {
+class CppCompile extends AbstractNativeCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {
         new DefaultCppCompileSpec()
