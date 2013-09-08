@@ -433,25 +433,21 @@ This story adds support for using assembler source files as inputs to a native b
     - Use `ml /nologo /c` to assemble a source file to an object file.
 - Change the GCC toolchain to:
     - Use `as` to assemble a source file to an object file.
+- Add `NativeBinary.assembler.args` for providing arguments to the assembler
 
 ### Open issues
 
 - Different source files by platform
-- Extract an assembler and a binaries plugin
-- Add a convention for assembler source directories.
 - Should possibly use `ld` instead of `gcc` or `g++` to link the binaries.
 - Must use the assembler, C and C++ compiler from the same toolchain for a given binary.
-- Need assembler options on binary.
 - Need to manually define assembler source sets.
+- Should be able to run the C preprocessor on assembler source file.
 
 ### Test cases
 
 - Build breaks when source file cannot be assembled.
 - Assembly is incremental wrt assembly source files, and assembler settings.
 - Mixed C/C++/ASM binary, for each kind of binary
-    - Manually wired together using the `cpp` plugin.
-    - Using the by-convention `cpp-exe` and `cpp-lib` plugins.
-- Preprocessor macros can be used in source files.
 - A project can have all C, C++ source and header files and assembly source files in the same source directory.
 
 # Milestone 2
