@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app;
 
-public class CCallingCppHelloWorldApp extends HelloWorldApp {
+public class CCallingMixedCAndCppHelloWorldApp extends HelloWorldApp {
     @Override
     SourceFile getMainSource() {
         sourceFile("c", "main.c", """
@@ -66,6 +66,9 @@ public class CCallingCppHelloWorldApp extends HelloWorldApp {
                 std::cout << "${HELLO_WORLD}" << std::endl;
                 #endif
             }
+"""),
+        sourceFile("c", "sum.c", """
+            #include "hello.h"
 
             int DLL_FUNC sum(int a, int b) {
                 return a + b;

@@ -16,10 +16,10 @@
 
 package org.gradle.nativebinaries.language.cpp
 
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CCallingCppHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CCallingMixedCAndCppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 
-class CCallingCppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
-    HelloWorldApp helloWorldApp = new CCallingCppHelloWorldApp()
+class CCallingMixedCAndCppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
+    HelloWorldApp helloWorldApp = new CCallingMixedCAndCppHelloWorldApp()
 }
 
