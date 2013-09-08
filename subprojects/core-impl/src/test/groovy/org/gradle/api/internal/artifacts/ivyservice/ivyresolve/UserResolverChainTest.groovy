@@ -28,13 +28,16 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionM
 import spock.lang.Specification
 
 class UserResolverChainTest extends Specification {
-    final ModuleDescriptor descriptor = descriptor("1.2")
-    final ModuleVersionIdentifier resolvedId = moduleVersionIdentifier(descriptor)
+    final metaData = metaData("1.2")
     final dependencyId = Stub(ModuleVersionSelector)
     final dependency = Stub(DependencyMetaData)
     final dependencyDescriptor = Stub(DependencyDescriptor)
     final matcher = Stub(VersionMatcher)
-    final latestStrategy = Stub(LatestStrategy)
+    final latestStrategy = Stub(LatestStrategy) {
+        compare(_, _) >> { a, b ->
+            a.version.compareTo(b.version)
+        }
+    }
     final result = Mock(BuildableModuleVersionResolveResult)
     final moduleSource = Mock(ModuleSource)
 
@@ -63,11 +66,10 @@ class UserResolverChainTest extends Specification {
 
         then:
         1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo
             assert source.moduleSource == moduleSource
         }
@@ -89,11 +91,10 @@ class UserResolverChainTest extends Specification {
         then:
         1 * repo.getLocalDependency(dependency, _)
         1 * repo.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo
             assert source.moduleSource == moduleSource
         }
@@ -116,11 +117,10 @@ class UserResolverChainTest extends Specification {
             result.probablyMissing()
         }
         1 * repo.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo
             assert source.moduleSource == moduleSource
         }
@@ -180,7 +180,7 @@ class UserResolverChainTest extends Specification {
         def repo1 = Mock(LocalAwareModuleVersionRepository)
         def repo2 = Mock(LocalAwareModuleVersionRepository)
         def repo3 = Mock(LocalAwareModuleVersionRepository)
-        def version2 = descriptor("1.2")
+        def version2 = metaData("1.2")
         resolver.add(repo1)
         resolver.add(repo2)
         resolver.add(repo3)
@@ -190,17 +190,16 @@ class UserResolverChainTest extends Specification {
 
         then:
         1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolve(descriptor("1.1"), null)
+            result.resolved(metaData("1.1"), null)
         }
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(version2, true, moduleSource)
+            result.resolved(version2, moduleSource)
         }
         1 * repo3.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor("1.0"), true, null)
+            result.resolved(metaData("1.0"), null)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == moduleVersionIdentifier(version2)
-            assert metaData.descriptor == version2
+            assert metaData == version2
             assert source.delegate == repo2
             assert source.moduleSource == moduleSource
         }
@@ -230,11 +229,10 @@ class UserResolverChainTest extends Specification {
 
         then:
         1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo1
             assert source.moduleSource == moduleSource
         }
@@ -264,11 +262,10 @@ class UserResolverChainTest extends Specification {
             result.missing()
         }
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo2
             assert source.moduleSource == moduleSource
         }
@@ -296,11 +293,10 @@ class UserResolverChainTest extends Specification {
             result.probablyMissing()
         }
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo2
             assert source.moduleSource == moduleSource
         }
@@ -328,11 +324,10 @@ class UserResolverChainTest extends Specification {
         }
         1 * repo2.getLocalDependency(dependency, _)
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo2
             assert source.moduleSource == moduleSource
         }
@@ -365,11 +360,10 @@ class UserResolverChainTest extends Specification {
             result.missing()
         }
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo2
             assert source.moduleSource == moduleSource
         }
@@ -399,11 +393,10 @@ class UserResolverChainTest extends Specification {
             result.probablyMissing()
         }
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo2
             assert source.moduleSource == moduleSource
         }
@@ -435,11 +428,10 @@ class UserResolverChainTest extends Specification {
             result.missing()
         }
         1 * repo1.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo1
             assert source.moduleSource == moduleSource
         }
@@ -466,11 +458,10 @@ class UserResolverChainTest extends Specification {
             throw new RuntimeException("broken")
         }
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo2
             assert source.moduleSource == moduleSource
         }
@@ -500,11 +491,10 @@ class UserResolverChainTest extends Specification {
         }
         1 * repo2.getLocalDependency(dependency, _)
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true, moduleSource)
+            result.resolved(metaData, moduleSource)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData.id == resolvedId
-            assert metaData.descriptor == descriptor
+            assert metaData == this.metaData
             assert source.delegate == repo2
             assert source.moduleSource == moduleSource
         }
@@ -576,9 +566,17 @@ class UserResolverChainTest extends Specification {
         0 * result._
     }
 
-    def descriptor(def version) {
+    def descriptor(String version) {
         def descriptor = Stub(ModuleDescriptor)
         descriptor.resolvedModuleRevisionId >> ModuleRevisionId.newInstance("org", "module", version)
         return descriptor
+    }
+
+    def metaData(String version) {
+        return Stub(MutableModuleVersionMetaData) {
+            toString() >> version
+            getId() >> DefaultModuleVersionIdentifier.newId("org", "module", version)
+            getDescriptor() >> descriptor(version)
+        }
     }
 }

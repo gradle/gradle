@@ -219,7 +219,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parsePom()
+        parseMetaData()
 
         then:
         def e = thrown(MetaDataParseException)
@@ -250,7 +250,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
         descriptor.allArtifacts.length == 0
         descriptor.dependencies.length == 0
-        parseMetaData().metaDataOnly
+        metaData.metaDataOnly
     }
 
     private ModuleDescriptor parsePom() {

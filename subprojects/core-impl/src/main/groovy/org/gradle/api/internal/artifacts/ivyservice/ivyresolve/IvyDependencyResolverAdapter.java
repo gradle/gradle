@@ -27,6 +27,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.repositories.legacy.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.legacy.LocalFileRepositoryCacheManager;
 import org.gradle.internal.UncheckedException;
@@ -89,7 +90,9 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
                 result.missing();
             } else {
                 LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependency.getRequested(), getName());
-                result.resolved(revision.getDescriptor(), isChanging(revision), null);
+                ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(revision.getDescriptor().getModuleRevisionId(), revision.getDescriptor());
+                metaData.setChanging(isChanging(revision));
+                result.resolved(metaData, null);
             }
         } catch (ParseException e) {
             throw UncheckedException.throwAsUncheckedException(e);

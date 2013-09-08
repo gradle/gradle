@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
@@ -42,11 +41,6 @@ public interface BuildableModuleVersionMetaDataResolveResult {
 
     @Nullable
     ModuleVersionResolveException getFailure();
-
-    /**
-     * Marks the module version as resolved, with the given meta-data and source.
-     */
-    void resolved(ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource);
 
     /**
      * Marks the module version as resolved, with the given meta-data and source.

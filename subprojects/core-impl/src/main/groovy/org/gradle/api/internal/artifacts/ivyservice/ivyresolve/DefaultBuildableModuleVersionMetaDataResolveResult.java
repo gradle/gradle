@@ -15,12 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorAdapter;
 
 public class DefaultBuildableModuleVersionMetaDataResolveResult implements BuildableModuleVersionMetaDataResolveResult {
     private State state = State.Unknown;
@@ -33,14 +28,6 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         metaData = null;
         failure = null;
         moduleSource = null;
-    }
-
-    public void resolved(ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource) {
-        ModuleRevisionId moduleRevisionId = descriptor.getModuleRevisionId();
-        ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
-        ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(id, descriptor);
-        metaData.setChanging(true);
-        resolved(metaData, moduleSource);
     }
 
     public void resolved(MutableModuleVersionMetaData metaData, ModuleSource moduleSource) {

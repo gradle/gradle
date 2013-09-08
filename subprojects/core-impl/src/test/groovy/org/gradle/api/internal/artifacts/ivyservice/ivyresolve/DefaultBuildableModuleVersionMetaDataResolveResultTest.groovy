@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -58,21 +57,6 @@ class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specificati
         then:
         descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Failed
         descriptor.failure == failure
-    }
-
-    def "can mark as resolved using Ivy descriptor"() {
-        def moduleDescriptor = Stub(ModuleDescriptor)
-
-        when:
-        descriptor.resolved(moduleDescriptor, true, moduleSource)
-
-        then:
-        descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Resolved
-        descriptor.failure == null
-        descriptor.metaData.id
-        descriptor.metaData.descriptor == moduleDescriptor
-        descriptor.metaData.changing
-        descriptor.moduleSource == moduleSource
     }
 
     def "can mark as resolved using meta-data"() {
