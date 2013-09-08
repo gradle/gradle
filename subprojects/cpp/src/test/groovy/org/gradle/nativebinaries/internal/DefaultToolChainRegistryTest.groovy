@@ -31,7 +31,7 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.registerFactory(TestToolChain, factory)
     }
 
-    def "has first available default tool chain when none configured"() {
+    def "adds first available default tool chain when none configured"() {
         unavailableToolChain("test1")
         def defaultToolChain2 = availableToolChain("test2")
 
@@ -39,14 +39,15 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.registerDefaultToolChain("test1", TestToolChain)
         registry.registerDefaultToolChain("test2", TestToolChain)
         registry.registerDefaultToolChain("test3", TestToolChain)
+        registry.addDefaultToolChain()
 
         then:
         registry.asList() == [defaultToolChain2]
         registry.availableToolChains == [defaultToolChain2]
     }
 
-    def "explicitly created toolchain overwrites default toolchain"() {
-        availableToolChain("default")
+    def "can add default tool chain when some configured"() {
+        def defaultToolChain = availableToolChain("default")
         def configuredToolChain = unavailableToolChain("configured")
 
         when:
@@ -55,38 +56,24 @@ class DefaultToolChainRegistryTest extends Specification {
         and:
         registry.create("configured", TestToolChain)
 
-        then:
-        registry.asList() == [configuredToolChain]
-    }
-
-    def "explicitly added toolchain overwrites default toolchain"() {
-        availableToolChain("default")
-        def addedToolChain = Stub(TestToolChain) {
-            getName() >> "added"
-            getAvailability() >> new ToolChainAvailability()
-        }
-
-        when:
-        registry.registerDefaultToolChain("default", TestToolChain)
-
         and:
-        registry.add(addedToolChain)
+        registry.addDefaultToolChain()
 
         then:
-        registry.asList() == [addedToolChain]
+        registry.asList() == [configuredToolChain, defaultToolChain]
     }
 
-    def "can use DSL to replace and add to default toolchain list"() {
-        availableToolChain("test")
-        def replacementToolChain = unavailableToolChain("test")
+    def "can use DSL to configure toolchains"() {
+        def defaultToolChain = availableToolChain("test")
         def anotherToolChain = unavailableToolChain("another")
 
         when:
         registry.registerDefaultToolChain("test", TestToolChain)
+        registry.addDefaultToolChain()
 
         and:
         project.toolChains {
-            test(TestToolChain) {
+            test {
                 baseDir = "foo"
             }
             another(TestToolChain) {
@@ -95,11 +82,11 @@ class DefaultToolChainRegistryTest extends Specification {
         }
 
         then:
-        1 * replacementToolChain.setBaseDir("foo")
+        1 * defaultToolChain.setBaseDir("foo")
         1 * anotherToolChain.setBaseDir("bar")
 
         and:
-        registry.asList() == [anotherToolChain, replacementToolChain]
+        registry.asList() == [anotherToolChain, defaultToolChain]
     }
 
     def "returns all available toolchains from configured in name order"() {
@@ -114,21 +101,6 @@ class DefaultToolChainRegistryTest extends Specification {
 
         then:
         registry.availableToolChains == [tcFirst, tc2]
-    }
-
-    def "default toolchain is first available in name order"() {
-        unavailableToolChain("test")
-        def tc2 = availableToolChain("test2")
-        unavailableToolChain("test3")
-
-        when:
-        registry.create("test", TestToolChain)
-        registry.create("test2", TestToolChain)
-        registry.create("test3", TestToolChain)
-
-
-        then:
-        registry.defaultToolChain == tc2
     }
 
     def "reports unavailability when no tool chain available"() {

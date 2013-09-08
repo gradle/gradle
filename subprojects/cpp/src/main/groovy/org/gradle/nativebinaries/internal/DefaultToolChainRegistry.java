@@ -15,9 +15,7 @@
  */
 package org.gradle.nativebinaries.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
@@ -26,13 +24,12 @@ import org.gradle.nativebinaries.ToolChain;
 import org.gradle.nativebinaries.ToolChainRegistry;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-// TODO:DAZ Need a better way of having a container with defaults. Similar for FlavorContainer.
-// Probably need a separate container for defaults and registered, and then have a simple delegating container, or factory.
 public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectContainer<ToolChain> implements ToolChainRegistry {
-    private ToolChain defaultToolChain;
+    private final Map<String, Class<? extends ToolChain>> registeredDefaults = new LinkedHashMap<String, Class<? extends ToolChain>>();
 
     public DefaultToolChainRegistry(Instantiator instantiator) {
         super(ToolChain.class, instantiator);
@@ -44,39 +41,16 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
     }
 
     public void registerDefaultToolChain(String name, Class<? extends ToolChain> type) {
-        if (isEmpty()) {
-            assertCanAdd(name);
-            ToolChain added = doCreate(name, type);
-            ToolChainInternal candidate = (ToolChainInternal) added;
-            if (candidate.getAvailability().isAvailable()) {
-                add(candidate);
+        registeredDefaults.put(name, type);
+    }
+
+    public void addDefaultToolChain() {
+        for (String name : registeredDefaults.keySet()) {
+            ToolChainInternal toolChain = (ToolChainInternal) doCreate(name, registeredDefaults.get(name));
+            if (toolChain.getAvailability().isAvailable()) {
+                add(toolChain);
+                return;
             }
-            defaultToolChain = candidate;
-        }
-    }
-
-    @Override
-    public boolean add(ToolChain o) {
-        removeDefault();
-        return super.add(o);
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends ToolChain> c) {
-        removeDefault();
-        return super.addAll(c);
-    }
-
-    @Override
-    public AbstractNamedDomainObjectContainer<ToolChain> configure(Closure configureClosure) {
-        removeDefault();
-        return super.configure(configureClosure);
-    }
-
-    private void removeDefault() {
-        if (defaultToolChain != null) {
-            remove(defaultToolChain);
-            defaultToolChain = null;
         }
     }
 

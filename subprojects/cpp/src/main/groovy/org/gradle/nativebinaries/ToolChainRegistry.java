@@ -26,11 +26,14 @@ import java.util.List;
 @Incubating
 public interface ToolChainRegistry extends ExtensiblePolymorphicDomainObjectContainer<ToolChain> {
     /**
-     * Registers a default ToolChain. If no tool chain currently exists, and the registered tool
-     * chain is available, then a default instance is added to the registry.
-     * Creating or adding a ToolChain directly will replace a default instance.
+     * Registers a default ToolChain, which may later be added to the registry via {@link #addDefaultToolChain()}.
      */
     void registerDefaultToolChain(String name, Class<? extends ToolChain> type);
+
+    /**
+     * Adds the first available default tool chain to the registry.
+     */
+    void addDefaultToolChain();
 
     /**
      * Returns all registered {@link ToolChain}s that are available.
