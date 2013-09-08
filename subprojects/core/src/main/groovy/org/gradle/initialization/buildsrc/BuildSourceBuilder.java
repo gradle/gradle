@@ -70,7 +70,8 @@ public class BuildSourceBuilder {
 
     PersistentCache createCache(StartParameter startParameter) {
         return cacheRepository.
-                    cache("buildSrc.v" + DefaultFileLockManager.PROTOCOL_VERSION). //TODO SF awful
+                    //TODO SF workaround for cache lock format change
+                    cache("buildSrc.v" + DefaultFileLockManager.PROTOCOL_VERSION).
                     withLockMode(FileLockManager.LockMode.None).
                     forObject(startParameter.getCurrentDir()).
                     withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).
