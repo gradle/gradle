@@ -64,8 +64,11 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                 super.binDistribution.copyFrom(url)
                 super.binDistribution.usingNativeTools().unzipTo(versionDir)
             }
+            //cache lock dir needs to encode current cache lock protocol version
+            //otherwise there are failures when we upgrade cache lock format
+            def cacheLockDir = new File(versionDir, "cache-lock-${DefaultFileLockManager.PROTOCOL_VERSION}")
             //noinspection GrDeprecatedAPIUsage
-            cache = CACHE_FACTORY.open(versionDir, version.version, CacheUsage.ON, null, [:], FileLockManager.LockMode.Shared, downloadAction as Action)
+            cache = CACHE_FACTORY.open(cacheLockDir, version.version, CacheUsage.ON, null, [:], FileLockManager.LockMode.Shared, downloadAction as Action)
         }
 
         super.binDistribution.assertIsFile()

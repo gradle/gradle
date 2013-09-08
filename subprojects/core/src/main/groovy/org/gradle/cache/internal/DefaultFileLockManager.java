@@ -46,14 +46,16 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockManager.class);
     private static final int DEFAULT_LOCK_TIMEOUT = 60000;
-    private static final byte STATE_REGION_PROTOCOL = 2;
+    private static final byte STATE_REGION_PROTOCOL = 2; //should be incremented when state region format changes in an incompatible way
     private static final int STATE_REGION_SIZE = 5;
     private static final int STATE_REGION_POS = 0;
-    private static final byte INFORMATION_REGION_PROTOCOL = 3;
+    private static final byte INFORMATION_REGION_PROTOCOL = 3; //should be incremented when information region format changes in an incompatible way
     private static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
     public static final int INFORMATION_REGION_SIZE = 2052;
     public static final int INFORMATION_REGION_DESCR_CHUNK_LIMIT = 340;
     private static final int UNKNOWN_PREVIOUS_OWNER = 0;
+
+    public static final short PROTOCOL_VERSION = STATE_REGION_PROTOCOL + INFORMATION_REGION_PROTOCOL;
 
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
     private final ProcessMetaDataProvider metaDataProvider;
