@@ -33,7 +33,11 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
 repositories {
     ivy { url "${ivyHttpRepo.uri}" }
 }
-configurations { compile }
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
 dependencies { compile 'group:projectA:1.2' }
 task listJars << {
     assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
@@ -64,7 +68,11 @@ task listJars << {
 repositories {
     ivy { url "${ivyHttpRepo.uri}" }
 }
-configurations { compile }
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
 dependencies { compile 'group:projectA:1.2@jar' }
 task listJars << {
     assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
@@ -77,7 +85,6 @@ task listJars << {
         module.expectJarGet()
 
         then:
-        executer.withArgument("-i")
         succeeds('listJars')
 
         when:
@@ -85,7 +92,44 @@ task listJars << {
         // No extra calls for cached dependencies
 
         then:
-        executer.withArgument("-i")
+        succeeds('listJars')
+    }
+
+    def "can resolve and cache artifact-only dependencies with no descriptor from a HTTP repository"() {
+        server.start()
+        given:
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
+
+        and:
+        buildFile << """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
+dependencies { compile 'group:projectA:1.2@jar' }
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+}
+"""
+
+
+        when:
+        module.expectIvyGetMissing()
+        module.expectJarHead()
+        module.expectJarGet()
+
+        then:
+        succeeds('listJars')
+
+        when:
+        server.resetExpectations()
+        // No extra calls for cached dependencies
+
+        then:
         succeeds('listJars')
     }
 
@@ -106,7 +150,11 @@ repositories {
     ivy { url "${repo1.uri}" }
     ivy { url "${repo2.uri}" }
 }
-configurations { compile }
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
 dependencies {
     compile 'group:projectA:1.0', 'group:projectB:1.0', 'group:projectC:1.0'
 }
@@ -161,7 +209,11 @@ repositories {
         ivyPattern "http://localhost:${server.port}/third/[module]/[revision]/ivy.xml"
     }
 }
-configurations { compile }
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
 dependencies {
     compile 'group:projectA:1.2'
 }
@@ -226,7 +278,9 @@ task retrieve(type: Sync) {
         server.start()
         buildFile << """
 configurations {
-    compile
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
 }
 dependencies {
     repositories {

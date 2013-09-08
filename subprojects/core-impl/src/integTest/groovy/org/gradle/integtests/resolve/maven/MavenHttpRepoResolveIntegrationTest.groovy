@@ -27,14 +27,18 @@ class MavenHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTe
         given:
         server.start()
 
-        def projectB = mavenRepo().module('group', 'projectB').publish()
-        def projectA = mavenRepo().module('group', 'projectA').dependsOn('projectB').publish()
+        def projectB = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
+        def projectA = mavenHttpRepo.module('group', 'projectA').dependsOn('group', 'projectB', '1.0').publish()
 
         buildFile << """
 repositories {
-    maven { url 'http://localhost:${server.port}/repo1' }
+    maven { url '${mavenHttpRepo.uri}' }
 }
-configurations { compile }
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
 dependencies {
     compile 'group:projectA:1.0'
 }
@@ -46,10 +50,10 @@ task retrieve(type: Sync) {
 """
 
         when:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
+        projectB.pom.expectGet()
+        projectB.artifact.expectGet()
 
         and:
         run 'retrieve'
@@ -59,10 +63,10 @@ task retrieve(type: Sync) {
         def snapshot = file('libs/projectA-1.0.jar').snapshot()
 
         and:
-        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectA/1.0/projectA-1.0.pom")
-        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectA/1.0/projectA-1.0.jar")
-        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectB/1.0/projectB-1.0.pom")
-        progressLogging.downloadProgressLogged("http://localhost:${server.port}/repo1/group/projectB/1.0/projectB-1.0.jar")
+        progressLogging.downloadProgressLogged(projectA.pom.uri.toString())
+        progressLogging.downloadProgressLogged(projectA.artifact.uri.toString())
+        progressLogging.downloadProgressLogged(projectB.pom.uri.toString())
+        progressLogging.downloadProgressLogged(projectB.artifact.uri.toString())
 
         when:
         server.resetExpectations()
@@ -76,16 +80,19 @@ task retrieve(type: Sync) {
     def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {
         server.start()
         given:
-        def module = mavenRepo().module('group', 'projectA', '1.2')
+        def module = mavenHttpRepo.module('group', 'projectA', '1.2')
         module.publish()
 
         and:
         buildFile << """
 repositories {
-    maven { url "http://localhost:${server.port}/repo1" }
-    maven { url "http://localhost:${server.port}/repo2" }
+    maven { url "${mavenHttpRepo.uri}" }
 }
-configurations { compile }
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
 dependencies { compile 'group:projectA:1.2@jar' }
 task listJars << {
     assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
@@ -94,11 +101,47 @@ task listJars << {
 
         when:
         // TODO: Should meta-data be fetched for an artifact-only dependency?
-        server.expectGetMissing('/repo1/group/projectA/1.2/projectA-1.2.pom')
-        server.expectHeadMissing('/repo1/group/projectA/1.2/projectA-1.2.jar')
+        module.pom.expectGet()
+        module.artifact.expectGet()
 
-        server.expectGet('/repo2/group/projectA/1.2/projectA-1.2.pom', module.pomFile)
-        server.expectGet('/repo2/group/projectA/1.2/projectA-1.2.jar', module.artifactFile)
+        then:
+        succeeds('listJars')
+
+        when:
+        server.resetExpectations()
+        // No extra calls for cached dependencies
+
+        then:
+        succeeds('listJars')
+    }
+
+    def "can resolve and cache artifact-only dependencies with no pom from an HTTP Maven repository"() {
+        server.start()
+        given:
+        def module = mavenHttpRepo.module('group', 'projectA', '1.2')
+        module.publish()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url "${mavenHttpRepo.uri}" }
+}
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
+dependencies { compile 'group:projectA:1.2@jar' }
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+}
+"""
+
+        when:
+        // TODO: Should meta-data be fetched for an artifact-only dependency?
+        module.pom.expectGetMissing()
+        module.artifact.expectHead()
+        module.artifact.expectGet()
 
         then:
         succeeds('listJars')
@@ -114,13 +157,19 @@ task listJars << {
     def "can resolve and cache dependencies from multiple HTTP Maven repositories"() {
         given:
         server.start()
+        def repo1 = mavenHttpRepo("repo1")
+        def repo2 = mavenHttpRepo("repo2")
 
         buildFile << """
 repositories {
-    maven { url 'http://localhost:${server.port}/repo1' }
-    maven { url 'http://localhost:${server.port}/repo2' }
+    maven { url '${repo1.uri}' }
+    maven { url '${repo2.uri}' }
 }
-configurations { compile }
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
 dependencies {
     compile 'group:projectA:1.0', 'group:projectB:1.0'
 }
@@ -129,19 +178,20 @@ task listJars << {
 }
 """
 
-        def projectA = mavenRepo().module('group', 'projectA').publish()
-        def projectB = mavenRepo().module('group', 'projectB').publish()
+        def projectA = repo1.module('group', 'projectA').publish()
+        def missingProjectB = repo1.module('group', 'projectB')
+        def projectB = repo2.module('group', 'projectB').publish()
 
         when:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        projectA.pom.expectGet()
 
         // Looks for POM and JAR in repo1 before looking in repo2 (jar is an attempt to handle publication without module descriptor)
-        server.expectGetMissing('/repo1/group/projectB/1.0/projectB-1.0.pom')
-        server.expectHeadMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
-        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        missingProjectB.pom.expectGetMissing()
+        missingProjectB.artifact.expectHeadMissing()
+        projectB.pom.expectGet()
 
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        projectA.artifact.expectGet()
+        projectB.artifact.expectGet()
 
         then:
         succeeds 'listJars'
@@ -157,12 +207,14 @@ task listJars << {
     def "uses artifactsUrl to resolve artifacts"() {
         given:
         server.start()
+        def repo1 = mavenHttpRepo("repo1")
+        def repo2 = mavenHttpRepo("repo2")
 
         buildFile << """
 repositories {
     maven {
-        url 'http://localhost:${server.port}/repo1'
-        artifactUrls 'http://localhost:${server.port}/repo2'
+        url '${repo1.uri}'
+        artifactUrls '${repo2.uri}'
     }
 }
 configurations { compile }
@@ -174,18 +226,17 @@ task listJars << {
 }
 """
 
-        def projectA = mavenRepo().module('group', 'projectA')
-        def projectB = mavenRepo().module('group', 'projectB')
-        projectA.publish()
-        projectB.publish()
+        def projectA = repo1.module('group', 'projectA').publish()
+        def projectB = repo1.module('group', 'projectB').publish()
+        def projectBArtifacts = repo2.module('group', 'projectB').publish()
 
         when:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        projectA.pom.expectGet()
+        projectB.pom.expectGet()
 
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGetMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
-        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        projectA.artifact.expectGet()
+        projectB.artifact.expectGetMissing()
+        projectBArtifacts.artifact.expectGet()
 
         then:
         succeeds 'listJars'
@@ -195,14 +246,18 @@ task listJars << {
         given:
         server.start()
 
-        def projectB = mavenRepo().module('group', 'projectB').publish()
-        def projectA = mavenRepo().module('group', 'projectA').dependsOn('projectB').publish()
+        def projectB = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
+        def projectA = mavenHttpRepo.module('group', 'projectA').dependsOn('group', 'projectB', '1.0').publish()
 
         buildFile << """
     repositories {
-        maven { url 'http://localhost:${server.port}/repo1' }
+        maven { url '${mavenHttpRepo.uri}' }
     }
-    configurations { compile }
+    configurations {
+        compile {
+            resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+        }
+    }
     dependencies {
         compile 'group:projectA:1.0'
     }
@@ -218,13 +273,12 @@ task listJars << {
         settingsFile << "invalid content... blabla"
 
         when:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
+        projectB.pom.expectGet()
+        projectB.artifact.expectGet()
 
         and:
-
         executer.withEnvironmentVars(M2_HOME: m2Home.absolutePath)
         run 'retrieve'
 
