@@ -33,7 +33,13 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         buildFile << """
             apply plugin: "cpp"
             libraries {
-                greetings {}
+                greetings {
+                    binaries.all {
+                        if (!org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+                            cppCompiler.args("-fPIC");
+                        }
+                    }
+                }
                 hello {
                     binaries.all {
                         lib libraries.greetings.static
