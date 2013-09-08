@@ -19,7 +19,6 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheAccess;
-import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.internal.CompositeStoppable;
@@ -28,7 +27,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.serialize.Serializer;
 
-import java.io.Closeable;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -48,8 +46,7 @@ public class DefaultCacheAccess implements CacheAccess {
     private final File lockFile;
     private final FileLockManager lockManager;
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
-    private final Set<UnitOfWorkParticipant> unitOfWorkParticipants = new HashSet<UnitOfWorkParticipant>();
-    private final Set<Closeable> caches = new HashSet<Closeable>();
+    private final Set<MultiProcessSafePersistentIndexedCache> caches = new HashSet<MultiProcessSafePersistentIndexedCache>();
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private Thread owner;
@@ -275,7 +272,7 @@ public class DefaultCacheAccess implements CacheAccess {
         longRunningOperation(operationDisplayName, Factories.toFactory(action));
     }
 
-    public <K, V> PersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters parameters) {
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters parameters) {
         Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
             public BTreePersistentIndexedCache<K, V> create() {
                 return doCreateCache(parameters.getCacheFile(), parameters.getKeySerializer(), parameters.getValueSerializer());
@@ -285,7 +282,6 @@ public class DefaultCacheAccess implements CacheAccess {
 
         lock.lock();
         try {
-            unitOfWorkParticipants.add(indexedCache);
             caches.add(indexedCache);
             if (fileLock != null) {
                 indexedCache.onStartWork(operations.getDescription());
@@ -306,8 +302,8 @@ public class DefaultCacheAccess implements CacheAccess {
         }
         fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operations.getDescription());
 
-        for (UnitOfWorkParticipant participant : unitOfWorkParticipants) {
-            participant.onStartWork(operations.getDescription());
+        for (UnitOfWorkParticipant cache : caches) {
+            cache.onStartWork(operations.getDescription());
         }
 
         lockManager.allowContention(fileLock, whenContended());
