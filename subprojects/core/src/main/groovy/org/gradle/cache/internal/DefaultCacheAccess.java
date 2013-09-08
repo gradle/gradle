@@ -272,13 +272,14 @@ public class DefaultCacheAccess implements CacheAccess {
         longRunningOperation(operationDisplayName, Factories.toFactory(action));
     }
 
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters parameters) {
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters<K, V> parameters) {
         Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
             public BTreePersistentIndexedCache<K, V> create() {
                 return doCreateCache(parameters.getCacheFile(), parameters.getKeySerializer(), parameters.getValueSerializer());
             }
         };
-        MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
+        MultiProcessSafePersistentIndexedCache<K, V> indexedCache = parameters.decorate(
+                new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess));
 
         lock.lock();
         try {

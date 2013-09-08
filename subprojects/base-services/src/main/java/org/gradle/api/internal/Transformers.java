@@ -43,6 +43,15 @@ public abstract class Transformers {
         return new CastingTransformer<O, I>(outputType);
     }
 
+    //just returns the original object
+    public static <T> Transformer<T, T> noOpTransformer() {
+        return new Transformer<T, T>() {
+            public T transform(T original) {
+                return original;
+            }
+        };
+    }
+
     private static class CastingTransformer<O, I> implements Transformer<O, I> {
         final Class<O> outputType;
 

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.Transformer;
+import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.api.invocation.Gradle;
@@ -58,11 +60,23 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
     public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Serializer<V> valueSerializer) {
         Factory<PersistentIndexedCache> factory = new Factory<PersistentIndexedCache>() {
             public PersistentIndexedCache create() {
-                return getCache().createCache(new PersistentIndexedCacheParameters(cacheFile(cacheName), keyType, valueSerializer));
+                PersistentIndexedCacheParameters parameters =
+                        new PersistentIndexedCacheParameters(cacheFile(cacheName), keyType, valueSerializer)
+                            .cacheDecorator(withInMemoryCaching());
+                return getCache().createCache(parameters);
             }
         };
         return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class, factory).getSource();
 
+    }
+
+    private <K, V> Transformer<MultiProcessSafePersistentIndexedCache<K, V>, MultiProcessSafePersistentIndexedCache<K, V>> withInMemoryCaching() {
+        //TODO SF this is the hook for in-memory caching capabilities, now synced with DefaultCacheAccess
+        return new Transformer<MultiProcessSafePersistentIndexedCache<K, V>, MultiProcessSafePersistentIndexedCache<K, V>>() {
+            public MultiProcessSafePersistentIndexedCache<K, V> transform(MultiProcessSafePersistentIndexedCache<K, V> original) {
+                return original;
+            }
+        };
     }
 
     private File cacheFile(String cacheName) {
