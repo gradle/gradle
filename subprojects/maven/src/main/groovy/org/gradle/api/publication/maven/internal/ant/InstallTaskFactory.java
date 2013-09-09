@@ -16,39 +16,15 @@
 
 package org.gradle.api.publication.maven.internal.ant;
 
-
 import org.apache.maven.artifact.ant.RemoteRepository;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.repository.DefaultArtifactRepository;
-import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.gradle.internal.Factory;
 
-import java.io.File;
-
 public class InstallTaskFactory implements Factory<CustomInstallTask> {
-    private final Factory<File> temporaryDirFactory;
-
-    public InstallTaskFactory(Factory<File> temporaryDirFactory) {
-            this.temporaryDirFactory = temporaryDirFactory;
-    }
-
     public CustomInstallTask create() {
-            return new InstallTask(temporaryDirFactory);
+        return new InstallTask();
     }
 
     private static class InstallTask extends CustomInstallTask {
-        private final Factory<File> tmpDirFactory;
-
-        public InstallTask(Factory<File> tmpDirFactory) {
-            this.tmpDirFactory = tmpDirFactory;
-        }
-
-        @Override
-        protected ArtifactRepository createLocalArtifactRepository() {
-            ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, getLocalRepository().getLayout());
-            return new DefaultArtifactRepository("local", getLocalRepository().getPath().toURI().toString(), repositoryLayout);
-        }
-
         @Override
         protected void updateRepositoryWithSettings(RemoteRepository repository) {
             // Do nothing

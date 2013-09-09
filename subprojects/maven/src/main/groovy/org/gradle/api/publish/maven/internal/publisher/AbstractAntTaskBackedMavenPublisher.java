@@ -28,6 +28,7 @@ import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.util.AntUtil;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ abstract public class AbstractAntTaskBackedMavenPublisher implements MavenPublis
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         logger.info("Publishing to repository {}", artifactRepository);
         InstallDeployTaskSupport deployTask = createDeployTask();
+        deployTask.setProject(AntUtil.createProject());
 
         MavenSettingsSupplier mavenSettingsSupplier = new EmptyMavenSettingsSupplier();
         mavenSettingsSupplier.supply(deployTask);

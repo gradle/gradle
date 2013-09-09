@@ -23,14 +23,15 @@ import org.gradle.api.publication.maven.internal.ant.CustomDeployTask;
 import org.gradle.api.publication.maven.internal.ant.DeployTaskFactory;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.util.AntUtil;
 
 import java.io.File;
 
 public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPublisher {
+    private Factory<CustomDeployTask> deployTaskFactory;
 
     public AntTaskBackedMavenPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, Factory<File> temporaryDirFactory) {
         super(loggingManagerFactory, temporaryDirFactory);
+        deployTaskFactory = new DeployTaskFactory(temporaryDirFactory);
     }
 
     protected void postConfigure(InstallDeployTaskSupport task, MavenArtifactRepository artifactRepository) {
@@ -39,9 +40,7 @@ public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPubli
     }
 
     protected InstallDeployTaskSupport createDeployTask() {
-        Factory<CustomDeployTask> deployTaskFactory = new DeployTaskFactory(temporaryDirFactory);
         CustomDeployTask deployTask = deployTaskFactory.create();
-        deployTask.setProject(AntUtil.createProject());
         deployTask.setUniqueVersion(true);
         return deployTask;
     }
