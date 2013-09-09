@@ -18,7 +18,6 @@ package org.gradle.initialization;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TestFiles;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.Path;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
