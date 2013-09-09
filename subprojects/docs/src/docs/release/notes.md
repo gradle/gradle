@@ -15,33 +15,37 @@ Here are the new features introduced in this Gradle release.
 ### Improved performance and memory consumption
 
 Gradle 1.8 uses less heap than previous versions. The less heap Gradle uses, the less expensive garbage collection is, and the faster your builds are.
-Some builds, especially those really big ones, should see some significant improvements in performance.
+
+Some builds, particularly very large builds, should see some significant improvements in performance with Gradle 1.8.
 
 #### Serialization of the resolution results.
 
-The heart of this performance improvement is to avoid creating the full dependency resolution results. These
-results consume a lot of memory in large builds.
+The heart of this performance improvement is not creating the full dependency resolution results unless they are required.
+These results consume a lot of memory in large builds.
 Instead, the information is streamed to disk during the resolution process and the results assembled in heap only when requested.
-The information Gradle stores on the disk is usually not needed by typical builds.
-Therefore, typical builds get faster and all builds will use less heap.
+As this information is usually not needed, typical builds will get faster and all builds will use less heap.
 
 Note that the results API has not changed and is fully backwards compatible with previous Gradle versions.
 
 ### Component metadata rules
 
-Dependency modules (also called _components_) have metadata associated with them, such as their group, name, version, and dependencies.
-Typically, this metadata is specified in a module descriptor (Ivy file or Maven POM). Component metadata rules allow you to manipulate this metadata
-from within the build script or a plugin. They are evaluated during dependency resolution, before a particular module version has been selected for a dependency.
-This makes metadata rules another instrument for customizing dependency resolution.
+In Gradle, a dependency is resolved to a component (often also called a _module_).
+Each component has metadata associated with it, such as 'group', 'name', 'version', and a set of dependencies.
+Typically, this metadata is specified in a module descriptor (Ivy file or Maven POM).
+Component metadata rules allow you to manipulate this metadata from within the build script or a plugin.
 
-As of Gradle 1.8, only two pieces of module metadata can be manipulated: A module's *status scheme*, and its *status*. The former describes the
-increasing levels of maturity that the module transitions through over time. The latter describes the module's current maturity,
-and needs to correspond to one of the values listed in the module's status scheme.
+Component metadata rules are another instrument for customizing dependency resolution (building on _dependency resolve rules_ introduced in Gradle 1.4).
+These rules are evaluated during dependency resolution, immediately after component metadata has be retrieved from a repository.
+Using a rule, you are able to change the raw component metadata, overriding or tweaking the values to suit your build.
 
-A module's status scheme defaults to `integration`, `milestone`, `release` (in that order). Its status defaults to `integration` for Ivy modules
+As of Gradle 1.8, only two pieces of metadata can be manipulated for a component: the *status scheme*, and the *status*.
+The former describes the increasing levels of maturity that a component may transition through over a series of versions.
+The latter describes the component's current maturity, and needs to correspond to one of the values listed in the component's status scheme.
+
+A component's status scheme defaults to `integration`, `milestone`, `release` (in that order). The status defaults to `integration` for Ivy modules
 (if not specified in the Ivy file) and Maven snapshot modules, and to `release` for Maven modules other than snapshots.
 
-What can a status (scheme) be used for? Most notably, a dependency can request the highest module version with at least the stated status:
+What can a status (scheme) be used for? Most notably, a dependency can request the highest version with at least the stated status:
 
     dependencies {
         // the highest version with status milestone or release
@@ -64,7 +68,7 @@ Ivy users will be familiar with this feature. 'Latest' version resolution also w
     }
 
 For API details, see [`ComponentMetadataHandler`](javadoc/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html).
-Future Gradle versions will likely allow more pieces of module metadata to be manipulated.
+Future Gradle versions will likely allow more pieces of component metadata to be manipulated.
 
 ### Create native libraries and executables from C and Assembler sources (i)
 
@@ -72,7 +76,7 @@ With Gradle 1.8, it is now possible to include 'C' and 'Assembler' source files 
 with relevant compiler settings, and Assembler sources are translated directly to object files by the assembler.
 
 Including C and Assembler sources in your project is straightforward. Whereas C++ sources are contained in a 'cpp' source directory,
-C source files should be located in a 'c' directory and Assembler source files in a 'asm' directory. These directory locations are conventional, and
+C source files should be located in a 'c' directory and Assembler source files in a 'asm' directory. These directory locations are by convention, and
 can be updated in your build script.
 
 Here's an example of how you can customize which source files and directories to include:
@@ -125,27 +129,15 @@ applications to execute and query Gradle builds. You can also use the tooling AP
 This release sees the start of initial preparations for a Gradle 2.0 release early next year. At this stage, this means some cleanup of API and
 deprecating some old features, for removal in Gradle 2.0. You'll find more details below.
 
-Removing unwanted features allows the implementation of Gradle to be simplified, and this means fewer bugs, more features and faster builds for you.
+Removing unwanted features allows the implementation of Gradle to be simplified. In the long term this means fewer bugs, more features and faster builds for you.
 
-Please be aware that we'll be following our usual feature lifecycle for removing features. Almost every deprecated feature has a non-deprecated replacement
-and this is documented in the deprecation descriptions below. However, some deprecated features do not have a replacement. If you find a feature that
-you use has been deprecated, and there doesn't seem to be a replacement for it that you can use , please let us know as soon as possible via the
+Please note that we'll continue to follow our usual feature lifecycle for removing features.
+No supported feature or syntax will be removed without a significant period of prior deprecation.
+
+Almost every deprecated feature has a non-deprecated replacement and this is documented in the deprecation descriptions below.
+However, some deprecated features do not have a replacement. If you find a feature that you use has been deprecated,
+and there doesn't seem to be a replacement for it that you can use , please let us know as soon as possible via the
 [forums](http://forums.gradle.org).
-
-<!--
-### Example new and noteworthy
--->
-
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
@@ -160,9 +152,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 For several years (since Gradle 1.0-milestone-3), there have been two ways that you can define an Ivy repository for Gradle to use. The first, and preferred, way is to
 use Gradle's native `repositories.ivy { }` DSL. The second way was to register an Ivy `DependencyResolver` implementation using the `repositories.add()` method.
+There have been a lot of improvements to dependency resolution in Gradle over the years, but this native support for Ivy classes makes it
+difficult to continue this evolution.
 
-Support for using Ivy `DependencyResolver` instances will be discontinued in Gradle 2.0. Please note that Gradle will continue to
-support Ivy repositories through its native DSL.
+Because of this, support for using Ivy `DependencyResolver` instances will be discontinued in Gradle 2.0.
+*Please note that Gradle will continue to support Ivy repositories through its native DSL.*
 
 The following methods have been deprecated and will be removed in Gradle 2.0:
 
@@ -251,8 +245,9 @@ The following snippet will now fail with an error message, giving a hint that 'T
   `create${StaticLibraryName}`
 * Renamed plugin class `BinariesPlugin` to `NativeBinariesPlugin`.
 * Without any defined tool chains, only a single default tool chain is added to the `toolChains` list. When relying on a default tool chain,
-  configuration should be applied based on the tool chain type instead of comparing with a particular tool chain:
+binary configuration should be applied based on the tool chain type instead of comparing with a particular tool chain:
 
+<pre>
     binaries.all {
         if (toolChain in VisualCpp) {
             // Visual C++ configuration
@@ -261,8 +256,9 @@ The following snippet will now fail with an error message, giving a hint that 'T
             // GCC configuration
         }
     }
+</pre>
 
-The DSL for defining C++ source sets has changed, with the `cpp` extension being removed. This change makes the C++ plugin DSL consistent with
+* The DSL for defining C++ source sets has changed, with the `cpp` extension being removed. This change makes the C++ plugin DSL consistent with
 the new Gradle DSL for multiple source sets.
 
 <table>
@@ -316,10 +312,11 @@ Note that using Ivy `DependencyResolver` implementations is deprecated, and we r
 
 ### Ivy `DependencyResolver` implementations returned by Gradle APIs no longer support `latestStrategy` methods
 
-Ivy `DependencyResolver` implementations returned by Gradle APIs such as `repositories.mavenRepo` no longer support the following methods:
+A select few Gradle APIs methods return an Ivy `DependencyResolver` implementation (e.g. `repositories.mavenRepo`).
+These returned `DependencyResolver` instances no longer support the following methods:
 `getLatestStrategy()`, `setLatestStrategy()`, `getLatest()`, `setLatest()`. Calling one of these methods will now throw an `UnsupportedOperationException`.
 
-Note that using Ivy `DependencyResolver` implementations is deprecated, and we recommend that you use Gradle's repository implementations instead.
+Note that all Gradle API methods that return an Ivy `DependencyResolver` implementation are deprecated, and we recommend that you use Gradle's repository implementations instead.
 
 ## External contributions
 
