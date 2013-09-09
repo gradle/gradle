@@ -92,7 +92,7 @@ public class DefaultProjectDescriptorTest {
     public void setProjectDirAbsolute() {
         final ProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(ProjectDescriptorRegistry.class);
         projectDescriptor.setProjectDescriptorRegistry(projectDescriptorRegistryMock);
-        String absolutePath = OperatingSystem.current().isWindows() ? "C:\\absolute\\path" : "/absolute/path";
+        String absolutePath = new File("absolute/path").getAbsolutePath();
         projectDescriptor.setProjectDir(new File(absolutePath));
         assertEquals(absolutePath, projectDescriptor.getProjectDir().getAbsolutePath());
     }
