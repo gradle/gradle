@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r18
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
@@ -38,8 +37,7 @@ allprojects {
 """
     }
 
-    // TODO:ADAM - make this work for all target versions
-    @TargetGradleVersion(">=1.8")
+    //TODO map projectDirectory of subrprojects correctly when creating GradleBuild from GradleProject
     def "can request GradleBuild model"() {
         when:
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }
@@ -53,5 +51,6 @@ allprojects {
         model.rootProject.children.every { it.parent == model.rootProject }
         model.projects*.name == ['test', 'a', 'b', 'c']
         model.projects*.path == [':', ':a', ':b', ':b:c']
+        //model.projects*.projectDirectory == [projectDir, file('a'),file('b'),file('b/c')]
     }
 }
