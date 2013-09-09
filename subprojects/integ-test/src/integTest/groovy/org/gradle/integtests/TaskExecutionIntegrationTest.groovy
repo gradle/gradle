@@ -75,7 +75,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def executesMultiProjectsTasksInASingleBuildAndEachTaskAtMostOnce() {
-        settingsFile << "include 'child1', 'child2'"
+        settingsFile << "include 'child1', 'child2', 'child1-2', 'child1-2-2'"
         buildFile << """
     task a
     allprojects {
@@ -85,8 +85,8 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 """
         
         expect:
-        run("a", "c").assertTasksExecuted(":a", ":b", ":c", ":child1:b", ":child1:c", ":child2:b", ":child2:c");
-        run("b", ":child2:c").assertTasksExecuted(":b", ":child1:b", ":child2:b", ":a", ":child2:c");
+        run("a", "c").assertTasksExecuted(":a", ":b", ":c", ":child1:b", ":child1:c", ":child1-2:b", ":child1-2:c", ":child1-2-2:b", ":child1-2-2:c", ":child2:b", ":child2:c");
+        run("b", ":child2:c").assertTasksExecuted(":b", ":child1:b", ":child1-2:b", ":child1-2-2:b", ":child2:b", ":a", ":child2:c");
     }
 
     @Test
@@ -216,9 +216,8 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "placeolder actions not triggered when not requested"() {
         buildFile << """
         task a
-        tasks.addPlaceholderAction("b"){
-                println  "placeholder action triggered"
-                task('b')
+        tasks.addPlaceholderAction("b") {
+            throw new RuntimeException()
         }
 """
         when:
