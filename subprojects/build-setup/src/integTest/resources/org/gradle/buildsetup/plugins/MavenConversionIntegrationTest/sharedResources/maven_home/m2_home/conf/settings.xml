@@ -1,0 +1,13 @@
+<settings>
+    <profiles>
+        <profile>
+          <id>testprofile</id>
+          <properties>
+            <junit-version>4.10</junit-version>
+          </properties>
+        </profile>
+    </profiles>
+    <activeProfiles>
+        <activeProfile>testprofile</activeProfile>
+    </activeProfiles>
+</settings>

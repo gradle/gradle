@@ -37,6 +37,7 @@
 
     <modules>
         <module>webinar-api</module>
+        <module>util-parent</module>
         <module>webinar-impl</module>
         <module>webinar-war</module>
     </modules>

@@ -193,7 +193,7 @@ ${globalExclusions(this.effectivePom)}
     def modules = { allProjects, incReactors ->
         return allProjects.findAll { project ->
             def parentIsPartOfThisBuild = allProjects.find { proj ->
-                proj.artifactId == project.parent.artifactId
+                proj.artifactId == project.parent.artifactId && proj.groupId == project.parent.groupId
             }
             project.parent.text().length() > 0 && parentIsPartOfThisBuild && (incReactors || project.packaging.text() != 'pom')
         }

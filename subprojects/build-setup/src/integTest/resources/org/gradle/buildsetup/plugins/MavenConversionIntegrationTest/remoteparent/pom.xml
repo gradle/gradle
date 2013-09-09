@@ -18,11 +18,4 @@
             <url>LOCAL_MAVEN_REPO_URL</url>
         </repository>
     </repositories>
-    <dependencies>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
-        </dependency>
-    </dependencies>
 </project>

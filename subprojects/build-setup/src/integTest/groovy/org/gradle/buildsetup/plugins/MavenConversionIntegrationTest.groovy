@@ -40,14 +40,15 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final SetSystemProperties systemProperties = new SetSystemProperties()
 
+    @Rule
+    public final HttpServer server = new HttpServer()
+
     def "multiModule"() {
         when:
         run 'init'
 
         then:
-        settingsFile.exists()
-        buildFile.exists()
-        wrapperFilesGenerated()
+        gradleFilesGenerated()
 
         when:
         run 'clean', 'build'
@@ -77,9 +78,7 @@ Root project 'webinar-parent'
         run 'init'
 
         then:
-        file("webinar-parent/settings.gradle").exists()
-        file("webinar-parent/build.gradle").exists()
-        wrapperFilesGenerated(file("webinar-parent"))
+        gradleFilesGenerated(file("webinar-parent"))
 
         when:
         executer.inDirectory(file("webinar-parent"))
@@ -110,9 +109,7 @@ Root project 'webinar-parent'
         run 'init'
 
         then:
-        buildFile.exists()
-        settingsFile.exists()
-        wrapperFilesGenerated()
+        gradleFilesGenerated()
 
         when:
         //TODO this build should fail because the TestNG test is failing
@@ -128,9 +125,7 @@ Root project 'webinar-parent'
         run 'init'
 
         then:
-        settingsFile.exists()
-        settingsFile.exists()
-        wrapperFilesGenerated()
+        gradleFilesGenerated()
 
         when:
         run 'clean', 'build'
@@ -145,9 +140,7 @@ Root project 'webinar-parent'
         run 'init'
 
         then:
-        settingsFile.exists()
-        buildFile.exists()
-        wrapperFilesGenerated()
+        gradleFilesGenerated()
 
         and:
         buildFile.text.contains("""configurations.all {
@@ -167,9 +160,7 @@ it.exclude group: '*', module: 'badArtifact'
         run 'init'
 
         then:
-        settingsFile.exists()
-        buildFile.exists()
-        wrapperFilesGenerated()
+        gradleFilesGenerated()
 
         when:
         run 'clean', 'build'
@@ -194,9 +185,7 @@ it.exclude group: '*', module: 'badArtifact'
         when:
         run 'init'
         then:
-        settingsFile.exists()
-        buildFile.exists()
-        wrapperFilesGenerated()
+        gradleFilesGenerated()
 
         when:
         run 'clean', 'build'
@@ -208,7 +197,8 @@ it.exclude group: '*', module: 'badArtifact'
     @Issue("GRADLE-2820")
     def "remoteparent"() {
         setup:
-        def repo = setupMavenHttpServer()
+        withSharedResources()
+        def repo = mavenHttpServer()
         //update pom with test repo url
         file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
 
@@ -219,11 +209,10 @@ it.exclude group: '*', module: 'badArtifact'
         run 'init'
 
         then:
-        buildFile.exists()
-        settingsFile.exists()
-        wrapperFilesGenerated()
+        gradleFilesGenerated()
 
         when:
+        libRequest(repo, "commons-lang", "commons-lang", "2.6")
         run 'clean', 'build'
 
         then:
@@ -233,55 +222,26 @@ it.exclude group: '*', module: 'badArtifact'
     @Issue("GRADLE-2872")
     def "expandProperties"() {
         setup:
-        def repo = setupMavenHttpServer()
-        //update pom with test repo url
-        file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
-        expectModule(repo, "group", "module1", "1.0");
-        expectModule(repo, "group", "module2", "2.0");
-        expectModule(repo, "group", "module3", "3.0");
-        executer.withArgument("-DMODULE1_VERSION=1.0")
-        withLocalM2Installation().globalSettingsFile.createFile().text = """
-<settings>
-    <profiles>
-        <profile>
-          <id>testprofile</id>
-          <properties>
-            <module3-version>3.0</module3-version>
-          </properties>
-        </profile>
-    </profiles>
-    <activeProfiles>
-        <activeProfile>testprofile</activeProfile>
-    </activeProfiles>
-</settings>
-"""
-
+        withSharedResources()
+        executer.withArgument("-DCOMMONS_LANG_VERSION=2.6")
+        withLocalM2Installation()
         when:
         run 'init'
         then:
-        buildFile.exists()
-        settingsFile.exists()
-        wrapperFilesGenerated()
+        gradleFilesGenerated()
 
         when:
-        succeeds('dependencies', '--configuration', 'default')
+        run('clean', 'build')
 
         then:
-        output.contains(toPlatformLineSeparators("""
-+--- group:module1:1.0
-+--- group:module2:2.0
-\\--- group:module3:3.0"""))
-    }
-
-    def expectModule(MavenHttpRepository repo, String group, String name, String version) {
-        MavenHttpModule module1 = repo.module(group, name, version).publish()
-        module1.allowAll()
+        file("build/libs/util-3.2.1.jar").exists()
     }
 
     @Issue("GRADLE-2819")
     def "multiModuleWithRemoteParent"() {
         setup:
-        def repo = setupMavenHttpServer()
+        withSharedResources()
+        def repo = mavenHttpServer()
         //update pom with test repo url
         file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
 
@@ -292,11 +252,13 @@ it.exclude group: '*', module: 'badArtifact'
         run 'init'
 
         then:
-        buildFile.exists()
-        settingsFile.exists()
-        wrapperFilesGenerated()
+        gradleFilesGenerated()
 
         when:
+        libRequest(repo, "commons-lang", "commons-lang", 2.6)
+        libRequest(repo, "junit", "junit", 4.10)
+        libRequest(repo, "org.hamcrest", "hamcrest-core", 1.1)
+
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
@@ -312,10 +274,32 @@ it.exclude group: '*', module: 'badArtifact'
         then:
         output.contains(toPlatformLineSeparators("""
 Root project 'webinar-parent'
++--- Project ':util-parent'
 +--- Project ':webinar-api' - Webinar APIs
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """))
+    }
+
+    void gradleFilesGenerated(TestFile parentFolder = file(".")) {
+        assert parentFolder.file("build.gradle").exists()
+        assert parentFolder.file("settings.gradle").exists()
+        new WrapperTestFixture(parentFolder).generated()
+    }
+
+    def libRequest(MavenHttpRepository repo, String group, String name, Object version) {
+        MavenHttpModule commonsLang = repo.module(group, name, version)
+        commonsLang.pom.expectHeadMissing()
+        commonsLang.artifact([:]).expectHeadMissing()
+    }
+
+    def expectModule(MavenHttpRepository repo, String group, String name, String version) {
+        MavenHttpModule module1 = repo.module(group, name, version).publish()
+        module1.allowAll()
+    }
+
+    def withSharedResources() {
+        resources.maybeCopy('MavenConversionIntegrationTest/sharedResources')
     }
 
     M2Installation withLocalM2Installation() {
@@ -327,32 +311,14 @@ Root project 'webinar-parent'
 
     PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {
         MavenHttpModule module = repo.module('util.util.parent', 'util-parent', '3')
-        module.pom.file.parentFile.mkdirs()
-        module.pom.file.text = """
-                    <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-                    \t<modelVersion>4.0.0</modelVersion>
-                        <groupId>util.util.parent</groupId>
-                        <artifactId>util-parent</artifactId>
-                        <version>3</version>
-                        <packaging>pom</packaging>
-                    \t<name>Test Parent Pom</name>
-                        <description>Defaults for Test Maven Build with remote parent projects.</description>
-                    </project>
-                    """
-        module.pom
         module.pom.expectGet();
         module.pom.sha1.expectGet();
         module.pom.md5.expectGet();
         module.pom
     }
 
-    MavenHttpRepository setupMavenHttpServer() {
-        HttpServer server = new HttpServer()
+    MavenHttpRepository mavenHttpServer() {
         server.start()
-        new MavenHttpRepository(server, '/maven', maven(file("maven_remote_repo")));
-    }
-
-    void wrapperFilesGenerated(TestFile parentFolder = file(".")) {
-        new WrapperTestFixture(parentFolder).generated()
+        new MavenHttpRepository(server, '/maven', maven(file("maven_repo")));
     }
 }
