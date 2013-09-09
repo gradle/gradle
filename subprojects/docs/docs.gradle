@@ -326,7 +326,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/testfixtures/**'
     include 'org/gradle/tooling/**'
     include 'org/gradle/testing/jacoco/**'
-    include 'org/gradle/buildsetup/**'
+    include 'org/gradle/buildinit/**'
     exclude '**/internal/**'
     options.links(javaApiUrl, groovyApiUrl, "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")

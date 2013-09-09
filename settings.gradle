@@ -52,7 +52,7 @@ include 'diagnostics'
 include 'publish'
 include 'ivy'
 include 'jacoco'
-include 'buildSetup'
+include 'buildInit'
 include 'languageBase'
 include 'languageJvm'
 

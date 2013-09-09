@@ -97,11 +97,11 @@ This story adds support for generating the Gradle wrapper files, and changes the
 general purpose:
 
 * Rename the `maven2Gradle` plugin to `build-setup`.
-* Rename the `Maven2GradlePlugin` type to `BuildSetupPlugin`.
-* Move the plugin and task implementation out of the `maven` project to a new `buildSetup` project.
-* Move the plugin and task implementation to the `org.gradle.buildsetup.plugins` package.
+* Rename the `Maven2GradlePlugin` type to `BuildInitPlugin`.
+* Move the plugin and task implementation out of the `maven` project to a new `buildInit` project.
+* Move the plugin and task implementation to the `org.gradle.buildinit.plugins` package.
 * Add the new packages to `default-imports.txt`.
-* Move the integration tests to live in the `buildSetup` project.
+* Move the integration tests to live in the `buildInit` project.
 * Change the plugin to add a lifecycle task called `init` that depends on the `maven2Gradle` task.
 * Change the plugin to only add the `maven2Gradle` task if the `pom.xml` file exists in the project root directory.
 * Change the plugin to always generate a `settings.gradle` file.
