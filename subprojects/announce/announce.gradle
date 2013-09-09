@@ -20,8 +20,4 @@ dependencies {
     integTestRuntime project(':plugins')
 }
 
-if (!javaVersion.java6Compatible) {
-    sourceSets.main.groovy.exclude '**/jdk6/**'
-}
-
 useTestFixtures()

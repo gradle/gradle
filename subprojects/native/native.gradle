@@ -18,11 +18,6 @@ dependencies {
     testCompile libraries.groovy
 }
 
-if (!javaVersion.java7) {
-    sourceSets.main.java.exclude '**/jdk7/**'
-    sourceSets.test.groovy.exclude '**/jdk7/**'
-}
-
 useTestFixtures()
 useClassycle()
 

@@ -17,10 +17,6 @@ dependencies {
     startScriptGenerator project(':plugins')
 }
 
-if (!javaVersion.java6Compatible) {
-    sourceSets.main.java.exclude '**/jdk6/**'
-}
-
 useTestFixtures()
 
 jar {

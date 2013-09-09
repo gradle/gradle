@@ -20,10 +20,6 @@ configurations {
     testFixtures
 }
 
-if (!javaVersion.java6Compatible) {
-    sourceSets.main.groovy.exclude '**/jdk6/**'
-}
-
 dependencies {
     compile libraries.groovy
 

@@ -28,6 +28,19 @@ sourceSets {
     main.output.dir generatedResourcesDir, builtBy: classpathManifest
 }
 
+if (!javaVersion.java6Compatible) {
+    sourceSets.all {
+        java.exclude '**/jdk6/**'
+        groovy.exclude '**/jdk6/**'
+    }
+}
+if (!javaVersion.java7) {
+    sourceSets.all {
+        java.exclude '**/jdk7/**'
+        groovy.exclude '**/jdk7/**'
+    }
+}
+
 testTasks.all { task ->
     maxParallelForks = rootProject.maxParallelForks
     if (isCiServer) {

@@ -33,12 +33,6 @@ dependencies {
 
 useTestFixtures(project: ":plugins") // includes core test fixtures
 
-if (!javaVersion.java6Compatible) {
-    sourceSets.all {
-        groovy.exclude '**/jdk6/**'
-    }
-}
-
 configure([integTest, daemonIntegTest]) {
     jvmArgs "-XX:MaxPermSize=1g" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
 }
