@@ -20,17 +20,16 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.file.BaseDirFileResolver;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.nativeplatform.filesystem.FileSystems;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.GFileUtils;
@@ -69,7 +68,7 @@ public class ProjectBuilderImpl {
         GradleInternal gradle = new DefaultGradle(null, startParameter, topLevelRegistry);
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
-                new BaseDirFileResolver(FileSystems.getDefault(), projectDir));
+                topLevelRegistry.get(FileResolver.class));
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle);
 
         gradle.setRootProject(project);

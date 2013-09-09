@@ -19,11 +19,10 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestUtil
@@ -125,7 +124,7 @@ class InstantiatingBuildLoaderTest {
     }
 
     private ProjectDescriptor descriptor(String name, ProjectDescriptor parent, File projectDir) {
-        new DefaultProjectDescriptor(parent, name, projectDir, projectDescriptorRegistry, new BaseDirFileResolver(FileSystems.default, rootProjectDir))
+        new DefaultProjectDescriptor(parent, name, projectDir, projectDescriptorRegistry, TestFiles.resolver(rootProjectDir))
     }
 
     private ProjectInternal project(ProjectDescriptor descriptor, ProjectInternal parent) {
