@@ -50,7 +50,7 @@ A native component that represents a library to be used in other native componen
 
 # Milestone 1
 
-## Story: Build a static library binary
+## Story: Build a static library binary (DONE)
 
 This story introduces the concept of a static library binary that can be built for a C++ library. This will allow both shared and static variants of a particular library to be built.
 

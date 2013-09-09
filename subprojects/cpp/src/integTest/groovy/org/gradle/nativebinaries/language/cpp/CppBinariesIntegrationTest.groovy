@@ -16,6 +16,7 @@
 package org.gradle.nativebinaries.language.cpp
 
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -210,5 +211,46 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         then:
         def executable = executable("build/binaries/mainExecutable/main")
         executable.exec().out == "Hello!"
+    }
+
+    def "can customize binaries before and after linking"() {
+        def helloWorldApp = new CppHelloWorldApp()
+        given:
+        buildFile << """
+            apply plugin: 'cpp'
+            executables {
+                main {}
+            }
+
+            binaries.withType(ExecutableBinary) { binary ->
+                def preLink = task("\${binary.name}PreLink") {
+                    dependsOn binary.tasks.withType(CppCompile)
+
+                    doLast {
+                        println "Pre Link"
+                    }
+                }
+                binary.tasks.link.dependsOn preLink
+
+                def postLink = task("\${binary.name}PostLink") {
+                    dependsOn binary.tasks.link
+
+                    doLast {
+                        println "Post Link"
+                    }
+                }
+
+                binary.builtBy postLink
+            }
+        """
+
+        and:
+        helloWorldApp.writeSources(file("src/main"))
+
+        when:
+        succeeds "mainExecutable"
+
+        then:
+        executedTasks.tail() == [":compileMainExecutableMainCpp", ":mainExecutablePreLink", ":linkMainExecutable", ":mainExecutablePostLink", ":mainExecutable"]
     }
 }

@@ -61,7 +61,8 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
             binary.source.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->
                 def compileTask = createAssembleTask(project, binary, sourceSet)
-                binary.builderTask.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                binary.tasks.add compileTask
+                binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
             }
         }
     }

@@ -24,24 +24,21 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
-import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.NativeComponent;
-import org.gradle.nativebinaries.NativeDependencySet;
-import org.gradle.nativebinaries.ToolChainTool;
-import org.gradle.nativebinaries.tasks.BuildBinaryTask;
+import org.gradle.nativebinaries.*;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
 
 public abstract class DefaultNativeBinary extends AbstractBuildableModelElement implements NativeBinaryInternal {
     private final NotationParser<Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final ResolvableNativeDependencySet libs = new ResolvableNativeDependencySet();
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final ToolChainTool linker = new ToolChainTool();
+    private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks();
     private final BinaryNamingScheme namingScheme;
     private final Flavor flavor;
     private final ToolChainInternal toolChain;
-    private BuildBinaryTask builderTask;
     private File outputFile;
 
     protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, DefaultBinaryNamingScheme namingScheme) {
@@ -62,15 +59,6 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
 
     public Flavor getFlavor() {
         return flavor;
-    }
-
-    public BuildBinaryTask getBuilderTask() {
-        return builderTask;
-    }
-
-    public void setBuilderTask(BuildBinaryTask builderTask) {
-        this.builderTask = builderTask;
-        builtBy(builderTask);
     }
 
     public String getName() {
@@ -99,6 +87,10 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
 
     public ToolChainTool getLinker() {
         return linker;
+    }
+
+    public NativeBinaryTasks getTasks() {
+        return tasks;
     }
 
     public BinaryNamingScheme getNamingScheme() {

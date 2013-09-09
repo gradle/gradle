@@ -15,21 +15,24 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.plugins
+
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.language.cpp.CppSourceSet
+import org.gradle.nativebinaries.ExecutableBinary
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.StaticLibraryBinary
+import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
 import org.gradle.nativebinaries.tasks.LinkSharedLibrary
-import org.gradle.language.cpp.CppSourceSet
-import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
 import org.gradle.util.Matchers
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+// TODO:DAZ Split this into appropriate plugin tests and add tests for assembler and c
 class CppPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
@@ -122,7 +125,7 @@ class CppPluginTest extends Specification {
 
         expect:
         project.sources.collect {it.name} == ['test']
-        def binary = project.binaries.testExecutable
+        ExecutableBinary binary = project.binaries.testExecutable
 
         and:
         def compile = project.tasks.compileTestExecutableTestCpp
@@ -138,6 +141,7 @@ class CppPluginTest extends Specification {
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == project.binaries.testExecutable.outputFile
         link Matchers.dependsOn("compileTestExecutableTestCpp")
+        binary.tasks.link == link
 
         and:
         def lifecycle = project.tasks.testExecutable
@@ -176,8 +180,8 @@ class CppPluginTest extends Specification {
         }
 
         expect:
-        def sharedLib = project.binaries.testSharedLibrary
-        def staticLib = project.binaries.testStaticLibrary
+        SharedLibraryBinary sharedLib = project.binaries.testSharedLibrary
+        StaticLibraryBinary staticLib = project.binaries.testStaticLibrary
 
         def sharedCompile = project.tasks.compileTestSharedLibraryTestCpp
         sharedCompile instanceof CppCompile
@@ -192,6 +196,7 @@ class CppPluginTest extends Specification {
         link.linkerArgs == ["LINK1", "LINK2"]
         link.outputFile == sharedLib.outputFile
         link Matchers.dependsOn("compileTestSharedLibraryTestCpp")
+        sharedLib.tasks.link == link
 
         and:
         def sharedLibraryTask = project.tasks.testSharedLibrary
@@ -211,6 +216,7 @@ class CppPluginTest extends Specification {
         staticLink.outputFile == staticLib.outputFile
         staticLink.staticLibArgs == ["LIB1", "LIB2"]
         staticLink Matchers.dependsOn("compileTestStaticLibraryTestCpp")
+        staticLib.tasks.createStaticLib == staticLink
 
         and:
         def staticLibraryTask = project.tasks.testStaticLibrary

@@ -62,13 +62,14 @@ public class NativeBinariesPlugin implements Plugin<Project> {
     }
 
     def createTasks(ProjectInternal project, NativeBinaryInternal binary) {
-        BuildBinaryTask buildBinaryTask
+        def builderTask
         if (binary instanceof StaticLibraryBinary) {
-            buildBinaryTask = createStaticLibraryTask(project, binary)
+            builderTask = createStaticLibraryTask(project, binary)
         } else {
-            buildBinaryTask = createLinkTask(project, binary)
+            builderTask = createLinkTask(project, binary)
         }
-        binary.builderTask = buildBinaryTask
+        binary.tasks.add builderTask
+        binary.builtBy builderTask
 
         if (binary instanceof ExecutableBinary) {
             createInstallTask(project, (NativeBinaryInternal) binary);
