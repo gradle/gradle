@@ -26,7 +26,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.NameMatcher;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class TaskSelector {
@@ -82,11 +82,11 @@ public class TaskSelector {
         }
 
         public Set<Task> getTasks() {
-            return new HashSet<Task>(CollectionUtils.collect(taskSelectionResult, new Transformer<Task, TaskSelectionResult>() {
+            return CollectionUtils.collect(taskSelectionResult, new LinkedHashSet<Task>(), new Transformer<Task, TaskSelectionResult>() {
                 public Task transform(TaskSelectionResult original) {
                     return original.getTask();
                 }
-            }));
+            });
         }
     }
 }

@@ -213,7 +213,7 @@ public class JavaReflectionUtil {
         Method getterMethod = findGetterMethod(target.getClass(), propertyName);
         if (getterMethod == null) {
             try {
-                Field field = targetType.getField(propertyName);
+                targetType.getField(propertyName);
                 return true;
             } catch (NoSuchFieldException ignore) {
                 // ignore
@@ -282,7 +282,7 @@ public class JavaReflectionUtil {
 
         if (annotationType.getAnnotation(Inherited.class) != null) {
             for (Class<?> anInterface : type.getInterfaces()) {
-                annotation = getAnnotation((Class<?>) anInterface, (Class<A>) annotationType, true);
+                annotation = getAnnotation(anInterface, annotationType, true);
                 if (annotation != null) {
                     return annotation;
                 }
@@ -292,7 +292,7 @@ public class JavaReflectionUtil {
         if (type.isInterface() || type.equals(Object.class)) {
             return null;
         } else {
-            return getAnnotation((Class<?>) type.getSuperclass(), (Class<A>) annotationType, false);
+            return getAnnotation(type.getSuperclass(), annotationType, false);
         }
     }
 
