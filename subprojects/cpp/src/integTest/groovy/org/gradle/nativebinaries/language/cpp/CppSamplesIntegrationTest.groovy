@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -33,6 +34,11 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'native-binaries/dependencies')
 
     def "assembler"() {
+        // // TODO:DAZ Sample does not currently work on MinGW or Cygwin
+        if (OperatingSystem.current().windows && !toolChain.visualCpp) {
+            return
+        }
+
         given:
         sample assembler
 

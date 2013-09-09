@@ -22,11 +22,9 @@ apply plugin: 'c'
 def osName = System.getProperty("os.name").toLowerCase();
 def osx = osName.contains("mac os x") || osName.contains("darwin")
 def linux = osName.contains("linux")
-def visualCpp = toolChains.defaultToolChain.name == "visualCpp"
 def platform = osx ? "i386_osx"
              : linux ? "x64_gcc"
-             : visualCpp ? "i386_masm"
-             : "i386_gcc"
+             : "i386_masm"
 
 // START SNIPPET sources
 sources {
