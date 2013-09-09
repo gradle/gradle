@@ -19,7 +19,7 @@ repositories {
     // START SNIPPET custom-status-scheme
     dependencies {
         config3 "air.birds:albatros:latest.silver"
-        componentMetadata {
+        components {
             eachComponent { ComponentMetadataDetails details ->
                 if (details.id.group == "air.birds") {
                     details.statusScheme = ["bronze", "silver", "gold", "platinum"]

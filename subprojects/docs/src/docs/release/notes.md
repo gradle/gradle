@@ -53,7 +53,7 @@ Ivy users will be familiar with this feature. 'Latest' version resolution also w
     dependencies {
         // the highest version with status silver, gold, or platinum
         compile "org.foo:bar:latest.silver"
-        componentMetadata {
+        components {
             eachComponent { ComponentMetadataDetails details ->
                 if (details.id.group == "org.foo") {
                     // declare a custom status scheme

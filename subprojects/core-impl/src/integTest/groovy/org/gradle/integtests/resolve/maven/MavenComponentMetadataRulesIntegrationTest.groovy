@@ -31,7 +31,7 @@ def allDetails = []
 dependencies {
     compile 'group1:projectA:1.0'
     compile 'group2:projectB:2.0-SNAPSHOT'
-    componentMetadata {
+    components {
         eachComponent { allDetails << it }
     }
 }

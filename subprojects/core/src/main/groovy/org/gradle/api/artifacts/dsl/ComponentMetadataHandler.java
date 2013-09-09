@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.ComponentMetadataDetails;
  * <p> Example:
  * <pre autoTested=''>
  * dependencies {
- *     componentMetadata {
+ *     components {
  *         eachComponent { ComponentMetadataDetails details ->
  *             if (details.id.group == "org.foo") {
  *                 def version = details.id.version

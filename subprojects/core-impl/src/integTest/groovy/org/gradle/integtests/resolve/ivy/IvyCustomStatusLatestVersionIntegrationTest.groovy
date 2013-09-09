@@ -29,7 +29,7 @@ repositories {
 configurations { compile }
 dependencies {
     compile 'org.test:projectA:latest.$status'
-    componentMetadata {
+    components {
         eachComponent { details ->
             details.statusScheme = ["bronze", "silver", "gold", "platin"]
         }

@@ -107,11 +107,11 @@ class DefaultDependencyHandler implements DependencyHandler {
         return null;
     }
 
-    public void componentMetadata(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getComponentMetadata());
+    public void components(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getComponents());
     }
 
-    public ComponentMetadataHandler getComponentMetadata() {
+    public ComponentMetadataHandler getComponents() {
         return metadataHandler;
     }
 
