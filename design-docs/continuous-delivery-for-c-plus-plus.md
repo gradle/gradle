@@ -113,25 +113,24 @@ This story introduces a lifecycle task for each binary, to allow tasks to be wir
 - Change `CppPlugin` so that the link task for a binary uses the compile task's output as input, rather than depend on the compile task.
 - Add an `InstallExecutable` task type and use this to install an executable.
 - Change `CppPlugin` so that the install task for an executable uses the executable binary as input, rather than depend on the link task.
+- Add `NativeBinary.tasks` property of type `NativeBinaryTasks` that is a `DomainObjectSet<Task>` containing key tasks for a binary.
+     - `NativeBinaryTasks.link` and `NativeBinaryTasks.createStaticLib` are convenience methods for accessing the link/create tasks for a binary.
 
 *Note*: There is a breaking change here, as the link task for a given binary has been renamed.
 
 ### User visible changes
 
-    apply plugin: 'cpp-exe'
-    
-    task tweakExecutable {
-        dependsOn linkMainExecutable
-        doFirst {
-            ["strip", linkMainExecutable.outputFile].execute()
+    apply plugin: 'cpp'
+
+    binaries.all { binary ->
+        def stripTask = task("${binary.name}Strip") {
+            dependsOn binary.tasks.link
+            doFirst {
+                ["strip", binary.tasks.link.outputFile].execute()
+            }
         }
+        binary.builtBy stripTask
     }
-    
-    mainExecutable.dependsOn tweakExecutable
-
-### Open issues
-
-- Some convenience to wire this in?
 
 ## Story: Allow customization of binary compilation and linking
 
@@ -182,16 +181,21 @@ Later stories will add more flexible and convenient support for customization of
         objectFileDirectory = file("$buildDir/${name}/obj")
     }
 
-### Open issues
+## Story: Ensure CI builds exercise test coverage for supported tool chains
 
-- Preprocessor macros should be modelled as a map
-- Add set methods for each of these properties.
-- `NativeComponent.binaries` collides with `project.binaries`, for example, when defining binary libs.
-- `NativeComponent.binaries.all { }` is awkward for linker settings, as these aren't available for a shared lib binary.
-- Add back some conveniences for compiler and linker args for all binaries once delayed configuration is implemented.
-- Allow customization of the source sets for a binary.
-- Strongly type the compiler and linker args as `String`.
-- Need to run `ranlib` over static libraries.
+The CI builds include coverage for each supported tool chain. However, the coverage silently ignores tool chains which are not
+available on the current machine. Instead, the CI builds should asert that every expected tool chain is avilable on the current
+machine.
+
+Later stories will add further integration test coverage for particular OS and tool chain combinations.
+
+- Change `AbstractBinariesIntegrationSpec` to assert that each expected tool chain is installed on the current machine when
+  runnning as part of a CI coverage build.
+- Change `AbstractBinariesIntegrationSpec` to use a single tool chain for each machine as part of a CI commit build. For Windows,
+  the test should use a recent version of Visual C++, and for Linux, the test should use GCC.
+- Install Visual C++ 2010 express, Cygwin and MinGW on the Windows CI agents, as required.
+- Install GCC 3 and GCC 4 the linux CI agents, as required.
+- Update the server wiki pages to describe the installation steps required for each machine.
 
 ## Story: Allow library binaries to be used as input to executable binaries
 
@@ -287,22 +291,6 @@ Note that this story does not include support for including the transitive depen
     - Make it possible to build a position-independent variant of a static library binary
     - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
     - Change dependency resolution to choose the position-indepenent variant of a static library when linking into a shared library
-
-## Story: Ensure CI builds exercise test coverage for supported tool chains
-
-The CI builds include coverage for each supported tool chain. However, the coverage silently ignores tool chains which are not
-available on the current machine. Instead, the CI builds should asert that every expected tool chain is avilable on the current
-machine.
-
-Later stories will add further integration test coverage for particular OS and tool chain combinations.
-
-- Change `AbstractBinariesIntegrationSpec` to assert that each expected tool chain is installed on the current machine when
-  runnning as part of a CI coverage build.
-- Change `AbstractBinariesIntegrationSpec` to use a single tool chain for each machine as part of a CI commit build. For Windows,
-  the test should use a recent version of Visual C++, and for Linux, the test should use GCC.
-- Install Visual C++ 2010 express, Cygwin and MinGW on the Windows CI agents, as required.
-- Install GCC 3 and GCC 4 the linux CI agents, as required.
-- Update the server wiki pages to describe the installation steps required for each machine.
 
 ## Story: Introduce native functional source sets
 
@@ -798,6 +786,7 @@ Given a library `a` that uses another library `b` as input:
 - Roll out the predicate methods to other containers.
 - Need to deal with things like 'all versions of visual C++', 'all toolchains except visual C++', 'visual C++ 9 and later', 'gcc 3' etc.
 - Need to deal with things like 'all unix environments', 'all windows environments', etc.
+- Nice to have a way to select all binaries that have linker settings (ExecutableBinary + SharedLibraryBinary).
 
 ## Story: Allow easy creation of all variants, all possible variants and a single variant for each component
 
