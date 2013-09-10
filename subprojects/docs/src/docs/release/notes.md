@@ -1,12 +1,18 @@
 
-This release continues with on our focus on performance in recent releases. Resolution is more efficient. Tooling API allows faster integration - expect to see
-performance improvements in Android Studio.
+Gradle 1.8 continues the focus on performance in recent Gradle releases. In this release, dependency resolution is more efficient in its use of memory. This means
+faster builds, in particular for really large builds. Also, the tooling API adds new features that allows integrations such as IDE import to work much more quickly -
+expect to see performance improvements in Android Studio soon.
 
-Continued with support for native languages, adding C and Assembler to C++.
+This release of Gradle adds support for more native languages, with support for C and Assembler joining C++. Support for native languages in general is an area
+under heavy development and there are many more improvements planned in upcoming releases.
 
-More dependency management flexibility with component meta-data rules.
+Dependency management is now more flexible with the introduction of component meta-data rules. These rules allow you to fine-tune dependency meta-data in your
+build or plugins.
 
-Lots of community contributions.
+Gradle 1.8 contains many contributions from developers outside the core development team. Thank you to all who contributed to Gradle 1.8.
+
+For more information on what's new in Gradle 1.8, please read on. As always, please share your feedback and experiences with Gradle 1.8 via the
+[Gradle Forums](http://forums.gradle.org).
 
 ## New and noteworthy
 
@@ -126,7 +132,7 @@ applications to execute and query Gradle builds. You can also use the tooling AP
 
 ### Early preparations for Gradle 2.0
 
-This release sees the start of initial preparations for a Gradle 2.0 release early next year. At this stage, this means some cleanup of API and
+This release sees the start of initial preparations for a Gradle 2.0 release next year. At this stage, this means some cleanup of API and
 deprecating some old features, for removal in Gradle 2.0. You'll find more details below.
 
 Removing unwanted features allows the implementation of Gradle to be simplified. In the long term this means fewer bugs, more features and faster builds for you.
