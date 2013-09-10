@@ -26,9 +26,8 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import java.io.File;
 
 /**
- * A static library linker based on the GNU 'ar' utility
+ * A static library archiver based on the GNU 'ar' utility
  */
-
 class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
 
@@ -42,8 +41,12 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
 
     private static class ArchiverSpecToArguments implements CompileSpecToArguments<StaticLibraryArchiverSpec> {
         public void collectArguments(StaticLibraryArchiverSpec spec, ArgCollector collector) {
-            collector.args("-rc", spec.getOutputFile().getAbsolutePath());
+            // -r : Add files to static archive, creating if required
+            // -c : Don't write message to standard error when creating archive
+            // -s : Create an object file index (equivalent to running 'ranlib')
+            collector.args("-rcs");
             collector.args(spec.getArgs());
+            collector.args(spec.getOutputFile().getAbsolutePath());
             for (File file : spec.getSource()) {
                 collector.args(file.getAbsolutePath());
             }
