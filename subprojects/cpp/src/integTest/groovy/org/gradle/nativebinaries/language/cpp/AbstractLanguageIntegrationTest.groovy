@@ -31,6 +31,10 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             apply plugin: 'assembler'
             apply plugin: 'c'
             apply plugin: 'cpp'
+
+            binaries.all {
+                $helloWorldApp.customArgs
+            }
 """
     }
 
@@ -39,9 +43,6 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             executables {
                 main {}
-            }
-            binaries.all {
-                $helloWorldApp.customArgs
             }
         """
 
@@ -68,9 +69,6 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
                     }
                 }
             }
-            binaries.all {
-                $helloWorldApp.customArgs
-            }
         """
 
         and:
@@ -95,9 +93,6 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
                         cCompiler.define "FRENCH"
                     }
                 }
-            }
-            binaries.all {
-                $helloWorldApp.customArgs
             }
         """
 
@@ -124,9 +119,6 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
                 hello {}
             }
             sources.main.c.lib libraries.hello
-            binaries.all {
-                $helloWorldApp.customArgs
-            }
         """
 
         and:
@@ -161,9 +153,6 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
                 }
             }
             sources.main.c.lib libraries.hello.static
-            binaries.all {
-                $helloWorldApp.customArgs
-            }
         """
 
         and:

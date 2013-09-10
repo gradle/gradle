@@ -50,6 +50,39 @@ pushl
         failure.assertHasCause("Assembler failed; see the error output for details.")
     }
 
+    def "can manually define Assembler source sets"() {
+        given:
+        helloWorldApp.mainSource.writeToDir(file("src/main"))
+        helloWorldApp.getLibraryHeader().writeToDir(file("src/main"))
+        helloWorldApp.librarySources[0].writeToDir(file("src/main"))
+        file("src/main/sum-sources/sum.s") << helloWorldApp.librarySources[1].content
+
+        and:
+        buildFile << """
+            sources {
+                main {
+                    sumAsm(AssemblerSourceSet) {
+                        source {
+                            srcDir "src/main/sum-sources"
+                        }
+                    }
+                }
+            }
+            executables {
+                main {}
+            }
+"""
+
+        when:
+        run "mainExecutable"
+
+        then:
+        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        mainExecutable.assertExists()
+        mainExecutable.exec().out == helloWorldApp.englishOutput
+    }
+
+
     static class AssemblerWithCHelloWorldApp extends MixedLanguageHelloWorldApp {
         AssemblerWithCHelloWorldApp(AvailableToolChains.InstalledToolChain toolChain) {
             super(toolChain)

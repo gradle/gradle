@@ -44,5 +44,53 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.");
         failure.assertHasCause("C++ compiler failed; see the error output for details.")
     }
+
+    def "can manually define C++ source sets"() {
+        given:
+        helloWorldApp.getLibraryHeader().writeToDir(file("src/shared"))
+
+        file("src/main/cpp/main.cpp") << helloWorldApp.mainSource.content
+        file("src/main/cpp2/hello.cpp") << helloWorldApp.librarySources[0].content
+        file("src/main/sum-sources/sum.cpp") << helloWorldApp.librarySources[1].content
+
+
+        and:
+        buildFile << """
+            sources {
+                main {
+                    cpp {
+                        exportedHeaders {
+                            srcDirs "src/shared/headers"
+                        }
+                    }
+                    cpp2(CppSourceSet) {
+                        exportedHeaders {
+                            srcDirs "src/shared/headers"
+                        }
+                    }
+                    cpp3(CppSourceSet) {
+                        source {
+                            srcDir "src/main/sum-sources"
+                        }
+                        exportedHeaders {
+                            srcDirs "src/shared/headers"
+                        }
+                    }
+                }
+            }
+            executables {
+                main {}
+            }
+"""
+
+        when:
+        run "mainExecutable"
+
+        then:
+        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        mainExecutable.assertExists()
+        mainExecutable.exec().out == helloWorldApp.englishOutput
+    }
+
 }
 

@@ -26,7 +26,6 @@ import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.internal.DefaultCppSourceSet
 
 import javax.inject.Inject
-
 /**
  * Adds core C++ language support.
  *
@@ -52,19 +51,22 @@ class CppLangPlugin implements Plugin<ProjectInternal> {
         ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
         projectSourceSet.all(new Action<FunctionalSourceSet>() {
             public void execute(final FunctionalSourceSet functionalSourceSet) {
-                applyConventions(project, functionalSourceSet)
+                functionalSourceSet.registerFactory(CppSourceSet) { name ->
+                    instantiator.newInstance(DefaultCppSourceSet, name, functionalSourceSet, project)
+                }
+                applyConventions(functionalSourceSet)
             }
         });
     }
 
-    private void applyConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
+    private void applyConventions(FunctionalSourceSet functionalSourceSet) {
         // Establish defaults for all cpp source sets
-        functionalSourceSet.withType(CppSourceSet).all { sourceSet ->
+        functionalSourceSet.withType(CppSourceSet).all { CppSourceSet sourceSet ->
             sourceSet.exportedHeaders.srcDir "src/${functionalSourceSet.name}/headers"
-            sourceSet.source.srcDir "src/${functionalSourceSet.name}/cpp"
+            sourceSet.source.srcDir "src/${functionalSourceSet.name}/${sourceSet.name}"
         }
 
         // Add a single C++ source set
-        functionalSourceSet.add(instantiator.newInstance(DefaultCppSourceSet.class, "cpp", functionalSourceSet, project));
+        functionalSourceSet.create "cpp", CppSourceSet
     }
 }

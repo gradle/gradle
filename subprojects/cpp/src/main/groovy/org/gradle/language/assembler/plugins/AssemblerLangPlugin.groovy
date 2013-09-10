@@ -19,14 +19,13 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.assembler.AssemblerSourceSet
+import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
-import org.gradle.language.assembler.AssemblerSourceSet
-import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet
 
 import javax.inject.Inject
-
 /**
  * Adds core Assembler language support.
  *
@@ -51,18 +50,22 @@ class AssemblerLangPlugin implements Plugin<ProjectInternal> {
         ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
         projectSourceSet.all(new Action<FunctionalSourceSet>() {
             public void execute(final FunctionalSourceSet functionalSourceSet) {
-                applyConventions(project, functionalSourceSet)
+                functionalSourceSet.registerFactory(AssemblerSourceSet) { name ->
+                    instantiator.newInstance(DefaultAssemblerSourceSet, name, functionalSourceSet, project)
+                }
+
+                applyConventions(functionalSourceSet)
             }
         });
     }
 
-    private void applyConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
+    private void applyConventions(FunctionalSourceSet functionalSourceSet) {
         // Defaults for all assembler source sets
-        functionalSourceSet.withType(AssemblerSourceSet).all { sourceSet ->
-            sourceSet.source.srcDir "src/${functionalSourceSet.name}/asm"
+        functionalSourceSet.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->
+            sourceSet.source.srcDir "src/${functionalSourceSet.name}/${sourceSet.name}"
         }
 
         // Create a single assembler source set
-        functionalSourceSet.add(instantiator.newInstance(DefaultAssemblerSourceSet.class, "asm", functionalSourceSet, project));
+        functionalSourceSet.create "asm", AssemblerSourceSet
     }
 }
