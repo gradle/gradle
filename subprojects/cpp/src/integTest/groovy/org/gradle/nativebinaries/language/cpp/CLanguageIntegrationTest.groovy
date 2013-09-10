@@ -42,6 +42,31 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         failure.assertHasCause("C compiler failed; see the error output for details.")
     }
 
+    def "sources are compiled with C compiler"() {
+        given:
+        file("src/main/c/main.c") << """
+            #include <stdio.h>
+
+            int main () {
+                #ifdef __cplusplus
+                    This code will not compile
+                #endif
+                printf("SUCCESS");
+                return 0;
+            }
+"""
+        and:
+        buildFile << """
+             executables {
+                 main {}
+             }
+         """
+
+        expect:
+        succeeds "mainExecutable"
+        executable("build/binaries/mainExecutable/main").exec().out == "SUCCESS"
+    }
+
     def "can manually define C source sets"() {
         given:
         helloWorldApp.getLibraryHeader().writeToDir(file("src/shared"))

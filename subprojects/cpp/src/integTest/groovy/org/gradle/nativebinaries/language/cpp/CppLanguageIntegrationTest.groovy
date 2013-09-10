@@ -45,6 +45,30 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         failure.assertHasCause("C++ compiler failed; see the error output for details.")
     }
 
+    def "sources are compiled with C++ compiler"() {
+        given:
+        file("src/main/cpp/main.cpp") << """
+            #include <stdio.h>
+
+            int main () {
+                #ifdef __cplusplus
+                printf("SUCCESS");
+                #endif
+                return 0;
+            }
+"""
+        and:
+        buildFile << """
+             executables {
+                 main {}
+             }
+         """
+
+        expect:
+        succeeds "mainExecutable"
+        executable("build/binaries/mainExecutable/main").exec().out == "SUCCESS"
+    }
+
     def "can manually define C++ source sets"() {
         given:
         helloWorldApp.getLibraryHeader().writeToDir(file("src/shared"))
