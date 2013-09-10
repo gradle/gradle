@@ -18,9 +18,10 @@ package org.gradle.nativebinaries.language.cpp
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.BinaryInfo
-import org.gradle.nativebinaries.language.cpp.fixtures.OtoolBinaryInfo
-import org.gradle.nativebinaries.language.cpp.fixtures.ReadelfBinaryInfo
+import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.BinaryInfo
+import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryInfo
+import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.OtoolBinaryInfo
+import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -88,6 +89,9 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         assert file.exists()
         if (OperatingSystem.current().isMacOsX()) {
             return new OtoolBinaryInfo(file)
+        }
+        if (OperatingSystem.current().isWindows()) {
+            return new DumpbinBinaryInfo(file, toolChain)
         }
         return new ReadelfBinaryInfo(file)
     }

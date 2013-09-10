@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.cpp.fixtures;
+package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo;
 
 public interface BinaryInfo {
     enum Architecture { I386, X86_64 }

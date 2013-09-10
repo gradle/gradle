@@ -14,29 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.cpp.fixtures
+package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo
 
-class ReadelfBinaryInfo implements BinaryInfo {
+class OtoolBinaryInfo implements BinaryInfo {
     def archString
 
-    ReadelfBinaryInfo(File binaryFile) {
-        def process = ['readelf', '-h', binaryFile.absolutePath].execute()
-        List<String> lines = process.inputStream.readLines()
-        archString = readHeaderValue(lines, "Machine:")
-    }
-
-    public static String readHeaderValue(List<String> lines, String header) {
-        String matchingLine = lines.find {
-            it.trim().startsWith(header)
-        }
-        return matchingLine != null ? matchingLine.replaceFirst(header, "").trim() : null
+    OtoolBinaryInfo(File binaryFile) {
+        def process = ['otool', '-hv', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        archString = lines[3].split()[1]
     }
 
     BinaryInfo.Architecture getArch() {
         switch (archString) {
-            case "Intel 80386":
+            case "I386":
                 return BinaryInfo.Architecture.I386
-            case "Advanced Micro Devices X86-64":
+            case "X86_64":
                 return BinaryInfo.Architecture.X86_64
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
