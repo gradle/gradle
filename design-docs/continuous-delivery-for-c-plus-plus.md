@@ -197,6 +197,126 @@ Later stories will add further integration test coverage for particular OS and t
 - Install GCC 3 and GCC 4 the linux CI agents, as required.
 - Update the server wiki pages to describe the installation steps required for each machine.
 
+## Story: Compile C source files using the C compiler
+
+This story adds support for C source files as inputs to native binaries.
+
+- Add a `CSourceSet` interface.
+- Add a `CCompile` task type.
+- Change the `cpp` plugin to add a `CCompile` instance for each `CSourceSet` added to a native binary.
+- Change the visual C++ toolchain to:
+    - Not use `/EHsc` when compiling any source.
+    - Use `/TC` to force source language to C for all files in a C source set.
+    - Use `/TP` to force source language to C++ for all files in a C++ source set.
+- Change the GCC toolchain to:
+    - Use `gcc` to compile all source files in a C source set. Should also use `-x c` to force source language to C.
+    - Use `g++` to compile all source files in a C++ source set. Should also use `-x c++` to force source language to C++.
+- Rework the plugins so that there is something like:
+    - A `cpp-lang` plugin, which adds support for C++ source sets and compiling them to object files.
+    - A `c-lang` plugin, which adds support for C source sets and compiling them to object files
+    - An `assembler-lang` plugin, which adds support for assembler source sets and compiling them to object files.
+    - A `native-binaries` plugin, which adds the base support for native binaries and components.
+    - 'cpp', 'c' and 'assembler' plugins, which apply the language plugin + native binary support
+- Change `compilerArgs`, `define` and `macros` methods on NativeBinary so that they are language-specific
+    - Replace existing methods with `cppCompiler.args`, `cppCompiler.define` and `cppCompiler.macros`.
+    - Introduce `cCompiler` equivalents
+- Change the GCC toolchain to use `gcc` to link when there is no C++ source included in a binary.
+
+### Test cases
+
+- Build breaks when C++ source file cannot be compiled.
+- Build breaks when C source file cannot be compiled.
+- Build breaks when a binary cannot be linked, for each type of binary.
+- C compilation is incremental wrt C source files, header files and compiler settings.
+- Mixed C/C++ binary, for each type of binary.
+- Project has mixed C and C++ header files.
+- Verify that C compiler is being used for C, and C++ compiler is being used for C++.
+- Manually define C++ and C source sets.
+- Can build a binary from C sources with `gcc` when `g++` and `as` are not installed
+
+## Story: Build a binary from assembler source files
+
+This story adds support for using assembler source files as inputs to a native binary.
+
+- Add an `AssemblerSourceSet` type and allow these to be added to a native binary.
+- Add an `Assemble` task type.
+- Change the `cpp` plugin to add an `Assemble` instance for each assembler source set added to a native binary.
+- Change the visual C++ toolchain to:
+    - Use `ml /nologo /c` to assemble a source file to an object file.
+- Change the GCC toolchain to:
+    - Use `as` to assemble a source file to an object file.
+- Add `NativeBinary.assembler.args` for providing arguments to the assembler
+
+### Test cases
+
+- Build breaks when source file cannot be assembled.
+- Assembly is incremental wrt assembly source files, and assembler settings.
+- Mixed C/C++/ASM binary, for each kind of binary
+- A project can have all C, C++ source and header files and assembly source files in the same source directory.
+- Manually define an assembler source set.
+
+## Story: Introduce native functional source sets
+
+This story reworks the existing C++ source set concepts to reuse the concept of a *functional* source set from the new JVM language DSL. This will allow a binary to be built from more than one language, and later stories will build on this to add support for specific languages.
+
+- Change `CppSourceSet` to extend `LanguageSourceSet`.
+- Add a mutable `NativeBinary.source` property of type `DomainObjectCollection<LanguageSourceSet>`.
+    - Add a `NativeBinary.source` method that accepts a `FunctionalSourceSet` as input,
+      and adds every `LanguageSourceSet` included in that functional source set.
+- Change the C++ plugin to add a component's source sets to each of the component's binaries.
+- Change the C++ plugin to add a `CppCompile` instance for each `CppSourceSet` added to a native binary.
+- Change the `cpp` plugin to:
+    - Add a `sources.${functionalSourceSet.name}.cpp` C++ source set for every functional source set.
+- Change the `cpp-exe` and `cpp-lib` plugins to:
+    - Add a `sources.main` functional source set
+    - Wire the `sources.main.cpp` source set into the `main` executable/library.
+- Remove `CppExtension`
+
+### User visible changes
+
+To adjust the by-convention layout:
+
+    apply plugin: 'cpp-lib'
+
+    sources {
+        main {
+            cpp {
+                source.srcDirs = 'src'
+            }
+        }
+    }
+
+To define custom source sets and components:
+
+    apply plugin: `cpp`
+
+    sources {
+        util {
+        }
+        app {
+            cpp.libs << libraries.util
+        }
+        windows {
+        }
+    }
+
+    libraries {
+        util {
+            source sources.util
+        }
+        app {
+            source sources.app.cpp
+        }
+    }
+
+### Test cases
+
+- Assemble a binary for a component with no source.
+- Assemble a binary for a component with multiple source sets.
+- Assemble a binary from a functional source set.
+- Assemble a binary from a cpp source set.
+- Attempt to build a binary from a Java source set or a resource set.
+
 ## Story: Allow library binaries to be used as input to executable binaries
 
 This story adds support for using another library component or binary as input to compile and/or link a given binary. Adding a library component or binary as input
@@ -292,151 +412,23 @@ Note that this story does not include support for including the transitive depen
     - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
     - Change dependency resolution to choose the position-indepenent variant of a static library when linking into a shared library
 
-## Story: Introduce native functional source sets
 
-This story reworks the existing C++ source set concepts to reuse the concept of a *functional* source set from the new JVM language DSL. This will allow a binary to be built from more than one language, and later stories will build on this to add support for specific languages.
+## Open issues
 
-- Change `CppSourceSet` to extend `LanguageSourceSet`.
-- Add a mutable `NativeBinary.source` property of type `DomainObjectCollection<LanguageSourceSet>`.
-    - Add a `NativeBinary.source` method that accepts a `FunctionalSourceSet` as input, 
-      and adds every `LanguageSourceSet` included in that functional source set.
-- Change the C++ plugin to add a component's source sets to each of the component's binaries.
-- Change the C++ plugin to add a `CppCompile` instance for each `CppSourceSet` added to a native binary.
-- Change the `cpp` plugin to:
-    - Add a `sources.${functionalSourceSet.name}.cpp` C++ source set for every functional source set.
-- Change the `cpp-exe` and `cpp-lib` plugins to:
-    - Add a `sources.main` functional source set
-    - Wire the `sources.main.cpp` source set into the `main` executable/library.
-- Remove `CppExtension`
+### Language plugins
 
-### User visible changes
+- Come up with consistent naming scheme for language plugins: 'cpp', 'c', 'assembler', 'java-lang', 'scala-lang', etc
 
-To adjust the by-convention layout:
+### Source sets
 
-    apply plugin: 'cpp-lib'
-    
-    sources {
-        main {
-            cpp { 
-                source.srcDirs = 'src'
-            }
-        }
-    }
-
-To define custom source sets and components:
-
-    apply plugin: `cpp`
-    
-    sources {
-        util {
-        }
-        app {
-            cpp.libs << libraries.util
-        }
-        windows {
-        }
-    }
-    
-    libraries {
-        util {
-            source sources.util
-        }
-        app {
-            source sources.app.cpp
-        }
-    }
-
-### Test cases
-
-- Assemble a binary for a component with no source.
-- Assemble a binary for a component with multiple source sets.
-- Assemble a binary from a functional source set.
-- Assemble a binary from a cpp source set.
-- Attempt to build a binary from a Java source set or a resource set.
-
-### Open issues
-
-- Use rules to imply the type of each child of a functional source set.
-- Separate C++ header file source set type.
-- Need to configure each component and source set lazily.
-- Need to deal with source sets that are generated.
-- Need a `CppSourceSet.getBuildDependencies()` implementation.
 - Declare a dependency on another source set.
-- Replace `SourceDirectorySet` with something that is actually a set of source directories.
-
-## Story: Compile C source files using the C compiler
-
-This story adds support for C source files as inputs to native binaries.
-
-- Add a `CSourceSet` interface.
-- Add a `CCompile` task type.
-- Change the `cpp` plugin to add a `CCompile` instance for each `CSourceSet` added to a native binary.
-- Change the visual C++ toolchain to:
-    - Not use `/EHsc` when compiling any source.
-    - Use `/TC` to force source language to C for all files in a C source set.
-    - Use `/TP` to force source language to C++ for all files in a C++ source set.
-- Change the GCC toolchain to:
-    - Use `gcc` to compile all source files in a C source set. Should also use `-x c` to force source language to C.
-    - Use `g++` to compile all source files in a C++ source set. Should also use `-x c++` to force source language to C++.
-- Rework the plugins so that there is something like:
-    - A `cpp-lang` plugin, which adds support for C++ source sets and compiling them to object files.
-    - A `c-lang` plugin, which adds support for C source sets and compiling them to object files
-    - An `assembler-lang` plugin, which adds support for assembler source sets and compiling them to object files.
-    - A `native-binaries` plugin, which adds the base support for native binaries and components.
-    - 'cpp', 'c' and 'assembler' plugins, which apply the language plugin + native binary support
-- Change `compilerArgs`, `define` and `macros` methods on NativeBinary so that they are language-specific
-    - Replace existing methods with `cppCompiler.args`, `cppCompiler.define` and `cppCompiler.macros`.
-    - Introduce `cCompiler` equivalents
-
-### Open issues
-
 - Need a 'cross-platform' and 'platform-specific' source set.
 - Add compile dependencies to each source set.
 - Add link dependencies to each source set, use these to infer the link dependencies of the binary.
-- Should probably not use `g++` to link when there is no C++ source included in a binary.
-- Need shared compiler options for C and C++.
-- Need to manually define C++ and C source sets.
-- Need to compose assembler/C/C++ source sets.
 - Change `NativeDependencySet` to handle separate C and C++ headers.
-- Convert the 'cpp-lib' and 'cpp-exe' plugins to `native-library` and `native-application`, or simply remove them.
-
-### Test cases
-
-- Build breaks when C++ source file cannot be compiled.
-- Build breaks when C source file cannot be compiled.
-- Build breaks when a binary cannot be linked, for each type of binary.
-- C compilation is incremental wrt C source files, header files and compiler settings.
-- Mixed C/C++ binary, for each type of binary.
-- Project has mixed C and C++ header files.
-- Verify that C compiler is being used for C, and C++ compiler is being used for C++.
-
-## Story: Build a binary from assembler source files
-
-This story adds support for using assembler source files as inputs to a native binary.
-
-- Add an `AssemblerSourceSet` type and allow these to be added to a native binary.
-- Add an `Assemble` task type.
-- Change the `cpp` plugin to add an `Assemble` instance for each assembler source set added to a native binary.
-- Change the visual C++ toolchain to:
-    - Use `ml /nologo /c` to assemble a source file to an object file.
-- Change the GCC toolchain to:
-    - Use `as` to assemble a source file to an object file.
-- Add `NativeBinary.assembler.args` for providing arguments to the assembler
-
-### Open issues
-
-- Different source files by platform
-- Should possibly use `ld` instead of `gcc` or `g++` to link the binaries.
-- Must use the assembler, C and C++ compiler from the same toolchain for a given binary.
-- Need to manually define assembler source sets.
-- Should be able to run the C preprocessor on assembler source file.
-
-### Test cases
-
-- Build breaks when source file cannot be assembled.
-- Assembly is incremental wrt assembly source files, and assembler settings.
-- Mixed C/C++/ASM binary, for each kind of binary
-- A project can have all C, C++ source and header files and assembly source files in the same source directory.
+- Replace `SourceDirectorySet` with something that is actually a set of source directories.
+    - Use this for sources and headers
+    - Can access as a set of directories, a set of files or a file tree
 
 # Milestone 2
 
@@ -938,6 +930,11 @@ Resource files can be linked into a binary.
 
 * Use `midl` to generate server, client and header source files.
 
+### Open issues
+
+- Need to deal with source sets that are generated.
+- Need a `CppSourceSet.getBuildDependencies()` implementation.
+
 # Milestone 3
 
 ## Story: Build binaries against a library in another project
@@ -1234,3 +1231,7 @@ TBD
 * Support for profiling builds: build with profiling enabled, execute a bunch of times, then build again using the profiling information.
 * Support for install distributions, which may bundle some, all, or none of the runtime dependencies (including language runtime libraries).
 * Understand the various output file types: PE, ELF, Mach-O, COFF
+* Bare-bones tool chain using GNU binutils
+* Should be able to run the C preprocessor on assembler source file.
+
+
