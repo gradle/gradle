@@ -88,19 +88,19 @@ class VisualCppToolChainTest extends Specification {
 
     def "has default tool names"() {
         expect:
-        toolChain.cppCompiler.exe == "cl.exe"
-        toolChain.CCompiler.exe == "cl.exe"
-        toolChain.assembler.exe == "ml.exe"
-        toolChain.linker.exe == "link.exe"
-        toolChain.staticLibArchiver.exe == "lib.exe"
+        toolChain.cppCompiler.executable == "cl.exe"
+        toolChain.CCompiler.executable == "cl.exe"
+        toolChain.assembler.executable == "ml.exe"
+        toolChain.linker.executable == "link.exe"
+        toolChain.staticLibArchiver.executable == "lib.exe"
     }
 
     def "can update tool names"() {
         when:
-        toolChain.assembler.exe = "foo"
+        toolChain.assembler.executable = "foo"
 
         then:
-        toolChain.assembler.exe == "foo"
+        toolChain.assembler.executable == "foo"
     }
 
     def "resolves path entries"() {

@@ -495,8 +495,6 @@ This will define 4 binaries:
 - Add a convention to give each binary a separate output directory (as the name of each variant binary can be the same).
 - Add a convention to give each binary a separate object file directory.
 - Need to be able to build a single variant or all variants.
-- Need separate compiler, linker and assembler options for each variant.
-- Need shared compiler, linker and assembler options for all variants.
 - Need to consume locally and between projects and between builds.
 - Need a hook to infer the default variant.
 - Need to handle dependencies.
@@ -524,7 +522,7 @@ This story adds support for building a native component using multiple tool chai
     toolChains {
         gcc(Gcc) {} // binaries with default names, found on Path
         gcc3(Gcc) {
-            path "/opt/gcc/3.4.6/bin" // binaries with default names, found in binPath directory
+            path "/opt/gcc/3.4.6/bin" // binaries with default names, found in supplied path
         }
         mingw(Gcc) {
             path "C:/MinGW/bin"
@@ -533,16 +531,11 @@ This story adds support for building a native component using multiple tool chai
             path "/opt/gcc/4.0/bin" // Needed to update the path
 
             // Custom binary file paths and arguments
-            CCompiler {
-                file "gccCustom_gcc" // Resolved in path
-            }
-            cppCompiler.file project.file("/usr/bin/gccCustom_g++")
-            assembler.file "/usr/bin/gccCustom_as" // Resolved absolute
-            linker.file "gcc" // Resolved in path
-            staticArchiver {
-                file "ar"
-                args "--some-toolchain-arg"
-            }
+            cCompiler.executable "gccCustom_gcc"
+            cppCompiler.executable project.file("/usr/bin/gccCustom_g++")
+            assembler.executable "/usr/bin/gccCustom_as"
+            linker.executable "gcc"
+            staticLibArchiver.executable "ar"
         }
         
         // Path already setup and binaries available
@@ -551,11 +544,7 @@ This story adds support for building a native component using multiple tool chai
         // Setup paths based on installation directory
         visualCpp(VisualCpp) {
             installDir "D:/Programs/Microsoft Visual Studio 10.0"
-        }
-        
-        // Override default assembler
-        visualCpp64(VisualCpp) {
-            assembler.file "ml64.exe" // Will be located in path
+            assembler.executable "ml64.exe"
         }
     }
 
@@ -576,9 +565,9 @@ This story adds support for building a native component using multiple tool chai
 - Need to consume locally and between projects and between builds.
 - Need to be able to build for a single toolchain only.
 - Easy way to detect (and use) the set of available tool chains.
-- Define a version requirement for a toolchain
-    - Attempt to locate the toolchain in path (with no binPath provided)
-    - Verify the version for defined toolchain (with binPath provided)
+- Define a tool chain as a type and required version (eg GCC v4.+)
+    - Attempt to locate the tool chain in path (if no `path` provided)
+    - Verify the version for defined tool chain (if `path` is provided)
 - VisualCppToolChain should automatically switch between different executables for different target architectures.
 
 ## Story: Build a native component for multiple architectures
@@ -673,7 +662,7 @@ This story adds support for cross-compilation. Add the concept of an operating s
 
     toolChains {
         gccXCompile(GccToolChain) {
-            binPath "/my/crosscompiler"
+            path "/my/crosscompiler"
 
             targetPlatform "linux_x86" // target by name
             targetPlatform {

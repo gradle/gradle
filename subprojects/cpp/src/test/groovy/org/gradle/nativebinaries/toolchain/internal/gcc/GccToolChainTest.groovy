@@ -34,19 +34,19 @@ class GccToolChainTest extends Specification {
 
     def "has default tool names"() {
         expect:
-        toolChain.cppCompiler.exe == "g++"
-        toolChain.CCompiler.exe == "gcc"
-        toolChain.assembler.exe == "as"
-        toolChain.linker.exe == "g++"
-        toolChain.staticLibArchiver.exe == "ar"
+        toolChain.cppCompiler.executable == "g++"
+        toolChain.CCompiler.executable == "gcc"
+        toolChain.assembler.executable == "as"
+        toolChain.linker.executable == "g++"
+        toolChain.staticLibArchiver.executable == "ar"
     }
 
     def "can update tool names"() {
         when:
-        toolChain.assembler.exe = "foo"
+        toolChain.assembler.executable = "foo"
 
         then:
-        toolChain.assembler.exe == "foo"
+        toolChain.assembler.executable == "foo"
     }
 
     def "resolves path entries"() {

@@ -32,7 +32,7 @@ public interface VisualCpp extends ConfigurableToolChain {
 
     /**
      * The directory where Visual Studio or Visual C++ is installed.
-     * Setting the installDir will overwrite any paths added previously via {@link ConfigurableToolChain#path(Object)}.
+     * Setting the installDir will overwrite any paths added previously via {@link ConfigurableToolChain#path(Object...)}.
      */
     void setInstallDir(Object installDir);
 }

@@ -46,7 +46,7 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 ${toolChainConfig}
 
                 unavailable(Gcc) {
-                    linker.exe = "does_not_exist"
+                    linker.executable = "does_not_exist"
                 }
             }
 
@@ -79,7 +79,7 @@ ${toolChainConfig}
 ${toolChain.buildScriptConfig}
 
                 unavailable(Gcc) {
-                    linker.exe = "does_not_exist"
+                    linker.executable = "does_not_exist"
                 }
             }
             executables {

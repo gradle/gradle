@@ -26,11 +26,11 @@ public interface Tool {
     /**
      * The name of the executable file for this tool.
      */
-    String getExe();
+    String getExecutable();
 
     /**
      * Set the name of the executable file for this tool.
      * The executable will be located in the tool chain path.
      */
-    void setExe(String file);
+    void setExecutable(String file);
 }

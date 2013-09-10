@@ -128,11 +128,11 @@ public abstract class AbstractToolChain implements ToolChainInternal, Configurab
             this.toolType = toolType;
         }
 
-        public String getExe() {
+        public String getExecutable() {
             return tools.getExeName(toolType);
         }
 
-        public void setExe(String file) {
+        public void setExecutable(String file) {
             tools.setExeName(toolType, file);
         }
     }
