@@ -26,7 +26,6 @@ import org.gradle.language.c.CSourceSet
 import org.gradle.language.c.internal.DefaultCSourceSet
 
 import javax.inject.Inject
-
 /**
  * Adds core C language support.
  *
@@ -52,19 +51,23 @@ class CLangPlugin implements Plugin<ProjectInternal> {
         ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
         projectSourceSet.all(new Action<FunctionalSourceSet>() {
             public void execute(final FunctionalSourceSet functionalSourceSet) {
-                applyConventions(project, functionalSourceSet)
+                functionalSourceSet.registerFactory(CSourceSet) { name ->
+                    instantiator.newInstance(DefaultCSourceSet, name, functionalSourceSet, project)
+                }
+
+                applyConventions(functionalSourceSet)
             }
         });
     }
 
-    private void applyConventions(ProjectInternal project, FunctionalSourceSet functionalSourceSet) {
+    private void applyConventions(FunctionalSourceSet functionalSourceSet) {
         // Defaults for all C source sets
-        functionalSourceSet.withType(CSourceSet).all { sourceSet ->
+        functionalSourceSet.withType(CSourceSet).all { CSourceSet sourceSet ->
             sourceSet.exportedHeaders.srcDir "src/${functionalSourceSet.name}/headers"
-            sourceSet.source.srcDir "src/${functionalSourceSet.name}/c"
+            sourceSet.source.srcDir "src/${functionalSourceSet.name}/${sourceSet.name}"
         }
 
         // Create a single C source set
-        functionalSourceSet.add(instantiator.newInstance(DefaultCSourceSet.class, "c", functionalSourceSet, project));
+        functionalSourceSet.create "c", CSourceSet
     }
 }

@@ -75,9 +75,7 @@ class CppPluginIntegrationTest extends AbstractInstalledToolChainIntegrationSpec
                 }
             }
             executables {
-                main {
-                    source sources.main
-                }
+                main {}
             }
         """
         settingsFile << "rootProject.name = 'test'"

@@ -18,10 +18,13 @@ package org.gradle.language.c.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.internal.AbstractBaseSourceSet;
 import org.gradle.language.c.CSourceSet;
+import org.gradle.language.internal.AbstractBaseSourceSet;
+
+import javax.inject.Inject;
 
 public class DefaultCSourceSet extends AbstractBaseSourceSet implements CSourceSet {
+    @Inject
     public DefaultCSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
         super(name, parent, project, "C");
     }

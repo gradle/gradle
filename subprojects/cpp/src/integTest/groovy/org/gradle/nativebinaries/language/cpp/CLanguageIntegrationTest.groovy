@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 
@@ -25,7 +24,6 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-             apply plugin: "cpp"
              executables {
                  main {}
              }
@@ -42,6 +40,53 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
         failure.assertHasCause("C compiler failed; see the error output for details.")
+    }
+
+    def "can manually define C source sets"() {
+        given:
+        helloWorldApp.getLibraryHeader().writeToDir(file("src/shared"))
+
+        file("src/main/c/main.c") << helloWorldApp.mainSource.content
+        file("src/main/c2/hello.c") << helloWorldApp.librarySources[0].content
+        file("src/main/sum-sources/sum.c") << helloWorldApp.librarySources[1].content
+
+
+        and:
+        buildFile << """
+            sources {
+                main {
+                    c {
+                        exportedHeaders {
+                            srcDirs "src/shared/headers"
+                        }
+                    }
+                    c2(CSourceSet) {
+                        exportedHeaders {
+                            srcDirs "src/shared/headers"
+                        }
+                    }
+                    c3(CSourceSet) {
+                        source {
+                            srcDir "src/main/sum-sources"
+                        }
+                        exportedHeaders {
+                            srcDirs "src/shared/headers"
+                        }
+                    }
+                }
+            }
+            executables {
+                main {}
+            }
+"""
+
+        when:
+        run "mainExecutable"
+
+        then:
+        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        mainExecutable.assertExists()
+        mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 }
 
