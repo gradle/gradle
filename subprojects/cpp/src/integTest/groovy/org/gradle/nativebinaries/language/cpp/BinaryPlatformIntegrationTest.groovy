@@ -18,6 +18,9 @@ package org.gradle.nativebinaries.language.cpp
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.BinaryInfo
+import org.gradle.nativebinaries.language.cpp.fixtures.OtoolBinaryInfo
+import org.gradle.nativebinaries.language.cpp.fixtures.ReadelfBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -74,6 +77,18 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         installation("build/install/mainExecutable/x86").exec().out == helloWorldApp.englishOutput
         installation("build/install/mainExecutable/x86_64").exec().out == helloWorldApp.englishOutput
 
-        // TODO:DAZ Verify binary and object file architectures
+        binaryInfo("build/binaries/mainExecutable/x86/main").arch == BinaryInfo.Architecture.I386
+        binaryInfo("build/objectFiles/mainExecutable/x86/mainCpp/main.o").arch == BinaryInfo.Architecture.I386
+        binaryInfo("build/binaries/mainExecutable/x86_64/main").arch == BinaryInfo.Architecture.X86_64
+        binaryInfo("build/objectFiles/mainExecutable/x86_64/mainCpp/main.o").arch == BinaryInfo.Architecture.X86_64
+    }
+
+    def binaryInfo(String path) {
+        def file = file(path)
+        assert file.exists()
+        if (OperatingSystem.current().isMacOsX()) {
+            return new OtoolBinaryInfo(file)
+        }
+        return new ReadelfBinaryInfo(file)
     }
 }
