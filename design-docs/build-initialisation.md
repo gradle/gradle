@@ -23,7 +23,7 @@ manual changes to the Gradle build, and to inform when the Gradle build is ready
 
 # Implementation approach
 
-A new plugin called `build-setup` will be added. Generally, this plugin will be used in a source tree
+A new plugin called `build-init` will be added. Generally, this plugin will be used in a source tree
 that may or may not be empty and that contains no Gradle build. The plugin will infer the project
 model from the contents of the source tree, as described below, and generate the necessary Gradle build
 files and supporting files.
@@ -96,7 +96,7 @@ For all builds:
 This story adds support for generating the Gradle wrapper files, and changes the existing plugin so that it is more
 general purpose:
 
-* Rename the `maven2Gradle` plugin to `build-setup`.
+* Rename the `maven2Gradle` plugin to `build-init`.
 * Rename the `Maven2GradlePlugin` type to `BuildInitPlugin`.
 * Move the plugin and task implementation out of the `maven` project to a new `buildInit` project.
 * Move the plugin and task implementation to the `org.gradle.buildinit.plugins` package.
@@ -122,11 +122,11 @@ general purpose:
 
 # Story: User initializes a Gradle build without writing a stub build script (DONE)
 
-This story adds support for automatically applying the `build-setup` plugin when `gradle init` is run:
+This story adds support for automatically applying the `build-init` plugin when `gradle init` is run:
 
-1. Add `ProjectConfigureAction` to the plugin project which adds a task rule that applies the `build-setup` plugin
+1. Add `ProjectConfigureAction` to the plugin project which adds a task rule that applies the `build-init` plugin
    when `init` is requested. It should only apply the plugin to the root project of a build.
-2. Change the `build-setup` plugin so that it adds only the `init` lifecycle task and no other tasks when
+2. Change the `build-init` plugin so that it adds only the `init` lifecycle task and no other tasks when
    any of the following is true. In this case, the `init` task should simply log a warning when run.
     - The settings script already exists.
     - The current project's build script already exists.
@@ -145,15 +145,15 @@ This story adds support for automatically applying the `build-setup` plugin when
 
 This story adds a `wrapper` plugin and support for automatically applying the `wrapper` plugin when `gradle wrapper` is run:
 
-* Extract a `wrapper` plugin out of the `build-setup` plugin.
-    * Should live in the `build-setup` project.
+* Extract a `wrapper` plugin out of the `build-init` plugin.
+    * Should live in the `build-init` project.
     * Should add a `wrapper` task.
-* Move the `Wrapper` task type to the `build-setup` project, and remove the dependency on the `plugins` project.
+* Move the `Wrapper` task type to the `build-init` project, and remove the dependency on the `plugins` project.
 * The `wrapper` plugin should add a `ProjectConfigureAction` that adds a task rule to apply the `wrapper` plugin
   to the root project when the `wrapper` task is requested.
 * Add an internal mechanism on `TaskContainer` that allows a plugin to add a placeholder for a task, which is some
   action that is called when the task is requested by name and no task with that name exists.
-* Change the `build-setup` and `wrapper` plugins to use this new mechanism.
+* Change the `build-init` and `wrapper` plugins to use this new mechanism.
 
 ## Test coverage
 
@@ -163,6 +163,17 @@ This story adds a `wrapper` plugin and support for automatically applying the `w
 * Running `gradle tasks` does not show the `wrapper` task for a non-root project.
 * Running `gradle wrapper` on a project that defines a `wrapper` task runs the task defined in the project, not the
   implicit task defined by the `wrapper` plugin.
+
+
+# Story: specifiy target gradle version via commandline when running auto applied wrapper task
+
+This story adds a commandline property "--gradle-version") to the `wrapper` task to specifiy the desired Gradle version:
+
+* Add `--gradle-version` command-line option to `wrapper`.
+
+## Test coverage
+* Running `gradle wrapper --gradle-version 1.6` generates valid wrapper.properties with correct URL.
+
 
 # Story: Create a Java library project from scratch
 
@@ -196,21 +207,21 @@ From the command-line:
 * Decent error message when an unknown type is given.
 * Update existing test coverage to verify that every generated `settings.gradle` sets the root project name.
 
-# Story: Build setup tasks can be referenced using camel-case abbreviations
+# Story: Build init tasks can be referenced using camel-case abbreviations
 
 * Improve the tasks selection mechanism so that it takes placeholders into account. The implementation must not trigger creation of the tasks,
   unless the task is actually selected.
 
 ## Test coverage
 
-* Can run `gradle setB` or `gradle wrap`
+* Can run `gradle ini` or `gradle wrap`
 * When a build script defines a `wrap` task, then calling `gradle wrap` does not apply the `wrapper` plugin.
 * Decent error message when a POM cannot be parsed (this is adding more coverage for a previous story).
 * Running `gradle init` in an empty directory generates build files that do not blow up when `gradle help` is run (this is adding more coverage for a previous story).
 
 # Story: Update the user guide Java tutorial to use the `init` task
 
-# Story: Gradle help message informs user how to setup a build
+# Story: Gradle help message informs user how to init a build
 
 This story adds some helpful output when the user attempts to run Gradle in a directory that does not contain a
 Gradle build, to let the user know how to create a new build or convert an existing Maven build:
@@ -219,7 +230,7 @@ Gradle build, to let the user know how to create a new build or convert an exist
 * Change the `help` task to use this to assemble the help output.
 * Introduce an internal service through which a plugin can contribute error resolutions.
 * Change the `ExceptionAnalyser` implementations to use this.
-* Change the `build-setup` plugin to add help messages and error resolutions for empty builds and
+* Change the `build-init` plugin to add help messages and error resolutions for empty builds and
   builds that contain a `pom.xml`.
 
 ## Test coverage
@@ -274,9 +285,9 @@ TBD - fix issues with POM conversion to make it more accurate
 # Story: Expose build initialisation through the tooling API
 
 * Extend the tooling API to add the concept of actions. Running a build is a kind of action.
-* Add the `setup build` action. When invoked it:
+* Add the `init build` action. When invoked it:
     * Determines the most recent Gradle release.
-    * Uses it to run the `setup build` action.
+    * Uses it to run the `init build` action.
 
 # Story: Create a library project from scratch
 
