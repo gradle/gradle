@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r18
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
@@ -38,6 +39,8 @@ allprojects {
     }
 
     //TODO map projectDirectory of subrprojects correctly when creating GradleBuild from GradleProject
+    //TODO implement mapping of pre
+    @TargetGradleVersion(">=1.6")
     def "can request GradleBuild model"() {
         when:
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }
