@@ -19,20 +19,22 @@ import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.Library
+import org.gradle.nativebinaries.Platform
 import spock.lang.Specification
 
 class DefaultStaticLibraryBinaryTest extends Specification {
     def namingScheme = new DefaultBinaryNamingScheme("main")
     def library = Stub(Library)
     def toolChain = Stub(ToolChainInternal)
+    def platform = Stub(Platform)
 
-    def "has useful string representation"() {
+    def "has useful string representation"() {  
         expect:
         staticLibrary.toString() == "static library 'mainStaticLibrary'"
     }
 
     def getStaticLibrary() {
-        new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, namingScheme)
+        new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, namingScheme)
     }
 
     def "can convert binary to a native dependency"() {

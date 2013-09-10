@@ -20,12 +20,13 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.Executable;
 import org.gradle.nativebinaries.ExecutableBinary;
 import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.Platform;
 
 public class DefaultExecutableBinary extends DefaultNativeBinary implements ExecutableBinary {
     private final Executable executable;
 
-    public DefaultExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain, DefaultBinaryNamingScheme namingScheme) {
-        super(executable, flavor, toolChain, namingScheme.withTypeString("Executable"));
+    public DefaultExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, DefaultBinaryNamingScheme namingScheme) {
+        super(executable, flavor, toolChain, platform, namingScheme.withTypeString("Executable"));
         this.executable = executable;
     }
 

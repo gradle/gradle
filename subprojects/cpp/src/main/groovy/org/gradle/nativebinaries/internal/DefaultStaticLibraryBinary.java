@@ -33,8 +33,8 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
     private final Library library;
     private final ToolChainTool staticLibArchiver = new ToolChainTool();
 
-    public DefaultStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, DefaultBinaryNamingScheme namingScheme) {
-        super(library, flavor, toolChain, namingScheme.withTypeString("StaticLibrary"));
+    public DefaultStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, DefaultBinaryNamingScheme namingScheme) {
+        super(library, flavor, toolChain, platform, namingScheme.withTypeString("StaticLibrary"));
         this.library = library;
     }
 

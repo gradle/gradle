@@ -39,12 +39,14 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final BinaryNamingScheme namingScheme;
     private final Flavor flavor;
     private final ToolChainInternal toolChain;
+    private final Platform targetPlatform;
     private File outputFile;
 
-    protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, DefaultBinaryNamingScheme namingScheme) {
+    protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, DefaultBinaryNamingScheme namingScheme) {
         this.namingScheme = namingScheme;
         this.flavor = flavor;
         this.toolChain = toolChain;
+        this.targetPlatform = targetPlatform;
         owner.getSource().all(new Action<LanguageSourceSet>() {
             public void execute(LanguageSourceSet sourceSet) {
                 source.add(sourceSet);
@@ -57,16 +59,20 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
         return namingScheme.getDescription();
     }
 
-    public Flavor getFlavor() {
-        return flavor;
-    }
-
     public String getName() {
         return namingScheme.getLifecycleTaskName();
     }
 
+    public Flavor getFlavor() {
+        return flavor;
+    }
+
     public ToolChainInternal getToolChain() {
         return toolChain;
+    }
+
+    public Platform getTargetPlatform() {
+        return targetPlatform;
     }
 
     public File getOutputFile() {

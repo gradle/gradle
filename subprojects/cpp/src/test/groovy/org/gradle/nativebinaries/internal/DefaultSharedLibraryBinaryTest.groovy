@@ -19,6 +19,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.Library
+import org.gradle.nativebinaries.Platform
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -27,6 +28,7 @@ class DefaultSharedLibraryBinaryTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     def namingScheme = new DefaultBinaryNamingScheme("main")
     final toolChain = Stub(ToolChainInternal)
+    final platform = Stub(Platform)
     final library = Stub(Library)
 
     def "has useful string representation"() {
@@ -65,6 +67,6 @@ class DefaultSharedLibraryBinaryTest extends Specification {
     }
 
     private DefaultSharedLibraryBinary getSharedLibrary() {
-        new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, namingScheme)
+        new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, namingScheme)
     }
 }

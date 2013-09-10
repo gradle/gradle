@@ -21,6 +21,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.NativeComponent;
+import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.ToolChain;
 import org.gradle.nativebinaries.internal.DefaultNativeBinary;
 
@@ -31,25 +32,30 @@ class NativeBinaryFactory {
     private final Instantiator instantiator;
     private final Project project;
     private final boolean useToolChainDimension;
+    private final boolean usePlatformDimension;
 
-    public NativeBinaryFactory(Instantiator instantiator, Project project, Collection<? extends ToolChain> allToolChains) {
+    public NativeBinaryFactory(Instantiator instantiator, Project project, Collection<? extends ToolChain> allToolChains, Collection<? extends Platform> allPlatforms) {
         this.instantiator = instantiator;
         this.project = project;
         this.useToolChainDimension = allToolChains.size() > 1;
+        this.usePlatformDimension = allPlatforms.size() > 1;
     }
 
-    public <T extends DefaultNativeBinary> T createNativeBinary(Class<T> type, NativeComponent component, ToolChain toolChain, Flavor flavor) {
-        DefaultBinaryNamingScheme namingScheme = createNamingScheme(component, useToolChainDimension, toolChain, flavor);
-        T nativeBinary = instantiator.newInstance(type, component, flavor, toolChain, namingScheme);
+    public <T extends DefaultNativeBinary> T createNativeBinary(Class<T> type, NativeComponent component, ToolChain toolChain, Platform platform, Flavor flavor) {
+        DefaultBinaryNamingScheme namingScheme = createNamingScheme(component, toolChain, platform, flavor);
+        T nativeBinary = instantiator.newInstance(type, component, flavor, toolChain, platform, namingScheme);
         setupDefaults(project, nativeBinary);
         component.getBinaries().add(nativeBinary);
         return nativeBinary;
     }
 
-    private DefaultBinaryNamingScheme createNamingScheme(NativeComponent component, boolean useToolChainDimension, ToolChain toolChain, Flavor flavor) {
+    private DefaultBinaryNamingScheme createNamingScheme(NativeComponent component, ToolChain toolChain, Platform platform, Flavor flavor) {
         DefaultBinaryNamingScheme namingScheme = new DefaultBinaryNamingScheme(component.getName());
         if (useToolChainDimension) {
             namingScheme = namingScheme.withVariantDimension(toolChain.getName());
+        }
+        if (usePlatformDimension) {
+            namingScheme = namingScheme.withVariantDimension(platform.getName());
         }
         if (component.getFlavors().size() > 1) {
             namingScheme = namingScheme.withVariantDimension(flavor.getName());

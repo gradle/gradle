@@ -111,7 +111,7 @@ class DefaultNativeBinaryTest extends Specification {
 
     class TestBinary extends DefaultNativeBinary {
         TestBinary(NativeComponent owner, Flavor flavor = Flavor.DEFAULT, String type = "type") {
-            super(owner, flavor, null, new DefaultBinaryNamingScheme("baseName"))
+            super(owner, flavor, null, null, new DefaultBinaryNamingScheme("baseName"))
         }
 
         @Override
