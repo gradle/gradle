@@ -106,6 +106,7 @@ The following are the newly deprecated items in this Gradle release. If you have
     * This file now only contains file inputs to the tool - all other options are supplied directly via the command line.
 * Object files generated from the assembly of Assembler sources are no longer named '<file>.s.o'.
 * Renamed method: BuildableModelElement.dependsOn() -> BuildableModelElement.builtBy()
+* The `gpp-compiler` plugin was renamed to `gcc`. Class name was change to `GccCompilerPlugin`.
 
 
 ## External contributions
