@@ -1,4 +1,3 @@
-
 # Dependency resolution
 
 ## Cache dependency descriptors in memory
@@ -73,7 +72,7 @@ Faster builds when daemon used. Reasonable increase of heap consumption.
 
 ### Implementation
 
-- provide implementation of TaskArtifactStateCacheAccess that ads in-memory caching capabilitites
+- provide implementation of TaskArtifactStateCacheAccess that ads in-memory caching capabilities
 - expire the cache data when cache file's last modified time changes. Check for expiration before locking the file, remember the last modified before unlocking.
 - the implementation can be improved in various ways (e.g. stop using the last modified, we know when cross-process lock is requested by other processes)
 - the cache should have some bounds otherwise it will use a lot of memory for gigantic builds. Initially, we will cap the cache size.

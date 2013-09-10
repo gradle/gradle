@@ -53,7 +53,11 @@ The public API for launching Gradle is now the tooling API. The `GradleBuild` ta
 
 # Candidates
 
-The following stories are candidates to be included in Gradle 2.0.
+The following stories are candidates to be included in Gradle 2.0. They have not been scheduled yet:
+
+## Remove `group` and `status` from project
+
+Alternatively, default the group to `null`.
 
 ## Remove the Ant-task based Scala compiler
 

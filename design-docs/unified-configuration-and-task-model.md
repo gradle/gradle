@@ -265,6 +265,7 @@ Reuse the domain object lifecycle mechanism to warn when:
 - Rules that operate on collections.
 - Finer grained models and rules.
 - DSL to configure tasks. Have this triggered on demand as tasks are requested.
+- Validation, cycle detection.
 - Extension <-> model bridging.
 - Views.
 - Rule ordering to close things as late as possible.
