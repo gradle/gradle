@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.toolchain.internal.gpp.version
+package org.gradle.nativebinaries.toolchain.internal.gcc.version
 
 import org.gradle.api.Transformer
 import org.gradle.internal.Factory
@@ -24,7 +24,7 @@ import spock.lang.Unroll
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.ExecResult
 
-class GppVersionDeterminerTest extends Specification {
+class GccVersionDeterminerTest extends Specification {
 
     @Unroll
     "can scrape ok output"() {
@@ -52,7 +52,7 @@ class GppVersionDeterminerTest extends Specification {
         def result = Mock(ExecResult)
 
         and:
-        def determiner = new GppVersionDeterminer(producer(builder), new GppVersionDeterminer.GppVersionOutputScraper())
+        def determiner = new GccVersionDeterminer(producer(builder), new GccVersionDeterminer.GccVersionOutputScraper())
         def binary = new File("g++")
         
         when:
@@ -79,7 +79,7 @@ Thread model: posix
 gcc version 3.4.6"""
 
         and:
-        def determiner = new GppVersionDeterminer(producer(builder), new GppVersionDeterminer.GppVersionOutputScraper())
+        def determiner = new GccVersionDeterminer(producer(builder), new GccVersionDeterminer.GccVersionOutputScraper())
         def binary = new File("g++")
 
         when:
@@ -97,7 +97,7 @@ gcc version 3.4.6"""
     }
 
     Transformer<String, File> producer(ExecHandleBuilder builder) {
-        new GppVersionDeterminer.GppVersionOutputProducer(new Factory() {
+        new GccVersionDeterminer.GccVersionOutputProducer(new Factory() {
             def create() {
                 builder
             }
@@ -105,11 +105,11 @@ gcc version 3.4.6"""
     }
 
     String output(String output) {
-        new GppVersionDeterminer(transformer(output), new GppVersionDeterminer.GppVersionOutputScraper()).transform(new File("."))
+        new GccVersionDeterminer(transformer(output), new GccVersionDeterminer.GccVersionOutputScraper()).transform(new File("."))
     }
 
     String scraped(String scraped) {
-        new GppVersionDeterminer(transformer("doesntmatter"), transformer(scraped)).transform(new File("."))
+        new GccVersionDeterminer(transformer("doesntmatter"), transformer(scraped)).transform(new File("."))
     }
 
     Transformer transformer(constant) {

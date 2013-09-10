@@ -20,7 +20,7 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.ExecutableBinary
-import org.gradle.nativebinaries.toolchain.plugins.GppCompilerPlugin
+import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -31,7 +31,7 @@ class NativeBinariesPluginTest extends Specification {
         given:
         dsl {
             apply plugin: NativeBinariesPlugin
-            apply plugin: GppCompilerPlugin
+            apply plugin: GccCompilerPlugin
 
             executables {
                 test {
@@ -62,7 +62,7 @@ class NativeBinariesPluginTest extends Specification {
         when:
         dsl {
             apply plugin: NativeBinariesPlugin
-            apply plugin: GppCompilerPlugin
+            apply plugin: GccCompilerPlugin
             libraries {
                 test {
                 }

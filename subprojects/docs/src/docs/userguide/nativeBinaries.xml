@@ -282,7 +282,7 @@
             <para>
                 External dependencies (i.e. from a repository, not a subproject) are specified using the following syntax:
             </para>
-            <sample id="gppArgs" dir="native-binaries/dependencies" title="Declaring dependencies">
+            <sample id="cppExternalDependencies" dir="native-binaries/dependencies" title="Declaring dependencies">
                 <sourcefile file="build.gradle" snippet="declaring-dependencies"/>
             </sample>
             <para>

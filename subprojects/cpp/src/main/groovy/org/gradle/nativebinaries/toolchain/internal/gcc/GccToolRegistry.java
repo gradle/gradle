@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.toolchain.internal.gpp;
+package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;

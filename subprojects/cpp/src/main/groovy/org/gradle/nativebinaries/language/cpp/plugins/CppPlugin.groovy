@@ -25,14 +25,14 @@ import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
 import org.gradle.nativebinaries.language.internal.PreprocessorTool
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
-import org.gradle.nativebinaries.toolchain.plugins.GppCompilerPlugin
+import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin
 
 /**
  * A plugin for projects wishing to build native binary components from C++ sources.
  *
  * <p>Automatically includes the {@link org.gradle.language.cpp.plugins.CppLangPlugin} for core C++ support and the {@link NativeBinariesPlugin} for native binary support,
- * together with the {@link MicrosoftVisualCppPlugin} and {@link GppCompilerPlugin} for core toolchain support.</p>
+ * together with the {@link MicrosoftVisualCppPlugin} and {@link GccCompilerPlugin} for core toolchain support.</p>
  *
  * <li>Creates a {@link CppCompile} task for each {@link CppSourceSet} to compile the C++ sources.</li>
  */
@@ -42,7 +42,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(MicrosoftVisualCppPlugin)
-        project.plugins.apply(GppCompilerPlugin)
+        project.plugins.apply(GccCompilerPlugin)
 
         project.plugins.apply(CppLangPlugin)
 

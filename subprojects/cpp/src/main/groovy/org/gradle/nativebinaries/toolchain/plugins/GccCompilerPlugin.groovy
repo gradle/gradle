@@ -23,20 +23,20 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.ToolChainRegistry
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.Gcc
-import org.gradle.nativebinaries.toolchain.internal.gpp.GppToolChain
+import org.gradle.nativebinaries.toolchain.internal.gcc.GccToolChain
 import org.gradle.process.internal.DefaultExecAction
 import org.gradle.process.internal.ExecAction
 
 import javax.inject.Inject
 /**
- * A {@link Plugin} which makes the <a href="http://gcc.gnu.org/">GNU G++ compiler</a> available for compiling C/C++ code.
+ * A {@link Plugin} which makes the <a href="http://gcc.gnu.org/">GNU GCC/G++ compiler</a> available for compiling C/C++ code.
  */
 @Incubating
-class GppCompilerPlugin implements Plugin<Project> {
+class GccCompilerPlugin implements Plugin<Project> {
     private final FileResolver fileResolver
 
     @Inject
-    GppCompilerPlugin(FileResolver fileResolver) {
+    GccCompilerPlugin(FileResolver fileResolver) {
         this.fileResolver = fileResolver
     }
 
@@ -45,13 +45,13 @@ class GppCompilerPlugin implements Plugin<Project> {
 
         final toolChainRegistry = project.extensions.getByType(ToolChainRegistry)
         toolChainRegistry.registerFactory(Gcc, { String name ->
-            return new GppToolChain(name, OperatingSystem.current(), fileResolver, new Factory<ExecAction>() {
+            return new GccToolChain(name, OperatingSystem.current(), fileResolver, new Factory<ExecAction>() {
                 ExecAction create() {
                     return new DefaultExecAction(fileResolver);
                 }
             })
         })
-        toolChainRegistry.registerDefaultToolChain(GppToolChain.DEFAULT_NAME, Gcc)
+        toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc)
     }
 
 }

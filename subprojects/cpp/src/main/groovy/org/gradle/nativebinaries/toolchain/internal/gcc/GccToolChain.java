@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.toolchain.internal.gpp;
+package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
@@ -28,7 +28,7 @@ import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
-import org.gradle.nativebinaries.toolchain.internal.gpp.version.GppVersionDeterminer;
+import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.process.internal.ExecAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +38,9 @@ import java.io.File;
 /**
  * Compiler adapter for GCC.
  */
-public class GppToolChain extends AbstractToolChain implements Gcc {
+public class GccToolChain extends AbstractToolChain implements Gcc {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GppToolChain.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GccToolChain.class);
 
     public static final String DEFAULT_NAME = "gcc";
 
@@ -49,10 +49,10 @@ public class GppToolChain extends AbstractToolChain implements Gcc {
 
     private String version;
 
-    public GppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, Factory<ExecAction> execActionFactory) {
+    public GccToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, Factory<ExecAction> execActionFactory) {
         super(name, operatingSystem, new GccToolRegistry(operatingSystem), fileResolver);
         this.execActionFactory = execActionFactory;
-        this.versionDeterminer = new GppVersionDeterminer();
+        this.versionDeterminer = new GccVersionDeterminer();
 
         tools.setExeName(ToolType.CPP_COMPILER, "g++");
         tools.setExeName(ToolType.C_COMPILER, "gcc");
@@ -98,7 +98,7 @@ public class GppToolChain extends AbstractToolChain implements Gcc {
     public <T extends LinkerSpec> Compiler<T> createLinker() {
         checkAvailable();
         CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
-        return (Compiler<T>) new GppLinker(commandLineTool, canUseCommandFile());
+        return (Compiler<T>) new GccLinker(commandLineTool, canUseCommandFile());
     }
 
     public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {

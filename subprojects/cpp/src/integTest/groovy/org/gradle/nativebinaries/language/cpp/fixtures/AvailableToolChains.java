@@ -22,7 +22,7 @@ import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
-import org.gradle.nativebinaries.toolchain.internal.gpp.version.GppVersionDeterminer;
+import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.TextUtil;
@@ -99,7 +99,7 @@ public class AvailableToolChains {
 
     static private ToolChainCandidate findGpp(String versionPrefix, String hardcodedFallback) {
         String name = String.format("g++ %s", versionPrefix);
-        GppVersionDeterminer versionDeterminer = new GppVersionDeterminer();
+        GccVersionDeterminer versionDeterminer = new GccVersionDeterminer();
 
         List<File> gppCandidates = OperatingSystem.current().findAllInPath("g++");
         for (int i = 0; i < gppCandidates.size(); i++) {

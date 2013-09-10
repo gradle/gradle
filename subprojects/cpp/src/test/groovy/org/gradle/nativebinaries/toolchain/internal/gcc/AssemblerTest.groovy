@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.toolchain.internal.gpp
+package org.gradle.nativebinaries.toolchain.internal.gcc
 
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool

@@ -15,6 +15,6 @@
  */
 
 /**
- * Integration with the gpp (gcc frontend) compiler.
+ * Built-in tool chain support.
  */
 package org.gradle.nativebinaries.toolchain.plugins;

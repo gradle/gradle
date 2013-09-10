@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.toolchain.internal.gpp;
+package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
@@ -29,21 +29,21 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
 
-class GppLinker implements Compiler<LinkerSpec> {
+class GccLinker implements Compiler<LinkerSpec> {
 
     private final CommandLineTool<LinkerSpec> commandLineTool;
 
-    public GppLinker(CommandLineTool<LinkerSpec> commandLineTool, boolean useCommandFile) {
+    public GccLinker(CommandLineTool<LinkerSpec> commandLineTool, boolean useCommandFile) {
         this.commandLineTool = commandLineTool.withArguments(useCommandFile ? viaCommandFile() : withoutCommandFile());
     }
 
-    private static GppLinkerSpecToArguments withoutCommandFile() {
-        return new GppLinkerSpecToArguments();
+    private static GccLinkerSpecToArguments withoutCommandFile() {
+        return new GccLinkerSpecToArguments();
     }
 
     private static CommandLineCompilerArgumentsToOptionFile<LinkerSpec> viaCommandFile() {
         return new CommandLineCompilerArgumentsToOptionFile<LinkerSpec>(
-            ArgWriter.unixStyleFactory(), new GppLinkerSpecToArguments()
+            ArgWriter.unixStyleFactory(), new GccLinkerSpecToArguments()
         );
     }
 
@@ -51,7 +51,7 @@ class GppLinker implements Compiler<LinkerSpec> {
         return commandLineTool.execute(spec);
     }
 
-    private static class GppLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
+    private static class GccLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
 
         public void collectArguments(LinkerSpec spec, ArgCollector collector) {
             for (String rawArg : spec.getArgs()) {

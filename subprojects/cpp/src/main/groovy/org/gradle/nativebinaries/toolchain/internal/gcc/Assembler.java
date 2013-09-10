@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.toolchain.internal.gpp;
+package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.tasks.SimpleWorkResult;

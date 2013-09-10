@@ -13,30 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.nativebinaries.toolchain.internal.gpp;
+package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
-/**
- * Maps common options for C/C++ compiling with GCC
- */
-class GeneralGccCompileOptionsToArguments<T extends NativeCompileSpec> implements CompileSpecToArguments<T> {
-    public void collectArguments(T spec, ArgCollector collector) {
-        for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
-            collector.args("-D", macroArg);
-        }
+import java.io.File;
 
-        collector.args(spec.getArgs());
-        collector.args("-c");
-        if (spec.isPositionIndependentCode()) {
-            if (!OperatingSystem.current().isWindows()) {
-                collector.args("-fPIC");
-            }
+class GccCompileSourcesToArguments<T extends NativeCompileSpec> implements CompileSpecToArguments<T> {
+    public void collectArguments(T spec, ArgCollector collector) {
+        for (File file : spec.getIncludeRoots()) {
+            collector.args("-I");
+            collector.args(file.getAbsolutePath());
+        }
+        for (File file : spec.getSource()) {
+            collector.args(file.getAbsolutePath());
         }
     }
 }

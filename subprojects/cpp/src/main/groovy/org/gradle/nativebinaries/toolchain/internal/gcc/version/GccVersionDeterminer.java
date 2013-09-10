@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.toolchain.internal.gpp.version;
+package org.gradle.nativebinaries.toolchain.internal.gcc.version;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -33,27 +33,27 @@ import java.util.regex.Pattern;
 /**
  * Given a File pointing to an (existing) g++ binary, extracts the version number by running with -v and scraping the output.
  */
-public class GppVersionDeterminer implements Transformer<String, File> {
+public class GccVersionDeterminer implements Transformer<String, File> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GppVersionDeterminer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GccVersionDeterminer.class);
 
     private final Transformer<String, String> outputScraper;
     private final Transformer<String, File> outputProducer;
 
-    public GppVersionDeterminer() {
-        this(new GppVersionOutputProducer(new Factory<ExecHandleBuilder>() {
+    public GccVersionDeterminer() {
+        this(new GccVersionOutputProducer(new Factory<ExecHandleBuilder>() {
             public ExecHandleBuilder create() {
                 return new ExecHandleBuilder(new IdentityFileResolver());
             }
-        }), new GppVersionOutputScraper());
+        }), new GccVersionOutputScraper());
     }
 
-    GppVersionDeterminer(Transformer<String, File> outputProducer, Transformer<String, String> outputScraper) {
+    GccVersionDeterminer(Transformer<String, File> outputProducer, Transformer<String, String> outputScraper) {
         this.outputProducer = outputProducer;
         this.outputScraper = outputScraper;
     }
 
-    static class GppVersionOutputScraper implements Transformer<String, String> {
+    static class GccVersionOutputScraper implements Transformer<String, String> {
         public String transform(String output) {
             Pattern pattern = Pattern.compile(".*gcc version (\\S+).*", Pattern.DOTALL);
             Matcher matcher = pattern.matcher(output);
@@ -68,18 +68,18 @@ public class GppVersionDeterminer implements Transformer<String, File> {
         }
     }
 
-    static class GppVersionOutputProducer implements Transformer<String, File> {
+    static class GccVersionOutputProducer implements Transformer<String, File> {
         
         private final Factory<ExecHandleBuilder> execHandleBuilderFactory;
 
-        GppVersionOutputProducer(Factory<ExecHandleBuilder> execHandleBuilderFactory) {
+        GccVersionOutputProducer(Factory<ExecHandleBuilder> execHandleBuilderFactory) {
             this.execHandleBuilderFactory = execHandleBuilderFactory;
         }
 
-        public String transform(File gppBinary) {
+        public String transform(File gccBinary) {
             ExecHandleBuilder exec = execHandleBuilderFactory.create();
-            exec.executable(gppBinary.getAbsolutePath());
-            exec.setWorkingDir(gppBinary.getParentFile());
+            exec.executable(gccBinary.getAbsolutePath());
+            exec.setWorkingDir(gccBinary.getParentFile());
             exec.args("-v");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             exec.setErrorOutput(baos);
@@ -89,17 +89,17 @@ public class GppVersionDeterminer implements Transformer<String, File> {
             int exitValue = result.getExitValue();
             if (exitValue == 0) {
                 String output = new String(baos.toByteArray());
-                LOGGER.debug("Output from '{} -v {}", gppBinary.getPath(), output);    
+                LOGGER.debug("Output from '{} -v {}", gccBinary.getPath(), output);
                 return output;                
             } else {
-                LOGGER.warn("Executing '{} -v' return exit code {}, cannot use", gppBinary.getPath(), exitValue);
+                LOGGER.warn("Executing '{} -v' return exit code {}, cannot use", gccBinary.getPath(), exitValue);
                 return null;
             }
         }
     }
 
-    public String transform(File gppBinary) {
-        String output = outputProducer.transform(gppBinary);
+    public String transform(File gccBinary) {
+        String output = outputProducer.transform(gccBinary);
         return output == null ? null : outputScraper.transform(output);
     }
 }
