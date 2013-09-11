@@ -16,10 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.gradle.BasicGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
+import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,24 +29,35 @@ import java.util.Comparator;
 import java.util.List;
 
 public class GradleBuildConverter {
-    public DefaultGradleBuild convert(GradleProject project, ConsumerOperationParameters operationParameters) {
+
+    public DefaultGradleBuild convert(EclipseProject project) {
         DefaultGradleBuild gradleBuild = new DefaultGradleBuild();
         BasicGradleProject rootProject = toBasicGradleProject(project);
-        rootProject.setProjectDirectory(operationParameters.getProjectDir());
         gradleBuild.setRootProject(rootProject);
         gradleBuild.addProject(rootProject);
         convertChildren(gradleBuild, rootProject, project);
         return gradleBuild;
     }
 
-    private void convertChildren(DefaultGradleBuild gradleBuild, BasicGradleProject rootProject, GradleProject project) {
-        final List<? extends GradleProject> childProjects = new ArrayList<GradleProject>(project.getChildren());
-        Collections.sort(childProjects, new Comparator<GradleProject>() {
-            public int compare(GradleProject gp1, GradleProject gp2) {
-                return gp1.getName().compareTo(gp2.getName());
+    public DefaultGradleBuild convert(EclipseProjectVersion3 project) {
+        DefaultGradleBuild gradleBuild = new DefaultGradleBuild();
+        BasicGradleProject rootProject = toBasicGradleProject(project);
+        gradleBuild.setRootProject(rootProject);
+        gradleBuild.addProject(rootProject);
+        convertChildren(gradleBuild, rootProject, project);
+        return gradleBuild;
+    }
+
+
+    private void convertChildren(DefaultGradleBuild gradleBuild, BasicGradleProject rootProject, EclipseProject project) {
+        final DomainObjectSet<? extends EclipseProject> children = project.getChildren();
+        final List<? extends EclipseProject> childProjects = new ArrayList<EclipseProject>(children);
+        Collections.sort(childProjects, new Comparator<EclipseProject>() {
+            public int compare(EclipseProject gp1, EclipseProject gp2) {
+                return gp1.getGradleProject().getName().compareTo(gp2.getGradleProject().getName());
             }
         });
-        for (GradleProject childProject : childProjects) {
+        for (EclipseProject childProject : childProjects) {
             BasicGradleProject basicGradleProject = toBasicGradleProject(childProject);
             gradleBuild.addProject(basicGradleProject);
             basicGradleProject.setParent(rootProject);
@@ -53,10 +66,41 @@ public class GradleBuildConverter {
         }
     }
 
-    private BasicGradleProject toBasicGradleProject(GradleProject childProject) {
+
+    private void convertChildren(DefaultGradleBuild gradleBuild, BasicGradleProject rootProject, EclipseProjectVersion3 project) {
+        final List<EclipseProjectVersion3> childProjects = new ArrayList<EclipseProjectVersion3>();
+        for (EclipseProjectVersion3 eclipseProjectVersion3 : project.getChildren()) {
+            childProjects.add(eclipseProjectVersion3);
+        }
+        Collections.sort(childProjects, new Comparator<EclipseProjectVersion3>() {
+            public int compare(EclipseProjectVersion3 gp1, EclipseProjectVersion3 gp2) {
+                return gp1.getName().compareTo(gp2.getName());
+            }
+        });
+        for (EclipseProjectVersion3 childProject : childProjects) {
+            BasicGradleProject basicGradleProject = toBasicGradleProject(childProject);
+            gradleBuild.addProject(basicGradleProject);
+            basicGradleProject.setParent(rootProject);
+            rootProject.addChild(basicGradleProject);
+            convertChildren(gradleBuild, basicGradleProject, childProject);
+        }
+    }
+
+    private BasicGradleProject toBasicGradleProject(EclipseProject eclipseProject) {
         BasicGradleProject basicGradleProject = new BasicGradleProject();
-        basicGradleProject.setPath(childProject.getPath());
-        basicGradleProject.setName(childProject.getName());
+        final GradleProject gradleProject = eclipseProject.getGradleProject();
+        basicGradleProject.setPath(gradleProject.getPath());
+        basicGradleProject.setName(gradleProject.getName());
+        basicGradleProject.setProjectDirectory(eclipseProject.getProjectDirectory());
+        return basicGradleProject;
+    }
+
+    private BasicGradleProject toBasicGradleProject(EclipseProjectVersion3 eclipseProjectVersion3) {
+        BasicGradleProject basicGradleProject = new BasicGradleProject();
+        basicGradleProject.setPath(eclipseProjectVersion3.getPath());
+        // TODO is EclipseProjectVersion3#getName() == GradleProject#getName() ?
+        basicGradleProject.setName(eclipseProjectVersion3.getName());
+        basicGradleProject.setProjectDirectory(eclipseProjectVersion3.getProjectDirectory());
         return basicGradleProject;
     }
 }

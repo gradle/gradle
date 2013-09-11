@@ -38,9 +38,8 @@ allprojects {
 """
     }
 
-    //TODO map projectDirectory of subrprojects correctly when creating GradleBuild from GradleProject
-    //TODO implement mapping of pre
-    @TargetGradleVersion(">=1.6")
+    //TODO implement mapping of 1.0- versions
+    @TargetGradleVersion(">=1.0-milestone-5")
     def "can request GradleBuild model"() {
         when:
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }
@@ -54,6 +53,6 @@ allprojects {
         model.rootProject.children.every { it.parent == model.rootProject }
         model.projects*.name == ['test', 'a', 'b', 'c']
         model.projects*.path == [':', ':a', ':b', ':b:c']
-        //model.projects*.projectDirectory == [projectDir, file('a'),file('b'),file('b/c')]
+        model.projects*.projectDirectory == [projectDir, file('a'),file('b'),file('b/c')]
     }
 }

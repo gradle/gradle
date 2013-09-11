@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
+import org.gradle.tooling.internal.consumer.converters.GradleBuildConverter;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -29,6 +30,7 @@ import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.Exceptions;
@@ -82,6 +84,10 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
             //this patch enables getting gradle tasks for target gradle version pre M5
             EclipseProjectVersion3 project = (EclipseProjectVersion3) getDelegate().getModel(EclipseProjectVersion3.class, operationParameters);
             return new GradleProjectConverter().convert(project);
+        }
+        if (modelType == GradleBuild.class && !versionDetails.isModelSupported(GradleBuild.class)) {
+            EclipseProjectVersion3 project = (EclipseProjectVersion3) getDelegate().getModel(EclipseProjectVersion3.class, operationParameters);
+            return new GradleBuildConverter().convert(project);
         }
         if (!versionDetails.isModelSupported(modelType)) {
             //don't bother asking the provider for this model

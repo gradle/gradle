@@ -23,7 +23,7 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.util.GradleVersion;
@@ -47,17 +47,17 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
         BuildResult<?> result;
         try {
-            if (type == GradleBuild.class && !gradleBuildModelSupported()) {
-                BuildResult<?> gradleProjectBuildResult = builder.getModel(modelMapping.getModelIdentifierFromModelType(GradleProject.class), operationParameters);
+            if (type == GradleBuild.class && !getVersionDetails().isModelSupported(type)) {
+                BuildResult<?> gradleProjectBuildResult = builder.getModel(modelMapping.getModelIdentifierFromModelType(EclipseProject.class), operationParameters);
                 final Object gradleProjectModel = gradleProjectBuildResult.getModel();
-                final GradleProject adapt = adapter.adapt(GradleProject.class, gradleProjectModel);
-                final DefaultGradleBuild convert = new GradleBuildConverter().convert(adapt, operationParameters);
+                final EclipseProject adapt = adapter.adapt(EclipseProject.class, gradleProjectModel);
+                final DefaultGradleBuild convert = new GradleBuildConverter().convert(adapt);
                 result = new BuildResult() {
                     public Object getModel() {
                         return convert;
                     }
                 };
-            } else{
+            } else {
                 result = builder.getModel(modelIdentifier, operationParameters);
             }
         } catch (InternalUnsupportedModelException e) {
@@ -67,12 +67,6 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         return adapter.adapt(type, model);
     }
 
-    private boolean gradleBuildModelSupported() {
-        GradleVersion providerVersion = GradleVersion.version(getVersionDetails().getVersion());
-        GradleVersion gradleBuildModelSupportedMinimalVersion = GradleVersion.version("1.8-rc-1");
-        return providerVersion.compareTo(gradleBuildModelSupportedMinimalVersion) >= 0;
-    }
-
     private static class R16VersionDetails extends VersionDetails {
         public R16VersionDetails(String version) {
             super(version);
@@ -80,6 +74,10 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
 
         @Override
         public boolean isModelSupported(Class<?> modelType) {
+            if(modelType==GradleBuild.class){
+                //GradleBuild is natively supported since 1.8-rc-1
+                return GradleVersion.version(getVersion()).compareTo(GradleVersion.version("1.8-rc-1")) >= 0;
+            }
             return true;
         }
 
