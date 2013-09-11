@@ -43,6 +43,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     private final Map<String, String> environment = new HashMap<String, String>();
 
     private File installDir;
+    private VisualStudioInstall install;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, Factory<ExecAction> execActionFactory) {
         super(name, operatingSystem, new ToolRegistry(operatingSystem), fileResolver);
@@ -65,6 +66,10 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         if (!operatingSystem.isWindows()) {
             availability.unavailable("Not available on this operating system.");
             return;
+        }
+        if (install != null) {
+            availability.mustExist("Visual Studio installation", install.getVisualStudioDir());
+            availability.mustExist("Windows SDK", install.getWindowsSdkDir());
         }
         for (ToolType key : ToolType.values()) {
             availability.mustExist(key.getToolName(), tools.locate(key));
@@ -119,8 +124,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public void setInstallDir(Object installDirPath) {
         this.installDir = resolve(installDirPath);
+        this.install = new VisualStudioInstall(this.installDir);
 
-        VisualStudioInstall install = new VisualStudioInstall(this.installDir);
         tools.setPath(install.getPathEntries());
         environment.clear();
         environment.putAll(install.getEnvironment());

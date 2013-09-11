@@ -35,7 +35,7 @@ public class ToolChainAvailability {
 
     public void mustExist(String toolName, File tool) {
         if (this.unavailableMessage == null && (tool == null || !tool.exists())) {
-            this.unavailableMessage = String.format("%s cannot be found", toolName);
+            this.unavailableMessage = String.format("%s cannot be found: '%s'", toolName, tool);
         }
     }
 

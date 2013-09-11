@@ -21,30 +21,31 @@ import java.util.*;
 
 public class VisualStudioInstall {
     private final File installDir;
-    private final File baseDir;
+    private final File visualStudioDir;
+    private final File windowsSdkDir;
     private final List<File> pathEntries = new ArrayList<File>();
     private final Map<String, String> environment = new HashMap<String, String>();
 
     public VisualStudioInstall(File installDir) {
         this.installDir = installDir;
-        this.baseDir = locateBaseDir(installDir);
+        this.visualStudioDir = locateVisualStudio(installDir);
+        File vcDir = new File(visualStudioDir, "VC");
 
-        File vcDir = new File(baseDir, "VC");
-        File sdkDir = new File(baseDir.getParentFile(), "Microsoft SDKs/Windows/v7.0A");
+        windowsSdkDir = locateWindowsSdk(visualStudioDir);
 
         addPathEntries(
-                new File(baseDir, "Common7/IDE"),
+                new File(visualStudioDir, "Common7/IDE"),
                 new File(vcDir, "bin"),
-                new File(baseDir, "Common7/Tools"),
+                new File(visualStudioDir, "Common7/Tools"),
                 new File(vcDir, "VCPackages"),
-                new File(sdkDir, "Bin")
+                new File(windowsSdkDir, "Bin")
         );
 
         environment.put("INCLUDE", new File(vcDir, "include").getAbsolutePath());
-        environment.put("LIB", new File(vcDir, "lib").getAbsolutePath() + File.pathSeparator + new File(sdkDir, "lib").getAbsolutePath());
+        environment.put("LIB", new File(vcDir, "lib").getAbsolutePath() + File.pathSeparator + new File(windowsSdkDir, "lib").getAbsolutePath());
     }
 
-    private File locateBaseDir(File installDir) {
+    private File locateVisualStudio(File installDir) {
         // Handle the visual studio install, VC, or VC/bin directories.
         if (new File(installDir, "cl.exe").isFile()) {
             return installDir.getParentFile().getParentFile();
@@ -52,6 +53,15 @@ public class VisualStudioInstall {
             return installDir.getParentFile();
         }
         return installDir;
+    }
+
+    private File locateWindowsSdk(File visualStudioDir) {
+        File programFiles = visualStudioDir.getParentFile();
+        File winsdk71 = new File(programFiles, "Microsoft SDKs/Windows/v7.1");
+        if (winsdk71.isDirectory()) {
+            return winsdk71;
+        }
+        return new File(programFiles, "Microsoft SDKs/Windows/v7.0A");
     }
 
     private void addPathEntries(File... entry) {
@@ -71,6 +81,14 @@ public class VisualStudioInstall {
     }
 
     public boolean isInstalled() {
-        return new File(baseDir, "VC/bin/cl.exe").isFile();
+        return new File(visualStudioDir, "VC/bin/cl.exe").isFile();
+    }
+
+    public File getVisualStudioDir() {
+        return visualStudioDir;
+    }
+
+    public File getWindowsSdkDir() {
+        return windowsSdkDir;
     }
 }
