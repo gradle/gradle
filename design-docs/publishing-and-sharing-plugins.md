@@ -126,6 +126,7 @@ classpath declared in a build script `buildscript {}` block, which is visible to
 - How to make a plugin implementation visible to all scripts?
 - How to declare plugin repositories?
 - How to make classes visible without applying the plugin?
+- How apply a plugin that is built in the same project?
 
 ## Declaring plugin repositories
 
@@ -330,6 +331,15 @@ Cache the implementation ClassLoader across builds. More details in the [perform
 
 Deprecate the bin Gradle distribution some time after this.
 
+# More stories
+
+These are yet to be mixed into the above plan:
+
+- Build-init plugin custom build types by resolving build type name to plugin implementation using plugin repository
+- Resolve tooling model to provider plugin implementation using plugin repository
+- Plugin (script) declares public API
+- Resolve script plugins from plugin repository
+
 # Open issues
 
 TBD - conditional plugin application
@@ -339,6 +349,7 @@ TBD - configuring which repositories, possibly none, to use to resolve plugin de
 TBD - backwards compatibility wrt moving the core plugins. eg all core plugins are currently visible on every script compile classpath.
 TBD - declare and expose only the API of the plugin
 TBD - handle conflicts where different versions of a plugin are requested to be applied to the target object.
-TBD - conflict resolution for the script compile classpath when mixing combinations of `require` and `dependencies { classpath ... }` and inherited classpath.
+TBD - conflict resolution for the script compile classpath when mixing combinations of `plugins { apply ... } ` and `dependencies { classpath ... }` and inherited classpath.
+TBD - deprecate and remove inherited classpath.
 TBD - plugins that add new kinds of repository and resolver implementations or that define and configure the repositories to use.
 TBD - automate promotion of new plugin versions to the public repository
