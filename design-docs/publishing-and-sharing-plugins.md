@@ -53,9 +53,9 @@ dependencies.
 
 There are several main parts to the solution:
 
-A public repository hosted at [bintray](http://bintray.com) will be created to make plugins available to the community.
-The bintray UI provides plugin authors with a simple way publish and share their plugin with the community. It also
-allows build authors with a simple way to discover plugins.
+A [public repository](https://bintray.com/gradle/gradle-plugins) hosted at [bintray](http://bintray.com) will be created to make plugins
+available to the community. The bintray UI provides plugin authors with a simple way publish and share their plugin with the community.
+It also allows build authors with a simple way to discover plugins.
 
 The second part of the solution will be to improve the plugin resolution mechanism in Gradle to resolve plugins from
 this repository in some convenient way.
@@ -72,15 +72,102 @@ with additional integration with bintray to add the appropriate meta-data.
 Some additional reporting will also be added to help build authors understand the plugins that are used in their build and
 to discover new versions of the plugins that they are using.
 
+## Declaring and applying plugins
+
+A new DSL block will be introduced to apply plugins from a Gradle script. The plugins declared in this block will be made
+available to the script's compile classpath:
+
+    plugins {
+        // Apply the given plugin to the target of the script
+        apply plugin: 'some-plugin'
+        // Apply the given version of the plugin to the target of the script
+        apply plugin: 'some-plugin', version: '1.2+'
+        // Apply the given script to the target of this script
+        apply from: 'some-script.gradle'
+    }
+
+The block will be supported in build, settings and init scripts.
+
+Using a separate DSL block means that:
+
+- The block can be executed before the rest of the script is compiled. This way, the public API of each plugin can be made available to the script.
+- The block can be executed early in the build, to allow configuration-time dependencies on other projects to be declared.
+- The plugin DSL can be evolved without affecting the current DSL.
+
+The `plugins {} ` block is executed after the `buildscript {}` blocks, and must appear after it in the script.
+Script execution becomes:
+
+1. Parse the script to extract the `buildscript {}` and `plugins {}` blocks.
+2. Compile the blocks, using the Gradle API as compile classpath. This means that the classpath declared in the `buildscript {}` block
+   will not be available to the `plugins {}` block.
+2. Execute the blocks in the order they appear in the script.
+3. Resolve the script compile classpath. This means resolving the `classpath` declared in the `buildscript {}` block, plus the public API
+   declared for each plugin, and detecting and resolving conflicts.
+4. Compile the script.
+5. Execute the script.
+
+The `plugins {}` block does not delegate to the script's target object. Instead, each script has its own plugin handler. This handler represents
+a context for resolving plugin declarations. The plugin handler is responsible for taking a plugin declaration, resolving it, and then
+applying the resulting plugin implementation to the script's target object.
+
+Note that plugins that are declared in the `plugins {}` block are not visible in any classpath outside the declaring script. This contrasts to the
+classpath declared in a build script `buildscript {}` block, which is visible to the build scripts of child projects.
+
+### Open issues
+
+- Select the target to apply the plugin to, eg `allprojects { ... }`.
+- Allow scripts to be applied from this block, and make them visible to the script classpath.
+- What happens when the API is used to apply a plugin?
+- A hierarchy of plugin containers:
+    - Build-level plugin resolver (mutable)
+        - One for each init script
+        - One for each settings script
+        - One for each build script
+- How to make a plugin implementation visible to all scripts?
+- How to declare plugin repositories?
+- How to make classes visible without applying the plugin?
+
+## Declaring plugin repositories
+
+The `plugins {}` block will allow plugin repositories to be declared.
+
+    plugins {
+        repositories {
+            // uses the public bintray repo for plugin meta-data and modules, and jcenter for additional modules
+            gradlePlugins()
+            // uses the given bintray repo for plugin meta-data and modules
+            bintray {
+                url '...'
+            }
+            // uses the given repo for modules
+            maven {
+                url '...'
+            }
+        }
+    }
+
+If no repositories are declared, this will default to `gradlePlugins()`. Some mechanism (TBD) will be available to configure this default in some way.
+
+### Open issues
+
+- This means that a given plugin implementation can end up with different implementation classpaths in different scripts. Allow this? Fail?
+- Separate plugin meta-data and module repository declarations?
+- Give a name to the protocol used to resolve from bintray and use this name for bintray and artifactory repositories.
+- An init script should be able to define how to resolve plugins for all settings and build scripts and for API usage. Possibly for buildSrc as well.
+- An settings script should be able to define how to resolve plugins for all build scripts, and for API usage.
+- A root build script should be able to define how to resolve plugins for all build scripts (including self) and for API usage.
+
+## Examples
+
 ## Plugin resolution
 
 The general problem is, given a plugin declaration
 
-    apply plugin: 'some-id'
+    apply plugin: 'some-plugin'
 
-we need to resolve the plugin name `some-id` to an implementation class.
+we need to resolve the plugin name `some-plugin` to an implementation class.
 
-The current mechanism searches the classpath declared by the script associated with the target domain object for a
+The current mechanism searches the classpath declared by the script associated with the target object for a
 plugin with that name. So, in the case of a `Project` object, the classpath declared in the build script is searched.
 The setting script classpath is used in the case of a `Settings` object, and the init script classpath in the case of a `Gradle` object.
 
@@ -91,19 +178,19 @@ Plugin declarations will be generalised to become a kind of dependency declarati
 means: 'apply a plugin implementation that meets the given criteria'. Initially, the criteria will be limited to plugin name and
 version.
 
-As for other kinds of dependency resolution in Gradle, there will be a number of repositories, or locations, where Gradle will
-search for plugin implementations. There will be several such repositories baked into Gradle, but it will be possible to add custom
-implementations:
+As for other kinds of dependency resolution in Gradle, there will be a number of resolvers that Gradle will use to
+search for plugin implementations. A resolver may search some repository or other location for a plugin. There will be several such resolvers baked
+into Gradle, but it will be possible to add custom implementations:
 
-1. A Gradle core plugin repository. This will use a hard-coded set of mappings from plugin name to implementation module. It may use the
+1. A Gradle core plugin resolver. This will use a hard-coded set of mappings from plugin name to implementation module. It may use the
    implementation module included the distribution, if present, or may resolve the implementation module from the public bintray repository.
-   This repository allows the core Gradle plugins to be moved out of the Gradle distribution archives,
+   This resolver allows the core Gradle plugins to be moved out of the Gradle distribution archives,
    changing Gradle into a logical distribution of a small runtime and a collection of plugins that can be downloaded separately as
    required, similar to, say, a Linux distribution. It further allows some plugins to be moved out of the distribution entirely,
    via deprecation of a particular mapping.
-1. The classpath repository. This will use the appropriate search classpath to locate a plugin implementation.
+1. The classpath resolver. This will use the appropriate search classpath to locate a plugin implementation.
 1. The public bintray repository. This will resolve plugin implementations using meta-data and files from the pubic bintray repository.
-1. Possibly also a repository that uses mappings rules provided by the build. This would allow, for example, for a build to say things like:
+1. Possibly also a resolver that uses mappings rules provided by the build. This would allow, for example, for a build to say things like:
    map plugin name 'x' to this Gradle script, or this implementation module, or this implementation `Class` instance.
 
 Given a plugin declaration `apply plugin: $name`, search for an implementation in the following locations, stopping when a match is found:
@@ -134,63 +221,28 @@ Apply version >= 0.5 and < 0.6 of the `android` plugin fetched from the Gradle p
 
 ### Resolution of a plugin declaration using a plugin repository
 
-Resolution of a plugin declaration using a plugin repository is made up of two steps: First, the plugin declaration is resolved to an implementation module.
-Second, the implementation module and its dependencies are resolved to a classpath and the implementation class is loaded from this classpath.
+Resolution of a plugin declaration using a plugin repository is made up of two steps: First, the plugin declaration is resolved to a plugin implementation component.
+Second, the plugin component and its dependencies are resolved to a classpath and the plugin implementation class is loaded from this classpath.
 
-The repository may be used to perform one or both resolution steps. For example, the Gradle runtime mapping does not use the repository to determine the
-implementation module, but may use the repository resolve the module to a classpath.
+The provided repository may be used to perform one or both resolution steps. For example, the Gradle core plugin resolver does not use the repository to determine the
+implementation component, but may use the repository resolve the component to a classpath.
 
-Step 1: Given a plugin name and version, use repository to resolve to a module:
+Step 1: Given a plugin name and version, use repository to resolve to a plugin component:
 
-1. If the given name and version have already been resolved to a package in this build, reuse the mapping.
-1. If the given name and version to package mapping is present in the persistent cache and has not expired, reuse the mapping.
+1. If the given name and version have already been resolved to a plugin component in this build, reuse the mapping.
+1. If the given name and version to component mapping is present in the persistent cache and has not expired, reuse the mapping.
 1. If running `--offline`, fail.
 1. Fetch from the repository the list of packages that have the plugin name associated with the package. Select the highest version that
    meets the version criteria and which is compatible with the current Gradle version. Fail if there are no such packages.
 1. Cache the result.
 
-Step 2: Given an implementation module:
+Step 2: Given a plugin name and plugin component:
 
-1. If the module has been resolved in this build, reuse the mapping.
-1. Resolve the module and its dependencies from the respository.
-1. Load the implementation classpath into a `ClassLoader` whose parent is the Gradle API `ClassLoader` (see [ClassLoader graph](https://docs.google.com/drawings/d/1-hEaN0HDSbyw_QSuK8rUOqELohbufyl7osAQvCd7COk/edit?usp=sharing)).
-1. Load the plugin implementation from this `ClassLoader`.
+1. If the component has been resolved in this build, reuse the mapping.
+1. Resolve the component and its runtime dependencies from the repository to produce a runtime classpath
+1. Load the runtime classpath into a `ClassLoader` whose parent is the Gradle API `ClassLoader` (see [ClassLoader graph](https://docs.google.com/drawings/d/1-hEaN0HDSbyw_QSuK8rUOqELohbufyl7osAQvCd7COk/edit?usp=sharing)).
+1. Load the plugin implementation class from this `ClassLoader`.
 1. Cache the result.
-
-Note that the classes from the plugin are not made visible to any script. This means that a script will not be able to use any classes provided by the plugin.
-Plugin implementation will be made visible to those other plugins whose meta-data includes a dependency declaration on that plugin.
-
-To use the classes from a plugin in a script, the script author will declare that the classes are required by the script:
-
-    buildscript {
-        require plugin: 'my-plugin', version: '1.2'
-    }
-
-    import my.plugin.SomeClass
-
-    task doStuff(type: SomeClass)
-
-The `require` statement resolves the plugin declaration to an implementation and makes the implementation available to the script compile classpath,
-but does not apply the plugin.
-
-Specifically, the `require` statement resolves the plugin declaration to an implementation `ClassLoader`, as for the `apply` statement, and
-adds this as a parent of the compile `ClassLoader` for the script. The dependency is not inherited by subprojects, so that each script must declare
-its dependencies.
-
-Another example, where a script applies a plugin to several projects:
-
-    buildscript {
-        require plugin: 'my-plugin', version: '1.2.+'
-    }
-
-    import my.plugin.SomeClass
-
-    subprojects {
-        apply plugin: 'my-plugin', version: '1.2.+'
-        myPlugin {
-            someThing = new SomeClass()
-        }
-    }
 
 # Stories
 
@@ -200,7 +252,7 @@ TBD
 
 TBD - declaring dependencies of a plugin on other plugins
 TBD - configuring which repositories, possibly none, to use to resolve plugin declaration and to use to resolve implementation modules.
-TBD - backwards compatibility wrt moving the core plugins. EG all core plugins are currently visible on every script compile classpath.
+TBD - backwards compatibility wrt moving the core plugins. eg all core plugins are currently visible on every script compile classpath.
 TBD - declare and expose only the API of the plugin
 TBD - require statement adds a mapping rule so that version is not required to apply the plugin later in the same script.
 TBD - handle conflicts where different versions of a plugin are requested to be applied to the target object.
