@@ -31,6 +31,7 @@ public class VisualStudioInstall {
         this.visualStudioDir = locateVisualStudio(installDir);
         File vcDir = new File(visualStudioDir, "VC");
 
+        // TODO:DAZ Should the windows SDK be part of the tool chain? How should we deal with system libraries?
         windowsSdkDir = locateWindowsSdk(visualStudioDir);
 
         addPathEntries(
